@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{101D4708-21CF-4789-8628-D37580CC6927}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.E2ETests", "tests\System.E2ETests\System.E2ETests.csproj", "{B6B6C645-B718-47CC-90EC-EE703DC6905B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B6B6C645-B718-47CC-90EC-EE703DC6905B} = {101D4708-21CF-4789-8628-D37580CC6927}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B6B6C645-B718-47CC-90EC-EE703DC6905B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6B6C645-B718-47CC-90EC-EE703DC6905B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6B6C645-B718-47CC-90EC-EE703DC6905B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6B6C645-B718-47CC-90EC-EE703DC6905B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
