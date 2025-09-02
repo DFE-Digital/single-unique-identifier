@@ -13,4 +13,4 @@ Feature: Education information consolidation
     When 'Timmy' enrolls as a pupil at 'Bassingbourn Primary'
     And a contact referral is made about 'Timmy' to 'South Cambridgeshire District Council'
     And 'Jenny' find and views consolidated records for 'Timmy' at 'South Cambridgeshire District Council'
-    Then 'Timmy's education record shows that he is enrolled at 'Bassingbourn Primary'
+    Then 'Jenny' sees that 'Timmy' is enrolled at 'Bassingbourn Primary'
