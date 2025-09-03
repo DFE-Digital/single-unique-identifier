@@ -1,4 +1,5 @@
 site_name: Single unique identifier Documentation
+docs_dir: Docs/
 theme:
   name: material
   custom_dir: resources/tech_docs_template
