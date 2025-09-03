@@ -55,5 +55,5 @@ nunit-*.xml
 
 # Idea
 .idea/
-
+.DS_Store
 *.dotsettings.user
