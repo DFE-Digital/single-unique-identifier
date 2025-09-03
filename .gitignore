@@ -57,3 +57,5 @@ nunit-*.xml
 .idea/
 
 *.dotsettings.user
+*.feature.cs
+.vscode
