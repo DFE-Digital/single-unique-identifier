@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "docs/**"
+      - "Docs/**"
       - "mkdocs.yml"
       - "resources/tech_docs_template/**"
       - ".github/workflows/deploy-github-documentation.yaml"
