@@ -29,56 +29,56 @@ public class EducationSteps
         throw new PendingStepException();
     }
 
-    [When("{string} find and views consolidated records for {string} at {string}")]
-    public void WhenFindAndViewsConsolidatedRecordsForAt(string s, string s2, string s3)
+    [When("{string} finds and views consolidated records for {string} at {string}")]
+    public void WhenFindAndViewsConsolidatedRecordsForAt(string userName, string childName, string laName)
     {
         throw new PendingStepException();
     }
 
     [When("a contact referral is made about {string} to {string}")]
-    public void WhenAContactReferralIsMadeAboutTo(string s, string s2)
+    public void WhenAContactReferralIsMadeAboutTo(string childName, string laName)
     {
         throw new PendingStepException();
     }
 
     [Given("{string} is in the single view cohort for {string}")]
-    public void GivenIsInTheSingleViewCohortFor(string s, string s2)
+    public void GivenIsInTheSingleViewCohortFor(string orgName, string laName)
     {
         throw new PendingStepException();
     }
 
     [Given("there is a child named {string} with the NHS number {string}")]
-    public void GivenThereIsAChildNamedWithTheNHSNumber(string s, string s2)
+    public void GivenThereIsAChildNamedWithTheNHSNumber(string childName, string nhsNumber)
     {
         throw new PendingStepException();
     }
 
     [Given("there is a social care practitioner named {string}")]
-    public void GivenThereIsASocialCarePractitionerNamed(string s)
+    public void GivenThereIsASocialCarePractitionerNamed(string scpName)
     {
         throw new PendingStepException();
     }
 
     [Given("there is a local authority named {string}")]
-    public void GivenThereIsALocalAuthorityNamed(string s)
+    public void GivenThereIsALocalAuthorityNamed(string laName)
     {
         throw new PendingStepException();
     }
 
     [Given("there is a school named {string}")]
-    public void GivenThereIsASchoolNamed(string s)
+    public void GivenThereIsASchoolNamed(string schoolName)
     {
         throw new PendingStepException();
     }
 
     [When("{string} enrolls as a pupil at {string}")]
-    public void WhenEnrollsAsAPupilAt(string s, string s2)
+    public void WhenEnrollsAsAPupilAt(string childName, string schoolName)
     {
         throw new PendingStepException();
     }
 
     [Then("{string} sees that {string} is enrolled at {string}")]
-    public void ThenSeesThatIsEnrolledAt(string s, string s2, string s3)
+    public void ThenSeesThatIsEnrolledAt(string userName, string childName, string schoolName)
     {
         throw new PendingStepException();
     }

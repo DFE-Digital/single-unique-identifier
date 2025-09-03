@@ -12,5 +12,5 @@ Feature: Education information consolidation
     And 'Bassingbourn Primary' is in the single view cohort for 'South Cambridgeshire District Council'
     When 'Timmy' enrolls as a pupil at 'Bassingbourn Primary'
     And a contact referral is made about 'Timmy' to 'South Cambridgeshire District Council'
-    And 'Jenny' find and views consolidated records for 'Timmy' at 'South Cambridgeshire District Council'
+    And 'Jenny' finds and views consolidated records for 'Timmy' at 'South Cambridgeshire District Council'
     Then 'Jenny' sees that 'Timmy' is enrolled at 'Bassingbourn Primary'
