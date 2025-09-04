@@ -21,7 +21,7 @@ The key drivers for this architectural decision are the need for a structure tha
 
 ## Options Considered
 
-1.  **Diamond Architecture**: A pattern where dependencies are structured to flow from outer layers (like UI and Infrastructure) towards an inner 'Application' layer, and finally to a central 'Core' or 'Domain' layer. It aims for simplicity and clear dependency flow.
+1.  **Diamond Architecture**: A more informal pattern compared to Clean Architecture where dependencies are structured to flow from outer layers (like UI and Infrastructure) towards an inner 'Application' layer, and finally to a central 'Core' or 'Domain' layer. It aims for simplicity and clear dependency flow.
 
 2. (SELECTED) **Clean Architecture**: A well-established pattern that organizes the project into a series of concentric layers (e.g., Domain, Application, Infrastructure, Presentation). The fundamental rule is the **Dependency Rule**: source code dependencies can only point inwards. This isolates the core business logic from external concerns like databases, frameworks, and UIs.
 
@@ -32,10 +32,11 @@ The key drivers for this architectural decision are the need for a structure tha
 ### Option 1. Diamond Architecture
 
 * **Pros**:
-    * Can be simpler to grasp initially compared to the more formal layered approach of Clean Architecture.
-    * Potentially less boilerplate code for smaller projects.
+    * Perceived Initial Simplicity: The visual dependency graph is intuitive and easy to explain on a whiteboard. For a team unfamiliar with formal architectural patterns, this can feel less intimidating than adopting the stricter, more prescriptive rules of Clean Architecture.
+    * Potentially faster at the beginning of a project due to it's informal nature, developers can quickly develop without worrying to much about dependencies and projects. This is a trade-off for speed.
+    * It's the closest pattern to Clean Architecture, so if the project needed to adhere to more strict dependencies, then it could move to a more formal Clean Architecture.
 * **Cons**:
-    * It's not a widely recognized or standardized pattern in the .NET ecosystem. This could increase the learning curve for new developers joining the team.
+    * There is far less resource and documentation around this pattern, so going beyond simple applications may cause difficulties in understanding.
     * The lack of strict, community-enforced conventions might lead to inconsistencies and a breakdown in separation of concerns as the project grows.
 
 ### Option 2. Clean Architecture (Chosen)
