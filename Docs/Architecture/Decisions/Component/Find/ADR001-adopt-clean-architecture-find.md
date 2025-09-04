@@ -1,4 +1,4 @@
-# ADR002: Adopt Clean Architecture for Find
+# ADR001: Adopt Clean Architecture for Find
 
 - **Date**: 2025-09-04
 - **Author**: Stuart Maskell
