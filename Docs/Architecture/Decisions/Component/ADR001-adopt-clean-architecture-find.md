@@ -23,7 +23,7 @@ The key drivers for this architectural decision are the need for a structure tha
 
 1.  **Diamond Architecture**: A pattern where dependencies are structured to flow from outer layers (like UI and Infrastructure) towards an inner 'Application' layer, and finally to a central 'Core' or 'Domain' layer. It aims for simplicity and clear dependency flow.
 
-2.  **Clean Architecture**: A well-established pattern that organizes the project into a series of concentric layers (e.g., Domain, Application, Infrastructure, Presentation). The fundamental rule is the **Dependency Rule**: source code dependencies can only point inwards. This isolates the core business logic from external concerns like databases, frameworks, and UIs.
+2. (SELECTED) **Clean Architecture**: A well-established pattern that organizes the project into a series of concentric layers (e.g., Domain, Application, Infrastructure, Presentation). The fundamental rule is the **Dependency Rule**: source code dependencies can only point inwards. This isolates the core business logic from external concerns like databases, frameworks, and UIs.
 
 3.  **Hexagonal Architecture (Ports and Adapters)**: Another pattern focused on isolating the core application logic. It interacts with the outside world through "Ports" (interfaces defined by the application) and "Adapters" (concrete implementations for external technologies like databases or APIs).
 
