@@ -3,7 +3,7 @@
 - **Date**: 2025-09-04
 - **Author**: Stuart Maskell
 - **Status**: Accepted
-- **Category**: Component
+- **Category**: Component/Find
 
 ## Decision
  We will adopt the **Clean Architecture** pattern for our .NET 9+ API project(s) for the 'Find' team. This decision is based on its strong support for separation of concerns, testability, and its widespread adoption within the .NET community, which will ease developer onboarding. A good template to [follow](https://github.com/jasontaylordev/CleanArchitecture/tree/main)
