@@ -12,10 +12,10 @@
 
 For the 'Find' project, we are initiating a semi new project using .NET. The project will involve starting with one or two public-facing APIs deployed to Azure. The system will integrate with several external components:
 
-* SQL: database for data persistence.
-* Azure Key Vault: for managing secrets and connection strings.
-* Azure Storage: for supplementary logging or file storage.
-* Third-party APIs: requiring secure, authenticated communication.
+* A database
+* Secret storage
+* File storage for logs
+* Third-party APIs such as the NHS PDS FHIR API.
 
 The key drivers for this architectural decision are the need for a structure that is easy for developers to adopt and test, while ensuring an excellent separation of concerns. This will support long-term maintainability and scalability as the project evolves.
 
