@@ -60,6 +60,6 @@ The key drivers for this architectural decision are the need for a structure tha
 
 ## Advice
 
-Josh Taylor - Go with clean architecture, mostly well known and easier for developers to onboard.
+_Josh Taylor, Technical architect, 2025-09-04._ Go with clean architecture, mostly well known and easier for developers to onboard.
 
-Tom Hawkin - Go with clean architecture, simplest and does follows SOLID principles well.
+_Tom Hawkin, Senior developer, 2025-09-04._ Go with clean architecture, simplest and does follows SOLID principles well.
