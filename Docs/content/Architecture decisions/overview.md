@@ -12,12 +12,13 @@ ADRs are structured into two categories:
 
 ## Summary of ADRs
 
-### System
+### Component
+
+#### Find
 
 | ID | Name |
 |----|------|
-| [ADR001](System/ADR001-build-central-locator-and-la-generator.md) | Build a central locator service and generate single-view data sets in local authorities |
-| [ADR002](System/ADR002-create-new-component-for-central-matching-service.md) | Create a new component to implement a centralised NHS number matching service |
+| [ADR001](Component/Find/ADR001-adopt-clean-architecture-find.md) | Adopt Clean Architecture for Find |
 
 ### Component
 
