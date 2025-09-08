@@ -4,7 +4,7 @@ Feature: Education information consolidation
   I want to see the education details of a given child
   So that I am more informed in my work with the child
   
-  Scenario: An SCP receives a contact referral and looks up which school they attend
+  Scenario: An SCP receives a contact referral and looks up which school the child attends
     Given there is a school named 'Bassingbourn Primary'
     And there is a local authority named 'South Cambridgeshire District Council'
     And there is a social care practitioner named 'Jenny'
