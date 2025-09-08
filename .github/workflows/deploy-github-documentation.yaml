@@ -6,8 +6,6 @@ on:
       - main
     paths:
       - "Docs/**"
-      - "mkdocs.yml"
-      - "resources/tech_docs_template/**"
       - ".github/workflows/deploy-github-documentation.yaml"
 
 jobs:
@@ -22,5 +20,5 @@ jobs:
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONFIG_FILE: mkdocs.yml
-          REQUIREMENTS: folder/requirements.txt
+          CONFIG_FILE: Docs/mkdocs.yml
+          REQUIREMENTS: Docs/requirements.txt
