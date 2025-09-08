@@ -13,7 +13,7 @@ TBC
 
 To enable parallel development and robust testing, our teams need to simulate the behaviour of external HTTP-based APIs. We rely on several third-party services that may be unavailable during development, have rate limits, or are difficult to configure for specific test scenarios (e.g., error states, network latency).
 
-Adopting a standardised mocking tool will allow developers to build and test components independently of these external services. It will also empower our quality assurance (QA) team to create reliable and repeatable automated tests that can simulate a wide range of API responses, including edge cases and failures, without making actual network calls. This decision aims to select a single tool to ensure consistency across all development and testing workflows.
+Adopting a standardised mocking tool will allow components to be built and tested independently of these external services. It will also enable the creation of reliable and repeatable automated tests that can simulate a wide range of API responses, including edge cases and failures, without making actual network calls. This decision aims to select a single tool to ensure consistency across all development and testing workflows.
 
 ## Options considered
 
