@@ -1,0 +1,21 @@
+site_name: Single unique identifier documentation
+docs_dir: content/
+repo_url: https://github.com/DFE-Digital/single-unique-identifier
+repo_name: DFE-Digital/single-unique-identifier
+theme:
+  name: material
+  custom_dir: tech_docs_template
+  logo: logos/govuk-icon-512.png
+  favicon: favicons/favicon.ico
+  features:
+    - content.code.copy
+    - navigation.tracking
+    - navigation.sections
+    - toc.follow
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+plugins:
+  - glightbox
