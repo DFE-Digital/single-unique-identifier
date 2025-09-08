@@ -1,3 +1,4 @@
+
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUi.Find.Application.Interfaces;
@@ -57,7 +58,7 @@ public class MatchingServiceTests
     }
     
     [Fact]
-    public async Task ShouldReturn_ValidationError_IfFhirServiceContainsValidationErrors()
+    public Task ShouldReturn_ValidationError_IfFhirServiceContainsValidationErrors()
     {
         // FhirSearchResult is Fhir return class
         // Arrange
@@ -69,7 +70,7 @@ public class MatchingServiceTests
     }
     
     [Fact]
-    public async Task ShouldReturn_MatchResults_WhenFhirServiceCallIsSuccessful()
+    public Task ShouldReturn_MatchResults_WhenFhirServiceCallIsSuccessful()
     {
         // FhirSearchResult is Fhir return class
         // Arrange

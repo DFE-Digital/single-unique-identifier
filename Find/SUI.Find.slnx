@@ -1,7 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="SUi.Find.Application/SUi.Find.Application.csproj" />
-    <Project Path="Sui.Find.Domain/Sui.Find.Domain.csproj" />
+    <Project Path="SUI.Find.Domain\SUI.Find.Domain.csproj" Type="Classic C#" />
     <Project Path="SUI.Find.Infrastructure/SUI.Find.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">

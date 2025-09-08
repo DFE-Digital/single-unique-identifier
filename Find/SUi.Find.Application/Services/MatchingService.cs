@@ -22,6 +22,8 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
         // TODO: Create Query for FHIR service.
         // TODO: SearchId set into Activity baggage for logging.
         
+        logger.LogInformation("Start searching. TODO");
+        
         var fhirSearchResult = await fhirService.PerformSearchAsync();
         var matchResponse = new PersonMatchResponse
         {
@@ -30,18 +32,18 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
                 MatchStatus = fhirSearchResult.Type.ToString(),
                 MatchStatusErrorMessage = fhirSearchResult.ErrorMessage,
                 NhsNumber = fhirSearchResult.NhsNumber,
-                ProcessStage = null,
+                ProcessStage = "",
                 Score = fhirSearchResult.Score
             },
             DataQuality = new PersonMatchResponse.MatchDataQuality
             {
-                Given = null,
-                Family = null,
-                Birthdate = null,
-                AddressPostalCode = null,
-                Phone = null,
-                Email = null,
-                Gender = null
+                Given = "",
+                Family = "",
+                Birthdate = "",
+                AddressPostalCode = "",
+                Phone = "",
+                Email = "",
+                Gender = ""
             }
         };
         return matchResponse;
