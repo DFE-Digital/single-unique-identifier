@@ -17,6 +17,9 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
     public async Task<PersonMatchResponse> SearchAsync(PersonSpecification personSpecification)
     {
         // TODO: Validation of personSpecification here.
+        var validate = new PersonSpecificationValidation();
+        var validationResult = await validate.ValidateAsync(personSpecification);
+        
         // TODO: Create quality result.
         // TODO: Check if minimum data for search is present.
         // TODO: Create Query for FHIR service.
