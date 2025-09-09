@@ -58,38 +58,37 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
 
             var resultValue = searchResult.Value!;
 
+            var current = MapSearchResult(resultValue, queryCode);
+            var currentPriority = GetMatchPriority(current.MatchStatus);
 
-            var currentResult = resultValue.Type switch
+            var recordBetterMatch = currentPriority > bestPriority ||
+                               (currentPriority == bestPriority && current.Score > bestScore);
+            if (recordBetterMatch)
             {
-                SearchResult.ResultType.Matched => resultValue.Score switch
-                {
-                    >= Constants.MinMatchThreshold => new MatchResult(MatchStatus.Match, resultValue.Score, queryCode,
-                        resultValue.NhsNumber),
-                    >= Constants.MinPartialMatchThreshold => new MatchResult(MatchStatus.PotentialMatch,
-                        resultValue.Score, queryCode,
-                        resultValue.NhsNumber),
-                    _ => new MatchResult(MatchStatus.NoMatch, resultValue.Score, queryCode)
-                },
-                SearchResult.ResultType.MultiMatched => new MatchResult(MatchStatus.ManyMatch, null, queryCode),
-                _ => new MatchResult(MatchStatus.NoMatch, resultValue.Score, queryCode)
-            };
-
-            var currentPriority = GetMatchPriority(currentResult.MatchStatus);
-
-            if (currentPriority > bestPriority ||
-                (currentPriority == bestPriority && currentResult.Score > bestScore))
-            {
-                bestResult = currentResult;
+                bestResult = current;
                 bestPriority = currentPriority;
-                bestScore = currentResult.Score ?? -1;
+                bestScore = current.Score ?? -1;
             }
 
-            if (currentResult is { MatchStatus: MatchStatus.Match, Score: >= Constants.MinMatchThreshold })
+            if (current is { MatchStatus: MatchStatus.Match, Score: >= Constants.MinMatchThreshold })
                 break;
         }
 
         return bestResult ?? new MatchResult(MatchStatus.NoMatch);
     }
+    
+    private static MatchResult MapSearchResult(SearchResult value, string queryCode) =>
+        value.Type switch
+        {
+            SearchResult.ResultType.Matched => value.Score switch
+            {
+                >= 0.95m => new MatchResult(MatchStatus.Match, value.Score, queryCode, value.NhsNumber),
+                >= 0.85m => new MatchResult(MatchStatus.PotentialMatch, value.Score, queryCode, value.NhsNumber),
+                _ => new MatchResult(MatchStatus.NoMatch, value.Score, queryCode)
+            },
+            SearchResult.ResultType.MultiMatched => new MatchResult(MatchStatus.ManyMatch, null, queryCode),
+            _ => new MatchResult(MatchStatus.NoMatch, value.Score, queryCode)
+        };
 
 
     private static int GetMatchPriority(MatchStatus status)
