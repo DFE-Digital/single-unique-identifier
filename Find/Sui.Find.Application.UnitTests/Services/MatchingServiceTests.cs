@@ -45,12 +45,7 @@ public class MatchingServiceTests
     public async Task ShouldReturn_Error_IfFhirServiceErrors()
     {
         // Arrange
-        var personSpec = new PersonSpecification
-        {
-            Given = "Jon",
-            Family = "Smith",
-            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
-        };
+        var personSpec = CreateMinimalValidPersonSpec();
         
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Failure("Simulated FHIR service error"));
 
@@ -68,12 +63,7 @@ public class MatchingServiceTests
     public async Task ShouldReturn_MatchResults_WhenFhirServiceScoreIs95OrGreater(decimal score)
     {
         // Arrange
-        var personSpec = new PersonSpecification
-        {
-            Given = "Jon",
-            Family = "Smith",
-            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
-        };
+        var personSpec = CreateMinimalValidPersonSpec();
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMatched(score)));
 
         // Act
@@ -91,12 +81,7 @@ public class MatchingServiceTests
     public async Task ShouldReturn_PotentialMatchResults_WhenFhirServiceScoreIsBetween85And95(decimal score)
     {
         // Arrange
-        var personSpec = new PersonSpecification
-        {
-            Given = "Jon",
-            Family = "Smith",
-            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
-        };
+        var personSpec = CreateMinimalValidPersonSpec();
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMatched(score)));
 
         // Act
@@ -110,12 +95,7 @@ public class MatchingServiceTests
     public async Task ShouldReturn_ManyMatchResults_WhenFhirServiceReturnsMultiMatch()
     {
         // Arrange
-        var personSpec = new PersonSpecification
-        {
-            Given = "Jon",
-            Family = "Smith",
-            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
-        };
+        var personSpec = CreateMinimalValidPersonSpec();
         
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMultiMatch()));
 
@@ -124,6 +104,31 @@ public class MatchingServiceTests
 
         // Assert
         Assert.Equal(MatchStatus.ManyMatch, response.Result.MatchStatus);
+    }
+    
+    [Fact]
+    public async Task ShouldReturn_NoMatchResults_WhenFhirServiceReturnsUnmatched()
+    {
+        // Arrange
+        var personSpec = CreateMinimalValidPersonSpec();
+        
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultUnmatched()));
+
+        // Act
+        var response = await _matchingService.SearchAsync(personSpec);
+
+        // Assert
+        Assert.Equal(MatchStatus.NoMatch, response.Result.MatchStatus);
+    }
+    
+    private static PersonSpecification CreateMinimalValidPersonSpec()
+    {
+        return new PersonSpecification
+        {
+            Given = "Jon",
+            Family = "Smith",
+            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
+        };
     }
     
     private static SearchResult GetMockFhirSearchResultMatched(decimal score)
@@ -143,6 +148,16 @@ public class MatchingServiceTests
             NhsNumber = null,
             Score = 0,
             Type = SearchResult.ResultType.MultiMatched
+        };
+    }
+    
+    private static SearchResult GetMockFhirSearchResultUnmatched()
+    {
+        return new SearchResult
+        {
+            NhsNumber = null,
+            Score = 0,
+            Type = SearchResult.ResultType.Unmatched
         };
     }
 }

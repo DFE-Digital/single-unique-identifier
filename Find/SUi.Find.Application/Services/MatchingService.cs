@@ -18,11 +18,7 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
 {
     public async Task<PersonMatchResponse> SearchAsync(PersonSpecification personSpecification)
     {
-        var validate = new PersonSpecificationValidation();
-        var validationResult = await validate.ValidateAsync(personSpecification);
-        
-        var dataQualityTranslator = new PersonDataQualityTranslator();
-        var (metRequirements, dataQualityResult) = dataQualityTranslator.Translate(personSpecification, validationResult);
+        var (metRequirements, dataQualityResult) = await CheckDataQuality(personSpecification);
         if (!metRequirements)
         {
             const string validationMessage = "The minimized data requirements for a search weren't met, returning match status 'Error'";
@@ -73,5 +69,15 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
         }
 
         return matchResponse;
+    }
+
+    private static async Task<(bool metRequirements, DataQualityResult dataQuality)> CheckDataQuality(
+        PersonSpecification personSpecification)
+    {
+        var validate = new PersonSpecificationValidation();
+        var validationResult = await validate.ValidateAsync(personSpecification);
+
+        var dataQualityTranslator = new PersonDataQualityTranslator();
+        return  dataQualityTranslator.Translate(personSpecification, validationResult);
     }
 }
