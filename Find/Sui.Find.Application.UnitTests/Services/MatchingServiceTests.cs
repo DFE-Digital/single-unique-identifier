@@ -38,7 +38,7 @@ public class MatchingServiceTests
 
         // Assert
         Assert.Equal(MatchStatus.Error, response.Result.MatchStatus);
-        Assert.NotNull(response.Result.MatchStatusErrorMessage);
+        Assert.NotNull(response.Result.ErrorMessage);
     }
     
     [Fact]
@@ -54,7 +54,7 @@ public class MatchingServiceTests
 
         // Assert
         Assert.Equal(MatchStatus.Error, response.Result.MatchStatus);
-        Assert.NotNull(response.Result.MatchStatusErrorMessage);
+        Assert.NotNull(response.Result.ErrorMessage);
     }
     
     [Theory]
@@ -145,7 +145,7 @@ public class MatchingServiceTests
     }
     
     [Fact]
-    public async Task ShouldReturnBestResult_IfMultipleQueriesExecuted()
+    public async Task ShouldReturnBestResult_OfPotentialMatch_WhenMultipleQueriesExecuted()
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
@@ -161,6 +161,25 @@ public class MatchingServiceTests
 
         // Assert
         Assert.Equal(MatchStatus.PotentialMatch, response.Result.MatchStatus);
+    }
+    
+    [Fact]
+    public async Task ShouldReturnBestResult_OfManyMatch_WhenMultipleQueriesExecuted()
+    {
+        // Arrange
+        var personSpec = CreateMinimalValidPersonSpec();
+        
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+            .Returns(
+                Result<SearchResult>.Success(GetMockFhirSearchResultMultiMatch()),
+                Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.50m))
+            );
+
+        // Act
+        var response = await _matchingService.SearchAsync(personSpec);
+
+        // Assert
+        Assert.Equal(MatchStatus.ManyMatch, response.Result.MatchStatus);
     }
     
     private static PersonSpecification CreateMinimalValidPersonSpec()

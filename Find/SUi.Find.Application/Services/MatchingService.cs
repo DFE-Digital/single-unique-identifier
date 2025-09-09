@@ -21,7 +21,7 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
         var (metRequirements, dataQualityResult) = await CheckDataQuality(personSpecification);
         if (!metRequirements)
         {
-            return BuildErrorResponse(dataQualityResult,
+            return BuildValidationErrorResponse(dataQualityResult,
                 "The minimized data requirements for a search weren't met, returning match status 'Error'");
         }
 
@@ -40,9 +40,7 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
 
     private async Task<MatchResult> FindBestMatchResultAsync(OrderedDictionary<string, SearchQuery> queries)
     {
-        MatchResult? bestResult = null;
-        var bestPriority = -1;
-        decimal bestScore = -1;
+        MatchResult? best = null;
 
         foreach (var (queryCode, query) in queries)
         {
@@ -52,29 +50,26 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
             if (!searchResult.IsSuccess)
             {
                 logger.LogError("FHIR service returned an error: {ErrorMessage}", searchResult.Error);
-                bestResult = new MatchResult(MatchStatus.Error, "Error: Could not complete search");
-                continue; // Proceed to next query if available see if that yields a result
+                var errorResult = MatchResult.Error("Error: Could not complete search");
+
+                if (errorResult.IsBetterThan(best))
+                    best = errorResult;
+
+                continue;
             }
 
-            var resultValue = searchResult.Value!;
+            var current = MapSearchResult(searchResult.Value!, queryCode);
 
-            var current = MapSearchResult(resultValue, queryCode);
-            var currentPriority = GetMatchPriority(current.MatchStatus);
-
-            var recordBetterMatch = currentPriority > bestPriority ||
-                               (currentPriority == bestPriority && current.Score > bestScore);
-            if (recordBetterMatch)
-            {
-                bestResult = current;
-                bestPriority = currentPriority;
-                bestScore = current.Score ?? -1;
-            }
+            if (current.IsBetterThan(best))
+                best = current;
 
             if (current is { MatchStatus: MatchStatus.Match, Score: >= Constants.MinMatchThreshold })
+            {
                 break;
+            }
         }
 
-        return bestResult ?? new MatchResult(MatchStatus.NoMatch);
+        return best ?? MatchResult.NoMatch();
     }
     
     private static MatchResult MapSearchResult(SearchResult value, string queryCode) =>
@@ -82,26 +77,13 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
         {
             SearchResult.ResultType.Matched => value.Score switch
             {
-                >= 0.95m => new MatchResult(MatchStatus.Match, value.Score, queryCode, value.NhsNumber),
-                >= 0.85m => new MatchResult(MatchStatus.PotentialMatch, value.Score, queryCode, value.NhsNumber),
-                _ => new MatchResult(MatchStatus.NoMatch, value.Score, queryCode)
+                >= Constants.MinMatchThreshold => MatchResult.Match(value.Score ?? 0, queryCode, value.NhsNumber!),
+                >= Constants.MinPartialMatchThreshold => MatchResult.PotentialMatch(value.Score ?? 0, queryCode, value.NhsNumber!),
+                _ => MatchResult.NoMatch()
             },
-            SearchResult.ResultType.MultiMatched => new MatchResult(MatchStatus.ManyMatch, null, queryCode),
-            _ => new MatchResult(MatchStatus.NoMatch, value.Score, queryCode)
+            SearchResult.ResultType.MultiMatched => MatchResult.ManyMatch(queryCode),
+            _ => MatchResult.NoMatch()
         };
-
-
-    private static int GetMatchPriority(MatchStatus status)
-    {
-        return status switch
-        {
-            MatchStatus.Match => 3,
-            MatchStatus.PotentialMatch => 2,
-            MatchStatus.ManyMatch => 1,
-            MatchStatus.NoMatch => 0,
-            _ => -1
-        };
-    }
 
     private static async Task<(bool metRequirements, DataQualityResult dataQuality)> CheckDataQuality(
         PersonSpecification personSpecification)
@@ -113,12 +95,12 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
         return dataQualityTranslator.Translate(personSpecification, validationResult);
     }
     
-    private PersonMatchResponse BuildErrorResponse(DataQualityResult dq, string message)
+    private PersonMatchResponse BuildValidationErrorResponse(DataQualityResult dq, string message)
     {
         logger.LogWarning("[Validation] {Message}", message);
         return new PersonMatchResponse
         {
-            Result = new MatchResult(MatchStatus.Error, message),
+            Result = MatchResult.Error(message),
             DataQuality = dq
         };
     }
