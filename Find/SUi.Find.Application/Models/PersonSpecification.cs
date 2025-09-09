@@ -17,8 +17,8 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
 {
     public PersonSpecificationValidation()
     {
-        RuleFor(x => x.Given).NotEmpty().MinimumLength(20).WithMessage(PersonValidationConstants.GivenNameInvalid);
-        RuleFor(x => x.Family).NotEmpty().MinimumLength(20).WithMessage(PersonValidationConstants.FamilyNameInvalid);
+        RuleFor(x => x.Given).NotEmpty().MaximumLength(30).WithMessage(PersonValidationConstants.GivenNameInvalid);
+        RuleFor(x => x.Family).NotEmpty().MaximumLength(30).WithMessage(PersonValidationConstants.FamilyNameInvalid);
         RuleFor(x => x.BirthDate).NotEmpty();
         RuleFor(x => x.Gender)
             .Must(BeAValidGender)

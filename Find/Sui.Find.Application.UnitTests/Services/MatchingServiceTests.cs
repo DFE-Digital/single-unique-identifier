@@ -1,6 +1,8 @@
 
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUi.Find.Application;
+using SUi.Find.Application.Common;
 using SUi.Find.Application.Interfaces;
 using SUi.Find.Application.Models;
 using SUi.Find.Application.Services;
@@ -9,19 +11,6 @@ namespace Sui.Find.Application.UnitTests.Services;
 
 public class MatchingServiceTests
 {
-    /*
-    [Fact]
-    public async Task Should_Do_Something_Template()
-    {
-        // Arrange
-
-        // Act
-
-        // Assert
-        throw new NotImplementedException();
-    }
-    */
-
     private readonly IFhirService _fhirService;
     private readonly MatchingService _matchingService;
 
@@ -39,47 +28,88 @@ public class MatchingServiceTests
         var personSpec = new PersonSpecification
         {
             Given = "Jon",
-            Family = "Smith",
+            Family = "",
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
-        _fhirService.PerformSearchAsync().Returns(new FhirSearchResult
-        {
-            ErrorMessage = "Simulated FHIR service error",
-            Type = FhirSearchResult.ResultType.Error
-        });
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0)));
 
         // Act
         var response = await _matchingService.SearchAsync(personSpec);
 
         // Assert
-        Assert.Equal("Error", response.Result.MatchStatus);
-        Assert.NotNull(response.Result.MatchStatusErrorMessage);
-        Assert.NotEmpty(response.Result.MatchStatusErrorMessage);
+        Assert.Equal(nameof(MatchStatus.Error), response.Result.Status);
     }
     
     [Fact]
-    public Task ShouldReturn_ValidationError_IfFhirServiceContainsValidationErrors()
+    public async Task ShouldReturn_Error_IfFhirServiceErrors()
     {
-        // FhirSearchResult is Fhir return class
         // Arrange
+        var personSpec = new PersonSpecification
+        {
+            Given = "Jon",
+            Family = "Smith",
+            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
+        };
+        
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Failure("Simulated FHIR service error"));
 
         // Act
+        var response = await _matchingService.SearchAsync(personSpec);
 
         // Assert
-        throw new NotImplementedException();
+        Assert.Equal(nameof(MatchStatus.Error), response.Result.Status);
     }
     
-    [Fact]
-    public Task ShouldReturn_MatchResults_WhenFhirServiceCallIsSuccessful()
+    [Theory]
+    [InlineData(0.95)]
+    [InlineData(1)]
+    public async Task ShouldReturn_MatchResults_WhenFhirServiceScoreIs95OrGreater(decimal score)
     {
-        // FhirSearchResult is Fhir return class
         // Arrange
+        var personSpec = new PersonSpecification
+        {
+            Given = "Jon",
+            Family = "Smith",
+            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
+        };
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMatched(score)));
 
         // Act
+        var response = await _matchingService.SearchAsync(personSpec);
 
         // Assert
-        throw new NotImplementedException();
+        Assert.Equal(nameof(MatchStatus.Match), response.Result.Status);
     }
     
+    [Theory]
+    [InlineData(0.85)]
+    [InlineData(0.90)]
+    [InlineData(0.94)]
+    public async Task ShouldReturn_PotentialMatchResults_WhenFhirServiceScoreIsBetween85And95(decimal score)
+    {
+        // Arrange
+        var personSpec = new PersonSpecification
+        {
+            Given = "Jon",
+            Family = "Smith",
+            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
+        };
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMatched(score)));
+
+        // Act
+        var response = await _matchingService.SearchAsync(personSpec);
+
+        // Assert
+        Assert.Equal(nameof(MatchStatus.PotentialMatch), response.Result.Status);
+    }
     
+    private static SearchResult GetMockFhirSearchResultMatched(decimal score)
+    {
+        return new SearchResult
+        {
+            NhsNumber = "1234567890",
+            Score = score,
+            Type = SearchResult.ResultType.Matched
+        };
+    }
 }
