@@ -56,13 +56,19 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
                 continue;
             }
             
-            var resultValue = searchResult.Value;
+            var resultValue = searchResult.Value!;
 
-            matchResponse.Result = resultValue!.Score switch
+            matchResponse.Result = resultValue.Type switch
             {
-                >= 0.95m => new MatchResult(resultValue, MatchStatus.Match, resultValue.Score, queryCode),
-                >= 0.85m => new MatchResult(resultValue, MatchStatus.PotentialMatch, resultValue.Score, queryCode),
-                _ => new MatchResult(resultValue, MatchStatus.NoMatch, resultValue.Score, queryCode)
+                SearchResult.ResultType.MultiMatched => new MatchResult(MatchStatus.ManyMatch, null, queryCode),
+                SearchResult.ResultType.Matched => resultValue.Score switch
+                {
+                    >= 0.95m => new MatchResult(MatchStatus.Match, resultValue.Score, queryCode, resultValue.NhsNumber),
+                    >= 0.85m => new MatchResult(MatchStatus.PotentialMatch, resultValue.Score, queryCode,
+                        resultValue.NhsNumber),
+                    _ => new MatchResult(MatchStatus.NoMatch, resultValue.Score, queryCode)
+                },
+                _ => matchResponse.Result
             };
         }
 

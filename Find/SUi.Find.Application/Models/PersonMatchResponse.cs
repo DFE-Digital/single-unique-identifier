@@ -8,32 +8,37 @@ public class PersonMatchResponse
 
 public class MatchResult
 {
-    public string Status { get; set; }
-    public SearchResult? Result { get; set; }
-    public string? MatchStatusErrorMessage { get; set; } // only if there is an error  "GivenName not provided"
-    public string? ProcessStage { get; set; } = string.Empty;
+    public MatchStatus MatchStatus { get; set; }
+
+    public string? NhsNumber { get; set; }
+
+    public string? ProcessStage { get; set; }
+
     public decimal? Score { get; set; }
+    public string? MatchStatusErrorMessage { get; set; }
     
-    public MatchResult(MatchStatus status) => Status = status.ToString();
+    
+    public MatchResult(MatchStatus status) => MatchStatus = status;
 
     public MatchResult(MatchStatus status, string errorMessage)
     {
-        Status = status.ToString();
+        MatchStatus = status;
         MatchStatusErrorMessage = errorMessage;
     }
-    public MatchResult(SearchResult result, MatchStatus status, string processStage)
+    
+    public MatchResult(MatchStatus status, decimal? score, string processStage)
     {
-        Result = result;
-        Status = status.ToString();
+        MatchStatus = status;
+        Score = score;
         ProcessStage = processStage;
     }
     
-    public MatchResult(SearchResult result, MatchStatus status, decimal? score, string processStage)
+    public MatchResult(MatchStatus status, decimal? score, string processStage, string? nhsNumber)
     {
-        Result = result;
-        Status = status.ToString();
+        MatchStatus = status;
         Score = score;
         ProcessStage = processStage;
+        NhsNumber = nhsNumber;
     }
 }
 

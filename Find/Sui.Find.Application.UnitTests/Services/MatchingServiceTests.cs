@@ -37,7 +37,8 @@ public class MatchingServiceTests
         var response = await _matchingService.SearchAsync(personSpec);
 
         // Assert
-        Assert.Equal(nameof(MatchStatus.Error), response.Result.Status);
+        Assert.Equal(MatchStatus.Error, response.Result.MatchStatus);
+        Assert.NotNull(response.Result.MatchStatusErrorMessage);
     }
     
     [Fact]
@@ -57,7 +58,8 @@ public class MatchingServiceTests
         var response = await _matchingService.SearchAsync(personSpec);
 
         // Assert
-        Assert.Equal(nameof(MatchStatus.Error), response.Result.Status);
+        Assert.Equal(MatchStatus.Error, response.Result.MatchStatus);
+        Assert.NotNull(response.Result.MatchStatusErrorMessage);
     }
     
     [Theory]
@@ -78,7 +80,8 @@ public class MatchingServiceTests
         var response = await _matchingService.SearchAsync(personSpec);
 
         // Assert
-        Assert.Equal(nameof(MatchStatus.Match), response.Result.Status);
+        Assert.Equal(MatchStatus.Match, response.Result.MatchStatus);
+        Assert.NotNull(response.Result.NhsNumber);
     }
     
     [Theory]
@@ -100,7 +103,27 @@ public class MatchingServiceTests
         var response = await _matchingService.SearchAsync(personSpec);
 
         // Assert
-        Assert.Equal(nameof(MatchStatus.PotentialMatch), response.Result.Status);
+        Assert.Equal(MatchStatus.PotentialMatch, response.Result.MatchStatus);
+    }
+    
+    [Fact]
+    public async Task ShouldReturn_ManyMatchResults_WhenFhirServiceReturnsMultiMatch()
+    {
+        // Arrange
+        var personSpec = new PersonSpecification
+        {
+            Given = "Jon",
+            Family = "Smith",
+            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
+        };
+        
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMultiMatch()));
+
+        // Act
+        var response = await _matchingService.SearchAsync(personSpec);
+
+        // Assert
+        Assert.Equal(MatchStatus.ManyMatch, response.Result.MatchStatus);
     }
     
     private static SearchResult GetMockFhirSearchResultMatched(decimal score)
@@ -110,6 +133,16 @@ public class MatchingServiceTests
             NhsNumber = "1234567890",
             Score = score,
             Type = SearchResult.ResultType.Matched
+        };
+    }
+    
+    private static SearchResult GetMockFhirSearchResultMultiMatch()
+    {
+        return new SearchResult
+        {
+            NhsNumber = null,
+            Score = 0,
+            Type = SearchResult.ResultType.MultiMatched
         };
     }
 }
