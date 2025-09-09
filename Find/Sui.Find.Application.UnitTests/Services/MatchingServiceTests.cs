@@ -121,6 +121,48 @@ public class MatchingServiceTests
         Assert.Equal(MatchStatus.NoMatch, response.Result.MatchStatus);
     }
     
+    [Fact]
+    public async Task ShouldReturnEarly_IfHighConfidenceMatchFound()
+    {
+        // Arrange
+        var personSpec = CreateMinimalValidPersonSpec();
+        
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+            .Returns(
+                // First call returns a high confidence match
+                Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.96m)),
+                // Second call would return a low confidence match if it were called
+                Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.50m))
+            );
+
+        // Act
+        var response = await _matchingService.SearchAsync(personSpec);
+
+        // Assert
+        Assert.Equal(MatchStatus.Match, response.Result.MatchStatus);
+        // Verify that PerformSearchAsync was called only once due to early exit
+        await _fhirService.Received(1).PerformSearchAsync(Arg.Any<SearchQuery>());
+    }
+    
+    [Fact]
+    public async Task ShouldReturnBestResult_IfMultipleQueriesExecuted()
+    {
+        // Arrange
+        var personSpec = CreateMinimalValidPersonSpec();
+        
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+            .Returns(
+                Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.90m)),
+                Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.50m))
+            );
+
+        // Act
+        var response = await _matchingService.SearchAsync(personSpec);
+
+        // Assert
+        Assert.Equal(MatchStatus.PotentialMatch, response.Result.MatchStatus);
+    }
+    
     private static PersonSpecification CreateMinimalValidPersonSpec()
     {
         return new PersonSpecification
