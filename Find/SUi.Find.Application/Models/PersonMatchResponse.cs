@@ -1,3 +1,4 @@
+using SUi.Find.Application.Validation;
 using SUI.Find.Domain.Enums;
 
 namespace SUi.Find.Application.Models;
