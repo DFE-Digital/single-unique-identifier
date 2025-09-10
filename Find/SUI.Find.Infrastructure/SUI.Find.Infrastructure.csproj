@@ -10,4 +10,8 @@
       <ProjectReference Include="..\SUi.Find.Application\SUi.Find.Application.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Utilities\" />
+    </ItemGroup>
+
 </Project>

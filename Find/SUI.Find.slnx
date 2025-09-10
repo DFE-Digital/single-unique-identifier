@@ -6,5 +6,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="Sui.Find.Application.UnitTests/Sui.Find.Application.UnitTests.csproj" />
+    <Project Path="SUI.Find.Infrastructure.UnitTests/SUI.Find.Infrastructure.UnitTests.csproj" />
   </Folder>
 </Solution>

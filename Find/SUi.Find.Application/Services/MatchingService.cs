@@ -16,7 +16,7 @@ public interface IMatchingService
 /// <summary>
 /// Application code class for validating business logic, forming request for FhirService and sending, then processing results.
 /// </summary>
-public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirService) : IMatchingService
+public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirService, ISearchIdService searchIdService) : IMatchingService
 {
     public async Task<PersonMatchResponse> SearchAsync(PersonSpecification personSpecification)
     {
@@ -29,7 +29,7 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
 
         // Build FHIR query from PersonSpecification
         var queries = PersonQueryBuilder.CreateQueries(personSpecification);
-        // TODO: SearchId and set into Activity baggage for logging.
+        CreateAndSetSearchId(personSpecification);
 
         var bestResult = await FindBestMatchResultAsync(queries);
 
@@ -105,5 +105,16 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
             Result = MatchResult.Error(message),
             DataQuality = dq
         };
+    }
+
+    private void CreateAndSetSearchId(PersonSpecification personSpecification)
+    {
+        var hash = searchIdService.CreatePersonHash(
+            personSpecification.Given!,
+            personSpecification.Family!,
+            personSpecification.BirthDate!.Value,
+            personSpecification.Gender,
+            personSpecification.AddressPostalCode);
+        searchIdService.StoreSearchIdInBaggage(hash);
     }
 }

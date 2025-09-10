@@ -18,8 +18,9 @@ public class MatchingServiceTests
     public MatchingServiceTests()
     {
         var logger = Substitute.For<ILogger<MatchingService>>();
+        var searchIdService = Substitute.For<ISearchIdService>();
         _fhirService = Substitute.For<IFhirService>();
-        _matchingService = new MatchingService(logger, _fhirService);
+        _matchingService = new MatchingService(logger, _fhirService, searchIdService);
     }
     
     [Fact]
