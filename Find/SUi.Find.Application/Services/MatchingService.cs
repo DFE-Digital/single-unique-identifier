@@ -77,8 +77,8 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
         {
             SearchResult.ResultType.Matched => value.Score switch
             {
-                >= Constants.MinMatchThreshold => MatchResult.Match(value.Score ?? 0, queryCode, value.NhsNumber!),
-                >= Constants.MinPartialMatchThreshold => MatchResult.PotentialMatch(value.Score ?? 0, queryCode, value.NhsNumber!),
+                >= Constants.MinMatchThreshold => MatchResult.Match(value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
+                >= Constants.MinPartialMatchThreshold => MatchResult.PotentialMatch(value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
                 _ => MatchResult.NoMatch()
             },
             SearchResult.ResultType.MultiMatched => MatchResult.ManyMatch(queryCode),
