@@ -1,7 +1,7 @@
 
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using SUi.Find.Application;
+using SUi.Find.Application.Builders;
 using SUi.Find.Application.Common;
 using SUi.Find.Application.Interfaces;
 using SUi.Find.Application.Models;
@@ -154,14 +154,19 @@ public class MatchingServiceTests
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(
                 Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.90m)),
+                Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.92m)),
                 Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.50m))
             );
+        var expectedQueryKey = PersonQueryBuilder
+            .CreateQueries(CreateMinimalValidPersonSpec()).ElementAt(1).Key;
 
         // Act
         var response = await _matchingService.SearchAsync(personSpec);
 
         // Assert
         Assert.Equal(MatchStatus.PotentialMatch, response.Result.MatchStatus);
+        Assert.Equal(expectedQueryKey, response.Result.ProcessStage);
+        Assert.Equal(0.92m, response.Result.Score);
     }
     
     [Fact]
@@ -175,14 +180,15 @@ public class MatchingServiceTests
                 Result<SearchResult>.Success(GetMockFhirSearchResultMultiMatch()),
                 Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.50m))
             );
+        var expectedQueryKey = PersonQueryBuilder.CreateQueries(CreateMinimalValidPersonSpec()).First().Key;
 
         // Act
         var response = await _matchingService.SearchAsync(personSpec);
 
         // Assert
         Assert.Equal(MatchStatus.ManyMatch, response.Result.MatchStatus);
-        // process stage
-        Assert.Equal("ExactGFD", response.Result.ProcessStage);
+        Assert.Equal(expectedQueryKey, response.Result.ProcessStage);
+        Assert.Null(response.Result.Score);
     }
     
     private static PersonSpecification CreateMinimalValidPersonSpec()
