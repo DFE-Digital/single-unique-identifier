@@ -3,6 +3,8 @@ using SUi.Find.Application.Builders;
 using SUi.Find.Application.Interfaces;
 using SUi.Find.Application.Models;
 using SUi.Find.Application.Validation;
+using SUI.Find.Domain.Constants;
+using SUI.Find.Domain.Enums;
 
 namespace SUi.Find.Application.Services;
 
@@ -63,7 +65,7 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
             if (current.IsBetterThan(best))
                 best = current;
 
-            if (current is { MatchStatus: MatchStatus.Match, Score: >= Constants.MinMatchThreshold })
+            if (current is { MatchStatus: MatchStatus.Match, Score: >= MatchThresholds.MinMatchThreshold })
             {
                 break;
             }
@@ -77,8 +79,8 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
         {
             SearchResult.ResultType.Matched => value.Score switch
             {
-                >= Constants.MinMatchThreshold => MatchResult.Match(value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
-                >= Constants.MinPartialMatchThreshold => MatchResult.PotentialMatch(value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
+                >= MatchThresholds.MinMatchThreshold => MatchResult.Match(value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
+                >= MatchThresholds.MinPartialMatchThreshold => MatchResult.PotentialMatch(value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
                 _ => MatchResult.NoMatch()
             },
             SearchResult.ResultType.MultiMatched => MatchResult.ManyMatch(queryCode),

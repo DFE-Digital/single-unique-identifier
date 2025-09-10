@@ -1,3 +1,5 @@
+using SUI.Find.Domain.Enums;
+
 namespace SUi.Find.Application.Models;
 
 public class PersonMatchResponse

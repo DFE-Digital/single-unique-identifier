@@ -1,4 +1,4 @@
-namespace SUi.Find.Application;
+namespace SUI.Find.Domain.Enums;
 
 public enum MatchStatus
 {
