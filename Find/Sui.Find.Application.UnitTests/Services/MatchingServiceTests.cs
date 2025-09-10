@@ -180,6 +180,8 @@ public class MatchingServiceTests
 
         // Assert
         Assert.Equal(MatchStatus.ManyMatch, response.Result.MatchStatus);
+        // process stage
+        Assert.Equal("ExactGFD", response.Result.ProcessStage);
     }
     
     private static PersonSpecification CreateMinimalValidPersonSpec()

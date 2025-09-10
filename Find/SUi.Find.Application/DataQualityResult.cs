@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
+using SUI.Find.Domain.Enums;
 
 namespace SUi.Find.Application;
 
