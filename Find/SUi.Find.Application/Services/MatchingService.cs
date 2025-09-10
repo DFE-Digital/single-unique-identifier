@@ -110,9 +110,9 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
     private void CreateAndSetSearchId(PersonSpecification personSpecification)
     {
         var hash = searchIdService.CreatePersonHash(
-            personSpecification.Given!,
-            personSpecification.Family!,
-            personSpecification.BirthDate!.Value,
+            personSpecification.Given,
+            personSpecification.Family,
+            personSpecification.BirthDate,
             personSpecification.Gender,
             personSpecification.AddressPostalCode);
         searchIdService.StoreSearchIdInBaggage(hash);
