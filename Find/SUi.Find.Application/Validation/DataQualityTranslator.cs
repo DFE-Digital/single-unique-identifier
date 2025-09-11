@@ -1,13 +1,9 @@
 using FluentValidation.Results;
+using SUi.Find.Application.Interfaces;
 using SUi.Find.Application.Models;
 using SUI.Find.Domain.Enums;
 
 namespace SUi.Find.Application.Validation;
-
-public interface IDataQualityTranslator
-{
-    (bool hasMetRequirements, DataQualityResult dataQualityResult) Translate(PersonSpecification spec, ValidationResult validation);
-}
 
 public class PersonDataQualityTranslator : IDataQualityTranslator
 {
