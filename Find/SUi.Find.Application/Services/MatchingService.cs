@@ -8,15 +8,11 @@ using SUI.Find.Domain.Enums;
 
 namespace SUi.Find.Application.Services;
 
-public interface IMatchingService
-{
-    Task<PersonMatchResponse> SearchAsync(PersonSpecification personSpecification);
-}
-
 /// <summary>
 /// Application code class for validating business logic, forming request for FhirService and sending, then processing results.
 /// </summary>
-public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirService, ISearchIdService searchIdService) : IMatchingService
+public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirService, ISearchIdService searchIdService) 
+    : IMatchingService
 {
     public async Task<PersonMatchResponse> SearchAsync(PersonSpecification personSpecification)
     {
