@@ -1,4 +1,5 @@
 using FluentValidation;
+using SUi.Find.Application.Constants;
 using SUi.Find.Application.Models;
 
 namespace SUi.Find.Application.Validation;
@@ -62,15 +63,4 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
         var regex = new System.Text.RegularExpressions.Regex(@"^\+?[1-9]\d{1,14}$");
         return regex.IsMatch(phone);
     }
-}
-
-public static class PersonValidationConstants
-{
-    public const string GivenNameInvalid = "Given name cannot be greater than 20 characters";
-    public const string FamilyNameInvalid = "Family name cannot be greater than 20 characters";
-    public const string BirthDateInvalid = "Invalid date of birth";
-    public const string GenderInvalid = "Gender has to match FHIR standards";
-    public const string PhoneInvalid = "Invalid phone number.";
-    public const string EmailInvalid = "Invalid email address.";
-    public const string PostCodeInvalid = "Invalid postcode.";
 }
