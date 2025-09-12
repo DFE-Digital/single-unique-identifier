@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using SUi.Find.Application.Common;
 using SUi.Find.Application.Interfaces;
 using SUi.Find.Application.Models;
-using SUI.Find.Infrastructure.Fhir;
+using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Services;
 

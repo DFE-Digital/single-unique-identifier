@@ -1,11 +1,7 @@
 using Hl7.Fhir.Rest;
+using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Fhir;
-
-public interface IFhirClientFactory
-{
-    FhirClient CreateFhirClient();
-}
 
 public class FhirClientFactory : IFhirClientFactory
 {

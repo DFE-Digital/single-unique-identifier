@@ -2,7 +2,7 @@ using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using SUI.Find.Infrastructure.Fhir;
+using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Services;
 using Task = System.Threading.Tasks.Task;
 
