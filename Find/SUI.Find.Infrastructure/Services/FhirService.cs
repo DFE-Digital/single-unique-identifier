@@ -11,22 +11,23 @@ namespace SUI.Find.Infrastructure.Services;
 /// <summary>
 /// Infrastructure code class for calling FHIR endpoint.
 /// </summary>
-public class FhirService(ILogger<FhirService> logger, IFhirClient fhirClient) : IFhirService
+public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirClientFactory) : IFhirService
 {
     public async Task<Result<SearchResult>> PerformSearchAsync(SearchQuery searchQuery)
     {
         try
         {
+            var client = fhirClientFactory.CreateFhirClient();
             // var searchParams = SearchParamsFactory.Create(searchQuery);
             var searchParams = new SearchParams();
 
             logger.LogInformation("Searching for NHS patient record...");
 
-            var bundle = await fhirClient.SearchAsync<Patient>(searchParams);
+            var bundle = await client.SearchAsync<Patient>(searchParams);
 
             if (bundle is null)
             {
-                var isMultiMatch = fhirClient.LastBodyAsResource is OperationOutcome outcome &&
+                var isMultiMatch = client.LastBodyAsResource is OperationOutcome outcome &&
                                    outcome.Issue.Any(i => i.Code == OperationOutcome.IssueType.MultipleMatches);
 
                 return isMultiMatch

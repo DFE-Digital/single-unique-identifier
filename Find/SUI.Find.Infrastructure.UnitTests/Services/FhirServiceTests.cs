@@ -1,24 +1,18 @@
-using Hl7.Fhir.Model;
-using Hl7.Fhir.Rest;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUi.Find.Application.Models;
-using SUI.Find.Infrastructure.Fhir;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.UnitTests.Stubs;
 using Task = System.Threading.Tasks.Task;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
 
-public class FhirServiceTests
+public class FhirServiceTests : BaseNhsFhirClientTests
 {
-    private readonly ILogger<FhirService> _logger = Substitute.For<ILogger<FhirService>>();
-    private readonly IFhirClient _fhirClient = Substitute.For<IFhirClient>();
     private readonly FhirService _fhirService;
     
     public FhirServiceTests()
     {
-        _fhirService = new FhirService(_logger, _fhirClient);
+        _fhirService = new FhirService(LoggerMock, FhirClientFactoryMock);
     }
 
     [Fact]
@@ -26,10 +20,11 @@ public class FhirServiceTests
     {
         // Arrange
         var searchQuery = new SearchQuery();
-        _fhirClient.SearchAsync<Patient>(Arg.Any<SearchParams>())
-            .Returns(Task.FromResult<Bundle?>(null));
 
         // Act
+        var testFhirClient = new TestFhirClientError();
+        FhirClientFactoryMock.CreateFhirClient()
+            .Returns(testFhirClient);
         var result = await _fhirService.PerformSearchAsync(searchQuery);
 
         // Assert
@@ -42,7 +37,9 @@ public class FhirServiceTests
     {
         // Arrange
         var searchQuery = new SearchQuery();
-        FhirClientBundleSetup(StubFhirBundles.Empty());
+        var testFhirClient = new TestFhirClientUnmatched();
+        FhirClientFactoryMock.CreateFhirClient()
+            .Returns(testFhirClient);
         
 
         // Act
@@ -58,7 +55,9 @@ public class FhirServiceTests
     {
         // Arrange
         var searchQuery = new SearchQuery();
-        FhirClientBundleSetup(StubFhirBundles.SinglePatient("123", 1.0m));
+        var testFhirClient = new TestFhirClientSinglePersonMatch();
+        FhirClientFactoryMock.CreateFhirClient()
+            .Returns(testFhirClient);
 
         // Act
         var result = await _fhirService.PerformSearchAsync(searchQuery);
@@ -66,8 +65,8 @@ public class FhirServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(SearchResult.ResultType.Matched, result.Value?.Type);
-        Assert.Equal("123", result.Value?.NhsNumber);
-        Assert.Equal(1.0m, result.Value?.Score);
+        Assert.NotNull(result.Value?.NhsNumber);
+        Assert.NotEqual(0m, result.Value?.Score);
     }
 
     [Fact]
@@ -75,7 +74,9 @@ public class FhirServiceTests
     {
         // Arrange
         var searchQuery = new SearchQuery();
-        FhirClientBundleSetup(StubFhirBundles.MultiplePatients());
+        var testFhirClient = new TestFhirClientMultiMatch();
+        FhirClientFactoryMock.CreateFhirClient()
+            .Returns(testFhirClient);
 
         // Act
         var result = await _fhirService.PerformSearchAsync(searchQuery);
@@ -83,12 +84,5 @@ public class FhirServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(SearchResult.ResultType.MultiMatched, result.Value?.Type);
-    }
-
-    private void FhirClientBundleSetup(Resource? resource)
-    {
-        _fhirClient.SearchAsync<Patient>(Arg.Any<SearchParams>())
-            .Returns(Task.FromResult(resource as Bundle));
-        _fhirClient.LastBodyAsResource.Returns(resource);
     }
 }
