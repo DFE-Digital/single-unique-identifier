@@ -8,12 +8,12 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SUI.Find.Infrastructure.UnitTests.Stubs;
 
-public class BaseNhsFhirClientTests
+public class BaseFhirClientTests
 {
     protected readonly ILogger<FhirService> LoggerMock;
     protected readonly IFhirClientFactory FhirClientFactoryMock;
 
-    protected BaseNhsFhirClientTests()
+    protected BaseFhirClientTests()
     {
         LoggerMock = Substitute.For<ILogger<FhirService>>();
         FhirClientFactoryMock = Substitute.For<IFhirClientFactory>();

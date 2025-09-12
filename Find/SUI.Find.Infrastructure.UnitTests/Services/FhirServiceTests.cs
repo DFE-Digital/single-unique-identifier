@@ -6,7 +6,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
 
-public class FhirServiceTests : BaseNhsFhirClientTests
+public class FhirServiceTests : BaseFhirClientTests
 {
     private readonly FhirService _fhirService;
     
