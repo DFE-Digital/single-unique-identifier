@@ -14,4 +14,8 @@
       <Folder Include="Utilities\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Hl7.Fhir.R4" />
+    </ItemGroup>
+
 </Project>
