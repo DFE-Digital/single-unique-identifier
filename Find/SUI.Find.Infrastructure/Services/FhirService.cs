@@ -1,18 +1,55 @@
+using Hl7.Fhir.Model;
+using Hl7.Fhir.Rest;
+using Microsoft.Extensions.Logging;
 using SUi.Find.Application.Common;
 using SUi.Find.Application.Interfaces;
 using SUi.Find.Application.Models;
+using SUI.Find.Infrastructure.Fhir;
 
 namespace SUI.Find.Infrastructure.Services;
 
 /// <summary>
 /// Infrastructure code class for calling FHIR endpoint.
 /// </summary>
-public class FhirService : IFhirService
+public class FhirService(ILogger<FhirService> logger, IFhirClient fhirClient) : IFhirService
 {
-    public Task<Result<SearchResult>> PerformSearchAsync(SearchQuery searchQuery)
+    public async Task<Result<SearchResult>> PerformSearchAsync(SearchQuery searchQuery)
     {
-        // TODO: Implement FHIR search logic here. Keep as thin as possible.
-        // Ideally only HTTP calls and serialization/deserialization from the SDK respectively.
-        throw new NotImplementedException();
+        try
+        {
+            // var searchParams = SearchParamsFactory.Create(searchQuery);
+            var searchParams = new SearchParams();
+
+            logger.LogInformation("Searching for NHS patient record...");
+
+            var bundle = await fhirClient.SearchAsync<Patient>(searchParams);
+
+            if (bundle is null)
+            {
+                var isMultiMatch = fhirClient.LastBodyAsResource is OperationOutcome outcome &&
+                                   outcome.Issue.Any(i => i.Code == OperationOutcome.IssueType.MultipleMatches);
+
+                return isMultiMatch
+                    ? Result<SearchResult>.Success(SearchResult.MultiMatched())
+                    : Result<SearchResult>.Failure("FHIR API returned null bundle");
+            }
+
+            return bundle.Entry.Count switch
+            {
+                0 => Result<SearchResult>.Success(SearchResult.Unmatched()),
+                1 => Result<SearchResult>.Success(
+                    SearchResult.Match(
+                        bundle.Entry[0].Resource.Id,
+                        bundle.Entry[0].Search.Score
+                    )
+                ),
+                _ => Result<SearchResult>.Failure("Unexpected multiple entries")
+            };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error occurred while performing FHIR search");
+            return Result<SearchResult>.Failure(ex.Message);
+        }
     }
 }
