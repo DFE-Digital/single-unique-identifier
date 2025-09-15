@@ -14,4 +14,12 @@
       <Folder Include="Utilities\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Azure.Security.KeyVault.Secrets" />
+      <PackageReference Include="Microsoft.Extensions.Http" />
+      <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+      <PackageReference Include="Microsoft.IdentityModel.Logging" />
+      <PackageReference Include="Microsoft.IdentityModel.Tokens" />
+    </ItemGroup>
+
 </Project>
