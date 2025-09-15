@@ -20,6 +20,7 @@
       <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
       <PackageReference Include="Microsoft.IdentityModel.Logging" />
       <PackageReference Include="Microsoft.IdentityModel.Tokens" />
+      <PackageReference Include="Hl7.Fhir.R4" />
     </ItemGroup>
 
 </Project>
