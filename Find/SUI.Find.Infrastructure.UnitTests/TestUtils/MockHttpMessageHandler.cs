@@ -18,7 +18,7 @@ public class MockHttpMessageHandler : HttpMessageHandler
         var tokenResponse = new { access_token = "a.dummy.token", expires_in = ExpiresInSeconds };
         var response = new HttpResponseMessage
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = StatusCode,
             Content = new StringContent(JsonSerializer.Serialize(tokenResponse), Encoding.UTF8, "application/json")
         };
         return Task.FromResult(response);
