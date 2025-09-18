@@ -7,7 +7,7 @@ namespace SUI.Find.Infrastructure.UnitTests.TestUtils;
 public class MockHttpMessageHandler : HttpMessageHandler
 {
     public int NumberOfCalls { get; private set; }
-    
+
     public int ExpiresInSeconds { get; set; } = 300;
 
     public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;

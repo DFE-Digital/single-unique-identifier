@@ -4,7 +4,6 @@ using SUI.Find.Infrastructure.Constants;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using SUi.Find.Application.Interfaces;
@@ -16,7 +15,7 @@ public sealed class AuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
     ILogger<AuthTokenService> logger,
     IHttpClientFactory httpClientFactory,
-    SecretClient secretClient)
+    ISecretService secretService)
     : IAuthTokenService, IDisposable
 {
     private static readonly JsonWebTokenHandler TokenHandler = new();
@@ -73,37 +72,23 @@ public sealed class AuthTokenService(
 
         logger.LogInformation("First-time initialization: loading secrets from Azure Key Vault.");
 
-        var privateKeyTask = GetSecretMaterial(NhsDigitalKeyConstants.PrivateKey, cancellationToken);
-        var clientIdTask = GetSecretMaterial(NhsDigitalKeyConstants.ClientId, cancellationToken);
-        var kidTask = GetSecretMaterial(NhsDigitalKeyConstants.Kid, cancellationToken);
+        var privateKeyTask = secretService.GetSecret(NhsDigitalKeyConstants.PrivateKey, cancellationToken);
+        var clientIdTask = secretService.GetSecret(NhsDigitalKeyConstants.ClientId, cancellationToken);
+        var kidTask = secretService.GetSecret(NhsDigitalKeyConstants.Kid, cancellationToken);
 
         await Task.WhenAll(privateKeyTask, clientIdTask, kidTask);
 
-        _privateKey = await privateKeyTask ?? throw new InvalidOperationException("Failed to get private key from Key Vault.");
-        _clientId = await clientIdTask ?? throw new InvalidOperationException("Failed to get client ID from Key Vault.");
-        _kid = await kidTask ?? throw new InvalidOperationException("Failed to get KID from Key Vault.");
-    }
-
-    private async Task<string?> GetSecretMaterial(string secretName, CancellationToken cancellationToken)
-    {
-        try
-        {
-            KeyVaultSecret secret = await secretClient.GetSecretAsync(secretName, cancellationToken: cancellationToken);
-            return secret.Value;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, $"Failed to get secret material from Key Vault for secret name '{secretName}'.");
-            return null;
-        }
+        _privateKey = await privateKeyTask;
+        _clientId = await clientIdTask;
+        _kid = await kidTask;
     }
 
     private async Task<CachedToken> FetchNewAccessTokenAsync(CancellationToken cancellationToken)
     {
         var authAddress = _httpClient.BaseAddress!.ToString();
         var tokenExpiresInMinutes = _options.NhsDigitalAccessTokenExpiresInMinutes ?? NhsDigitalKeyConstants.AccountTokenExpiresInMinutes;
-        
-        var clientAssertion = GenerateClientAssertion(authAddress, tokenExpiresInMinutes);
+
+        var clientAssertion = GenerateClientAssertionJwt(authAddress, tokenExpiresInMinutes);
 
         var requestBody = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -132,7 +117,7 @@ public sealed class AuthTokenService(
         return new CachedToken(accessToken, expiresIn);
     }
 
-    private string GenerateClientAssertion(string audience, int expInMinutes)
+    private string GenerateClientAssertionJwt(string audience, int expInMinutes)
     {
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -149,7 +134,7 @@ public sealed class AuthTokenService(
     private static SigningCredentials CreateSigningCredentials(string privateKey, string kid)
     {
         var rsa = RSA.Create();
-        
+
         var keyContents = privateKey
             .Replace("-----BEGIN RSA PRIVATE KEY-----", "")
             .Replace("-----END RSA PRIVATE KEY-----", "")
@@ -168,6 +153,5 @@ public sealed class AuthTokenService(
     public void Dispose()
     {
         _renewalLock.Dispose();
-        _httpClient.Dispose();
     }
 }

@@ -1,10 +1,10 @@
-using Azure;
-using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using SUI.Find.Infrastructure.Constants;
 using System.Net;
+using NSubstitute.ExceptionExtensions;
+using SUi.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.UnitTests.TestUtils;
@@ -16,7 +16,7 @@ public class AuthTokenServiceTests
     private readonly IOptions<AuthTokenServiceConfig> _subOptions;
     private readonly ILogger<AuthTokenService> _subLogger;
     private readonly IHttpClientFactory _subHttpClientFactory;
-    private readonly SecretClient _subSecretClient;
+    private readonly ISecretService _subSecretService;
     private readonly MockHttpMessageHandler _mockHttpMessageHandler;
 
     private const string DummyToken = "a.dummy.token";
@@ -45,7 +45,7 @@ public class AuthTokenServiceTests
         _subOptions = Substitute.For<IOptions<AuthTokenServiceConfig>>();
         _subLogger = Substitute.For<ILogger<AuthTokenService>>();
         _subHttpClientFactory = Substitute.For<IHttpClientFactory>();
-        _subSecretClient = Substitute.For<SecretClient>();
+        _subSecretService = Substitute.For<ISecretService>();
 
         _subOptions.Value.Returns(new AuthTokenServiceConfig
         {
@@ -68,12 +68,8 @@ public class AuthTokenServiceTests
 
     private void SetupSecret(string secretName, string secretValue)
     {
-        var secret = new KeyVaultSecret(secretName, secretValue);
-        var mockAzureResponse = new MockAzureResponse();
-        var response = Response.FromValue(secret, mockAzureResponse);
-        
-        _subSecretClient.GetSecretAsync(secretName, null, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(response));
+        _subSecretService.GetSecret(secretName, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(secretValue));
     }
 
     private AuthTokenService CreateService()
@@ -82,7 +78,7 @@ public class AuthTokenServiceTests
             _subOptions,
             _subLogger,
             _subHttpClientFactory,
-            _subSecretClient
+            _subSecretService
         );
     }
 
@@ -97,9 +93,9 @@ public class AuthTokenServiceTests
 
         // Assert
         Assert.Equal(DummyToken, token);
-        await _subSecretClient.Received(1).GetSecretAsync(NhsDigitalKeyConstants.PrivateKey, null, Arg.Any<CancellationToken>());
-        await _subSecretClient.Received(1).GetSecretAsync(NhsDigitalKeyConstants.ClientId, null, Arg.Any<CancellationToken>());
-        await _subSecretClient.Received(1).GetSecretAsync(NhsDigitalKeyConstants.Kid, null, Arg.Any<CancellationToken>());
+        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>());
+        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.ClientId, Arg.Any<CancellationToken>());
+        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.Kid, Arg.Any<CancellationToken>());
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
     }
 
@@ -115,9 +111,9 @@ public class AuthTokenServiceTests
 
         // Assert
         Assert.Equal(DummyToken, token);
-        await _subSecretClient.Received(1).GetSecretAsync(NhsDigitalKeyConstants.PrivateKey, null, Arg.Any<CancellationToken>());
-        await _subSecretClient.Received(1).GetSecretAsync(NhsDigitalKeyConstants.ClientId, null, Arg.Any<CancellationToken>());
-        await _subSecretClient.Received(1).GetSecretAsync(NhsDigitalKeyConstants.Kid, null, Arg.Any<CancellationToken>());
+        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>());
+        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.ClientId, Arg.Any<CancellationToken>());
+        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.Kid, Arg.Any<CancellationToken>());
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
     }
 
@@ -127,7 +123,7 @@ public class AuthTokenServiceTests
         // Arrange
         _mockHttpMessageHandler.ExpiresInSeconds = 1;
         var service = CreateService();
-        
+
         // Act
         await service.GetBearerToken(CancellationToken.None);
 
@@ -145,11 +141,11 @@ public class AuthTokenServiceTests
     {
         // Arrange
         var service = CreateService();
-        var taskCount = 10;
+        const int taskCount = 100;
         var tasks = new List<Task<string>>();
 
         // Act
-        for (int i = 0; i < taskCount; i++)
+        for (var i = 0; i < taskCount; i++)
         {
             tasks.Add(service.GetBearerToken(TestContext.Current.CancellationToken));
         }
@@ -158,34 +154,34 @@ public class AuthTokenServiceTests
         // Assert
         Assert.All(results, token => Assert.Equal(DummyToken, token));
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
-        await _subSecretClient.Received(1).GetSecretAsync(NhsDigitalKeyConstants.PrivateKey, null, Arg.Any<CancellationToken>());
-        await _subSecretClient.Received(1).GetSecretAsync(NhsDigitalKeyConstants.ClientId, null, Arg.Any<CancellationToken>());
-        await _subSecretClient.Received(1).GetSecretAsync(NhsDigitalKeyConstants.Kid, null, Arg.Any<CancellationToken>());
+        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>());
+        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.ClientId, Arg.Any<CancellationToken>());
+        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.Kid, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetBearerToken_SecretFetchFails_ThrowsInvalidOperationException()
     {
         // Arrange
-        _subSecretClient.GetSecretAsync(NhsDigitalKeyConstants.PrivateKey, null, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<Response<KeyVaultSecret>>(null!));
-            
+        _subSecretService.GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Failed to get secret: "));
+
         var service = CreateService();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.GetBearerToken(TestContext.Current.CancellationToken));
-        Assert.Contains("Failed to get private key", exception.Message);
+        Assert.Contains("Failed to get secret", exception.Message);
     }
-    
+
     [Fact]
     public async Task GetBearerToken_TokenEndpointFails_ThrowsHttpRequestException()
     {
         // Arrange
-        var mockHttpErrorHandler = new MockHttpMessageHandler 
-        { 
-            StatusCode = HttpStatusCode.Unauthorized 
+        var mockHttpErrorHandler = new MockHttpMessageHandler
+        {
+            StatusCode = HttpStatusCode.Unauthorized
         };
-        
+
         var errorHttpClient = new HttpClient(mockHttpErrorHandler) { BaseAddress = new Uri("https://test.auth.api/") };
         _subHttpClientFactory.CreateClient("nhs-auth-api").Returns(errorHttpClient);
 
