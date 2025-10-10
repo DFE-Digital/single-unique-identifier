@@ -11,6 +11,6 @@ updates:
   - package-ecosystem: nuget
     directory: "/Find"
     schedule:
-      interval: "monthly"
+      interval: "daily"
     commit-message:
       prefix: "[nuget]-"
