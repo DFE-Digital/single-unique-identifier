@@ -1,7 +1,6 @@
 using FluentValidation.Results;
-using SUi.Find.Application;
-using SUi.Find.Application.Models;
-using SUi.Find.Application.Validation;
+using SUI.Find.Application.Models;
+using SUI.Find.Application.Validation;
 using SUI.Find.Domain.Enums;
 
 namespace Sui.Find.Application.UnitTests.Validation;

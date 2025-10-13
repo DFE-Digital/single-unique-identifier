@@ -1,4 +1,4 @@
-namespace SUi.Find.Application.Common;
+namespace SUI.Find.Application.Common;
 
 public class Result<T>
 {

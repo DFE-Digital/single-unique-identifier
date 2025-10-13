@@ -1,4 +1,4 @@
-namespace SUi.Find.Application.Constants;
+namespace SUI.Find.Application.Constants;
 
 public static class PersonValidationConstants
 {

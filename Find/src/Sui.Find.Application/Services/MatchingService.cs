@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Logging;
-using SUi.Find.Application.Builders;
-using SUi.Find.Application.Interfaces;
-using SUi.Find.Application.Models;
-using SUi.Find.Application.Validation;
+using SUI.Find.Application.Builders;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
+using SUI.Find.Application.Validation;
 using SUI.Find.Domain.Constants;
 using SUI.Find.Domain.Enums;
 
-namespace SUi.Find.Application.Services;
+namespace SUI.Find.Application.Services;
 
 /// <summary>
 /// Application code class for validating business logic, forming request for FhirService and sending, then processing results.

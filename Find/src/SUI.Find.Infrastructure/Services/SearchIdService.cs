@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using SUi.Find.Application.Interfaces;
-using SUi.Find.Application.Mapping;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Mapping;
 using SUI.Find.Infrastructure.Constants;
 
 namespace SUI.Find.Infrastructure.Services;

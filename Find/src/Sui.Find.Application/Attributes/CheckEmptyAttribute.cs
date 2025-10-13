@@ -1,4 +1,4 @@
-namespace SUi.Find.Application.Attributes;
+namespace SUI.Find.Application.Attributes;
 
 /// <summary>
 /// Simple attribute used to mark properties that should be checked for empty values.

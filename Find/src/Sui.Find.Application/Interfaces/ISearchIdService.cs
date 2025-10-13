@@ -1,4 +1,4 @@
-namespace SUi.Find.Application.Interfaces;
+namespace SUI.Find.Application.Interfaces;
 
 public interface ISearchIdService
 {

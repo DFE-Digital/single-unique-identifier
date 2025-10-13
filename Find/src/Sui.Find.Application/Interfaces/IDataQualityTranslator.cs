@@ -1,8 +1,8 @@
 using FluentValidation.Results;
-using SUi.Find.Application.Models;
-using SUi.Find.Application.Validation;
+using SUI.Find.Application.Models;
+using SUI.Find.Application.Validation;
 
-namespace SUi.Find.Application.Interfaces;
+namespace SUI.Find.Application.Interfaces;
 
 public interface IDataQualityTranslator
 {

@@ -1,5 +1,5 @@
 using NSubstitute;
-using SUi.Find.Application.Models;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.UnitTests.Stubs;
 using Task = System.Threading.Tasks.Task;

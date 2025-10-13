@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using SUi.Find.Application.Attributes;
+using SUI.Find.Application.Attributes;
 
-namespace SUi.Find.Application.Models;
+namespace SUI.Find.Application.Models;
 
 public sealed class SearchQuery
 {

@@ -1,8 +1,8 @@
 using FluentValidation;
-using SUi.Find.Application.Constants;
-using SUi.Find.Application.Models;
+using SUI.Find.Application.Constants;
+using SUI.Find.Application.Models;
 
-namespace SUi.Find.Application.Validation;
+namespace SUI.Find.Application.Validation;
 
 public class PersonSpecificationValidation : AbstractValidator<PersonSpecification>
 {

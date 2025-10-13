@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using SUI.Find.Domain.Enums;
 
-namespace SUi.Find.Application.Validation;
+namespace SUI.Find.Application.Validation;
 
 public class DataQualityResult
 {

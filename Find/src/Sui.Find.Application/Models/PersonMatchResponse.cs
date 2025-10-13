@@ -1,6 +1,6 @@
-using SUi.Find.Application.Validation;
+using SUI.Find.Application.Validation;
 
-namespace SUi.Find.Application.Models;
+namespace SUI.Find.Application.Models;
 
 public class PersonMatchResponse
 {

@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SUi.Find.Application\SUi.Find.Application.csproj" />
+      <ProjectReference Include="..\SUI.Find.Application\SUI.Find.Application.csproj" />
     </ItemGroup>
 
     <ItemGroup>

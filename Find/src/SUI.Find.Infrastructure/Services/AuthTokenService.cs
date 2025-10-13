@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
-using SUi.Find.Application.Interfaces;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.Infrastructure.Services;

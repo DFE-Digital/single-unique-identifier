@@ -1,9 +1,9 @@
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Logging;
-using SUi.Find.Application.Common;
-using SUi.Find.Application.Interfaces;
-using SUi.Find.Application.Models;
+using SUI.Find.Application.Common;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Services;
