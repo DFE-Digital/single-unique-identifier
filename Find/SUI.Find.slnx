@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/SUi.Find.Application/SUi.Find.Application.csproj" />
+    <Project Path="src/Sui.Find.Application/Sui.Find.Application.csproj" />
     <Project Path="src/SUI.Find.Domain/SUI.Find.Domain.csproj" />
     <Project Path="src/SUI.Find.Infrastructure/SUI.Find.Infrastructure.csproj" />
   </Folder>
