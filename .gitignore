@@ -59,3 +59,4 @@ nunit-*.xml
 *.dotsettings.user
 *.feature.cs
 .vscode
+coverage/
