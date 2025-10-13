@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SUi.Find.Application\SUi.Find.Application.csproj" />
+      <ProjectReference Include="..\..\src\SUi.Find.Application\SUi.Find.Application.csproj" />
     </ItemGroup>
 
 </Project>

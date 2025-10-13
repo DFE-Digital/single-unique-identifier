@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />
+      <ProjectReference Include="..\..\src\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

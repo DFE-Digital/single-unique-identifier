@@ -1,11 +1,11 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="SUi.Find.Application/SUi.Find.Application.csproj" />
-    <Project Path="SUI.Find.Domain/SUI.Find.Domain.csproj" />
-    <Project Path="SUI.Find.Infrastructure/SUI.Find.Infrastructure.csproj" />
+    <Project Path="src/SUi.Find.Application/SUi.Find.Application.csproj" />
+    <Project Path="src/SUI.Find.Domain/SUI.Find.Domain.csproj" />
+    <Project Path="src/SUI.Find.Infrastructure/SUI.Find.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="Sui.Find.Application.UnitTests/Sui.Find.Application.UnitTests.csproj" />
-    <Project Path="SUI.Find.Infrastructure.UnitTests/SUI.Find.Infrastructure.UnitTests.csproj" />
+    <Project Path="tests/Sui.Find.Application.UnitTests/Sui.Find.Application.UnitTests.csproj" />
+    <Project Path="tests/SUI.Find.Infrastructure.UnitTests/SUI.Find.Infrastructure.UnitTests.csproj" />
   </Folder>
 </Solution>
