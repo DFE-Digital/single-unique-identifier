@@ -16,6 +16,7 @@ The **Find** service matches persons to NHS numbers using the NHS FHIR API, with
 ## Technology
 
 - *.NET* (C#)
+- *.NET* SDK >= 9.0.200
 - *Clean Architecture* principles
 - *NHS FHIR API* integration
 
