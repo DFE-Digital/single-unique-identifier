@@ -59,7 +59,7 @@ public class PersonDataQualityTranslator : IDataQualityTranslator
         if (string.IsNullOrEmpty(spec.Email)) result.Email = QualityType.NotProvided;
         if (string.IsNullOrEmpty(spec.Gender)) result.Gender = QualityType.NotProvided;
         if (string.IsNullOrEmpty(spec.Phone)) result.Phone = QualityType.NotProvided;
-        
+
         // Minimum is Given,Family,BirthDate all Valid
         var isValid = result is { Given: QualityType.Valid, Family: QualityType.Valid, BirthDate: QualityType.Valid };
 

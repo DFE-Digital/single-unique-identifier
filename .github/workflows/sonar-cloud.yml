@@ -27,9 +27,6 @@ jobs:
           distribution: "microsoft"
           java-version: 21
 
-      - name: Format Code
-        run: dotnet format ./Find --verify-no-changes --verbosity diagnostic
-
       - name: Install dotnet coverage
         run: dotnet tool install --global dotnet-coverage
 

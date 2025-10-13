@@ -22,7 +22,7 @@ public class MatchingServiceTests
         _fhirService = Substitute.For<IFhirService>();
         _matchingService = new MatchingService(logger, _fhirService, searchIdService);
     }
-    
+
     [Fact]
     public async Task ShouldReturn_ValidationError_IfMatchingServiceValidationFails()
     {
@@ -42,13 +42,13 @@ public class MatchingServiceTests
         Assert.Equal(MatchStatus.Error, response.Result.MatchStatus);
         Assert.NotNull(response.Result.ErrorMessage);
     }
-    
+
     [Fact]
     public async Task ShouldReturn_Error_IfFhirServiceErrors()
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
-        
+
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Failure("Simulated FHIR service error"));
 
         // Act
@@ -58,7 +58,7 @@ public class MatchingServiceTests
         Assert.Equal(MatchStatus.Error, response.Result.MatchStatus);
         Assert.NotNull(response.Result.ErrorMessage);
     }
-    
+
     [Theory]
     [InlineData(0.95)]
     [InlineData(1)]
@@ -75,7 +75,7 @@ public class MatchingServiceTests
         Assert.Equal(MatchStatus.Match, response.Result.MatchStatus);
         Assert.NotNull(response.Result.NhsNumber);
     }
-    
+
     [Theory]
     [InlineData(0.85)]
     [InlineData(0.90)]
@@ -92,13 +92,13 @@ public class MatchingServiceTests
         // Assert
         Assert.Equal(MatchStatus.PotentialMatch, response.Result.MatchStatus);
     }
-    
+
     [Fact]
     public async Task ShouldReturn_ManyMatchResults_WhenFhirServiceReturnsMultiMatch()
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
-        
+
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMultiMatch()));
 
         // Act
@@ -107,13 +107,13 @@ public class MatchingServiceTests
         // Assert
         Assert.Equal(MatchStatus.ManyMatch, response.Result.MatchStatus);
     }
-    
+
     [Fact]
     public async Task ShouldReturn_NoMatchResults_WhenFhirServiceReturnsUnmatched()
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
-        
+
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(Result<SearchResult>.Success(GetMockFhirSearchResultUnmatched()));
 
         // Act
@@ -122,13 +122,13 @@ public class MatchingServiceTests
         // Assert
         Assert.Equal(MatchStatus.NoMatch, response.Result.MatchStatus);
     }
-    
+
     [Fact]
     public async Task ShouldReturnEarly_IfHighConfidenceMatchFound()
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
-        
+
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(
                 // First call returns a high confidence match
@@ -145,13 +145,13 @@ public class MatchingServiceTests
         // Verify that PerformSearchAsync was called only once due to early exit
         await _fhirService.Received(1).PerformSearchAsync(Arg.Any<SearchQuery>());
     }
-    
+
     [Fact]
     public async Task ShouldReturnBestResult_OfPotentialMatch_WhenMultipleQueriesExecuted()
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
-        
+
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(
                 Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.90m)),
@@ -169,13 +169,13 @@ public class MatchingServiceTests
         Assert.Equal(expectedQueryKey, response.Result.ProcessStage);
         Assert.Equal(0.92m, response.Result.Score);
     }
-    
+
     [Fact]
     public async Task ShouldReturnBestResult_OfManyMatch_WhenMultipleQueriesExecuted()
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
-        
+
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(
                 Result<SearchResult>.Success(GetMockFhirSearchResultMultiMatch()),
@@ -191,7 +191,7 @@ public class MatchingServiceTests
         Assert.Equal(expectedQueryKey, response.Result.ProcessStage);
         Assert.Null(response.Result.Score);
     }
-    
+
     private static PersonSpecification CreateMinimalValidPersonSpec()
     {
         return new PersonSpecification
@@ -201,7 +201,7 @@ public class MatchingServiceTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
     }
-    
+
     private static SearchResult GetMockFhirSearchResultMatched(decimal score)
     {
         return new SearchResult
@@ -211,7 +211,7 @@ public class MatchingServiceTests
             Type = SearchResult.ResultType.Matched
         };
     }
-    
+
     private static SearchResult GetMockFhirSearchResultMultiMatch()
     {
         return new SearchResult
@@ -221,7 +221,7 @@ public class MatchingServiceTests
             Type = SearchResult.ResultType.MultiMatched
         };
     }
-    
+
     private static SearchResult GetMockFhirSearchResultUnmatched()
     {
         return new SearchResult

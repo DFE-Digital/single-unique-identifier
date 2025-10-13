@@ -19,7 +19,7 @@ public static class PersonQueryKeys
 public static class PersonQueryBuilder
 {
     private const string? DateFormat = "yyyy-MM-dd";
-    
+
     public static OrderedDictionary<string, SearchQuery> CreateQueries(PersonSpecification model)
     {
         if (!model.BirthDate.HasValue)

@@ -27,7 +27,7 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
             .When(x => !string.IsNullOrEmpty(x.AddressPostalCode))
             .WithMessage(PersonValidationConstants.PostCodeInvalid);
     }
-    
+
     private static bool BeAValidPostcode(string? postcode)
     {
         if (string.IsNullOrEmpty(postcode))
@@ -52,7 +52,7 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
         var validGenders = new[] { "male", "female", "unknown", "other" };
         return validGenders.Contains(gender);
     }
-    
+
     private static bool BeValidPhone(string? phone)
     {
         if (string.IsNullOrEmpty(phone))
