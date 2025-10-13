@@ -1,0 +1,77 @@
+name: Sonar Cloud Analysis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-test:
+    name: "Run Sonar Cloud Analysis for .NET Projects in /Find"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: "microsoft"
+          java-version: 21
+
+      - name: Format Code
+        run: dotnet format ./Find --verify-no-changes --verbosity diagnostic
+
+      - name: Install dotnet coverage
+        run: dotnet tool install --global dotnet-coverage
+
+      - name: Install dotnet reportgenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Install SonarCloud Scanner
+        shell: bash
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Start SonarCloud Scanner
+        run: |
+          dotnet-sonarscanner begin \
+            /k:"DFE-Digital_single-unique-identifier" \
+            /o:"dfe-digital" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.coverageReportPaths=CoverageReport/SonarQube.xml \
+            /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
+            /d:sonar.cpd.exclusions="**/Program.cs" \
+            /d:sonar.issue.ignore.multicriteria.e1.ruleKey=csharpsquid:S6602 \
+            /d:sonar.scanner.skipJreProvisioning=true \
+            /d:sonar.scanner.scanAll=false
+          dotnet build ./Find --no-restore
+          dotnet test ./Find --no-build --verbosity normal
+          reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:SonarQube,html
+          dotnet coverage merge --reports "tests/**/coverage.cobertura.xml" -f cobertura -o coverage/coverage.xml
+          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+      - name: Publish coverage
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        if: github.event_name == 'pull_request'
+        with:
+          filename: coverage/coverage.xml
+          badge: true
+          format: markdown
+          hide_complexity: true
+          output: both
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
