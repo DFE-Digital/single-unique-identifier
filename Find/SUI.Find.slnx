@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="SUI.Find.API/SUI.Find.API.csproj" />
     <Project Path="SUi.Find.Application/SUi.Find.Application.csproj" />
     <Project Path="SUI.Find.Domain/SUI.Find.Domain.csproj" />
     <Project Path="SUI.Find.Infrastructure/SUI.Find.Infrastructure.csproj" />
@@ -7,5 +8,6 @@
   <Folder Name="/tests/">
     <Project Path="Sui.Find.Application.UnitTests/Sui.Find.Application.UnitTests.csproj" />
     <Project Path="SUI.Find.Infrastructure.UnitTests/SUI.Find.Infrastructure.UnitTests.csproj" />
+    <Project Path="SUI.Find.API.Integration.Tests/SUI.Find.API/SUI.Find.API.Integration.Tests.csproj" />
   </Folder>
 </Solution>

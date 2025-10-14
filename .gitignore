@@ -59,3 +59,5 @@ nunit-*.xml
 *.dotsettings.user
 *.feature.cs
 .vscode
+
+.fake
