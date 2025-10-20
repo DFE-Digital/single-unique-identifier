@@ -11,7 +11,7 @@ using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.Infrastructure.Services;
 
-public sealed class AuthTokenService(
+public class AuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
     ILogger<AuthTokenService> logger,
     IHttpClientFactory httpClientFactory,
@@ -35,18 +35,12 @@ public sealed class AuthTokenService(
     /// <returns>A valid access token.</returns>
     public async Task<string> GetBearerToken(CancellationToken cancellationToken = default)
     {
-        if (_cachedToken?.IsValid() == true)
-        {
-            return _cachedToken.AccessToken;
-        }
+        if (_cachedToken?.IsValid() == true) return _cachedToken.AccessToken;
 
         await _renewalLock.WaitAsync(cancellationToken);
         try
         {
-            if (_cachedToken?.IsValid() == true)
-            {
-                return _cachedToken.AccessToken;
-            }
+            if (_cachedToken?.IsValid() == true) return _cachedToken.AccessToken;
 
             logger.LogInformation("Cached token is expired or missing. Proceeding with renewal.");
 
@@ -66,7 +60,7 @@ public sealed class AuthTokenService(
         }
     }
 
-    private async Task EnsureInitializedAsync(CancellationToken cancellationToken)
+    protected virtual async Task EnsureInitializedAsync(CancellationToken cancellationToken)
     {
         if (_privateKey is not null) return;
 
@@ -86,7 +80,8 @@ public sealed class AuthTokenService(
     private async Task<CachedToken> FetchNewAccessTokenAsync(CancellationToken cancellationToken)
     {
         var authAddress = _httpClient.BaseAddress!.ToString();
-        var tokenExpiresInMinutes = _options.NhsDigitalAccessTokenExpiresInMinutes ?? NhsDigitalKeyConstants.AccountTokenExpiresInMinutes;
+        var tokenExpiresInMinutes = _options.NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES ??
+                                    NhsDigitalKeyConstants.AccountTokenExpiresInMinutes;
 
         var clientAssertion = GenerateClientAssertionJwt(authAddress, tokenExpiresInMinutes);
 
@@ -94,7 +89,7 @@ public sealed class AuthTokenService(
         {
             { "grant_type", "client_credentials" },
             { "client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" },
-            { "client_assertion", clientAssertion },
+            { "client_assertion", clientAssertion }
         });
 
         logger.LogDebug("Requesting new access token from {TokenEndpoint}", authAddress);
@@ -104,15 +99,19 @@ public sealed class AuthTokenService(
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            logger.LogError("Authentication failed with status code {StatusCode}. Response: {ErrorContent}", response.StatusCode, errorContent);
-            throw new HttpRequestException($"Authentication failed. Status: {response.StatusCode}, Body: {errorContent}", null, response.StatusCode);
+            logger.LogError("Authentication failed with status code {StatusCode}. Response: {ErrorContent}",
+                response.StatusCode, errorContent);
+            throw new HttpRequestException(
+                $"Authentication failed. Status: {response.StatusCode}, Body: {errorContent}", null,
+                response.StatusCode);
         }
 
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         var parsedJson = JsonNode.Parse(responseBody);
 
-        var accessToken = parsedJson?["access_token"]?.ToString() ?? throw new InvalidOperationException("Response did not contain an 'access_token'.");
-        var expiresIn = (int?)parsedJson["expires_in"] ?? (tokenExpiresInMinutes * 60);
+        var accessToken = parsedJson?["access_token"]?.ToString() ??
+                          throw new InvalidOperationException("Response did not contain an 'access_token'.");
+        var expiresIn = (int?)parsedJson["expires_in"] ?? tokenExpiresInMinutes * 60;
 
         return new CachedToken(accessToken, expiresIn);
     }
