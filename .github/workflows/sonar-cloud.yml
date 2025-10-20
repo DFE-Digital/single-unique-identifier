@@ -51,9 +51,9 @@ jobs:
             /d:sonar.scanner.skipJreProvisioning=true \
             /d:sonar.scanner.scanAll=false
           dotnet build ./Find --no-incremental
-          dotnet test ./Find --no-build --verbosity normal
-          reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:SonarQube,html
-          dotnet coverage merge --reports "tests/**/coverage.cobertura.xml" -f cobertura -o coverage/coverage.xml
+          dotnet test ./Find --no-build --verbosity normal --settings Find/tests.runsettings
+          reportgenerator -reports:Find/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:SonarQube,html
+          dotnet coverage merge --reports "Find/tests/**/coverage.cobertura.xml" -f cobertura -o Find/coverage/coverage.xml
           dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Publish coverage
