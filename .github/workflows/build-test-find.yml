@@ -1,4 +1,4 @@
-name: Sonar Cloud Analysis
+name: Build and Test .NET Projects in /Find
 
 on:
   push:
@@ -12,8 +12,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  build-test:
-    name: "Run Sonar Cloud Analysis for .NET Projects in /Find"
+  build-find-test:
+    name: "Build, Test and Scan .NET Projects in /Find"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
