@@ -1,6 +1,7 @@
 # Find Service
 
-The **Find** service matches persons to NHS numbers using the NHS FHIR API, with a custom algorithm to determine the best match.
+The **Find** service matches persons to NHS numbers using the NHS FHIR API, with a custom algorithm to determine the
+best match.
 
 ## Purpose
 
@@ -15,8 +16,8 @@ The **Find** service matches persons to NHS numbers using the NHS FHIR API, with
 
 ## Technology
 
+- *.NET* SDK - use the latest version of .Net SDK 9
 - *.NET* (C#)
-- *.NET* SDK >= 9.0.200
 - *Clean Architecture* principles
 - *NHS FHIR API* integration
 
