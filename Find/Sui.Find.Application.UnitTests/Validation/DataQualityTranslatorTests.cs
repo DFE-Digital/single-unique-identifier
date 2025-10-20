@@ -113,7 +113,7 @@ public class DataQualityTranslatorTests
         Assert.Equal(QualityType.Invalid, result.Email);
         Assert.Equal(QualityType.Invalid, result.AddressPostalCode);
     }
-    
+
     [Fact]
     public void Translate_ShouldSetNotProvidedForNonRequiredFields_WhenTheyAreNullOrEmpty()
     {

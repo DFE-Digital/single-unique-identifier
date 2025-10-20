@@ -11,7 +11,7 @@ namespace SUi.Find.Application.Services;
 /// <summary>
 /// Application code class for validating business logic, forming request for FhirService and sending, then processing results.
 /// </summary>
-public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirService, ISearchIdService searchIdService) 
+public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirService, ISearchIdService searchIdService)
     : IMatchingService
 {
     public async Task<PersonMatchResponse> SearchAsync(PersonSpecification personSpecification)
@@ -69,7 +69,7 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
 
         return best ?? MatchResult.NoMatch();
     }
-    
+
     private static MatchResult MapSearchResult(SearchResult value, string queryCode) =>
         value.Type switch
         {
@@ -92,7 +92,7 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
         var dataQualityTranslator = new PersonDataQualityTranslator();
         return dataQualityTranslator.Translate(personSpecification, validationResult);
     }
-    
+
     private PersonMatchResponse BuildValidationErrorResponse(DataQualityResult dq, string message)
     {
         logger.LogWarning("[Validation] {Message}", message);

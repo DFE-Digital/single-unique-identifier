@@ -10,6 +10,6 @@ public static class GenderMapper
         "1" => Gender.Male,
         "2" => Gender.Female,
         "9" => Gender.NotSpecified,
-        _   => Gender.Unknown
+        _ => Gender.Unknown
     };
 }

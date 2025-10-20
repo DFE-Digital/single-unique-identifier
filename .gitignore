@@ -39,7 +39,6 @@ ScaffoldingReadMe.txt
 # Others
 ~$*
 *~
-CodeCoverage/
 
 # MSBuild Binary and Structured Log
 *.binlog
@@ -59,3 +58,5 @@ nunit-*.xml
 *.dotsettings.user
 *.feature.cs
 .vscode
+.env
+coverage/

@@ -12,7 +12,7 @@ public record Gender
     public static readonly Gender NotKnown = new("not known");
     public static readonly Gender NotSpecified = new("not specified");
     public static readonly Gender Unknown = new("unknown");
-    
+
     public override string ToString() => Value;
-    
+
 }
