@@ -20,6 +20,7 @@ public class AuthTokenServiceTests
     private readonly MockHttpMessageHandler _mockHttpMessageHandler;
 
     private const string DummyToken = "a.dummy.token";
+
     private const string DummyPrivateKey = """
                                            -----BEGIN RSA PRIVATE KEY-----
                                            MIICWgIBAAKBgFO1fY49w+i7dyUui3gd2lzHtTh/5uZn98Ai3DyigxVBzE1SdMsh
@@ -49,7 +50,7 @@ public class AuthTokenServiceTests
 
         _subOptions.Value.Returns(new AuthTokenServiceConfig
         {
-            NhsDigitalAccessTokenExpiresInMinutes = 5
+            NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5
         });
 
         _mockHttpMessageHandler = new MockHttpMessageHandler();
@@ -145,10 +146,7 @@ public class AuthTokenServiceTests
         var tasks = new List<Task<string>>();
 
         // Act
-        for (var i = 0; i < taskCount; i++)
-        {
-            tasks.Add(service.GetBearerToken(TestContext.Current.CancellationToken));
-        }
+        for (var i = 0; i < taskCount; i++) tasks.Add(service.GetBearerToken(TestContext.Current.CancellationToken));
         var results = await Task.WhenAll(tasks);
 
         // Assert
@@ -169,7 +167,9 @@ public class AuthTokenServiceTests
         var service = CreateService();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.GetBearerToken(TestContext.Current.CancellationToken));
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.GetBearerToken(TestContext.Current.CancellationToken));
         Assert.Contains("Failed to get secret", exception.Message);
     }
 
@@ -188,6 +188,7 @@ public class AuthTokenServiceTests
         var service = CreateService();
 
         // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(() => service.GetBearerToken(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            service.GetBearerToken(TestContext.Current.CancellationToken));
     }
 }
