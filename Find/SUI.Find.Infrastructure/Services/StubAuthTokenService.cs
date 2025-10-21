@@ -16,17 +16,11 @@ public class StubAuthTokenService(
 {
     private readonly IOptions<AuthTokenServiceConfig> _options = options;
 
-    private string? _privateKey;
-    private string? _clientId;
-    private string? _kid;
-
     protected override async Task EnsureInitializedAsync(CancellationToken cancellationToken)
     {
         if (_privateKey is not null) return;
 
-        logger.LogInformation("First-time initialization: loading secrets from Azure Key Vault.");
-
-        var privateKeyTask = await Task.FromResult(_options.Value.NHS_DIGITAL_PRIVATE_KEY);
+        var privateKeyTask = _options.Value.NHS_DIGITAL_PRIVATE_KEY;
 
         if (string.IsNullOrEmpty(privateKeyTask))
         {
@@ -39,9 +33,8 @@ public class StubAuthTokenService(
             privateKeyTask = await File.ReadAllTextAsync(privateKeyTask);
         }
 
-        var clientIdTask = await Task.FromResult(_options.Value.NHS_DIGITAL_CLIENT_ID);
-        var kidTask = await Task.FromResult(_options.Value.NHS_DIGITAL_KID);
-
+        var clientIdTask = _options.Value.NHS_DIGITAL_CLIENT_ID;
+        var kidTask = _options.Value.NHS_DIGITAL_KID;
 
         _privateKey = privateKeyTask;
         _clientId = clientIdTask;

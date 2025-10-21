@@ -23,9 +23,9 @@ public class AuthTokenService(
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient("nhs-auth-api");
     private readonly AuthTokenServiceConfig _options = options.Value;
     private volatile CachedToken? _cachedToken;
-    private string? _privateKey;
-    private string? _clientId;
-    private string? _kid;
+    protected string? _privateKey;
+    protected string? _clientId;
+    protected string? _kid;
 
     /// <summary>
     /// Retrieves a valid bearer token, handling caching and renewal automatically.
@@ -111,7 +111,12 @@ public class AuthTokenService(
 
         var accessToken = parsedJson?["access_token"]?.ToString() ??
                           throw new InvalidOperationException("Response did not contain an 'access_token'.");
-        var expiresIn = (int?)parsedJson["expires_in"] ?? tokenExpiresInMinutes * 60;
+
+        var expiresIn =
+            parsedJson?["expires_in"] is not null &&
+            int.TryParse(parsedJson["expires_in"]?.ToString(), out var parsedSeconds)
+                ? parsedSeconds
+                : tokenExpiresInMinutes * 60;
 
         return new CachedToken(accessToken, expiresIn);
     }
@@ -122,11 +127,13 @@ public class AuthTokenService(
         {
             Audience = audience,
             Issuer = _clientId!,
-            Subject = new ClaimsIdentity([new Claim(JwtRegisteredClaimNames.Sub, _clientId!)]),
+            Subject = new ClaimsIdentity([
+                new Claim(JwtRegisteredClaimNames.Sub, _clientId!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            ]),
             Expires = DateTime.UtcNow.AddMinutes(expInMinutes),
             SigningCredentials = CreateSigningCredentials(_privateKey!, _kid!)
         };
-
         return TokenHandler.CreateToken(tokenDescriptor);
     }
 

@@ -37,7 +37,10 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddProblemDetails();
 
-if (builder.Environment.IsDevelopment()) builder.Services.AddSingleton<IAuthTokenService, StubAuthTokenService>();
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddSingleton<IAuthTokenService, StubAuthTokenService>();
+else
+    builder.Services.AddSingleton<IAuthTokenService, AuthTokenService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -55,7 +58,6 @@ builder.Services.AddSingleton<SecretClient>(_ =>
 // go through these with stuart
 // AddTransient scope - in my mind we would want the scope to only live for the duration of the request
 builder.Services.AddSingleton<ISecretService, SecretService>();
-builder.Services.AddSingleton<IAuthTokenService, AuthTokenService>();
 builder.Services.AddTransient<IMatchingService, MatchingService>();
 builder.Services.AddTransient<IFhirService, FhirService>();
 builder.Services.AddTransient<IFhirClientFactory, FhirClientFactory>();

@@ -69,7 +69,10 @@ dotnet build
 
 ## Unit and integration testing
 
-<<<PLACEHOLDER>>>
+```bash
+cd Find
+dotnet test
+```
 
 ## Running locally
 
@@ -87,7 +90,6 @@ Run simple test:
 curl -H 'Content-Type: application/json' \
       -d '{ "given":"octavia","family":"chislett", "birthdate": "2008-09-20"}' \
       -X POST \
-      http://localhost:5003/matching/api/v1/matchperson
+      http://localhost:5003/api/v1/matchperson
 ```
 
-<<<PLACEHOLDER FOR ADDITIONAL INSTRUCTIONS>>>

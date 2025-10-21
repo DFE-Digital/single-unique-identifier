@@ -23,10 +23,10 @@ public static class MatchEndpoint
                     ? Results.BadRequest(result)
                     : Results.Ok(result);
             }
-            catch (InvalidStrategyException ex)
+            catch (Exception ex)
             {
                 return Results.BadRequest(new ProblemDetails
-                    { Title = "Strategy validation error", Detail = ex.Message });
+                    { Title = "Exception with Match Person", Detail = ex.Message });
             }
         });
     }

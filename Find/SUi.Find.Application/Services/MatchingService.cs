@@ -17,8 +17,6 @@ public class MatchingService(
     ISearchIdService searchIdService)
     : IMatchingService
 {
-    // do we need audit logger?
-    // need to add logging to all methods
     public async Task<PersonMatchResponse> SearchAsync(PersonSpecification personSpecification)
     {
         var (metRequirements, dataQualityResult) = await CheckDataQuality(personSpecification);
@@ -31,7 +29,7 @@ public class MatchingService(
         CreateAndSetSearchId(personSpecification);
 
         var bestResult = await FindBestMatchResultAsync(queries);
-
+        logger.LogInformation("Responding with match result: {MatchResult}", bestResult.MatchStatus);
         return new PersonMatchResponse
         {
             Result = bestResult,
