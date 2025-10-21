@@ -10,19 +10,6 @@ using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Services;
 using DotNetEnv;
 
-
-// TODO
-// Testing
-// Logging
-// Error handles
-// Correct API middleware
-// Added helpers, interfaces etc in correct projects
-// use of .env and settings correct?
-// review ticket AC
-
-
-// why do we use .env and appsettings
-
 Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
