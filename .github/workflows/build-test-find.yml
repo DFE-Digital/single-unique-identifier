@@ -39,6 +39,15 @@ jobs:
       - name: Install SonarCloud Scanner
         run: dotnet tool install --global dotnet-sonarscanner
 
+      - name: Debug Sonar Token Presence
+        run: |
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+           echo "Sonar token is missing!"
+           exit 1
+          else
+           echo "Sonar token is present."
+          fi
+
       - name: Start SonarCloud Scanner
         run: |
           dotnet-sonarscanner begin \
