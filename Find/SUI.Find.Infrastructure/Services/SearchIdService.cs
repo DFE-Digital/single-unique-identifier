@@ -59,7 +59,7 @@ public class SearchIdService : ISearchIdService
         return $"{given}{family}{birthDate}{gender}{postalCode}";
     }
 
-    public SearchIdHash CreatePersonHash(string? given, string? family,DateOnly? birthDate, string? gender, string? addressPostalCode)
+    public SearchIdHash CreatePersonHash(string? given, string? family, DateOnly? birthDate, string? gender, string? addressPostalCode)
     {
         var formattedGiven = FormatName(given);
         var formattedFamily = FormatName(family);
@@ -76,5 +76,5 @@ public class SearchIdService : ISearchIdService
         Activity.Current?.SetBaggage(SearchIdConstants.SearchIdStorageKey, hash.Value);
     }
 
-    
+
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+    <RunConfiguration>
+		<EnvironmentVariables>
+		<NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES>5</NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES>
+		<NHS_DIGITAL_TOKEN_URL>https://int.api.service.nhs.uk/oauth2/token</NHS_DIGITAL_TOKEN_URL>
+		<NHS_DIGITAL_CLIENT_ID>cooluserid</NHS_DIGITAL_CLIENT_ID>
+		<NHS_DIGITAL_KID>devkid</NHS_DIGITAL_KID>
+		</EnvironmentVariables>
+	</RunConfiguration>
+	<DataCollectionRunSettings>
+		<DataCollectors>
+			<DataCollector friendlyName="XPlat code coverage">
+				<Configuration>
+					<Format>cobertura,opencover</Format>
+					<Exclude>[*.Tests?]*</Exclude>
+					<!-- [Assembly-Filter]Type-Filter -->
+					<ExcludeByFile>**/**/Program.cs</ExcludeByFile>
+					<!-- Globbing filter -->
+					<SkipAutoProps>true</SkipAutoProps>
+				</Configuration>
+			</DataCollector>
+		</DataCollectors>
+	</DataCollectionRunSettings>
+</RunSettings>

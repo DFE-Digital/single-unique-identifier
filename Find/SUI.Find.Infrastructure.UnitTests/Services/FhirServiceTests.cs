@@ -9,7 +9,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services;
 public class FhirServiceTests : BaseFhirClientTests
 {
     private readonly FhirService _fhirService;
-    
+
     public FhirServiceTests()
     {
         _fhirService = new FhirService(LoggerMock, FhirClientFactoryMock);
@@ -40,7 +40,7 @@ public class FhirServiceTests : BaseFhirClientTests
         var testFhirClient = new TestFhirClientUnmatched();
         FhirClientFactoryMock.CreateFhirClient()
             .Returns(testFhirClient);
-        
+
 
         // Act
         var result = await _fhirService.PerformSearchAsync(searchQuery);
