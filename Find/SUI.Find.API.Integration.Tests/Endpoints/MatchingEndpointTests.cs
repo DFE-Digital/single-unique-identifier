@@ -64,14 +64,7 @@ public class MatchEndpointIntegrationTests : IClassFixture<WebApplicationFactory
             Family = "Smith",
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1)
         };
-
-        var matchResult = new MatchResult(
-            MatchStatus.Match,
-            score,
-            "test",
-            "1234567890"
-        );
-
+        
         // mock response from fhir endpoint service
         var fhirResponse = Result<SearchResult>.Success(fhirSearchResult);
 

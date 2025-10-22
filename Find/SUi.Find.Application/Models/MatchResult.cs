@@ -11,13 +11,13 @@ public class MatchResult
     public decimal? Score { get; }
     public string? ErrorMessage { get; }
 
-    public MatchResult(MatchStatus status,
+    public MatchResult(MatchStatus matchStatus,
         decimal? score = null,
         string? processStage = null,
         string? nhsNumber = null,
         string? errorMessage = null)
     {
-        MatchStatus = status;
+        MatchStatus = matchStatus;
         Score = score;
         ProcessStage = processStage;
         NhsNumber = nhsNumber;
@@ -52,11 +52,11 @@ public class MatchResult
     /// <summary>
     /// Set order is explicit away from MatchStatus enum order to preserve logic if enum changes
     /// </summary>
-    /// <param name="status">status </param>
+    /// <param name="matchStatus">status </param>
     /// <returns>Highest rated score</returns>
-    private static int GetPriority(MatchStatus status)
+    private static int GetPriority(MatchStatus matchStatus)
     {
-        return status switch
+        return matchStatus switch
         {
             MatchStatus.Match => 3,
             MatchStatus.PotentialMatch => 2,
