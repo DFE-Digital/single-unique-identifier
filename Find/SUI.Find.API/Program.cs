@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using SUI.Find.API.Endpoints;
@@ -8,18 +10,18 @@ using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Fhir;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Services;
+using Microsoft.AspNetCore.Http.Json;
 using DotNetEnv;
 
 Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to container
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 
 
-// used sui matcher exception handler for now
+// used sui matcher exception handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddProblemDetails();
@@ -42,24 +44,23 @@ builder.Services.AddSingleton<SecretClient>(_ =>
     var uri = new Uri(keyVaultString);
     return new SecretClient(uri, new DefaultAzureCredential());
 });
-// go through these with stuart
-// AddTransient scope - in my mind we would want the scope to only live for the duration of the request
-builder.Services.AddSingleton<ISecretService, SecretService>();
-builder.Services.AddTransient<IMatchingService, MatchingService>();
-builder.Services.AddTransient<IFhirService, FhirService>();
-builder.Services.AddTransient<IFhirClientFactory, FhirClientFactory>();
-builder.Services.AddTransient<ISearchIdService, SearchIdService>();
 
-// will need to serialise json responses
-// will need to add authentication and authorisation
+builder.Services.AddSingleton<ISecretService, SecretService>();
+builder.Services.AddSingleton<IMatchingService, MatchingService>();
+builder.Services.AddSingleton<IFhirService, FhirService>();
+builder.Services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
+builder.Services.AddSingleton<ISearchIdService, SearchIdService>();
+
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+});
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
 
-// This endpoint returns a 200 for a simple message.
-app.MapGet("/test", () => new { Message = "Whats the matcher" });
-
-app.MapMatchEndpoints(app.Services.GetRequiredService<IMatchingService>());
+app.MapMatchEndpoints();
 
 // configure http profile for development
 if (app.Environment.IsDevelopment())
@@ -69,3 +70,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.Run();
+
+// Allow for setting up factory in integration tests
+public partial class Program
+{
+}
