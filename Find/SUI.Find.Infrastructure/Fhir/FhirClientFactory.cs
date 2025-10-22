@@ -13,14 +13,12 @@ public class FhirClientFactory(IAuthTokenService authTokenService, IOptions<Auth
     public FhirClient CreateFhirClient()
     {
         var baseUri = nhsAuthConfig.Value.NHS_DIGITAL_FHIR_ENDPOINT;
-        var fhirClient = new FhirClient(new Uri(baseUri));
+        var fhirClient = new FhirClient(new Uri(baseUri ?? string.Empty));
 
-        if (fhirClient.RequestHeaders != null)
-        {
-            var accessToken = authTokenService.GetBearerToken(CancellationToken.None).Result;
-            fhirClient.RequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            fhirClient.RequestHeaders.Add("X-Request-ID", Guid.NewGuid().ToString());
-        }
+        if (fhirClient.RequestHeaders == null) return fhirClient;
+        var accessToken = authTokenService.GetBearerToken(CancellationToken.None).Result;
+        fhirClient.RequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        fhirClient.RequestHeaders.Add("X-Request-ID", Guid.NewGuid().ToString());
 
         return fhirClient;
     }

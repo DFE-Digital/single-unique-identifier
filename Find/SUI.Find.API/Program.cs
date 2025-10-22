@@ -69,7 +69,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => { options.SwaggerEndpoint("/openapi/v1.json", "v1"); });
 }
 
-app.Run();
+await app.RunAsync();
 
 // Allow for setting up factory in integration tests
 public partial class Program

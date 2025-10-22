@@ -9,5 +9,6 @@
         <Project Path="Sui.Find.Application.UnitTests/Sui.Find.Application.UnitTests.csproj"/>
         <Project Path="SUI.Find.Infrastructure.UnitTests/SUI.Find.Infrastructure.UnitTests.csproj"/>
         <Project Path="SUI.Find.API.Integration.Tests/SUI.Find.API.Integration.Tests.csproj"/>
+        <Project Path="SUI.Find.API.Unit.Tests/SUI.Find.API.Unit.Tests.csproj"/>
     </Folder>
 </Solution>
