@@ -3,13 +3,13 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "[gha]-"
-      
+
   - package-ecosystem: nuget
     directory: "/Find"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "[nuget]-"
