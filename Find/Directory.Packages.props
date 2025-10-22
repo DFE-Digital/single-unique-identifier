@@ -2,31 +2,30 @@
     <PropertyGroup>
         <!-- Enable central package management, https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management -->
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-        <AspnetVersion>9.0.8</AspnetVersion>
     </PropertyGroup>
-    <!--    need to sort versions out -->
     <ItemGroup>
         <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.8.0"/>
-        <PackageVersion Include="Azure.Identity" Version="1.15.0"/>
-        <PackageVersion Include="DotNetEnv" Version="3.1.1"/>
         <PackageVersion Include="FluentValidation" Version="12.0.0"/>
-        <PackageVersion Include="Hl7.Fhir.Base" Version="5.12.2"/>
         <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.10"/>
         <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.14.0"/>
+        <PackageVersion Include="Hl7.Fhir.R4" Version="6.0.1" />
+        <PackageVersion Include="Hl7.Fhir.Base" Version="5.12.2"/>
+        <PackageVersion Include="Azure.Identity" Version="1.15.0"/>
+        <PackageVersion Include="DotNetEnv" Version="3.1.1"/>
         <PackageVersion Include="Microsoft.IdentityModel.Logging" Version="8.14.0"/>
         <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.14.0"/>
-        <PackageVersion Include="Hl7.Fhir.R4" Version="5.12.2"/>
         <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8"/>
-        <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="$(AspnetVersion)"/>
+        <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8"/>
         <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUi" Version="9.0.3"/>
     </ItemGroup>
     <!--   Testing -->
     <ItemGroup>
-        <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(AspnetVersion)"/>
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0"/>
+        <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.8"/>
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
         <PackageVersion Include="NSubstitute" Version="5.3.0"/>
         <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4"/>
         <PackageVersion Include="xunit.v3" Version="3.0.1"/>
-        <PackageVersion Include="coverlet.collector" Version="6.0.2"/>
+        <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     </ItemGroup>
 </Project>
+
