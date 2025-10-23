@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI"/>
+        <PackageReference Include="DotNetEnv"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\SUi.Find.Application\SUi.Find.Application.csproj"/>
+        <ProjectReference Include="..\SUI.Find.Domain\SUI.Find.Domain.csproj"/>
+        <ProjectReference Include="..\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj"/>
+    </ItemGroup>
+
+</Project>

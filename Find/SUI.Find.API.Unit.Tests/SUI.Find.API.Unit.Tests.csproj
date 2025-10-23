@@ -5,15 +5,16 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <OutputType>Exe</OutputType>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentValidation"/>
         <PackageReference Include="coverlet.collector"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk"/>
         <PackageReference Include="NSubstitute"/>
         <PackageReference Include="xunit.v3"/>
         <PackageReference Include="xunit.runner.visualstudio"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -21,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\SUi.Find.Application\SUi.Find.Application.csproj"/>
+        <ProjectReference Include="..\SUI.Find.API\SUI.Find.API.csproj"/>
     </ItemGroup>
 
 </Project>

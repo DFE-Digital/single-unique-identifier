@@ -11,7 +11,10 @@ namespace SUi.Find.Application.Services;
 /// <summary>
 /// Application code class for validating business logic, forming request for FhirService and sending, then processing results.
 /// </summary>
-public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirService, ISearchIdService searchIdService)
+public class MatchingService(
+    ILogger<MatchingService> logger,
+    IFhirService fhirService,
+    ISearchIdService searchIdService)
     : IMatchingService
 {
     public async Task<PersonMatchResponse> SearchAsync(PersonSpecification personSpecification)
@@ -22,13 +25,13 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
             return BuildValidationErrorResponse(dataQualityResult,
                 "The minimized data requirements for a search weren't met, returning match status 'Error'");
         }
-
+        
         // Build FHIR query from PersonSpecification
         var queries = PersonQueryBuilder.CreateQueries(personSpecification);
         CreateAndSetSearchId(personSpecification);
 
         var bestResult = await FindBestMatchResultAsync(queries);
-
+        logger.LogInformation("Responding with match result: {MatchResult}", bestResult.MatchStatus);
         return new PersonMatchResponse
         {
             Result = bestResult,
@@ -51,7 +54,9 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
                 var errorResult = MatchResult.Error("Error: Could not complete search");
 
                 if (errorResult.IsBetterThan(best))
+                { 
                     best = errorResult;
+                }
 
                 continue;
             }
@@ -59,7 +64,9 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
             var current = MapSearchResult(searchResult.Value!, queryCode);
 
             if (current.IsBetterThan(best))
+            {
                 best = current;
+            }
 
             if (current is { MatchStatus: MatchStatus.Match, Score: >= MatchThresholds.MinMatchThreshold })
             {
@@ -70,18 +77,22 @@ public class MatchingService(ILogger<MatchingService> logger, IFhirService fhirS
         return best ?? MatchResult.NoMatch();
     }
 
-    private static MatchResult MapSearchResult(SearchResult value, string queryCode) =>
-        value.Type switch
+    private static MatchResult MapSearchResult(SearchResult value, string queryCode)
+    {
+        return value.Type switch
         {
             SearchResult.ResultType.Matched => value.Score switch
             {
-                >= MatchThresholds.MinMatchThreshold => MatchResult.Match(value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
-                >= MatchThresholds.MinPartialMatchThreshold => MatchResult.PotentialMatch(value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
+                >= MatchThresholds.MinMatchThreshold => MatchResult.Match(value.Score.GetValueOrDefault(), queryCode,
+                    value.NhsNumber!),
+                >= MatchThresholds.MinPartialMatchThreshold => MatchResult.PotentialMatch(
+                    value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
                 _ => MatchResult.NoMatch()
             },
             SearchResult.ResultType.MultiMatched => MatchResult.ManyMatch(queryCode),
             _ => MatchResult.NoMatch()
         };
+    }
 
     private static async Task<(bool metRequirements, DataQualityResult dataQuality)> CheckDataQuality(
         PersonSpecification personSpecification)

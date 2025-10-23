@@ -11,7 +11,7 @@ using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.Infrastructure.Services;
 
-public sealed class AuthTokenService(
+public class AuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
     ILogger<AuthTokenService> logger,
     IHttpClientFactory httpClientFactory,
@@ -23,9 +23,9 @@ public sealed class AuthTokenService(
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient("nhs-auth-api");
     private readonly AuthTokenServiceConfig _options = options.Value;
     private volatile CachedToken? _cachedToken;
-    private string? _privateKey;
-    private string? _clientId;
-    private string? _kid;
+    protected string? _privateKey;
+    protected string? _clientId;
+    protected string? _kid;
 
     /// <summary>
     /// Retrieves a valid bearer token, handling caching and renewal automatically.
@@ -66,7 +66,7 @@ public sealed class AuthTokenService(
         }
     }
 
-    private async Task EnsureInitializedAsync(CancellationToken cancellationToken)
+    protected virtual async Task EnsureInitializedAsync(CancellationToken cancellationToken)
     {
         if (_privateKey is not null) return;
 
@@ -86,7 +86,8 @@ public sealed class AuthTokenService(
     private async Task<CachedToken> FetchNewAccessTokenAsync(CancellationToken cancellationToken)
     {
         var authAddress = _httpClient.BaseAddress!.ToString();
-        var tokenExpiresInMinutes = _options.NhsDigitalAccessTokenExpiresInMinutes ?? NhsDigitalKeyConstants.AccountTokenExpiresInMinutes;
+        var tokenExpiresInMinutes = _options.NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES ??
+                                    NhsDigitalKeyConstants.AccountTokenExpiresInMinutes;
 
         var clientAssertion = GenerateClientAssertionJwt(authAddress, tokenExpiresInMinutes);
 
@@ -94,7 +95,7 @@ public sealed class AuthTokenService(
         {
             { "grant_type", "client_credentials" },
             { "client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" },
-            { "client_assertion", clientAssertion },
+            { "client_assertion", clientAssertion }
         });
 
         logger.LogDebug("Requesting new access token from {TokenEndpoint}", authAddress);
@@ -104,15 +105,24 @@ public sealed class AuthTokenService(
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            logger.LogError("Authentication failed with status code {StatusCode}. Response: {ErrorContent}", response.StatusCode, errorContent);
-            throw new HttpRequestException($"Authentication failed. Status: {response.StatusCode}, Body: {errorContent}", null, response.StatusCode);
+            logger.LogError("Authentication failed with status code {StatusCode}. Response: {ErrorContent}",
+                response.StatusCode, errorContent);
+            throw new HttpRequestException(
+                $"Authentication failed. Status: {response.StatusCode}, Body: {errorContent}", null,
+                response.StatusCode);
         }
 
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         var parsedJson = JsonNode.Parse(responseBody);
 
-        var accessToken = parsedJson?["access_token"]?.ToString() ?? throw new InvalidOperationException("Response did not contain an 'access_token'.");
-        var expiresIn = (int?)parsedJson["expires_in"] ?? (tokenExpiresInMinutes * 60);
+        var accessToken = parsedJson?["access_token"]?.ToString() ??
+                          throw new InvalidOperationException("Response did not contain an 'access_token'.");
+
+        var expiresIn =
+            parsedJson?["expires_in"] is not null &&
+            int.TryParse(parsedJson["expires_in"]?.ToString(), out var parsedSeconds)
+                ? parsedSeconds
+                : tokenExpiresInMinutes * 60;
 
         return new CachedToken(accessToken, expiresIn);
     }
@@ -123,11 +133,13 @@ public sealed class AuthTokenService(
         {
             Audience = audience,
             Issuer = _clientId!,
-            Subject = new ClaimsIdentity([new Claim(JwtRegisteredClaimNames.Sub, _clientId!)]),
+            Subject = new ClaimsIdentity([
+                new Claim(JwtRegisteredClaimNames.Sub, _clientId!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            ]),
             Expires = DateTime.UtcNow.AddMinutes(expInMinutes),
             SigningCredentials = CreateSigningCredentials(_privateKey!, _kid!)
         };
-
         return TokenHandler.CreateToken(tokenDescriptor);
     }
 
