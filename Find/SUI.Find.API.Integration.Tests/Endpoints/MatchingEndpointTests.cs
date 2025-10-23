@@ -69,10 +69,8 @@ public class MatchEndpointIntegrationTests : IClassFixture<WebApplicationFactory
         // Act
         var response = await _client.PostAsync("/api/v1/matchperson", JsonContent.Create(requestModel),
             TestContext.Current.CancellationToken);
-        // Type = ResultType.Matched,
-        // NhsNumber = nhsNumber,
-        // Score = score,
-        // // Assert
+
+        // Assert
         await _fhirService.Received(1)
             .PerformSearchAsync(Arg.Is<SearchQuery>(q =>
                 q.Given.First() == requestModel.Given & q.Family == requestModel.Family));
