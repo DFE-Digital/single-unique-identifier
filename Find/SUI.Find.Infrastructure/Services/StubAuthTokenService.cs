@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -7,6 +8,7 @@ using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.Infrastructure.Services;
 
+[ExcludeFromCodeCoverage(Justification = "Stub for testing purposes")]
 public class StubAuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
     ILogger<StubAuthTokenService> logger,
