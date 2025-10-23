@@ -21,9 +21,11 @@ public class MatchingService(
     {
         var (metRequirements, dataQualityResult) = await CheckDataQuality(personSpecification);
         if (!metRequirements)
+        {
             return BuildValidationErrorResponse(dataQualityResult,
                 "The minimized data requirements for a search weren't met, returning match status 'Error'");
-
+        }
+        
         // Build FHIR query from PersonSpecification
         var queries = PersonQueryBuilder.CreateQueries(personSpecification);
         CreateAndSetSearchId(personSpecification);
@@ -52,7 +54,9 @@ public class MatchingService(
                 var errorResult = MatchResult.Error("Error: Could not complete search");
 
                 if (errorResult.IsBetterThan(best))
+                { 
                     best = errorResult;
+                }
 
                 continue;
             }
@@ -60,9 +64,14 @@ public class MatchingService(
             var current = MapSearchResult(searchResult.Value!, queryCode);
 
             if (current.IsBetterThan(best))
+            {
                 best = current;
+            }
 
-            if (current is { MatchStatus: MatchStatus.Match, Score: >= MatchThresholds.MinMatchThreshold }) break;
+            if (current is { MatchStatus: MatchStatus.Match, Score: >= MatchThresholds.MinMatchThreshold })
+            {
+                break;
+            }
         }
 
         return best ?? MatchResult.NoMatch();

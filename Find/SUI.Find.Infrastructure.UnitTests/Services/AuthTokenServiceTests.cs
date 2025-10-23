@@ -146,7 +146,10 @@ public class AuthTokenServiceTests
         var tasks = new List<Task<string>>();
 
         // Act
-        for (var i = 0; i < taskCount; i++) tasks.Add(service.GetBearerToken(TestContext.Current.CancellationToken));
+        for (var i = 0; i < taskCount; i++)
+        {
+            tasks.Add(service.GetBearerToken(TestContext.Current.CancellationToken));
+        }
         var results = await Task.WhenAll(tasks);
 
         // Assert

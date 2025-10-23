@@ -40,17 +40,12 @@ public class MatchEndpointIntegrationTests : IClassFixture<WebApplicationFactory
             {
                 services.AddSingleton<IMatchingService>(_ => matchingService);
                 services.AddSingleton<IFhirService>(_ => _fhirService);
-                services.AddSingleton<ISearchIdService>(_ => searchIdService);
                 services.AddSingleton<IAuthTokenService>(_ => authTokenService);
             });
         });
         _client = appFactory.CreateClient();
     }
-
-    /// <summary>
-    /// Tests that a POST request to the /api/v1/matchperson endpoint returns an OK result when a match is found.
-    ///  integrating with mocked FHIR and matching services.
-    /// </summary>
+    
     [Fact]
     public async Task Post_MatchPerson_ReturnsOkResult()
     {
@@ -74,9 +69,13 @@ public class MatchEndpointIntegrationTests : IClassFixture<WebApplicationFactory
         // Act
         var response = await _client.PostAsync("/api/v1/matchperson", JsonContent.Create(requestModel),
             TestContext.Current.CancellationToken);
-
-        // Assert
-        await _fhirService.Received(1).PerformSearchAsync(Arg.Any<SearchQuery>());
+        // Type = ResultType.Matched,
+        // NhsNumber = nhsNumber,
+        // Score = score,
+        // // Assert
+        await _fhirService.Received(1)
+            .PerformSearchAsync(Arg.Is<SearchQuery>(q =>
+                q.Given.First() == requestModel.Given & q.Family == requestModel.Family));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var content =

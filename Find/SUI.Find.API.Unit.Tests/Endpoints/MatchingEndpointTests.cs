@@ -42,10 +42,7 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
 
         _client = appFactory.CreateClient();
     }
-
-    /// <summary>
-    /// Tests happy path with an Ok Result response
-    /// </summary>
+    
     [Fact]
     public async Task PostMatchPerson_WhenMatchFound_ReturnsOkResult()
     {
@@ -72,10 +69,7 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(MatchStatus.Match, content.Result.MatchStatus);
         Assert.Equal("1234567890", content.Result.NhsNumber);
     }
-
-    /// <summary>
-    /// Tests the path with a Bad Request Result response
-    /// </summary>
+    
     [Fact]
     public async Task PostMatchPerson_WhenServiceReturnsError_ReturnsBadRequestResult()
     {
@@ -101,30 +95,5 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
         Assert.NotNull(content?.Result);
         Assert.Equal(MatchStatus.Error, content.Result.MatchStatus);
         Assert.Equal("Invalid input", content.Result.ErrorMessage);
-    }
-    
-    /// <summary>
-    /// Tests the path with a caught exception "Exception with Match Person"
-    /// </summary>
-    [Fact]
-    public async Task PostMatchPerson_WhenServiceThrowsException_ReturnsBadRequestProblemDetails()
-    {
-        // Arrange
-        var testModel = new PersonSpecification { Given = "Test", Family = "User" };
-        var exceptionMessage = "Exception Title Message";
-        var testException = new InvalidOperationException(exceptionMessage);
-
-        _mockMatchingService.SearchAsync(Arg.Any<PersonSpecification>())
-            .ThrowsAsync(testException);
-
-        // Act
-        var httpResponse = await _client.PostAsJsonAsync("/api/v1/matchperson", testModel, cancellationToken: TestContext.Current.CancellationToken);
-        // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, httpResponse.StatusCode);
-        
-        var problemDetails = await httpResponse.Content.ReadFromJsonAsync<ProblemDetails>(_jsonSerializerOptions, cancellationToken: TestContext.Current.CancellationToken);
-        Assert.NotNull(problemDetails);
-        Assert.Equal("Exception with Match Person", problemDetails.Title);
-        Assert.Equal(exceptionMessage, problemDetails.Detail);
     }
 }

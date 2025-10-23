@@ -35,12 +35,18 @@ public class AuthTokenService(
     /// <returns>A valid access token.</returns>
     public async Task<string> GetBearerToken(CancellationToken cancellationToken = default)
     {
-        if (_cachedToken?.IsValid() == true) return _cachedToken.AccessToken;
+        if (_cachedToken?.IsValid() == true)
+        {
+            return _cachedToken.AccessToken;
+        }
 
         await _renewalLock.WaitAsync(cancellationToken);
         try
         {
-            if (_cachedToken?.IsValid() == true) return _cachedToken.AccessToken;
+            if (_cachedToken?.IsValid() == true)
+            {
+                return _cachedToken.AccessToken;
+            }
 
             logger.LogInformation("Cached token is expired or missing. Proceeding with renewal.");
 
