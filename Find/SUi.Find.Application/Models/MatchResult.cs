@@ -3,26 +3,18 @@ using SUI.Find.Domain.Enums;
 
 namespace SUi.Find.Application.Models;
 
-public class MatchResult
+public class MatchResult(
+    MatchStatus matchStatus,
+    decimal? score = null,
+    string? processStage = null,
+    string? nhsNumber = null,
+    string? errorMessage = null)
 {
-    public MatchStatus MatchStatus { get; }
-    public string? NhsNumber { get; }
-    public string? ProcessStage { get; }
-    public decimal? Score { get; }
-    public string? ErrorMessage { get; }
-
-    public MatchResult(MatchStatus matchStatus,
-        decimal? score = null,
-        string? processStage = null,
-        string? nhsNumber = null,
-        string? errorMessage = null)
-    {
-        MatchStatus = matchStatus;
-        Score = score;
-        ProcessStage = processStage;
-        NhsNumber = nhsNumber;
-        ErrorMessage = errorMessage;
-    }
+    public MatchStatus MatchStatus { get; } = matchStatus;
+    public string? NhsNumber { get; } = nhsNumber;
+    public string? ProcessStage { get; } = processStage;
+    public decimal? Score { get; } = score;
+    public string? ErrorMessage { get; } = errorMessage;
 
     public static MatchResult Error(string message)
     {
