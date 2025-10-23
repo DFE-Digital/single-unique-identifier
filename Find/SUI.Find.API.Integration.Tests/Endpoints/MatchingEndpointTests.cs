@@ -51,11 +51,11 @@ public class MatchEndpointIntegrationTests : IClassFixture<WebApplicationFactory
     /// Tests that a POST request to the /api/v1/matchperson endpoint returns an OK result when a match is found.
     ///  integrating with mocked FHIR and matching services.
     /// </summary>
-    [Theory]
-    [InlineData(0.95)]
-    public async Task Post_MatchPerson_ReturnsOkResult(decimal score)
+    [Fact]
+    public async Task Post_MatchPerson_ReturnsOkResult()
     {
         // Arr
+        var score = 0.95m;
         var fhirSearchResult = SearchResult.Match("1234567890", score);
 
         var requestModel = new PersonSpecification
