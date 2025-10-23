@@ -64,18 +64,19 @@ public class MatchEndpointIntegrationTests : IClassFixture<WebApplicationFactory
             Family = "Smith",
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1)
         };
-        
+
         // mock response from fhir endpoint service
         var fhirResponse = Result<SearchResult>.Success(fhirSearchResult);
 
         _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(fhirResponse);
 
-        // Acc
+        // Act
         var response = await _client.PostAsync("/api/v1/matchperson", JsonContent.Create(requestModel),
             TestContext.Current.CancellationToken);
 
-        // Ass
+        // Assert
+        await _fhirService.Received(1).PerformSearchAsync(Arg.Any<SearchQuery>());
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var content =
