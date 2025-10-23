@@ -44,7 +44,7 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
     }
 
     /// <summary>
-    /// Tests happy path where an Ok Result
+    /// Tests happy path with an Ok Result response
     /// </summary>
     [Fact]
     public async Task PostMatchPerson_WhenMatchFound_ReturnsOkResult()
@@ -74,7 +74,7 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
     }
 
     /// <summary>
-    /// Tests the path where the service returns a Bad Request Result.
+    /// Tests the path with a Bad Request Result response
     /// </summary>
     [Fact]
     public async Task PostMatchPerson_WhenServiceReturnsError_ReturnsBadRequestResult()
@@ -104,14 +104,14 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
     }
     
     /// <summary>
-    /// Tests the catch block for a caught exception "Exception with Match Person"
+    /// Tests the path with a caught exception "Exception with Match Person"
     /// </summary>
     [Fact]
     public async Task PostMatchPerson_WhenServiceThrowsException_ReturnsBadRequestProblemDetails()
     {
         // Arrange
         var testModel = new PersonSpecification { Given = "Test", Family = "User" };
-        var exceptionMessage = "Database connection failed";
+        var exceptionMessage = "Exception Title Message";
         var testException = new InvalidOperationException(exceptionMessage);
 
         _mockMatchingService.SearchAsync(Arg.Any<PersonSpecification>())
@@ -119,7 +119,6 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
 
         // Act
         var httpResponse = await _client.PostAsJsonAsync("/api/v1/matchperson", testModel, cancellationToken: TestContext.Current.CancellationToken);
-
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, httpResponse.StatusCode);
         
