@@ -1,7 +1,7 @@
 using SUi.Find.Application.Models;
-using SUi.Find.Application.Services;
+using SUi.Find.Infrastructure.Fhir;
 
-namespace Sui.Find.Application.UnitTests.Services;
+namespace Sui.Find.Infrastructure.UnitTests.FhirFactory;
 
 public class SearchParamsFactoryTests
 {
@@ -9,7 +9,7 @@ public class SearchParamsFactoryTests
     public void Create_ShouldOutputExpectedSearchParams_FromSearchQuery()
     {
         // Arrange
-        var query = new SearchQuery { Family = "Doe", Given = ["Jon"], Birthdate = ["eq1900-01-01"], };
+        var query = new SearchQuery { Family = "Doe", Given = ["Jon"], Birthdate = ["eq1900-01-01"] };
 
         // Act
         var searchParams = SearchParamsFactory.Create(query);

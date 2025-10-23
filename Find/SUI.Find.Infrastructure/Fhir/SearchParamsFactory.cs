@@ -2,7 +2,7 @@ using SUi.Find.Application.Models;
 using Hl7.Fhir.Rest;
 using System.Collections;
 
-namespace SUi.Find.Application.Services;
+namespace SUi.Find.Infrastructure.Fhir;
 
 public static class SearchParamsFactory
 {
