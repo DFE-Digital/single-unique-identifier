@@ -30,11 +30,25 @@ jobs:
           scan-ref: '.'          
           ignore-unfixed: false
           format: 'sarif'
-          output: 'trivy-results.sarif'
+          output: 'trivy-results.txt'
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
           exit-code: 0
           vuln-type: os,library
           scanners: vuln,secret,misconfig,license
+          
+      - name: Publish Trivy Output to Summary
+        run: |
+          if [[ -s trivy-results.txt' ]]; then
+            {
+              echo "### Security Output"
+              echo "<details><summary>Click to expand</summary>"
+              echo ""
+              echo '```Trivy Results'
+              cat trivy-results.txt'
+              echo '```'
+              echo "</details>"
+            } >> $GITHUB_STEP_SUMMARY
+          fi
 # Removed as we are ona private repo and codeql requires Code Security to be enabled. This is billable though on private repos
 #      - name: Upload Trivy scan results to GitHub Security tab
 #        uses: github/codeql-action/upload-sarif@v4
