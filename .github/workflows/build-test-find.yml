@@ -1,6 +1,7 @@
 name: Build and Test .NET Projects in /Find
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -45,8 +46,6 @@ jobs:
             /o:"dfe-digital" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.sources=./Find/SUI.Find.API \
-            /d:sonar.tests=./Find/SUI.Find.API.Integration.Tests \
             /d:sonar.coverageReportPaths=CoverageReport/SonarQube.xml \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
             /d:sonar.cpd.exclusions="**/Program.cs" \
