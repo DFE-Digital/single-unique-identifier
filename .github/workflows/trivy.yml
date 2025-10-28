@@ -7,18 +7,16 @@ on:
     branches: main
   schedule:
     - cron: '0 0 * * *'
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pull-requests: write
-  security-events: read
-  checks: write
-      
+  workflow_dispatch:     
 jobs:
   build:
     name: Trivy File Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+      checks: write
     steps:
 
       - name: Checkout Code
