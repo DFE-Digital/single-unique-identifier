@@ -1,0 +1,26 @@
+name: Build and Test Find Solution
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  
+jobs:
+  build-and-test-find:
+    name: Build and Test Find Project
+    uses: ./.github/workflows/build-test-scan-sonar.yml
+#    secrets: inherit
+#    permissions:
+#      id-token: write
+#      contents: read
+    with:
+      directory_name: Find
