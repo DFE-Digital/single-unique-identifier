@@ -22,5 +22,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      pull-requests: write
+      checks: write
     with:
       directory_name: Find
