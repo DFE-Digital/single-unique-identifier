@@ -7,7 +7,7 @@ on:
     branches: main
   schedule:
     - cron: '0 0 * * *'
-  workflow_dispatch:     
+  workflow_dispatch:
 jobs:
   build:
     name: Trivy File Scan
@@ -15,7 +15,6 @@ jobs:
     permissions:
       contents: read
       security-events: write
-      checks: write
     steps:
 
       - name: Checkout Code
@@ -47,7 +46,8 @@ jobs:
               echo "</details>"
             } >> $GITHUB_STEP_SUMMARY
           fi
-# Removed as we are ona private repo and codeql requires Code Security to be enabled. This is billable though on private repos
+
+# Removed as we are running a private repo and codeql requires Code Security to be enabled. This is billable though on private repos
 #      - name: Upload Trivy scan results to GitHub Security tab
 #        uses: github/codeql-action/upload-sarif@v4
 #        with:
