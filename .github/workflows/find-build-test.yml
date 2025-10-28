@@ -16,11 +16,11 @@ permissions:
   
 jobs:
   build-and-test-find:
-    name: Build and Test Find Project
+    name: Find
     uses: ./.github/workflows/build-test-scan-sonar.yml
-#    secrets: inherit
-#    permissions:
-#      id-token: write
-#      contents: read
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
     with:
       directory_name: Find

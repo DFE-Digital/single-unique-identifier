@@ -14,7 +14,6 @@ permissions:
 
 jobs:
   build-test-scan-sonar:
-    name: "Build, Test and Scan .NET Projects"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
