@@ -9,7 +9,9 @@ on:
       - main
 
 permissions:
+  contents: read
   pull-requests: write
+  checks: write
 
 jobs:
   build-find-test:
@@ -30,14 +32,11 @@ jobs:
           distribution: "microsoft"
           java-version: 21
 
-      - name: Install dotnet coverage
-        run: dotnet tool install --global dotnet-coverage
-
-      - name: Install dotnet reportgenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      - name: Install SonarCloud Scanner
-        run: dotnet tool install --global dotnet-sonarscanner
+      - name: Install .Net Tools
+        run: |
+          dotnet tool install --global dotnet-coverage
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          dotnet tool install --global dotnet-sonarscanner
 
       - name: Start SonarCloud Scanner
         run: |
