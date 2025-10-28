@@ -1,4 +1,4 @@
-name: Build and Test Find Solution
+name: Build and Test "Find" Solution
 
 on:
   workflow_dispatch:
@@ -11,8 +11,8 @@ on:
 
 jobs:
   build-and-test-find:
-    name: Find
-    uses: ./.github/workflows/build-test-scan-sonar.yml
+    name: Find - Build Test Dotnet
+    uses: ./.github/workflows/build-test-dotnet.yml
     secrets: inherit
     permissions:
       id-token: write

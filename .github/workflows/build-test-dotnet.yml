@@ -1,4 +1,4 @@
-name: Build and Test and Scan with Sonar
+name: Build and Test Dotnet Project
 
 on:
   workflow_call:
@@ -13,7 +13,7 @@ permissions:
   checks: write
 
 jobs:
-  build-test-scan-sonar:
+  build-test-dotnet:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
