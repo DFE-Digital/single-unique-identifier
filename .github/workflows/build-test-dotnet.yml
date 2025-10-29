@@ -1,12 +1,11 @@
-name: Build and Test .NET Projects in /Find
+name: Build and Test Dotnet Project
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      directory_name:
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -14,8 +13,7 @@ permissions:
   checks: write
 
 jobs:
-  build-find-test:
-    name: "Build, Test and Scan .NET Projects in /Find"
+  build-test-dotnet:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -32,14 +30,11 @@ jobs:
           distribution: "microsoft"
           java-version: 21
 
-      - name: Install dotnet coverage
-        run: dotnet tool install --global dotnet-coverage
-
-      - name: Install dotnet reportgenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      - name: Install SonarCloud Scanner
-        run: dotnet tool install --global dotnet-sonarscanner
+      - name: Install .Net Tools
+        run: |
+          dotnet tool install --global dotnet-coverage
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          dotnet tool install --global dotnet-sonarscanner
 
       - name: Start SonarCloud Scanner
         run: |
@@ -54,17 +49,17 @@ jobs:
             /d:sonar.issue.ignore.multicriteria.e1.ruleKey=csharpsquid:S6602 \
             /d:sonar.scanner.skipJreProvisioning=true \
             /d:sonar.scanner.scanAll=false
-          dotnet build ./Find --no-incremental
-          dotnet test ./Find --no-build --verbosity normal --settings Find/tests.runsettings
-          reportgenerator -reports:./Find/**/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:SonarQube,html
-          dotnet coverage merge --reports "Find/**/coverage.cobertura.xml" -f cobertura -o Find/coverage/coverage.xml
+          dotnet build ./${{ inputs.directory_name }} --no-incremental
+          dotnet test ./${{ inputs.directory_name }} --no-build --verbosity normal --settings ${{ inputs.directory_name}}/tests.runsettings
+          reportgenerator -reports:./${{ inputs.directory_name }}/**/coverage.cobertura.xml -targetdir:CoverageReport -reporttypes:SonarQube,html
+          dotnet coverage merge --reports "${{ inputs.directory_name }}/**/coverage.cobertura.xml" -f cobertura -o ${{ inputs.directory_name}}/coverage/coverage.xml
           dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Publish coverage
         uses: irongut/CodeCoverageSummary@v1.3.0
         if: github.event_name == 'pull_request'
         with:
-          filename: Find/coverage/coverage.xml
+          filename: ${{ inputs.directory_name }}/coverage/coverage.xml
           badge: true
           format: markdown
           hide_complexity: true
