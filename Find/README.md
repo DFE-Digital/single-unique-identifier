@@ -36,5 +36,4 @@ best match.
 4. Returns the best match result, including NHS number if found.
 
 ---
-Tests 
 For more details, see the code and tests in the repository.
