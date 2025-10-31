@@ -37,5 +37,4 @@ best match.
 
 ---
 
-Test change to see if sonar runs
 For more details, see the code and tests in the repository.
