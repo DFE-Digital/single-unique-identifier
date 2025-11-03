@@ -43,7 +43,7 @@ jobs:
             /o:"dfe-digital" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.coverageReportPaths=CoverageReport/SonarQube.xml \
+            /d:sonar.coverageReportPaths=./${{ inputs.directory_name }}/CoverageReport/SonarQube.xml \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
             /d:sonar.cpd.exclusions="**/Program.cs" \
             /d:sonar.issue.ignore.multicriteria.e1.ruleKey=csharpsquid:S6602 \
