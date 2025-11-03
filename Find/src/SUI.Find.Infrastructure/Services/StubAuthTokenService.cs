@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SUi.Find.Application.Interfaces;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Constants;
 using SUI.Find.Infrastructure.Models;
 

@@ -1,9 +1,9 @@
 using FluentValidation.Results;
-using SUi.Find.Application.Interfaces;
-using SUi.Find.Application.Models;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Domain.Enums;
 
-namespace SUi.Find.Application.Validation;
+namespace SUI.Find.Application.Validation;
 
 public class PersonDataQualityTranslator : IDataQualityTranslator
 {

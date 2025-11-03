@@ -1,4 +1,4 @@
-namespace SUi.Find.Application.Models;
+namespace SUI.Find.Application.Models;
 
 public class SearchResult
 {

@@ -1,6 +1,6 @@
-using SUi.Find.Application.Models;
+using SUI.Find.Application.Models;
 
-namespace SUi.Find.Application.Builders;
+namespace SUI.Find.Application.Builders;
 
 /// <summary>
 /// <para>Contains keys for different types of person search queries.</para>

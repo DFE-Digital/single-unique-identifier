@@ -1,6 +1,6 @@
 using SUI.Find.Domain.ValueObjects;
 
-namespace SUi.Find.Application.Mapping;
+namespace SUI.Find.Application.Mapping;
 
 public static class GenderMapper
 {

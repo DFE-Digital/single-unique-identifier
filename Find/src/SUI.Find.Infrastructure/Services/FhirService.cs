@@ -1,9 +1,9 @@
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Logging;
-using SUi.Find.Application.Common;
-using SUi.Find.Application.Interfaces;
-using SUi.Find.Application.Models;
-using SUi.Find.Infrastructure.Fhir;
+using SUI.Find.Application.Common;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
+using SUI.Find.Infrastructure.Fhir;
 using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Services;
@@ -39,10 +39,9 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
             {
                 0 => Result<SearchResult>.Success(SearchResult.Unmatched()),
                 1 => Result<SearchResult>.Success(
-
                     SearchResult.Match(
-                        bundle.Entry[0].Resource?.Id,
-                        bundle.Entry[0].Search?.Score
+                        bundle.Entry[0].Resource.Id,
+                        bundle.Entry[0].Search.Score
                     )
                 ),
                 _ => Result<SearchResult>.Failure("Unexpected multiple entries")

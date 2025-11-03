@@ -1,13 +1,13 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using SUi.Find.Application.Builders;
-using SUi.Find.Application.Common;
-using SUi.Find.Application.Interfaces;
-using SUi.Find.Application.Models;
-using SUi.Find.Application.Services;
+using SUI.Find.Application.Builders;
+using SUI.Find.Application.Common;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
+using SUI.Find.Application.Services;
 using SUI.Find.Domain.Enums;
 
-namespace SXX.Find.Application.UnitTests.Services;
+namespace SUI.Find.Application.UnitTests.Services;
 
 public class MatchingServiceTests
 {

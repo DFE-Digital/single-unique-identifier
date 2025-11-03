@@ -1,7 +1,7 @@
-using SUi.Find.Application.Models;
-using SUi.Find.Infrastructure.Fhir;
+using SUI.Find.Application.Models;
+using SUI.Find.Infrastructure.Fhir;
 
-namespace Sui.Find.Infrastructure.UnitTests.FhirFactory;
+namespace SUI.Find.Infrastructure.UnitTests.FhirFactory;
 
 public class SearchParamsFactoryTests
 {

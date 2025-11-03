@@ -1,6 +1,6 @@
-using SUi.Find.Application.Models;
+using SUI.Find.Application.Models;
 
-namespace SUi.Find.Application.Interfaces;
+namespace SUI.Find.Application.Interfaces;
 
 public interface IMatchingService
 {

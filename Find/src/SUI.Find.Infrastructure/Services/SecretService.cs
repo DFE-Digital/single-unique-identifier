@@ -1,6 +1,6 @@
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
-using SUi.Find.Application.Interfaces;
+using SUI.Find.Application.Interfaces;
 
 namespace SUI.Find.Infrastructure.Services;
 

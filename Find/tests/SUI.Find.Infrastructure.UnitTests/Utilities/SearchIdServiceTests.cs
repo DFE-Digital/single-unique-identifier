@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
-using SUi.Find.Application.Interfaces;
-using SUi.Find.Application.Models;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Constants;
 using SUI.Find.Infrastructure.Services;
 

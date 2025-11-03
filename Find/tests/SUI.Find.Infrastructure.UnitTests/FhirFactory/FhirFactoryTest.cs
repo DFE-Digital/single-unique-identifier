@@ -1,6 +1,6 @@
 using NSubstitute;
 using Microsoft.Extensions.Options;
-using SUi.Find.Application.Interfaces;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Fhir;
 

@@ -4,7 +4,7 @@ using NSubstitute;
 using SUI.Find.Infrastructure.Constants;
 using System.Net;
 using NSubstitute.ExceptionExtensions;
-using SUi.Find.Application.Interfaces;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.UnitTests.TestUtils;

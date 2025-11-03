@@ -6,10 +6,10 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SUi.Find.Application.Common;
-using SUi.Find.Application.Interfaces;
-using SUi.Find.Application.Models;
-using SUi.Find.Application.Services;
+using SUI.Find.Application.Common;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
+using SUI.Find.Application.Services;
 using SUI.Find.Domain.Enums;
 
 namespace SUI.Find.API.Integration.Tests.Endpoints;

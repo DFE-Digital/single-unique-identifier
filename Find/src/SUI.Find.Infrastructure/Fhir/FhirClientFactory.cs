@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Options;
-using SUi.Find.Application.Interfaces;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models;
 

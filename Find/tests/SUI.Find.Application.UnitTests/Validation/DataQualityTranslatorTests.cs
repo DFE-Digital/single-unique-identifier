@@ -1,10 +1,9 @@
 using FluentValidation.Results;
-using SUi.Find.Application;
-using SUi.Find.Application.Models;
-using SUi.Find.Application.Validation;
+using SUI.Find.Application.Models;
+using SUI.Find.Application.Validation;
 using SUI.Find.Domain.Enums;
 
-namespace SXX.Find.Application.UnitTests.Validation;
+namespace SUI.Find.Application.UnitTests.Validation;
 
 public class DataQualityTranslatorTests
 {
