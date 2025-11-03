@@ -5,9 +5,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "Find/**"
   pull_request:
     branches:
       - main
+    paths:
+      - "Find/**"
 
 jobs:
   build-and-test-find:
