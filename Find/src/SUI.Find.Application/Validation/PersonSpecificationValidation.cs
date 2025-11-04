@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FluentValidation;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Models;
@@ -35,9 +36,9 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
             return true;
         }
 
-        var regex = new System.Text.RegularExpressions.Regex(
+        var regex = new Regex(
             "^(([A-Z][0-9]{1,2})|(([A-Z][A-HJ-Y][0-9]{1,2})|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) [0-9][A-Z]{2}$",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
         return regex.IsMatch(postcode);
     }
@@ -60,7 +61,7 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
             return true;
         }
 
-        var regex = new System.Text.RegularExpressions.Regex(@"^\+?[1-9]\d{1,14}$");
+        var regex = new Regex(@"^\+?[1-9]\d{1,14}$", RegexOptions.None , matchTimeout: TimeSpan.FromMilliseconds(250));
         return regex.IsMatch(phone);
     }
 }
