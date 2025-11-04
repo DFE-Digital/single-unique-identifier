@@ -18,8 +18,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-        with:
-            fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -34,42 +32,45 @@ jobs:
 
       - name: Install .Net Tools
         run: |
-          dotnet tool install --global dotnet-coverage
-          dotnet tool install --global dotnet-reportgenerator-globaltool
-          dotnet tool install --global dotnet-sonarscanner
+#          dotnet tool install --global dotnet-coverage
+#          dotnet tool install --global dotnet-reportgenerator-globaltool
+#          dotnet tool install --global dotnet-sonarscanner
+          dotnet clean ./Find     
+          dotnet restore ./Find
+          dotnet build ./Find --no-incremental
 
-      - name: Start SonarCloud Scanner
-        run: |
-          dotnet-sonarscanner begin \
-            /k:"DFE-Digital_single-unique-identifier" \
-            /o:"dfe-digital" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.coverageReportPaths=./${{ inputs.directory_name }}/CoverageReport/SonarQube.xml \
-            /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
-            /d:sonar.cpd.exclusions="**/Program.cs" \
-            /d:sonar.issue.ignore.multicriteria.e1.ruleKey=csharpsquid:S6602 \
-            /d:sonar.scanner.skipJreProvisioning=true \
-            /d:sonar.scanner.scanAll=false
-          dotnet build ./${{ inputs.directory_name }} --no-incremental
-          dotnet test ./${{ inputs.directory_name }} --no-build --verbosity normal --settings ${{ inputs.directory_name}}/tests.runsettings
-          reportgenerator -reports:./${{ inputs.directory_name }}/**/coverage.cobertura.xml -targetdir:${{ inputs.directory_name }}/CoverageReport -reporttypes:SonarQube,html
-          dotnet coverage merge --reports "${{ inputs.directory_name }}/**/coverage.cobertura.xml" -f cobertura -o ${{ inputs.directory_name}}/coverage/coverage.xml
-          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-
-      - name: Publish coverage
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        if: github.event_name == 'pull_request'
-        with:
-          filename: ${{ inputs.directory_name }}/coverage/coverage.xml
-          badge: true
-          format: markdown
-          hide_complexity: true
-          output: both
-
-      - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          recreate: true
-          path: code-coverage-results.md
+#      - name: Start SonarCloud Scanner
+#        run: |
+#          dotnet-sonarscanner begin \
+#            /k:"DFE-Digital_single-unique-identifier" \
+#            /o:"dfe-digital" \
+#            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+#            /d:sonar.host.url="https://sonarcloud.io" \
+#            /d:sonar.coverageReportPaths=./Find/CoverageReport/SonarQube.xml \
+#            /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
+#            /d:sonar.cpd.exclusions="**/Program.cs" \
+#            /d:sonar.issue.ignore.multicriteria.e1.ruleKey=csharpsquid:S6602 \
+#            /d:sonar.scanner.skipJreProvisioning=true \
+#            /d:sonar.scanner.scanAll=false
+#          dotnet build ./Find --no-incremental
+#          dotnet test ./Find--no-build --verbosity normal --settings Findtests.runsettings
+#          reportgenerator -reports:./Find/**/coverage.cobertura.xml -targetdir:Find/CoverageReport -reporttypes:SonarQube,html
+#          dotnet coverage merge --reports "Find/**/coverage.cobertura.xml" -f cobertura -o ${{ inputs.directory_name}}/coverage/coverage.xml
+#          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+#
+#      - name: Publish coverage
+#        uses: irongut/CodeCoverageSummary@v1.3.0
+#        if: github.event_name == 'pull_request'
+#        with:
+#          filename: ${{ inputs.directory_name }}/coverage/coverage.xml
+#          badge: true
+#          format: markdown
+#          hide_complexity: true
+#          output: both
+#
+#      - name: Add Coverage PR Comment
+#        uses: marocchino/sticky-pull-request-comment@v2
+#        if: github.event_name == 'pull_request'
+#        with:
+#          recreate: true
+#          path: code-coverage-results.md
