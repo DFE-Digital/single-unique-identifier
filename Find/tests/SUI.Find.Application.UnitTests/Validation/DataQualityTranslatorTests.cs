@@ -3,7 +3,7 @@ using SUI.Find.Application.Models;
 using SUI.Find.Application.Validation;
 using SUI.Find.Domain.Enums;
 
-namespace SUI.Find.Application.UnitTestsz.Validation;
+namespace SUI.Find.Application.UnitTests.Validation;
 
 public class DataQualityTranslatorTests
 {

@@ -7,7 +7,7 @@ using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.Domain.Enums;
 
-namespace SUI.Find.Application.UnitTestsz.Services;
+namespace SUI.Find.Application.UnitTests.Services;
 
 public class MatchingServiceTests
 {

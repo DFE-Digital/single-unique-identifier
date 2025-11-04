@@ -1,7 +1,7 @@
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Enums;
 
-namespace SUI.Find.Application.UnitTestsz.Models;
+namespace SUI.Find.Application.UnitTests.Models;
 
 public class MatchResultTests
 {
