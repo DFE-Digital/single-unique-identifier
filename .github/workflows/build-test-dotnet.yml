@@ -35,7 +35,8 @@ jobs:
           dotnet tool install --global dotnet-coverage
           dotnet tool install --global dotnet-reportgenerator-globaltool
           dotnet tool install --global dotnet-sonarscanner
-          dotnet build ./Find --no-incremental
+          dotnet clean ./Find
+          dotnet build ./Find
 
 #      - name: Start SonarCloud Scanner
 #        run: |
