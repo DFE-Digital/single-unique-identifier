@@ -6,9 +6,9 @@
         <Project Path="src/SUI.Find.Application/SUI.Find.Application.csproj"/>
     </Folder>
     <Folder Name="/tests/">
-<!--        <Project Path="tests/SUI.Find.API.Integration.Tests/SUI.Find.API.Integration.Tests.csproj"/>-->
+        <Project Path="tests/SUI.Find.API.Integration.Tests/SUI.Find.API.Integration.Tests.csproj"/>
         <Project Path="tests/SUI.Find.API.Unit.Tests/SUI.Find.API.Unit.Tests.csproj"/>
-        <Project Path="tests/SUI.Find.Application.UnitTests/SUI.Find.Application.UnitTests.csproj"/>
+<!--        <Project Path="tests/SUI.Find.Application.UnitTests/SUI.Find.Application.UnitTests.csproj"/>-->
         <Project Path="tests/SUI.Find.Infrastructure.UnitTests/SUI.Find.Infrastructure.UnitTests.csproj"/>
     </Folder>
 </Solution>
