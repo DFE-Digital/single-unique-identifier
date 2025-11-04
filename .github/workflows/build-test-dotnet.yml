@@ -37,6 +37,7 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           pwd
           dotnet sln ./Find/SUI.Find.slnx list
+          dotnet build ./Find/SUI.Find.slnx
 
 
 #      - name: Start SonarCloud Scanner
