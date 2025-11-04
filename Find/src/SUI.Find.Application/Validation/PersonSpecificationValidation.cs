@@ -61,7 +61,7 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
             return true;
         }
 
-        var regex = new Regex(@"^\+?[1-9]\d{1,14}$", RegexOptions.None , matchTimeout: TimeSpan.FromMilliseconds(250));
+        var regex = new Regex(@"^\+?[1-9]\d{1,14}$", RegexOptions.None, matchTimeout: TimeSpan.FromMilliseconds(250));
         return regex.IsMatch(phone);
     }
 }
