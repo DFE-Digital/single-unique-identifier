@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <OutputType>Exe</OutputType>
-        <RootNamespace>SUI.Find.Application.UnitTests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
