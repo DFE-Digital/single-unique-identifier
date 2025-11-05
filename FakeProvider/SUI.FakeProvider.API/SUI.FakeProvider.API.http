@@ -1,6 +1,0 @@
-@testAddress = http://localhost:5053
-
-GET {{testAddress}}/api/Events
-Accept: application/json
-
-###

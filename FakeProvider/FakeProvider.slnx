@@ -1,7 +1,0 @@
-﻿<Solution>
-  <Project Path="SUI.FakeProvider.API.Unit.Tests\SUI.FakeProvider.API.Unit.Tests.csproj" Type="Classic C#" />
-  <Project Path="SUI.FakeProvider.API\SUI.FakeProvider.API.csproj" Type="Classic C#" />
-  <Project Path="SUI.FakeProvider.Application\SUI.FakeProvider.Application.csproj" Type="Classic C#" />
-  <Project Path="SUI.FakeProvider.Domain\SUI.FakeProvider.Domain.csproj" Type="Classic C#" />
-  <Project Path="SUI.FakeProvider.Infrastructure\SUI.FakeProvider.Infrastructure.csproj" Type="Classic C#" />
-</Solution>
