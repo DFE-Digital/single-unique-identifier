@@ -7,12 +7,21 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
+        <PackageReference Include="MediatR" Version="13.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.10"/>
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Controllers\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SUI.FakeCustodians.Application\SUI.FakeCustodians.Application.csproj" />
+      <ProjectReference Include="..\SUI.FakeCustodians.Domain\SUI.FakeCustodians.Domain.csproj" />
+      <ProjectReference Include="..\SUI.FakeCustodians.Infrastructure\SUI.FakeCustodians.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
