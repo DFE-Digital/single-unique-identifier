@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\SUI.Matching.API\SUI.Matching.API.csproj" />
+    <Project Path="src\SUI.Matching.Application\SUI.Matching.Application.csproj" />
+    <Project Path="src\SUI.Matching.Domain\SUI.Matching.Domain.csproj" />
+    <Project Path="src\SUI.Matching.Infrastructure\SUI.Matching.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\SUI.Matching.API.Integration.Tests\SUI.Matching.API.Integration.Tests.csproj" />
+    <Project Path="tests\SUI.Matching.API.Unit.Tests\SUI.Matching.API.Unit.Tests.csproj" />
+    <Project Path="tests\SUI.Matching.Application.UnitTests\SUI.Matching.Application.UnitTests.csproj" />
+    <Project Path="tests\SUI.Matching.Infrastructure.UnitTests\SUI.Matching.Infrastructure.UnitTests.csproj" />
+  </Folder>
+</Solution>
