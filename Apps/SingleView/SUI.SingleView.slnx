@@ -1,0 +1,15 @@
+﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\SUI.SingleView.Application\SUI.SingleView.Application.csproj" Type="Classic C#" />
+    <Project Path="src\SUI.SingleView.Domain\SUI.SingleView.Domain.csproj" Type="Classic C#" />
+    <Project Path="src\SUI.SingleView.Infrastructure\SUI.SingleView.Infrastructure.csproj" Type="Classic C#" />
+    <Project Path="src\SUI.SingleView.Web\SUI.SingleView.Web.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\SUI.SingleView.Application.UnitTests\SUI.SingleView.Application.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="tests\SUI.SingleView.Domain.UnitTests\SUI.SingleView.Domain.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="tests\SUI.SingleView.Infrastructure.UnitTests\SUI.SingleView.Infrastructure.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="tests\SUI.SingleView.IntegrationTests\SUI.SingleView.IntegrationTests.csproj" Type="Classic C#" />
+    <Project Path="tests\SUI.SingleView.Web.UnitTests\SUI.SingleView.Web.UnitTests.csproj" Type="Classic C#" />
+  </Folder>
+</Solution>
