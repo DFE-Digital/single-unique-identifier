@@ -16,7 +16,7 @@
         <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.14.0"/>
         <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8"/>
         <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8"/>
-        <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUi" Version="9.0.3"/>
+        <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUi" Version="9.0.6"/>
     </ItemGroup>
     <!--   Testing -->
     <ItemGroup>
