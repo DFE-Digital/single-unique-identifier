@@ -14,7 +14,7 @@ on:
       - "Matching/**"
 
 jobs:
-  build-and-test-find:
+  build-and-test-matching:
     name: Matching - Build Test Dotnet
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets: inherit
