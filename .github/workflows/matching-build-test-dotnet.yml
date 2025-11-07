@@ -1,4 +1,4 @@
-name: Build and Test "Find" Solution
+name: Build and Test "Matching" Solution
 
 on:
   workflow_dispatch:
