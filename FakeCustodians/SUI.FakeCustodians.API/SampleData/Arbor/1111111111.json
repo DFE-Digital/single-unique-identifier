@@ -1,0 +1,9 @@
+{
+  "sui": "1111111111",
+  "data": {
+    "personalData": {
+      "firstName": "John",
+      "lastName": "Doe"   
+    }
+  }
+}

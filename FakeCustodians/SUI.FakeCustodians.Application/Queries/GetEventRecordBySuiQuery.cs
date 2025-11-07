@@ -29,7 +29,7 @@ namespace SUI.FakeCustodians.Application.Queries
 
             if (Sui.Length != 10)
             {
-                errors.Add(new ErrorInfo(nameof(Sui), $"Value cannot contain more than 10 digits."));
+                errors.Add(new ErrorInfo(nameof(Sui), $"Value must have 10 digits only."));
             }
             
             return errors;
