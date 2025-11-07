@@ -1,9 +1,10 @@
-﻿namespace SUI.FakeCustodians.API.Unit.Tests;
-
-public class FakeCustodiansApiTests
+﻿namespace SUI.FakeCustodians.API.Unit.Tests
 {
-    [Fact]
-    public void Test1()
+    public class FakeCustodiansApiTests
     {
+        [Fact]
+        public void Test1()
+        {
+        }
     }
 }

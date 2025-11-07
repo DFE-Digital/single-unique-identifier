@@ -1,5 +1,6 @@
-﻿namespace SUI.FakeCustodians.Infrastructure;
-
-public class Class1
+﻿namespace SUI.FakeCustodians.Infrastructure
 {
+    public class Class1
+    {
+    }
 }

@@ -1,5 +1,6 @@
-﻿namespace SUI.FakeCustodians.Domain;
-
-public class Class1
+﻿namespace SUI.FakeCustodians.Domain
 {
+    public class Class1
+    {
+    }
 }
