@@ -1,0 +1,60 @@
+using SUI.FakeCustodians.Application.Contracts.Arbor;
+using SUI.FakeCustodians.Application.Interfaces;
+using SUI.FakeCustodians.Application.Models;
+
+namespace SUI.FakeCustodians.Application.Mappers
+{
+    public class ArborRecordMapper : IRecordMapper<ArborRecord>
+    {
+        public EventResponse Map(string sui, ArborRecord sourceRecord)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
+            ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
+        
+            return new EventResponse
+            {
+                Sui = sui,
+                Data = new()
+                {
+                    PersonalData = MapToPersonalData(sourceRecord),
+                    EducationData = MapToEducationData(sourceRecord)
+                    //PoliceData = null,
+                    //ProbationData = null,
+                    //GpData = null,
+                    //CamhsData = null
+                }
+            };
+        }
+
+        private EducationData? MapToEducationData(ArborRecord source)
+        {
+            return new EducationData
+            {
+                PupilPremium = source.PupilPremium,
+                FreeSchoolMeals = source.FreeSchoolMeals,
+                ElectivelyHomeEducated = source.ElectivelyHomeEducated,
+                SchoolsAttended = source.SchoolsAttended?.Select(i => MapToSchool(i)).ToArray()
+            };
+        }
+
+        private School MapToSchool(ArborSchool source)
+        {
+            return new School
+            {
+                Name = source.Name,
+                Address = source.Address
+            };
+        }
+
+        private PersonalData? MapToPersonalData(ArborRecord source)
+        {
+            return new PersonalData
+            {
+                FirstName = source.FirstName,
+                LastName = source.LastName,
+                DateOfBirth = source.DateOfBirth,
+                NhsNumber = source.NhsNumber
+            };
+        }
+    }
+}

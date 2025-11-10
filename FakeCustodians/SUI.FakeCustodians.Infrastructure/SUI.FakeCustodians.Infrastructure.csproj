@@ -4,4 +4,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SUI.FakeCustodians.Application\SUI.FakeCustodians.Application.csproj" />
+    <ProjectReference Include="..\SUI.FakeCustodians.Domain\SUI.FakeCustodians.Domain.csproj" />
+  </ItemGroup>
 </Project>

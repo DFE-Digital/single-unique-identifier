@@ -1,0 +1,20 @@
+{
+  "sui": "1111111111",
+  "firstName": "John",
+  "lastName": "Doe",
+  "nhsNumber": "1111111111",
+  "dateOfBirth": "1986-04-26",
+  "pupilPremium": true,
+  "freeSchoolMeals": true,
+  "electivelyHomeEducated": false,
+  "schoolsAttended": [
+    {
+      "name": "Wellington School",
+      "address": "123 Fake Street, Lancashire, LA1 1AA"
+    },
+    {
+      "name": "Hillcrest School",
+      "address": "456 Fake Street, Lancashire, LA1 1AA"
+    } 
+  ] 
+}
