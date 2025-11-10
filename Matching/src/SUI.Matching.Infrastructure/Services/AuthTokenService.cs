@@ -1,10 +1,10 @@
-using System.Text.Json.Nodes;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text.Json.Nodes;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 using SUI.Matching.Application.Interfaces;
 using SUI.Matching.Infrastructure.Constants;
 using SUI.Matching.Infrastructure.Models;
@@ -15,8 +15,8 @@ public class AuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
     ILogger<AuthTokenService> logger,
     IHttpClientFactory httpClientFactory,
-    ISecretService secretService)
-    : IAuthTokenService, IDisposable
+    ISecretService secretService
+) : IAuthTokenService, IDisposable
 {
     private static readonly JsonWebTokenHandler TokenHandler = new();
     private readonly SemaphoreSlim _renewalLock = new(1, 1);
@@ -68,12 +68,19 @@ public class AuthTokenService(
 
     protected virtual async Task EnsureInitializedAsync(CancellationToken cancellationToken)
     {
-        if (_privateKey is not null) return;
+        if (_privateKey is not null)
+            return;
 
         logger.LogInformation("First-time initialization: loading secrets from Azure Key Vault.");
 
-        var privateKeyTask = secretService.GetSecret(NhsDigitalKeyConstants.PrivateKey, cancellationToken);
-        var clientIdTask = secretService.GetSecret(NhsDigitalKeyConstants.ClientId, cancellationToken);
+        var privateKeyTask = secretService.GetSecret(
+            NhsDigitalKeyConstants.PrivateKey,
+            cancellationToken
+        );
+        var clientIdTask = secretService.GetSecret(
+            NhsDigitalKeyConstants.ClientId,
+            cancellationToken
+        );
         var kidTask = secretService.GetSecret(NhsDigitalKeyConstants.Kid, cancellationToken);
 
         await Task.WhenAll(privateKeyTask, clientIdTask, kidTask);
@@ -86,17 +93,23 @@ public class AuthTokenService(
     private async Task<CachedToken> FetchNewAccessTokenAsync(CancellationToken cancellationToken)
     {
         var authAddress = _httpClient.BaseAddress!.ToString();
-        var tokenExpiresInMinutes = _options.NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES ??
-                                    NhsDigitalKeyConstants.AccountTokenExpiresInMinutes;
+        var tokenExpiresInMinutes =
+            _options.NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES
+            ?? NhsDigitalKeyConstants.AccountTokenExpiresInMinutes;
 
         var clientAssertion = GenerateClientAssertionJwt(authAddress, tokenExpiresInMinutes);
 
-        var requestBody = new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            { "grant_type", "client_credentials" },
-            { "client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" },
-            { "client_assertion", clientAssertion }
-        });
+        var requestBody = new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                { "grant_type", "client_credentials" },
+                {
+                    "client_assertion_type",
+                    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                },
+                { "client_assertion", clientAssertion },
+            }
+        );
 
         logger.LogDebug("Requesting new access token from {TokenEndpoint}", authAddress);
 
@@ -105,22 +118,28 @@ public class AuthTokenService(
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            logger.LogError("Authentication failed with status code {StatusCode}. Response: {ErrorContent}",
-                response.StatusCode, errorContent);
+            logger.LogError(
+                "Authentication failed with status code {StatusCode}. Response: {ErrorContent}",
+                response.StatusCode,
+                errorContent
+            );
             throw new HttpRequestException(
-                $"Authentication failed. Status: {response.StatusCode}, Body: {errorContent}", null,
-                response.StatusCode);
+                $"Authentication failed. Status: {response.StatusCode}, Body: {errorContent}",
+                null,
+                response.StatusCode
+            );
         }
 
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         var parsedJson = JsonNode.Parse(responseBody);
 
-        var accessToken = parsedJson?["access_token"]?.ToString() ??
-                          throw new InvalidOperationException("Response did not contain an 'access_token'.");
+        var accessToken =
+            parsedJson?["access_token"]?.ToString()
+            ?? throw new InvalidOperationException("Response did not contain an 'access_token'.");
 
         var expiresIn =
-            parsedJson?["expires_in"] is not null &&
-            int.TryParse(parsedJson["expires_in"]?.ToString(), out var parsedSeconds)
+            parsedJson?["expires_in"] is not null
+            && int.TryParse(parsedJson["expires_in"]?.ToString(), out var parsedSeconds)
                 ? parsedSeconds
                 : tokenExpiresInMinutes * 60;
 
@@ -133,12 +152,14 @@ public class AuthTokenService(
         {
             Audience = audience,
             Issuer = _clientId!,
-            Subject = new ClaimsIdentity([
-                new Claim(JwtRegisteredClaimNames.Sub, _clientId!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            ]),
+            Subject = new ClaimsIdentity(
+                [
+                    new Claim(JwtRegisteredClaimNames.Sub, _clientId!),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                ]
+            ),
             Expires = DateTime.UtcNow.AddMinutes(expInMinutes),
-            SigningCredentials = CreateSigningCredentials(_privateKey!, _kid!)
+            SigningCredentials = CreateSigningCredentials(_privateKey!, _kid!),
         };
         return TokenHandler.CreateToken(tokenDescriptor);
     }
@@ -158,7 +179,7 @@ public class AuthTokenService(
 
         return new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha512)
         {
-            CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
+            CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false },
         };
     }
 

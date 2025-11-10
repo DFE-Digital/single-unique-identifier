@@ -10,7 +10,8 @@ public static class MatchingEndpoint
     public static void MapMatchEndpoints(this IEndpointRouteBuilder app)
     {
         var matchingGroup = app.MapGroup("api/v1/").WithTags("SUI Matching API - Matching");
-        matchingGroup.MapPost("/matchperson",
+        matchingGroup.MapPost(
+            "/matchperson",
             async (PersonSpecification model, [FromServices] IMatchingService matchingService) =>
             {
                 var result = await matchingService.SearchAsync(model);
@@ -18,6 +19,7 @@ public static class MatchingEndpoint
                 return result.Result?.MatchStatus == MatchStatus.Error
                     ? Results.BadRequest(result)
                     : Results.Ok(result);
-            });
+            }
+        );
     }
 }

@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
-using SUI.Matching.Domain.Constants;
-using SUI.Matching.Domain.Enums;
 using SUI.Matching.Application.Builders;
 using SUI.Matching.Application.Interfaces;
 using SUI.Matching.Application.Models;
 using SUI.Matching.Application.Validation;
+using SUI.Matching.Domain.Constants;
+using SUI.Matching.Domain.Enums;
 
 namespace SUI.Matching.Application.Services;
 
@@ -14,16 +14,18 @@ namespace SUI.Matching.Application.Services;
 public class MatchingService(
     ILogger<MatchingService> logger,
     IFhirService fhirService,
-    ISearchIdService searchIdService)
-    : IMatchingService
+    ISearchIdService searchIdService
+) : IMatchingService
 {
     public async Task<PersonMatchResponse> SearchAsync(PersonSpecification personSpecification)
     {
         var (metRequirements, dataQualityResult) = await CheckDataQuality(personSpecification);
         if (!metRequirements)
         {
-            return BuildValidationErrorResponse(dataQualityResult,
-                "The minimized data requirements for a search weren't met, returning match status 'Error'");
+            return BuildValidationErrorResponse(
+                dataQualityResult,
+                "The minimized data requirements for a search weren't met, returning match status 'Error'"
+            );
         }
 
         // Build FHIR query from PersonSpecification
@@ -31,26 +33,33 @@ public class MatchingService(
         CreateAndSetSearchId(personSpecification);
 
         var bestResult = await MatchingBestMatchResultAsync(queries);
-        logger.LogInformation("Responding with match result: {MatchResult}", bestResult.MatchStatus);
-        return new PersonMatchResponse
-        {
-            Result = bestResult,
-            DataQuality = dataQualityResult
-        };
+        logger.LogInformation(
+            "Responding with match result: {MatchResult}",
+            bestResult.MatchStatus
+        );
+        return new PersonMatchResponse { Result = bestResult, DataQuality = dataQualityResult };
     }
 
-    private async Task<MatchResult> MatchingBestMatchResultAsync(OrderedDictionary<string, SearchQuery> queries)
+    private async Task<MatchResult> MatchingBestMatchResultAsync(
+        OrderedDictionary<string, SearchQuery> queries
+    )
     {
         MatchResult? best = null;
 
         foreach (var (queryCode, query) in queries)
         {
-            logger.LogInformation("Performing search query ({Query}) against Nhs Fhir API", queryCode);
+            logger.LogInformation(
+                "Performing search query ({Query}) against Nhs Fhir API",
+                queryCode
+            );
             var searchResult = await fhirService.PerformSearchAsync(query);
 
             if (!searchResult.IsSuccess)
             {
-                logger.LogError("FHIR service returned an error: {ErrorMessage}", searchResult.Error);
+                logger.LogError(
+                    "FHIR service returned an error: {ErrorMessage}",
+                    searchResult.Error
+                );
                 var errorResult = MatchResult.Error("Error: Could not complete search");
 
                 if (errorResult.IsBetterThan(best))
@@ -68,7 +77,10 @@ public class MatchingService(
                 best = current;
             }
 
-            if (current is { MatchStatus: MatchStatus.Match, Score: >= MatchThresholds.MinMatchThreshold })
+            if (
+                current is
+                { MatchStatus: MatchStatus.Match, Score: >= MatchThresholds.MinMatchThreshold }
+            )
             {
                 break;
             }
@@ -83,19 +95,27 @@ public class MatchingService(
         {
             SearchResult.ResultType.Matched => value.Score switch
             {
-                >= MatchThresholds.MinMatchThreshold => MatchResult.Match(value.Score.GetValueOrDefault(), queryCode,
-                    value.NhsNumber!),
+                >= MatchThresholds.MinMatchThreshold => MatchResult.Match(
+                    value.Score.GetValueOrDefault(),
+                    queryCode,
+                    value.NhsNumber!
+                ),
                 >= MatchThresholds.MinPartialMatchThreshold => MatchResult.PotentialMatch(
-                    value.Score.GetValueOrDefault(), queryCode, value.NhsNumber!),
-                _ => MatchResult.NoMatch()
+                    value.Score.GetValueOrDefault(),
+                    queryCode,
+                    value.NhsNumber!
+                ),
+                _ => MatchResult.NoMatch(),
             },
             SearchResult.ResultType.MultiMatched => MatchResult.ManyMatch(queryCode),
-            _ => MatchResult.NoMatch()
+            _ => MatchResult.NoMatch(),
         };
     }
 
-    private static async Task<(bool metRequirements, DataQualityResult dataQuality)> CheckDataQuality(
-        PersonSpecification personSpecification)
+    private static async Task<(
+        bool metRequirements,
+        DataQualityResult dataQuality
+    )> CheckDataQuality(PersonSpecification personSpecification)
     {
         var validate = new PersonSpecificationValidation();
         var validationResult = await validate.ValidateAsync(personSpecification);
@@ -107,11 +127,7 @@ public class MatchingService(
     private PersonMatchResponse BuildValidationErrorResponse(DataQualityResult dq, string message)
     {
         logger.LogWarning("[Validation] {Message}", message);
-        return new PersonMatchResponse
-        {
-            Result = MatchResult.Error(message),
-            DataQuality = dq
-        };
+        return new PersonMatchResponse { Result = MatchResult.Error(message), DataQuality = dq };
     }
 
     private void CreateAndSetSearchId(PersonSpecification personSpecification)
@@ -121,7 +137,8 @@ public class MatchingService(
             personSpecification.Family,
             personSpecification.BirthDate,
             personSpecification.Gender,
-            personSpecification.AddressPostalCode);
+            personSpecification.AddressPostalCode
+        );
         searchIdService.StoreSearchIdInBaggage(hash);
     }
 }

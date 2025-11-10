@@ -61,4 +61,14 @@ We love pull requests from everyone.
 
 - Update README with any needed changes.
 - Ensure each commit has a clear and descriptive message, utilising the [Conventional Commits](https://www.conventionalcommits.org) specification, summarising the purpose of the change. This helps us understand the rationale behind your modifications.
-- Follow our coding standards and conventions.
+- Follow our [coding standards and conventions](#coding-standards-and-conventions).
+
+### Coding standards and conventions
+
+#### Code style
+
+##### .NET - CSharpier
+
+For all .NET projects, we utilise [CSharpier](https://csharpier.com) to standardise code style and formatting. There are pre-commit hooks configured in this repository via [Husky.Net](https://github.com/alirezanet/husky.net) to ensure code is formatted before being committed.
+
+It is recommended that you install the CSharpier extension for your preferred IDE to allow you to format code as you work on it. This is especially useful when combined with the "format on save" feature of most editors. Please follow the official [Editor Integration](https://csharpier.com/docs/Editors) documentation for guidance on how to set this up for your preferred editor.
