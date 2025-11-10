@@ -12,15 +12,10 @@ namespace SUI.FakeCustodians.Application.Services
         
         private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
 
-        public ArborEventRecordProvider(IRecordMapper<ArborRecord> mapper)
+        public ArborEventRecordProvider(IRecordMapper<ArborRecord> mapper, string? basePath = null)
         {
             // Path: <project_root>/SampleData/Arbor/
-            _basePath = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "SampleData",
-                "Arbor"
-            );
-
+            _basePath = basePath ?? Path.Combine(Directory.GetCurrentDirectory(), "SampleData", "Arbor");
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
         
