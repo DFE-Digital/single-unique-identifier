@@ -12,7 +12,7 @@ public class EducationSteps
     }
 
     [When("{string} views the record for {string} at {string}")]
-    public void WhenViewsTheRecordForAt(string socialWorkerName ,string child, string school)
+    public void WhenViewsTheRecordForAt(string socialWorkerName, string child, string school)
     {
         throw new PendingStepException();
     }
@@ -30,7 +30,11 @@ public class EducationSteps
     }
 
     [When("{string} finds and views consolidated records for {string} at {string}")]
-    public void WhenFindAndViewsConsolidatedRecordsForAt(string userName, string childName, string laName)
+    public void WhenFindAndViewsConsolidatedRecordsForAt(
+        string userName,
+        string childName,
+        string laName
+    )
     {
         throw new PendingStepException();
     }
