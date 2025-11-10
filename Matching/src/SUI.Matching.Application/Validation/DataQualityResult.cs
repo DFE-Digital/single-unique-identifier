@@ -30,7 +30,8 @@ public class DataQualityResult
         {
             var jsonPropertyAttribute = property.GetCustomAttribute<JsonPropertyNameAttribute>();
 
-            if (jsonPropertyAttribute == null) continue;
+            if (jsonPropertyAttribute == null)
+                continue;
 
             var jsonPropertyName = jsonPropertyAttribute.Name;
             var value = property.GetValue(this);

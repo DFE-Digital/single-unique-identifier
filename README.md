@@ -5,15 +5,31 @@ This repository is a mono repo that contains multiple .NET solutions, each organ
 
 To view our documentation, please visit [Single unique identifier](https://dfe-digital.github.io/single-unique-identifier/) github pages
 
-| Directory/File                     | Description                                                                                                 |
-|------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| [Docs](/Docs)                      | Programme technical documentation, including architecture models and decisions.                             |
-| [SystemTests](/SystemTests/)       | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
-| [LICENCE](/LICENCE)                | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
-| [Contributing](/CONTRIBUTING.md)   | Contributions guide for this repisitory. Please read before contributing                                    |
+| Directory/File                   | Description                                                                                                 |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [Docs](/Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
+| [SystemTests](/SystemTests/)     | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
+| [LICENCE](/LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
+| [Contributing](/CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
 
+## Getting Started
+
+### Prerequisites
+
+- [.NET SDK](https://dotnet.microsoft.com/download) version 9.0.300 or later
+
+### Setup
+
+To set up the development environment, restore the required .NET tools:
+
+```bash
+dotnet tool restore
+```
+
+This will install the tools specified in `.config/dotnet-tools.json`, including CSharpier for code formatting and Husky.Net for pre-commit hooks to ensure consistent code style.
 
 ## Repository structure
+
 Each solution is self-contained and follows a consistant structure:
 
 ```
@@ -26,6 +42,7 @@ projectName/
 ```
 
 ## Clean architecture
+
 Each solution is structured according to Clean Architecture principles
 
 - Domain - Core business logic and entities.

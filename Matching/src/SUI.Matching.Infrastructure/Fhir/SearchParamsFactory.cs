@@ -1,6 +1,6 @@
-using SUI.Matching.Application.Models;
-using Hl7.Fhir.Rest;
 using System.Collections;
+using Hl7.Fhir.Rest;
+using SUI.Matching.Application.Models;
 
 namespace SUI.Matching.Infrastructure.Fhir;
 
@@ -13,11 +13,14 @@ public static class SearchParamsFactory
 
         var keyValuePairs = queryMap.SelectMany(kvp =>
             kvp.Value is IEnumerable enumerable and not string
-                ? enumerable.Cast<object?>().Select(item => (kvp.Key, Value: item?.ToString() ?? string.Empty))
+                ? enumerable
+                    .Cast<object?>()
+                    .Select(item => (kvp.Key, Value: item?.ToString() ?? string.Empty))
                 : [(kvp.Key, Value: kvp.Value.ToString() ?? string.Empty)]
         );
 
-        foreach (var (key, value) in keyValuePairs) searchParams.Add(key, value);
+        foreach (var (key, value) in keyValuePairs)
+            searchParams.Add(key, value);
 
         return searchParams;
     }

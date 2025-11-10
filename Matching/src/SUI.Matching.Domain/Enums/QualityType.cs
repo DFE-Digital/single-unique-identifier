@@ -4,5 +4,5 @@ public enum QualityType
 {
     Valid,
     Invalid,
-    NotProvided
+    NotProvided,
 }

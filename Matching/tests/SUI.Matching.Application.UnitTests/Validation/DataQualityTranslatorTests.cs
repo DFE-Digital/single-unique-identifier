@@ -16,7 +16,7 @@ public class DataQualityTranslatorTests
         {
             Given = "John",
             Family = "Doe",
-            BirthDate = DateOnly.Parse("2000-01-01")
+            BirthDate = DateOnly.Parse("2000-01-01"),
         };
         var validation = new ValidationResult();
 
@@ -49,13 +49,15 @@ public class DataQualityTranslatorTests
         {
             Given = "John",
             Family = "Doe",
-            BirthDate = DateOnly.Parse("2000-01-01")
+            BirthDate = DateOnly.Parse("2000-01-01"),
         };
-        var validation = new ValidationResult([
-            new ValidationFailure(nameof(PersonSpecification.Given), "Invalid"),
-            new ValidationFailure(nameof(PersonSpecification.Family), "Invalid"),
-            new ValidationFailure(nameof(PersonSpecification.BirthDate), "Invalid")
-        ]);
+        var validation = new ValidationResult(
+            [
+                new ValidationFailure(nameof(PersonSpecification.Given), "Invalid"),
+                new ValidationFailure(nameof(PersonSpecification.Family), "Invalid"),
+                new ValidationFailure(nameof(PersonSpecification.BirthDate), "Invalid"),
+            ]
+        );
 
         var (hasMetRequirements, result) = _dataQualityTranslator.Translate(spec, validation);
 
@@ -72,7 +74,7 @@ public class DataQualityTranslatorTests
         {
             Given = "John",
             Family = "Doe",
-            BirthDate = null
+            BirthDate = null,
         };
         var validation = new ValidationResult();
 
@@ -95,14 +97,16 @@ public class DataQualityTranslatorTests
             Gender = "M",
             Phone = "123456789",
             Email = "john@example.com",
-            AddressPostalCode = "12345"
+            AddressPostalCode = "12345",
         };
-        var validation = new ValidationResult([
-            new ValidationFailure(nameof(PersonSpecification.Gender), "Invalid"),
-            new ValidationFailure(nameof(PersonSpecification.Phone), "Invalid"),
-            new ValidationFailure(nameof(PersonSpecification.Email), "Invalid"),
-            new ValidationFailure(nameof(PersonSpecification.AddressPostalCode), "Invalid")
-        ]);
+        var validation = new ValidationResult(
+            [
+                new ValidationFailure(nameof(PersonSpecification.Gender), "Invalid"),
+                new ValidationFailure(nameof(PersonSpecification.Phone), "Invalid"),
+                new ValidationFailure(nameof(PersonSpecification.Email), "Invalid"),
+                new ValidationFailure(nameof(PersonSpecification.AddressPostalCode), "Invalid"),
+            ]
+        );
 
         var translator = new PersonDataQualityTranslator();
         var (_, result) = translator.Translate(spec, validation);
@@ -124,7 +128,7 @@ public class DataQualityTranslatorTests
             Gender = null,
             Phone = null,
             Email = null,
-            AddressPostalCode = null
+            AddressPostalCode = null,
         };
         var validation = new ValidationResult();
 

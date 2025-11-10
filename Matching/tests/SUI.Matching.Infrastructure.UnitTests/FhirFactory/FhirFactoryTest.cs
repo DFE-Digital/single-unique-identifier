@@ -1,8 +1,8 @@
-using NSubstitute;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 using SUI.Matching.Application.Interfaces;
-using SUI.Matching.Infrastructure.Models;
 using SUI.Matching.Infrastructure.Fhir;
+using SUI.Matching.Infrastructure.Models;
 
 namespace SUI.Matching.Infrastructure.UnitTests.FhirFactory;
 
@@ -17,7 +17,7 @@ public class FhirClientFactoryTest
 
         var config = new AuthTokenServiceConfig
         {
-            NHS_DIGITAL_FHIR_ENDPOINT = "https://example.com/fhir/"
+            NHS_DIGITAL_FHIR_ENDPOINT = "https://example.com/fhir/",
         };
         var mockOptions = Options.Create(config);
         _factory = new FhirClientFactory(_mockAuthTokenService, mockOptions);
@@ -29,7 +29,8 @@ public class FhirClientFactoryTest
         // Arr
         const string fakeToken = "fake-bearer-token-123";
 
-        _mockAuthTokenService.GetBearerToken(CancellationToken.None)
+        _mockAuthTokenService
+            .GetBearerToken(CancellationToken.None)
             .Returns(Task.FromResult(fakeToken));
 
         // Act

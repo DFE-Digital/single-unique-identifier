@@ -9,9 +9,17 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
 {
     public PersonSpecificationValidation()
     {
-        RuleFor(x => x.Given).NotEmpty().MaximumLength(30).WithMessage(PersonValidationConstants.GivenNameInvalid);
-        RuleFor(x => x.Family).NotEmpty().MaximumLength(30).WithMessage(PersonValidationConstants.FamilyNameInvalid);
-        RuleFor(x => x.BirthDate).NotEmpty().WithMessage(PersonValidationConstants.BirthDateInvalid);
+        RuleFor(x => x.Given)
+            .NotEmpty()
+            .MaximumLength(30)
+            .WithMessage(PersonValidationConstants.GivenNameInvalid);
+        RuleFor(x => x.Family)
+            .NotEmpty()
+            .MaximumLength(30)
+            .WithMessage(PersonValidationConstants.FamilyNameInvalid);
+        RuleFor(x => x.BirthDate)
+            .NotEmpty()
+            .WithMessage(PersonValidationConstants.BirthDateInvalid);
         RuleFor(x => x.Gender)
             .Must(BeAValidGender)
             .WithMessage(PersonValidationConstants.GenderInvalid);
@@ -38,7 +46,9 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
 
         var regex = new Regex(
             "^(([A-Z][0-9]{1,2})|(([A-Z][A-HJ-Y][0-9]{1,2})|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) [0-9][A-Z]{2}$",
-            RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+            RegexOptions.IgnoreCase,
+            TimeSpan.FromMilliseconds(250)
+        );
 
         return regex.IsMatch(postcode);
     }
@@ -61,7 +71,11 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
             return true;
         }
 
-        var regex = new Regex(@"^\+?[1-9]\d{1,14}$", RegexOptions.None, matchTimeout: TimeSpan.FromMilliseconds(250));
+        var regex = new Regex(
+            @"^\+?[1-9]\d{1,14}$",
+            RegexOptions.None,
+            matchTimeout: TimeSpan.FromMilliseconds(250)
+        );
         return regex.IsMatch(phone);
     }
 }
