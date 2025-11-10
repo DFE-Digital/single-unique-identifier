@@ -24,6 +24,7 @@ To set up the development environment, restore the required .NET tools:
 
 ```bash
 dotnet tool restore
+dotnet husky install
 ```
 
 This will install the tools specified in `.config/dotnet-tools.json`, including CSharpier for code formatting and Husky.Net for pre-commit hooks to ensure consistent code style.
