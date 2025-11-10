@@ -1,0 +1,8 @@
+@FetchAPI_HostAddress = http://localhost:5062
+@SUI = 999-000-1234
+
+### GET request to example server
+GET {{FetchAPI_HostAddress}}/api/v1/fetch/{{SUI}}
+
+
+###
