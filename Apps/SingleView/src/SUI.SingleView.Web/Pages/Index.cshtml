@@ -1,10 +1,21 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Welcome to the Child Safeguarding Service";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="govuk-width-container">
+    <main class="govuk-main-wrapper" id="main-content">
+        <h1 class="govuk-heading-xl">@ViewData["Title"]</h1>
+        <p class="govuk-body">
+            This service provides a snapshot of a child and their circumstances to support safeguarding professionals to
+            carry out safeguarding duties.
+        </p>
+        <p class="govuk-body">Use this service to:</p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>Search for children's records</li>
+        </ul>
+
+        <govuk-button-link is-start-button="true" href="#">Sign in</govuk-button-link>
+    </main>
 </div>
