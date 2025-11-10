@@ -1,6 +1,6 @@
 namespace SUI.FakeCustodians.Application.Models
 {
-    public class PersonalData
+    public record PersonalData
     {
         public required string FirstName { get; init; }
     

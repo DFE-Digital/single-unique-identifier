@@ -1,4 +1,5 @@
 using System.Text.Json;
+using SUI.FakeCustodians.Application.Contracts.Arbor;
 using SUI.FakeCustodians.Application.Interfaces;
 using SUI.FakeCustodians.Application.Models;
 
@@ -7,10 +8,11 @@ namespace SUI.FakeCustodians.Application.Services
     public class ArborEventRecordProvider : IEventRecordProvider
     {
         private readonly string _basePath;
+        private readonly IRecordMapper<ArborRecord> _mapper;
         
         private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
 
-        public ArborEventRecordProvider()
+        public ArborEventRecordProvider(IRecordMapper<ArborRecord> mapper)
         {
             // Path: <project_root>/SampleData/Arbor/
             _basePath = Path.Combine(
@@ -18,6 +20,8 @@ namespace SUI.FakeCustodians.Application.Services
                 "SampleData",
                 "Arbor"
             );
+
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
         
         public EventResponse? GetEventRecordForSui(string sui)
@@ -31,9 +35,16 @@ namespace SUI.FakeCustodians.Application.Services
                 return null;
             }
 
-            var json = File.ReadAllText(filePath);
+            // Deserialize JSON into the provider-specific model
+            var arborRecord = JsonSerializer.Deserialize<ArborRecord>(File.ReadAllText(filePath), _jsonSerializerOptions);
+            
+            if (arborRecord == null)
+            {
+                return null;
+            }
 
-            return JsonSerializer.Deserialize<EventResponse>(json, _jsonSerializerOptions);
+            // Map the provider model to the unified event response
+            return _mapper.Map(sui, arborRecord);
         }
     }
 }

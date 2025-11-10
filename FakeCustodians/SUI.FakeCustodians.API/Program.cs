@@ -1,6 +1,8 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using SUI.FakeCustodians.Application.Contracts.Arbor;
 using SUI.FakeCustodians.Application.Interfaces;
+using SUI.FakeCustodians.Application.Mappers;
 using SUI.FakeCustodians.Application.Queries;
 using SUI.FakeCustodians.Application.Services;
 
@@ -77,5 +79,6 @@ public static class Program
         });
         
         services.AddScoped<IEventRecordProvider, ArborEventRecordProvider>();
+        services.AddScoped<IRecordMapper<ArborRecord>, ArborRecordMapper>();
     }
 }
