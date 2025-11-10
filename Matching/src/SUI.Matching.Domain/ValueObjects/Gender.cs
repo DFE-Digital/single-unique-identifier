@@ -14,5 +14,4 @@ public record Gender
     public static readonly Gender Unknown = new("unknown");
 
     public override string ToString() => Value;
-
 }

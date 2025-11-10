@@ -17,11 +17,10 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
     private readonly IMatchingService _mockMatchingService;
     private readonly HttpClient _client;
 
-    private readonly JsonSerializerOptions _jsonSerializerOptions =
-        new(JsonSerializerDefaults.Web)
-        {
-            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
-        };
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+    };
 
     public MatchingEndpointTests(WebApplicationFactory<Program> factory)
     {
@@ -31,8 +30,11 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
         {
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IMatchingService));
-                if (descriptor != null) services.Remove(descriptor);
+                var descriptor = services.SingleOrDefault(d =>
+                    d.ServiceType == typeof(IMatchingService)
+                );
+                if (descriptor != null)
+                    services.Remove(descriptor);
 
                 services.AddSingleton<IMatchingService>(_ => _mockMatchingService);
             });
@@ -50,20 +52,23 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
         var mockResponse = new PersonMatchResponse
         {
             Result = matchResult,
-            DataQuality = new DataQualityResult { Given = QualityType.Valid }
+            DataQuality = new DataQualityResult { Given = QualityType.Valid },
         };
-        _mockMatchingService.SearchAsync(Arg.Any<PersonSpecification>())
-            .Returns(mockResponse);
+        _mockMatchingService.SearchAsync(Arg.Any<PersonSpecification>()).Returns(mockResponse);
 
         // Act
-        var httpResponse =
-            await _client.PostAsJsonAsync("/api/v1/matchperson", testModel, TestContext.Current.CancellationToken);
+        var httpResponse = await _client.PostAsJsonAsync(
+            "/api/v1/matchperson",
+            testModel,
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
-        var content =
-            await httpResponse.Content.ReadFromJsonAsync<PersonMatchResponse>(_jsonSerializerOptions,
-                TestContext.Current.CancellationToken);
+        var content = await httpResponse.Content.ReadFromJsonAsync<PersonMatchResponse>(
+            _jsonSerializerOptions,
+            TestContext.Current.CancellationToken
+        );
         Assert.NotNull(content?.Result);
         Assert.Equal(MatchStatus.Match, content.Result.MatchStatus);
         Assert.Equal("1234567890", content.Result.NhsNumber);
@@ -76,21 +81,27 @@ public class MatchingEndpointTests : IClassFixture<WebApplicationFactory<Program
         var testModel = new PersonSpecification { Given = "Test", Family = "User" };
         var errorResult = new MatchResult(MatchStatus.Error, errorMessage: "Invalid input");
         var mockResponse = new PersonMatchResponse
-        { Result = errorResult, DataQuality = new DataQualityResult { Given = QualityType.Valid } };
+        {
+            Result = errorResult,
+            DataQuality = new DataQualityResult { Given = QualityType.Valid },
+        };
 
-        _mockMatchingService.SearchAsync(Arg.Any<PersonSpecification>())
-            .Returns(mockResponse);
+        _mockMatchingService.SearchAsync(Arg.Any<PersonSpecification>()).Returns(mockResponse);
 
         // Act
-        var httpResponse =
-            await _client.PostAsJsonAsync("/api/v1/matchperson", testModel, TestContext.Current.CancellationToken);
+        var httpResponse = await _client.PostAsJsonAsync(
+            "/api/v1/matchperson",
+            testModel,
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, httpResponse.StatusCode);
 
-        var content =
-            await httpResponse.Content.ReadFromJsonAsync<PersonMatchResponse>(_jsonSerializerOptions,
-                TestContext.Current.CancellationToken);
+        var content = await httpResponse.Content.ReadFromJsonAsync<PersonMatchResponse>(
+            _jsonSerializerOptions,
+            TestContext.Current.CancellationToken
+        );
         Assert.NotNull(content?.Result);
         Assert.Equal(MatchStatus.Error, content.Result.MatchStatus);
         Assert.Equal("Invalid input", content.Result.ErrorMessage);

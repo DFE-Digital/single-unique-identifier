@@ -12,4 +12,3 @@ public class PersonSpecification
     public string? Email { get; set; }
     public string? AddressPostalCode { get; set; }
 }
-

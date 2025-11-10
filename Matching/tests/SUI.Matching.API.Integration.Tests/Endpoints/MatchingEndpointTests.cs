@@ -1,4 +1,3 @@
-using NSubstitute;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -6,6 +5,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
 using SUI.Matching.Application.Common;
 using SUI.Matching.Application.Interfaces;
 using SUI.Matching.Application.Models;
@@ -19,20 +19,22 @@ public class MatchEndpointIntegrationTests : IClassFixture<WebApplicationFactory
     private readonly HttpClient _client;
     private readonly IFhirService _fhirService;
 
-    private readonly JsonSerializerOptions _jsonSerializerOptions =
-        new(JsonSerializerDefaults.Web)
-        {
-            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
-        };
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+    };
 
     public MatchEndpointIntegrationTests(WebApplicationFactory<Program> factory)
     {
         var logger = Substitute.For<ILogger<MatchingService>>();
         var searchIdService = Substitute.For<ISearchIdService>();
         _fhirService = Substitute.For<IFhirService>();
-        IMatchingService matchingService = new MatchingService(logger, _fhirService, searchIdService);
+        IMatchingService matchingService = new MatchingService(
+            logger,
+            _fhirService,
+            searchIdService
+        );
         var authTokenService = Substitute.For<IAuthTokenService>();
-
 
         var appFactory = factory.WithWebHostBuilder(builder =>
         {
@@ -57,28 +59,36 @@ public class MatchEndpointIntegrationTests : IClassFixture<WebApplicationFactory
         {
             Given = "Jon",
             Family = "Smith",
-            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1)
+            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
 
         // mock response from fhir endpoint service
         var fhirResponse = Result<SearchResult>.Success(fhirSearchResult);
 
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
-            .Returns(fhirResponse);
+        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>()).Returns(fhirResponse);
 
         // Act
-        var response = await _client.PostAsync("/api/v1/matchperson", JsonContent.Create(requestModel),
-            TestContext.Current.CancellationToken);
+        var response = await _client.PostAsync(
+            "/api/v1/matchperson",
+            JsonContent.Create(requestModel),
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
-        await _fhirService.Received(1)
-            .PerformSearchAsync(Arg.Is<SearchQuery>(q =>
-                q.Given != null && q.Given.First() == requestModel.Given & q.Family == requestModel.Family));
+        await _fhirService
+            .Received(1)
+            .PerformSearchAsync(
+                Arg.Is<SearchQuery>(q =>
+                    q.Given != null
+                    && q.Given.First() == requestModel.Given & q.Family == requestModel.Family
+                )
+            );
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var content =
-            await response.Content.ReadFromJsonAsync<PersonMatchResponse>(_jsonSerializerOptions,
-                CancellationToken.None);
+        var content = await response.Content.ReadFromJsonAsync<PersonMatchResponse>(
+            _jsonSerializerOptions,
+            CancellationToken.None
+        );
 
         Assert.NotNull(content);
         Assert.NotNull(content.Result);

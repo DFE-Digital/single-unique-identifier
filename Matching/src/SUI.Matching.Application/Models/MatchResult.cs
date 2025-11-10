@@ -8,7 +8,8 @@ public class MatchResult(
     decimal? score = null,
     string? processStage = null,
     string? nhsNumber = null,
-    string? errorMessage = null)
+    string? errorMessage = null
+)
 {
     public MatchStatus MatchStatus { get; } = matchStatus;
     public string? NhsNumber { get; } = nhsNumber;
@@ -54,13 +55,14 @@ public class MatchResult(
             MatchStatus.PotentialMatch => 2,
             MatchStatus.ManyMatch => 1,
             MatchStatus.NoMatch => 0,
-            _ => -1
+            _ => -1,
         };
     }
 
     public bool IsBetterThan(MatchResult? other)
     {
-        if (other is null) return true;
+        if (other is null)
+            return true;
 
         var currentPriority = GetPriority(MatchStatus);
         var otherPriority = GetPriority(other.MatchStatus);

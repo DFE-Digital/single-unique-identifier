@@ -23,9 +23,7 @@ namespace SUI.FakeCustodians.API
             // add a swagger document for every API version discovered
             foreach (var description in _provider.ApiVersionDescriptions)
             {
-                options.SwaggerDoc(
-                    description.GroupName,
-                    CreateVersionInfo(description));
+                options.SwaggerDoc(description.GroupName, CreateVersionInfo(description));
             }
         }
 
@@ -49,12 +47,13 @@ namespace SUI.FakeCustodians.API
             var info = new OpenApiInfo()
             {
                 Title = "Stub Custodians API",
-                Version = description.ApiVersion.ToString()
+                Version = description.ApiVersion.ToString(),
             };
 
             if (description.IsDeprecated)
             {
-                info.Description += " This API version has been deprecated. Please use one of the new APIs available from the explorer.";
+                info.Description +=
+                    " This API version has been deprecated. Please use one of the new APIs available from the explorer.";
             }
 
             return info;

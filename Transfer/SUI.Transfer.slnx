@@ -1,4 +1,7 @@
 ﻿<Solution>
-  <Project Path="SUI.Transfer.API.Unit.Tests\SUI.Transfer.API.Unit.Tests.csproj" Type="Classic C#" />
+  <Project
+    Path="SUI.Transfer.API.Unit.Tests\SUI.Transfer.API.Unit.Tests.csproj"
+    Type="Classic C#"
+  />
   <Project Path="SUI.Transfer.API\SUI.Transfer.API.csproj" Type="Classic C#" />
 </Solution>

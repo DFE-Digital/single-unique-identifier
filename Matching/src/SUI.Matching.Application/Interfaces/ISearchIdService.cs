@@ -2,7 +2,13 @@ namespace SUI.Matching.Application.Interfaces;
 
 public interface ISearchIdService
 {
-    SearchIdHash CreatePersonHash(string? given, string? family, DateOnly? birthDate, string? gender, string? addressPostalCode);
+    SearchIdHash CreatePersonHash(
+        string? given,
+        string? family,
+        DateOnly? birthDate,
+        string? gender,
+        string? addressPostalCode
+    );
 
     void StoreSearchIdInBaggage(SearchIdHash hash);
 }
