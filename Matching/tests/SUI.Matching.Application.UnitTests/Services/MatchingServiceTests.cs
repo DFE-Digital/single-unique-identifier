@@ -32,7 +32,8 @@ public class MatchingServiceTests
             Family = "",
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0)));
 
         // Act
@@ -49,7 +50,8 @@ public class MatchingServiceTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
 
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(Result<SearchResult>.Failure("Simulated FHIR service error"));
 
         // Act
@@ -67,7 +69,8 @@ public class MatchingServiceTests
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMatched(score)));
 
         // Act
@@ -82,11 +85,14 @@ public class MatchingServiceTests
     [InlineData(0.85)]
     [InlineData(0.90)]
     [InlineData(0.94)]
-    public async Task ShouldReturn_PotentialMatchResults_WhenFhirServiceScoreIsBetween85And95(decimal score)
+    public async Task ShouldReturn_PotentialMatchResults_WhenFhirServiceScoreIsBetween85And95(
+        decimal score
+    )
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMatched(score)));
 
         // Act
@@ -102,7 +108,8 @@ public class MatchingServiceTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
 
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(Result<SearchResult>.Success(GetMockFhirSearchResultMultiMatch()));
 
         // Act
@@ -118,7 +125,8 @@ public class MatchingServiceTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
 
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(Result<SearchResult>.Success(GetMockFhirSearchResultUnmatched()));
 
         // Act
@@ -134,7 +142,8 @@ public class MatchingServiceTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
 
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(
                 // First call returns a high confidence match
                 Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.96m)),
@@ -157,14 +166,17 @@ public class MatchingServiceTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
 
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(
                 Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.90m)),
                 Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.92m)),
                 Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.50m))
             );
         var expectedQueryKey = PersonQueryBuilder
-            .CreateQueries(CreateMinimalValidPersonSpec()).ElementAt(1).Key;
+            .CreateQueries(CreateMinimalValidPersonSpec())
+            .ElementAt(1)
+            .Key;
 
         // Act
         var response = await _matchingService.SearchAsync(personSpec);
@@ -181,12 +193,16 @@ public class MatchingServiceTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
 
-        _fhirService.PerformSearchAsync(Arg.Any<SearchQuery>())
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>())
             .Returns(
                 Result<SearchResult>.Success(GetMockFhirSearchResultMultiMatch()),
                 Result<SearchResult>.Success(GetMockFhirSearchResultMatched(0.50m))
             );
-        var expectedQueryKey = PersonQueryBuilder.CreateQueries(CreateMinimalValidPersonSpec()).First().Key;
+        var expectedQueryKey = PersonQueryBuilder
+            .CreateQueries(CreateMinimalValidPersonSpec())
+            .First()
+            .Key;
 
         // Act
         var response = await _matchingService.SearchAsync(personSpec);
@@ -213,7 +229,7 @@ public class MatchingServiceTests
         {
             NhsNumber = "1234567890",
             Score = score,
-            Type = SearchResult.ResultType.Matched
+            Type = SearchResult.ResultType.Matched,
         };
     }
 
@@ -223,7 +239,7 @@ public class MatchingServiceTests
         {
             NhsNumber = null,
             Score = 0,
-            Type = SearchResult.ResultType.MultiMatched
+            Type = SearchResult.ResultType.MultiMatched,
         };
     }
 
@@ -233,7 +249,7 @@ public class MatchingServiceTests
         {
             NhsNumber = null,
             Score = 0,
-            Type = SearchResult.ResultType.Unmatched
+            Type = SearchResult.ResultType.Unmatched,
         };
     }
 }

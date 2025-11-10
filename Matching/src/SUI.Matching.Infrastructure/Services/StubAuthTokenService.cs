@@ -13,14 +13,15 @@ public class StubAuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
     ILogger<StubAuthTokenService> logger,
     IHttpClientFactory httpClientFactory,
-    ISecretService secretService) :
-    AuthTokenService(options, logger, httpClientFactory, secretService)
+    ISecretService secretService
+) : AuthTokenService(options, logger, httpClientFactory, secretService)
 {
     private readonly IOptions<AuthTokenServiceConfig> _options = options;
 
     protected override async Task EnsureInitializedAsync(CancellationToken cancellationToken)
     {
-        if (_privateKey is not null) return;
+        if (_privateKey is not null)
+            return;
 
         var privateKeyTask = _options.Value.NHS_DIGITAL_PRIVATE_KEY;
 

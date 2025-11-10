@@ -30,7 +30,7 @@ public static class PersonQueryBuilder
         var dobRange = new[]
         {
             "ge" + model.BirthDate.Value.AddMonths(-6).ToString(DateFormat),
-            "le" + model.BirthDate.Value.AddMonths(6).ToString(DateFormat)
+            "le" + model.BirthDate.Value.AddMonths(6).ToString(DateFormat),
         };
         var dob = new[] { "eq" + model.BirthDate.Value.ToString(DateFormat) };
 
@@ -38,16 +38,18 @@ public static class PersonQueryBuilder
         var queryOrderedMap = new OrderedDictionary<string, SearchQuery>
         {
             {
-                PersonQueryKeys.ExactGfd, new SearchQuery() // exact search on only given, family and dob
+                PersonQueryKeys.ExactGfd,
+                new SearchQuery() // exact search on only given, family and dob
                 {
                     ExactMatch = true,
                     Given = modelName,
                     Family = model.Family,
-                    Birthdate = dob
+                    Birthdate = dob,
                 }
             },
             {
-                PersonQueryKeys.ExactAll, new SearchQuery() // 1. exact search
+                PersonQueryKeys.ExactAll,
+                new SearchQuery() // 1. exact search
                 {
                     ExactMatch = true,
                     Given = modelName,
@@ -60,16 +62,18 @@ public static class PersonQueryBuilder
                 }
             },
             {
-                PersonQueryKeys.FuzzyGfd, new SearchQuery() // 2. fuzzy search on only given, family and dob
+                PersonQueryKeys.FuzzyGfd,
+                new SearchQuery() // 2. fuzzy search on only given, family and dob
                 {
                     FuzzyMatch = true,
                     Given = modelName,
                     Family = model.Family,
-                    Birthdate = dob
+                    Birthdate = dob,
                 }
             },
             {
-                PersonQueryKeys.FuzzyAll, new SearchQuery() // 3. fuzzy search with given name, family name and DOB.
+                PersonQueryKeys.FuzzyAll,
+                new SearchQuery() // 3. fuzzy search with given name, family name and DOB.
                 {
                     FuzzyMatch = true,
                     Given = modelName,
@@ -82,36 +86,44 @@ public static class PersonQueryBuilder
                 }
             },
             {
-                PersonQueryKeys.FuzzyGfdRange, new SearchQuery() // 4. fuzzy search with given name, family name and DOB range 6 months either side of given date.
+                PersonQueryKeys.FuzzyGfdRange,
+                new SearchQuery() // 4. fuzzy search with given name, family name and DOB range 6 months either side of given date.
                 {
-                    FuzzyMatch = true, Given = modelName, Family = model.Family, Birthdate = dobRange,
+                    FuzzyMatch = true,
+                    Given = modelName,
+                    Family = model.Family,
+                    Birthdate = dobRange,
                 }
             },
         };
 
         // Only applicable if dob day is less than or equal to 12
-        if (model.BirthDate.Value.Day <=
-            12) // 5. fuzzy search with given name, family name and DOB. Day swapped with month if day equal to or less than 12.
+        if (model.BirthDate.Value.Day <= 12) // 5. fuzzy search with given name, family name and DOB. Day swapped with month if day equal to or less than 12.
         {
             var altDob = new DateTime(
                 model.BirthDate.Value.Year,
                 model.BirthDate.Value.Day,
                 model.BirthDate.Value.Month,
-                0, 0, 0,
+                0,
+                0,
+                0,
                 DateTimeKind.Unspecified
             );
 
-            queryOrderedMap.Add(PersonQueryKeys.FuzzyAltDob, new SearchQuery
-            {
-                FuzzyMatch = true,
-                Given = modelName,
-                Family = model.Family,
-                Email = model.Email,
-                Gender = model.Gender,
-                Phone = model.Phone,
-                Birthdate = [$"eq{altDob:yyyy-MM-dd}"],
-                AddressPostalcode = model.AddressPostalCode,
-            });
+            queryOrderedMap.Add(
+                PersonQueryKeys.FuzzyAltDob,
+                new SearchQuery
+                {
+                    FuzzyMatch = true,
+                    Given = modelName,
+                    Family = model.Family,
+                    Email = model.Email,
+                    Gender = model.Gender,
+                    Phone = model.Phone,
+                    Birthdate = [$"eq{altDob:yyyy-MM-dd}"],
+                    AddressPostalcode = model.AddressPostalCode,
+                }
+            );
         }
 
         return queryOrderedMap;

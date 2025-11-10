@@ -17,7 +17,7 @@ public class PageModelTests
         Assert.True(sut.ShowRequestId);
         Activity.Current.Stop();
     }
-    
+
     [Fact]
     public void TestHomePageModel()
     {

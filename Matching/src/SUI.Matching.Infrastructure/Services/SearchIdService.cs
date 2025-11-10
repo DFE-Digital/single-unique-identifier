@@ -26,20 +26,23 @@ public class SearchIdService : ISearchIdService
         }
         return gender;
     }
+
     private static string FormatPostalCode(string? inputPostalCode)
     {
         if (string.IsNullOrWhiteSpace(inputPostalCode))
         {
             return "";
         }
-        return new string(inputPostalCode
-            .Where(c => !char.IsWhiteSpace(c))
-            .ToArray())
-            .ToLowerInvariant();
+        return new string(
+            inputPostalCode.Where(c => !char.IsWhiteSpace(c)).ToArray()
+        ).ToLowerInvariant();
     }
 
-    private static string FormatName(string? name) => string.IsNullOrWhiteSpace(name) ? "" : name!.ToLowerInvariant();
-    private static string FormatBirthDate(DateOnly? birthDate) => birthDate is { } date ? date.ToString("dd/MM/yyyy") : "";
+    private static string FormatName(string? name) =>
+        string.IsNullOrWhiteSpace(name) ? "" : name!.ToLowerInvariant();
+
+    private static string FormatBirthDate(DateOnly? birthDate) =>
+        birthDate is { } date ? date.ToString("dd/MM/yyyy") : "";
 
     private static SearchIdHash CreateHash(string data)
     {
@@ -54,12 +57,25 @@ public class SearchIdService : ISearchIdService
 
         return new SearchIdHash(builder.ToString());
     }
-    private static string PrepareDataString(string given, string family, string birthDate, string gender, string postalCode)
+
+    private static string PrepareDataString(
+        string given,
+        string family,
+        string birthDate,
+        string gender,
+        string postalCode
+    )
     {
         return $"{given}{family}{birthDate}{gender}{postalCode}";
     }
 
-    public SearchIdHash CreatePersonHash(string? given, string? family, DateOnly? birthDate, string? gender, string? addressPostalCode)
+    public SearchIdHash CreatePersonHash(
+        string? given,
+        string? family,
+        DateOnly? birthDate,
+        string? gender,
+        string? addressPostalCode
+    )
     {
         var formattedGiven = FormatName(given);
         var formattedFamily = FormatName(family);
@@ -67,7 +83,13 @@ public class SearchIdService : ISearchIdService
         var formattedBirthDate = FormatBirthDate(birthDate);
         var formattedPostalCode = FormatPostalCode(addressPostalCode);
 
-        var data = PrepareDataString(formattedGiven, formattedFamily, formattedBirthDate, formattedGender, formattedPostalCode);
+        var data = PrepareDataString(
+            formattedGiven,
+            formattedFamily,
+            formattedBirthDate,
+            formattedGender,
+            formattedPostalCode
+        );
         return CreateHash(data);
     }
 
@@ -75,6 +97,4 @@ public class SearchIdService : ISearchIdService
     {
         Activity.Current?.SetBaggage(SearchIdConstants.SearchIdStorageKey, hash.Value);
     }
-
-
 }

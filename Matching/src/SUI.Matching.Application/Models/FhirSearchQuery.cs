@@ -60,12 +60,16 @@ public sealed class SearchQuery
 
         foreach (var property in properties)
         {
-            if (property.GetCustomAttribute<CheckEmptyAttribute>() == null) continue;
+            if (property.GetCustomAttribute<CheckEmptyAttribute>() == null)
+                continue;
 
             var value = property.GetValue(this);
 
-            if (value == null || (value is string str && string.IsNullOrEmpty(str)) ||
-                value is Array { Length: 0 })
+            if (
+                value == null
+                || (value is string str && string.IsNullOrEmpty(str))
+                || value is Array { Length: 0 }
+            )
             {
                 emptyFields.Add(property.Name);
             }
@@ -84,7 +88,8 @@ public sealed class SearchQuery
         {
             var jsonPropertyAttribute = property.GetCustomAttribute<JsonPropertyNameAttribute>();
 
-            if (jsonPropertyAttribute == null) continue;
+            if (jsonPropertyAttribute == null)
+                continue;
 
             var jsonPropertyName = jsonPropertyAttribute.Name;
             var value = property.GetValue(this);
