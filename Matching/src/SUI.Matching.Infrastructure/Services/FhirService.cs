@@ -11,7 +11,8 @@ namespace SUI.Matching.Infrastructure.Services;
 /// <summary>
 /// Infrastructure code class for calling FHIR endpoint.
 /// </summary>
-public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirClientFactory) : IFhirService
+public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirClientFactory)
+    : IFhirService
 {
     public async Task<Result<SearchResult>> PerformSearchAsync(SearchQuery searchQuery)
     {
@@ -26,25 +27,29 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
 
             if (bundle is null)
             {
-                var isMultiMatch = client.LastBodyAsResource is OperationOutcome outcome &&
-                                   outcome.Issue.Any(i => i.Code == OperationOutcome.IssueType.MultipleMatches);
-                logger.LogInformation("Handling null bundle from FHIR API, isMultiMatch: {IsMultiMatch}", isMultiMatch);
+                var isMultiMatch =
+                    client.LastBodyAsResource is OperationOutcome outcome
+                    && outcome.Issue.Any(i => i.Code == OperationOutcome.IssueType.MultipleMatches);
+                logger.LogInformation(
+                    "Handling null bundle from FHIR API, isMultiMatch: {IsMultiMatch}",
+                    isMultiMatch
+                );
                 return isMultiMatch
                     ? Result<SearchResult>.Success(SearchResult.MultiMatched())
                     : Result<SearchResult>.Failure("FHIR API returned null bundle");
             }
 
-            logger.LogInformation("Handling bundle with {EntryCount} entries from FHIR API", bundle.Entry.Count);
+            logger.LogInformation(
+                "Handling bundle with {EntryCount} entries from FHIR API",
+                bundle.Entry.Count
+            );
             return bundle.Entry.Count switch
             {
                 0 => Result<SearchResult>.Success(SearchResult.Unmatched()),
                 1 => Result<SearchResult>.Success(
-                    SearchResult.Match(
-                        bundle.Entry[0].Resource.Id,
-                        bundle.Entry[0].Search.Score
-                    )
+                    SearchResult.Match(bundle.Entry[0].Resource.Id, bundle.Entry[0].Search.Score)
                 ),
-                _ => Result<SearchResult>.Failure("Unexpected multiple entries")
+                _ => Result<SearchResult>.Failure("Unexpected multiple entries"),
             };
         }
         catch (Exception ex)

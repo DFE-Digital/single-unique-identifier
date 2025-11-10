@@ -6,5 +6,8 @@ namespace SUI.Matching.Application.Interfaces;
 
 public interface IDataQualityTranslator
 {
-    (bool hasMetRequirements, DataQualityResult dataQualityResult) Translate(PersonSpecification spec, ValidationResult validation);
+    (bool hasMetRequirements, DataQualityResult dataQualityResult) Translate(
+        PersonSpecification spec,
+        ValidationResult validation
+    );
 }

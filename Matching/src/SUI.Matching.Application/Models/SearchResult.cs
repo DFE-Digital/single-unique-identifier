@@ -13,15 +13,16 @@ public class SearchResult
         Matched,
         Unmatched,
         MultiMatched,
-        Error
+        Error,
     }
 
-    public static SearchResult Match(string nhsNumber, decimal? score) => new()
-    {
-        Type = ResultType.Matched,
-        NhsNumber = nhsNumber,
-        Score = score,
-    };
+    public static SearchResult Match(string nhsNumber, decimal? score) =>
+        new()
+        {
+            Type = ResultType.Matched,
+            NhsNumber = nhsNumber,
+            Score = score,
+        };
 
     public static SearchResult Unmatched() => new() { Type = ResultType.Unmatched };
 
