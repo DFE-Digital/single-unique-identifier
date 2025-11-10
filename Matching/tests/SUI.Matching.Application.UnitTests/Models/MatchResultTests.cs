@@ -67,8 +67,15 @@ public class MatchResultTests
     }
 
     [Theory, MemberData(nameof(MatchResultComparisonData))]
-    [SuppressMessage("Usage", "xUnit1042:The member referenced by the MemberData attribute returns untyped data rows")]
-    public void IsBetterThan_Returns_Correct_Score(MatchResult current, MatchResult? other, bool expectedResult)
+    [SuppressMessage(
+        "Usage",
+        "xUnit1042:The member referenced by the MemberData attribute returns untyped data rows"
+    )]
+    public void IsBetterThan_Returns_Correct_Score(
+        MatchResult current,
+        MatchResult? other,
+        bool expectedResult
+    )
     {
         // Act
         var actualResult = current.IsBetterThan(other);
@@ -84,33 +91,40 @@ public class MatchResultTests
         // test when current MatchResult is better than the other MatchResult
         yield return
         [
-            MatchResult.Match(3, "stage", "123456789"), MatchResult.PotentialMatch(3, "stages", "123456789"), true
+            MatchResult.Match(3, "stage", "123456789"),
+            MatchResult.PotentialMatch(3, "stages", "123456789"),
+            true,
         ];
         // test when current MatchResult is not better than other MatchResult
         yield return
         [
-            MatchResult.PotentialMatch(3, "stage", "123456789"), MatchResult.Match(3, "stage", "123456789"), false
+            MatchResult.PotentialMatch(3, "stage", "123456789"),
+            MatchResult.Match(3, "stage", "123456789"),
+            false,
         ];
         // test when current error MatchResult is not better than a no match MatchResult
-        yield return
-        [
-            MatchResult.Error("error result"), MatchResult.NoMatch(), false
-        ];
+        yield return [MatchResult.Error("error result"), MatchResult.NoMatch(), false];
         // test when current MatchResult is equal to other MatchResult & current score is higher than other score
         yield return
         [
-            MatchResult.Match(1, "stage", "123456789"), MatchResult.Match(0.9m, "stage", "123456789"), true
+            MatchResult.Match(1, "stage", "123456789"),
+            MatchResult.Match(0.9m, "stage", "123456789"),
+            true,
         ];
         // test when current MatchResult is equal to other MatchResult & current score is lower than other score
         yield return
         [
-            MatchResult.Match(0.8m, "stage", "123456789"), MatchResult.Match(0.9m, "stage", "123456789"), false
+            MatchResult.Match(0.8m, "stage", "123456789"),
+            MatchResult.Match(0.9m, "stage", "123456789"),
+            false,
         ];
         // test when current MatchResult is equal to other MatchResult & current & other score are equal
         // Equal results and score is not better than
         yield return
         [
-            MatchResult.Match(1, "stage", "123456789"), MatchResult.Match(1, "stage", "123456789"), false
+            MatchResult.Match(1, "stage", "123456789"),
+            MatchResult.Match(1, "stage", "123456789"),
+            false,
         ];
         // test when current noMatch MatchResult & other noMatch MatchResult have null scores
         // there is no netter than result

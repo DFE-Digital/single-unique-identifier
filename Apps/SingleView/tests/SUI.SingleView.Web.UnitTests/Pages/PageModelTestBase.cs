@@ -5,7 +5,8 @@ using NSubstitute;
 
 namespace SUI.SingleView.Web.UnitTests.Pages;
 
-public abstract class PageModelTestBase<[MeansTestSubject] T> where T : PageModel
+public abstract class PageModelTestBase<[MeansTestSubject] T>
+    where T : PageModel
 {
     private protected ILogger<T> MockLogger { get; } = Substitute.For<ILogger<T>>();
 }

@@ -1,10 +1,10 @@
+using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
-using SUI.Matching.Infrastructure.Constants;
-using System.Net;
 using NSubstitute.ExceptionExtensions;
 using SUI.Matching.Application.Interfaces;
+using SUI.Matching.Infrastructure.Constants;
 using SUI.Matching.Infrastructure.Models;
 using SUI.Matching.Infrastructure.Services;
 using SUI.Matching.Infrastructure.UnitTests.TestUtils;
@@ -22,22 +22,22 @@ public class AuthTokenServiceTests
     private const string DummyToken = "a.dummy.token";
 
     private const string DummyPrivateKey = """
-                                           -----BEGIN RSA PRIVATE KEY-----
-                                           MIICWgIBAAKBgFO1fY49w+i7dyUui3gd2lzHtTh/5uZn98Ai3DyigxVBzE1SdMsh
-                                           yt6xRIa6/gwpTrQGd3yxx51ud8l675fu5i10IJ7BjxKUHF0EBMidR4I9AbqRRjmk
-                                           FNQnP4n6B0coQXldD2WSXaS2U1en8L4sGQUAAT0pRUEg8T22oCE8wKDTAgMBAAEC
-                                           gYAFjGoeG4n4yzRCiqtD8vaeX75rWE79xrZtTeI7QqpdplbcaTLEpCDGUgmwxIRC
-                                           WhqVZDhXU5FfpgramAN5lqQ7G4S+61+gdMHvtY+oCFxd7DfghbRri7LQOP3ums4E
-                                           uhy1/5ohUjesIk1MKMCHU7tKDeyKKctT/cqd4DLYENx1wQJBAKS5iYC+GE+8xbuJ
-                                           PvidtLI0ZOxmshDrCdl94YeIJfvFQy9iy3EZ038CN00f/1to2weSVdTfHtX7+GYf
-                                           2u/k/k8CQQCCF7wkJKu/SDn29VCYnh4gYgjwfHNLmUtCFC+2HRg1W6y7GmWKz+++
-                                           ikNbe2hJsqbVoN9pwyQc1mj6p2PIlXg9AkBYUCCoJUJjfZGFOc/I+sQlxnFVTLmq
-                                           2Fgvgo2nXBcBJIEgppbrzCzXqxh7AOym1VCYfpwFxJmDn9NM7Ucz1lGBAkAvXNzO
-                                           e9tbhLw1wRJavhZRy99dTrHbMDBKGndUYjtSEdJNPEsDwriSMlxbjg5l5nj/BdbQ
-                                           9o7LQPRvbUnS2TgxAkALVbOWrBW0NUg6PS2kACaX5nMvGU+qH4Zmk3atBKhL2PDl
-                                           V8n23abMyu2iFczaQvORFmZjsirX2bN9/BKXVc7d
-                                           -----END RSA PRIVATE KEY-----
-                                           """;
+        -----BEGIN RSA PRIVATE KEY-----
+        MIICWgIBAAKBgFO1fY49w+i7dyUui3gd2lzHtTh/5uZn98Ai3DyigxVBzE1SdMsh
+        yt6xRIa6/gwpTrQGd3yxx51ud8l675fu5i10IJ7BjxKUHF0EBMidR4I9AbqRRjmk
+        FNQnP4n6B0coQXldD2WSXaS2U1en8L4sGQUAAT0pRUEg8T22oCE8wKDTAgMBAAEC
+        gYAFjGoeG4n4yzRCiqtD8vaeX75rWE79xrZtTeI7QqpdplbcaTLEpCDGUgmwxIRC
+        WhqVZDhXU5FfpgramAN5lqQ7G4S+61+gdMHvtY+oCFxd7DfghbRri7LQOP3ums4E
+        uhy1/5ohUjesIk1MKMCHU7tKDeyKKctT/cqd4DLYENx1wQJBAKS5iYC+GE+8xbuJ
+        PvidtLI0ZOxmshDrCdl94YeIJfvFQy9iy3EZ038CN00f/1to2weSVdTfHtX7+GYf
+        2u/k/k8CQQCCF7wkJKu/SDn29VCYnh4gYgjwfHNLmUtCFC+2HRg1W6y7GmWKz+++
+        ikNbe2hJsqbVoN9pwyQc1mj6p2PIlXg9AkBYUCCoJUJjfZGFOc/I+sQlxnFVTLmq
+        2Fgvgo2nXBcBJIEgppbrzCzXqxh7AOym1VCYfpwFxJmDn9NM7Ucz1lGBAkAvXNzO
+        e9tbhLw1wRJavhZRy99dTrHbMDBKGndUYjtSEdJNPEsDwriSMlxbjg5l5nj/BdbQ
+        9o7LQPRvbUnS2TgxAkALVbOWrBW0NUg6PS2kACaX5nMvGU+qH4Zmk3atBKhL2PDl
+        V8n23abMyu2iFczaQvORFmZjsirX2bN9/BKXVc7d
+        -----END RSA PRIVATE KEY-----
+        """;
     private const string DummyClientId = "test-client-id";
     private const string DummyKid = "test-kid";
 
@@ -48,16 +48,15 @@ public class AuthTokenServiceTests
         _subHttpClientFactory = Substitute.For<IHttpClientFactory>();
         _subSecretService = Substitute.For<ISecretService>();
 
-        _subOptions.Value.Returns(new AuthTokenServiceConfig
-        {
-            NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5
-        });
+        _subOptions.Value.Returns(
+            new AuthTokenServiceConfig { NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5 }
+        );
 
         _mockHttpMessageHandler = new MockHttpMessageHandler();
 
         var httpClient = new HttpClient(_mockHttpMessageHandler)
         {
-            BaseAddress = new Uri("https://test.auth.api/")
+            BaseAddress = new Uri("https://test.auth.api/"),
         };
 
         _subHttpClientFactory.CreateClient("nhs-auth-api").Returns(httpClient);
@@ -69,7 +68,8 @@ public class AuthTokenServiceTests
 
     private void SetupSecret(string secretName, string secretValue)
     {
-        _subSecretService.GetSecret(secretName, Arg.Any<CancellationToken>())
+        _subSecretService
+            .GetSecret(secretName, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(secretValue));
     }
 
@@ -94,9 +94,15 @@ public class AuthTokenServiceTests
 
         // Assert
         Assert.Equal(DummyToken, token);
-        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>());
-        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.ClientId, Arg.Any<CancellationToken>());
-        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.Kid, Arg.Any<CancellationToken>());
+        await _subSecretService
+            .Received(1)
+            .GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>());
+        await _subSecretService
+            .Received(1)
+            .GetSecret(NhsDigitalKeyConstants.ClientId, Arg.Any<CancellationToken>());
+        await _subSecretService
+            .Received(1)
+            .GetSecret(NhsDigitalKeyConstants.Kid, Arg.Any<CancellationToken>());
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
     }
 
@@ -112,9 +118,15 @@ public class AuthTokenServiceTests
 
         // Assert
         Assert.Equal(DummyToken, token);
-        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>());
-        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.ClientId, Arg.Any<CancellationToken>());
-        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.Kid, Arg.Any<CancellationToken>());
+        await _subSecretService
+            .Received(1)
+            .GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>());
+        await _subSecretService
+            .Received(1)
+            .GetSecret(NhsDigitalKeyConstants.ClientId, Arg.Any<CancellationToken>());
+        await _subSecretService
+            .Received(1)
+            .GetSecret(NhsDigitalKeyConstants.Kid, Arg.Any<CancellationToken>());
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
     }
 
@@ -155,24 +167,31 @@ public class AuthTokenServiceTests
         // Assert
         Assert.All(results, token => Assert.Equal(DummyToken, token));
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
-        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>());
-        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.ClientId, Arg.Any<CancellationToken>());
-        await _subSecretService.Received(1).GetSecret(NhsDigitalKeyConstants.Kid, Arg.Any<CancellationToken>());
+        await _subSecretService
+            .Received(1)
+            .GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>());
+        await _subSecretService
+            .Received(1)
+            .GetSecret(NhsDigitalKeyConstants.ClientId, Arg.Any<CancellationToken>());
+        await _subSecretService
+            .Received(1)
+            .GetSecret(NhsDigitalKeyConstants.Kid, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task GetBearerToken_SecretFetchFails_ThrowsInvalidOperationException()
     {
         // Arrange
-        _subSecretService.GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>())
+        _subSecretService
+            .GetSecret(NhsDigitalKeyConstants.PrivateKey, Arg.Any<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Failed to get secret: "));
 
         var service = CreateService();
 
         // Act & Assert
-        var exception =
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                service.GetBearerToken(TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.GetBearerToken(TestContext.Current.CancellationToken)
+        );
         Assert.Contains("Failed to get secret", exception.Message);
     }
 
@@ -182,16 +201,20 @@ public class AuthTokenServiceTests
         // Arrange
         var mockHttpErrorHandler = new MockHttpMessageHandler
         {
-            StatusCode = HttpStatusCode.Unauthorized
+            StatusCode = HttpStatusCode.Unauthorized,
         };
 
-        var errorHttpClient = new HttpClient(mockHttpErrorHandler) { BaseAddress = new Uri("https://test.auth.api/") };
+        var errorHttpClient = new HttpClient(mockHttpErrorHandler)
+        {
+            BaseAddress = new Uri("https://test.auth.api/"),
+        };
         _subHttpClientFactory.CreateClient("nhs-auth-api").Returns(errorHttpClient);
 
         var service = CreateService();
 
         // Act & Assert
         await Assert.ThrowsAsync<HttpRequestException>(() =>
-            service.GetBearerToken(TestContext.Current.CancellationToken));
+            service.GetBearerToken(TestContext.Current.CancellationToken)
+        );
     }
 }

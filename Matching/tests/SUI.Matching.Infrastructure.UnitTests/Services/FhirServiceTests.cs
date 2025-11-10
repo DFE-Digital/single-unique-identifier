@@ -23,8 +23,7 @@ public class FhirServiceTests : BaseFhirClientTests
 
         // Act
         var testFhirClient = new TestFhirClientError();
-        FhirClientFactoryMock.CreateFhirClient()
-            .Returns(testFhirClient);
+        FhirClientFactoryMock.CreateFhirClient().Returns(testFhirClient);
         var result = await _fhirService.PerformSearchAsync(searchQuery);
 
         // Assert
@@ -38,9 +37,7 @@ public class FhirServiceTests : BaseFhirClientTests
         // Arrange
         var searchQuery = new SearchQuery();
         var testFhirClient = new TestFhirClientUnmatched();
-        FhirClientFactoryMock.CreateFhirClient()
-            .Returns(testFhirClient);
-
+        FhirClientFactoryMock.CreateFhirClient().Returns(testFhirClient);
 
         // Act
         var result = await _fhirService.PerformSearchAsync(searchQuery);
@@ -56,8 +53,7 @@ public class FhirServiceTests : BaseFhirClientTests
         // Arrange
         var searchQuery = new SearchQuery();
         var testFhirClient = new TestFhirClientSinglePersonMatch();
-        FhirClientFactoryMock.CreateFhirClient()
-            .Returns(testFhirClient);
+        FhirClientFactoryMock.CreateFhirClient().Returns(testFhirClient);
 
         // Act
         var result = await _fhirService.PerformSearchAsync(searchQuery);
@@ -75,8 +71,7 @@ public class FhirServiceTests : BaseFhirClientTests
         // Arrange
         var searchQuery = new SearchQuery();
         var testFhirClient = new TestFhirClientMultiMatch();
-        FhirClientFactoryMock.CreateFhirClient()
-            .Returns(testFhirClient);
+        FhirClientFactoryMock.CreateFhirClient().Returns(testFhirClient);
 
         // Act
         var result = await _fhirService.PerformSearchAsync(searchQuery);

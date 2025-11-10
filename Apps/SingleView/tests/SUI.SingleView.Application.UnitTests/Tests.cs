@@ -9,7 +9,7 @@ public class Tests
         var result = sut.Add(1, 2);
         Assert.Equal(3, result);
     }
-    
+
     [Fact]
     public void Test2()
     {

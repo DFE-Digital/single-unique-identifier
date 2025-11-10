@@ -6,5 +6,5 @@ public enum MatchStatus
     PotentialMatch,
     ManyMatch,
     NoMatch,
-    Error
+    Error,
 }
