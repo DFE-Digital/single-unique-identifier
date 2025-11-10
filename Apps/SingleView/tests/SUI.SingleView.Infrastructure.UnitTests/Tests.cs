@@ -5,6 +5,8 @@ public class Tests
     [Fact]
     public void Test1()
     {
-        Assert.True(true);
+        var sut = new Class1();
+        var result = sut.Add(1, 2);
+        Assert.Equal(3, result);
     }
 }
