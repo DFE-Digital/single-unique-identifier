@@ -1,5 +1,8 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using SUI.FakeCustodians.Application.Interfaces;
+using SUI.FakeCustodians.Application.Queries;
+using SUI.FakeCustodians.Application.Services;
 
 namespace SUI.FakeCustodians.API;
 
@@ -66,5 +69,13 @@ public static class Program
     private static void ConfigureServices(
         IServiceCollection services,
         IConfiguration configuration
-    ) { }
+    )
+    {
+        services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssemblyContaining(typeof(GetEventRecordBySuiQuery));
+        });
+        
+        services.AddScoped<IEventRecordProvider, ArborEventRecordProvider>();
+    }
 }
