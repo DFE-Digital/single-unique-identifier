@@ -8,7 +8,14 @@ updates:
       prefix: "[gha]-"
 
   - package-ecosystem: nuget
-    directory: "/Find"
+    directory: "/Matching"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "[nuget]-"
+      
+  - package-ecosystem: nuget
+    directory: "/Apps/SingleView"
     schedule:
       interval: "weekly"
     commit-message:
