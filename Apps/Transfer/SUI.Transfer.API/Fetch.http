@@ -1,0 +1,11 @@
+@FetchAPI_HostAddress = http://localhost:5062
+@SUI = 999-000-1234
+@ApiKey = 2f4a84d6d13a7fc2e08c06192c31646c89aefb4b5afd58694695d570
+
+### GET request with api key
+GET {{FetchAPI_HostAddress}}/api/v1/fetch/{{SUI}}
+X-Api-Key: {{ApiKey}}
+
+
+### GET request without api key
+GET {{FetchAPI_HostAddress}}/api/v1/fetch/{{SUI}}

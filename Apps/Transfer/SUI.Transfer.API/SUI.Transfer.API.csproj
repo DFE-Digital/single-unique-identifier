@@ -5,6 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SUI.Transfer.Application\SUI.Transfer.Application.csproj" />
+    <ProjectReference Include="..\SUI.Transfer.Infrastructure\SUI.Transfer.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

@@ -4,4 +4,9 @@
     Type="Classic C#"
   />
   <Project Path="SUI.Transfer.API\SUI.Transfer.API.csproj" Type="Classic C#" />
+  <Project Path="SUI.Transfer.Application\SUI.Transfer.Application.csproj" Type="Classic C#" />
+  <Project
+    Path="SUI.Transfer.Infrastructure\SUI.Transfer.Infrastructure.csproj"
+    Type="Classic C#"
+  />
 </Solution>
