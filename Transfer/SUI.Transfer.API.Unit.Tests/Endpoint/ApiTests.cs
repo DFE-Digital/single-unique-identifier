@@ -3,12 +3,13 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using SUI.Transfer.Application.Models;
 using SUI.Transfer.Application.Services;
 
-namespace SUI.Transfer.API.Unit.Tests;
+namespace SUI.Transfer.API.Unit.Tests.Endpoint;
 
 public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
@@ -20,6 +21,8 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         {
             Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
         };
+
+    private readonly string _apiKey;
 
     public ApiTests(WebApplicationFactory<Program> factory)
     {
@@ -36,7 +39,31 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             });
         });
 
-        _client = appFactory.CreateClient();
+        _client = appFactory.CreateClient(new WebApplicationFactoryClientOptions());
+
+        var config = InitConfiguration();
+        _apiKey = config["Authentication:ApiKey"] ?? string.Empty;
+    }
+
+    private static IConfiguration InitConfiguration()
+    {
+        var config = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.Test.json")
+            .Build();
+        return config;
+    }
+
+    [Fact]
+    public async Task GetFetch_WithoutApiKey_ReturnsUnauthorized()
+    {
+        //Arrange
+        var testId = "999-000-1234";
+
+        // Act
+        var httpResponse = await _client.GetAsync("/api/v1/fetch/" + testId);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
     }
 
     [Fact]
@@ -52,6 +79,8 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         
         _mockFetchingService.FetchAsync(Arg.Any<string>())
             .Returns(mockResponse);
+        
+        _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
         // Act
         var httpResponse = await _client.GetAsync("/api/v1/fetch/" + testId);
@@ -77,6 +106,8 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         
         _mockFetchingService.FetchAsync(Arg.Any<string>())
             .Returns(mockResponse);
+        
+        _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
         // Act
         var httpResponse = await _client.GetAsync("/api/v1/fetch/" + testId);
