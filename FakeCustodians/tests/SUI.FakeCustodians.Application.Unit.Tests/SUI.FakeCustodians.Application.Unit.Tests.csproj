@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SUI.FakeCustodians.Application\SUI.FakeCustodians.Application.csproj" />
+      <ProjectReference Include="..\..\src\SUI.FakeCustodians.Application\SUI.FakeCustodians.Application.csproj" />
     </ItemGroup>
 
 </Project>
