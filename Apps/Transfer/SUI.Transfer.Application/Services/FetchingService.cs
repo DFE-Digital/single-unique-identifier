@@ -11,7 +11,7 @@ public class FetchingService : IFetchingService
             Result = new FetchResult { Id = id },
             Success = true,
         };
-        
+
         return Task.FromResult(response);
     }
 }

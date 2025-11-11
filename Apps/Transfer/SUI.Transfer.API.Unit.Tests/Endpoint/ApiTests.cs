@@ -16,11 +16,10 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     private readonly IFetchingService _mockFetchingService;
     private readonly HttpClient _client;
 
-    private readonly JsonSerializerOptions _jsonSerializerOptions =
-        new(JsonSerializerDefaults.Web)
-        {
-            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
-        };
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+    };
 
     private readonly string _apiKey;
 
@@ -32,8 +31,11 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         {
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IFetchingService));
-                if (descriptor != null) services.Remove(descriptor);
+                var descriptor = services.SingleOrDefault(d =>
+                    d.ServiceType == typeof(IFetchingService)
+                );
+                if (descriptor != null)
+                    services.Remove(descriptor);
 
                 services.AddSingleton<IFetchingService>(_ => _mockFetchingService);
             });
@@ -47,9 +49,7 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
 
     private static IConfiguration InitConfiguration()
     {
-        var config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.Test.json")
-            .Build();
+        var config = new ConfigurationBuilder().AddJsonFile("appsettings.Test.json").Build();
         return config;
     }
 
@@ -76,10 +76,9 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             Result = new FetchResult { Id = testId },
             Success = true,
         };
-        
-        _mockFetchingService.FetchAsync(Arg.Any<string>())
-            .Returns(mockResponse);
-        
+
+        _mockFetchingService.FetchAsync(Arg.Any<string>()).Returns(mockResponse);
+
         _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
         // Act
@@ -87,12 +86,13 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
-        var content = await httpResponse.Content.ReadFromJsonAsync<FetchResult>(_jsonSerializerOptions);
+        var content = await httpResponse.Content.ReadFromJsonAsync<FetchResult>(
+            _jsonSerializerOptions
+        );
         Assert.NotNull(content);
         Assert.Equal(testId, content.Id);
+    }
 
-    } 
-    
     [Fact]
     public async Task GetFetch_WhenNotFound_ReturnsNotFoundResult()
     {
@@ -103,10 +103,9 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             Result = new FetchResult { Id = "000-000-0000" },
             Success = false,
         };
-        
-        _mockFetchingService.FetchAsync(Arg.Any<string>())
-            .Returns(mockResponse);
-        
+
+        _mockFetchingService.FetchAsync(Arg.Any<string>()).Returns(mockResponse);
+
         _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
         // Act
