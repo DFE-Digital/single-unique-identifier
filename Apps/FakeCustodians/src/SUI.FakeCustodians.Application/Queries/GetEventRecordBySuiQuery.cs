@@ -8,7 +8,7 @@ namespace SUI.FakeCustodians.Application.Queries
     public record GetEventRecordBySuiQuery : IRequest<ResultType>
     {
         public required string Sui { get; init; }
-    
+
         /// <summary>
         /// Validation is temporarily based on the NHS number being the SUI.
         /// Ideally NHS number should be validated against the NHS number system.
@@ -31,21 +31,25 @@ namespace SUI.FakeCustodians.Application.Queries
             {
                 errors.Add(new ErrorInfo(nameof(Sui), $"Value must have 10 digits only."));
             }
-            
+
             return errors;
         }
     }
 
-    public class GetEventRecordBySuiQueryHandler : IRequestHandler<GetEventRecordBySuiQuery, ResultType>
+    public class GetEventRecordBySuiQueryHandler
+        : IRequestHandler<GetEventRecordBySuiQuery, ResultType>
     {
         private readonly IEventRecordProvider _eventRecordProvider;
-        
+
         public GetEventRecordBySuiQueryHandler(IEventRecordProvider eventRecordProvider)
         {
             _eventRecordProvider = eventRecordProvider;
         }
-        
-        public Task<ResultType> Handle(GetEventRecordBySuiQuery request, CancellationToken cancellationToken)
+
+        public Task<ResultType> Handle(
+            GetEventRecordBySuiQuery request,
+            CancellationToken cancellationToken
+        )
         {
             var errors = request.ValidateCommand();
 
@@ -58,7 +62,9 @@ namespace SUI.FakeCustodians.Application.Queries
 
             if (result == null)
             {
-                return Task.FromResult(ResultType.NotFound($"EventRecords for SUI:'{request.Sui}' not found"));
+                return Task.FromResult(
+                    ResultType.NotFound($"EventRecords for SUI:'{request.Sui}' not found")
+                );
             }
 
             return Task.FromResult(ResultType.Success(result));

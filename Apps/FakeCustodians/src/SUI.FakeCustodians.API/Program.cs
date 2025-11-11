@@ -68,16 +68,13 @@ public static class Program
         app.Run();
     }
 
-    private static void ConfigureServices(
-        IServiceCollection services,
-        IConfiguration configuration
-    )
+    private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddMediatR(config =>
         {
             config.RegisterServicesFromAssemblyContaining(typeof(GetEventRecordBySuiQuery));
         });
-        
+
         services.AddScoped<IEventRecordProvider, ArborEventRecordProvider>();
         services.AddScoped<IRecordMapper<ArborRecord>, ArborRecordMapper>();
     }

@@ -10,19 +10,19 @@ namespace SUI.FakeCustodians.Application.Mappers
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
             ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
-        
+
             return new EventResponse
             {
                 Sui = sui,
                 Data = new()
                 {
                     PersonalData = MapToPersonalData(sourceRecord),
-                    EducationData = MapToEducationData(sourceRecord)
+                    EducationData = MapToEducationData(sourceRecord),
                     //PoliceData = null,
                     //ProbationData = null,
                     //GpData = null,
                     //CamhsData = null
-                }
+                },
             };
         }
 
@@ -33,17 +33,13 @@ namespace SUI.FakeCustodians.Application.Mappers
                 PupilPremium = source.PupilPremium,
                 FreeSchoolMeals = source.FreeSchoolMeals,
                 ElectivelyHomeEducated = source.ElectivelyHomeEducated,
-                SchoolsAttended = source.SchoolsAttended?.Select(i => MapToSchool(i)).ToArray()
+                SchoolsAttended = source.SchoolsAttended?.Select(i => MapToSchool(i)).ToArray(),
             };
         }
 
         private School MapToSchool(ArborSchool source)
         {
-            return new School
-            {
-                Name = source.Name,
-                Address = source.Address
-            };
+            return new School { Name = source.Name, Address = source.Address };
         }
 
         private PersonalData? MapToPersonalData(ArborRecord source)
@@ -53,7 +49,7 @@ namespace SUI.FakeCustodians.Application.Mappers
                 FirstName = source.FirstName,
                 LastName = source.LastName,
                 DateOfBirth = source.DateOfBirth,
-                NhsNumber = source.NhsNumber
+                NhsNumber = source.NhsNumber,
             };
         }
     }

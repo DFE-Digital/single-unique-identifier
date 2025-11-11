@@ -12,13 +12,13 @@ namespace SUI.FakeCustodians.API.Controllers
     {
         private readonly ILogger<EventsController> _logger;
         private readonly IMediator _mediator;
-        
+
         public EventsController(ILogger<EventsController> logger, IMediator mediator)
         {
             _logger = logger;
             _mediator = mediator;
         }
-        
+
         [HttpGet("{sui}")]
         public async Task<IActionResult> GetEventsBySui([FromRoute] string sui)
         {

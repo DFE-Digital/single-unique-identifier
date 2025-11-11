@@ -9,20 +9,24 @@ namespace SUI.FakeCustodians.Application.Services
     {
         private readonly string _basePath;
         private readonly IRecordMapper<ArborRecord> _mapper;
-        
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
+
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+        };
 
         public ArborEventRecordProvider(IRecordMapper<ArborRecord> mapper, string? basePath = null)
         {
             // Path: <project_root>/SampleData/Arbor/
-            _basePath = basePath ?? Path.Combine(Directory.GetCurrentDirectory(), "SampleData", "Arbor");
+            _basePath =
+                basePath ?? Path.Combine(Directory.GetCurrentDirectory(), "SampleData", "Arbor");
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
-        
+
         public EventResponse? GetEventRecordForSui(string sui)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
-            
+
             string filePath = Path.Combine(_basePath, $"{sui}.json");
 
             if (!File.Exists(filePath))
@@ -31,8 +35,11 @@ namespace SUI.FakeCustodians.Application.Services
             }
 
             // Deserialize JSON into the provider-specific model
-            var arborRecord = JsonSerializer.Deserialize<ArborRecord>(File.ReadAllText(filePath), _jsonSerializerOptions);
-            
+            var arborRecord = JsonSerializer.Deserialize<ArborRecord>(
+                File.ReadAllText(filePath),
+                _jsonSerializerOptions
+            );
+
             if (arborRecord == null)
             {
                 return null;

@@ -20,7 +20,7 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
                 FirstName = "John",
                 LastName = "Doe",
                 DateOfBirth = new DateTime(2010, 1, 1),
-                NhsNumber = "1111111111"
+                NhsNumber = "1111111111",
             };
 
             Assert.Throws<ArgumentException>(() => _mapper.Map(string.Empty, record));
@@ -43,7 +43,7 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
                 FirstName = "John",
                 LastName = "Doe",
                 DateOfBirth = new DateTime(2010, 1, 1),
-                NhsNumber = sui
+                NhsNumber = sui,
             };
 
             var result = _mapper.Map(sui, record);
@@ -73,8 +73,8 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
                 SchoolsAttended =
                 [
                     new ArborSchool { Name = "Test School 1", Address = "123 Street" },
-                    new ArborSchool { Name = "Test School 2", Address = "456 Avenue" }
-                ]
+                    new ArborSchool { Name = "Test School 2", Address = "456 Avenue" },
+                ],
             };
 
             var result = _mapper.Map(sui, record);
@@ -85,7 +85,7 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
             Assert.True(result.Data.EducationData.ElectivelyHomeEducated);
 
             var schools = result.Data.EducationData.SchoolsAttended?.ToArray();
-            
+
             Assert.NotNull(schools);
             Assert.Equal(2, schools.Length);
             Assert.Equal("Test School 1", schools[0].Name);

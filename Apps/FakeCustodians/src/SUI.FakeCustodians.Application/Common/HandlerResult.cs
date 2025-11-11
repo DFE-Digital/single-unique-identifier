@@ -2,7 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace SUI.FakeCustodians.Application.Common
 {
-    public class HandlerResult<T> where T : class
+    public class HandlerResult<T>
+        where T : class
     {
         private HandlerResult(T? result, FailureInfo? failure)
         {
@@ -40,7 +41,9 @@ namespace SUI.FakeCustodians.Application.Common
 
         public static HandlerResult<T> NotFound(string? errorMessage = null)
         {
-            var errors = !string.IsNullOrWhiteSpace(errorMessage) ? new[] { new ErrorInfo(errorMessage) } : Array.Empty<ErrorInfo>();
+            var errors = !string.IsNullOrWhiteSpace(errorMessage)
+                ? new[] { new ErrorInfo(errorMessage) }
+                : Array.Empty<ErrorInfo>();
 
             return new HandlerResult<T>(null, new FailureInfo(FailureKind.NotFound, errors));
         }
@@ -95,6 +98,6 @@ namespace SUI.FakeCustodians.Application.Common
         Unknown = 0,
         Validation = 400,
         DataConcurrency = 409,
-        NotFound = 404
+        NotFound = 404,
     }
 }

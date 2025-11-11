@@ -1,7 +1,4 @@
 namespace SUI.FakeCustodians.Application.Models
 {
-    public class CamhsData
-    {
-    
-    }
+    public class CamhsData { }
 }

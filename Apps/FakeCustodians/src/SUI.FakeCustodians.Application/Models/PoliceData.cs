@@ -1,7 +1,4 @@
 namespace SUI.FakeCustodians.Application.Models
 {
-    public class PoliceData
-    {
-    
-    }
+    public class PoliceData { }
 }

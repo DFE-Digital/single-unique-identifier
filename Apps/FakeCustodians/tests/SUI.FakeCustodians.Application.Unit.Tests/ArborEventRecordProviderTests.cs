@@ -53,16 +53,15 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
                     new ArborSchool
                     {
                         Name = "Wiltshire School",
-                        Address = "111 Wiltshire Street, London, SW1 1AA"
-                    }
-                ]
+                        Address = "111 Wiltshire Street, London, SW1 1AA",
+                    },
+                ],
             };
 
             File.WriteAllText(filePath, JsonSerializer.Serialize(sampleRecord));
 
-            _mapper.Map(sui, Arg.Any<ArborRecord>())
-                .Returns(new EventResponse { Sui = sui });
-            
+            _mapper.Map(sui, Arg.Any<ArborRecord>()).Returns(new EventResponse { Sui = sui });
+
             var provider = new ArborEventRecordProvider(_mapper, _tempDir);
 
             var result = provider.GetEventRecordForSui(sui);

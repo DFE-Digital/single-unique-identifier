@@ -5,7 +5,8 @@ namespace SUI.FakeCustodians.API
 {
     public static class HandlerResultExtensions
     {
-        public static IActionResult ToActionResult<T>(this HandlerResult<T> handlerResult) where T : class
+        public static IActionResult ToActionResult<T>(this HandlerResult<T> handlerResult)
+            where T : class
         {
             if (handlerResult.IsSuccess)
             {
@@ -33,18 +34,24 @@ namespace SUI.FakeCustodians.API
             {
                 var groupedErrors = failureInfo.Errors.GroupBy(e => e.Scope ?? string.Empty);
 
-                validationErrors = groupedErrors.ToDictionary(s => s.Key, s => s.Select(e => e.Message).ToArray());
+                validationErrors = groupedErrors.ToDictionary(
+                    s => s.Key,
+                    s => s.Select(e => e.Message).ToArray()
+                );
             }
 
             if (validationErrors == null)
             {
-                validationErrors = new Dictionary<string, string[]> { { string.Empty, ["Oops something went wrong"] } };
+                validationErrors = new Dictionary<string, string[]>
+                {
+                    { string.Empty, ["Oops something went wrong"] },
+                };
             }
 
             return new ValidationProblemDetails(validationErrors)
             {
                 Title = "One or more validation errors occurred.",
-                Status = (int)failureInfo.Kind
+                Status = (int)failureInfo.Kind,
             };
         }
     }
