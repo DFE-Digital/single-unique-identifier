@@ -22,8 +22,7 @@ public class ApiKeyAuthenticationHandler(
             return AuthenticateResult.Fail($"Missing header: {Options.ApiKeyHeader}");
         }
 
-        var configuration =
-            Request.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+        var configuration = Request.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
         var apiKey = configuration["Authentication:ApiKey"];
 
         if (!requestKey.Equals(apiKey))
@@ -31,7 +30,7 @@ public class ApiKeyAuthenticationHandler(
             return AuthenticateResult.Fail($"Invalid token: {Options.ApiKeyHeader}");
         }
 
-        var claims = new List<Claim>() { new("Username", "dev") };
+        var claims = new List<Claim> { new("Username", "dev") };
 
         var claimsIdentity = new ClaimsIdentity(claims, Scheme.Name);
         var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
