@@ -19,15 +19,20 @@ public class ApiKeyAuthenticationHandler(
     {
         if (!Request.Headers.TryGetValue(Options.ApiKeyHeader, out var requestKey))
         {
-            return AuthenticateResult.Fail($"Missing header: {Options.ApiKeyHeader}");
+            return await Task.FromResult(
+                AuthenticateResult.Fail($"Missing header: {Options.ApiKeyHeader}")
+            );
         }
 
-        var configuration = Request.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+        var configuration =
+            Request.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
         var apiKey = configuration["Authentication:ApiKey"];
 
         if (!requestKey.Equals(apiKey))
         {
-            return AuthenticateResult.Fail($"Invalid token: {Options.ApiKeyHeader}");
+            return await Task.FromResult(
+                AuthenticateResult.Fail($"Invalid token: {Options.ApiKeyHeader}")
+            );
         }
 
         var claims = new List<Claim> { new("Username", "dev") };
@@ -35,6 +40,8 @@ public class ApiKeyAuthenticationHandler(
         var claimsIdentity = new ClaimsIdentity(claims, Scheme.Name);
         var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
-        return AuthenticateResult.Success(new AuthenticationTicket(claimsPrincipal, Scheme.Name));
+        return await Task.FromResult(
+            AuthenticateResult.Success(new AuthenticationTicket(claimsPrincipal, Scheme.Name))
+        );
     }
 }
