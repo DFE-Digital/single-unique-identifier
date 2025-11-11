@@ -10,6 +10,8 @@
     <ProjectReference Include="..\SUI.SingleView.Infrastructure\SUI.SingleView.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="GovUk.Frontend.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
