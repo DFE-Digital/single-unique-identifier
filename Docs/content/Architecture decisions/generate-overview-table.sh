@@ -52,7 +52,7 @@ generate_tables_for_dir() {
             # The format expected is: '# <ID>: <Name>'
             if [[ $first_line =~ ^#\ ([^:]+):\ (.*)$ ]]; then
                 local id="${BASH_REMATCH[1]}"
-                local name="${BASH_REMATCH[2]}"
+                local name=$(echo "${BASH_REMATCH[2]}" | tr -d "\r")
                 # Create a relative markdown link.
                 local link="[${id}](${md_file})"
 
