@@ -3,7 +3,7 @@
 This repository is a mono repo that contains multiple .NET solutions, each organised under its own directory.
 .NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring seperation of concerns, maintainability and testability.
 
-To view our documentation, please visit [Single unique identifier](https://dfe-digital.github.io/single-unique-identifier/) github pages
+To view our documentation, please visit the [Docs](/Docs/index.md) directory.
 
 | Directory/File                   | Description                                                                                                 |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
