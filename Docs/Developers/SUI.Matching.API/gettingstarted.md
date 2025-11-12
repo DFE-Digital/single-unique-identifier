@@ -1,4 +1,4 @@
-# Getting started
+# SUI.Matching.API - Getting started
 
 ## Setting up an API credential
 

@@ -7,3 +7,14 @@ The goal is to demonstrate the viability of using the NHS number as the SUI
 and demonstrate how data could be transferred between data owners
 nationally, to present this data as a single view of a child for the
 improved safeguarding of children.
+
+## Contents
+
+### Architecture
+
+* [Architecture models (C4 models)](./Architecture%20models/c4models.md)
+* [Architecture decisions](./Architecture%20decisions/overview.md)
+
+### Development
+
+* [SUI.Matching.API - Getting started](./Developers/SUI.Matching.API/gettingstarted.md)
