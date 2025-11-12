@@ -1,0 +1,46 @@
+@page
+@model OnboardingStep2
+@{
+    ViewData["Title"] = "Accept conditions of use";
+}
+
+<div class="govuk-width-container">
+    <main class="govuk-main-wrapper" id="main-content">
+        <h1 class="govuk-heading-xl">@ViewData["Title"]</h1>
+        <p class="govuk-body">
+            You can log in to your child safeguarding account using your DfE login.
+        </p>
+        <p class="govuk-body">
+            To use your Child safeguarding account you must agree to our <a href="#">terms of use</a>, <a href="#">privacy policy</a> and <a href="#">cookies policy</a>. You should read these carefully before logging in.
+        </p>
+        <p class="govuk-body">If you do not agree, you will not be able to access or use your account.</p>
+        <p class="govuk-body"><b>Key points:</b></p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>point 1</li>
+            <li>point 2</li>
+            <li>point 3</li>
+        </ul>
+        <p class="govuk-body">We put small files known as cookies on your device. These are used to make your Safeguarding account work and improve your experience. You can manage your cookies to opt out of using some of them.</p>
+        <form method="post">
+            <govuk-checkboxes for="SelectedOptions">
+                <govuk-checkboxes-fieldset>
+                    <govuk-checkboxes-fieldset-legend></govuk-checkboxes-fieldset-legend>
+                    @if (Model.ShowError)
+                    {
+                        <govuk-checkboxes-error-message>
+                            You must agree to the terms
+                        </govuk-checkboxes-error-message>
+                    }
+                    <govuk-checkboxes-item value="terms">
+                        I understand and accept the <a href="#">terms</a> and <a href="#">privacy policy</a>. I accept the use of 'strictly necessary' cookies as detailed in the <a href="#">cookies policy</a>
+                    </govuk-checkboxes-item>
+                    <govuk-checkboxes-item value="analytics">
+                        I accept the use of optimal analytic cookies used to improve performance.
+                    </govuk-checkboxes-item>
+                </govuk-checkboxes-fieldset>
+            </govuk-checkboxes>
+            
+            <govuk-button type="submit">Continue</govuk-button>
+        </form>
+    </main>
+</div>
