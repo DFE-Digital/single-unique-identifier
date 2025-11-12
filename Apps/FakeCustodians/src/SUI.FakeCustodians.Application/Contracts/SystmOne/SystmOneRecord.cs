@@ -1,14 +1,15 @@
-namespace SUI.FakeCustodians.Application.Contracts.SystmOne;
-
-public class SystmOneRecord : BaseEntity
+namespace SUI.FakeCustodians.Application.Contracts.SystmOne
 {
-    public required string GpName { get; init; }
+    public class SystmOneRecord : BaseEntity
+    {
+        public required string GpName { get; init; }
 
-    public required string GpSurgery { get; init; }
+        public required string GpSurgery { get; init; }
 
-    public required string GpContactNumber { get; init; }
+        public required string GpContactNumber { get; init; }
 
-    public IEnumerable<MissedAppointmentReason>? MissedAppointmentReasons { get; init; }
+        public IEnumerable<SystmOneMissedAppointment>? MissedAppointmentReasons { get; init; }
 
-    public int MissedAppointments => MissedAppointmentReasons?.Count() ?? 0;
+        public int MissedAppointments => MissedAppointmentReasons?.Count() ?? 0;
+    }
 }

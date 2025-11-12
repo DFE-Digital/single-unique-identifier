@@ -1,6 +1,6 @@
-namespace SUI.FakeCustodians.Application.Contracts.SystmOne;
+namespace SUI.FakeCustodians.Application.Models;
 
-public record MissedAppointmentReason
+public class MissedAppointment
 {
     public DateTime Date { get; init; }
 
