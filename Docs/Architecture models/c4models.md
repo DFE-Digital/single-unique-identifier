@@ -14,3 +14,17 @@ diagram to explain the programme structure from a high level, and to document
 the users of SUI, the acronyms, and the external systems.
 
 ![Early System context diagram](c1.drawio.png)
+
+## Transfer & View architecture - version 2
+
+This Container diagram shows the current version of the architecture
+model for the Transfer & View systems.
+
+![Transfer & View architecture - version 2](./generated/transfer-view-architecture-v2.png)
+
+## Transfer & View architecture - version 1
+
+This Container diagram shows the initial version of the proposed architecture
+model for the Transfer & View systems.
+
+![Transfer & View architecture - version 1](./generated/transfer-view-architecture-v1.png)
