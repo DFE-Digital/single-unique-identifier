@@ -21,3 +21,10 @@ This Container diagram shows the current version of the architecture
 model for the Transfer & View systems.
 
 ![Transfer & View architecture](./generated/transfer-view-architecture.png)
+
+## Transfer & View sequence diagram
+
+Although not a C4 model, the Transfer & View sequence diagram is useful to
+explain the interactions between the systems and components.
+
+![Transfer & View sequence diagram](./generated/transfer-view-sequence.png)
