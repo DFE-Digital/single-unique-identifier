@@ -12,7 +12,7 @@ improved safeguarding of children.
 
 ### Architecture
 
-* [Architecture models (C4 models)](./Architecture%20models/c4models.md)
+* [Architecture models & diagrams](./Architecture%20models/c4models.md)
 * [Architecture decisions](./Architecture%20decisions/overview.md)
 
 ### Development
