@@ -60,3 +60,7 @@ nunit-*.xml
 .vscode
 .env
 coverage/
+
+# Structurizr
+Docs/.structurizr
+Docs/workspace.json
