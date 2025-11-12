@@ -1,15 +1,7 @@
 namespace SUI.FakeCustodians.Application.Contracts.Arbor
 {
-    public class ArborRecord
+    public class ArborRecord : BaseEntity
     {
-        public required string FirstName { get; init; }
-
-        public required string LastName { get; init; }
-
-        public DateTime DateOfBirth { get; init; }
-
-        public string? NhsNumber { get; init; }
-
         public bool PupilPremium { get; init; }
 
         public bool FreeSchoolMeals { get; init; }
