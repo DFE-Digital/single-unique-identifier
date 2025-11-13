@@ -5,6 +5,9 @@ namespace SUI.FakeCustodians.Application.Services;
 
 public class SystmOneEventRecordProvider : BaseEventRecordProvider<SystmOneRecord>
 {
-    public SystmOneEventRecordProvider(IRecordMapper<SystmOneRecord> mapper)
-        : base(mapper, "SystmOne") { }
+    public SystmOneEventRecordProvider(
+        IRecordMapper<SystmOneRecord> mapper,
+        string? basePath = null
+    )
+        : base(mapper, "SystmOne", basePath) { }
 }

@@ -5,6 +5,6 @@ namespace SUI.FakeCustodians.Application.Services;
 
 public class MosaicEventRecordProvider : BaseEventRecordProvider<MosaicRecord>
 {
-    public MosaicEventRecordProvider(IRecordMapper<MosaicRecord> mapper)
-        : base(mapper, "Mosaic") { }
+    public MosaicEventRecordProvider(IRecordMapper<MosaicRecord> mapper, string? basePath = null)
+        : base(mapper, "Mosaic", basePath) { }
 }

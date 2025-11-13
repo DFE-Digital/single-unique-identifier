@@ -5,7 +5,7 @@ namespace SUI.FakeCustodians.Application.Services
 {
     public class ArborEventRecordProvider : BaseEventRecordProvider<ArborRecord>
     {
-        public ArborEventRecordProvider(IRecordMapper<ArborRecord> mapper)
-            : base(mapper, "Arbor") { }
+        public ArborEventRecordProvider(IRecordMapper<ArborRecord> mapper, string? basePath = null)
+            : base(mapper, "Arbor", basePath) { }
     }
 }
