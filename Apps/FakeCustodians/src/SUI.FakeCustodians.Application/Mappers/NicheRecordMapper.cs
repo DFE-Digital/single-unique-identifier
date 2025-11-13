@@ -1,12 +1,11 @@
 using SUI.FakeCustodians.Application.Contracts.Niche;
-using SUI.FakeCustodians.Application.Interfaces;
 using SUI.FakeCustodians.Application.Models;
 
 namespace SUI.FakeCustodians.Application.Mappers
 {
-    public class NicheRecordMapper : IRecordMapper<NicheRecord>
+    public class NicheRecordMapper : BaseRecordMapper<NicheRecord>
     {
-        public EventResponse Map(string sui, NicheRecord sourceRecord)
+        public override EventResponse Map(string sui, NicheRecord sourceRecord)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
             ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
@@ -33,17 +32,6 @@ namespace SUI.FakeCustodians.Application.Mappers
                 ChildProtection = source.ChildProtection,
                 KnownToPolice = source.KnownToPolice,
                 PolicePowersOfProtection = source.PolicePowersOfProtection,
-            };
-        }
-
-        private PersonalData? MapToPersonalData(NicheRecord source)
-        {
-            return new PersonalData
-            {
-                FirstName = source.FirstName,
-                LastName = source.LastName,
-                DateOfBirth = source.DateOfBirth,
-                NhsNumber = source.NhsNumber,
             };
         }
     }

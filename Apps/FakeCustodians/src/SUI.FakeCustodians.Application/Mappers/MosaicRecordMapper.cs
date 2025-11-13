@@ -1,12 +1,11 @@
 using SUI.FakeCustodians.Application.Contracts.Mosaic;
-using SUI.FakeCustodians.Application.Interfaces;
 using SUI.FakeCustodians.Application.Models;
 
 namespace SUI.FakeCustodians.Application.Mappers
 {
-    public class MosaicRecordMapper : IRecordMapper<MosaicRecord>
+    public class MosaicRecordMapper : BaseRecordMapper<MosaicRecord>
     {
-        public EventResponse Map(string sui, MosaicRecord sourceRecord)
+        public override EventResponse Map(string sui, MosaicRecord sourceRecord)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
             ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
@@ -41,17 +40,6 @@ namespace SUI.FakeCustodians.Application.Mappers
                 Id = source.Id,
                 Date = source.Date,
                 Reason = source.Reason,
-            };
-        }
-
-        private PersonalData? MapToPersonalData(MosaicRecord source)
-        {
-            return new PersonalData
-            {
-                FirstName = source.FirstName,
-                LastName = source.LastName,
-                DateOfBirth = source.DateOfBirth,
-                NhsNumber = source.NhsNumber,
             };
         }
     }

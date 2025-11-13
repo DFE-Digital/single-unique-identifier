@@ -1,12 +1,11 @@
 using SUI.FakeCustodians.Application.Contracts.SystmOne;
-using SUI.FakeCustodians.Application.Interfaces;
 using SUI.FakeCustodians.Application.Models;
 
 namespace SUI.FakeCustodians.Application.Mappers
 {
-    public class SystmOneRecordMapper : IRecordMapper<SystmOneRecord>
+    public class SystmOneRecordMapper : BaseRecordMapper<SystmOneRecord>
     {
-        public EventResponse Map(string sui, SystmOneRecord sourceRecord)
+        public override EventResponse Map(string sui, SystmOneRecord sourceRecord)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
             ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
@@ -46,17 +45,6 @@ namespace SUI.FakeCustodians.Application.Mappers
                 Date = source.Date,
                 Reason = source.Reason,
                 Location = source.Location,
-            };
-        }
-
-        private PersonalData? MapToPersonalData(SystmOneRecord source)
-        {
-            return new PersonalData
-            {
-                FirstName = source.FirstName,
-                LastName = source.LastName,
-                DateOfBirth = source.DateOfBirth,
-                NhsNumber = source.NhsNumber,
             };
         }
     }
