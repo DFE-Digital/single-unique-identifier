@@ -1,3 +1,6 @@
 <Solution>
-  <Project Path="src\SUI.Find.FindApi\SUI.Find.FindApi.csproj" Type="Classic C#" />
+  <Folder Name="/src/">
+    <Project Path="src\SUI.Find.FindApi\SUI.Find.FindApi.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/tests/" />
 </Solution>
