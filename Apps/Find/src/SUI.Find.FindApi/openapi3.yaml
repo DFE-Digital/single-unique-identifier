@@ -1,0 +1,533 @@
+openapi: 3.0.0
+
+info:
+  title: Find a Record API
+  version: 1.0.0
+  description: |
+    The Find a Record API is part of the Single Unique Identifier (SUI) programme
+    for children’s social care.
+
+    It provides a minimal asynchronous interface to discover which systems hold
+    records associated with a given SUI.
+
+    Capabilities:
+      - Start a search job for a SUI.
+      - Poll the status of a search job.
+      - Retrieve results (endpoints where records can be obtained).
+      - Cancel an in-progress search job.
+
+    Deliberately out of scope:
+      - No demographic or name-based search.
+      - No record content is returned, only endpoints.
+      - No purpose/policy headers, DSA identifiers, or client-supplied idempotency keys.
+
+servers:
+  - url: https://api.example.gov.uk/find-a-record
+    description: Production
+  - url: https://sandbox.api.example.gov.uk/find-a-record
+    description: Sandbox
+
+tags:
+  - name: Searches
+    description: Operations for managing Find a Record searches.
+
+components:
+
+  securitySchemes:
+    oauth2_clientCredentials:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.example.gov.uk/oauth2/token
+          scopes:
+            find-record.read: Read search status and results.
+            find-record.write: Create and cancel searches.
+
+  parameters:
+    Traceparent:
+      name: traceparent
+      in: header
+      required: false
+      description: W3C trace context 'traceparent' header for distributed tracing.
+      schema:
+        type: string
+      example: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+
+    Tracestate:
+      name: tracestate
+      in: header
+      required: false
+      description: W3C trace context 'tracestate' header for vendor-specific trace data.
+      schema:
+        type: string
+      example: "vendorname=opaque-value"
+
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      description: Identifier of the search job.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+
+    Problem:
+      type: object
+      description: RFC 7807 problem details.
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+      required:
+        - title
+        - status
+      additionalProperties: true
+
+    SearchStatus:
+      type: string
+      description: Current state of a search job.
+      enum:
+        - queued
+        - running
+        - completed
+        - failed
+        - cancelled
+
+    HalLink:
+      type: object
+      description: HAL-style link object, extended with HTTP method.
+      properties:
+        href:
+          type: string
+          description: Target URL.
+        method:
+          type: string
+          description: HTTP method to use when following this link.
+          enum: [GET, POST, DELETE]
+      required:
+        - href
+      additionalProperties: false
+
+    StartSearchRequest:
+      type: object
+      description: Request to start a Find a Record search.
+      required:
+        - suid
+      properties:
+        suid:
+          type: string
+          description: Single Unique Identifier (SUID) for the child.
+          example: "SUI-1234567890"
+
+    RecordType:
+      type: string
+      description: >
+        High-level category (and optional sub-category) of the located record.
+        This is intentionally constrained but can be extended in future versions.
+      enum:
+        # Local authority & children’s services
+        - local-authority
+        - local-authority.children-social-care
+        # Education
+        - education
+        - education.attendance
+        - education.exclusion
+        # Health
+        - health
+        - health.mental-health
+        # Crime / justice
+        - crime-justice
+        # Housing
+        - housing
+        - housing.homelessness
+        # Fallback
+        - other
+
+    SearchJob:
+      type: object
+      description: Representation of a Find a Record search job.
+      properties:
+        jobId:
+          type: string
+          format: uuid
+          description: Stable identifier for this search job.
+        suid:
+          type: string
+          description: SUID used for this search.
+        status:
+          $ref: '#/components/schemas/SearchStatus'
+        createdAt:
+          type: string
+          format: date-time
+          description: When the search was accepted.
+        lastUpdatedAt:
+          type: string
+          format: date-time
+          description: When the search status last changed.
+        _links:
+          type: object
+          description: HAL-style links for this job.
+          properties:
+            self:
+              $ref: '#/components/schemas/HalLink'
+            results:
+              $ref: '#/components/schemas/HalLink'
+            cancel:
+              $ref: '#/components/schemas/HalLink'
+          required:
+            - self
+          additionalProperties: false
+      required:
+        - jobId
+        - suid
+        - status
+        - createdAt
+        - _links
+
+    SearchResultItem:
+      type: object
+      description: A single located record endpoint for the requested SUID.
+      properties:
+        providerSystem:
+          type: string
+          description: Identifier of the participating system/provider.
+          example: "LAC-SYSTEM-01"
+        providerName:
+          type: string
+          description: Human-readable name for the provider.
+          example: "Example LA Case Management System"
+        recordType:
+          $ref: '#/components/schemas/RecordType'
+        recordUrl:
+          type: string
+          format: uri
+          description: URL to use to obtain the record data from the provider.
+          example: "https://provider.example.gov.uk/api/records/ABC-123456"
+      required:
+        - providerSystem
+        - providerName
+        - recordType
+        - recordUrl
+      additionalProperties: false
+
+    SearchResults:
+      type: object
+      description: Results for a Find a Record search job.
+      properties:
+        jobId:
+          type: string
+          format: uuid
+          description: Identifier of the search job.
+        suid:
+          type: string
+          description: SUID used for this search.
+        status:
+          $ref: '#/components/schemas/SearchStatus'
+        items:
+          type: array
+          description: List of systems/records located for the SUID.
+          items:
+            $ref: '#/components/schemas/SearchResultItem'
+        _links:
+          type: object
+          description: HAL-style links for result navigation.
+          properties:
+            self:
+              $ref: '#/components/schemas/HalLink'
+            job:
+              $ref: '#/components/schemas/HalLink'
+          required:
+            - self
+          additionalProperties: false
+      required:
+        - jobId
+        - suid
+        - status
+        - items
+        - _links
+
+    HealthStatus:
+      type: object
+      description: Lightweight health status for the Find a Record service.
+      properties:
+        status:
+          type: string
+          description: Health status indicator.
+          example: ok
+        service:
+          type: string
+          description: Service identifier.
+          example: find-a-record
+        version:
+          type: string
+          description: Deployed API/service version.
+          example: "1.0.0"
+      required:
+        - status
+      additionalProperties: false
+
+paths:
+
+  /status:
+    get:
+      tags: [Searches]
+      summary: Service health check
+      description: >
+        Lightweight health check endpoint to verify that the Find a Record API
+        is responsive. Intended for platform monitoring and load balancer checks.
+      security: []
+      responses:
+        '200':
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+  /v1/searches:
+    post:
+      tags: [Searches]
+      operationId: startSearch
+      summary: Start a Find a Record search
+      description: >
+        Initiates an asynchronous search for existing records associated with the supplied
+        Single Unique Identifier (SUID) for a child in social care.
+
+        If an identical active search already exists for the same SUID and caller context,
+        the service MAY return that existing job instead of creating a new one.
+      security:
+        - oauth2_clientCredentials:
+            - find-record.write
+      parameters:
+        - $ref: '#/components/parameters/Traceparent'
+        - $ref: '#/components/parameters/Tracestate'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartSearchRequest'
+            examples:
+              start-search:
+                summary: Start a search for a SUID
+                value:
+                  suid: "SUI-1234567890"
+      responses:
+        '202':
+          description: Search accepted.
+          headers:
+            Location:
+              description: URL of the created or existing search job.
+              schema:
+                type: string
+                format: uri
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchJob'
+              examples:
+                accepted:
+                  summary: Search job created
+                  value:
+                    jobId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    suid: "SUI-1234567890"
+                    status: "queued"
+                    createdAt: "2025-01-01T12:00:00Z"
+                    lastUpdatedAt: "2025-01-01T12:00:00Z"
+                    _links:
+                      self:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        method: "GET"
+                      results:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6/results"
+                        method: "GET"
+                      cancel:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        method: "DELETE"
+        '400':
+          description: Invalid request (e.g. missing or malformed SUID).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /v1/searches/{jobId}:
+    get:
+      tags: [Searches]
+      operationId: getSearch
+      summary: Get search status
+      description: Retrieve the current status of a Find a Record search job.
+      security:
+        - oauth2_clientCredentials:
+            - find-record.read
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+        - $ref: '#/components/parameters/Traceparent'
+        - $ref: '#/components/parameters/Tracestate'
+      responses:
+        '200':
+          description: Current search job status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchJob'
+              examples:
+                example:
+                  summary: Example job status
+                  value:
+                    jobId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    suid: "SUI-1234567890"
+                    status: "running"
+                    createdAt: "2025-01-01T12:00:00Z"
+                    lastUpdatedAt: "2025-01-01T12:01:30Z"
+                    _links:
+                      self:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        method: "GET"
+                      results:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6/results"
+                        method: "GET"
+                      cancel:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        method: "DELETE"
+        '404':
+          description: Search job not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    delete:
+      tags: [Searches]
+      operationId: cancelSearch
+      summary: Cancel a running search
+      description: >
+        Requests cancellation of a running search job. If successful, the job
+        transitions to `cancelled`. Cancellation is idempotent.
+      security:
+        - oauth2_clientCredentials:
+            - find-record.write
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+        - $ref: '#/components/parameters/Traceparent'
+        - $ref: '#/components/parameters/Tracestate'
+      responses:
+        '202':
+          description: Cancel request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchJob'
+              examples:
+                cancelled:
+                  summary: Job cancelled
+                  value:
+                    jobId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    suid: "SUI-1234567890"
+                    status: "cancelled"
+                    createdAt: "2025-01-01T12:00:00Z"
+                    lastUpdatedAt: "2025-01-01T12:02:00Z"
+                    _links:
+                      self:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        method: "GET"
+                      results:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6/results"
+                        method: "GET"
+                      cancel:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        method: "DELETE"
+        '404':
+          description: Search job not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /v1/searches/{jobId}/results:
+    get:
+      tags: [Searches]
+      operationId: getSearchResults
+      summary: Get search results
+      description: >
+        Returns the results for a Find a Record search job.
+
+        Results MAY be available before the job reaches `completed` status,
+        depending on implementation.
+      security:
+        - oauth2_clientCredentials:
+            - find-record.read
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+        - $ref: '#/components/parameters/Traceparent'
+        - $ref: '#/components/parameters/Tracestate'
+      responses:
+        '200':
+          description: Results for the specified search job.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResults'
+              examples:
+                example:
+                  summary: Example results
+                  value:
+                    jobId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    suid: "SUI-1234567890"
+                    status: "completed"
+                    items:
+                      - providerSystem: "LAC-SYSTEM-01"
+                        providerName: "Example LA Case Management System"
+                        recordType: "local-authority.children-social-care"
+                        recordUrl: "https://lac-system-01.example.gov.uk/api/records/ABC-123456"
+                      - providerSystem: "NHS-GP-01"
+                        providerName: "Example GP Clinical System"
+                        recordType: "health"
+                        recordUrl: "https://nhs-gp-01.example.nhs.uk/patient/SUI-1234567890"
+                    _links:
+                      self:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6/results"
+                        method: "GET"
+                      job:
+                        href: "/v1/searches/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        method: "GET"
+        '404':
+          description: Search job not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'

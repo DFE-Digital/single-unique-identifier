@@ -1,1 +1,3 @@
-<Solution />
+<Solution>
+  <Project Path="src\SUI.Find.FindApi\SUI.Find.FindApi.csproj" Type="Classic C#" />
+</Solution>
