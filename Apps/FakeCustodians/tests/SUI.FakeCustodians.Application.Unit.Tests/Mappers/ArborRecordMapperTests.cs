@@ -1,7 +1,7 @@
 using SUI.FakeCustodians.Application.Contracts.Arbor;
 using SUI.FakeCustodians.Application.Mappers;
 
-namespace SUI.FakeCustodians.Application.Unit.Tests
+namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers
 {
     public class ArborRecordMapperTests
     {
@@ -35,8 +35,9 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
         }
 
         [Fact]
-        public void Map_ShouldMapPersonalDataCorrectly()
+        public void Map_ShouldMapPersonalData_FromBaseRecord()
         {
+            // Arrange
             var sui = "1234567890";
             var record = new ArborRecord
             {
@@ -46,20 +47,25 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
                 NhsNumber = sui,
             };
 
+            // Act
             var result = _mapper.Map(sui, record);
 
+            // Assert
             Assert.NotNull(result);
             Assert.Equal(sui, result.Sui);
             Assert.NotNull(result.Data?.PersonalData);
-            Assert.Equal("John", result.Data.PersonalData.FirstName);
-            Assert.Equal("Doe", result.Data.PersonalData.LastName);
-            Assert.Equal(new DateTime(2010, 1, 1), result.Data.PersonalData.DateOfBirth);
-            Assert.Equal(sui, result.Data.PersonalData.NhsNumber);
+
+            var personal = result.Data!.PersonalData!;
+            Assert.Equal("John", personal.FirstName);
+            Assert.Equal("Doe", personal.LastName);
+            Assert.Equal(new DateTime(2010, 1, 1), personal.DateOfBirth);
+            Assert.Equal(sui, personal.NhsNumber);
         }
 
         [Fact]
-        public void Map_ShouldMapEducationDataCorrectly()
+        public void Map_ShouldMapOtherData_SpecificToArbor()
         {
+            // Arrange
             var sui = "1234567890";
             var record = new ArborRecord
             {
@@ -77,17 +83,20 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
                 ],
             };
 
+            // Act
             var result = _mapper.Map(sui, record);
 
-            Assert.NotNull(result.Data?.EducationData);
-            Assert.True(result.Data.EducationData.PupilPremium);
-            Assert.False(result.Data.EducationData.FreeSchoolMeals);
-            Assert.True(result.Data.EducationData.ElectivelyHomeEducated);
+            // Assert
+            var education = result.Data?.EducationData;
+            Assert.NotNull(education);
+            Assert.True(education!.PupilPremium);
+            Assert.False(education.FreeSchoolMeals);
+            Assert.True(education.ElectivelyHomeEducated);
 
-            var schools = result.Data.EducationData.SchoolsAttended?.ToArray();
-
+            var schools = education.SchoolsAttended?.ToArray();
             Assert.NotNull(schools);
-            Assert.Equal(2, schools.Length);
+            Assert.Equal(2, schools!.Length);
+
             Assert.Equal("Test School 1", schools[0].Name);
             Assert.Equal("123 Street", schools[0].Address);
             Assert.Equal("Test School 2", schools[1].Name);
