@@ -8,14 +8,14 @@ namespace SUI.Find.FindApi;
 
 public class HealthCheck(ILogger<HealthCheck> logger, HealthCheckService healthCheckService)
 {
-    [Function(nameof(HealthCheck))]
-    public async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")] HttpRequestData req
-    )
-    {
-        logger.LogInformation("Health check triggered.");
+  [Function(nameof(HealthCheck))]
+  public async Task<IActionResult> Run(
+      [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")] HttpRequestData req
+  )
+  {
+    logger.LogInformation("Health check triggered.");
 
-        var healthStatus = await healthCheckService.CheckHealthAsync();
-        return new OkObjectResult(Enum.GetName(healthStatus.Status));
-    }
+    var healthStatus = await healthCheckService.CheckHealthAsync();
+    return new OkObjectResult(Enum.GetName(healthStatus.Status));
+  }
 }
