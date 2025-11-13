@@ -6,12 +6,12 @@ on:
     branches:
       - main
     paths:
-      - "Matching/**"
+      - "Apps/Matching/**"
   pull_request:
     branches:
       - main
     paths:
-      - "Matching/**"
+      - "Apps/Matching/**"
 
 jobs:
   build-and-test-matching:
@@ -25,3 +25,4 @@ jobs:
       checks: write
     with:
       directory_name: Matching
+
