@@ -8,7 +8,18 @@ Category: [Directory of ADR e.g. Systems landscape, System X, Component Y]
 
 ## Status
 
-<!-- Draft | Proposed | Accepted | Superseded by ADR-[CONTEXT]-[XXXX] -->
+<!-- Draft | Proposed | Accepted -->
+
+<!-- Optional Structurizr relationship syntax:
+Amends: [ADR-CONTEXT-XXXX](XXXX-filename.md)
+Amended by: [ADR-CONTEXT-XXXX](XXXX-filename.md)
+Supersedes: [ADR-CONTEXT-XXXX](XXXX-filename.md)
+Superseded by: [ADR-CONTEXT-XXXX](XXXX-filename.md)
+Related to: [ADR-CONTEXT-XXXX](XXXX-filename.md)
+
+E.g.
+Amends: [ADR-SUI-0001](0001-build-central-locator-and-la-generator.md)
+-->
 
 ## Decision
 
