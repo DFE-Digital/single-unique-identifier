@@ -17,8 +17,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SUI.Transfer.Application\SUI.Transfer.Application.csproj" />
-    <ProjectReference Include="..\SUI.Transfer.API\SUI.Transfer.API.csproj" />
+    <ProjectReference Include="..\..\src\SUI.Transfer.Application\SUI.Transfer.Application.csproj" />
+    <ProjectReference Include="..\..\src\SUI.Transfer.API\SUI.Transfer.API.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.Test.json">
