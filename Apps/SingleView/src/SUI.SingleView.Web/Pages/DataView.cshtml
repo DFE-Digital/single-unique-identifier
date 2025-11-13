@@ -1,0 +1,15 @@
+@page
+@model DataView
+@{
+    ViewData["Title"] = @Model.PersonModel.Name;
+}
+
+<div class="govuk-width-container">
+    <main class="govuk-main-wrapper" id="main-content">
+        <govuk-back-link asp-page="Index" />
+        <h1 class="govuk-heading-xl">@ViewData["Title"]</h1>
+        <p class="govuk-body">
+            NHS Number: @Model.PersonModel.NhsNumber
+        </p>
+    </main>
+</div>
