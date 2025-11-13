@@ -1,4 +1,6 @@
-workspace "SUI National - FIND" "Architecture model for the FIND service." {
+workspace "SUI" "'Single unique identifier' is a proposed set of systems and standards to faciliate information sharing between child social care (CSC) systems. This workspace/repository contains software that demonstrates the viability of using the NHS number as the SUI and how data could be transferred between data owners nationally, to present this data as a single view of a child for the improved safeguarding of children." {
+
+    !docs "./Architecture models"
 
     !adrs "./decisions"
 
@@ -11,8 +13,14 @@ workspace "SUI National - FIND" "Architecture model for the FIND service." {
             sv_store = container "Consolidated Data Store" "Stores consolidated records and cached fetch results." "SQL Database" "Database"
         }
 
-        match = softwareSystem "MATCH Service" "Resolves an NHS number (SUI) from demographics" "External, API"
-        fetch = softwareSystem "FETCH Service" "Retrieves record content from Custodians given a pointer" "External, API"
+        match = softwareSystem "MATCH Service" "Resolves an NHS number (SUI) from demographics" "External, API" {
+            !docs "./Developers/SUI.Matching.API"
+        }
+
+        fetch = softwareSystem "FETCH Service" "Retrieves record content from Custodians given a pointer" "External, API" {
+
+        }
+
         pds   = softwareSystem "PDS" "Personal Demographics Service used to search for NHS numbers from demographics" "ExternalGrey, API"
 
         txma = softwareSystem "TxMA" "Central audit/event backplane"
