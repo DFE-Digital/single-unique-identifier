@@ -11,8 +11,8 @@ the improved safeguarding of children.
 
 ## Document Overview
 
-Providing logical and high-level infrastructure views on the single unique 
-identifier systems.
+This document provides logical and high-level infrastructure views on the
+single unique identifier systems.
 
 See the [C4 model website](https://c4model.com/diagrams) for more details on 
 the C4 modelling language.
