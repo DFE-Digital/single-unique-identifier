@@ -7,7 +7,7 @@ set -e
 # The main markdown file to update.
 OVERVIEW_FILE="overview.md"
 # The top-level directories to scan for documentation.
-DIRS_TO_SCAN=("System" "Component")
+DIRS_TO_SCAN=("Systems landscape" "System" "Component")
 
 
 # --- Function Definitions ---
@@ -54,7 +54,7 @@ generate_tables_for_dir() {
                 local id="${BASH_REMATCH[1]}"
                 local name=$(echo "${BASH_REMATCH[2]}" | tr -d "\r")
                 # Create a relative markdown link.
-                local link="[${id}](${md_file})"
+                local link=$(echo "[${id}](${md_file})" | sed 's/ /%20/')
 
                 # Append the formatted table row to the output file.
                 echo "| ${link} | ${name} |" >> "$output_file"

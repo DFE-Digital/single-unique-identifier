@@ -1,9 +1,14 @@
-# ADR001: Mocking Tool
+# ADR-SUI-0004: Mocking Tool
 
-- **Date**: 2025-09-04
-- **Author**: Tom Hawkin
-- **Status**: Draft
-- **Category**: Component/Common
+Date: 2025-09-04
+
+Author: Tom Hawkin
+
+Category: Systems landscape
+
+## Status
+
+Draft
 
 ## Decision
 

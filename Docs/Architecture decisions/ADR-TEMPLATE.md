@@ -1,9 +1,14 @@
-# ADRXXX: [Title]
+# ADR-[CONTEXT]-[XXXX]: [Title]
 
-- **Date**: [Date in YYYY-MM-DD format]
-- **Author**: [Your full name, as the owner of this decision]
-- **Status**: [Draft | Accepted | Superseded by ADRXXX]
-- **Category**: [Directory of ADR i.e. System, Component/X]
+Date: [Date in YYYY-MM-DD format]
+
+Author: [Your full name, as the owner of this decision]
+
+Category: [Directory of ADR e.g. Systems landscape, System X, Component Y]
+
+## Status
+
+<!-- Draft | Proposed | Accepted | Superseded by ADR-[CONTEXT]-[XXXX] -->
 
 ## Decision
 

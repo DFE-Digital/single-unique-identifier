@@ -1,9 +1,14 @@
-# ADR001: Build a central locator service and generate single-view data sets in local authorities  
-  
-- **Date**:     2025-08-15
-- **Author**:   Josh Taylor
-- **Status**:   Accepted
-- **Category**: System
+# ADR-SUI-0001: Build a central locator service and generate single-view data sets in local authorities
+
+Date: 2025-08-15
+
+Author: Josh Taylor
+
+Category: Systems landscape
+
+## Status
+
+Accepted
 
 ## Decision
 

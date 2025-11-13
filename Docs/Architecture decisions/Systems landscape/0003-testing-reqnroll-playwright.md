@@ -1,9 +1,14 @@
-# ADR001: Use ReqNRoll and Playwright to write and implement system tests
+# ADR-SUI-0003: Use ReqNRoll and Playwright to write and implement system tests
 
-- **Date** : 2025-08-27
-- **Author** : Stuart Maskell
-- **Status** : Accepted
-- **Category** : Component/SystemTests
+Date: 2025-08-27
+
+Author: Stuart Maskell
+
+Category: Systems landscape
+
+## Status
+
+Accepted
 
 ## Decision
 

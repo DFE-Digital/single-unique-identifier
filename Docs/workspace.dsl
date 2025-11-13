@@ -2,7 +2,7 @@ workspace "SUI" "'Single unique identifier' is a proposed set of systems and sta
 
     !docs "./Architecture models"
 
-    !adrs "./decisions"
+    !adrs "./Architecture decisions/Systems landscape"
 
     model {
         searcher = person "Searcher" "A user or system initiating a record discovery."
@@ -34,6 +34,7 @@ workspace "SUI" "'Single unique identifier' is a proposed set of systems and sta
         }
 
         find = softwareSystem "FIND Service" "Determines which Custodians hold records for an NHS number and returns pointers" "External, API" {
+            !adrs "./Architecture decisions/System/Find"
 
             find_orchestration = container "FIND.Orchestration" "Entry point for FIND; coordinates Auth, Directory, CORE, Cache, PEP and Audit; returns policy-filtered pointers to callers." "C#, Azure Functions"
             find_auth          = container "FIND.Account.Auth" "Authenticates relying parties (tokens/credentials) and ensures they are registered to use FIND." "C#, Azure Functions"

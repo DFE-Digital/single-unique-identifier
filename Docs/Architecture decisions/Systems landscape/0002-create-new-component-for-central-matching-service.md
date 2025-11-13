@@ -1,9 +1,14 @@
-# ADR002: Create a new component to implement a centralised NHS number matching service
+# ADR-SUI-0002: Create a new component to implement a centralised NHS number matching service
 
-- **Date**:       2025-08-26
-- **Author**:     Joshua Taylor
-- **Status**:     Accepted
-- **Category**:   System
+Date: 2025-08-26
+
+Author: Joshua Taylor
+
+Category: Systems landscape
+
+## Status
+
+Accepted
 
 ## Decision
 
