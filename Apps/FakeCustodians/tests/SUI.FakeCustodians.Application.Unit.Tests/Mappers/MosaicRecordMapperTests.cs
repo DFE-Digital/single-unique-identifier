@@ -37,8 +37,8 @@ public class MosaicRecordMapperTests
     [Fact]
     public void Map_ShouldMapPersonalData_FromBaseRecord()
     {
-        // Arrange
         var sui = "1234567890";
+
         var record = new MosaicRecord()
         {
             FirstName = "John",
@@ -47,10 +47,8 @@ public class MosaicRecordMapperTests
             NhsNumber = sui,
         };
 
-        // Act
         var result = _mapper.Map(sui, record);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal(sui, result.Sui);
         Assert.NotNull(result.Data?.PersonalData);
@@ -65,8 +63,8 @@ public class MosaicRecordMapperTests
     [Fact]
     public void Map_ShouldMapOtherData_SpecificToMosaic()
     {
-        // Arrange
         var sui = "1234567890";
+
         var record = new MosaicRecord()
         {
             FirstName = "John",
@@ -90,10 +88,8 @@ public class MosaicRecordMapperTests
             ],
         };
 
-        // Act
         var result = _mapper.Map(sui, record);
 
-        // Assert
         var cahms = result.Data?.CamhsData;
         Assert.NotNull(cahms);
 

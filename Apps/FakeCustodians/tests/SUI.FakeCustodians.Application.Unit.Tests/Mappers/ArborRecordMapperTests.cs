@@ -37,8 +37,8 @@ namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers
         [Fact]
         public void Map_ShouldMapPersonalData_FromBaseRecord()
         {
-            // Arrange
             var sui = "1234567890";
+
             var record = new ArborRecord
             {
                 FirstName = "John",
@@ -47,10 +47,8 @@ namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers
                 NhsNumber = sui,
             };
 
-            // Act
             var result = _mapper.Map(sui, record);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(sui, result.Sui);
             Assert.NotNull(result.Data?.PersonalData);
@@ -65,8 +63,8 @@ namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers
         [Fact]
         public void Map_ShouldMapOtherData_SpecificToArbor()
         {
-            // Arrange
             var sui = "1234567890";
+
             var record = new ArborRecord
             {
                 FirstName = "John",
@@ -83,10 +81,8 @@ namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers
                 ],
             };
 
-            // Act
             var result = _mapper.Map(sui, record);
 
-            // Assert
             var education = result.Data?.EducationData;
             Assert.NotNull(education);
             Assert.True(education!.PupilPremium);

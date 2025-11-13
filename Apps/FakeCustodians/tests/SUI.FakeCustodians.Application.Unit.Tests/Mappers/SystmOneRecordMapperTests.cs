@@ -40,8 +40,8 @@ public class SystmOneRecordMapperTests
     [Fact]
     public void Map_ShouldMapPersonalData_FromBaseRecord()
     {
-        // Arrange
         var sui = "1234567890";
+
         var record = new SystmOneRecord()
         {
             FirstName = "John",
@@ -53,10 +53,8 @@ public class SystmOneRecordMapperTests
             GpSurgery = "Test Surgery",
         };
 
-        // Act
         var result = _mapper.Map(sui, record);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal(sui, result.Sui);
         Assert.NotNull(result.Data?.PersonalData);
@@ -71,8 +69,8 @@ public class SystmOneRecordMapperTests
     [Fact]
     public void Map_ShouldMapOtherData_SpecificToSystmOne()
     {
-        // Arrange
         var sui = "1234567890";
+
         var record = new SystmOneRecord()
         {
             FirstName = "John",
@@ -99,10 +97,8 @@ public class SystmOneRecordMapperTests
             ],
         };
 
-        // Act
         var result = _mapper.Map(sui, record);
 
-        // Assert
         var gp = result.Data?.GpData;
         Assert.NotNull(gp);
         Assert.Equal("07890789078", gp.GpContactNumber);

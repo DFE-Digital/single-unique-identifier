@@ -37,8 +37,8 @@ public class NicheRecordMapperTests
     [Fact]
     public void Map_ShouldMapPersonalData_FromBaseRecord()
     {
-        // Arrange
         var sui = "1234567890";
+
         var record = new NicheRecord()
         {
             FirstName = "John",
@@ -47,10 +47,8 @@ public class NicheRecordMapperTests
             NhsNumber = sui,
         };
 
-        // Act
         var result = _mapper.Map(sui, record);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal(sui, result.Sui);
         Assert.NotNull(result.Data?.PersonalData);
@@ -65,8 +63,8 @@ public class NicheRecordMapperTests
     [Fact]
     public void Map_ShouldMapOtherData_SpecificToNiche()
     {
-        // Arrange
         var sui = "1234567890";
+
         var record = new NicheRecord()
         {
             FirstName = "John",
@@ -78,10 +76,8 @@ public class NicheRecordMapperTests
             PolicePowersOfProtection = true,
         };
 
-        // Act
         var result = _mapper.Map(sui, record);
 
-        // Assert
         var police = result.Data?.PoliceData;
         Assert.NotNull(police);
         Assert.True(police!.ChildProtection);
