@@ -1,35 +1,32 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using NSubstitute;
-using SUI.FakeCustodians.Application.Contracts.Arbor;
+using SUI.FakeCustodians.Application.Contracts.Mosaic;
 using SUI.FakeCustodians.Application.Interfaces;
 using SUI.FakeCustodians.Application.Models;
 using SUI.FakeCustodians.Application.Services;
 
-namespace SUI.FakeCustodians.Application.Unit.Tests
+namespace SUI.FakeCustodians.Application.Unit.Tests.Services
 {
-    public class ArborEventRecordProviderTests
+    public class MosaicEventRecordProviderTests
     {
-        private readonly IRecordMapper<ArborRecord> _mapper;
+        private readonly IRecordMapper<MosaicRecord> _mapper;
         private readonly string _tempDir;
 
-        public ArborEventRecordProviderTests()
+        public MosaicEventRecordProviderTests()
         {
-            _mapper = Substitute.For<IRecordMapper<ArborRecord>>();
+            _mapper = Substitute.For<IRecordMapper<MosaicRecord>>();
 
-            // Create isolated temp folder: <temp>/<guid>/Arbor/
+            // Create isolated temp folder: <temp>/<guid>/Mosaic/
             var root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-            _tempDir = Path.Combine(root, "Arbor");
+            _tempDir = Path.Combine(root, "Mosaic");
             Directory.CreateDirectory(_tempDir);
         }
 
         [Fact]
         public void GetEventRecordForSui_ShouldReturnNull_WhenFileDoesNotExist()
         {
-            var provider = new ArborEventRecordProvider(_mapper, _tempDir);
-            string sui = "0000000000";
-
-            var result = provider.GetEventRecordForSui(sui);
-
+            var provider = new MosaicEventRecordProvider(_mapper, _tempDir);
+            var result = provider.GetEventRecordForSui("0000000000");
             Assert.Null(result);
         }
 
@@ -37,32 +34,33 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
         public void GetEventRecordForSui_ShouldCallMapper_WhenFileExists()
         {
             string sui = "testSUI";
+
             string filePath = Path.Combine(_tempDir, $"{sui}.json");
 
-            var sampleRecord = new ArborRecord
+            var sampleRecord = new MosaicRecord()
             {
                 FirstName = "John",
                 LastName = "Doe",
                 DateOfBirth = new DateTime(1986, 4, 26),
                 NhsNumber = sui,
-                PupilPremium = true,
-                FreeSchoolMeals = true,
-                ElectivelyHomeEducated = false,
-                SchoolsAttended =
+                Referrals =
                 [
-                    new ArborSchool
+                    new MosaicReferral
                     {
-                        Name = "Wiltshire School",
-                        Address = "111 Wiltshire Street, London, SW1 1AA",
+                        Id = "1",
+                        Date = new DateTime(2022, 1, 1),
+                        Reason = "Test reason",
                     },
                 ],
             };
 
+            // Write JSON to temp folder
             File.WriteAllText(filePath, JsonSerializer.Serialize(sampleRecord));
 
-            _mapper.Map(sui, Arg.Any<ArborRecord>()).Returns(new EventResponse { Sui = sui });
+            // Setup mapper stub
+            _mapper.Map(sui, Arg.Any<MosaicRecord>()).Returns(new EventResponse { Sui = sui });
 
-            var provider = new ArborEventRecordProvider(_mapper, _tempDir);
+            var provider = new MosaicEventRecordProvider(_mapper, _tempDir);
 
             var result = provider.GetEventRecordForSui(sui);
 
@@ -73,7 +71,7 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
         [Fact]
         public void GetEventRecordForSui_ShouldThrow_WhenSuiIsInvalid()
         {
-            var provider = new ArborEventRecordProvider(_mapper, _tempDir);
+            var provider = new MosaicEventRecordProvider(_mapper, _tempDir);
 
             Assert.Throws<ArgumentException>(() => provider.GetEventRecordForSui(""));
             Assert.Throws<ArgumentException>(() => provider.GetEventRecordForSui("   "));
@@ -84,11 +82,13 @@ namespace SUI.FakeCustodians.Application.Unit.Tests
         public void GetEventRecordForSui_ShouldThrow_WhenJsonIsInvalid()
         {
             string sui = "2222222222";
+
             string filePath = Path.Combine(_tempDir, $"{sui}.json");
 
+            // Write invalid JSON
             File.WriteAllText(filePath, "invalid json content");
 
-            var provider = new ArborEventRecordProvider(_mapper, _tempDir);
+            var provider = new MosaicEventRecordProvider(_mapper, _tempDir);
 
             Assert.Throws<JsonException>(() => provider.GetEventRecordForSui(sui));
         }

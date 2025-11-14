@@ -1,4 +1,7 @@
 namespace SUI.FakeCustodians.Application.Models
 {
-    public class CamhsData { }
+    public record CamhsData
+    {
+        public IEnumerable<Referral>? Referrals { get; init; }
+    }
 }
