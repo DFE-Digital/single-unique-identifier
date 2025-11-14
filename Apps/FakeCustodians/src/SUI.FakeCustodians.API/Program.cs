@@ -11,7 +11,7 @@ using SUI.FakeCustodians.Application.Services;
 
 namespace SUI.FakeCustodians.API
 {
-    public static class Program
+    public class Program
     {
         public static void Main(string[] args)
         {
