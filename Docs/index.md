@@ -10,6 +10,21 @@ improved safeguarding of children.
 
 ## Contents
 
+### Structurizr
+
+This documentation, and the models and diagrams contained therein, can be
+visualised in an interactive UI using Structurizr.
+
+#### Recommended setup:
+1. Install Rancher Desktop, using the Docker Engine option during install:
+    * Download from https://rancherdesktop.io/ (or https://github.com/rancher-sandbox/rancher-desktop/releases)
+    * Rancher Desktop is a free, open-source application for running Docker
+    images and does not require a license to use for commercial purposes.
+2. Run Structurizr using Docker, from this repo's root:
+    ```
+    docker run -it --rm -p 8080:8080 -v ./Docs/:/usr/local/structurizr structurizr/lite
+    ```
+
 ### Architecture
 
 * [Architecture models & diagrams](./Architecture%20models/c4models.md)
