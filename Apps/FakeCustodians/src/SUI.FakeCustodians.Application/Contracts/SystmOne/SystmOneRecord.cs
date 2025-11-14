@@ -1,6 +1,6 @@
-namespace SUI.FakeCustodians.Application.Models
+namespace SUI.FakeCustodians.Application.Contracts.SystmOne
 {
-    public class GpData
+    public class SystmOneRecord : BaseEntity
     {
         public required string GpName { get; init; }
 
@@ -8,7 +8,7 @@ namespace SUI.FakeCustodians.Application.Models
 
         public required string GpContactNumber { get; init; }
 
-        public IEnumerable<MissedAppointment>? MissedAppointmentReasons { get; init; }
+        public IEnumerable<SystmOneMissedAppointment>? MissedAppointmentReasons { get; init; }
 
         public int MissedAppointments => MissedAppointmentReasons?.Count() ?? 0;
     }

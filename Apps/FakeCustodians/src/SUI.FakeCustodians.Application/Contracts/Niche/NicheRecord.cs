@@ -1,6 +1,6 @@
-namespace SUI.FakeCustodians.Application.Models
+namespace SUI.FakeCustodians.Application.Contracts.Niche
 {
-    public class PoliceData
+    public class NicheRecord : BaseEntity
     {
         public bool ChildProtection { get; init; }
 
