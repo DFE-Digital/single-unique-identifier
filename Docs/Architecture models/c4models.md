@@ -12,7 +12,7 @@ the improved safeguarding of children.
 ## Document Overview
 
 > [!IMPORTANT]
-> **Please see the diagrams in <a href="../index.md#Structurizr">Structurizr</a> for the up to date diagrams.**
+> **Please see the Diagrams tab in Structurizr for the up to date diagrams.**
 
 This document provides the original logical and high-level infrastructure
 views on the single unique identifier systems.
