@@ -18,7 +18,7 @@
     3. ```
        openssl rsa -in $KID.pem -pubout -outform PEM -out $KID.pem.pub
        ```
-    4. <pre>```
+    4. ```
        MODULUS=$(
        openssl rsa -pubin -in $KID.pem.pub -noout -modulus `# Print modulus of public key` \
        | cut -d '=' -f2                                    `# Extract modulus value from output` \
@@ -26,8 +26,8 @@
        | openssl base64 -A                                 `# Base64 encode without wrapping lines` \
        | sed 's|+|-|g; s|/|_|g; s|=||g'                    `# URL encode as JWK standard requires`
        )
-       ```</pre>
-    5. <pre>```
+       ```
+    5. ```
        echo '{
          "keys": [
            {
@@ -40,7 +40,7 @@
            }
          ]
        }' > $KID.json
-       ```</pre>
+       ```
 5. Upload the `test-1.json` file to your application's registration, on the 'Manage public key' page
 6. On the API portal, create a new API key, and copy the _Key_ value. You do not need the secret. Then run the following
    command, using your Key value between the quotation marks.
