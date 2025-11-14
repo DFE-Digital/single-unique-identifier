@@ -90,6 +90,10 @@ workspace "SUI" "'Single unique identifier' is a proposed set of systems and sta
     }
 
     views {
+        properties {
+            "structurizr.sort" "created"
+        }
+
         systemContext singleview "SystemContext" {
             include searcher
             include singleview
