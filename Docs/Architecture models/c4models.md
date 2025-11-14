@@ -11,9 +11,8 @@ the improved safeguarding of children.
 
 ## Document Overview
 
-<div style="background-color: #415240ff; padding: 1em; margin-bottom: 1em; border-radius: 10px; font-weight: bold; font-size: 1.25em;">
-    Please see the diagrams in <a href="../index.md#Structurizr">Structurizr</a> for the up to date diagrams.
-</div>
+> [!IMPORTANT]
+> **Please see the diagrams in <a href="../index.md#Structurizr">Structurizr</a> for the up to date diagrams.**
 
 This document provides the original logical and high-level infrastructure
 views on the single unique identifier systems.
