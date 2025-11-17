@@ -20,4 +20,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SUI.SingleView.Domain\SUI.SingleView.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Bogus">
+      <HintPath>..\..\..\..\..\..\..\.nuget\packages\bogus\35.6.5\lib\net6.0\Bogus.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

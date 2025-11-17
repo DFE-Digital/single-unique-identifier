@@ -1,6 +1,7 @@
 using System.Reflection;
 using FluentValidation;
 using GovUk.Frontend.AspNetCore;
+using SUI.SingleView.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddGovUkFrontend();
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 var app = builder.Build();
 

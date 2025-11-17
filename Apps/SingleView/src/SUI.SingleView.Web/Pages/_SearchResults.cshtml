@@ -1,0 +1,36 @@
+@model Search
+
+<h1 class="govuk-heading-xl">@ViewData["Title"]</h1>
+<p class="govuk-body">
+    @(Model.Results?.Count ?? 0) results found
+</p>
+<table class="govuk-table">
+    <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header">Name</th>
+        <th scope="col" class="govuk-table__header">Address</th>
+        <th scope="col" class="govuk-table__header">Date of birth</th>
+        <th scope="col" class="govuk-table__header">NHS number</th>
+        <th scope="col" class="govuk-table__header">Current status</th>
+        <th scope="col" class="govuk-table__header">Action</th>
+    </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+    @if (Model.Results != null)
+    {
+        foreach (var result in Model.Results)
+        {
+            <tr class="govuk-table__row">
+                <td class="govuk-table__cell">@result.Name</td>
+                <td class="govuk-table__cell">@result.Address.ToSingleLine()</td>
+                <td class="govuk-table__cell">@result.DateOfBirth</td>
+                <td class="govuk-table__cell">@result.NhsNumber</td>
+                <td class="govuk-table__cell">Open to CSC</td>
+                <td class="govuk-table__cell">
+                    <a class="govuk-link" asp-page="DataView" asp-route-personId="@result.NhsNumber">View record</a>
+                </td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>

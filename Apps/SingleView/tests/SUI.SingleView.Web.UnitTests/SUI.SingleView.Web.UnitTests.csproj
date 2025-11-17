@@ -6,6 +6,7 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Bogus" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="JetBrains.Annotations" />
@@ -21,5 +22,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SUI.SingleView.Web\SUI.SingleView.Web.csproj" />
+    <ProjectReference Include="..\SUI.SingleView.Domain.UnitTests\SUI.SingleView.Domain.UnitTests.csproj" />
   </ItemGroup>
 </Project>
