@@ -33,7 +33,7 @@ namespace SUI.FakeCustodians.Application.Services
 
         public EventResponse? GetEventRecordForSui(string sui)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
+            ArgumentException.ThrowIfNullOrWhiteSpace(sui);
 
             string filePath = Path.Combine(_basePath, $"{sui}.json");
 

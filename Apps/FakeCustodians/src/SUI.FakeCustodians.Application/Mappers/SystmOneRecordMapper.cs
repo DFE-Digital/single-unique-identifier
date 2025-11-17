@@ -7,8 +7,8 @@ namespace SUI.FakeCustodians.Application.Mappers
     {
         public override EventResponse Map(string sui, SystmOneRecord sourceRecord)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
-            ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
+            ArgumentException.ThrowIfNullOrWhiteSpace(sui);
+            ArgumentNullException.ThrowIfNull(sourceRecord);
 
             return new EventResponse
             {
