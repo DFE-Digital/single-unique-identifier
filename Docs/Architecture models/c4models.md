@@ -43,6 +43,19 @@ explain the interactions between the systems and components.
 
 ![Transfer & View sequence diagram](./generated/transfer-view-sequence.png)
 
+## Find-A-Record architecture
+
+This Container diagram shows the thinking around the architecture model for
+the Find system.
+
+![Find-A-Record architecture](./find-architecture.png)
+
+## Find-A-Record sequence diagram
+The Find-A-Record sequence diagram is useful to explain the flow of the 'Find' process,
+to find which Custodian's hold data about a specific single-unique-identifier.
+
+![Find-A-Record sequence diagram](./find-sequence.png)
+
 ## Transfer & View alternate architecture
 
 This Container diagram shows the **early** thinking around the architecture
