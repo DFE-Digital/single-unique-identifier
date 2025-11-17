@@ -20,3 +20,10 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "[nuget]-"
+      
+  - package-ecosystem: nuget
+    directory: "/Apps/FakeCustodians"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "[nuget]-"
