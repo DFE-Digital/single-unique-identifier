@@ -15,7 +15,7 @@ namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers
                 return new EventResponse { Sui = sui };
             }
 
-            public PersonalData InvokeMapToPersonalData(TestRecord record) =>
+            public static PersonalData InvokeMapToPersonalData(TestRecord record) =>
                 MapToPersonalData(record);
         }
 
@@ -31,7 +31,7 @@ namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers
             };
             var mapper = new TestRecordMapper();
 
-            var result = mapper.InvokeMapToPersonalData(record);
+            var result = TestRecordMapper.InvokeMapToPersonalData(record);
 
             Assert.Equal("Jane", result.FirstName);
             Assert.Equal("Doe", result.LastName);
@@ -43,7 +43,9 @@ namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers
         public void MapToPersonalData_ShouldThrow_WhenSourceIsNull()
         {
             var mapper = new TestRecordMapper();
-            Assert.Throws<ArgumentNullException>(() => mapper.InvokeMapToPersonalData(null!));
+            Assert.Throws<ArgumentNullException>(() =>
+                TestRecordMapper.InvokeMapToPersonalData(null!)
+            );
         }
     }
 }

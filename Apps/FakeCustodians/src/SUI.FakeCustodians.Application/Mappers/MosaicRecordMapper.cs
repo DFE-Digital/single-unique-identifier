@@ -29,11 +29,11 @@ namespace SUI.FakeCustodians.Application.Mappers
         {
             return new CamhsData
             {
-                Referrals = source.Referrals?.Select(i => MapToCahmsReferral(i)).ToArray(),
+                Referrals = source.Referrals?.Select(MapToCahmsReferral).ToArray(),
             };
         }
 
-        private Referral MapToCahmsReferral(MosaicReferral source)
+        private static Referral MapToCahmsReferral(MosaicReferral source)
         {
             return new Referral()
             {

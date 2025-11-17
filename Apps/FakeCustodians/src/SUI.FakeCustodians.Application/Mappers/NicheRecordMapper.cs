@@ -25,7 +25,7 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private PoliceData? MapToPoliceData(NicheRecord source)
+        private static PoliceData? MapToPoliceData(NicheRecord source)
         {
             return new PoliceData
             {

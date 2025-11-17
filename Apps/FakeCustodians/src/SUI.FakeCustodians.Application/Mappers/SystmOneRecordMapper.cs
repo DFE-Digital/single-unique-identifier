@@ -33,12 +33,12 @@ namespace SUI.FakeCustodians.Application.Mappers
                 GpSurgery = source.GpSurgery,
                 GpContactNumber = source.GpContactNumber,
                 MissedAppointmentReasons = source
-                    .MissedAppointmentReasons?.Select(i => MapToMissedAppointment(i))
+                    .MissedAppointmentReasons?.Select(MapToMissedAppointment)
                     .ToArray(),
             };
         }
 
-        private MissedAppointment MapToMissedAppointment(SystmOneMissedAppointment source)
+        private static MissedAppointment MapToMissedAppointment(SystmOneMissedAppointment source)
         {
             return new MissedAppointment
             {

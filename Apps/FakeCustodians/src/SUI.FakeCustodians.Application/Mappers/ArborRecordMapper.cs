@@ -36,7 +36,7 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private School MapToSchool(ArborSchool source)
+        private static School MapToSchool(ArborSchool source)
         {
             return new School { Name = source.Name, Address = source.Address };
         }
