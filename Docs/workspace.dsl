@@ -5,12 +5,12 @@ workspace "SUI" "'Single unique identifier' is a proposed set of systems and sta
     !adrs "./Architecture decisions/Systems landscape"
 
     model {
-        searcher = person "Searcher" "A user or system initiating a record discovery."
+        searcher = person "Safeguarding Practioners" "Directly working with children and families to provide social care. e.g. social worker."
 
-        singleview = softwareSystem "SingleView" "Local authority portal providing a single view for a child." {
-            sv_web   = container "Web App" "User-facing application." "HTML, Browser"
-            sv_api   = container "Backend API" "Orchestrates MATCH -> FIND -> FETCH flows." "HTTP, .NET"
-            sv_store = container "Consolidated Data Store" "Stores consolidated records and cached fetch results." "SQL Database" "Database"
+        singleViewAndTransfer = softwareSystem "Single View & Transfer" "Local Authority system providing a single view for a child.\n\n* Multiple instances, one per LA" {
+            sv_web   = container "Single View Web App" "User-facing application.\n\nProvides a single view of consolidated records about a searched for child" "ASP.NET MVC/Razor, HTML, Browser"
+            transfer_service   = container "Transfer Service" "Orchestrates Find, Fetch, Aggregation, Consolidation, and Storage." "HTTP, .NET"
+            consolidated_data_store = container "Consolidated Data Store" "Stores the consolidated records of any searched for child." "SQL Database" "Database"
         }
 
         match = softwareSystem "MATCH Service" "Resolves an NHS number (SUI) from demographics" "External, API" {
@@ -70,19 +70,19 @@ workspace "SUI" "'Single unique identifier' is a proposed set of systems and sta
         }
 
         searcher -> sv_web "1. Uses" "HTTPS"
-        sv_web   -> sv_api "2. Calls backend APIs" "HTTPS"
-        sv_api   -> sv_store "2a. Reads/writes consolidated records" "SQL"
+        sv_web   -> transfer_service "2a. Calls Transfer Service with a SUI" "HTTPS"
+        transfer_service   -> consolidated_data_store "2b. Reads/writes consolidated records" "SQL"
 
-        sv_api -> match "3. Resolve SUI (request/response)" "HTTPS"
+        transfer_service -> match "3. Resolve SUI (request/response)" "HTTPS"
         match  -> pds   "4. Search NHS number from demographics (request/response)" "HTTPS"
 
-        sv_api -> find "5. Start discovery; poll status (request/response)" "HTTPS"
+        transfer_service -> find "5. Start discovery; poll status (request/response)" "HTTPS"
         find   -> laCms     "6a. Discovery + manifest (pointers)" "HTTPS"
         find   -> social    "6b. Discovery + manifest (pointers)" "HTTPS"
         find   -> education "6c. Discovery + manifest (pointers)" "HTTPS"
         find   -> health    "6d. Discovery + manifest (pointers)" "HTTPS"
 
-        sv_api -> fetch "7. Record by pointer (request/response)" "HTTPS"
+        transfer_service -> fetch "7. Record by pointer (request/response)" "HTTPS"
         fetch  -> laCms     "8a. Retrieve record content (request/response)" "HTTPS"
         fetch  -> social    "8b. Retrieve record content (request/response)" "HTTPS"
         fetch  -> education "8c. Retrieve record content (request/response)" "HTTPS"
@@ -94,9 +94,9 @@ workspace "SUI" "'Single unique identifier' is a proposed set of systems and sta
             "structurizr.sort" "created"
         }
 
-        systemContext singleview "SystemContext" {
+        systemLandscape SUI "SUI systems landscape" {
             include searcher
-            include singleview
+            include singleViewAndTransfer
             include match
             include pds
             include find
@@ -105,11 +105,11 @@ workspace "SUI" "'Single unique identifier' is a proposed set of systems and sta
             autoLayout lr
         }
 
-        container singleview "SingleView_Containers" {
-            title "SingleView – Containers"
+        container singleViewAndTransfer "singleViewAndTransfer_Containers" {
+            title "Single View & Transfer – Containers"
             include sv_web
-            include sv_api
-            include sv_store
+            include transfer_service
+            include consolidated_data_store
             autoLayout lr
         }
 
