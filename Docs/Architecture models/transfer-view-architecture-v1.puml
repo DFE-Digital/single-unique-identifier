@@ -1,0 +1,69 @@
+@startuml transfer-view-architecture-v1
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(SafeguardingPractioners, "Safeguarding Practioners", "Directly working with children and families to provide social care. e.g. social worker")
+
+Person(LA_DataAnalysts, "LA data analysts", "Searching for trends or predictions in consolidated single view data, to inform and improve the quality of care")
+
+System_Boundary(LA, "Local Authority Single-View System", $descr="Multiple instances, one per LA") {
+    ContainerDb(SingleViewDataStore, "Single View Data Store", "SQL / NoSQL?", "Stores the consolidated records for each of the children that the LA is responsible for")
+    ContainerDb(CohortDataSet, "Cohort Data Set", "SQL / NoSQL?", "Defines the NHS Numbers of the children that the LA is responsible for")
+
+    System_Boundary(View_System, "View sub-system") {
+        Container(SingleViewWebPortal, "Single View Web Portal", "ASP.NET MVC, HTML", "Provides a single view of consolidated records about a searched for child")
+
+        Container(ScheduledJob, "Scheduled Job", ".NET", "Trigerred to regularly request the latest data about a specified cohort of children")
+    }
+
+    System_Boundary(Transfer_System, "Transfer sub-system") {
+        ContainerQueue(SingleViewFetchQueue, "Fetch Queue", "Azure Service Bus / Apache Kafka?", "Limits the number of concurrent requests to the Record Locator and Custodians")
+
+        Container(SingleViewFetchHandler, "Fetch Handler", ".NET", "Uses the Record Locator to discover which Custodians hold data about a specific child; then requests the data from the relevant Custodians; and then updates the Single View Data Store")
+    }
+}
+
+System_Boundary(Find_System, "Find System", $descr="Single national instance, DfE") {
+    Container(SUI_Matcher, "SUI Matcher", $descr="HTTP API to find NHS Number given specified details of a child")
+    Container(RecordLocator, "Record Locator", $descr="Registry to manage and provide details about which Custodians hold information for a specified NHS Number")
+}
+
+' External Systems
+Boundary(Custodians, "Custodian Systems") {
+    System_Ext(LA_CMS, "LA CMS")
+    System_Ext(Housing, "Housing")
+    System_Ext(SocialCare, "Social care")
+    System_Ext(Education, "Education")
+    System_Ext(Health, "Health")
+    System_Ext(Crime, "Crime")
+}
+
+' Relationships
+Rel(SafeguardingPractioners, SingleViewWebPortal, "Uses")
+Rel(LA_DataAnalysts, SingleViewWebPortal, "Uses")
+
+Rel(SingleViewWebPortal, SingleViewDataStore, "Reads")
+
+Rel(ScheduledJob, CohortDataSet, "Reads")
+
+Rel(SingleViewWebPortal, SingleViewFetchQueue, "Sends", "Message")
+
+Rel(ScheduledJob, SingleViewFetchQueue, "Sends", "Message")
+
+Rel(SingleViewFetchQueue, SingleViewFetchHandler, "Receives", "Message", "One per child")
+
+Rel(SingleViewFetchHandler, RecordLocator, "(1) Requests", "HTTP")
+
+Rel(SingleViewFetchHandler, Custodians, "(2) Requests", "X-Road")
+
+Rel_R(SingleViewFetchHandler, SingleViewDataStore, "Updates")
+
+Rel(Custodians, RecordLocator, "Advertises")
+
+' Layout hints
+Lay_L(CohortDataSet, SingleViewFetchQueue)
+
+Lay_L(Custodians, SingleViewFetchQueue)
+
+Lay_R(SingleViewDataStore, SingleViewFetchQueue)
+
+@enduml

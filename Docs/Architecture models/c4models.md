@@ -22,7 +22,7 @@ the C4 modelling language.
 
 ## Early System context diagram
 
-This System context diagram shows the early thinking around the single unique 
+This System context diagram shows the **early** thinking around the single unique 
 identifier systems.  Thinking has moved on, but this is still a very useful
 diagram to explain the programme structure from a high level, and to document
 the users of SUI, the acronyms, and the external systems.
@@ -34,7 +34,7 @@ the users of SUI, the acronyms, and the external systems.
 This Container diagram shows the current version of the architecture
 model for the Transfer & View systems.
 
-![Transfer & View architecture](./generated/transfer-view-architecture.png)
+![Transfer & View architecture](./generated/transfer-view-architecture-v2.png)
 
 ## Transfer & View sequence diagram
 
@@ -42,3 +42,11 @@ Although not a C4 model, the Transfer & View sequence diagram is useful to
 explain the interactions between the systems and components.
 
 ![Transfer & View sequence diagram](./generated/transfer-view-sequence.png)
+
+## Transfer & View alternate architecture
+
+This Container diagram shows the **early** thinking around the architecture
+model for the Transfer & View systems, which includes the "preventive" use case
+performed by the LA data analysts.
+
+![Transfer & View architecture](./generated/transfer-view-architecture-v1.png)
