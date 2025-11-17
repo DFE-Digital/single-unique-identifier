@@ -2,7 +2,7 @@ using SUI.Transfer.Application.Models;
 
 namespace SUI.Transfer.Application.Services;
 
-public interface IFetchingService
+public interface ITransferService
 {
-    Task<FetchResponse> FetchAsync(string id);
+    Task<TransferResponse> TransferAsync(string id);
 }
