@@ -24,7 +24,7 @@ builder
 
 builder.Services.AddAuthorizationBuilder();
 
-builder.Services.AddSingleton<IFetchingService, FetchingService>();
+builder.Services.AddSingleton<ITransferService, TransferService>();
 
 builder.Services.Configure<JsonOptions>(options =>
 {
@@ -47,7 +47,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapFetchEndpoint();
+app.MapTransferEndpoint();
 
 app.UseHttpsRedirection();
 

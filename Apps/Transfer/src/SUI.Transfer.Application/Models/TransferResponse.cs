@@ -1,7 +1,7 @@
 namespace SUI.Transfer.Application.Models;
 
-public class FetchResponse
+public class TransferResponse
 {
     public required bool Success { get; init; }
-    public required FetchResult Result { get; init; }
+    public required TransferResult Result { get; init; }
 }
