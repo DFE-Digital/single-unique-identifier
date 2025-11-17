@@ -11,5 +11,132 @@
         <p class="govuk-body">
             NHS Number: @Model.PersonModel.NhsNumber
         </p>
+        @foreach (var tag in Model.PersonModel.Tags)
+        {
+            <govuk-tag class="govuk-tag--dark-blue">@tag</govuk-tag>
+        }
+        <p class="govuk-body">
+        </p>
+        <govuk-notification-banner>
+            @foreach (var message in Model.PersonModel.ImportantMessages)
+            {
+                <p class="govuk-notification-banner__heading">
+                    @message
+                </p>
+            }
+        </govuk-notification-banner>
+        <h2 class="govuk-heading-l">Child record</h2>
+        <table class="govuk-table">
+            <caption class="govuk-table__caption govuk-table__caption--m">Date last updated</caption>
+            <caption class="govuk-table__caption govuk-table__caption--s">by data source</caption>
+            <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">Children's social care</th>
+                <th scope="col" class="govuk-table__header">Education</th>
+                <th scope="col" class="govuk-table__header">Health</th>
+                <th scope="col" class="govuk-table__header">Crime</th>
+                <th scope="col" class="govuk-table__header">Housing</th>
+            </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <td class="govuk-table__cell">@Model.PersonModel.SocialCareLastUpdated</td>
+                <td class="govuk-table__cell">@Model.PersonModel.EducationLastUpdated</td>
+                <td class="govuk-table__cell">@Model.PersonModel.HealthLastUpdated</td>
+                <td class="govuk-table__cell">@Model.PersonModel.CrimeLastUpdated</td>
+                <td class="govuk-table__cell">@Model.PersonModel.HousingLastUpdated</td>
+            </tr>
+            </tbody>
+        </table>
+        <h2 class="govuk-heading-l">Child details</h2>
+        <table class="govuk-table">
+            <caption class="govuk-table__caption govuk-table__caption--m">Summary details</caption>
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Name</th>
+                <td class="govuk-table__cell">@Model.PersonModel.Name</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Date of birth</th>
+                <td class="govuk-table__cell">@Model.PersonModel.DateOfBirth</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Main address</th>
+                <td class="govuk-table__cell">
+                    @Model.PersonModel.MainAddress
+                    @if (Model.PersonModel.PoliceMarker)
+                    {
+                        <govuk-tag class="govuk-tag--dark-blue">POLICE MARKER</govuk-tag>
+                    }
+                </td>
+            </tr>
+            @if (Model.PersonModel.PoliceMarker)
+            {
+                <tr class="govuk-table__row">
+                    <th scope="row" class="govuk-table__header">Police marker details</th>
+                    <td class="govuk-table__cell">@Model.PersonModel.PoliceMarkerDetails</td>
+                </tr>
+            }
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Individuals residing at Main address</th>
+                <td class="govuk-table__cell">
+                    @foreach (var individual in Model.PersonModel.IndividualsAtMainAddress)
+                    {
+                        @individual <br/>
+                    }
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <table class="govuk-table">
+            <caption class="govuk-table__caption govuk-table__caption--m">Personal details</caption>
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Birth Assigned Sex</th>
+                <td class="govuk-table__cell">@Model.PersonModel.BirthAssignedSex</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Pronouns</th>
+                <td class="govuk-table__cell">@Model.PersonModel.Pronouns</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Ethnicity</th>
+                <td class="govuk-table__cell">@Model.PersonModel.Ethnicity</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">First Language</th>
+                <td class="govuk-table__cell">@Model.PersonModel.FirstLanguage</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Designated Local Authority</th>
+                <td class="govuk-table__cell">@Model.PersonModel.DesignatedLocalAuthority</td>
+            </tr>
+            </tbody>
+        </table>
+        <table class="govuk-table">
+            <caption class="govuk-table__caption govuk-table__caption--m">Communication needs</caption>
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">English as additional language (EAL)</th>
+                <td class="govuk-table__cell">@Model.PersonModel.EnglishAsAdditionalLanguage</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Braille</th>
+                <td class="govuk-table__cell">@Model.PersonModel.Braille</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Sign language</th>
+                <td class="govuk-table__cell">@Model.PersonModel.SignLanguage</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Makaton</th>
+                <td class="govuk-table__cell">@Model.PersonModel.Makaton</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Interpreter</th>
+                <td class="govuk-table__cell">@Model.PersonModel.Interpreter</td>
+            </tr>
+            </tbody>
+        </table>
     </main>
 </div>
