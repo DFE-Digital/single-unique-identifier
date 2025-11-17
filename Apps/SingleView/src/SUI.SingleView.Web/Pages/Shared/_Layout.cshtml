@@ -6,9 +6,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <title>@ViewData["Title"] - GOV.UK</title>
     @Html.GovUkFrontendStyleImports()
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
 @Html.GovUkFrontendJsEnabledScript()
@@ -28,15 +28,22 @@
 @*     </govuk-cookie-banner-message> *@
 @* </govuk-cookie-banner> *@
 
-<govuk-header home-page-url="https://gov.uk/" />
+<govuk-header home-page-url="https://gov.uk/" product-name="Child safeguarding service" />
 
-<govuk-service-navigation service-name="Child safeguarding Service" service-url="#">
+<div class="govuk-width-container">
+    <govuk-phase-banner>
+        <govuk-phase-banner-tag>Alpha</govuk-phase-banner-tag>
+        This is a new service - your <a href="#" class="govuk-link">feedback</a> will help us to improve it.
+    </govuk-phase-banner>
+</div>
+
+@* <govuk-service-navigation service-name="Child safeguarding Service" service-url="#"> *@
     @* <govuk-service-navigation-nav> *@
     @*     <govuk-service-navigation-nav-item href="#">Navigation item 1</govuk-service-navigation-nav-item> *@
     @*     <govuk-service-navigation-nav-item href="#" active="true">Navigation item 2</govuk-service-navigation-nav-item> *@
     @*     <govuk-service-navigation-nav-item href="#">Navigation item 3</govuk-service-navigation-nav-item> *@
     @* </govuk-service-navigation-nav> *@
-</govuk-service-navigation>
+@* </govuk-service-navigation> *@
 
 @RenderBody()
 
