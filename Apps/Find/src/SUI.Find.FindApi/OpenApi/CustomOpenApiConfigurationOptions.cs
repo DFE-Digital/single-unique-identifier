@@ -2,7 +2,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.OpenApi.Models;
 
-namespace SUI.Find.FindApi;
+namespace SUI.Find.FindApi.OpenApi;
 
 public class CustomOpenApiConfigurationOptions : DefaultOpenApiConfigurationOptions
 {

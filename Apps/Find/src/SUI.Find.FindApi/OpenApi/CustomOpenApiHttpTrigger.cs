@@ -1,9 +1,9 @@
+using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using System.Net;
 
-namespace SUI.Find.FindApi;
+namespace SUI.Find.FindApi.OpenApi;
 
 public class CustomOpenApiHttpTrigger(ILogger<CustomOpenApiHttpTrigger> logger)
 {
