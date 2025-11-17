@@ -1,5 +1,7 @@
+using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using SUI.SingleView.Domain.Models;
 
 namespace SUI.SingleView.Web.Extensions;
 
@@ -29,4 +31,8 @@ public static class ValidationExtensions
             modelState.AddModelError(key, error.ErrorMessage);
         }
     }
+
+    public static IRuleBuilderOptions<T, string?> IsValidNhsNumber<T>(
+        this IRuleBuilder<T, string?> ruleBuilder
+    ) => ruleBuilder.Must(NhsNumber.IsValid);
 }

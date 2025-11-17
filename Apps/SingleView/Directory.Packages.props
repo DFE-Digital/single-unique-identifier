@@ -5,6 +5,7 @@
   </PropertyGroup>
   <!--   Testing -->
   <ItemGroup>
+    <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="FluentValidation" Version="12.1.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.0" />
     <PackageVersion Include="GovUk.Frontend.AspNetCore" Version="3.4.1" />

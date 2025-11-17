@@ -1,0 +1,56 @@
+@using Microsoft.AspNetCore.Mvc.ModelBinding
+@model Search
+
+<form method="post">
+    @if (!Model.ModelState.IsValid && Model.ModelState[""]?.ValidationState == ModelValidationState.Invalid)
+    {
+        <govuk-error-summary>
+            <govuk-error-summary-item>@Model.ModelState[""]?.Errors[0].ErrorMessage</govuk-error-summary-item>
+        </govuk-error-summary>
+    }
+
+    <govuk-fieldset>
+        <govuk-fieldset-legend is-page-heading="true" class="govuk-fieldset__legend--xl">@ViewData["Title"]</govuk-fieldset-legend>
+
+        <p class="govuk-body">If you do not know all of the information, you are still able to do a partial search using
+            the known information</p>
+        <govuk-details>
+            <govuk-details-summary>
+                How can I do a partial search
+            </govuk-details-summary>
+            <govuk-details-text>
+                To search with partial information use an asterisk or percentage sign in place of missing letters. For
+                example <strong>ste%en</strong> or <strong>ste*en</strong>
+            </govuk-details-text>
+        </govuk-details>
+
+        <govuk-input for="FirstName" type="text" spellcheck="false" class="govuk-!-width-one-third">
+            <govuk-input-label/>
+            <govuk-input-error-message/>
+        </govuk-input>
+        <govuk-input for="LastName" type="text" spellcheck="false" class="govuk-!-width-one-third">
+            <govuk-input-label/>
+            <govuk-input-error-message/>
+        </govuk-input>
+        <govuk-date-input for="DateOfBirth">
+            <govuk-date-input-fieldset>
+                <govuk-date-input-fieldset-legend/>
+                <govuk-date-input-error-message/>
+            </govuk-date-input-fieldset>
+        </govuk-date-input>
+        <govuk-input for="HouseNumberOrName" type="text" spellcheck="false" class="govuk-!-width-one-third">
+            <govuk-input-label/>
+            <govuk-input-error-message/>
+        </govuk-input>
+        <govuk-input for="Postcode" type="text" spellcheck="false" class="govuk-input--width-10">
+            <govuk-input-label/>
+            <govuk-input-error-message/>
+        </govuk-input>
+
+        <govuk-input for="NhsNumber" type="text" spellcheck="false" class="govuk-input--width-10">
+            <govuk-input-label/>
+            <govuk-input-error-message/>
+        </govuk-input>
+        <govuk-button type="submit">Search</govuk-button>
+    </govuk-fieldset>
+</form>
