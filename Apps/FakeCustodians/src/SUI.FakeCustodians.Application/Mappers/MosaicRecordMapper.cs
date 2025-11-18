@@ -25,7 +25,7 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private CamhsData? MapToCamhsData(MosaicRecord source)
+        private static CamhsData? MapToCamhsData(MosaicRecord source)
         {
             return new CamhsData
             {

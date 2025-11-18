@@ -25,7 +25,7 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private EducationData? MapToEducationData(ArborRecord source)
+        private static EducationData? MapToEducationData(ArborRecord source)
         {
             return new EducationData
             {

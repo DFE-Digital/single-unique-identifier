@@ -25,7 +25,7 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private GpData? MapToGpData(SystmOneRecord source)
+        private static GpData? MapToGpData(SystmOneRecord source)
         {
             return new GpData
             {
