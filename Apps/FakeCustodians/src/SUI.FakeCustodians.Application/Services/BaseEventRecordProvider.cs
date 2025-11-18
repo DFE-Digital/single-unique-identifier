@@ -28,7 +28,7 @@ namespace SUI.FakeCustodians.Application.Services
             _basePath =
                 basePath
                 ?? Path.Combine(Directory.GetCurrentDirectory(), "SampleData", providerName);
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _mapper = mapper;
         }
 
         public EventResponse? GetEventRecordForSui(string sui)
