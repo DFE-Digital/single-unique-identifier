@@ -7,6 +7,7 @@ To view our documentation, please visit the [Docs](/Docs/index.md) directory.
 
 | Directory/File                   | Description                                                                                                 |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [Apps](/Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
 | [Docs](/Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
 | [SystemTests](/SystemTests/)     | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
 | [LICENCE](/LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
@@ -34,12 +35,12 @@ This will install the tools specified in `.config/dotnet-tools.json`, including 
 Each solution is self-contained and follows a consistant structure:
 
 ```
-projectName/
+Apps/AppOrComponentName/
   src/
-    yourCsProjects/
+    YourCsProjects/
   tests/
-    yourCsTestProject.Unit.Tests/
-    yourCsTestProject.Integration.Tests/
+    YourCsTestProject.Unit.Tests/
+    YourCsTestProject.Integration.Tests/
 ```
 
 ## Clean architecture
