@@ -63,14 +63,14 @@ echo 'export PATH="$HOME/.dotnet:$PATH"' >> ~/.zshrc && source ~/.zshrc && echo 
 You should then be able to build the solution, using
 
 ```bash
-cd Find
+cd Apps/Matching
 dotnet build
 ```
 
 ## Unit and integration testing
 
 ```bash
-cd Find
+cd Apps/Matching
 dotnet test
 ```
 
@@ -79,9 +79,9 @@ dotnet test
 To build and run the project:
 
 ```bash
-cd Find
+cd Apps/Matching
 dotnet build
-dotnet run --project SUI.Find.API
+dotnet run --project src/SUI.Matching.API
 ```
 
 Run simple test:
