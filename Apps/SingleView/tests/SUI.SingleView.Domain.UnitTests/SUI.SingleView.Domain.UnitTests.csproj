@@ -6,6 +6,7 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Bogus" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
@@ -20,10 +21,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SUI.SingleView.Domain\SUI.SingleView.Domain.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Bogus">
-      <HintPath>..\..\..\..\..\..\..\.nuget\packages\bogus\35.6.5\lib\net6.0\Bogus.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
