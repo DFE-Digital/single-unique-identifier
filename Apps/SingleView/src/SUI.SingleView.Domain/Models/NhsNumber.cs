@@ -35,7 +35,7 @@ public readonly record struct NhsNumber
     public override string ToString() =>
         $"{Value[..3]} {Value.Substring(3, 3)} {Value.Substring(6, 4)}";
 
-    internal static bool IsValidChecksum(string digits)
+    private static bool IsValidChecksum(string digits)
     {
         var sum = 0;
         for (var i = 0; i < 9; i++)
