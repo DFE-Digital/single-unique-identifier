@@ -13,7 +13,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.OpenApi" Version="1.5.1" />
     <PackageReference
       Include="Microsoft.Azure.Functions.Worker.ApplicationInsights"
-      Version="2.0.0"
+      Version="2.50.0"
     />
     <PackageReference
       Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore"
