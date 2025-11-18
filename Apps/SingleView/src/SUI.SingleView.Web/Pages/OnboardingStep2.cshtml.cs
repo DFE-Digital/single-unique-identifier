@@ -19,7 +19,7 @@ public class OnboardingStep2 : PageModel
 
     public void OnGet() { }
 
-    public async Task<IActionResult> OnPostAsync()
+    public IActionResult OnPost()
     {
         if (SelectedOptions == null || !SelectedOptions.Contains("terms"))
         {
