@@ -1,4 +1,5 @@
 using System.Text.Json;
+using SUI.FakeCustodians.Application.Common;
 using SUI.FakeCustodians.Application.Interfaces;
 using SUI.FakeCustodians.Application.Models;
 
@@ -10,10 +11,8 @@ namespace SUI.FakeCustodians.Application.Services
         private readonly string _basePath;
         private readonly IRecordMapper<T> _mapper;
 
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-        {
-            PropertyNameCaseInsensitive = true,
-        };
+        private static readonly JsonSerializerOptions _jsonSerializerOptions =
+            JsonSerializerOptionsProvider._options;
 
         protected BaseEventRecordProvider(
             IRecordMapper<T> mapper,
