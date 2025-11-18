@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Shouldly;
-using SUI.SingleView.Web.Pages;
+using Index = SUI.SingleView.Web.Pages.Index;
 
 namespace SUI.SingleView.Web.UnitTests.Pages;
 
-public class IndexTests : PageModelTestBase<IndexModel>
+public class IndexTests : PageModelTestBase<Index>
 {
     [Fact]
     public void OnGet_ReturnsPage()
     {
-        var sut = new IndexModel(MockLogger);
+        var sut = new Index(MockLogger);
 
         // Act
         var result = sut.OnGet();
