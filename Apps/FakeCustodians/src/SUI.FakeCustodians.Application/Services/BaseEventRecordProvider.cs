@@ -11,8 +11,10 @@ namespace SUI.FakeCustodians.Application.Services
         private readonly string _basePath;
         private readonly IRecordMapper<T> _mapper;
 
-        private static readonly JsonSerializerOptions _jsonSerializerOptions =
-            JsonSerializerOptionsProvider._options;
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+        };
 
         protected BaseEventRecordProvider(
             IRecordMapper<T> mapper,
