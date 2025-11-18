@@ -9,7 +9,7 @@ public class DataView : PageModel
     private readonly ILogger<DataView> _logger;
     private readonly IRecordService _recordService;
 
-    public PersonModel PersonModel { get; set; }
+    public PersonModel PersonModel { get; set; } = null!;
 
     public DataView(ILogger<DataView> logger, IRecordService recordService)
     {
