@@ -5,30 +5,30 @@ using SUI.Transfer.Application.Services;
 
 namespace SUI.Transfer.API.Endpoint;
 
-public static class FetchEndpoint
+public static class TransferEndpoint
 {
-    public static void MapFetchEndpoint(this IEndpointRouteBuilder app)
+    public static void MapTransferEndpoint(this IEndpointRouteBuilder app)
     {
-        var fetchGroup = app.MapGroup("api/v1/").WithTags("SUI Transfer API - Fetch");
+        var transferGroup = app.MapGroup("api/v1/").WithTags("SUI Transfer API - Transfer");
 
-        fetchGroup
+        transferGroup
             .MapGet(
-                "/fetch/{id}",
+                "/transfer/{id}",
                 [Authorize]
                 async (
                     [Description(
                         "The single unique identifier for the data which is being requested."
                     )]
                         string id,
-                    [FromServices] IFetchingService fetchingService
+                    [FromServices] ITransferService transferService
                 ) =>
                 {
-                    var result = await fetchingService.FetchAsync(id);
+                    var result = await transferService.TransferAsync(id);
 
                     return result.Success ? Results.Ok(result.Result) : Results.NotFound();
                 }
             )
-            .WithSummary("Fetch custodian data for a given child")
+            .WithSummary("Transfer custodian data for a given child")
             .WithDescription(
                 "This endpoint requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form."
             );

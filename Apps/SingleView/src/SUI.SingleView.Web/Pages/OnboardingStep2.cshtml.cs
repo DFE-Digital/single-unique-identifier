@@ -34,12 +34,12 @@ public class OnboardingStep2 : PageModel
             Secure = true,
         };
 
-        if (SelectedOptions != null && SelectedOptions.Contains("terms"))
+        if (SelectedOptions.Contains("terms"))
         {
             Response.Cookies.Append("AcceptedTerms", "True", cookieOptions);
         }
 
-        if (SelectedOptions != null && SelectedOptions.Contains("analytics"))
+        if (SelectedOptions.Contains("analytics"))
         {
             Response.Cookies.Append("AcceptedAnalytics", "True", cookieOptions);
         }

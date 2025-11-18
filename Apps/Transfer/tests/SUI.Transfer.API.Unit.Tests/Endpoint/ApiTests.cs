@@ -13,7 +13,7 @@ namespace SUI.Transfer.API.Unit.Tests.Endpoint;
 
 public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly IFetchingService _mockFetchingService;
+    private readonly ITransferService _mockTransferService;
     private readonly HttpClient _client;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
@@ -25,19 +25,19 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
 
     public ApiTests(WebApplicationFactory<Program> factory)
     {
-        _mockFetchingService = Substitute.For<IFetchingService>();
+        _mockTransferService = Substitute.For<ITransferService>();
 
         var appFactory = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
                 var descriptor = services.SingleOrDefault(d =>
-                    d.ServiceType == typeof(IFetchingService)
+                    d.ServiceType == typeof(ITransferService)
                 );
                 if (descriptor != null)
                     services.Remove(descriptor);
 
-                services.AddSingleton<IFetchingService>(_ => _mockFetchingService);
+                services.AddSingleton<ITransferService>(_ => _mockTransferService);
             });
         });
 
@@ -54,39 +54,39 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task GetFetch_WithoutApiKey_ReturnsUnauthorized()
+    public async Task GetTransfer_WithoutApiKey_ReturnsUnauthorized()
     {
         //Arrange
         var testId = "999-000-1234";
 
         // Act
-        var httpResponse = await _client.GetAsync("/api/v1/fetch/" + testId);
+        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
     }
 
     [Fact]
-    public async Task GetFetch_WhenFound_ReturnsOkResult()
+    public async Task GetTransfer_WhenFound_ReturnsOkResult()
     {
         // Arrange
         var testId = "999-000-1234";
-        var mockResponse = new FetchResponse
+        var mockResponse = new TransferResponse
         {
-            Result = new FetchResult { Id = testId },
+            Result = new TransferResult { Id = testId },
             Success = true,
         };
 
-        _mockFetchingService.FetchAsync(Arg.Any<string>()).Returns(mockResponse);
+        _mockTransferService.TransferAsync(Arg.Any<string>()).Returns(mockResponse);
 
         _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
         // Act
-        var httpResponse = await _client.GetAsync("/api/v1/fetch/" + testId);
+        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
-        var content = await httpResponse.Content.ReadFromJsonAsync<FetchResult>(
+        var content = await httpResponse.Content.ReadFromJsonAsync<TransferResult>(
             _jsonSerializerOptions
         );
         Assert.NotNull(content);
@@ -94,22 +94,22 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task GetFetch_WhenNotFound_ReturnsNotFoundResult()
+    public async Task GetTransfer_WhenNotFound_ReturnsNotFoundResult()
     {
         // Arrange
         var testId = "999-000-1234";
-        var mockResponse = new FetchResponse
+        var mockResponse = new TransferResponse
         {
-            Result = new FetchResult { Id = "000-000-0000" },
+            Result = new TransferResult { Id = "000-000-0000" },
             Success = false,
         };
 
-        _mockFetchingService.FetchAsync(Arg.Any<string>()).Returns(mockResponse);
+        _mockTransferService.TransferAsync(Arg.Any<string>()).Returns(mockResponse);
 
         _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
         // Act
-        var httpResponse = await _client.GetAsync("/api/v1/fetch/" + testId);
+        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
