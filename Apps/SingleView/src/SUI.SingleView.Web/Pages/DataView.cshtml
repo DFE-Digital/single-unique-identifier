@@ -138,5 +138,124 @@
             </tr>
             </tbody>
         </table>
+        <h3 class="govuk-heading-m">Relationships</h3>
+        <table class="govuk-table">
+            <caption class="govuk-table__caption govuk-table__caption--s">Family members</caption>
+            <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">Relationship</th>
+                <th scope="col" class="govuk-table__header">Name</th>
+                <th scope="col" class="govuk-table__header">Date of birth</th>
+                <th scope="col" class="govuk-table__header">Risk</th>
+                <th scope="col" class="govuk-table__header">Services known to</th>
+            </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+            @foreach (var relationship in Model.PersonModel.Relationships)
+            {
+                <tr class="govuk-table__row">
+                    <td class="govuk-table__cell">@relationship.Type</td>
+                    <td class="govuk-table__cell">@relationship.Name</td>
+                    <td class="govuk-table__cell">@relationship.DateOfBirth</td>
+                    <td class="govuk-table__cell">@relationship.Risk</td>
+                    <td class="govuk-table__cell">
+                        @foreach (var service in relationship.ServicesKnownTo)
+                        {
+                            @service
+                            <br/>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <h2 class="govuk-heading-l">Children's Social Care</h2>
+        <table class="govuk-table">
+            <caption class="govuk-table__caption govuk-table__caption--m">Children's social care details</caption>
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Key worker</th>
+                <td class="govuk-table__cell">@Model.PersonModel.KeyWorker</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Duty contact details</th>
+                <td class="govuk-table__cell">
+                    @Model.PersonModel.DutyContactEmail
+                    <br/>
+                    @Model.PersonModel.DutyContactPhone
+                </td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">Team involvement</th>
+                <td class="govuk-table__cell">
+                    @foreach (var team in Model.PersonModel.TeamInvolvement)
+                    {
+                        @team
+                        <br/>
+                    }
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <h3 class="govuk-heading-m">Active childrens services statuses and plans</h3>
+        <table class="govuk-table">
+            <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">Status</th>
+                <th scope="col" class="govuk-table__header">Plan</th>
+            </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+            @foreach (var relationship in Model.PersonModel.ActivePlans)
+            {
+                <tr class="govuk-table__row">
+                    <td class="govuk-table__header">@relationship.Status</td>
+                    <td class="govuk-table__cell">@relationship.Name</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <h3 class="govuk-heading-m">Referral history</h3>
+        <govuk-tabs>
+            <govuk-tabs-item id="past-six-months" label="Past 6 months">
+                <table class="govuk-table">
+                    <tbody class="govuk-table__body">
+                    @foreach (var relationship in Model.PersonModel.Referrals6Months)
+                    {
+                        <tr class="govuk-table__row">
+                            <td class="govuk-table__header">@relationship.Item1</td>
+                            <td class="govuk-table__cell">@relationship.Item2</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </govuk-tabs-item>
+            <govuk-tabs-item id="past-twelve-months" label="Past 12 months">
+                <table class="govuk-table">
+                    <tbody class="govuk-table__body">
+                    @foreach (var relationship in Model.PersonModel.Referrals12Months)
+                    {
+                        <tr class="govuk-table__row">
+                            <td class="govuk-table__header">@relationship.Item1</td>
+                            <td class="govuk-table__cell">@relationship.Item2</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </govuk-tabs-item>
+            <govuk-tabs-item id="past-five-years" label="Past 5 years">
+                <table class="govuk-table">
+                    <tbody class="govuk-table__body">
+                    @foreach (var relationship in Model.PersonModel.Referrals5Years)
+                    {
+                        <tr class="govuk-table__row">
+                            <td class="govuk-table__header">@relationship.Item1</td>
+                            <td class="govuk-table__cell">@relationship.Item2</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </govuk-tabs-item>
+        </govuk-tabs>
     </main>
 </div>
