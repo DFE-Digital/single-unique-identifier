@@ -1,7 +1,7 @@
 @using SUI.SingleView.Domain.Extensions
 @model Search
 
-<h1 class="govuk-heading-xl">@ViewData["Title"]</h1>
+<h1 class="govuk-heading-xl">@ViewBag.Title</h1>
 <p class="govuk-body">
     @(Model.Results?.Count ?? 0) results found
 </p>

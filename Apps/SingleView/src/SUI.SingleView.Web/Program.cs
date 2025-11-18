@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddGovUkFrontend();
+builder.Services.AddGovUkFrontend(options => options.Rebrand = true);
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 

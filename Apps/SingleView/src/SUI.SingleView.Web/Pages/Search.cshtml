@@ -3,18 +3,14 @@
 
 
 @{
-    ViewData["Title"] = Model.HasResults ? "Search results": "Find a child's safeguarding record";
+    ViewBag.Title = Model.HasResults ? "Search results" : "Find a child's safeguarding record";
 }
 
-<div class="govuk-width-container">
-    <main class="govuk-main-wrapper" id="main-content">
-        @if (Model.HasResults)
-        {
-            <partial name="_SearchResults"/>
-        }
-        else
-        {
-            <partial name="_SearchForm"/>
-        }
-    </main>
-</div>
+@if (Model.HasResults)
+{
+    <partial name="_SearchResults"/>
+}
+else
+{
+    <partial name="_SearchForm"/>
+}
