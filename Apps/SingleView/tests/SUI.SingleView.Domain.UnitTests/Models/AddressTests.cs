@@ -21,6 +21,6 @@ public class AddressTests
 
         var result = sut.ToSingleLine();
 
-        result.ShouldBe("10 Test street, Apt 1, Test City, Test County, TE5T T1NG, Test Country");
+        result.ShouldBe("10 Test street, Apt 1, Test City, Test County, TE5T T1NG");
     }
 }

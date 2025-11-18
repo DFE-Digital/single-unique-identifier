@@ -28,9 +28,6 @@ public record Address
         if (!string.IsNullOrWhiteSpace(Postcode))
             parts.Add(Postcode);
 
-        if (!string.IsNullOrWhiteSpace(Country))
-            parts.Add(Country);
-
         return string.Join(", ", parts);
     }
 };
