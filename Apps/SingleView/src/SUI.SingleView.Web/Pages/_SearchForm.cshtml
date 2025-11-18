@@ -8,49 +8,53 @@
             <govuk-error-summary-item>@Model.ModelState[""]?.Errors[0].ErrorMessage</govuk-error-summary-item>
         </govuk-error-summary>
     }
+    
+    <h1 is-page-heading="true" class="govuk-heading-xl">@ViewData["Title"]</h1>
+    <p class="govuk-body">You can find for a child’s record using their NHS number if you know it.</p>
+    <p class="govuk-body">If you do not know all of the information, you are still able to do a partial search using
+        the known information</p>
+    <govuk-details>
+        <govuk-details-summary>
+            How can I do a partial search
+        </govuk-details-summary>
+        <govuk-details-text>
+            To search with partial information use an asterisk or percentage sign in place of missing letters. For
+            example <strong>ste%en</strong> or <strong>ste*en</strong>
+        </govuk-details-text>
+    </govuk-details>
 
+    <govuk-input for="NhsNumber" type="text" spellcheck="false" class="govuk-input--width-10">
+        <govuk-input-label class="govuk-label--m"/>
+        <govuk-input-error-message/>
+    </govuk-input>
+    
     <govuk-fieldset>
-        <govuk-fieldset-legend is-page-heading="true" class="govuk-fieldset__legend--xl">@ViewData["Title"]</govuk-fieldset-legend>
-
-        <p class="govuk-body">If you do not know all of the information, you are still able to do a partial search using
-            the known information</p>
-        <govuk-details>
-            <govuk-details-summary>
-                How can I do a partial search
-            </govuk-details-summary>
-            <govuk-details-text>
-                To search with partial information use an asterisk or percentage sign in place of missing letters. For
-                example <strong>ste%en</strong> or <strong>ste*en</strong>
-            </govuk-details-text>
-        </govuk-details>
-
+        <govuk-fieldset-legend class="govuk-fieldset__legend--l">OR</govuk-fieldset-legend>
+        <govuk-error-message></govuk-error-message>
         <govuk-input for="FirstName" type="text" spellcheck="false" class="govuk-!-width-one-third">
-            <govuk-input-label/>
+            <govuk-input-label class="govuk-label--m"/>
             <govuk-input-error-message/>
         </govuk-input>
         <govuk-input for="LastName" type="text" spellcheck="false" class="govuk-!-width-one-third">
-            <govuk-input-label/>
+            <govuk-input-label class="govuk-label--m"/>
             <govuk-input-error-message/>
         </govuk-input>
         <govuk-date-input for="DateOfBirth">
             <govuk-date-input-fieldset>
-                <govuk-date-input-fieldset-legend/>
+                <govuk-date-input-fieldset-legend class="govuk-fieldset__legend--m"/>
                 <govuk-date-input-error-message/>
             </govuk-date-input-fieldset>
         </govuk-date-input>
         <govuk-input for="HouseNumberOrName" type="text" spellcheck="false" class="govuk-!-width-one-third">
-            <govuk-input-label/>
+            <govuk-input-label class="govuk-label--m"/>
             <govuk-input-error-message/>
         </govuk-input>
         <govuk-input for="Postcode" type="text" spellcheck="false" class="govuk-input--width-10">
-            <govuk-input-label/>
+            <govuk-input-label class="govuk-label--m"/>
             <govuk-input-error-message/>
         </govuk-input>
 
-        <govuk-input for="NhsNumber" type="text" spellcheck="false" class="govuk-input--width-10">
-            <govuk-input-label/>
-            <govuk-input-error-message/>
-        </govuk-input>
+        
         <govuk-button type="submit">Search</govuk-button>
     </govuk-fieldset>
 </form>
