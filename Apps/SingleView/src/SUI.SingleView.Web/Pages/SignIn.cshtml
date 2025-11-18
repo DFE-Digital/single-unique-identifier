@@ -2,28 +2,24 @@
 @model SUI.SingleView.Web.Pages.SignIn
 
 @{
-    ViewData["Title"] = "Access the child safeguarding service";
+    ViewBag.Title = "Access the child safeguarding service";
 }
 
-<div class="govuk-width-container">
-    <main class="govuk-main-wrapper" id="main-content">
-        <form method="post">
-            <govuk-fieldset>
-                <govuk-fieldset-legend is-page-heading="true" class="govuk-fieldset__legend--l">
-                    @ViewData["Title"]
-                </govuk-fieldset-legend>
-                <p class="govuk-body">Enter your details below to access your safeguarding service account</p>
-                <govuk-input name="Username" for="Username" input-class="govuk-input--width-10" input-autocapitalize="false"
-                             input-autocomplete="username" spellcheck="false">
-                    <govuk-input-label>Username</govuk-input-label>
-                    <govuk-input-error-message/>
-                </govuk-input>
-                <govuk-password-input name="Password" for="Password" input-class="govuk-input--width-10">
-                    <govuk-password-input-label>Password</govuk-password-input-label>
-                    <govuk-password-input-error-message/>
-                </govuk-password-input>
-                <govuk-button is-start-button="true" type="submit">Sign In</govuk-button>
-            </govuk-fieldset>
-        </form>
-    </main>
-</div>
+<form method="post">
+    <govuk-fieldset>
+        <govuk-fieldset-legend is-page-heading="true" class="govuk-fieldset__legend--l">
+            @ViewBag.Title
+        </govuk-fieldset-legend>
+        <p class="govuk-body">Enter your details below to access your safeguarding service account</p>
+        <govuk-input name="Username" for="Username" input-class="govuk-input--width-10" input-autocapitalize="false"
+                     input-autocomplete="username" spellcheck="false">
+            <govuk-input-label>Username</govuk-input-label>
+            <govuk-input-error-message/>
+        </govuk-input>
+        <govuk-password-input name="Password" for="Password" input-class="govuk-input--width-10">
+            <govuk-password-input-label>Password</govuk-password-input-label>
+            <govuk-password-input-error-message/>
+        </govuk-password-input>
+        <govuk-button is-start-button="true" type="submit">Sign In</govuk-button>
+    </govuk-fieldset>
+</form>
