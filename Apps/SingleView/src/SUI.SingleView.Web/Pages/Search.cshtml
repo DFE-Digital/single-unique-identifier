@@ -1,9 +1,9 @@
 @page
 @model SUI.SingleView.Web.Pages.Search
 
-
 @{
     ViewBag.Title = Model.HasResults ? "Search results" : "Find a child's safeguarding record";
+    ViewBag.BackLinkPath = nameof(SignIn);
 }
 
 @if (Model.HasResults)
