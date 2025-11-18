@@ -12,6 +12,7 @@ builder.Services.AddGovUkFrontend();
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<IRecordService, RecordService>();
 
 var app = builder.Build();
 

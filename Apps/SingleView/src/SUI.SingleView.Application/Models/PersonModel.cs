@@ -49,4 +49,22 @@ public class PersonModel
     public string Makaton { get; set; } = string.Empty;
 
     public string Interpreter { get; set; } = string.Empty;
+
+    public List<Relationship> Relationships { get; set; } = [];
+
+    public string KeyWorker { get; set; } = string.Empty;
+
+    public string DutyContactEmail { get; set; } = string.Empty;
+
+    public string DutyContactPhone { get; set; } = string.Empty;
+
+    public List<string> TeamInvolvement { get; set; } = [];
+
+    public List<ActivePlan> ActivePlans { get; set; } = [];
+
+    public List<Tuple<string, int>> Referrals6Months { get; set; } = [];
+
+    public List<Tuple<string, int>> Referrals12Months { get; set; } = [];
+
+    public List<Tuple<string, int>> Referrals5Years { get; set; } = [];
 }
