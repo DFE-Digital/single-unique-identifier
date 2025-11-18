@@ -1,3 +1,4 @@
+@using SUI.SingleView.Domain.Extensions
 @model Search
 
 <h1 class="govuk-heading-xl">@ViewData["Title"]</h1>
@@ -11,7 +12,6 @@
         <th scope="col" class="govuk-table__header">Address</th>
         <th scope="col" class="govuk-table__header">Date of birth</th>
         <th scope="col" class="govuk-table__header">NHS number</th>
-        <th scope="col" class="govuk-table__header">Current status</th>
         <th scope="col" class="govuk-table__header">Action</th>
     </tr>
     </thead>
@@ -23,9 +23,8 @@
             <tr class="govuk-table__row">
                 <td class="govuk-table__cell">@result.Name</td>
                 <td class="govuk-table__cell">@result.Address.ToSingleLine()</td>
-                <td class="govuk-table__cell">@result.DateOfBirth</td>
-                <td class="govuk-table__cell">@result.NhsNumber</td>
-                <td class="govuk-table__cell">Open to CSC</td>
+                <td class="govuk-table__cell">@result.DateOfBirth.ToString("dd MMMM yyyy")<br/>(@result.DateOfBirth.ToAgeInYearsString())</td>
+                <td class="govuk-table__cell">@result.NhsNumber.ToString()</td>
                 <td class="govuk-table__cell">
                     <a class="govuk-link" asp-page="DataView" asp-route-personId="@result.NhsNumber">View record</a>
                 </td>
