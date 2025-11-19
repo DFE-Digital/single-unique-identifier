@@ -1,0 +1,44 @@
+@startuml transfer-view-sequence
+
+actor "Single View\nUser & App" as singleView
+participant "SUI Matcher\n(Find System)" as suiMatcher
+participant "Transfer Service" as transferService
+participant "Data Directory\n(Find System)" as findService
+collections "Custodians 1..n" as custodians
+
+== Search ==
+
+singleView -> suiMatcher: Search for SUI (HTTP)
+suiMatcher --> singleView: Search response (HTTP)
+
+== View ==
+
+singleView -> transferService: Start 'Fetch' process (HTTP, HATEOAS)
+transferService --> singleView: 202 Accepted (id + status URL)
+
+group 'Fetch'
+    transferService -> findService: Start 'Discovery' (HTTP, HATEOAS)
+    findService --> transferService: 202 Accepted (id + status URL)
+
+    loop 'Discovery' status polling
+        transferService -> findService: Get 'Discovery' status {id} (HTTP)
+        findService --> transferService: queued | running | complete | error
+    end
+
+    par Fan-out get data
+        transferService -> custodians: Get {recordType} for {sui} (HTTP, OAS)
+        custodians --> transferService: Responds with data
+    end
+
+    transferService -> transferService: Aggregates & consolidates\ndata for SUI
+end
+
+loop 'Fetch' status polling
+    singleView -> transferService: Get 'Fetch' status {id} (HTTP)
+    transferService --> singleView: queued | running | complete | error
+    singleView -> singleView: Displays loading/progress\nindicator to the user
+end
+
+singleView -> singleView: Displays consolidated\ndata to the user
+
+@enduml

@@ -3,10 +3,11 @@
 This repository is a mono repo that contains multiple .NET solutions, each organised under its own directory.
 .NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring seperation of concerns, maintainability and testability.
 
-To view our documentation, please visit [Single unique identifier](https://dfe-digital.github.io/single-unique-identifier/) github pages
+To view our documentation, please visit the [Docs](/Docs/index.md) directory.
 
 | Directory/File                   | Description                                                                                                 |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [Apps](/Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
 | [Docs](/Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
 | [SystemTests](/SystemTests/)     | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
 | [LICENCE](/LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
@@ -34,12 +35,12 @@ This will install the tools specified in `.config/dotnet-tools.json`, including 
 Each solution is self-contained and follows a consistant structure:
 
 ```
-projectName/
+Apps/AppOrComponentName/
   src/
-    yourCsProjects/
+    YourCsProjects/
   tests/
-    yourCsTestProject.Unit.Tests/
-    yourCsTestProject.Integration.Tests/
+    YourCsTestProject.Unit.Tests/
+    YourCsTestProject.Integration.Tests/
 ```
 
 ## Clean architecture
