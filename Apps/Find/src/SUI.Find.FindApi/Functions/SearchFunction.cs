@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Validators;
@@ -14,23 +14,21 @@ public class SearchFunction(ILogger<SearchFunction> logger)
     [Function(nameof(Searches))]
     public async Task<HttpResponseData> Searches(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/searches")]
-            HttpRequestData req
+            HttpRequestData req,
+        [DurableClient] DurableTaskClient client,
+        FunctionContext context
     )
     {
         var searchRequest = await JsonSerializer.DeserializeAsync<StartSearchRequest>(req.Body);
 
         if (!StartSearchRequestValidator.IsValid(searchRequest, out var errorMessage))
         {
-            logger.LogWarning(
-                "[Validation] Invalid Search Request Received: {ErrorMessage}",
-                errorMessage
-            );
             var problem = new Problem(
-                Type: nameof(StartSearchRequest),
+                Type: "about:blank",
                 Title: "Invalid Search Request",
                 Detail: errorMessage,
                 Status: (int)HttpStatusCode.BadRequest,
-                Instance: null
+                Instance: $"urn:trace:{context.InvocationId}"
             );
 
             var response = req.CreateResponse(HttpStatusCode.BadRequest);
@@ -42,6 +40,29 @@ public class SearchFunction(ILogger<SearchFunction> logger)
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);
 
         var acceptedResponse = req.CreateResponse(HttpStatusCode.Accepted);
+
+        var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
+            nameof(SearchOrchestrator),
+            searchRequest!.Suid
+        );
+
+        var searchJob = new SearchJob
+        {
+            JobId = jobId,
+            Suid = searchRequest.Suid,
+            Status = SearchStatus.Queued,
+            CreatedAt = DateTime.UtcNow,
+            LastUpdatedAt = DateTime.UtcNow,
+            Links = new Dictionary<string, HalLink>
+            {
+                { "self", new HalLink($"/v1/searches/{jobId}", "GET") },
+                { "results", new HalLink($"/v1/searches/{jobId}/results", "GET") },
+                { "cancel", new HalLink($"/v1/searches/{jobId}", "DELETE") },
+            },
+        };
+
+        await acceptedResponse.WriteAsJsonAsync(searchJob);
+
         return acceptedResponse;
     }
 }
