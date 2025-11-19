@@ -22,11 +22,11 @@ namespace SUI.FakeCustodians.API.Controllers
         [HttpGet("{sui}")]
         public async Task<IActionResult> GetEventsBySui([FromRoute] string sui)
         {
-            _logger.LogInformation("Getting event record starting, for sui:'{sui}'", sui);
+            _logger.LogInformation("Getting event record starting, for sui:'{Sui}'", sui);
 
             var result = await _mediator.Send(new GetEventRecordBySuiQuery() { Sui = sui });
 
-            _logger.LogInformation("Getting event record ended, for sui:'{sui}'", sui);
+            _logger.LogInformation("Getting event record ended, for sui:'{Sui}'", sui);
 
             return result.ToActionResult();
         }
