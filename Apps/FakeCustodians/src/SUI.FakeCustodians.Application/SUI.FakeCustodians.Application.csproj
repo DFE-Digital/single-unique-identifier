@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="13.1.0" />
+    <PackageReference Include="MediatR" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SUI.FakeCustodians.Domain\SUI.FakeCustodians.Domain.csproj" />
