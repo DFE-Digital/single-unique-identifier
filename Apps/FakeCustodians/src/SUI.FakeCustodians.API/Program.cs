@@ -80,7 +80,7 @@ namespace SUI.FakeCustodians.API
         {
             services.AddMediatR(config =>
             {
-                config.RegisterServicesFromAssemblyContaining(typeof(GetEventRecordBySuiQuery));
+                config.RegisterServicesFromAssemblyContaining<GetEventRecordBySuiQuery>();
             });
 
             string activeCustodian = configuration.GetValue<string>("ActiveCustodian", "Mosaic");

@@ -7,8 +7,8 @@ namespace SUI.FakeCustodians.Application.Mappers
     {
         public override EventResponse Map(string sui, ArborRecord sourceRecord)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
-            ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
+            ArgumentException.ThrowIfNullOrWhiteSpace(sui);
+            ArgumentNullException.ThrowIfNull(sourceRecord);
 
             return new EventResponse
             {
@@ -25,7 +25,7 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private EducationData? MapToEducationData(ArborRecord source)
+        private static EducationData? MapToEducationData(ArborRecord source)
         {
             return new EducationData
             {
@@ -36,7 +36,7 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private School MapToSchool(ArborSchool source)
+        private static School MapToSchool(ArborSchool source)
         {
             return new School { Name = source.Name, Address = source.Address };
         }

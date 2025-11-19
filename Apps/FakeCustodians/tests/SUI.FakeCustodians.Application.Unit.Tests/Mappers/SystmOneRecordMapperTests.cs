@@ -114,4 +114,31 @@ public class SystmOneRecordMapperTests
         Assert.Equal("Test Reason2", missedAppointments[1].Reason);
         Assert.Equal("Fulham Hospital", missedAppointments[1].Location);
     }
+
+    [Fact]
+    public void Map_ShouldMapOtherData_SpecificToSystmOne_WhenMissedAppointmentsIsNull()
+    {
+        var sui = "1234567890";
+
+        var record = new SystmOneRecord()
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            DateOfBirth = new DateTime(2010, 1, 1),
+            NhsNumber = sui,
+            GpContactNumber = "07890789078",
+            GpName = "Test GP",
+            GpSurgery = "Test Surgery",
+        };
+
+        var result = _mapper.Map(sui, record);
+
+        var gp = result.Data?.GpData;
+        Assert.NotNull(gp);
+        Assert.Equal("07890789078", gp.GpContactNumber);
+        Assert.Equal("Test GP", gp.GpName);
+        Assert.Equal("Test Surgery", gp.GpSurgery);
+
+        Assert.Equal(0, gp.MissedAppointments);
+    }
 }

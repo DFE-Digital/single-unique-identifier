@@ -7,8 +7,8 @@ namespace SUI.FakeCustodians.Application.Mappers
     {
         public override EventResponse Map(string sui, NicheRecord sourceRecord)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
-            ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
+            ArgumentException.ThrowIfNullOrWhiteSpace(sui);
+            ArgumentNullException.ThrowIfNull(sourceRecord);
 
             return new EventResponse
             {
@@ -25,7 +25,7 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private PoliceData? MapToPoliceData(NicheRecord source)
+        private static PoliceData? MapToPoliceData(NicheRecord source)
         {
             return new PoliceData
             {

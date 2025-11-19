@@ -7,8 +7,8 @@ namespace SUI.FakeCustodians.Application.Mappers
     {
         public override EventResponse Map(string sui, SystmOneRecord sourceRecord)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
-            ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
+            ArgumentException.ThrowIfNullOrWhiteSpace(sui);
+            ArgumentNullException.ThrowIfNull(sourceRecord);
 
             return new EventResponse
             {
@@ -25,7 +25,7 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private GpData? MapToGpData(SystmOneRecord source)
+        private static GpData? MapToGpData(SystmOneRecord source)
         {
             return new GpData
             {
@@ -33,12 +33,12 @@ namespace SUI.FakeCustodians.Application.Mappers
                 GpSurgery = source.GpSurgery,
                 GpContactNumber = source.GpContactNumber,
                 MissedAppointmentReasons = source
-                    .MissedAppointmentReasons?.Select(i => MapToMissedAppointment(i))
+                    .MissedAppointmentReasons?.Select(MapToMissedAppointment)
                     .ToArray(),
             };
         }
 
-        private MissedAppointment MapToMissedAppointment(SystmOneMissedAppointment source)
+        private static MissedAppointment MapToMissedAppointment(SystmOneMissedAppointment source)
         {
             return new MissedAppointment
             {

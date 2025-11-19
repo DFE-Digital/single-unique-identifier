@@ -1,4 +1,5 @@
 using System.Text.Json;
+using SUI.FakeCustodians.Application.Common;
 using SUI.FakeCustodians.Application.Interfaces;
 using SUI.FakeCustodians.Application.Models;
 
@@ -28,12 +29,12 @@ namespace SUI.FakeCustodians.Application.Services
             _basePath =
                 basePath
                 ?? Path.Combine(Directory.GetCurrentDirectory(), "SampleData", providerName);
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _mapper = mapper;
         }
 
         public EventResponse? GetEventRecordForSui(string sui)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
+            ArgumentException.ThrowIfNullOrWhiteSpace(sui);
 
             string filePath = Path.Combine(_basePath, $"{sui}.json");
 

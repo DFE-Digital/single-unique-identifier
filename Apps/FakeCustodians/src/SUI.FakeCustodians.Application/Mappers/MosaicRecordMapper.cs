@@ -7,8 +7,8 @@ namespace SUI.FakeCustodians.Application.Mappers
     {
         public override EventResponse Map(string sui, MosaicRecord sourceRecord)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(sui, nameof(sui));
-            ArgumentNullException.ThrowIfNull(sourceRecord, nameof(sourceRecord));
+            ArgumentException.ThrowIfNullOrWhiteSpace(sui);
+            ArgumentNullException.ThrowIfNull(sourceRecord);
 
             return new EventResponse
             {
@@ -25,15 +25,15 @@ namespace SUI.FakeCustodians.Application.Mappers
             };
         }
 
-        private CamhsData? MapToCamhsData(MosaicRecord source)
+        private static CamhsData? MapToCamhsData(MosaicRecord source)
         {
             return new CamhsData
             {
-                Referrals = source.Referrals?.Select(i => MapToCahmsReferral(i)).ToArray(),
+                Referrals = source.Referrals?.Select(MapToCahmsReferral).ToArray(),
             };
         }
 
-        private Referral MapToCahmsReferral(MosaicReferral source)
+        private static Referral MapToCahmsReferral(MosaicReferral source)
         {
             return new Referral()
             {
