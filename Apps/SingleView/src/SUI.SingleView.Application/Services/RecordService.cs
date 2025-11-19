@@ -88,7 +88,7 @@ public class RecordService : IRecordService
             DutyContactEmail = "csc@bromley.gov.uk",
             DutyContactPhone = "08792675387",
             TeamInvolvement = ["Disabled Childrens Team", "Neighbourhood Team"],
-            ActivePlans =
+            ActiveChildrensServicesPlans =
             [
                 new ActivePlan { Name = "Child in need plan", Status = "Child In Need" },
             ],
@@ -107,6 +107,23 @@ public class RecordService : IRecordService
                 new Tuple<string, int>("Early Help referrals", 25),
                 new Tuple<string, int>("Social Care referrals", 38),
             ],
+            EducationSetting = "Redwood Academy",
+            EducationContactAddress = "Redwood Drive, Maltby, London, SE6 8DL",
+            EducationContactPhone = "0123456789",
+            ActiveEducationPlans =
+            [
+                new ActivePlan { Name = "Education, Health and Care (EHC) plan", Status = "SEND" },
+            ],
+            CurrentAcademicTermAttendance = "70",
+            CurrentAcademicTermUnauthorisedAbsence = "2",
+            CurrentAcademicTermSuspensions = "1",
+            CurrentAcademicTermExclusions = "0",
+            CurrentAcademicTermSchoolMoves = "0",
+            LastAcademicYearAttendance = "78",
+            LastAcademicYearUnauthorisedAbsence = "3",
+            LastAcademicYearSuspensions = "2",
+            LastAcademicYearExclusions = "0",
+            LastAcademicYearSchoolMoves = "0",
         };
     }
 }
