@@ -7,7 +7,7 @@ set -e
 # The main markdown file to update.
 OVERVIEW_FILE="overview.md"
 # The top-level directories to scan for documentation.
-DIRS_TO_SCAN=("Systems landscape" "System" "Component")
+DIRS_TO_SCAN=("Systems landscape" "System")
 
 
 # --- Function Definitions ---
