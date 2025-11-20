@@ -1,6 +1,8 @@
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using SUI.FakeCustodians.Application.Common;
+using SUI.FakeCustodians.Application.Models;
 using SUI.FakeCustodians.Application.Queries;
 
 namespace SUI.FakeCustodians.API.Controllers
@@ -20,6 +22,9 @@ namespace SUI.FakeCustodians.API.Controllers
         }
 
         [HttpGet("{sui}")]
+        [ProducesResponseType(typeof(EventResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(FailureInfo), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetEventsBySui([FromRoute] string sui)
         {
             _logger.LogInformation("Getting event record starting, for sui:'{Sui}'", sui);
