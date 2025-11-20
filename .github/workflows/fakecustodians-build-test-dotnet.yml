@@ -47,10 +47,11 @@ jobs:
 
       # Install Swashbuckle CLI to generate OpenAPI JSON
       - name: Install Swashbuckle CLI
-        run: |
-          dotnet tool install --global Swashbuckle.AspNetCore.Cli --version 9.0.6
-          echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
+        run: dotnet tool install --global Swashbuckle.AspNetCore.Cli --version 9.0.6
 
+      - name: Add dotnet tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+      
       - name: Generate OpenAPI JSON
         run: |
           dotnet swagger tofile \
