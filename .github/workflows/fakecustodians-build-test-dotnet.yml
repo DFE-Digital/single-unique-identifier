@@ -45,16 +45,22 @@ jobs:
         run: |
           dotnet build Apps/FakeCustodians/src/SUI.FakeCustodians.API/SUI.FakeCustodians.API.csproj --configuration Debug
 
-      # Install Swashbuckle CLI to generate OpenAPI JSON
+      # Install Swashbuckle CLI globally
       - name: Install Swashbuckle CLI
-        run: dotnet tool install --global Swashbuckle.AspNetCore.Cli --version 9.0.6
+        run: |
+          dotnet tool install --global Swashbuckle.AspNetCore.Cli --version 9.0.6
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
-      - name: Add dotnet tools to PATH
-        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-      
+      # Verify the tool is installed
+      - name: Check swagger CLI installation
+        run: |
+          which swagger || echo "swagger not found"
+          ls $HOME/.dotnet/tools
+
+      # Generate OpenAPI JSON
       - name: Generate OpenAPI JSON
         run: |
-          dotnet swagger tofile \
+          swagger tofile \
             --output stubCustodians-openapi.json \
             Apps/FakeCustodians/src/SUI.FakeCustodians.API/bin/Debug/net9.0/SUI.FakeCustodians.API.dll \
             v1
