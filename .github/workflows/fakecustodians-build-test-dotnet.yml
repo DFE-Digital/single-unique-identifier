@@ -1,4 +1,4 @@
-name: Build and Test "FakeCustodians" Solution
+name: Build, Test and Generate OpenAPI for FakeCustodians
 
 on:
   workflow_dispatch:
@@ -39,7 +39,12 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "9.0.x"
-            
+
+      # Build the API project to produce the DLL
+      - name: Build API Project
+        run: |
+          dotnet build Apps/FakeCustodians/src/SUI.FakeCustodians.Api/SUI.FakeCustodians.Api.csproj --configuration Debug
+
       # Install Swashbuckle CLI to generate OpenAPI JSON
       - name: Install Swashbuckle CLI
         run: |
