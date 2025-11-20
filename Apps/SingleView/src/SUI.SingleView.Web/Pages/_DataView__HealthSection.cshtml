@@ -1,0 +1,78 @@
+@model DataView
+
+<h2 class="govuk-heading-l">Health</h2>
+<govuk-summary-card>
+    <govuk-summary-card-title>Health details</govuk-summary-card-title>
+    <govuk-summary-list>
+        <govuk-summary-list-row>
+            <govuk-summary-list-row-key>Registered GP</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@Model.PersonModel.RegisteredGpName</govuk-summary-list-row-value>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+            <govuk-summary-list-row-key>Contact details</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>
+                <span style="white-space: pre-line">@Model.PersonModel.RegisteredGpContactAddress.ToMultiLine()</span>
+                <br/><br/>
+                @Model.PersonModel.RegisteredGpContactPhone
+            </govuk-summary-list-row-value>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+            <govuk-summary-list-row-key>CAMHS contact details</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@Model.PersonModel.CamhsContactPhone</govuk-summary-list-row-value>
+        </govuk-summary-list-row>
+    </govuk-summary-list>
+</govuk-summary-card>
+<table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--m">Active health statuses and plans</caption>
+    <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header govuk-!-width-one-half">Status</th>
+        <th scope="col" class="govuk-table__header govuk-!-width-one-half">Plan</th>
+    </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+    @foreach (var healthPlan in Model.PersonModel.ActiveHealthPlans)
+    {
+        <tr class="govuk-table__row">
+            <td class="govuk-table__header">@healthPlan.Status</td>
+            <td class="govuk-table__cell">@healthPlan.Name</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--m">
+        Attendance summary <br/>
+        <p class="govuk-hint">Missed healthcare appointments and accident and emergency attendance</p>
+        <govuk-details>
+            <govuk-details-summary>What are community healthcare appointments</govuk-details-summary>
+            <govuk-details-text></govuk-details-text>
+        </govuk-details>
+    </caption>
+    <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header govuk-!-width-one-quarter">Date</th>
+        <th scope="col" class="govuk-table__header">Missed GP appointments</th>
+        <th scope="col" class="govuk-table__header">Missed hospital appointments</th>
+        <th scope="col" class="govuk-table__header">Missed community health appointments</th>
+        <th scope="col" class="govuk-table__header">Accident and emergency</th>
+    </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+    <tr class="govuk-table__row">
+        <td class="govuk-table__header">Last 12 months</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary12Month.Item1</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary12Month.Item2</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary12Month.Item3</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary12Month.Item4</td>
+    </tr>
+    <tr class="govuk-table__row">
+        <td class="govuk-table__header">Last 5 years</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary5Year.Item1</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary5Year.Item2</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary5Year.Item3</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary5Year.Item4</td>
+    </tr>
+    </tbody>
+</table>
