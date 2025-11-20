@@ -67,6 +67,21 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task GetTransfer_WithIncorrectApiKey_ReturnsUnauthorized()
+    {
+        //Arrange
+        var testId = "999-000-1234";
+
+        _client.DefaultRequestHeaders.Add("X-Api-Key", "INCORRECT_API_KEY");
+
+        // Act
+        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task GetTransfer_WhenFound_ReturnsOkResult()
     {
         // Arrange

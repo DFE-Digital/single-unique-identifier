@@ -1,19 +1,11 @@
 ﻿<Solution>
   <Folder Name="/src/">
     <Project Path="src\SUI.Transfer.API\SUI.Transfer.API.csproj" Type="Classic C#" />
-    <Project
-      Path="src\SUI.Transfer.Application\SUI.Transfer.Application.csproj"
-      Type="Classic C#"
-    />
-    <Project
-      Path="src\SUI.Transfer.Infrastructure\SUI.Transfer.Infrastructure.csproj"
-      Type="Classic C#"
-    />
+    <Project Path="src\SUI.Transfer.Application\SUI.Transfer.Application.csproj" Type="Classic C#" />
+    <Project Path="src\SUI.Transfer.Infrastructure\SUI.Transfer.Infrastructure.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/">
-    <Project
-      Path="tests\SUI.Transfer.API.Unit.Tests\SUI.Transfer.API.Unit.Tests.csproj"
-      Type="Classic C#"
-    />
+    <Project Path="tests\SUI.Transfer.API.Unit.Tests\SUI.Transfer.API.Unit.Tests.csproj" Type="Classic C#" />
+    <Project Path="tests\SUI.Transfer.Application.Unit.Tests\SUI.Transfer.Application.Unit.Tests.csproj" Type="Classic C#" />
   </Folder>
 </Solution>
