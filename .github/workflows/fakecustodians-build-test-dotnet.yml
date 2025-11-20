@@ -39,25 +39,14 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "9.0.x"
-
-      # Build the API project to produce the DLL
-      - name: Build API Project
-        run: |
-          dotnet build Apps/FakeCustodians/src/SUI.FakeCustodians.API/SUI.FakeCustodians.API.csproj --configuration Debug
-
+      
       # Install Swashbuckle CLI globally
       - name: Install Swashbuckle CLI
         run: |
           dotnet tool install --global Swashbuckle.AspNetCore.Cli --version 9.0.6
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
-      # Verify the tool is installed
-      - name: Check swagger CLI installation
-        run: |
-          which swagger || echo "swagger not found"
-          ls $HOME/.dotnet/tools
-
-      # Generate OpenAPI JSON
+      # Generate OpenAPI Spec
       - name: Generate OpenAPI JSON
         run: |
           swagger tofile \
@@ -65,6 +54,7 @@ jobs:
             Apps/FakeCustodians/src/SUI.FakeCustodians.API/bin/Debug/net9.0/SUI.FakeCustodians.API.dll \
             v1
 
+      # Upload OpenAPI Spec
       - name: Upload Generated OpenAPI Spec
         uses: actions/upload-artifact@v4
         with:
