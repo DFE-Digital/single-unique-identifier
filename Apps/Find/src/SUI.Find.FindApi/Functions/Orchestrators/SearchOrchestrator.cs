@@ -1,7 +1,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
-namespace SUI.Find.FindApi;
+namespace SUI.Find.FindApi.Functions.Orchestrators;
 
 public class SearchOrchestrator
 {
