@@ -1,7 +1,12 @@
+using SUI.SingleView.Domain.Models;
+
 namespace SUI.SingleView.Application.Models;
 
 public class PersonModel
 {
+    // TODO: Group and break out these properties into their own structs/records
+    //  once we know more about the API response structure
+
     public string Name { get; init; } = string.Empty;
 
     public string NhsNumber { get; set; } = string.Empty;
@@ -95,4 +100,23 @@ public class PersonModel
     public string LastAcademicYearExclusions { get; set; } = string.Empty;
 
     public string LastAcademicYearSchoolMoves { get; set; } = string.Empty;
+
+    #region HealthProperties
+
+    public string RegisteredGpName { get; set; } = string.Empty;
+
+    public Address RegisteredGpContactAddress { get; set; } =
+        new() { AddressLine1 = "No known address" };
+
+    public string RegisteredGpContactPhone { get; set; } = string.Empty;
+
+    public string CamhsContactPhone { get; set; } = string.Empty;
+
+    public List<ActivePlan> ActiveHealthPlans { get; set; } = [];
+
+    public Tuple<int, int, int, int> HealthAttendanceSummary12Month { get; set; } = new(0, 0, 0, 0);
+
+    public Tuple<int, int, int, int> HealthAttendanceSummary5Year { get; set; } = new(0, 0, 0, 0);
+
+    #endregion
 }
