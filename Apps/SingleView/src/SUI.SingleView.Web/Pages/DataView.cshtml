@@ -205,7 +205,7 @@
     </tr>
     </thead>
     <tbody class="govuk-table__body">
-    @foreach (var relationship in Model.PersonModel.ActivePlans)
+    @foreach (var relationship in Model.PersonModel.ActiveChildrensServicesPlans)
     {
         <tr class="govuk-table__row">
             <td class="govuk-table__header">@relationship.Status</td>
@@ -252,6 +252,100 @@
                     <td class="govuk-table__cell">@relationship.Item2</td>
                 </tr>
             }
+            </tbody>
+        </table>
+    </govuk-tabs-item>
+</govuk-tabs>
+<h2 class="govuk-heading-l">Education</h2>
+<table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--m">Education details</caption>
+    <tbody class="govuk-table__body">
+    <tr class="govuk-table__row">
+        <th scope="row" class="govuk-table__header">Education setting</th>
+        <td class="govuk-table__cell">@Model.PersonModel.EducationSetting</td>
+    </tr>
+    <tr class="govuk-table__row">
+        <th scope="row" class="govuk-table__header">Contact details</th>
+        <td class="govuk-table__cell">
+            @Model.PersonModel.EducationContactAddress
+            <br/>
+            <br/>
+            @Model.PersonModel.EducationContactPhone
+        </td>
+    </tr>
+    </tbody>
+</table>
+<h3 class="govuk-heading-m">Active childrens services statuses and plans</h3>
+<table class="govuk-table">
+    <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header">Status</th>
+        <th scope="col" class="govuk-table__header">Plan</th>
+    </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+    @foreach (var relationship in Model.PersonModel.ActiveEducationPlans)
+    {
+        <tr class="govuk-table__row">
+            <td class="govuk-table__header">@relationship.Status</td>
+            <td class="govuk-table__cell">@relationship.Name</td>
+        </tr>
+    }
+    </tbody>
+</table>
+<h3 class="govuk-heading-m">Education attendance history</h3>
+<govuk-tabs>
+    <govuk-tabs-item id="current-academic-term" label="Current academic term">
+        <a href="#" class="govuk-link">National average attendance</a>
+        <table class="govuk-table">
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">Attendance %</th>
+                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermAttendance</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">Unauthorised Absence %</th>
+                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermUnauthorisedAbsence</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">Suspensions</th>
+                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermSuspensions</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">Exclusions</th>
+                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermExclusions</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">School moves (non transitional)</th>
+                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermSchoolMoves</td>
+            </tr>
+            </tbody>
+        </table>
+    </govuk-tabs-item>
+    <govuk-tabs-item id="last-academic-year" label="Last academic year">
+        <a href="#" class="govuk-link">National average attendance</a>
+        <table class="govuk-table">
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">Attendance %</th>
+                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearAttendance</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">Unauthorised Absence %</th>
+                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearUnauthorisedAbsence</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">Suspensions</th>
+                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearSuspensions</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">Exclusions</th>
+                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearExclusions</td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th class="govuk-table__header">School moves (non transitional)</th>
+                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearSchoolMoves</td>
+            </tr>
             </tbody>
         </table>
     </govuk-tabs-item>

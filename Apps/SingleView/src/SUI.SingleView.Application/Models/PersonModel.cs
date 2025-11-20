@@ -60,11 +60,39 @@ public class PersonModel
 
     public List<string> TeamInvolvement { get; set; } = [];
 
-    public List<ActivePlan> ActivePlans { get; set; } = [];
+    public List<ActivePlan> ActiveChildrensServicesPlans { get; set; } = [];
 
     public List<Tuple<string, int>> Referrals6Months { get; set; } = [];
 
     public List<Tuple<string, int>> Referrals12Months { get; set; } = [];
 
     public List<Tuple<string, int>> Referrals5Years { get; set; } = [];
+
+    public string EducationSetting { get; set; } = string.Empty;
+
+    public string EducationContactAddress { get; set; } = string.Empty;
+
+    public string EducationContactPhone { get; set; } = string.Empty;
+
+    public List<ActivePlan> ActiveEducationPlans { get; set; } = [];
+
+    public string CurrentAcademicTermAttendance { get; set; } = string.Empty;
+
+    public string CurrentAcademicTermUnauthorisedAbsence { get; set; } = string.Empty;
+
+    public string CurrentAcademicTermSuspensions { get; set; } = string.Empty;
+
+    public string CurrentAcademicTermExclusions { get; set; } = string.Empty;
+
+    public string CurrentAcademicTermSchoolMoves { get; set; } = string.Empty;
+
+    public string LastAcademicYearAttendance { get; set; } = string.Empty;
+
+    public string LastAcademicYearUnauthorisedAbsence { get; set; } = string.Empty;
+
+    public string LastAcademicYearSuspensions { get; set; } = string.Empty;
+
+    public string LastAcademicYearExclusions { get; set; } = string.Empty;
+
+    public string LastAcademicYearSchoolMoves { get; set; } = string.Empty;
 }
