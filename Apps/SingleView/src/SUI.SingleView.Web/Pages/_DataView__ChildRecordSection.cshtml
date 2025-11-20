@@ -1,0 +1,28 @@
+@model DataView
+
+<h2 class="govuk-heading-l">Child record</h2>
+
+<table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--m">
+        Date last updated<br/>
+        <span class="govuk-hint">by data source</span>
+    </caption>
+    <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header">Children's social care</th>
+        <th scope="col" class="govuk-table__header">Education</th>
+        <th scope="col" class="govuk-table__header">Health</th>
+        <th scope="col" class="govuk-table__header">Crime</th>
+        <th scope="col" class="govuk-table__header">Housing</th>
+    </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+    <tr class="govuk-table__row">
+        <td class="govuk-table__cell">@Model.PersonModel.SocialCareLastUpdated</td>
+        <td class="govuk-table__cell">@Model.PersonModel.EducationLastUpdated</td>
+        <td class="govuk-table__cell">@Model.PersonModel.HealthLastUpdated</td>
+        <td class="govuk-table__cell">@Model.PersonModel.CrimeLastUpdated</td>
+        <td class="govuk-table__cell">@Model.PersonModel.HousingLastUpdated</td>
+    </tr>
+    </tbody>
+</table>
