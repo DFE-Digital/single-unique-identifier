@@ -1,0 +1,27 @@
+name: Build and Test "Find" Solution
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "Apps/Find/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Apps/Find/**"
+
+jobs:
+  build-and-test-matching:
+    name: Find - Build Test Dotnet
+    uses: ./.github/workflows/build-test-dotnet.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      checks: write
+    with:
+      directory_name: Apps/Find
