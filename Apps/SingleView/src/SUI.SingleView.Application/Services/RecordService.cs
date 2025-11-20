@@ -1,4 +1,5 @@
 using SUI.SingleView.Application.Models;
+using SUI.SingleView.Domain.Models;
 
 namespace SUI.SingleView.Application.Services;
 
@@ -124,6 +125,19 @@ public class RecordService : IRecordService
             LastAcademicYearSuspensions = "2",
             LastAcademicYearExclusions = "0",
             LastAcademicYearSchoolMoves = "0",
+            RegisteredGpName = "Dr E Smith",
+            RegisteredGpContactAddress = new Address()
+            {
+                AddressLine1 = "Duke Medical Centre",
+                AddressLine2 = "28 Talbot Road",
+                Town = "Sheffield",
+                Postcode = "S2 2TD",
+            },
+            RegisteredGpContactPhone = "0114 272 2100",
+            CamhsContactPhone = "01422 345926",
+            ActiveHealthPlans = [new ActivePlan { Name = "CAMHS plan", Status = "Open to CAMHS" }],
+            HealthAttendanceSummary12Month = new Tuple<int, int, int, int>(3, 0, 0, 1),
+            HealthAttendanceSummary5Year = new Tuple<int, int, int, int>(8, 0, 0, 3),
         };
     }
 }
