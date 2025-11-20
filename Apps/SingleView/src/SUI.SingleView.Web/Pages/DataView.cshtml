@@ -9,12 +9,12 @@
 <p class="govuk-body">
     NHS Number: @Model.PersonModel.NhsNumber
 </p>
-@foreach (var tag in Model.PersonModel.Tags)
-{
-    <govuk-tag class="govuk-tag--dark-blue">@tag</govuk-tag>
-}
-<p class="govuk-body">
-</p>
+<div class="govuk-!-margin-bottom-7">
+    @foreach (var tag in Model.PersonModel.Tags)
+    {
+        <govuk-tag class="govuk-tag--dark-blue">@tag</govuk-tag>
+    }
+</div>
 @if (Model.PersonModel.ImportantMessages.Any())
 {
     <govuk-notification-banner>
