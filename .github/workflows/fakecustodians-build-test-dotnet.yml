@@ -39,6 +39,12 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "9.0.x"
+            
+      # Install Swashbuckle CLI to generate OpenAPI JSON
+      - name: Install Swashbuckle CLI
+        run: |
+          dotnet tool install --global Swashbuckle.AspNetCore.Cli --version 9.0.6
+          echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Generate OpenAPI JSON
         run: |
