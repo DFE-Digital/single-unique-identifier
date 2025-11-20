@@ -15,15 +15,17 @@
 }
 <p class="govuk-body">
 </p>
-<govuk-notification-banner>
-    @foreach (var message in Model.PersonModel.ImportantMessages)
-    {
-        <p class="govuk-notification-banner__heading">
-            @message
-        </p>
-    }
-</govuk-notification-banner>
-
+@if (Model.PersonModel.ImportantMessages.Any())
+{
+    <govuk-notification-banner>
+        @foreach (var message in Model.PersonModel.ImportantMessages)
+        {
+            <p class="govuk-notification-banner__heading">
+                @message
+            </p>
+        }
+    </govuk-notification-banner>
+}
 <h2 class="govuk-heading-l">Child record</h2>
 <table class="govuk-table">
     <caption class="govuk-table__caption govuk-table__caption--m">Date last updated</caption>
