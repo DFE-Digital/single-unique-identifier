@@ -25,7 +25,7 @@ public static class TransferEndpoint
                 {
                     var result = await transferService.TransferAsync(id);
 
-                    return result.Success ? Results.Ok(result.Result) : Results.NotFound();
+                    return Results.NotFound();
                 }
             )
             .WithSummary("Transfer custodian data for a given child")
