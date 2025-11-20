@@ -9,7 +9,11 @@ public record Address
     public string? County { get; init; }
     public string? Country { get; init; }
 
-    public string ToSingleLine()
+    public string ToSingleLine() => string.Join(", ", _getParts());
+
+    public string ToMultiLine() => string.Join("\n", _getParts());
+
+    private List<string> _getParts()
     {
         var parts = new List<string>();
 
@@ -28,6 +32,6 @@ public record Address
         if (!string.IsNullOrWhiteSpace(Postcode))
             parts.Add(Postcode);
 
-        return string.Join(", ", parts);
+        return parts;
     }
 };
