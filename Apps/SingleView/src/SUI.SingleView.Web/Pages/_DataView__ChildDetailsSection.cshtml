@@ -32,13 +32,7 @@
     }
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Individuals residing at Main address</th>
-        <td class="govuk-table__cell">
-            @foreach (var individual in Model.PersonModel.IndividualsAtMainAddress)
-            {
-                @individual
-                <br/>
-            }
-        </td>
+        <td class="govuk-table__cell">@Html.DisplayFor(x => x.PersonModel.IndividualsAtMainAddress, "StringList")</td>
     </tr>
     </tbody>
 </table>
@@ -116,13 +110,7 @@
             <td class="govuk-table__cell">@relationship.Name</td>
             <td class="govuk-table__cell">@relationship.DateOfBirth</td>
             <td class="govuk-table__cell">@relationship.Risk</td>
-            <td class="govuk-table__cell">
-                @foreach (var service in relationship.ServicesKnownTo)
-                {
-                    @service
-                    <br/>
-                }
-            </td>
+            <td class="govuk-table__cell">@Html.DisplayFor(_ => relationship.ServicesKnownTo, "StringList")</td>
         </tr>
     }
     </tbody>
