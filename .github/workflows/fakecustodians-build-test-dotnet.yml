@@ -61,7 +61,7 @@ jobs:
       - name: Generate OpenAPI JSON
         run: |
           swagger tofile \
-            --output stubCustodians-openapi.json \
+            --output custodians-openapi.json \
             Apps/FakeCustodians/src/SUI.FakeCustodians.API/bin/Release/net9.0/SUI.FakeCustodians.API.dll \
             v1
 
@@ -70,4 +70,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: stub-custodians-openapi
-          path: stubCustodians-openapi.json
+          path: custodians-openapi.json
