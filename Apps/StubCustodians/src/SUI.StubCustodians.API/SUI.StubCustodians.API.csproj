@@ -3,6 +3,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SUI.FakeCustodians.API</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
@@ -15,8 +16,8 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SUI.FakeCustodians.Application\SUI.FakeCustodians.Application.csproj" />
-    <ProjectReference Include="..\SUI.FakeCustodians.Domain\SUI.FakeCustodians.Domain.csproj" />
-    <ProjectReference Include="..\SUI.FakeCustodians.Infrastructure\SUI.FakeCustodians.Infrastructure.csproj" />
+    <ProjectReference Include="..\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />
+    <ProjectReference Include="..\SUI.StubCustodians.Domain\SUI.StubCustodians.Domain.csproj" />
+    <ProjectReference Include="..\SUI.StubCustodians.Infrastructure\SUI.StubCustodians.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

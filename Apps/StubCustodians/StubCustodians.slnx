@@ -1,27 +1,12 @@
 ﻿<Solution>
   <Folder Name="/src/">
-    <Project Path="src\SUI.FakeCustodians.API\SUI.FakeCustodians.API.csproj" Type="Classic C#" />
-    <Project
-      Path="src\SUI.FakeCustodians.Application\SUI.FakeCustodians.Application.csproj"
-      Type="Classic C#"
-    />
-    <Project
-      Path="src\SUI.FakeCustodians.Domain\SUI.FakeCustodians.Domain.csproj"
-      Type="Classic C#"
-    />
-    <Project
-      Path="src\SUI.FakeCustodians.Infrastructure\SUI.FakeCustodians.Infrastructure.csproj"
-      Type="Classic C#"
-    />
+    <Project Path="src\SUI.StubCustodians.API\SUI.StubCustodians.API.csproj" Type="C#" />
+    <Project Path="src\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" Type="C#" />
+    <Project Path="src\SUI.StubCustodians.Domain\SUI.StubCustodians.Domain.csproj" Type="C#" />
+    <Project Path="src\SUI.StubCustodians.Infrastructure\SUI.StubCustodians.Infrastructure.csproj" Type="C#" />
   </Folder>
   <Folder Name="/tests/">
-    <Project
-      Path="tests\SUI.FakeCustodians.API.Unit.Tests\SUI.FakeCustodians.API.Unit.Tests.csproj"
-      Type="Classic C#"
-    />
-    <Project
-      Path="tests\SUI.FakeCustodians.Application.Unit.Tests\SUI.FakeCustodians.Application.Unit.Tests.csproj"
-      Type="Classic C#"
-    />
+    <Project Path="tests\SUI.StubCustodians.API.Unit.Tests\SUI.StubCustodians.API.Unit.Tests.csproj" Type="C#" />
+    <Project Path="tests\SUI.StubCustodians.Application.Unit.Tests\SUI.StubCustodians.Application.Unit.Tests.csproj" Type="C#" />
   </Folder>
 </Solution>

@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SUI.FakeCustodians.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />
+    <ProjectReference Include="..\SUI.StubCustodians.Domain\SUI.StubCustodians.Domain.csproj" />
+  </ItemGroup>
+</Project>

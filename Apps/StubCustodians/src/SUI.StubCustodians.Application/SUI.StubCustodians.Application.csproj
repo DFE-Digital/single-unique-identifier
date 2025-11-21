@@ -3,9 +3,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>SUI.FakeCustodians.Application</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SUI.FakeCustodians.Application\SUI.FakeCustodians.Application.csproj" />
-    <ProjectReference Include="..\SUI.FakeCustodians.Domain\SUI.FakeCustodians.Domain.csproj" />
+    <PackageReference Include="MediatR" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SUI.StubCustodians.Domain\SUI.StubCustodians.Domain.csproj" />
   </ItemGroup>
 </Project>

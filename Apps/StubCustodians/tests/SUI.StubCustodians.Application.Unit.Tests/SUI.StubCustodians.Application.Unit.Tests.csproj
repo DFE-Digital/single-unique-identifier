@@ -4,6 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <RootNamespace>SUI.FakeCustodians.Application.Unit.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
@@ -16,6 +17,6 @@
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SUI.FakeCustodians.Application\SUI.FakeCustodians.Application.csproj" />
+    <ProjectReference Include="..\..\src\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />
   </ItemGroup>
 </Project>
