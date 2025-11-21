@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "Functions:Worker:HostEndpoint": "http://localhost:7071",
+    "ApiKeys:[0]:Key": "abc123",
+    "ApiKeys:[0]:OrgId": "OrgA",
+    "ApiKeys:[1]:Key": "xyz789",
+    "ApiKeys:[1]:OrgId": "OrgB"
+  }
+}
