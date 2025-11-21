@@ -11,7 +11,7 @@
         <govuk-summary-list-row>
             <govuk-summary-list-row-key>Contact details</govuk-summary-list-row-key>
             <govuk-summary-list-row-value>
-                <span class="br-on-newlines">@Model.PersonModel.RegisteredGpContactAddress.ToMultiLine()</span>
+                @Html.DisplayFor(x => x.PersonModel.RegisteredGpContactAddress)
                 <br/><br/>
                 @Model.PersonModel.RegisteredGpContactPhone
             </govuk-summary-list-row-value>
