@@ -2,7 +2,7 @@ using SUI.Find.FindApi.Models;
 
 namespace SUI.Find.FindApi.Validators;
 
-public class StartSearchRequestValidator
+public static class StartSearchRequestValidator
 {
     public static bool IsValid(StartSearchRequest? request, out string? errorMessage)
     {

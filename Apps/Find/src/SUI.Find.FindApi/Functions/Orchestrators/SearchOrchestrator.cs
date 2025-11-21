@@ -5,13 +5,13 @@ namespace SUI.Find.FindApi.Functions.Orchestrators;
 
 public class SearchOrchestrator
 {
-  [Function("SearchOrchestrator")]
-  public static async Task<string> RunOrchestrator(
-      [OrchestrationTrigger] TaskOrchestrationContext context
-  )
-  {
-    var suid = context.GetInput<string>();
-    // TODO: Activities
-    return $"Search completed for SUID: {suid}";
-  }
+    [Function("SearchOrchestrator")]
+    public static async Task<string> RunOrchestrator(
+        [OrchestrationTrigger] TaskOrchestrationContext context
+    )
+    {
+        var suid = context.GetInput<string>();
+        // TODO: Activities
+        return await Task.FromResult($"Search completed for SUID: {suid}");
+    }
 }
