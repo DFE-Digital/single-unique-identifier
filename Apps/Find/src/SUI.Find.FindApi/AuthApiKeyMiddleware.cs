@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -11,6 +12,7 @@ namespace SUI.Find.FindApi;
 /// For azure deployment, add with az functionapp config appsettings set in CI/CD pipelines
 /// </summary>
 /// <param name="config"></param>
+[ExcludeFromCodeCoverage(Justification = "Middleware for auth, testing via integration tests")]
 // ReSharper disable once ClassNeverInstantiated.Global
 public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddleware
 {

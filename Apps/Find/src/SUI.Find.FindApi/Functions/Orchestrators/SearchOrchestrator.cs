@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 
 namespace SUI.Find.FindApi.Functions.Orchestrators;
 
+[ExcludeFromCodeCoverage(Justification = "Not implemented yet")]
 public class SearchOrchestrator
 {
     [Function("SearchOrchestrator")]
