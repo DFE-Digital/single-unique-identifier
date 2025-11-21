@@ -23,38 +23,38 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
 
     private static readonly string[] NonAuthPaths = ["/api/health"];
 
-    public async Task Invoke(FunctionContext ctx, FunctionExecutionDelegate next)
+    public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
-        var httpReq = await ctx.GetHttpRequestDataAsync();
+        var httpReq = await context.GetHttpRequestDataAsync();
         if (httpReq is null || RequiresNoAuth(httpReq))
         {
-            await next(ctx);
+            await next(context);
             return;
         }
 
         if (!httpReq.Headers.TryGetValues(Constants.Auth.AuthHeaderApiKey, out var values))
         {
-            await Reject(ctx, httpReq);
+            await Reject(context, httpReq);
             return;
         }
 
         var providedKey = values.FirstOrDefault();
         if (providedKey is null || !_apiKeys.TryGetValue(providedKey, out var orgId))
         {
-            await Reject(ctx, httpReq);
+            await Reject(context, httpReq);
             return;
         }
 
-        ctx.Items[Constants.Auth.OrgIdItemKey] = orgId;
+        context.Items[Constants.Auth.OrgIdItemKey] = orgId;
 
-        await next(ctx);
+        await next(context);
     }
 
-    private static async Task Reject(FunctionContext ctx, HttpRequestData req)
+    private static async Task Reject(FunctionContext context, HttpRequestData req)
     {
         var res = req.CreateResponse(HttpStatusCode.Unauthorized);
         await res.WriteStringAsync("Unauthorized");
-        ctx.GetInvocationResult().Value = res;
+        context.GetInvocationResult().Value = res;
     }
 
     private static bool RequiresNoAuth(HttpRequestData req)
