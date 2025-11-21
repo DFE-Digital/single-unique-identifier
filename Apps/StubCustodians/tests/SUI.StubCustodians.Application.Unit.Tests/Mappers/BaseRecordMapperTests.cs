@@ -1,0 +1,51 @@
+using SUI.StubCustodians.Application.Contracts;
+using SUI.StubCustodians.Application.Mappers;
+using SUI.StubCustodians.Application.Models;
+
+namespace SUI.StubCustodians.Application.Unit.Tests.Mappers
+{
+    public class BaseRecordMapperTests
+    {
+        private class TestRecord : BaseEntity { }
+
+        private class TestRecordMapper : BaseRecordMapper<TestRecord>
+        {
+            public override EventResponse Map(string sui, TestRecord record)
+            {
+                return new EventResponse { Sui = sui };
+            }
+
+            public static PersonalData InvokeMapToPersonalData(TestRecord record) =>
+                MapToPersonalData(record);
+        }
+
+        [Fact]
+        public void MapToPersonalData_ShouldMapBasicFieldsCorrectly()
+        {
+            var record = new TestRecord
+            {
+                FirstName = "Jane",
+                LastName = "Doe",
+                DateOfBirth = new DateTime(2000, 1, 1),
+                NhsNumber = "1234567890",
+            };
+            var mapper = new TestRecordMapper();
+
+            var result = TestRecordMapper.InvokeMapToPersonalData(record);
+
+            Assert.Equal("Jane", result.FirstName);
+            Assert.Equal("Doe", result.LastName);
+            Assert.Equal(new DateTime(2000, 1, 1), result.DateOfBirth);
+            Assert.Equal("1234567890", result.NhsNumber);
+        }
+
+        [Fact]
+        public void MapToPersonalData_ShouldThrow_WhenSourceIsNull()
+        {
+            var mapper = new TestRecordMapper();
+            Assert.Throws<ArgumentNullException>(() =>
+                TestRecordMapper.InvokeMapToPersonalData(null!)
+            );
+        }
+    }
+}

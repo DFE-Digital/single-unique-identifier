@@ -29,11 +29,11 @@ updates:
       prefix: "[nuget][SingleView]-"
       
   - package-ecosystem: nuget
-    directory: "/Apps/FakeCustodians"
+    directory: "/Apps/StubCustodians"
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "[nuget][FakeCustodians]-"
+      prefix: "[nuget][StubCustodians]-"
   
   - package-ecosystem: nuget
     directory: "/Apps/Transfer"
