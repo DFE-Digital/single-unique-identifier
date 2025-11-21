@@ -43,7 +43,7 @@ jobs:
       # Build the API project to produce the DLL
       - name: Build API Project
         run: |
-          dotnet build Apps/FakeCustodians/src/SUI.FakeCustodians.API/SUI.FakeCustodians.API.csproj --configuration Debug
+          dotnet build Apps/FakeCustodians/src/SUI.FakeCustodians.API/SUI.FakeCustodians.API.csproj --configuration Release
 
       # Install Swashbuckle CLI globally
       - name: Install Swashbuckle CLI
@@ -62,7 +62,7 @@ jobs:
         run: |
           swagger tofile \
             --output stubCustodians-openapi.json \
-            Apps/FakeCustodians/src/SUI.FakeCustodians.API/bin/Debug/net9.0/SUI.FakeCustodians.API.dll \
+            Apps/FakeCustodians/src/SUI.FakeCustodians.API/bin/Release/net9.0/SUI.FakeCustodians.API.dll \
             v1
 
       # Upload OpenAPI Spec
