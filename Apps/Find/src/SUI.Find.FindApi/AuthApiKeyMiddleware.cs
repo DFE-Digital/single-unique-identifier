@@ -6,6 +6,13 @@ using Microsoft.Extensions.Configuration;
 
 namespace SUI.Find.FindApi;
 
+/// <summary>
+/// Used for local development authentication via API Key header. Set in local.settings.json
+/// For production, az functionapp config appsettings set in CI/CD pipelines
+/// will be used to configure valid API keys
+/// </summary>
+/// <param name="config"></param>
+// ReSharper disable once ClassNeverInstantiated.Global
 public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddleware
 {
     private readonly Dictionary<string, string> _apiKeys =
