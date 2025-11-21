@@ -1,7 +1,7 @@
-using SUI.FakeCustodians.Application.Contracts.Mosaic;
-using SUI.FakeCustodians.Application.Interfaces;
+using SUI.StubCustodians.Application.Contracts.Mosaic;
+using SUI.StubCustodians.Application.Interfaces;
 
-namespace SUI.FakeCustodians.Application.Services;
+namespace SUI.StubCustodians.Application.Services;
 
 public class MosaicEventRecordProvider : BaseEventRecordProvider<MosaicRecord>
 {

@@ -3,7 +3,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>SUI.FakeCustodians.Infrastructure</RootNamespace>
+    <RootNamespace>SUI.StubCustodians.Infrastructure</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />

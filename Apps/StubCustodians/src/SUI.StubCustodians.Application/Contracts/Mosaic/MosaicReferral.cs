@@ -1,4 +1,4 @@
-namespace SUI.FakeCustodians.Application.Contracts.Mosaic
+namespace SUI.StubCustodians.Application.Contracts.Mosaic
 {
     public record MosaicReferral
     {

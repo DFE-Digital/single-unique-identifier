@@ -1,4 +1,4 @@
-namespace SUI.FakeCustodians.Application.Contracts.Arbor
+namespace SUI.StubCustodians.Application.Contracts.Arbor
 {
     public record ArborSchool
     {

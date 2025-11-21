@@ -1,15 +1,15 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
-using SUI.FakeCustodians.Application.Contracts.Arbor;
-using SUI.FakeCustodians.Application.Contracts.Mosaic;
-using SUI.FakeCustodians.Application.Contracts.Niche;
-using SUI.FakeCustodians.Application.Contracts.SystmOne;
-using SUI.FakeCustodians.Application.Interfaces;
-using SUI.FakeCustodians.Application.Mappers;
-using SUI.FakeCustodians.Application.Queries;
-using SUI.FakeCustodians.Application.Services;
+using SUI.StubCustodians.Application.Contracts.Arbor;
+using SUI.StubCustodians.Application.Contracts.Mosaic;
+using SUI.StubCustodians.Application.Contracts.Niche;
+using SUI.StubCustodians.Application.Contracts.SystmOne;
+using SUI.StubCustodians.Application.Interfaces;
+using SUI.StubCustodians.Application.Mappers;
+using SUI.StubCustodians.Application.Queries;
+using SUI.StubCustodians.Application.Services;
 
-namespace SUI.FakeCustodians.API
+namespace SUI.StubCustodians.API
 {
     public class Program
     {

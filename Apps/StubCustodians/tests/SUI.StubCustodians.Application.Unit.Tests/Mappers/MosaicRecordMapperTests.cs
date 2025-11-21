@@ -1,7 +1,7 @@
-using SUI.FakeCustodians.Application.Contracts.Mosaic;
-using SUI.FakeCustodians.Application.Mappers;
+using SUI.StubCustodians.Application.Contracts.Mosaic;
+using SUI.StubCustodians.Application.Mappers;
 
-namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers;
+namespace SUI.StubCustodians.Application.Unit.Tests.Mappers;
 
 public class MosaicRecordMapperTests
 {

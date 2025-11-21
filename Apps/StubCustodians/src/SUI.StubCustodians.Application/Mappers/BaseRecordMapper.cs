@@ -1,8 +1,8 @@
-using SUI.FakeCustodians.Application.Contracts;
-using SUI.FakeCustodians.Application.Interfaces;
-using SUI.FakeCustodians.Application.Models;
+using SUI.StubCustodians.Application.Contracts;
+using SUI.StubCustodians.Application.Interfaces;
+using SUI.StubCustodians.Application.Models;
 
-namespace SUI.FakeCustodians.Application.Mappers
+namespace SUI.StubCustodians.Application.Mappers
 {
     public abstract class BaseRecordMapper<T> : IRecordMapper<T>
         where T : BaseEntity

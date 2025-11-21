@@ -1,7 +1,7 @@
-using SUI.FakeCustodians.Application.Contracts.Niche;
-using SUI.FakeCustodians.Application.Interfaces;
+using SUI.StubCustodians.Application.Contracts.Niche;
+using SUI.StubCustodians.Application.Interfaces;
 
-namespace SUI.FakeCustodians.Application.Services;
+namespace SUI.StubCustodians.Application.Services;
 
 public class NicheEventRecordProvider : BaseEventRecordProvider<NicheRecord>
 {

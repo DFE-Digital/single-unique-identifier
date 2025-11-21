@@ -1,3 +1,3 @@
-﻿namespace SUI.FakeCustodians.Domain;
+﻿namespace SUI.StubCustodians.Domain;
 
 public class Class1 { }

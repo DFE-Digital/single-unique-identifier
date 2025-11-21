@@ -1,4 +1,4 @@
-namespace SUI.FakeCustodians.Application.Contracts.Niche
+namespace SUI.StubCustodians.Application.Contracts.Niche
 {
     public class NicheRecord : BaseEntity
     {

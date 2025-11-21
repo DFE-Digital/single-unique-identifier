@@ -1,9 +1,9 @@
 using MediatR;
-using SUI.FakeCustodians.Application.Common;
-using SUI.FakeCustodians.Application.Interfaces;
-using ResultType = SUI.FakeCustodians.Application.Common.HandlerResult<SUI.FakeCustodians.Application.Models.EventResponse>;
+using SUI.StubCustodians.Application.Common;
+using SUI.StubCustodians.Application.Interfaces;
+using ResultType = SUI.StubCustodians.Application.Common.HandlerResult<SUI.StubCustodians.Application.Models.EventResponse>;
 
-namespace SUI.FakeCustodians.Application.Queries
+namespace SUI.StubCustodians.Application.Queries
 {
     public record GetEventRecordBySuiQuery : IRequest<ResultType>
     {

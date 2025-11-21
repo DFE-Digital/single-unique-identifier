@@ -1,4 +1,4 @@
-namespace SUI.FakeCustodians.Application.Contracts.SystmOne
+namespace SUI.StubCustodians.Application.Contracts.SystmOne
 {
     public class SystmOneRecord : BaseEntity
     {

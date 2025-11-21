@@ -1,6 +1,6 @@
-using SUI.FakeCustodians.Application.Models;
+using SUI.StubCustodians.Application.Models;
 
-namespace SUI.FakeCustodians.Application.Interfaces
+namespace SUI.StubCustodians.Application.Interfaces
 {
     public interface IEventRecordProvider
     {

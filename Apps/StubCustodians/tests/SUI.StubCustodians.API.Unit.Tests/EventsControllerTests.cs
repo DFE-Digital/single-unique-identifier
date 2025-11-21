@@ -4,11 +4,11 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using SUI.FakeCustodians.Application.Common;
-using SUI.FakeCustodians.Application.Models;
-using SUI.FakeCustodians.Application.Queries;
+using SUI.StubCustodians.Application.Common;
+using SUI.StubCustodians.Application.Models;
+using SUI.StubCustodians.Application.Queries;
 
-namespace SUI.FakeCustodians.API.Unit.Tests;
+namespace SUI.StubCustodians.API.Unit.Tests;
 
 public class EventsControllerApiTests : IClassFixture<WebApplicationFactory<Program>>
 {

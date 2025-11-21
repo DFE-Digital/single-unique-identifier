@@ -1,7 +1,7 @@
-using SUI.FakeCustodians.Application.Contracts.Mosaic;
-using SUI.FakeCustodians.Application.Models;
+using SUI.StubCustodians.Application.Contracts.Mosaic;
+using SUI.StubCustodians.Application.Models;
 
-namespace SUI.FakeCustodians.Application.Mappers
+namespace SUI.StubCustodians.Application.Mappers
 {
     public class MosaicRecordMapper : BaseRecordMapper<MosaicRecord>
     {

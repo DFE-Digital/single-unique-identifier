@@ -3,6 +3,6 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>SUI.FakeCustodians.Domain</RootNamespace>
+    <RootNamespace>SUI.StubCustodians.Domain</RootNamespace>
   </PropertyGroup>
 </Project>

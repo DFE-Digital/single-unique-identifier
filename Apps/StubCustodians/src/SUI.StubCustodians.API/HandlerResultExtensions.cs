@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using SUI.FakeCustodians.Application.Common;
+using SUI.StubCustodians.Application.Common;
 
-namespace SUI.FakeCustodians.API
+namespace SUI.StubCustodians.API
 {
     public static class HandlerResultExtensions
     {

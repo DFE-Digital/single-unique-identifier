@@ -1,8 +1,8 @@
-using SUI.FakeCustodians.Application.Contracts;
-using SUI.FakeCustodians.Application.Mappers;
-using SUI.FakeCustodians.Application.Models;
+using SUI.StubCustodians.Application.Contracts;
+using SUI.StubCustodians.Application.Mappers;
+using SUI.StubCustodians.Application.Models;
 
-namespace SUI.FakeCustodians.Application.Unit.Tests.Mappers
+namespace SUI.StubCustodians.Application.Unit.Tests.Mappers
 {
     public class BaseRecordMapperTests
     {

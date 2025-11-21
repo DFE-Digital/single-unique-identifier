@@ -1,4 +1,4 @@
-namespace SUI.FakeCustodians.Application.Models
+namespace SUI.StubCustodians.Application.Models
 {
     public record EducationData
     {

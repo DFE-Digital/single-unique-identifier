@@ -1,9 +1,9 @@
 using System.Text.Json;
-using SUI.FakeCustodians.Application.Interfaces;
-using SUI.FakeCustodians.Application.Models;
-using SUI.FakeCustodians.Application.Services;
+using SUI.StubCustodians.Application.Interfaces;
+using SUI.StubCustodians.Application.Models;
+using SUI.StubCustodians.Application.Services;
 
-namespace SUI.FakeCustodians.Application.Unit.Tests.Services
+namespace SUI.StubCustodians.Application.Unit.Tests.Services
 {
     public class BaseEventRecordProviderTests
     {

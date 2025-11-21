@@ -1,11 +1,11 @@
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using SUI.FakeCustodians.Application.Common;
-using SUI.FakeCustodians.Application.Models;
-using SUI.FakeCustodians.Application.Queries;
+using SUI.StubCustodians.Application.Common;
+using SUI.StubCustodians.Application.Models;
+using SUI.StubCustodians.Application.Queries;
 
-namespace SUI.FakeCustodians.API.Controllers
+namespace SUI.StubCustodians.API.Controllers
 {
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]

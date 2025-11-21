@@ -1,9 +1,9 @@
 using System.Text.Json;
-using SUI.FakeCustodians.Application.Common;
-using SUI.FakeCustodians.Application.Interfaces;
-using SUI.FakeCustodians.Application.Models;
+using SUI.StubCustodians.Application.Common;
+using SUI.StubCustodians.Application.Interfaces;
+using SUI.StubCustodians.Application.Models;
 
-namespace SUI.FakeCustodians.Application.Services
+namespace SUI.StubCustodians.Application.Services
 {
     public abstract class BaseEventRecordProvider<T> : IEventRecordProvider
         where T : class

@@ -1,4 +1,4 @@
-namespace SUI.FakeCustodians.Application.Contracts;
+namespace SUI.StubCustodians.Application.Contracts;
 
 public abstract class BaseEntity
 {

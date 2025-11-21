@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using SUI.FakeCustodians.Application.Common;
+using SUI.StubCustodians.Application.Common;
 
-namespace SUI.FakeCustodians.API.Unit.Tests
+namespace SUI.StubCustodians.API.Unit.Tests
 {
     public class HandlerResultExtensionsTests
     {

@@ -1,7 +1,7 @@
-using SUI.FakeCustodians.Application.Contracts.Arbor;
-using SUI.FakeCustodians.Application.Models;
+using SUI.StubCustodians.Application.Contracts.Arbor;
+using SUI.StubCustodians.Application.Models;
 
-namespace SUI.FakeCustodians.Application.Mappers
+namespace SUI.StubCustodians.Application.Mappers
 {
     public class ArborRecordMapper : BaseRecordMapper<ArborRecord>
     {

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace SUI.FakeCustodians.Application.Common
+namespace SUI.StubCustodians.Application.Common
 {
     public class HandlerResult<T>
         where T : class
