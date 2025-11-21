@@ -31,13 +31,13 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
             return;
         }
 
-        if (!httpReq.Headers.TryGetValues(Constants.Auth.AuthHeader, out var values))
+        if (!httpReq.Headers.TryGetValues(Constants.Auth.AuthHeaderApiKey, out var values))
         {
             await Reject(ctx, httpReq);
             return;
         }
 
-        var providedKey = values?.FirstOrDefault();
+        var providedKey = values.FirstOrDefault();
         if (providedKey is null || !_apiKeys.TryGetValue(providedKey, out var orgId))
         {
             await Reject(ctx, httpReq);
@@ -57,4 +57,4 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
     }
 }
 
-public record ApiKeyConfig(string Key, string OrgId);
+public record struct ApiKeyConfig(string Key, string OrgId);

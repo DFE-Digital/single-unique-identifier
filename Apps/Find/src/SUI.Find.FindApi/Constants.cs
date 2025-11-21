@@ -6,6 +6,6 @@ public class Constants
     {
         public const string ConfigurationKeysSection = "ApiKeys";
         public const string OrgIdItemKey = "OrgId";
-        public const string AuthHeader = "x-api-key";
+        public const string AuthHeaderApiKey = "x-api-key";
     }
 }
