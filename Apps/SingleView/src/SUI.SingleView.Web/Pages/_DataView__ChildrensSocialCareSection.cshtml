@@ -19,13 +19,7 @@
     </tr>
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Team involvement</th>
-        <td class="govuk-table__cell">
-            @foreach (var team in Model.PersonModel.TeamInvolvement)
-            {
-                @team
-                <br/>
-            }
-        </td>
+        <td class="govuk-table__cell">@Html.DisplayFor(x => x.PersonModel.TeamInvolvement, "StringList")</td>
     </tr>
     </tbody>
 </table>
