@@ -3,7 +3,6 @@
     <Project Path="src\SUI.Find.FindApi\SUI.Find.FindApi.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests\SUI.Find.FindApi.IntegrationTests\SUI.Find.FindApi.IntegrationTests.csproj" />
     <Project Path="tests\SUI.Find.FindApi.UnitTests\SUI.Find.FindApi.UnitTests.csproj" />
   </Folder>
 </Solution>
