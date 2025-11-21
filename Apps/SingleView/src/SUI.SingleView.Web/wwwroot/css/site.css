@@ -1,9 +1,14 @@
 /*CSS*/
-.govuk-tag{
+.govuk-tag {
     max-width: none;
     margin-bottom: 6px;
 }
-.govuk-tag--dark-blue{
+
+.govuk-tag--dark-blue {
     background: #1d70b8;
     color: #fff;
+}
+
+.br-on-newlines {
+    white-space: pre-line;
 }
