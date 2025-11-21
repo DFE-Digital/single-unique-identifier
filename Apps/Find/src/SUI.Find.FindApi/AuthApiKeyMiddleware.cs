@@ -8,8 +8,7 @@ namespace SUI.Find.FindApi;
 
 /// <summary>
 /// Used for local development authentication via API Key header. Set in local.settings.json
-/// For production, az functionapp config appsettings set in CI/CD pipelines
-/// will be used to configure valid API keys
+/// For azure deployment, add with az functionapp config appsettings set in CI/CD pipelines
 /// </summary>
 /// <param name="config"></param>
 // ReSharper disable once ClassNeverInstantiated.Global
@@ -22,10 +21,12 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
             ?.ToDictionary(k => k.Key, v => v.OrgId)
         ?? [];
 
+    private static readonly string[] NonAuthPaths = ["/api/health"];
+
     public async Task Invoke(FunctionContext ctx, FunctionExecutionDelegate next)
     {
         var httpReq = await ctx.GetHttpRequestDataAsync();
-        if (httpReq is null)
+        if (httpReq is null || RequiresNoAuth(httpReq))
         {
             await next(ctx);
             return;
@@ -54,6 +55,12 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
         var res = req.CreateResponse(HttpStatusCode.Unauthorized);
         await res.WriteStringAsync("Unauthorized");
         ctx.GetInvocationResult().Value = res;
+    }
+
+    private static bool RequiresNoAuth(HttpRequestData req)
+    {
+        var path = req.Url.AbsolutePath.ToLowerInvariant();
+        return NonAuthPaths.Any(path.StartsWith);
     }
 }
 
