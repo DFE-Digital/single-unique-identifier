@@ -138,6 +138,19 @@ public class RecordService : IRecordService
             ActiveHealthPlans = [new ActivePlan { Name = "CAMHS plan", Status = "Open to CAMHS" }],
             HealthAttendanceSummary12Month = new Tuple<int, int, int, int>(3, 0, 0, 1),
             HealthAttendanceSummary5Year = new Tuple<int, int, int, int>(8, 0, 0, 3),
+            ServicesKnownTo = ["Youth justice service (YJS)", "Police"],
+            LastPoliceProtectionPowerEvent = "none",
+            MissingEpisodesLast6Months = 5,
+            SummaryOfRiskLast5Years =
+            [
+                "Criminal exploitation",
+                "Radicalisation",
+                "Gangs and Youth violence",
+            ],
+            ActiveCrimePlans =
+            [
+                new ActivePlan { Name = "-", Status = "Open to Youth justice service" },
+            ],
         };
     }
 }
