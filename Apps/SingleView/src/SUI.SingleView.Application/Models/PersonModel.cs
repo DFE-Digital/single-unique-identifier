@@ -27,7 +27,7 @@ public record PersonModel
 
     public string DateOfBirth { get; init; } = string.Empty;
 
-    public string MainAddress { get; init; } = string.Empty;
+    public Address MainAddress { get; init; } = new() { AddressLine1 = "No known address" };
 
     public bool PoliceMarker { get; init; }
 
@@ -75,7 +75,8 @@ public record PersonModel
 
     public string EducationSetting { get; init; } = string.Empty;
 
-    public string EducationContactAddress { get; init; } = string.Empty;
+    public Address EducationContactAddress { get; init; } =
+        new() { AddressLine1 = "No known address" };
 
     public string EducationContactPhone { get; init; } = string.Empty;
 

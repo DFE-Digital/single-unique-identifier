@@ -16,7 +16,7 @@
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Main address</th>
         <td class="govuk-table__cell">
-            @Model.PersonModel.MainAddress
+            @Html.DisplayFor(x => x.PersonModel.MainAddress)
             @if (Model.PersonModel.PoliceMarker)
             {
                 <govuk-tag class="govuk-tag--dark-blue">POLICE MARKER</govuk-tag>
