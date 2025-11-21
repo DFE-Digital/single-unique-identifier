@@ -1,0 +1,48 @@
+@model DataView
+
+<h2 class="govuk-heading-l govuk-!-margin-bottom-3">Crime</h2>
+<p class="govuk-hint govuk-!-margin-top-0">Over last 5 years</p>
+
+<govuk-summary-card>
+    <govuk-summary-card-title>Crime summary</govuk-summary-card-title>
+    <govuk-summary-card-actions>
+        <govuk-summary-card-action href="#">View details</govuk-summary-card-action>
+    </govuk-summary-card-actions>
+    <govuk-summary-list>
+        <govuk-summary-list-row>
+            <govuk-summary-list-row-key>Services known to</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@Html.DisplayFor(x => x.PersonModel.ServicesKnownTo, "StringList")</govuk-summary-list-row-value>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+            <govuk-summary-list-row-key>Last Police Protection Power event</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@Model.PersonModel.LastPoliceProtectionPowerEvent</govuk-summary-list-row-value>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+            <govuk-summary-list-row-key>Missing episodes (past 6 months)</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@Model.PersonModel.MissingEpisodesLast6Months</govuk-summary-list-row-value>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+            <govuk-summary-list-row-key>Summary of risk (last 5 years)</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>@Html.DisplayFor(x => x.PersonModel.SummaryOfRiskLast5Years, "StringList")</govuk-summary-list-row-value>
+        </govuk-summary-list-row>
+    </govuk-summary-list>
+</govuk-summary-card>
+
+<table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--m">Active crime statuses and plans</caption>
+    <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header govuk-!-width-one-half">Status</th>
+        <th scope="col" class="govuk-table__header govuk-!-width-one-half">Plan</th>
+    </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+    @foreach (var healthPlan in Model.PersonModel.ActiveHealthPlans)
+    {
+        <tr class="govuk-table__row">
+            <td class="govuk-table__header">@healthPlan.Status</td>
+            <td class="govuk-table__cell">@healthPlan.Name</td>
+        </tr>
+    }
+    </tbody>
+</table>

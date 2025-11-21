@@ -120,4 +120,18 @@ public record PersonModel
     public Tuple<int, int, int, int> HealthAttendanceSummary5Year { get; init; } = new(0, 0, 0, 0);
 
     #endregion
+
+    #region CrimeProperties
+
+    public List<string> ServicesKnownTo { get; init; } = [];
+
+    public string LastPoliceProtectionPowerEvent { get; init; } = string.Empty;
+
+    public int MissingEpisodesLast6Months { get; init; } = 0;
+
+    public List<string> SummaryOfRiskLast5Years { get; init; } = [];
+
+    public List<ActivePlan> ActiveCrimePlans { get; init; } = [];
+
+    #endregion
 }
