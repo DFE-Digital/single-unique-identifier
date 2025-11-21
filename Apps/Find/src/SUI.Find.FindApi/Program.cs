@@ -17,9 +17,8 @@ builder
 builder.Services.AddHealthChecks();
 builder.Services.AddLogging();
 
-// builder.Services.AddSingleton<IOpenApiConfigurationOptions, CustomOpenApiConfigurationOptions>();
+builder.Services.AddSingleton<IOpenApiConfigurationOptions, CustomOpenApiConfigurationOptions>();
 
-// Auth
 builder.UseMiddleware<AuthApiKeyMiddleware>();
 
 await builder.Build().RunAsync();

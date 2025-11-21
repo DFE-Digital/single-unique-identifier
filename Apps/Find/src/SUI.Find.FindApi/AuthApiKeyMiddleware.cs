@@ -6,17 +6,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace SUI.Find.FindApi;
 
-// Using X-API-KEY and X-API-USER until we start using OAuth
 public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddleware
 {
-    // Check headers for X-API-KEY key and X-API-USER
-    // Ensure the key and user are linked
-    // continue if they are
-    // return 401 if they are not
-
     private readonly Dictionary<string, string> _apiKeys =
         config
-            .GetSection("ApiKeys")
+            .GetSection(Constants.Auth.ConfigurationKeysSection)
             .Get<List<ApiKeyConfig>>()
             ?.ToDictionary(k => k.Key, v => v.OrgId)
         ?? [];
@@ -30,7 +24,7 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
             return;
         }
 
-        if (!httpReq.Headers.TryGetValues("x-api-key", out var values))
+        if (!httpReq.Headers.TryGetValues(Constants.Auth.AuthHeader, out var values))
         {
             await Reject(ctx, httpReq);
             return;
@@ -43,7 +37,7 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
             return;
         }
 
-        ctx.Items["OrgId"] = orgId;
+        ctx.Items[Constants.Auth.OrgIdItemKey] = orgId;
 
         await next(ctx);
     }
