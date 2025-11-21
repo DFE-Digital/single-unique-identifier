@@ -29,7 +29,12 @@ public class RecordService : IRecordService
             CrimeLastUpdated = "1 July 2025",
             HousingLastUpdated = "1 April 2024",
             DateOfBirth = "10 October 2011 (14 years old)",
-            MainAddress = "72 Guild street, London, SE23 6FH",
+            MainAddress = new Address
+            {
+                AddressLine1 = "72 Guild street",
+                Town = "London",
+                Postcode = "SE23 6FH",
+            },
             PoliceMarker = true,
             PoliceMarkerDetails = "Individuals at the address may resort to violent behaviour",
             IndividualsAtMainAddress =
@@ -109,7 +114,13 @@ public class RecordService : IRecordService
                 new Tuple<string, int>("Social Care referrals", 38),
             ],
             EducationSetting = "Redwood Academy",
-            EducationContactAddress = "Redwood Drive, Maltby, London, SE6 8DL",
+            EducationContactAddress = new Address
+            {
+                AddressLine1 = "Redwood Drive",
+                AddressLine2 = "Maltby",
+                Town = "London",
+                Postcode = "SE6 8DL",
+            },
             EducationContactPhone = "0123456789",
             ActiveEducationPlans =
             [
