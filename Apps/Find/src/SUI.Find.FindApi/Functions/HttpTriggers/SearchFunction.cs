@@ -25,7 +25,7 @@ public class SearchFunction(ILogger<SearchFunction> logger)
             JsonSerializerOptions.Web
         );
 
-        context.Items.TryGetValue(Constants.Auth.OrgIdItemKey, out var item);
+        context.Items.TryGetValue(FindApiConstants.Auth.OrgIdItemKey, out var item);
 
         logger.LogInformation("[OrganisationRequest] from {OrgId}", item);
 

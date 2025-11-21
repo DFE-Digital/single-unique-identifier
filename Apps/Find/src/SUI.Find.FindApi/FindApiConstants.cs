@@ -1,6 +1,6 @@
 namespace SUI.Find.FindApi;
 
-public class Constants
+public static class FindApiConstants
 {
     public static class Auth
     {

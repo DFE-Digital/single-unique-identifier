@@ -16,7 +16,7 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
 {
     private readonly Dictionary<string, string> _apiKeys =
         config
-            .GetSection(Constants.Auth.ConfigurationKeysSection)
+            .GetSection(FindApiConstants.Auth.ConfigurationKeysSection)
             .Get<List<ApiKeyConfig>>()
             ?.ToDictionary(k => k.Key, v => v.OrgId)
         ?? [];
@@ -32,7 +32,7 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
             return;
         }
 
-        if (!httpReq.Headers.TryGetValues(Constants.Auth.AuthHeaderApiKey, out var values))
+        if (!httpReq.Headers.TryGetValues(FindApiConstants.Auth.AuthHeaderApiKey, out var values))
         {
             await Reject(context, httpReq);
             return;
@@ -45,7 +45,7 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
             return;
         }
 
-        context.Items[Constants.Auth.OrgIdItemKey] = orgId;
+        context.Items[FindApiConstants.Auth.OrgIdItemKey] = orgId;
 
         await next(context);
     }
