@@ -16,8 +16,9 @@ builder
     .ConfigureFunctionsApplicationInsights();
 
 // Middleware - Order is important
-builder.UseMiddleware<AuthApiKeyMiddleware>(); // <--- Must ALWAYS be first
-builder.UseMiddleware<AuditMiddleware>();
+// TODO: Reinstate this after OAuth implementation
+//builder.UseMiddleware<AuthApiKeyMiddleware>(); // <--- Must ALWAYS be first
+//builder.UseMiddleware<AuditMiddleware>();
 
 // Configuration
 builder.Services.AddHealthChecks();
