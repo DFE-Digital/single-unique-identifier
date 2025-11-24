@@ -1,0 +1,1 @@
+& "../../test_and_cover.ps1" -SolutionPath "./Apps/Transfer/SUI.Transfer.slnx"
