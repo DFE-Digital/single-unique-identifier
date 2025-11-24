@@ -1,12 +1,10 @@
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SUI.Find.FindApi.Middleware;
-using SUI.Find.FindApi.OpenApi;
 using SUI.Find.FindApi.Startup;
 using SUI.Find.Infrastructure;
 using SUI.Find.Infrastructure.Services;
@@ -26,7 +24,6 @@ builder.Services.AddHealthChecks();
 builder.Services.AddLogging();
 
 // Register Services
-builder.Services.AddSingleton<IOpenApiConfigurationOptions, CustomOpenApiConfigurationOptions>();
 builder.Services.AddSingleton<IAuditService, StorageTableAuditService>();
 builder.Services.AddSingleton<IStorageTableAuditService, StorageTableAuditService>();
 builder.Services.AddSingleton(sp =>
