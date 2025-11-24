@@ -51,16 +51,17 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
         }
 
         // https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.cryptographicoperations.fixedtimeequals?view=net-9.0
-        foreach (
-            var kvp in _apiKeys.Where(kvp =>
+        var matchingOrgId = _apiKeys
+            .FirstOrDefault(kvp =>
                 CryptographicOperations.FixedTimeEquals(
                     Encoding.UTF8.GetBytes(kvp.Key),
                     Encoding.UTF8.GetBytes(providedKey)
                 )
             )
-        )
+            .Value;
+        if (!string.IsNullOrEmpty(matchingOrgId))
         {
-            context.Items[FindApiConstants.Auth.OrgIdItemKey] = kvp.Value;
+            context.Items[FindApiConstants.Auth.OrgIdItemKey] = matchingOrgId;
             await next(context);
             return;
         }
