@@ -1,11 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Configuration;
+using SUI.Find.Infrastructure;
 
-namespace SUI.Find.FindApi;
+namespace SUI.Find.FindApi.Middleware;
 
 /// <summary>
 /// Used for local development authentication via API Key header. Set in local.settings.json
@@ -41,15 +44,28 @@ public class AuthApiKeyMiddleware(IConfiguration config) : IFunctionsWorkerMiddl
         }
 
         var providedKey = values.FirstOrDefault();
-        if (providedKey is null || !_apiKeys.TryGetValue(providedKey, out var orgId))
+        if (string.IsNullOrWhiteSpace(providedKey))
         {
             await Reject(context, httpReq);
             return;
         }
 
-        context.Items[FindApiConstants.Auth.OrgIdItemKey] = orgId;
+        // https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.cryptographicoperations.fixedtimeequals?view=net-9.0
+        foreach (
+            var kvp in _apiKeys.Where(kvp =>
+                CryptographicOperations.FixedTimeEquals(
+                    Encoding.UTF8.GetBytes(kvp.Key),
+                    Encoding.UTF8.GetBytes(providedKey)
+                )
+            )
+        )
+        {
+            context.Items[FindApiConstants.Auth.OrgIdItemKey] = kvp.Value;
+            await next(context);
+            return;
+        }
 
-        await next(context);
+        await Reject(context, httpReq);
     }
 
     private static async Task Reject(FunctionContext context, HttpRequestData req)

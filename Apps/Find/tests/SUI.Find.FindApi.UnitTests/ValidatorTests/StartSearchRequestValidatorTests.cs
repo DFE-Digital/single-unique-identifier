@@ -13,7 +13,7 @@ public class StartSearchRequestValidatorTests
         // Arrange
         // Act
         var isValid = Validators.StartSearchRequestValidator.IsValid(
-            new StartSearchRequest(suid!),
+            new StartSearchRequest { Suid = suid! },
             out var errorMessage
         );
 
@@ -32,7 +32,7 @@ public class StartSearchRequestValidatorTests
         // Arrange
         // Act
         var isValid = Validators.StartSearchRequestValidator.IsValid(
-            new StartSearchRequest(suid!),
+            new StartSearchRequest { Suid = suid! },
             out var errorMessage
         );
 
@@ -49,7 +49,7 @@ public class StartSearchRequestValidatorTests
         // Arrange
         // Act
         var isValid = Validators.StartSearchRequestValidator.IsValid(
-            new StartSearchRequest(suid),
+            new StartSearchRequest { Suid = suid! },
             out var errorMessage
         );
 
