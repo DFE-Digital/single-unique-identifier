@@ -6,6 +6,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Models.Auth;
+using SUI.Find.FindApi.Utility;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Functions.HttpTriggers;
@@ -40,7 +41,7 @@ public class AuthTokenFunction(
         var authValidation = await ValidateAuthRequestAsync(req);
         if (!authValidation.isValid)
         {
-            return await ProblemResponse(
+            return await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.BadRequest,
                 "Invalid request",
@@ -51,7 +52,7 @@ public class AuthTokenFunction(
         var client = await ValidateAuthClientCredentialsAsync(req, authValidation.authValue);
         if (!client.IsValid)
         {
-            return await ProblemResponse(
+            return await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "Unauthorised",
@@ -76,7 +77,7 @@ public class AuthTokenFunction(
 
             if (notAllowed.Length > 0)
             {
-                return await ProblemResponse(
+                return await HttpResponseUtility.ProblemResponse(
                     req,
                     HttpStatusCode.BadRequest,
                     "Invalid scope",
@@ -196,17 +197,5 @@ public class AuthTokenFunction(
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Distinct(StringComparer.Ordinal)
             .ToList()!;
-    }
-
-    private static async Task<HttpResponseData> ProblemResponse(
-        HttpRequestData req,
-        HttpStatusCode code,
-        string title,
-        string detail
-    )
-    {
-        var res = req.CreateResponse(code);
-        await res.WriteAsJsonAsync(new Problem("about:blank", title, (int)code, detail, null));
-        return res;
     }
 }

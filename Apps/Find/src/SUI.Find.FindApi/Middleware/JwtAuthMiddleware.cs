@@ -9,6 +9,7 @@ using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.IdentityModel.Tokens;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.Utility;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Middleware;
@@ -43,7 +44,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
 
         if (!req.Headers.TryGetValues("Authorization", out var authHeaders))
         {
-            context.GetInvocationResult().Value = await ProblemResponse(
+            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "Unauthorised",
@@ -55,7 +56,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
         var bearer = authHeaders.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(bearer) || !bearer.StartsWith("Bearer "))
         {
-            context.GetInvocationResult().Value = await ProblemResponse(
+            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "Unauthorised",
@@ -89,7 +90,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
         }
         catch (SecurityTokenException ex)
         {
-            context.GetInvocationResult().Value = await ProblemResponse(
+            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "Unauthorised",
@@ -99,7 +100,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
         }
         catch
         {
-            context.GetInvocationResult().Value = await ProblemResponse(
+            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "Unauthorised",
@@ -114,7 +115,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
 
         if (!HasAnyRequiredScope(authContext, requiredScopes))
         {
-            context.GetInvocationResult().Value = await ProblemResponse(
+            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "Unauthorised",
@@ -173,18 +174,6 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
         return requiredScopes.Any(rs =>
             caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
         );
-    }
-
-    private static async Task<HttpResponseData> ProblemResponse(
-        HttpRequestData req,
-        HttpStatusCode code,
-        string title,
-        string detail
-    )
-    {
-        var res = req.CreateResponse(code);
-        await res.WriteAsJsonAsync(new Problem("about:blank", title, (int)code, detail, null));
-        return res;
     }
 }
 
