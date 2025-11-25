@@ -67,5 +67,7 @@ dotnet tool restore
 dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
 dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
 dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
+dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
+dotnet pwsh ./Apps/Matching/test_and_cover_matching.ps1
 ```
 
