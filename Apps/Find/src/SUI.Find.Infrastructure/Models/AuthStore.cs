@@ -1,10 +1,10 @@
 namespace SUI.Find.Infrastructure.Models;
 
-internal sealed class AuthStore
+public class AuthStore
 {
-    public string Issuer { get; set; } = string.Empty;
-    public string Audience { get; set; } = string.Empty;
-    public string SigningKey { get; set; } = string.Empty;
-    public int DefaultTokenLifetimeMinutes { get; set; } = 60;
+    public string Issuer { get; init; } = string.Empty;
+    public string Audience { get; init; } = string.Empty;
+    public string SigningKey { get; init; } = string.Empty;
+    public required int DefaultTokenLifetimeMinutes { get; init; } = 60;
     public List<AuthClient>? Clients { get; set; }
 }

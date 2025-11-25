@@ -17,6 +17,7 @@ builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
 // Custom application services
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton<IAuthStoreService, FileAuthStoreService>();

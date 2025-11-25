@@ -12,7 +12,8 @@ namespace SUI.Find.FindApi.Functions.HttpTriggers;
 
 public class AuthTokenFunction(
     ILogger<AuthTokenFunction> logger,
-    IAuthStoreService authStoreService
+    IAuthStoreService authStoreService,
+    IJwtTokenService jwtTokenService
 )
 {
     [Function(nameof(AuthToken))]
@@ -63,7 +64,7 @@ public class AuthTokenFunction(
         var allowedScopes = NormaliseScopes(client.TokenRequest!.Scopes);
 
         IReadOnlyList<string> grantedScopes;
-        if (requestedScopes.Length == 0)
+        if (requestedScopes.Count == 0)
         {
             grantedScopes = allowedScopes;
         }
@@ -86,7 +87,20 @@ public class AuthTokenFunction(
             grantedScopes = requestedScopes;
         }
 
+        var token = await jwtTokenService.GenerateToken(
+            client.TokenRequest!.ClientId,
+            grantedScopes
+        );
+
+        var tokenResponse = new AuthTokenResponse
+        {
+            AccessToken = token,
+            TokenType = "Bearer",
+            ExpiresIn = 3600,
+            Scope = string.Join(' ', grantedScopes),
+        };
         var response = req.CreateResponse(HttpStatusCode.OK);
+        await response.WriteAsJsonAsync(tokenResponse);
         return response;
     }
 
@@ -146,7 +160,6 @@ public class AuthTokenFunction(
         AuthTokenRequest? TokenRequest
     )> ValidateAuthClientCredentialsAsync(HttpRequestData req, string authValue)
     {
-        // get value out of base64
         var base64Credentials = authValue["Basic ".Length..].Trim();
         var credentialBytes = Convert.FromBase64String(base64Credentials);
         var credentials = System.Text.Encoding.UTF8.GetString(credentialBytes).Split(':');
@@ -171,7 +184,7 @@ public class AuthTokenFunction(
         );
     }
 
-    private static string?[] NormaliseScopes(IEnumerable<string>? incoming)
+    private static IReadOnlyList<string> NormaliseScopes(IEnumerable<string>? incoming)
     {
         if (incoming is null)
         {
@@ -179,10 +192,10 @@ public class AuthTokenFunction(
         }
 
         return incoming
-            .Select(s => s?.Trim())
+            .Select(s => s.Trim())
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Distinct(StringComparer.Ordinal)
-            .ToArray();
+            .ToList()!;
     }
 
     private static async Task<HttpResponseData> ProblemResponse(
