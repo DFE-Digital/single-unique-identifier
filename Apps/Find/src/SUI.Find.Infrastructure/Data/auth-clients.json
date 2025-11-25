@@ -1,0 +1,68 @@
+{
+  "issuer": "https://sandbox.api.example.gov.uk/find-a-record/auth",
+  "audience": "find-a-record-api",
+  "signingKey": "Wc8Kq1ZyR4hNfD0uVx3mS9JpA6eLrT2bG7wQvY5sCjP8kF1nH0tUoMzBiXaEdRl",
+  "defaultTokenLifetimeMinutes": 60,
+  "clients": [
+    {
+      "enabled": true,
+      "clientId": "LOCAL-AUTHORITY-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "EDUCATION-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "HEALTH-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "POLICE-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "HOUSING-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write"
+      ]
+    }
+  ]
+}

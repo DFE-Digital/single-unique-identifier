@@ -1,15 +1,19 @@
-using System.Diagnostics;
 using System.Net;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Models.Auth;
+using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Functions.HttpTriggers;
 
-public class AuthTokenFunction(ILogger<AuthTokenFunction> logger)
+public class AuthTokenFunction(
+    ILogger<AuthTokenFunction> logger,
+    IAuthStoreService authStoreService
+)
 {
     [Function(nameof(AuthToken))]
     [OpenApiOperation(
@@ -35,31 +39,66 @@ public class AuthTokenFunction(ILogger<AuthTokenFunction> logger)
         var authValidation = await ValidateAuthRequestAsync(req);
         if (!authValidation.isValid)
         {
-            var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-            await badResponse.WriteAsJsonAsync(
-                new Problem(
-                    "about:blank",
-                    "Invalid request",
-                    400,
-                    "Missing or malformed authentication details.",
-                    null
-                )
+            return await ProblemResponse(
+                req,
+                HttpStatusCode.BadRequest,
+                "Invalid request",
+                "Missing or malformed authentication details."
             );
-            return badResponse;
         }
 
-        var isValidClient = ValidateAuthClientCredentials(authValidation.authValue);
-        if (!isValidClient)
+        var client = await ValidateAuthClientCredentialsAsync(req, authValidation.authValue);
+        if (!client.IsValid)
         {
-            var unauthenticResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
-            await unauthenticResponse.WriteAsJsonAsync(
-                new Problem("about:blank", "Unauthorised", 401, "Invalid client credentials.", null)
+            return await ProblemResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "Unauthorised",
+                "Invalid client credentials."
             );
-            return unauthenticResponse;
+        }
+
+        var scopes = await GetRequestScopesAsync(req);
+        var requestedScopes = NormaliseScopes(scopes);
+        var allowedScopes = NormaliseScopes(client.TokenRequest!.Scopes);
+
+        IReadOnlyList<string> grantedScopes;
+        if (requestedScopes.Length == 0)
+        {
+            grantedScopes = allowedScopes;
+        }
+        else
+        {
+            var notAllowed = requestedScopes
+                .Where(s => !allowedScopes.Contains(s, StringComparer.Ordinal))
+                .ToArray();
+
+            if (notAllowed.Length > 0)
+            {
+                return await ProblemResponse(
+                    req,
+                    HttpStatusCode.BadRequest,
+                    "Invalid scope",
+                    $"Client is not permitted to request scope(s): {string.Join(", ", notAllowed)}."
+                );
+            }
+
+            grantedScopes = requestedScopes;
         }
 
         var response = req.CreateResponse(HttpStatusCode.OK);
         return response;
+    }
+
+    private static async Task<string[]> GetRequestScopesAsync(HttpRequestData requestData)
+    {
+        var formData = await requestData.ReadAsStringAsync();
+        var parsed = QueryHelpers.ParseQuery(formData);
+        requestData.Body.Seek(0, SeekOrigin.Begin);
+        var scopes = parsed.TryGetValue("scope", out var scopeValues)
+            ? scopeValues.FirstOrDefault()?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? []
+            : [];
+        return scopes;
     }
 
     private static async Task<(bool isValid, string authValue)> ValidateAuthRequestAsync(
@@ -76,7 +115,11 @@ public class AuthTokenFunction(ILogger<AuthTokenFunction> logger)
         }
 
         var formData = await requestData.ReadAsStringAsync();
-        if (formData is null || !formData.Contains("grant_type=client_credentials"))
+        var parsed = QueryHelpers.ParseQuery(formData);
+        if (
+            !parsed.TryGetValue("grant_type", out var grantTypes)
+            || grantTypes.FirstOrDefault() != "client_credentials"
+        )
         {
             return (false, string.Empty);
         }
@@ -98,7 +141,10 @@ public class AuthTokenFunction(ILogger<AuthTokenFunction> logger)
         return (true, authHeader);
     }
 
-    private static bool ValidateAuthClientCredentials(string authValue)
+    private async Task<(
+        bool IsValid,
+        AuthTokenRequest? TokenRequest
+    )> ValidateAuthClientCredentialsAsync(HttpRequestData req, string authValue)
     {
         // get value out of base64
         var base64Credentials = authValue["Basic ".Length..].Trim();
@@ -106,16 +152,48 @@ public class AuthTokenFunction(ILogger<AuthTokenFunction> logger)
         var credentials = System.Text.Encoding.UTF8.GetString(credentialBytes).Split(':');
         if (credentials.Length != 2)
         {
-            return false;
+            return (false, null);
         }
 
         var clientId = credentials.First();
         var clientSecret = credentials.Last();
 
-        var isValid = !string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret);
+        var authClient = await authStoreService.GetClientByCredentials(clientId, clientSecret);
 
-        // TODO: Check  the clientId and clientSecret against a data store
+        return (
+            authClient.Success,
+            new AuthTokenRequest
+            {
+                ClientId = clientId,
+                ClientSecret = clientSecret,
+                Scopes = authClient.Success ? authClient.Value?.AllowedScopes ?? [] : [],
+            }
+        );
+    }
 
-        return isValid;
+    private static string?[] NormaliseScopes(IEnumerable<string>? incoming)
+    {
+        if (incoming is null)
+        {
+            return [];
+        }
+
+        return incoming
+            .Select(s => s?.Trim())
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static async Task<HttpResponseData> ProblemResponse(
+        HttpRequestData req,
+        HttpStatusCode code,
+        string title,
+        string detail
+    )
+    {
+        var res = req.CreateResponse(code);
+        await res.WriteAsJsonAsync(new Problem("about:blank", title, (int)code, detail, null));
+        return res;
     }
 }
