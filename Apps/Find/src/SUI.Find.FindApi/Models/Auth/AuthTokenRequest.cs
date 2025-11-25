@@ -13,5 +13,5 @@ public class AuthTokenRequest
     public string ClientSecret { get; init; } = string.Empty;
 
     [JsonPropertyName("scope")]
-    public IEnumerable<string>? Scopes { get; init; }
+    public IEnumerable<string> Scopes { get; init; } = [];
 }

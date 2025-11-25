@@ -61,7 +61,11 @@ public class AuthTokenFunctionTests
     {
         // Arrange
         var httpRequestData = MockHttpRequestData.CreateFormData(
-            new Dictionary<string, string> { { "grant_type", "client_credentials" } }
+            new Dictionary<string, string>
+            {
+                { "grant_type", "client_credentials" },
+                { "scopes", "file.read" },
+            }
         );
         httpRequestData.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
         httpRequestData.Headers.Add(
@@ -77,6 +81,7 @@ public class AuthTokenFunctionTests
                         ClientId = "valid_client_id",
                         ClientSecret = "valid_client_secret",
                         Enabled = true,
+                        AllowedScopes = ["file.read", "file.write"],
                     }
                 )
             );
