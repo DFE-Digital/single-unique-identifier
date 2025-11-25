@@ -3,6 +3,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SUI.Find.FindApi.Middleware;
 using SUI.Find.Infrastructure.Services;
 
 var builder = FunctionsApplication.CreateBuilder(args);
@@ -26,5 +27,7 @@ else
 {
     builder.Services.AddSingleton<IAuthStoreService, SecureAuthStoreService>();
 }
+
+builder.UseMiddleware<JwtAuthMiddleware>();
 
 await builder.Build().RunAsync();

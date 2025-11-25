@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Interfaces;
@@ -5,6 +6,7 @@ using Microsoft.OpenApi.Models;
 
 namespace SUI.Find.FindApi.OpenApi;
 
+[ExcludeFromCodeCoverage(Justification = "OpenAPI filters do not contain any logic to be tested.")]
 public sealed class FindDocumentFilter : IDocumentFilter
 {
     public void Apply(IHttpRequestDataObject req, OpenApiDocument document)

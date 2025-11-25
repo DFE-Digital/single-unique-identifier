@@ -1,9 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.OpenApi.Models;
 
 namespace SUI.Find.FindApi.OpenApi;
 
+[ExcludeFromCodeCoverage(
+    Justification = "OpenAPI configuration does not contain any logic to be tested."
+)]
 public sealed class FindOpenApiOptions : DefaultOpenApiConfigurationOptions
 {
     public FindOpenApiOptions()
