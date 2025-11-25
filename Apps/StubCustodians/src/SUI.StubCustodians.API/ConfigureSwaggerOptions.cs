@@ -46,7 +46,7 @@ namespace SUI.StubCustodians.API
         {
             var info = new OpenApiInfo()
             {
-                Title = "Stub Custodians API",
+                Title = "Custodians API",
                 Version = description.ApiVersion.ToString(),
             };
 
