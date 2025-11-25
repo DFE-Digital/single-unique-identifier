@@ -6,7 +6,7 @@ namespace SUI.Find.Infrastructure.Services;
 
 public interface IAuthStoreService
 {
-    Task<AuthStore> GetAuthStore();
+    Task<Result<AuthClient>> GetClientByCredentials(string clientId, string clientSecret);
 }
 
 public class AuthStoreService(IFileSystem fileSystem) : IAuthStoreService
@@ -16,7 +16,10 @@ public class AuthStoreService(IFileSystem fileSystem) : IAuthStoreService
         PropertyNameCaseInsensitive = true,
     };
 
-    public async Task<AuthStore> GetAuthStore()
+    public async Task<Result<AuthClient>> GetClientByCredentials(
+        string clientId,
+        string clientSecret
+    )
     {
         var baseDir = AppContext.BaseDirectory;
         var filePath = Path.Combine(baseDir, "Data", "auth-clients.json");
@@ -31,7 +34,7 @@ public class AuthStoreService(IFileSystem fileSystem) : IAuthStoreService
 
         if (store is null)
         {
-            throw new InvalidOperationException("Auth store file could not be deserialised.");
+            throw new InvalidOperationException("Auth store file could not be deserialized.");
         }
 
         if (
@@ -40,6 +43,7 @@ public class AuthStoreService(IFileSystem fileSystem) : IAuthStoreService
             || string.IsNullOrWhiteSpace(store.SigningKey)
         )
         {
+            // May be better to log this error instead of throwing, doesn't stop the service
             throw new InvalidOperationException(
                 "Auth store file is missing issuer, audience, or signingKey."
             );
@@ -47,6 +51,12 @@ public class AuthStoreService(IFileSystem fileSystem) : IAuthStoreService
 
         store.Clients ??= [];
 
-        return store;
+        var client = store.Clients.FirstOrDefault(c =>
+            c.ClientId == clientId && c.ClientSecret == clientSecret && c.Enabled
+        );
+
+        return client is null
+            ? Result<AuthClient>.Fail("Unauthorized")
+            : Result<AuthClient>.Ok(client);
     }
 }

@@ -15,7 +15,7 @@ public class AuthStoreServiceTests
     }
 
     [Fact]
-    public async Task GetAuthStore_ShouldReturnAuthStoreWithPopulatedFields_WhenFileIsValid()
+    public async Task GetAuthClient_ShouldReturnClient_WhenIdAndSecretMatch()
     {
         // Arrange
         var realFilePath = Path.Combine(AppContext.BaseDirectory, "Data", "auth-clients.json");
@@ -23,17 +23,9 @@ public class AuthStoreServiceTests
         _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
 
         // Act
-        var authStore = await _sut.GetAuthStore();
+        var result = await _sut.GetClientByCredentials("LOCAL-AUTHORITY-01", "SUIProject");
 
         // Assert
-        Assert.NotNull(authStore);
-        Assert.Equal("https://sandbox.api.example.gov.uk/find-a-record/auth", authStore.Issuer);
-        Assert.Equal("find-a-record-api", authStore.Audience);
-        Assert.Equal(
-            "Wc8Kq1ZyR4hNfD0uVx3mS9JpA6eLrT2bG7wQvY5sCjP8kF1nH0tUoMzBiXaEdRl",
-            authStore.SigningKey
-        );
-        Assert.NotNull(authStore.Clients);
-        Assert.NotEmpty(authStore.Clients);
+        Assert.True(result.Success);
     }
 }

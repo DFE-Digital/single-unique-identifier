@@ -7,4 +7,9 @@
   <ItemGroup>
     <PackageReference Include="System.IO.Abstractions" Version="22.1.0" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Data\auth-clients.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

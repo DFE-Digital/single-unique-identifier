@@ -6,6 +6,8 @@ using NSubstitute;
 using SUI.Find.FindApi.Functions.HttpTriggers;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.UnitTests.Mocks;
+using SUI.Find.Infrastructure.Models;
+using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
@@ -13,11 +15,12 @@ public class AuthTokenFunctionTests
 {
     private readonly AuthTokenFunction _sut;
     private readonly FunctionContext _context = Substitute.For<FunctionContext>();
+    private readonly IAuthStoreService _authStoreService = Substitute.For<IAuthStoreService>();
 
     public AuthTokenFunctionTests()
     {
         var logger = Substitute.For<ILogger<AuthTokenFunction>>();
-        _sut = new AuthTokenFunction(logger);
+        _sut = new AuthTokenFunction(logger, _authStoreService);
     }
 
     [Fact]
@@ -65,6 +68,18 @@ public class AuthTokenFunctionTests
             "Authorization",
             "Basic " + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
         );
+        _authStoreService
+            .GetClientByCredentials("valid_client_id", "valid_client_secret")
+            .Returns(
+                Result<AuthClient>.Ok(
+                    new AuthClient
+                    {
+                        ClientId = "valid_client_id",
+                        ClientSecret = "valid_client_secret",
+                        Enabled = true,
+                    }
+                )
+            );
 
         // Act
         var result = await _sut.AuthToken(httpRequestData, _context);
