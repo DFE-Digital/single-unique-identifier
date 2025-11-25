@@ -17,6 +17,13 @@ builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
 // Custom application services
-builder.Services.AddSingleton<IAuthStoreService, AuthStoreService>();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<IAuthStoreService, FileAuthStoreService>();
+}
+else
+{
+    builder.Services.AddSingleton<IAuthStoreService, SecureAuthStoreService>();
+}
 
 await builder.Build().RunAsync();

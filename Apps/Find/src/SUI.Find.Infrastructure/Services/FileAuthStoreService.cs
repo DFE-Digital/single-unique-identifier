@@ -9,7 +9,7 @@ public interface IAuthStoreService
     Task<Result<AuthClient>> GetClientByCredentials(string clientId, string clientSecret);
 }
 
-public class AuthStoreService(IFileSystem fileSystem) : IAuthStoreService
+public class FileAuthStoreService(IFileSystem fileSystem) : IAuthStoreService
 {
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {

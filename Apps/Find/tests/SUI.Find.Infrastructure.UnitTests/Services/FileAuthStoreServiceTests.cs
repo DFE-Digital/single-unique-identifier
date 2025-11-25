@@ -4,14 +4,14 @@ using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
 
-public class AuthStoreServiceTests
+public class FileAuthStoreServiceTests
 {
-    private readonly AuthStoreService _sut;
+    private readonly FileAuthStoreService _sut;
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
 
-    public AuthStoreServiceTests()
+    public FileAuthStoreServiceTests()
     {
-        _sut = new AuthStoreService(_mockFileSystem);
+        _sut = new FileAuthStoreService(_mockFileSystem);
     }
 
     [Fact]
