@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src\SUI.Find.FindApi\SUI.Find.FindApi.csproj" />
+    <Project Path="src\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests\SUI.Find.FindApi.IntegrationTests\SUI.Find.FindApi.IntegrationTests.csproj" />
