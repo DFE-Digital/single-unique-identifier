@@ -5,47 +5,62 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Ensure script runs from the folder the script is in
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
+Push-Location $ScriptRoot
+
+Write-Host "Running script from: $ScriptRoot"
+Write-Host "Using solution path: $SolutionPath"
+
 # Determine solution folder and file name
 $solutionDir = Split-Path $SolutionPath -Parent
 $solutionFileName = Split-Path $SolutionPath -Leaf
 
-# Change to solution folder to ensure dotnet commands work
+# Switch to solution folder so dotnet commands work correctly
 Push-Location $solutionDir
 
 # Directories for coverage reports
-$resultsDir = "./coverage"
+$resultsDir = "$ScriptRoot/coverage"
 $finalReportDir = "$resultsDir/coveragereport"
 
-# Clean old coverage folder
+# Remove old coverage folder
 if (Test-Path $resultsDir) {
     Remove-Item -Recurse -Force $resultsDir
 }
 
-# Remove all TestResults folders to avoid stale results
+# Remove all TestResults folders
 Get-ChildItem -Path . -Recurse -Directory -Filter "TestResults" | ForEach-Object {
     Remove-Item $_.FullName -Recurse -Force
 }
 
-# Clean & build solution
+# Build solution
 dotnet clean
 dotnet build --no-incremental
 
-# Use runsettings in the current folder (fixes doubled path issue)
+# Run tests
 $runSettingsFile = "tests.runsettings"
 
-# Run tests with XPlat Code Coverage
-dotnet test $solutionFileName --no-build --verbosity minimal --collect:"XPlat Code Coverage" --settings $runSettingsFile
+dotnet test $solutionFileName `
+    --no-build `
+    --verbosity minimal `
+    --collect:"XPlat Code Coverage" `
+    --settings $runSettingsFile
 
-# Restore and run local reportgenerator tool
+# Generate coverage report
 dotnet tool restore
-dotnet tool run reportgenerator -reports:"**/TestResults/*/coverage.cobertura.xml" -targetdir:$finalReportDir -reporttypes:SonarQube,html
 
-# Open HTML report in default browser if it exists
+dotnet tool run reportgenerator `
+    -reports:"**/TestResults/*/coverage.cobertura.xml" `
+    -targetdir:$finalReportDir `
+    -reporttypes:SonarQube,html
+
+# Open HTML report
 if (Test-Path "$finalReportDir/index.html") {
     open "$finalReportDir/index.html"
 } else {
     Write-Warning "Coverage report not generated. Check test run for errors."
 }
 
-# Return to original directory
-Pop-Location
+# Cleanup
+Pop-Location # back to solution folder
+Pop-Location # back to original directory
