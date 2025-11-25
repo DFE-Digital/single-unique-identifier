@@ -31,7 +31,7 @@ public class SignIn(ILogger<SignIn> logger, IValidator<SignIn> validator) : Page
         }
 
         // TODO: Do real authentication handling
-        if (Username != "user" && Password != "pass")
+        if (Username != "user" || Password != "pass")
         {
             ModelState.AddModelError("Username", "Your username or password is incorrect");
             ModelState.AddModelError("Password", "Your username or password is incorrect");

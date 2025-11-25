@@ -9,9 +9,9 @@
 			<DataCollector friendlyName="XPlat code coverage">
 				<Configuration>
 					<Format>cobertura,opencover</Format>
-					<Exclude>[*.UnitTests?]*</Exclude>
+					<Exclude>[*.Tests?]*</Exclude>
 					<!-- [Assembly-Filter]Type-Filter -->
-					<ExcludeByFile>**/**/Program.cs,**/**/*.cshtml</ExcludeByFile>
+					<ExcludeByFile>**/**/Program.cs</ExcludeByFile>
 					<!-- Globbing filter -->
 					<SkipAutoProps>true</SkipAutoProps>
 				</Configuration>
