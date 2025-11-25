@@ -56,7 +56,7 @@ dotnet tool run reportgenerator `
 
 # Open HTML report
 if (Test-Path "$finalReportDir/index.html") {
-    open "$finalReportDir/index.html"
+    Invoke-Item -Path "$finalReportDir/index.html"
 } else {
     Write-Warning "Coverage report not generated. Check test run for errors."
 }
