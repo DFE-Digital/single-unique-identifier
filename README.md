@@ -51,3 +51,21 @@ Each solution is structured according to Clean Architecture principles
 - Application - Application logic
 - Infrastructure - External concerns (e.g. database, third party API calls)
 - Presentation/API - UI, API/Endpoints
+
+## Run tests and collect coverage locally
+
+You can run tests and generate coverage reports from anywhere within the repository by following the steps below. 
+All required tools (PowerShell 7.5.4, ReportGenerator, etc.) are installed as local .NET tools.
+
+1. Restore local tools (This installs PowerShell and all other required tools locally.)
+```
+dotnet tool restore
+```
+
+2. Run the test & coverage scripts (You can run the wrapper script for each solution i.e: `dotnet pwsh <relative path to the solution scoped script>`)
+```
+dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
+dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
+dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
+```
+
