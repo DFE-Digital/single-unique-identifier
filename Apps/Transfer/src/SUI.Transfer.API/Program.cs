@@ -3,14 +3,19 @@ using System.Text.Json.Serialization;
 using DotNetEnv;
 using Microsoft.AspNetCore.Http.Json;
 using SUI.Transfer.API.Endpoint;
+using SUI.Transfer.API.OpenApiTransformers;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Infrastructure.Authentication;
+using AuthenticationOptions = SUI.Transfer.Infrastructure.Authentication.AuthenticationOptions;
 
 Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<AuthenticationTransformer>();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddProblemDetails();
 builder.Services.AddHttpContextAccessor();
