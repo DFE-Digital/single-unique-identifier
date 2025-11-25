@@ -60,3 +60,7 @@ nunit-*.xml
 .vscode
 .env
 coverage/
+
+
+node_modules/
+.vs/

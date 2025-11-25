@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "SUI + Custodians",
+    "Projects": [
+      {
+        "Path": "SUI.Find.Functions\\SUI.Find.Functions.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SUI.Custodian_Simulation\\SUI.CustodianSimulation.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

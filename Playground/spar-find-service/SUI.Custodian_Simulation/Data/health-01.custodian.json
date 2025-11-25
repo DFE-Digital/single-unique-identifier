@@ -1,0 +1,24 @@
+{
+  "orgId": "HEALTH-01",
+  "orgName": "Example Health Custodian",
+  "orgType": "HEALTH",
+  "records": [
+    {
+      "recordId": "MHR-1234-X",
+      "personId": "QFT--Qs2Wh1mVRz_69tvUQ",
+      "recordType": "health.mental-health",
+      "dataType": "health.mental-health.summary.v1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/health.mental-health.summary.v1.json",
+      "payload": {
+        "episodeId": "MH-771234",
+        "service": "CAMHS",
+        "startDate": "2024-11-03",
+        "status": "active",
+        "riskFlags": [
+          "self-harm-history"
+        ],
+        "lastContactDate": "2025-10-21"
+      }
+    }
+  ]
+}

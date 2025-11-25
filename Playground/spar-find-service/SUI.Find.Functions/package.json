@@ -1,0 +1,14 @@
+{
+  "name": "spar-find-service-2111",
+  "version": "1.0.0",
+  "description": "SUI.Find.Functions",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  }
+}

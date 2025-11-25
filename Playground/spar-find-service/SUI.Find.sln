@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SUI.Find.Functions", "SUI.Find.Functions\SUI.Find.Functions.csproj", "{BBDEC764-B76E-4864-8417-FEBDD4C7C93B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SUI.CustodianSimulation", "SUI.Custodian_Simulation\SUI.CustodianSimulation.csproj", "{BABA3D55-B234-48EE-A513-D3E29CD669B5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BBDEC764-B76E-4864-8417-FEBDD4C7C93B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBDEC764-B76E-4864-8417-FEBDD4C7C93B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBDEC764-B76E-4864-8417-FEBDD4C7C93B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBDEC764-B76E-4864-8417-FEBDD4C7C93B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BABA3D55-B234-48EE-A513-D3E29CD669B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BABA3D55-B234-48EE-A513-D3E29CD669B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BABA3D55-B234-48EE-A513-D3E29CD669B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BABA3D55-B234-48EE-A513-D3E29CD669B5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
