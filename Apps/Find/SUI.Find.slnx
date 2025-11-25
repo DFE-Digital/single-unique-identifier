@@ -6,5 +6,6 @@
   <Folder Name="/tests/">
     <Project Path="tests\SUI.Find.FindApi.IntegrationTests\SUI.Find.FindApi.IntegrationTests.csproj" />
     <Project Path="tests\SUI.Find.FindApi.UnitTests\SUI.Find.FindApi.UnitTests.csproj" />
+    <Project Path="tests\SUI.Find.Infrastructure.UnitTests\SUI.Find.Infrastructure.UnitTests.csproj" Type="Classic C#" />
   </Folder>
 </Solution>
