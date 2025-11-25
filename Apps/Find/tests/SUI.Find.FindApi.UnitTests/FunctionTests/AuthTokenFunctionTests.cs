@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SUI.Find.Domain.Models;
 using SUI.Find.FindApi.Functions.HttpTriggers;
 using SUI.Find.FindApi.Models;
@@ -169,5 +170,32 @@ public class AuthTokenFunctionTests
         var responseData = await JsonSerializer.DeserializeAsync<AuthTokenResponse>(result.Body);
         Assert.NotNull(responseData);
         Assert.Equal("mocked_jwt_token", responseData?.AccessToken);
+    }
+
+    [Fact]
+    public async Task ShouldThrowException_WhenFileIsNotFound()
+    {
+        // Arrange
+        var httpRequestData = MockHttpRequestData.CreateFormData(
+            new Dictionary<string, string>
+            {
+                { "grant_type", "client_credentials" },
+                { "scopes", "file.read" },
+            }
+        );
+        httpRequestData.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+        httpRequestData.Headers.Add(
+            "Authorization",
+            "Basic " + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
+        );
+        _authStoreService
+            .GetClientByCredentials("valid_client_id", "valid_client_secret")
+            .Throws(new InvalidOperationException("Auth store file not found at: some/path"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await _sut.AuthToken(httpRequestData, _context);
+        });
     }
 }
