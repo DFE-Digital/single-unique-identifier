@@ -1,5 +1,6 @@
 using System.IO.Abstractions;
 using System.Text.Json;
+using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.Infrastructure.Services;

@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUI.Find.Domain.Models;
 using SUI.Find.FindApi.Functions.HttpTriggers;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Models.Auth;

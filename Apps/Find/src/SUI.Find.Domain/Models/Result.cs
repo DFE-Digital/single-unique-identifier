@@ -1,4 +1,4 @@
-namespace SUI.Find.Infrastructure.Models;
+namespace SUI.Find.Domain.Models;
 
 public class Result<T>
     where T : class

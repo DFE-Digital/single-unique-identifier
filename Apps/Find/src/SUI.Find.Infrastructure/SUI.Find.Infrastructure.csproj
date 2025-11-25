@@ -13,4 +13,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SUI.Find.Domain\SUI.Find.Domain.csproj" />
+  </ItemGroup>
 </Project>
