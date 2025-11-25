@@ -37,6 +37,44 @@ public class SignInTests : PageModelTestBase<SignIn>
     }
 
     [Fact]
+    public async Task OnPost_ReturnsError_WhenUsernameIsCorrectButPasswordIsWrong()
+    {
+        var sut = new SignIn(MockLogger, _validator) { Username = "user", Password = "wrong" };
+
+        // Act
+        var result = await sut.OnPostAsync();
+
+        // Assert
+        result.ShouldBeOfType<PageResult>();
+        sut.ModelState.IsValid.ShouldBeFalse();
+        sut.ModelState[nameof(SignIn.Username)]!.Errors.ShouldContain(x =>
+            x.ErrorMessage == "Your username or password is incorrect"
+        );
+        sut.ModelState[nameof(SignIn.Password)]!.Errors.ShouldContain(x =>
+            x.ErrorMessage == "Your username or password is incorrect"
+        );
+    }
+
+    [Fact]
+    public async Task OnPost_ReturnsError_WhenPasswordIsCorrectButUsernameIsWrong()
+    {
+        var sut = new SignIn(MockLogger, _validator) { Username = "wrong", Password = "pass" };
+
+        // Act
+        var result = await sut.OnPostAsync();
+
+        // Assert
+        result.ShouldBeOfType<PageResult>();
+        sut.ModelState.IsValid.ShouldBeFalse();
+        sut.ModelState[nameof(SignIn.Username)]!.Errors.ShouldContain(x =>
+            x.ErrorMessage == "Your username or password is incorrect"
+        );
+        sut.ModelState[nameof(SignIn.Password)]!.Errors.ShouldContain(x =>
+            x.ErrorMessage == "Your username or password is incorrect"
+        );
+    }
+
+    [Fact]
     public async Task OnPost_ReturnsErrorOnEmptyInput()
     {
         var sut = new SignIn(MockLogger, _validator);
