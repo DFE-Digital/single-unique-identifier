@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi.Models;
@@ -5,10 +6,13 @@ using AuthenticationOptions = SUI.Transfer.Infrastructure.Authentication.Authent
 
 namespace SUI.Transfer.API.OpenApiTransformers;
 
+[ExcludeFromCodeCoverage]
 internal sealed class AuthenticationTransformer(
     IAuthenticationSchemeProvider authenticationSchemeProvider
 ) : IOpenApiDocumentTransformer
 {
+    private readonly string _headerName = "x-api-key";
+
     public async Task TransformAsync(
         OpenApiDocument document,
         OpenApiDocumentTransformerContext context,
@@ -24,13 +28,13 @@ internal sealed class AuthenticationTransformer(
         {
             var securitySchemes = new Dictionary<string, OpenApiSecurityScheme>
             {
-                ["x-api-key"] = new()
+                [_headerName] = new()
                 {
                     Type = SecuritySchemeType.ApiKey,
-                    Scheme = "x-api-key",
+                    Scheme = _headerName,
                     In = ParameterLocation.Header,
                     BearerFormat = "String Token",
-                    Name = "x-api-key",
+                    Name = _headerName,
                 },
             };
             document.Components ??= new OpenApiComponents();
@@ -48,7 +52,7 @@ internal sealed class AuthenticationTransformer(
                                 Reference = new OpenApiReference
                                 {
                                     Type = ReferenceType.SecurityScheme,
-                                    Id = "x-api-key",
+                                    Id = _headerName,
                                 },
                             }
                         ] = [],
