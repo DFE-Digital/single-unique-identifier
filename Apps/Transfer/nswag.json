@@ -3,7 +3,7 @@
   "defaultVariables": null,
   "documentGenerator": {
     "fromDocument": {
-      "url": "./src/SUI.Transfer.Api.Client/SUI.Transfer.Api.json",
+      "url": "./src/SUI.Transfer.API.Client/SUI.Transfer.API.json",
       "output": null,
       "newLineBehaviour": "Auto"
     }
