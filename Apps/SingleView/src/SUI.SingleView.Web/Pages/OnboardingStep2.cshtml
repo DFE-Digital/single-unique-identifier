@@ -22,25 +22,5 @@
 </ul>
 <p class="govuk-body">We put small files known as cookies on your device. These are used to make your Safeguarding
     account work and improve your experience. You can manage your cookies to opt out of using some of them.</p>
-<form method="post">
-    <govuk-checkboxes for="SelectedOptions">
-        <govuk-checkboxes-fieldset>
-            <govuk-checkboxes-fieldset-legend></govuk-checkboxes-fieldset-legend>
-            @if (Model.ShowError)
-            {
-                <govuk-checkboxes-error-message>
-                    You must agree to the terms
-                </govuk-checkboxes-error-message>
-            }
-            <govuk-checkboxes-item value="terms">
-                I understand and accept the <a href="#">terms</a> and <a href="#">privacy policy</a>. I accept the use
-                of 'strictly necessary' cookies as detailed in the <a href="#">cookies policy</a>
-            </govuk-checkboxes-item>
-            <govuk-checkboxes-item value="analytics">
-                I accept the use of optimal analytic cookies used to improve performance.
-            </govuk-checkboxes-item>
-        </govuk-checkboxes-fieldset>
-    </govuk-checkboxes>
 
-    <govuk-button type="submit">Continue</govuk-button>
-</form>
+<govuk-button-link asp-page="@nameof(Pages.SignIn)">Accept</govuk-button-link>
