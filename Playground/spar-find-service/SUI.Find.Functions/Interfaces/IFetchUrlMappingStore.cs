@@ -7,10 +7,14 @@ public interface IFetchUrlMappingStore
     Task<MaskedUrl> CreateAsync(
         string jobId,
         string targetUrl,
-        string orgId,
+        string targetOrg,
+        string requestingOrg,
         string recordType,
         TimeSpan ttl,
         CancellationToken ct);
 
-    Task<string?> ResolveAsync(string jobId, string fetchId, CancellationToken ct);
+    Task<ResolvedFetchMapping?> ResolveAsync(
+        string requestingOrg, 
+        string fetchId,
+        CancellationToken ct);
 }

@@ -1,6 +1,10 @@
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using Interfaces;
 using Microsoft.DurableTask.Client;
 using Models;
+using SUI.Find.Functions.Interfaces;
 
 namespace Services;
 
@@ -9,7 +13,11 @@ public sealed class FindOrchestrationService(
     IPepService pep,
     IPersonMatchService personMatch,
     IPersonIdEncryptionService crypto,
-    ICallerEncryptionResolver encryptionResolver)
+    ICallerEncryptionResolver encryptionResolver,
+    IFetchUrlMappingStore fetchUrlMappingStore,
+    ICustodianRegistry custodianRegistry,
+    IOutboundAuthTokenService outboundAuthTokenService,
+    IHttpClientFactory httpClientFactory)
     : IFindOrchestrationService
 {
     private readonly ICoreFindService _core = core;
@@ -17,6 +25,10 @@ public sealed class FindOrchestrationService(
     private readonly IPersonMatchService _personMatch = personMatch;
     private readonly IPersonIdEncryptionService _crypto = crypto;
     private readonly ICallerEncryptionResolver _encryptionResolver = encryptionResolver;
+    private readonly IFetchUrlMappingStore _fetchUrlMappings = fetchUrlMappingStore;
+    private readonly ICustodianRegistry _custodianRegistry = custodianRegistry;
+    private readonly IOutboundAuthTokenService _outboundAuth = outboundAuthTokenService;
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
 
     public async Task<PersonMatch> MatchPersonAsync(AuthContext caller, FindPersonRequest request, CancellationToken ct)
     {
@@ -75,8 +87,7 @@ public sealed class FindOrchestrationService(
             Status: status,
             CreatedAt: now,
             LastUpdatedAt: null,
-            _Links: BuildJobLinks(jobId, status)
-        );
+            _Links: BuildJobLinks(jobId, status));
     }
 
     public async Task<SearchJob> GetStatusAsync(DurableTaskClient durableClient, AuthContext caller, string jobId, CancellationToken ct)
@@ -89,8 +100,7 @@ public sealed class FindOrchestrationService(
             Status: status,
             CreatedAt: created.ToString("O"),
             LastUpdatedAt: updated.ToString("O"),
-            _Links: BuildJobLinks(jobId, status)
-        );
+            _Links: BuildJobLinks(jobId, status));
     }
 
     public async Task<SearchResults> GetResultsAsync(DurableTaskClient durableClient, AuthContext caller, string jobId, CancellationToken ct)
@@ -112,8 +122,7 @@ public sealed class FindOrchestrationService(
             PersonId: searchMetadata.PersonId,
             Status: status,
             Items: filtered,
-            _Links: BuildResultsLinks(jobId)
-        );
+            _Links: BuildResultsLinks(jobId));
     }
 
     public async Task<SearchJob> CancelAsync(DurableTaskClient durableClient, AuthContext caller, string jobId, CancellationToken ct)
@@ -135,8 +144,61 @@ public sealed class FindOrchestrationService(
             Status: status,
             CreatedAt: created.ToString("O"),
             LastUpdatedAt: updated.ToString("O"),
-            _Links: BuildJobLinks(jobId, status)
-        );
+            _Links: BuildJobLinks(jobId, status));
+    }
+
+    public async Task<string> FetchRecordAsync(AuthContext caller, string fetchId, CancellationToken ct)
+    {
+        var mapping = await _fetchUrlMappings.ResolveAsync(caller.ClientId, fetchId, ct);
+
+        if (mapping is null)
+        {
+            throw new KeyNotFoundException("Record not found or link has expired.");
+        }
+
+        var provider = _custodianRegistry.GetCustodian(mapping.TargetOrgId);
+
+        var auth = provider.Connection.Auth;
+        string? bearer = null;
+
+        if (auth is not null)
+        {
+            bearer = await _outboundAuth.GetAccessTokenAsync(auth, ct);
+        }
+
+        var client = _httpClientFactory.CreateClient("providers");
+
+        using var upstreamRequest = new HttpRequestMessage(HttpMethod.Get, mapping.TargetUrl);
+
+        if (!string.IsNullOrWhiteSpace(bearer))
+        {
+            upstreamRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearer);
+        }
+
+        HttpResponseMessage upstreamResponse;
+
+        try
+        {
+            upstreamResponse = await client.SendAsync(upstreamRequest, ct);
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new InvalidOperationException("The custodian system could not be reached.", ex);
+        }
+
+        if (upstreamResponse.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw new KeyNotFoundException("The custodian reports that this record does not exist.");
+        }
+
+        if (!upstreamResponse.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException(
+                $"The custodian returned an unexpected status code: {(int)upstreamResponse.StatusCode}.");
+        }
+
+        var payload = await upstreamResponse.Content.ReadAsStringAsync(ct);
+        return payload;
     }
 
     private static SearchJobLinks BuildJobLinks(string jobId, SearchStatus status)
@@ -157,16 +219,14 @@ public sealed class FindOrchestrationService(
             Self: self,
             Status: statusLink,
             Results: resultsLink,
-            Cancel: cancelLink
-        );
+            Cancel: cancelLink);
     }
 
     private static SearchResultsLinks BuildResultsLinks(string jobId)
     {
         return new SearchResultsLinks(
             Self: new HalLink($"/v1/searches/{jobId}/results", "GET"),
-            Job: new HalLink($"/v1/searches/{jobId}", "GET")
-        );
+            Job: new HalLink($"/v1/searches/{jobId}", "GET"));
     }
 
     private static bool CanCancel(SearchStatus status)
@@ -178,7 +238,6 @@ public sealed class FindOrchestrationService(
     {
         return new PolicyContext(
             ClientId: caller.ClientId,
-            Scopes: caller.Scopes
-        );
+            Scopes: caller.Scopes);
     }
 }

@@ -73,6 +73,13 @@ public sealed class CustodianRegistryService : ICustodianRegistry
         return providers;
     }
 
+    public ProviderDefinition GetCustodian(string orgId)
+    {
+        return this.GetCustodians()
+            .FirstOrDefault(p => string.Equals(p.OrgId, orgId, StringComparison.OrdinalIgnoreCase))
+            ?? throw new KeyNotFoundException($"Custodian with OrgId '{orgId}' not found.");        
+    }
+
     private sealed class OrgDirectory
     {
         [JsonPropertyName("organisations")]

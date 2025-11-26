@@ -16,7 +16,8 @@ public sealed class FetchUrlMappingStore : IFetchUrlMappingStore
     public async Task<MaskedUrl> CreateAsync(
         string jobId,
         string targetUrl,
-        string orgId,
+        string targetOrg,
+        string requestingOrg, 
         string recordType,
         TimeSpan ttl,
         CancellationToken ct)
@@ -26,33 +27,55 @@ public sealed class FetchUrlMappingStore : IFetchUrlMappingStore
         var fetchId = Guid.NewGuid().ToString("N");
         var expiresAt = DateTimeOffset.UtcNow.Add(ttl);
 
+        // Simple partitioning: first 2 chars of fetchId
+        var partitionKey = fetchId[..2];
+
         var entity = new FetchUrlMappingEntity
         {
-            PartitionKey = jobId,
+            PartitionKey = partitionKey,
             RowKey = fetchId,
             TargetUrl = targetUrl,
             ExpiresAtUtc = expiresAt,
-            OrgId = orgId,
-            RecordType = recordType
+            TargetOrgId = targetOrg,
+            RequestingOrgId = requestingOrg,
+            RecordType = recordType,
+            JobId = jobId
         };
 
         await _table.AddEntityAsync(entity, ct);
 
-        var maskedUrl = $"/v1/fetch/{fetchId}";
+        var maskedUrl = $"/v1/records/{fetchId}";
 
         return new MaskedUrl(fetchId, maskedUrl, expiresAt);
     }
 
-    public async Task<string?> ResolveAsync(string jobId, string fetchId, CancellationToken ct)
-    {
+    public async Task<ResolvedFetchMapping?> ResolveAsync(string requestingOrg, string fetchId,CancellationToken ct)
+    { 
         try
         {
-            var res = await _table.GetEntityAsync<FetchUrlMappingEntity>(jobId, fetchId, cancellationToken: ct);
+            var partitionKey = fetchId[..2];
 
+            var res = await _table.GetEntityAsync<FetchUrlMappingEntity>(
+                partitionKey,
+                fetchId,
+                cancellationToken: ct);
+
+            // Make sure the url is still valie
             if (res.Value.ExpiresAtUtc <= DateTimeOffset.UtcNow)
+            {
                 return null;
+            }
 
-            return res.Value.TargetUrl;
+            // Only the organisation that triggered the creation of the url can use it
+            if (res.Value.RequestingOrgId != requestingOrg)
+            {
+                return null;
+            }
+
+            return new ResolvedFetchMapping(
+                TargetUrl: res.Value.TargetUrl,
+                TargetOrgId: res.Value.TargetOrgId,
+                RecordType: res.Value.RecordType);  
         }
         catch
         {

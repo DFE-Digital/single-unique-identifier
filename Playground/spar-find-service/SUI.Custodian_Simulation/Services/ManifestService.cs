@@ -38,14 +38,13 @@ internal static class ManifestService
 
         var baseUrl = GetBaseUrl(req);
 
-
         var items = records
             .Select(r => new SearchResultItem(
                 orgId,
                 orgId,
                 r.RecordType,
-                RecordUrl: BuildRecordUrl(orgId,  r.RecordType, r.RecordId)
-             ))
+                RecordUrl: BuildRecordUrl(baseUrl, orgId, r.RecordType, r.RecordId)
+            ))
             .ToList();
 
         var res = req.CreateResponse(HttpStatusCode.OK);
@@ -59,16 +58,22 @@ internal static class ManifestService
         return query[name];
     }
 
-    internal static string BuildRecordUrl(string orgId, string recordType, string recordId)
+    internal static string BuildRecordUrl(string baseUrl, string orgId, string recordType, string recordId)
     {
         return orgId.ToUpperInvariant() switch
         {
-            "LOCAL-AUTHORITY-01" => $"/v1/local-authority/records/{Uri.EscapeDataString(recordId)}?recordType={Uri.EscapeDataString(recordType)}",
-            "EDUCATION-01" => $"/v1/education/records/{Uri.EscapeDataString(recordId)}",
-            "HEALTH-01" => $"/v1/health/children/records/{Uri.EscapeDataString(recordId)}?type={Uri.EscapeDataString(recordType)}",
-            "POLICE-01" => $"/v1/police/records/{Uri.EscapeDataString(recordId)}",
-            "HOUSING-01" => $"/v1/housing/records/{Uri.EscapeDataString(recordType)}/{Uri.EscapeDataString(recordId)}",
-            _ => $"/v1/{orgId.ToLowerInvariant()}/records/{Uri.EscapeDataString(recordId)}"
+            "LOCAL-AUTHORITY-01" =>
+                $"{baseUrl}/v1/local-authority/records/{Uri.EscapeDataString(recordId)}?recordType={Uri.EscapeDataString(recordType)}",
+            "EDUCATION-01" =>
+                $"{baseUrl}/v1/education/records/{Uri.EscapeDataString(recordId)}",
+            "HEALTH-01" =>
+                $"{baseUrl}/v1/health/children/records/{Uri.EscapeDataString(recordId)}?type={Uri.EscapeDataString(recordType)}",
+            "POLICE-01" =>
+                $"{baseUrl}/v1/police/records/{Uri.EscapeDataString(recordId)}",
+            "HOUSING-01" =>
+                $"{baseUrl}/v1/housing/records/{Uri.EscapeDataString(recordType)}/{Uri.EscapeDataString(recordId)}",
+            _ =>
+                $"{baseUrl}/v1/{orgId.ToLowerInvariant()}/records/{Uri.EscapeDataString(recordId)}"
         };
     }
 

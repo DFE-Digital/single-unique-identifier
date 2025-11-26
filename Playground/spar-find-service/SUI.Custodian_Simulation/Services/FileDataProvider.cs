@@ -3,12 +3,20 @@ using Interfaces;
 
 namespace Functions;
 
-public sealed class FileDataProvider(IRandomDelayService thottler) : IDataProvider
+public sealed class FileDataProvider : IDataProvider
 {
     private readonly Dictionary<string, CustodianConfig> _cache = new(StringComparer.OrdinalIgnoreCase);
-    private readonly IRandomDelayService _thottler = thottler;
+    private readonly IRandomDelayService _thottler;
 
-    public async Task<IReadOnlyList<CustodianRecord>> GetRecordsAsync(string orgId, string personId, CancellationToken cancellationToken)
+    public FileDataProvider(IRandomDelayService thottler)
+    {
+        _thottler = thottler;
+    }
+
+    public async Task<IReadOnlyList<CustodianRecord>> GetRecordsAsync(
+        string orgId,
+        string personId,
+        CancellationToken cancellationToken)
     {
         await _thottler.DelayAsync(cancellationToken);
 
@@ -19,7 +27,11 @@ public sealed class FileDataProvider(IRandomDelayService thottler) : IDataProvid
             .ToList();
     }
 
-    public async Task<IReadOnlyList<CustodianRecord>> GetRecordsAsync(string orgId, string recordType, string personId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<CustodianRecord>> GetRecordsAsync(
+        string orgId,
+        string recordType,
+        string personId,
+        CancellationToken cancellationToken)
     {
         await _thottler.DelayAsync(cancellationToken);
 
@@ -32,7 +44,22 @@ public sealed class FileDataProvider(IRandomDelayService thottler) : IDataProvid
             .ToList();
     }
 
-    private async Task<CustodianConfig> LoadAsync(string orgId, CancellationToken cancellationToken)
+    public async Task<CustodianRecord?> GetRecordByIdAsync(
+        string orgId,
+        string recordId,
+        CancellationToken cancellationToken)
+    {
+        await _thottler.DelayAsync(cancellationToken);
+
+        var cfg = await LoadAsync(orgId, cancellationToken);
+
+        return cfg.Records
+            .FirstOrDefault(r => string.Equals(r.RecordId, recordId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task<CustodianConfig> LoadAsync(
+        string orgId,
+        CancellationToken cancellationToken)
     {
         if (_cache.TryGetValue(orgId, out var cached))
         {
@@ -50,7 +77,8 @@ public sealed class FileDataProvider(IRandomDelayService thottler) : IDataProvid
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
             cancellationToken);
 
-        var materialised = cfg ?? throw new InvalidOperationException($"Custodian config '{fileName}' could not be deserialised.");
+        var materialised = cfg ?? throw new InvalidOperationException(
+            $"Custodian config '{fileName}' could not be deserialised.");
 
         _cache[orgId] = materialised;
         return materialised;

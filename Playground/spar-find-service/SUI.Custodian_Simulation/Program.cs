@@ -18,7 +18,7 @@ var host = new HostBuilder()
     {
         services.AddHttpClient();
         services.AddSingleton<IDataProvider, FileDataProvider>();
-        services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(1, 6));
+        services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(3, 10));
     })
     .Build();
 

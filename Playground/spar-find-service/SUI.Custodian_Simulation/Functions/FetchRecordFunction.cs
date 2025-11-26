@@ -29,19 +29,16 @@ public sealed class LocalAuthorityRecordFunction(IDataProvider store)
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/local-authority/records/{recordId}")]
         HttpRequestData req,
-        string personId,
         string recordId,
         FunctionContext context)
     {
         var recordType = ManifestService.GetQueryParam(req, "recordType");
 
-        var records = string.IsNullOrWhiteSpace(recordType)
-            ? await _store.GetRecordsAsync(OrgId, personId, context.CancellationToken)
-            : await _store.GetRecordsAsync(OrgId, recordType!, personId, context.CancellationToken);
+        var record = await _store.GetRecordByIdAsync(OrgId, recordId, context.CancellationToken);
 
-        var match = records.FirstOrDefault(r => string.Equals(r.RecordId, recordId, StringComparison.OrdinalIgnoreCase));
-
-        if (match is null)
+        if (record is null ||
+            (!string.IsNullOrWhiteSpace(recordType) &&
+             !string.Equals(record.RecordType, recordType, StringComparison.OrdinalIgnoreCase)))
         {
             var notFound = req.CreateResponse(HttpStatusCode.NotFound);
             await notFound.WriteAsJsonAsync(new Problem("about:blank", "Not found", 404, "Record not found.", null));
@@ -49,7 +46,7 @@ public sealed class LocalAuthorityRecordFunction(IDataProvider store)
         }
 
         var ok = req.CreateResponse(HttpStatusCode.OK);
-        await ok.WriteAsJsonAsync(match);
+        await ok.WriteAsJsonAsync(record);
         return ok;
     }
 }
@@ -73,15 +70,12 @@ public sealed class EducationRecordFunction(IDataProvider store)
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/education/records/{recordId}")]
         HttpRequestData req,
-        string personId,
         string recordId,
         FunctionContext context)
     {
-        var records = await _store.GetRecordsAsync(OrgId, personId, context.CancellationToken);
+        var record = await _store.GetRecordByIdAsync(OrgId, recordId, context.CancellationToken);
 
-        var match = records.FirstOrDefault(r => string.Equals(r.RecordId, recordId, StringComparison.OrdinalIgnoreCase));
-
-        if (match is null)
+        if (record is null)
         {
             var notFound = req.CreateResponse(HttpStatusCode.NotFound);
             await notFound.WriteAsJsonAsync(new Problem("about:blank", "Not found", 404, "Record not found.", null));
@@ -89,7 +83,7 @@ public sealed class EducationRecordFunction(IDataProvider store)
         }
 
         var ok = req.CreateResponse(HttpStatusCode.OK);
-        await ok.WriteAsJsonAsync(match);
+        await ok.WriteAsJsonAsync(record);
         return ok;
     }
 }
@@ -114,19 +108,16 @@ public sealed class HealthRecordFunction(IDataProvider store)
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/health/children/records/{recordId}")]
         HttpRequestData req,
-        string personId,
         string recordId,
         FunctionContext context)
     {
         var recordType = ManifestService.GetQueryParam(req, "type");
 
-        var records = string.IsNullOrWhiteSpace(recordType)
-            ? await _store.GetRecordsAsync(OrgId, personId, context.CancellationToken)
-            : await _store.GetRecordsAsync(OrgId, recordType!, personId, context.CancellationToken);
+        var record = await _store.GetRecordByIdAsync(OrgId, recordId, context.CancellationToken);
 
-        var match = records.FirstOrDefault(r => string.Equals(r.RecordId, recordId, StringComparison.OrdinalIgnoreCase));
-
-        if (match is null)
+        if (record is null ||
+            (!string.IsNullOrWhiteSpace(recordType) &&
+             !string.Equals(record.RecordType, recordType, StringComparison.OrdinalIgnoreCase)))
         {
             var notFound = req.CreateResponse(HttpStatusCode.NotFound);
             await notFound.WriteAsJsonAsync(new Problem("about:blank", "Not found", 404, "Record not found.", null));
@@ -134,7 +125,7 @@ public sealed class HealthRecordFunction(IDataProvider store)
         }
 
         var ok = req.CreateResponse(HttpStatusCode.OK);
-        await ok.WriteAsJsonAsync(match);
+        await ok.WriteAsJsonAsync(record);
         return ok;
     }
 }
@@ -158,15 +149,12 @@ public sealed class PoliceRecordFunction(IDataProvider store)
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/police/records/{recordId}")]
         HttpRequestData req,
-        string personId,
         string recordId,
         FunctionContext context)
     {
-        var records = await _store.GetRecordsAsync(OrgId, personId, context.CancellationToken);
+        var record = await _store.GetRecordByIdAsync(OrgId, recordId, context.CancellationToken);
 
-        var match = records.FirstOrDefault(r => string.Equals(r.RecordId, recordId, StringComparison.OrdinalIgnoreCase));
-
-        if (match is null)
+        if (record is null)
         {
             var notFound = req.CreateResponse(HttpStatusCode.NotFound);
             await notFound.WriteAsJsonAsync(new Problem("about:blank", "Not found", 404, "Record not found.", null));
@@ -174,7 +162,7 @@ public sealed class PoliceRecordFunction(IDataProvider store)
         }
 
         var ok = req.CreateResponse(HttpStatusCode.OK);
-        await ok.WriteAsJsonAsync(match);
+        await ok.WriteAsJsonAsync(record);
         return ok;
     }
 }
@@ -191,26 +179,23 @@ public sealed class HousingRecordFunction(IDataProvider store)
         tags: new[] { OrgId },
         Summary = "Get a specific housing record",
         Description = "GET endpoint; optional recordType path segment like the manifest.")]
-    [OpenApiParameter("recordId", In = ParameterLocation.Path, Required = true, Type = typeof(string))]
     [OpenApiParameter("recordType", In = ParameterLocation.Path, Required = false, Type = typeof(string))]
+    [OpenApiParameter("recordId", In = ParameterLocation.Path, Required = true, Type = typeof(string))]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(CustodianRecord))]
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/housing/records/{recordType?}/{recordId}")]
         HttpRequestData req,
-        string personId,
         string? recordType,
         string recordId,
         FunctionContext context)
     {
-        var records = string.IsNullOrWhiteSpace(recordType)
-            ? await _store.GetRecordsAsync(OrgId, personId, context.CancellationToken)
-            : await _store.GetRecordsAsync(OrgId, recordType!, personId, context.CancellationToken);
+        var record = await _store.GetRecordByIdAsync(OrgId, recordId, context.CancellationToken);
 
-        var match = records.FirstOrDefault(r => string.Equals(r.RecordId, recordId, StringComparison.OrdinalIgnoreCase));
-
-        if (match is null)
+        if (record is null ||
+            (!string.IsNullOrWhiteSpace(recordType) &&
+             !string.Equals(record.RecordType, recordType, StringComparison.OrdinalIgnoreCase)))
         {
             var notFound = req.CreateResponse(HttpStatusCode.NotFound);
             await notFound.WriteAsJsonAsync(new Problem("about:blank", "Not found", 404, "Record not found.", null));
@@ -218,7 +203,7 @@ public sealed class HousingRecordFunction(IDataProvider store)
         }
 
         var ok = req.CreateResponse(HttpStatusCode.OK);
-        await ok.WriteAsJsonAsync(match);
+        await ok.WriteAsJsonAsync(record);
         return ok;
     }
 }

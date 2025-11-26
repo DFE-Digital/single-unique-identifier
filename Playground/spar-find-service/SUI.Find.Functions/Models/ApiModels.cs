@@ -164,15 +164,17 @@ public sealed class FetchUrlMappingEntity : ITableEntity
     public string TargetUrl { get; set; } = string.Empty;
     public DateTimeOffset ExpiresAtUtc { get; set; }
 
-    public string OrgId { get; set; } = string.Empty;
+    public string TargetOrgId { get; set; } = string.Empty;
+    public string RequestingOrgId { get; set; } = string.Empty;
     public string RecordType { get; set; } = string.Empty;
-}
 
-public sealed class FetchUrlMaskingOptions
-{
-    public string TableName { get; init; } = "FetchUrlMappings";
-    public TimeSpan Ttl { get; init; } = TimeSpan.FromHours(1);
-    public string PublicFetchBasePath { get; init; } = "/v1/fetch";
+    public string JobId { get; set; } = string.Empty;
 }
 
 public sealed record MaskedUrl(string FetchId, string Url, DateTimeOffset ExpiresAtUtc);
+
+public sealed record ResolvedFetchMapping(
+    string TargetUrl,
+    string TargetOrgId,
+    string RecordType
+);

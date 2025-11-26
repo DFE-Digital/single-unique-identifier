@@ -33,7 +33,7 @@ public sealed class FindRecordsOrchestrator
         {
             tasks.Add(context.CallActivityAsync<IReadOnlyList<SearchResultItem>>(
                 "QueryProviderActivity",
-                new QueryProviderInput(jobId, sui, provider)));
+                new QueryProviderInput(policy.ClientId, jobId, sui, provider)));
         }
 
         var results = await Task.WhenAll(tasks);

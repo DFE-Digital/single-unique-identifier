@@ -2,26 +2,23 @@ using Interfaces;
 using Microsoft.Azure.Functions.Worker;
 using Models;
 using SUI.Find.Functions.Interfaces;
-using Services;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-public sealed record QueryProviderInput(string JobId, string Sui, ProviderDefinition Provider);
+public sealed record QueryProviderInput(string RequestingOrg, string JobId, string Sui, ProviderDefinition Provider);
 
 public sealed class QueryProviderActivity(
     IHttpClientFactory httpClientFactory,
     IPersonIdEncryptionService crypto,
     IOutboundAuthTokenService tokenService,
-    IFetchUrlMappingStore mappingStore)
+    IFetchUrlMappingStore fetchUrlMappingStore)
 {
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly IPersonIdEncryptionService _crypto = crypto;
     private readonly IOutboundAuthTokenService _tokenService = tokenService;
-    private readonly IFetchUrlMappingStore _mappingStore = mappingStore;
-
-    private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(30);
+    private readonly IFetchUrlMappingStore _fetchUrlMappingStore = fetchUrlMappingStore;
 
     [Function("QueryProviderActivity")]
     public async Task<IReadOnlyList<SearchResultItem>> Run(
@@ -63,36 +60,31 @@ public sealed class QueryProviderActivity(
 
             var items = JsonSerializer.Deserialize<List<SearchResultItem>>(
                 json,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<SearchResultItem>();
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            if (items.Count == 0)
+            if (items is null || items.Count == 0)
             {
-                return items;
+                return Array.Empty<SearchResultItem>();
             }
 
-            var maskedItems = new List<SearchResultItem>(items.Count);
+            var masked = new List<SearchResultItem>(items.Count);
 
             foreach (var item in items)
             {
-                var targetUrl = item.RecordUrl;
+                var mapping = await _fetchUrlMappingStore.CreateAsync(
+                    jobId: input.JobId,
+                    targetUrl: item.RecordUrl,
+                    targetOrg: provider.OrgId,
+                    requestingOrg: input.RequestingOrg,
+                    recordType: item.RecordType,
+                    ttl: TimeSpan.FromMinutes(10),
+                    ct: context.CancellationToken);
 
-                if (string.IsNullOrWhiteSpace(targetUrl))
-                {
-                    continue;
-                }
-
-                var masked = await _mappingStore.CreateAsync(
-                    input.JobId,
-                    targetUrl,
-                    provider.OrgId,
-                    provider.RecordType,
-                    DefaultTtl,
-                    context.CancellationToken);
-
-                maskedItems.Add(item with { RecordUrl = masked.Url });
+                var rewritten = item with { RecordUrl = mapping.Url };
+                masked.Add(rewritten);
             }
 
-            return maskedItems;
+            return masked;
         }
         catch
         {

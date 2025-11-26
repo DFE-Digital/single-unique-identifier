@@ -14,7 +14,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ],
+              "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
             }
@@ -29,7 +29,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ],
+              "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
             }
@@ -83,7 +83,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ]
+              "scopes": [ "find-record.read fetch-record.read" ]
             }
           }
         },
@@ -100,7 +100,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ]
+              "scopes": [ "find-record.read fetch-record.read" ]
             }
           }
         },
@@ -117,7 +117,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ]
+              "scopes": [ "find-record.read fetch-record.read" ]
             }
           }
         }
@@ -173,7 +173,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ],
+              "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
             }
@@ -188,7 +188,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ],
+              "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
             }
@@ -238,7 +238,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ],
+              "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
             }
@@ -299,7 +299,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ],
+              "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
             }
@@ -314,7 +314,7 @@
             "auth": {
               "type": "oauth2_client_credentials",
               "tokenUrl": "http://localhost:7072/v1/auth/token",
-              "scopes": [ "find-record.read" ],
+              "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
             }
