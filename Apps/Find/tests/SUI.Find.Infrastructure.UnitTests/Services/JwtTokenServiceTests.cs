@@ -5,7 +5,7 @@ using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
 
-public class JwtToekServiceTests
+public class JwtTokenServiceTests
 {
     [Fact]
     public async Task CreateToken_ReturnsTokenString()
