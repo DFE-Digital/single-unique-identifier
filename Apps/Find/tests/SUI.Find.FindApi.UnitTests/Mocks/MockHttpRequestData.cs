@@ -14,9 +14,48 @@ public abstract class MockHttpRequestData
     public static HttpRequestData Create(
         Dictionary<string, StringValues>? query = null,
         HttpHeadersCollection? headers = null
-    ) => Create<string>("", query, headers);
+    ) => CreateJson<string>("", query, headers);
 
-    public static HttpRequestData Create<T>(
+    public static HttpRequestData CreateFormData(
+        Dictionary<string, string> requestData,
+        Dictionary<string, StringValues>? query = null,
+        HttpHeadersCollection? headers = null
+    )
+    {
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddFunctionsWorkerDefaults();
+
+        var formData = new FormUrlEncodedContent(requestData);
+        var bodyDataStream = new MemoryStream();
+        formData.CopyToAsync(bodyDataStream).Wait();
+        bodyDataStream.Position = 0;
+
+        var context = Substitute.For<FunctionContext>();
+        context.InstanceServices.Returns(serviceCollection.BuildServiceProvider());
+
+        var queryCollection = new NameValueCollection();
+        if (query != null)
+        {
+            foreach (var key in query.Keys)
+            {
+                foreach (var value in query[key])
+                {
+                    queryCollection.Add(key, value);
+                }
+            }
+        }
+
+        var request = Substitute.For<HttpRequestData>(context);
+        request.Url.Returns(new Uri("http://localhost"));
+        request.Body.Returns(bodyDataStream);
+        request.Headers.Returns(headers ?? []);
+        request.Query.Returns(queryCollection);
+        request.CreateResponse().Returns(new MockHttpResponseData(context));
+
+        return request;
+    }
+
+    public static HttpRequestData CreateJson<T>(
         T requestData,
         Dictionary<string, StringValues>? query = null,
         HttpHeadersCollection? headers = null
