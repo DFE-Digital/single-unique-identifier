@@ -42,7 +42,7 @@ public class StartSearchRequestValidator
         return true;
     }
 
-    private static bool IsValidNhsNumberChecksum(string nhsNumber)
+    public static bool IsValidNhsNumberChecksum(string nhsNumber)
     {
         var sum = 0;
         for (var i = 0; i < 9; i++)

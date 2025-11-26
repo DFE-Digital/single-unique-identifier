@@ -1,0 +1,10 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "Functions:Worker:HostEndpoint": "http://localhost:7071",
+    "Audit:EncryptionKey": "<get a 32 bit encryption key and replace this>",
+    "Audit:IdKey": "DevAuditId"
+  }
+}
