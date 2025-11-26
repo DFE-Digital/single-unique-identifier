@@ -61,43 +61,6 @@ public class AuthTokenFunctionTests
     }
 
     [Fact]
-    public async Task ShouldReturnOkResponse_WhenValidClientCredentialsProvided()
-    {
-        // Arrange
-        var httpRequestData = MockHttpRequestData.CreateFormData(
-            new Dictionary<string, string>
-            {
-                { "grant_type", "client_credentials" },
-                { "scopes", "file.read" },
-            }
-        );
-        httpRequestData.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-        httpRequestData.Headers.Add(
-            "Authorization",
-            "Basic " + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
-        );
-        _authStoreService
-            .GetClientByCredentials("valid_client_id", "valid_client_secret")
-            .Returns(
-                Result<AuthClient>.Ok(
-                    new AuthClient
-                    {
-                        ClientId = "valid_client_id",
-                        ClientSecret = "valid_client_secret",
-                        Enabled = true,
-                        AllowedScopes = ["file.read", "file.write"],
-                    }
-                )
-            );
-
-        // Act
-        var result = await _sut.AuthToken(httpRequestData, _context);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-    }
-
-    [Fact]
     public async Task ShouldReturnProblemResponse_WhenInvalidContentTypeProvided()
     {
         // Arrange
@@ -130,14 +93,65 @@ public class AuthTokenFunctionTests
     }
 
     [Fact]
-    public async Task ShouldReturnJwtTokenInResponse_WhenValidClientCredentialsProvided()
+    public async Task ShouldReturnProblemResponse_WhenClientSecretIsMissing()
+    {
+        // Arrange
+        // Only clientId, no clientSecret
+        const string credentials = $"valid_client_id:";
+        var base64Credentials = Convert.ToBase64String(
+            System.Text.Encoding.UTF8.GetBytes(credentials)
+        );
+        var httpRequestData = MockHttpRequestData.CreateFormData(
+            new Dictionary<string, string> { { "grant_type", "client_credentials" } }
+        );
+        httpRequestData.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+        httpRequestData.Headers.Add("Authorization", $"Basic {base64Credentials}");
+
+        // Act
+        var result = await _sut.AuthToken(httpRequestData, _context);
+
+        // Assert
+        result.Body.Position = 0;
+        var responseData = await JsonSerializer.DeserializeAsync<Problem>(result.Body);
+        Assert.NotNull(responseData?.Title);
+    }
+
+    [Fact]
+    public async Task ShouldThrowException_WhenFileIsNotFound()
     {
         // Arrange
         var httpRequestData = MockHttpRequestData.CreateFormData(
             new Dictionary<string, string>
             {
                 { "grant_type", "client_credentials" },
-                { "scopes", "file.read" },
+                { "scope", "file.read" },
+            }
+        );
+        httpRequestData.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+        httpRequestData.Headers.Add(
+            "Authorization",
+            "Basic " + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
+        );
+        _authStoreService
+            .GetClientByCredentials("valid_client_id", "valid_client_secret")
+            .Throws(new InvalidOperationException("Auth store file not found at: some/path"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await _sut.AuthToken(httpRequestData, _context);
+        });
+    }
+
+    [Fact]
+    public async Task ShouldReturnProblem_WhenInvalidScopeProvided()
+    {
+        // Arrange
+        var httpRequestData = MockHttpRequestData.CreateFormData(
+            new Dictionary<string, string>
+            {
+                { "grant_type", "client_credentials" },
+                { "scope", "invalid.scope" },
             }
         );
         httpRequestData.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
@@ -167,20 +181,19 @@ public class AuthTokenFunctionTests
 
         // Assert
         result.Body.Position = 0;
-        var responseData = await JsonSerializer.DeserializeAsync<AuthTokenResponse>(result.Body);
-        Assert.NotNull(responseData);
-        Assert.Equal("mocked_jwt_token", responseData?.AccessToken);
+        var responseData = await JsonSerializer.DeserializeAsync<Problem>(result.Body);
+        Assert.NotNull(responseData?.Title);
     }
 
     [Fact]
-    public async Task ShouldThrowException_WhenFileIsNotFound()
+    public async Task ShouldReturnJwtTokenInResponse_WhenValidClientCredentialsProvided()
     {
         // Arrange
         var httpRequestData = MockHttpRequestData.CreateFormData(
             new Dictionary<string, string>
             {
                 { "grant_type", "client_credentials" },
-                { "scopes", "file.read" },
+                { "scope", "file.read" },
             }
         );
         httpRequestData.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
@@ -190,12 +203,29 @@ public class AuthTokenFunctionTests
         );
         _authStoreService
             .GetClientByCredentials("valid_client_id", "valid_client_secret")
-            .Throws(new InvalidOperationException("Auth store file not found at: some/path"));
+            .Returns(
+                Result<AuthClient>.Ok(
+                    new AuthClient
+                    {
+                        ClientId = "valid_client_id",
+                        ClientSecret = "valid_client_secret",
+                        Enabled = true,
+                        AllowedScopes = ["file.read", "file.write"],
+                    }
+                )
+            );
+        _jwtTokenService
+            .GenerateToken("valid_client_id", Arg.Any<IReadOnlyList<string>>())
+            .Returns("mocked_jwt_token");
 
-        // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            await _sut.AuthToken(httpRequestData, _context);
-        });
+        // Act
+        var result = await _sut.AuthToken(httpRequestData, _context);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        result.Body.Position = 0;
+        var responseData = await JsonSerializer.DeserializeAsync<AuthTokenResponse>(result.Body);
+        Assert.NotNull(responseData);
+        Assert.Equal("mocked_jwt_token", responseData?.AccessToken);
     }
 }

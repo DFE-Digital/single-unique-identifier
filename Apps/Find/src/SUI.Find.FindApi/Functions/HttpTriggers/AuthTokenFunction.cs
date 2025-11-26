@@ -38,6 +38,11 @@ public class AuthTokenFunction(
         FunctionContext context
     )
     {
+        // add logger scope with correlation id
+        using var logScope = logger.BeginScope(
+            "CorrelationId: {CorrelationId}",
+            context.InvocationId
+        );
         var authValidation = await ValidateAuthRequestAsync(req);
         if (!authValidation.isValid)
         {
@@ -49,8 +54,11 @@ public class AuthTokenFunction(
             );
         }
 
-        var client = await ValidateAuthClientCredentialsAsync(req, authValidation.authValue);
-        if (!client.IsValid)
+        var authClient = await ValidateAuthClientCredentialsAsync(
+            context,
+            authValidation.authValue
+        );
+        if (!authClient.IsValid)
         {
             return await HttpResponseUtility.ProblemResponse(
                 req,
@@ -60,9 +68,9 @@ public class AuthTokenFunction(
             );
         }
 
-        var scopes = await GetRequestScopesAsync(req);
-        var requestedScopes = NormaliseScopes(scopes);
-        var allowedScopes = NormaliseScopes(client.TokenRequest!.Scopes);
+        var queryScopes = await GetRequestScopeFromQuerysAsync(req);
+        var requestedScopes = NormaliseScopes(queryScopes);
+        var allowedScopes = NormaliseScopes(authClient.TokenRequest!.Scopes);
 
         IReadOnlyList<string> grantedScopes;
         if (requestedScopes.Count == 0)
@@ -89,7 +97,7 @@ public class AuthTokenFunction(
         }
 
         var token = await jwtTokenService.GenerateToken(
-            client.TokenRequest!.ClientId,
+            authClient.TokenRequest!.ClientId,
             grantedScopes
         );
 
@@ -105,7 +113,7 @@ public class AuthTokenFunction(
         return response;
     }
 
-    private static async Task<string[]> GetRequestScopesAsync(HttpRequestData requestData)
+    private static async Task<string[]> GetRequestScopeFromQuerysAsync(HttpRequestData requestData)
     {
         var formData = await requestData.ReadAsStringAsync();
         var parsed = QueryHelpers.ParseQuery(formData);
@@ -116,7 +124,7 @@ public class AuthTokenFunction(
         return scopes;
     }
 
-    private static async Task<(bool isValid, string authValue)> ValidateAuthRequestAsync(
+    private async Task<(bool isValid, string authValue)> ValidateAuthRequestAsync(
         HttpRequestData requestData
     )
     {
@@ -142,12 +150,14 @@ public class AuthTokenFunction(
         var hasAuthHeader = requestData.Headers.TryGetValues("Authorization", out var authValues);
         if (!hasAuthHeader || authValues is null)
         {
+            logger.LogWarning("Missing Authorization header.");
             return (false, string.Empty);
         }
 
         var authHeader = authValues.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Basic "))
         {
+            logger.LogWarning("Invalid Authorization header.");
             return (false, string.Empty);
         }
 
@@ -159,7 +169,7 @@ public class AuthTokenFunction(
     private async Task<(
         bool IsValid,
         AuthTokenRequest? TokenRequest
-    )> ValidateAuthClientCredentialsAsync(HttpRequestData req, string authValue)
+    )> ValidateAuthClientCredentialsAsync(FunctionContext context, string authValue)
     {
         var base64Credentials = authValue["Basic ".Length..].Trim();
         var credentialBytes = Convert.FromBase64String(base64Credentials);
@@ -171,6 +181,12 @@ public class AuthTokenFunction(
 
         var clientId = credentials.First();
         var clientSecret = credentials.Last();
+
+        if (string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(clientId))
+        {
+            logger.LogWarning("ClientId or ClientSecret is missing.");
+            return (false, null);
+        }
 
         var authClient = await authStoreService.GetClientByCredentials(clientId, clientSecret);
 
