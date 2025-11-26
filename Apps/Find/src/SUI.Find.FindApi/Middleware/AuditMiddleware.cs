@@ -3,24 +3,22 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Interfaces;
-using SUI.Find.Domain.Models;
 using SUI.Find.FindApi.Models;
-using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Middleware;
 
 [ExcludeFromCodeCoverage(Justification = "Middleware - covered by integration tests")]
 // ReSharper disable once ClassNeverInstantiated.Global
-public class AuditMiddleware(
-    IConfiguration config,
-    IAuditService auditService,
-    IPersonIdEncryptionService encryptionService,
-    ILogger<AuditMiddleware> logger
-) : IFunctionsWorkerMiddleware
+public class AuditMiddleware(IAuditService auditService, ILogger<AuditMiddleware> logger)
+    : IFunctionsWorkerMiddleware
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
         var invocationId = context.InvocationId;
@@ -34,12 +32,18 @@ public class AuditMiddleware(
             }
 
             // No requirement to audit swagger requests
-            if (httpReq.Url.AbsolutePath.Contains("swagger"))
+            if (
+                httpReq.Url.AbsolutePath.Contains(
+                    "swagger",
+                    StringComparison.CurrentCultureIgnoreCase
+                )
+            )
             {
                 await next(context);
                 return;
             }
 
+            // All other endpoints should be audited
             var authContext = context.Items.TryGetValue("AuthContext", out var contextItem)
                 ? contextItem as AuthContext
                 : null;
@@ -70,6 +74,20 @@ public class AuditMiddleware(
                     );
                 }
             }
+            else
+            {
+                logger.LogWarning(
+                    "No AuthContext found in FunctionContext items for CorrelationId: {CorrelationId}",
+                    invocationId
+                );
+                await auditService.WriteAccessAuditLogAsync(
+                    "UnknownClient",
+                    httpReq.Url.AbsolutePath,
+                    httpReq.Method,
+                    DateTime.Now,
+                    context.InvocationId
+                );
+            }
 
             await next(context);
         }
@@ -82,66 +100,25 @@ public class AuditMiddleware(
     )
     {
         var requestBody = await httpReq.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(requestBody!);
-        if (
-            doc.RootElement.TryGetProperty(
-                nameof(StartSearchRequest.Suid).ToLower(),
-                out var suidElement
-            )
-        )
+        var request = JsonSerializer.Deserialize<StartSearchRequest>(requestBody!, JsonOptions);
+
+        if (request?.Suid is not null)
         {
-            var suid = suidElement.GetString() ?? string.Empty;
-
-            var validatedSuid = StartSearchRequestValidator.IsValidNhsNumberChecksum(suid);
-            if (!validatedSuid)
-            {
-                logger.LogWarning("Invalid SUID format received for auditing");
-                await auditService.WriteAccessAuditLogAsync(
-                    clientId,
-                    httpReq.Url.AbsolutePath,
-                    httpReq.Method,
-                    DateTime.Now,
-                    context.InvocationId
-                );
-                return;
-            }
-
-            // Replace this with organisation specifics when we have them
-            var keyForAuditEncryption = config["Audit:EncryptionKey"];
-            var keyIdForAuditEncryption = config["Audit:IdKey"];
-            if (keyForAuditEncryption is null || keyIdForAuditEncryption is null)
-            {
-                throw new InvalidOperationException("Audit encryption configuration is missing.");
-            }
-
-            var encryptionDefinition = new EncryptionDefinition
-            {
-                KeyId = keyIdForAuditEncryption,
-                Key = keyForAuditEncryption,
-            };
-            var encryptedSui = encryptionService.EncryptNhsToPersonId(suid, encryptionDefinition);
-
-            if (!encryptedSui.Success)
-            {
-                logger.LogWarning(
-                    "Failed to encrypt SUID for auditing: {ErrorMessage}",
-                    encryptedSui.Error
-                );
-                await auditService.WriteAccessAuditLogAsync(
-                    clientId,
-                    httpReq.Url.AbsolutePath,
-                    httpReq.Method,
-                    DateTime.Now,
-                    context.InvocationId
-                );
-                return;
-            }
-
             await auditService.WriteAccessWithSuidAuditLogAsync(
                 clientId,
                 httpReq.Url.AbsolutePath,
                 httpReq.Method,
-                encryptedSui.Value!,
+                request.Suid,
+                DateTime.Now,
+                context.InvocationId
+            );
+        }
+        else
+        {
+            await auditService.WriteAccessAuditLogAsync(
+                clientId,
+                httpReq.Url.AbsolutePath,
+                httpReq.Method,
                 DateTime.Now,
                 context.InvocationId
             );
