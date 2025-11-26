@@ -4,7 +4,7 @@ using SUI.Find.Application.Interfaces;
 
 namespace SUI.Find.Infrastructure.Services;
 
-[ExcludeFromCodeCoverage(Justification = "Infrastructure code, not unit testable.")]
+[ExcludeFromCodeCoverage(Justification = "Basic Infrastructure code.")]
 public class AuditStorageTableService(TableServiceClient client) : ITableStorageAuditService
 {
     public async Task WriteAccessAuditLogAsync(
