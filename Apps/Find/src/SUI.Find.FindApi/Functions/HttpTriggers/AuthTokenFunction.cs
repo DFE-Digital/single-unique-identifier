@@ -176,8 +176,8 @@ public class AuthTokenFunction(
             return (false, null);
         }
 
-        var clientId = credentials.First();
-        var clientSecret = credentials.Last();
+        var clientId = credentials[0];
+        var clientSecret = credentials[^1];
 
         if (string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(clientId))
         {
