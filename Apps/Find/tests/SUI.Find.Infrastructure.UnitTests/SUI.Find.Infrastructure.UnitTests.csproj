@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\SUI.Find.Application\SUI.Find.Application.csproj" />
     <ProjectReference Include="..\..\src\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />
   </ItemGroup>
 

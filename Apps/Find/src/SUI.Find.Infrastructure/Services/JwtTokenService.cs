@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Infrastructure.Services;
 

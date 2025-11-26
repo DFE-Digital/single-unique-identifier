@@ -1,8 +1,11 @@
 using System.IO.Abstractions;
+using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.Infrastructure.Services;
 
@@ -18,6 +21,8 @@ builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
 // Custom application services
+builder.Services.AddSingleton<IAuditService, AuditStorageTableService>();
+builder.Services.AddSingleton<ITableStorageAuditService, AuditStorageTableService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 if (builder.Environment.IsDevelopment())
 {
@@ -29,5 +34,14 @@ else
 }
 
 builder.UseMiddleware<JwtAuthMiddleware>();
+builder.UseMiddleware<AuditMiddleware>();
+
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var connection = config.GetValue<string>("AzureWebJobsStorage");
+
+    return new TableServiceClient(connection);
+});
 
 await builder.Build().RunAsync();
