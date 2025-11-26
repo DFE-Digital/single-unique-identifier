@@ -7,4 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SUI.SingleView.Domain\SUI.SingleView.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SUI.Transfer.API.Client" />
+  </ItemGroup>
 </Project>

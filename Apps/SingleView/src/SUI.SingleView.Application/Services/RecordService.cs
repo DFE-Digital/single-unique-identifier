@@ -1,16 +1,38 @@
+using Microsoft.Extensions.Logging;
 using SUI.SingleView.Application.Models;
 using SUI.SingleView.Domain.Models;
+using SUI.Transfer.API.Client;
 
 namespace SUI.SingleView.Application.Services;
 
 public class RecordService : IRecordService
 {
-    public PersonModel GetRecord(string nhsNumber)
+    private readonly ITransferApi _transferApi;
+    private readonly ILogger<RecordService> _logger;
+
+    public RecordService(ITransferApi transferApi, ILogger<RecordService> logger)
     {
+        _transferApi = transferApi;
+        _logger = logger;
+    }
+
+    public async Task<PersonModel> GetRecord(string nhsNumber)
+    {
+        var id = string.Empty;
+        try
+        {
+            var result = await _transferApi.TransferAsync(nhsNumber);
+            id = result.Id;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+        }
+
         return new PersonModel
         {
             Name = "Test Person",
-            NhsNumber = "1234567890",
+            NhsNumber = id,
             Tags =
             [
                 "CHILD PROTECTION",
