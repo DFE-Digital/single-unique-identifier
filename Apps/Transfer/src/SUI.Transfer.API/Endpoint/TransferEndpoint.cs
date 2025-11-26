@@ -1,7 +1,10 @@
 using System.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using SUI.Transfer.Application.Models;
 using SUI.Transfer.Application.Services;
+using SUI.Transfer.Infrastructure.Authentication;
 
 namespace SUI.Transfer.API.Endpoint;
 
@@ -15,7 +18,7 @@ public static class TransferEndpoint
             .MapGet(
                 "/transfer/{id}",
                 [Authorize]
-                async (
+                async Task<Results<Ok<TransferResult>, NotFound>> (
                     [Description(
                         "The single unique identifier for the data which is being requested."
                     )]
@@ -25,7 +28,9 @@ public static class TransferEndpoint
                 {
                     var result = await transferService.TransferAsync(id);
 
-                    return result.Success ? Results.Ok(result.Result) : Results.NotFound();
+                    return result.Success
+                        ? TypedResults.Ok(result.Result)
+                        : TypedResults.NotFound();
                 }
             )
             .WithSummary("Transfer custodian data for a given child")
