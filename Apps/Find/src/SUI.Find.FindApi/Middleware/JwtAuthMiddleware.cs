@@ -17,6 +17,7 @@ namespace SUI.Find.FindApi.Middleware;
 [ExcludeFromCodeCoverage(
     Justification = "Waiting on Integration tests to cover middleware functionality."
 )]
+// ReSharper disable once ClassNeverInstantiated.Global
 public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsWorkerMiddleware
 {
     private static readonly JwtSecurityTokenHandler Handler = new();
@@ -47,7 +48,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
-                "Unauthorised",
+                nameof(HttpStatusCode.Unauthorized),
                 "Missing Authorization header."
             );
             return;
@@ -59,7 +60,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
-                "Unauthorised",
+                nameof(HttpStatusCode.Unauthorized),
                 "Invalid Authorization header."
             );
             return;
@@ -93,7 +94,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
-                "Unauthorised",
+                nameof(HttpStatusCode.Unauthorized),
                 ex.Message
             );
             return;
@@ -103,7 +104,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
-                "Unauthorised",
+                nameof(HttpStatusCode.Unauthorized),
                 "Invalid bearer token."
             );
             return;
@@ -118,7 +119,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
-                "Unauthorised",
+                nameof(HttpStatusCode.Unauthorized),
                 "Insufficient scope for this operation."
             );
             return;
@@ -144,8 +145,8 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             return [];
         }
 
-        var typeName = entryPoint.Substring(0, lastDot);
-        var methodName = entryPoint.Substring(lastDot + 1);
+        var typeName = entryPoint[..lastDot];
+        var methodName = entryPoint[(lastDot + 1)..];
 
         var type = Type.GetType(typeName);
         if (type is null)
@@ -163,7 +164,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
         }
 
         var attr = method.GetCustomAttribute<RequiredScopesAttribute>();
-        return attr?.Scopes?.ToArray() ?? [];
+        return attr?.Scopes.ToArray() ?? [];
     }
 
     private static bool HasAnyRequiredScope(
