@@ -60,7 +60,7 @@ public class AuthTokenFunction(
             return await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
-                "Unauthorised",
+                nameof(HttpStatusCode.Unauthorized),
                 "Invalid client credentials."
             );
         }

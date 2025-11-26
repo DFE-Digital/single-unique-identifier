@@ -97,7 +97,7 @@ public class AuthTokenFunctionTests
     {
         // Arrange
         // Only clientId, no clientSecret
-        const string credentials = $"valid_client_id:";
+        const string credentials = "valid_client_id:";
         var base64Credentials = Convert.ToBase64String(
             System.Text.Encoding.UTF8.GetBytes(credentials)
         );
@@ -114,6 +114,7 @@ public class AuthTokenFunctionTests
         result.Body.Position = 0;
         var responseData = await JsonSerializer.DeserializeAsync<Problem>(result.Body);
         Assert.NotNull(responseData?.Title);
+        Assert.Equal("Unauthorized", responseData.Title);
     }
 
     [Fact]
