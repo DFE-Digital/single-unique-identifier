@@ -26,19 +26,17 @@ internal sealed class AuthenticationTransformer(
             )
         )
         {
-            var securitySchemes = new Dictionary<string, OpenApiSecurityScheme>
-            {
-                [_headerName] = new()
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = _headerName,
-                    In = ParameterLocation.Header,
-                    BearerFormat = "String Token",
-                    Name = _headerName,
-                },
-            };
             document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes = securitySchemes;
+            document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+
+            document.Components.SecuritySchemes[_headerName] = new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = _headerName,
+                In = ParameterLocation.Header,
+                BearerFormat = "String Token",
+                Name = _headerName,
+            };
 
             foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
             {
