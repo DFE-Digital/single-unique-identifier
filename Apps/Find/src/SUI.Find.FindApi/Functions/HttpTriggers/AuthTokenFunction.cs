@@ -54,10 +54,7 @@ public class AuthTokenFunction(
             );
         }
 
-        var authClient = await ValidateAuthClientCredentialsAsync(
-            context,
-            authValidation.authValue
-        );
+        var authClient = await ValidateAuthClientCredentialsAsync(authValidation.authValue);
         if (!authClient.IsValid)
         {
             return await HttpResponseUtility.ProblemResponse(
@@ -169,7 +166,7 @@ public class AuthTokenFunction(
     private async Task<(
         bool IsValid,
         AuthTokenRequest? TokenRequest
-    )> ValidateAuthClientCredentialsAsync(FunctionContext context, string authValue)
+    )> ValidateAuthClientCredentialsAsync(string authValue)
     {
         var base64Credentials = authValue["Basic ".Length..].Trim();
         var credentialBytes = Convert.FromBase64String(base64Credentials);
