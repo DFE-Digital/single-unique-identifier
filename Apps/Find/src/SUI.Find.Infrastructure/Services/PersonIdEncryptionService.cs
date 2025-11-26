@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
@@ -150,6 +151,9 @@ public class PersonIdEncryptionService(ILogger<PersonIdEncryptionService> logger
         }
     }
 
+    [ExcludeFromCodeCoverage(
+        Justification = "Factory method with exception-safety pattern - catch block extremely difficult to trigger"
+    )]
     private static Aes CreateAes(byte[] keyBytes, byte[] iv)
     {
         Aes? aes = null;
