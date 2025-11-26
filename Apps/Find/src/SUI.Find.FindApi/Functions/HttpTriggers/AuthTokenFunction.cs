@@ -70,7 +70,7 @@ public class AuthTokenFunction(
         var allowedScopes = NormaliseScopes(authClient.TokenRequest!.Scopes);
 
         IReadOnlyList<string> grantedScopes;
-        if (requestedScopes.Count == 0)
+        if (requestedScopes.Length == 0)
         {
             grantedScopes = allowedScopes;
         }
@@ -198,7 +198,7 @@ public class AuthTokenFunction(
         );
     }
 
-    private static IReadOnlyList<string> NormaliseScopes(IEnumerable<string>? incoming)
+    private static string[] NormaliseScopes(IEnumerable<string>? incoming)
     {
         if (incoming is null)
         {
@@ -209,6 +209,6 @@ public class AuthTokenFunction(
             .Select(s => s.Trim())
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Distinct(StringComparer.Ordinal)
-            .ToList()!;
+            .ToArray();
     }
 }
