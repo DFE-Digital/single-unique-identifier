@@ -2,7 +2,7 @@ using SUI.Find.FindApi.Models;
 
 namespace SUI.Find.FindApi.Validators;
 
-public class StartSearchRequestValidator
+public static class StartSearchRequestValidator
 {
     public static bool IsValid(StartSearchRequest? request, out string? errorMessage)
     {
@@ -42,7 +42,7 @@ public class StartSearchRequestValidator
         return true;
     }
 
-    public static bool IsValidNhsNumberChecksum(string nhsNumber)
+    private static bool IsValidNhsNumberChecksum(string nhsNumber)
     {
         var sum = 0;
         for (var i = 0; i < 9; i++)

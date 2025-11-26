@@ -12,7 +12,6 @@ public class JwtTokenServiceTests
     {
         // Arrange
         var mockAuthStore = Substitute.For<IAuthStoreService>();
-        var mockLogger = Substitute.For<ILogger<JwtTokenService>>();
         mockAuthStore
             .GetAuthStoreAsync()
             .Returns(
@@ -25,7 +24,7 @@ public class JwtTokenServiceTests
                 }
             );
 
-        var service = new JwtTokenService(mockAuthStore, mockLogger);
+        var service = new JwtTokenService(mockAuthStore);
 
         // Act
         var token = await service.GenerateToken(
