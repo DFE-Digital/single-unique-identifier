@@ -4,4 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SUI.Find.Domain\SUI.Find.Domain.csproj" />
+  </ItemGroup>
 </Project>
