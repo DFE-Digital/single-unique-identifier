@@ -55,7 +55,7 @@ public class AuditMiddleware(
 
         // All other endpoints should be audited
         var authContext = context.Items.TryGetValue(
-            ApplicationConstants.Auth.HttpContextKey,
+            ApplicationConstants.Auth.AuthContextKey,
             out var contextItem
         )
             ? contextItem as AuthContext

@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
@@ -30,6 +31,7 @@ builder.Services.AddSingleton<ITableStorageAuditService, AuditStorageTableServic
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
+builder.Services.AddSingleton<ISearchService, SearchService>();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddSingleton<IAuthStoreService, FileAuthStoreService>();

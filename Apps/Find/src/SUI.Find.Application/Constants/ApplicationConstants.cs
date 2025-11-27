@@ -4,7 +4,7 @@ public static class ApplicationConstants
 {
     public static class Auth
     {
-        public const string HttpContextKey = "AuthContext";
+        public const string AuthContextKey = "AuthContext";
     }
 
     public static class Audit
