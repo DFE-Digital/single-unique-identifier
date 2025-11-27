@@ -19,9 +19,10 @@ public class AuditAccessFunctionTests
             EventType = "TestEvent",
             ClientId = "TestClient",
             Timestamp = DateTime.UtcNow,
-            Method = null,
-            Path = null,
-            CorrelationId = null,
+            Method = "GET",
+            Path = "/test/path",
+            CorrelationId = "12345",
+            Suid = "suid-67890",
         };
 
         // Act
