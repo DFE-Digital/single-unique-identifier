@@ -2,16 +2,19 @@ using SUI.Transfer.Application.Models;
 
 namespace SUI.Transfer.Application.Services;
 
-public class TransferService : ITransferService
+public class TransferService(ICustodianService custodianService, IRepository repository)
+    : ITransferService
 {
-    public Task<TransferResponse> TransferAsync(string id)
+    public async Task<TransferResponse> TransferAsync(string id)
     {
-        var response = new TransferResponse
-        {
-            Result = new TransferResult { Id = id },
-            Success = true,
-        };
+        var custodianResponse = await custodianService.GetConsolidatedDataFromSui(id);
 
-        return Task.FromResult(response);
+        if (custodianResponse.ConsolidatedData is not null)
+        {
+            repository.AddOrUpdate(custodianResponse.ConsolidatedData);
+        }
+
+        // Errors are passed to API result
+        return new TransferResponse(custodianResponse);
     }
 }

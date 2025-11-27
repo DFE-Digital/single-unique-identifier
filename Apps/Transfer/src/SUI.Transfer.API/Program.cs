@@ -25,6 +25,8 @@ builder
 builder.Services.AddAuthorizationBuilder();
 
 builder.Services.AddSingleton<ITransferService, TransferService>();
+builder.Services.AddSingleton<ICustodianService, CustodianService>();
+builder.Services.AddSingleton<IRepository, Repository>();
 
 builder.Services.Configure<JsonOptions>(options =>
 {

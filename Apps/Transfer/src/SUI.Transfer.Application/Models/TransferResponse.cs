@@ -1,7 +1,10 @@
+using SUI.Transfer.Application.Models.Custodians;
+
 namespace SUI.Transfer.Application.Models;
 
-public class TransferResponse
+public class TransferResponse(CustodianResponse custodianResponse)
 {
-    public required bool Success { get; init; }
-    public required TransferResult Result { get; init; }
+    public ValidationResults? ValidationResults { get; init; } =
+        custodianResponse.ValidationResults;
+    public ConsolidatedData? ConsolidatedData { get; init; } = custodianResponse.ConsolidatedData;
 }
