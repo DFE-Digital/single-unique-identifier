@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace SUI.Find.Infrastructure.Services;
@@ -11,8 +10,7 @@ public interface IJwtTokenService
     Task<string> GenerateToken(string clientId, IReadOnlyList<string> scopes);
 }
 
-public class JwtTokenService(IAuthStoreService authStoreService, ILogger<JwtTokenService> logger)
-    : IJwtTokenService
+public class JwtTokenService(IAuthStoreService authStoreService) : IJwtTokenService
 {
     public async Task<string> GenerateToken(string clientId, IReadOnlyList<string> scopes)
     {

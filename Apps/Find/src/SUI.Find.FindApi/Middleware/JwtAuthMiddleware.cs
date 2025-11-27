@@ -7,6 +7,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.IdentityModel.Tokens;
+using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
@@ -125,7 +126,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             return;
         }
 
-        context.Items["AuthContext"] = authContext;
+        context.Items[ApplicationConstants.Auth.HttpContextKey] = authContext;
 
         await next(context);
     }
