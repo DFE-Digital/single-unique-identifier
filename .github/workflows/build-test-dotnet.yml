@@ -41,7 +41,7 @@ jobs:
       - name: Set up NuGet authentication
         run: |
           echo "Writing NuGet Auth config..."
-          dotnet nuget add source "https://nuget.pkg.github.com/DFE-Digital/index.json" --name DFE-Digital --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+          dotnet nuget add source "https://nuget.pkg.github.com/DFE-Digital/index.json" --name DFEDigital --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
       
       - name: Start SonarCloud Scanner
         run: |
@@ -61,6 +61,8 @@ jobs:
           reportgenerator -reports:./${{ inputs.directory_name }}/**/coverage.cobertura.xml -targetdir:${{ inputs.directory_name }}/CoverageReport -reporttypes:SonarQube,html
           dotnet coverage merge --reports "${{ inputs.directory_name }}/**/coverage.cobertura.xml" -f cobertura -o ${{ inputs.directory_name}}/coverage/coverage.xml
           dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        env:
+          NuGetPackageSourceCredentials_DFEDigital: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish coverage
         uses: irongut/CodeCoverageSummary@v1.3.0
