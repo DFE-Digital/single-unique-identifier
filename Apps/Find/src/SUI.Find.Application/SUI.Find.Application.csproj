@@ -7,4 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SUI.Find.Domain\SUI.Find.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Constants\" />
+  </ItemGroup>
 </Project>

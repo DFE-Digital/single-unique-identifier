@@ -1,59 +1,35 @@
 using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Infrastructure.Services;
 
 [ExcludeFromCodeCoverage(Justification = "Basic Infrastructure code.")]
 public class AuditStorageTableService(TableServiceClient client) : ITableStorageAuditService
 {
-    public async Task WriteAccessAuditLogAsync(
-        string clientId,
-        string url,
-        string method,
-        DateTime accessTime,
-        string correlationId
-    )
+    public async Task WriteAccessAuditLogAsync(AuditAccessMessage accessMessage)
     {
-        await Write(clientId, url, method, string.Empty, accessTime, correlationId);
+        await WriteAsync(accessMessage);
     }
 
-    public Task WriteAccessWithSuidAuditLogAsync(
-        string clientId,
-        string url,
-        string method,
-        string? suid,
-        DateTime accessTime,
-        string correlationId
-    )
-    {
-        return Write(clientId, url, method, suid, accessTime, correlationId);
-    }
-
-    private async Task Write(
-        string clientId,
-        string url,
-        string method,
-        string? suid,
-        DateTime accessTime,
-        string correlationId
-    )
+    private async Task WriteAsync(AuditAccessMessage accessMessage)
     {
         var tableClient = client.GetTableClient(
             InfrastructureConstants.StorageTableAudit.TableName
         );
 
         // Partition by clientId to avoid hot partitions, and by month for easier querying
-        var partitionKey = $"{clientId}_{accessTime:yyyyMM}";
+        var partitionKey = $"{accessMessage.ClientId}_{accessMessage.Timestamp:yyyyMM}";
         await tableClient.AddEntityAsync(
             new TableEntity(partitionKey, Guid.NewGuid().ToString())
             {
-                { "ClientId", clientId },
-                { "UrlAccessed", url },
-                { "Method", method },
-                { "AccessTime", accessTime.ToUniversalTime() },
-                { "CorrelationId", correlationId },
-                { "Suid", suid },
+                { "ClientId", accessMessage.ClientId },
+                { "UrlAccessed", accessMessage.Path },
+                { "Method", accessMessage.Method },
+                { "AccessTime", accessMessage.Timestamp.ToUniversalTime() },
+                { "CorrelationId", accessMessage.CorrelationId },
+                { "Suid", accessMessage.Suid },
             }
         );
     }

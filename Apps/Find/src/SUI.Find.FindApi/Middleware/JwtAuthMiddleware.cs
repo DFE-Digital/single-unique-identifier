@@ -125,7 +125,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             return;
         }
 
-        context.Items["AuthContext"] = authContext;
+        context.Items[nameof(AuthContext)] = authContext;
 
         await next(context);
     }
