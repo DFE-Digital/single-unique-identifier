@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using SUI.Find.Application.Constants;
 
 namespace SUI.Find.FindApi.Startup;
 
@@ -18,7 +19,10 @@ public class AzureStorageQueueStartup : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         var connectionString = _configuration["AzureWebJobsStorage"];
-        var queueClient = new QueueClient(connectionString, "audit-queue");
+        var queueClient = new QueueClient(
+            connectionString,
+            ApplicationConstants.Audit.AccessQueueName
+        );
         await queueClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
     }
 

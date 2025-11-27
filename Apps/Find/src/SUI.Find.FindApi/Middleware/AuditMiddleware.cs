@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.Domain.Models;
 using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Models;
@@ -53,7 +54,10 @@ public class AuditMiddleware(
         }
 
         // All other endpoints should be audited
-        var authContext = context.Items.TryGetValue(nameof(AuthContext), out var contextItem)
+        var authContext = context.Items.TryGetValue(
+            ApplicationConstants.Auth.HttpContextKey,
+            out var contextItem
+        )
             ? contextItem as AuthContext
             : null;
 

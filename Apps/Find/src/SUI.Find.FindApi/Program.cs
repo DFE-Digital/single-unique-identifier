@@ -6,6 +6,7 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Middleware;
@@ -48,7 +49,10 @@ builder.UseMiddleware<AuditMiddleware>();
 builder.Services.AddSingleton<QueueClient>(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
-    return new QueueClient(config["AzureWebJobsStorage"], "audit-queue");
+    return new QueueClient(
+        config["AzureWebJobsStorage"],
+        ApplicationConstants.Audit.AccessQueueName
+    );
 });
 
 builder.Services.AddSingleton(sp =>

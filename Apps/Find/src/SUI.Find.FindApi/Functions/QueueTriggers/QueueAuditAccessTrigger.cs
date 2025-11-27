@@ -1,5 +1,6 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Models;
 
@@ -12,7 +13,7 @@ public class QueueAuditAccessTrigger(
 {
     [Function(nameof(QueueAuditAccessFunction))]
     public async Task QueueAuditAccessFunction(
-        [QueueTrigger("audit-queue")] AuditAccessMessage accessMessage,
+        [QueueTrigger(ApplicationConstants.Audit.AccessQueueName)] AuditAccessMessage accessMessage,
         FunctionContext context
     )
     {

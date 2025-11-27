@@ -1,5 +1,6 @@
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
+using SUI.Find.Application.Constants;
 
 namespace SUI.Find.FindApi.Factories;
 
@@ -13,5 +14,6 @@ public class QueueClientFactory(IConfiguration config) : IQueueClientFactory
     private readonly string _connectionString =
         config["AzureWebJobsStorage"] ?? throw new InvalidOperationException();
 
-    public QueueClient GetAuditClient() => new QueueClient(_connectionString, "audit-queue");
+    public QueueClient GetAuditClient() =>
+        new(_connectionString, ApplicationConstants.Audit.AccessQueueName);
 }
