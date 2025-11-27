@@ -37,7 +37,12 @@ jobs:
           dotnet tool install --global dotnet-coverage
           dotnet tool install --global dotnet-reportgenerator-globaltool
           dotnet tool install --global dotnet-sonarscanner
-
+          
+      - name: Set up NuGet authentication
+        run: |
+          echo "Writing NuGet Auth config..."
+          dotnet nuget add source "https://nuget.pkg.github.com/DFE-Digital/index.json" --name github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+      
       - name: Start SonarCloud Scanner
         run: |
           dotnet-sonarscanner begin \
