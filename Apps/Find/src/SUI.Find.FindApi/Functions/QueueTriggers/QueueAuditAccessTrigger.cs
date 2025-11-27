@@ -24,7 +24,5 @@ public class QueueAuditAccessTrigger(
             accessMessage.Timestamp
         );
         await auditService.WriteAccessAuditLogAsync(accessMessage);
-
-        // Queue Output messages
     }
 }
