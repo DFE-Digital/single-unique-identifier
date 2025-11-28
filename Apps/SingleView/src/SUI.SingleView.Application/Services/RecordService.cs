@@ -26,7 +26,7 @@ public class RecordService : IRecordService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ex.Message);
+            _logger.LogError(ex, "An error occurred when trying to get the record for {Id}", nhsNumber);
         }
 
         return new PersonModel
