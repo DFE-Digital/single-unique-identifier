@@ -4,9 +4,9 @@ namespace SUI.Transfer.Application.Services;
 
 public class ConsolidatedDataAggregator : IConsolidatedDataAggregator
 {
-    public AggregatedConsolidatedData ApplyAggregations(ConsolidatedData consolidatedData)
+    public AggregatedData ApplyAggregations(ConsolidatedData consolidatedData)
     {
-        return new AggregatedConsolidatedData(consolidatedData)
+        return new AggregatedData(consolidatedData)
         {
             EducationAttendanceCurrentAcademicYear = null,
             EducationAttendanceLastAcademicYear = null,

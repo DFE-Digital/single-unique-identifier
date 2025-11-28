@@ -4,5 +4,5 @@ namespace SUI.Transfer.Application.Services;
 
 public interface ITransferJob
 {
-    Task<AggregatedConsolidatedData> TransferAsync(Guid jobId, string sui);
+    Task<AggregatedData> TransferAsync(Guid jobId, string sui);
 }

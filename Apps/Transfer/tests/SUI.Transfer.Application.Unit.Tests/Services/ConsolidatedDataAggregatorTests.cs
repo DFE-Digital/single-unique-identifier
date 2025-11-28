@@ -28,7 +28,7 @@ public class ConsolidatedDataAggregatorTests
         result
             .Should()
             .BeEquivalentTo(
-                new AggregatedConsolidatedData(
+                new AggregatedData(
                     new ConsolidatedData("XXX 000 1234")
                     {
                         ChildPersonalDetailsRecord = null,

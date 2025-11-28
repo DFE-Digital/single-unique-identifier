@@ -2,7 +2,7 @@
 
 namespace SUI.Transfer.Domain;
 
-public record AggregatedConsolidatedData(ConsolidatedData ConsolidatedData)
+public record AggregatedData(ConsolidatedData ConsolidatedData)
 {
     public required EducationAttendanceV1? EducationAttendanceCurrentAcademicYear { get; init; }
 

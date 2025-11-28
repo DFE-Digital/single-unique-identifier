@@ -88,7 +88,7 @@ public class TransferJobTests
             .ConsolidateRecords(mockUnconsolidatedData)
             .Returns(mockConsolidatedData);
 
-        AggregatedConsolidatedData mockAggregatedConsolidatedData = new(mockConsolidatedData)
+        AggregatedData mockAggregatedData = new(mockConsolidatedData)
         {
             EducationAttendanceCurrentAcademicYear = null,
             EducationAttendanceLastAcademicYear = null,
@@ -101,13 +101,13 @@ public class TransferJobTests
 
         _mockConsolidatedDataAggregator
             .ApplyAggregations(mockConsolidatedData)
-            .Returns(mockAggregatedConsolidatedData);
+            .Returns(mockAggregatedData);
 
         // ACT
         var result = await _sut.TransferAsync(jobId, sui);
 
         // ASSERT
-        result.Should().BeSameAs(mockAggregatedConsolidatedData);
+        result.Should().BeSameAs(mockAggregatedData);
 
         await _mockRecordFinder.Received().FindRecordsAsync(sui, Arg.Any<CancellationToken>());
         await _mockRecordFetcher

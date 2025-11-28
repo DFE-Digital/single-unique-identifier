@@ -28,7 +28,7 @@ public sealed class TransferServiceTests : IDisposable
         _testMemoryCache.Dispose();
     }
 
-    private static AggregatedConsolidatedData CreateEmptyAggregatedConsolidatedData(string sui) =>
+    private static AggregatedData CreateEmptyAggregatedConsolidatedData(string sui) =>
         new(
             new ConsolidatedData(sui)
             {

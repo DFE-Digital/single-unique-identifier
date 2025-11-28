@@ -13,7 +13,7 @@ public class TransferJob(
     ILogger<TransferJob> logger
 ) : ITransferJob
 {
-    public async Task<AggregatedConsolidatedData> TransferAsync(Guid jobId, string sui)
+    public async Task<AggregatedData> TransferAsync(Guid jobId, string sui)
     {
         logger.LogInformation("Starting transfer process sui {Sui} (Job ID: {JobId})", sui, jobId);
 

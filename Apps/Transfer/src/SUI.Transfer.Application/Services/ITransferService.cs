@@ -17,11 +17,8 @@ public interface ITransferService
     public record RunningTransferJobState(Guid JobId, string Sui)
         : TransferJobState(JobId, Sui, TransferJobStatus.Running);
 
-    public record CompletedTransferJobState(
-        Guid JobId,
-        string Sui,
-        AggregatedConsolidatedData ConsolidatedData
-    ) : TransferJobState(JobId, Sui, TransferJobStatus.Completed);
+    public record CompletedTransferJobState(Guid JobId, string Sui, AggregatedData AggregatedData)
+        : TransferJobState(JobId, Sui, TransferJobStatus.Completed);
 
     public record FailedTransferJobState(
         Guid JobId,
