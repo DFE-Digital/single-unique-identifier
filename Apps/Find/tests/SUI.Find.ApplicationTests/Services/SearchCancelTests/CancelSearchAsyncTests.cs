@@ -2,6 +2,7 @@ using Microsoft.DurableTask.Client;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.SearchCancelTests;
@@ -14,9 +15,11 @@ public class CancelSearchAsyncTests
 
     public CancelSearchAsyncTests()
     {
+        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
+        var policyData = new PolicyContext(ClientId, []);
         _searchService
-            .ReadOrchestratorInput<SearchJobOrchestrationInput>(Arg.Any<OrchestrationMetadata>())
-            .Returns(new SearchJobOrchestrationInput("test-client-id", "test-suid"));
+            .ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
+            .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
     }
 
     [Fact]
@@ -121,9 +124,11 @@ public class CancelSearchAsyncTests
         _client.GetInstanceAsync("unauth-job", Arg.Any<CancellationToken>()).Returns(meta);
 
         // Mock the ReadOrchestratorInput to return a different clientId
+        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
+        var policyData = new PolicyContext("different-client-id", []);
         _searchService
-            .ReadOrchestratorInput<SearchJobOrchestrationInput>(meta)
-            .Returns(new SearchJobOrchestrationInput("different-client-id", "test-suid"));
+            .ReadOrchestratorInput<SearchOrchestratorInput>(meta)
+            .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
         var result = await _searchService.CancelSearchAsync(
             "unauth-job",

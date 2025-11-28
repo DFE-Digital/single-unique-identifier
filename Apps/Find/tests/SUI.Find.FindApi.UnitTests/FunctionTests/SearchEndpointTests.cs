@@ -6,6 +6,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Constants;
+using SUI.Find.Application.Dtos;
 using SUI.Find.FindApi.Functions.HttpTriggers;
 using SUI.Find.FindApi.Functions.Orchestrators;
 using SUI.Find.FindApi.Models;
@@ -20,10 +21,11 @@ public class SearchEndpointTests
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
     private readonly FunctionContext _context = Substitute.For<FunctionContext>();
 
-    private const string ValidSuid = "1234567890123456"; 
+    private const string ValidSuid = "1234567890123456";
     private const string InvalidSuid = "short";
     private const string TestClientId = "test-client-id";
     private readonly string InstanceId;
+
     public SearchEndpointTests()
     {
         var logger = new LoggerFactory();
@@ -35,9 +37,9 @@ public class SearchEndpointTests
             [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(TestClientId, []),
         };
         _context.Items.Returns(items);
-        
-        var hashedClientId = HashUtility.HashInput(TestClientId);
-        InstanceId = $"{ValidSuid}-{hashedClientId}";
+
+        var hashedClientId = HashUtility.HashInput($"{ValidSuid}-{TestClientId}");
+        InstanceId = hashedClientId;
     }
 
     [Fact]
@@ -47,7 +49,10 @@ public class SearchEndpointTests
         var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
         _client
-            .ScheduleNewOrchestrationInstanceAsync(nameof(SearchOrchestrator), ValidSuid)
+            .ScheduleNewOrchestrationInstanceAsync(
+                nameof(SearchOrchestrator),
+                Arg.Is<SearchOrchestratorInput>(a => a.Suid == InstanceId)
+            )
             .Returns("test-job-id");
 
         // Act
@@ -63,11 +68,13 @@ public class SearchEndpointTests
         // Arrange
         var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
-        _client.ScheduleNewOrchestrationInstanceAsync(
-            Arg.Any<TaskName>(),                 
-            Arg.Any<object>(),                   
-            Arg.Any<StartOrchestrationOptions>() 
-        ).Returns("job-id");
+        _client
+            .ScheduleNewOrchestrationInstanceAsync(
+                Arg.Any<TaskName>(),
+                Arg.Any<object>(),
+                Arg.Any<StartOrchestrationOptions>()
+            )
+            .Returns("job-id");
 
         // Act
         var result = await _sut.Searches(httpRequestData, _client, _context);
@@ -127,10 +134,10 @@ public class SearchEndpointTests
     {
         // Arrange
         _context.Items["AuthContext"] = new AuthContext(TestClientId, ["scope"]);
-        
+
         var data = new StartSearchRequest(InvalidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
-        
+
         // Act
         var result = await _sut.Searches(httpRequestData, _client, _context);
 
@@ -149,12 +156,12 @@ public class SearchEndpointTests
     {
         // Arrange
         _context.Items["AuthContext"] = new AuthContext(TestClientId, ["scope"]);
-        
+
         var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
-        
+
         var mockOrchestrationMetadata = new OrchestrationMetadata(
-            nameof(SearchOrchestrator), 
+            nameof(SearchOrchestrator),
             InstanceId
         )
         {
@@ -163,43 +170,46 @@ public class SearchEndpointTests
             LastUpdatedAt = default,
         };
 
-        _client.GetInstanceAsync(InstanceId).Returns(
-            mockOrchestrationMetadata
-        );
-        
+        _client.GetInstanceAsync(InstanceId).Returns(mockOrchestrationMetadata);
+
         _client
-            .ScheduleNewOrchestrationInstanceAsync("SearchOrchestrator", ValidSuid, new StartOrchestrationOptions( InstanceId: InstanceId))
+            .ScheduleNewOrchestrationInstanceAsync(
+                "SearchOrchestrator",
+                ValidSuid,
+                new StartOrchestrationOptions(InstanceId: InstanceId)
+            )
             .Returns(InstanceId);
- 
 
         // Act
         var result = await _sut.Searches(httpRequestData, _client, _context);
-        
+
         // Assert
         Assert.Equal(HttpStatusCode.Accepted, result.StatusCode);
         result.Body.Position = 0;
         var responseData = await JsonSerializer.DeserializeAsync<SearchJob>(result.Body);
         Assert.Equal(InstanceId, responseData?.JobId);
         Assert.Equal(SearchStatus.Running, responseData?.Status);
-        
-        await _client.DidNotReceive().ScheduleNewOrchestrationInstanceAsync(
-            Arg.Any<TaskName>(), 
-            Arg.Any<object>(), 
-            Arg.Any<StartOrchestrationOptions>()
-        );
+
+        await _client
+            .DidNotReceive()
+            .ScheduleNewOrchestrationInstanceAsync(
+                Arg.Any<TaskName>(),
+                Arg.Any<object>(),
+                Arg.Any<StartOrchestrationOptions>()
+            );
     }
-    
+
     [Fact]
     public async Task ShouldReturn202_ExistingJob_WhenJobIsQueued_And_RequestIsDuplicated()
     {
         // Arrange
         _context.Items["AuthContext"] = new AuthContext(TestClientId, ["scope"]);
-        
+
         var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
-        
+
         var mockOrchestrationMetadata = new OrchestrationMetadata(
-            nameof(SearchOrchestrator), 
+            nameof(SearchOrchestrator),
             InstanceId
         )
         {
@@ -208,9 +218,7 @@ public class SearchEndpointTests
             LastUpdatedAt = default,
         };
 
-        _client.GetInstanceAsync(InstanceId).Returns(
-            mockOrchestrationMetadata
-        );
+        _client.GetInstanceAsync(InstanceId).Returns(mockOrchestrationMetadata);
 
         // Act
         var result = await _sut.Searches(httpRequestData, _client, _context);
@@ -221,26 +229,28 @@ public class SearchEndpointTests
         var responseData = await JsonSerializer.DeserializeAsync<SearchJob>(result.Body);
         Assert.Equal(InstanceId, responseData?.JobId);
         Assert.Equal(SearchStatus.Queued, responseData?.Status);
-        
-        await _client.DidNotReceive().ScheduleNewOrchestrationInstanceAsync(
-            Arg.Any<TaskName>(), 
-            Arg.Any<object>(), 
-            Arg.Any<StartOrchestrationOptions>()
-        );
+
+        await _client
+            .DidNotReceive()
+            .ScheduleNewOrchestrationInstanceAsync(
+                Arg.Any<TaskName>(),
+                Arg.Any<object>(),
+                Arg.Any<StartOrchestrationOptions>()
+            );
     }
-    
+
     [Fact]
     public async Task ShouldReturn202_WithNewSearchJob_WhenPreviousJobIsCompleted()
     {
         // Arrange
         _context.Items["AuthContext"] = new AuthContext(TestClientId, ["scope"]);
-        
+
         var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
-        
+
         var mockOrchestrationMetadata = new OrchestrationMetadata(
-            nameof(SearchOrchestrator), 
-            InstanceId 
+            nameof(SearchOrchestrator),
+            InstanceId
         )
         {
             RuntimeStatus = OrchestrationRuntimeStatus.Completed,
@@ -248,15 +258,15 @@ public class SearchEndpointTests
             LastUpdatedAt = default,
         };
 
-        _client.GetInstanceAsync(InstanceId).Returns(
-            mockOrchestrationMetadata
-        );
-        
-        _client.ScheduleNewOrchestrationInstanceAsync(
-            Arg.Any<TaskName>(), 
-            Arg.Any<object>(), 
-            Arg.Any<StartOrchestrationOptions>()
-        ).Returns(InstanceId);
+        _client.GetInstanceAsync(InstanceId).Returns(mockOrchestrationMetadata);
+
+        _client
+            .ScheduleNewOrchestrationInstanceAsync(
+                Arg.Any<TaskName>(),
+                Arg.Any<object>(),
+                Arg.Any<StartOrchestrationOptions>()
+            )
+            .Returns(InstanceId);
 
         // Act
         var result = await _sut.Searches(httpRequestData, _client, _context);
@@ -268,11 +278,13 @@ public class SearchEndpointTests
         Assert.Equal(InstanceId, responseData?.JobId);
         Assert.Equal(ValidSuid, responseData?.Suid);
         Assert.Equal(SearchStatus.Queued, responseData?.Status);
-        
-        await _client.Received().ScheduleNewOrchestrationInstanceAsync(
-            Arg.Any<TaskName>(), 
-            Arg.Any<object>(), 
-            Arg.Any<StartOrchestrationOptions>()
-        );
+
+        await _client
+            .Received()
+            .ScheduleNewOrchestrationInstanceAsync(
+                Arg.Any<TaskName>(),
+                Arg.Any<object>(),
+                Arg.Any<StartOrchestrationOptions>()
+            );
     }
 }
