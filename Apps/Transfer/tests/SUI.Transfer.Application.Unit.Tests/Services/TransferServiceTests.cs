@@ -143,10 +143,14 @@ public sealed class TransferServiceTests : IDisposable
         // Assert - final state should be Failed
         var finalResult = _sut.GetTransferJobState(initialResult.JobId);
         Assert.NotNull(finalResult);
-        Assert.IsType<FailedTransferJobState>(finalResult);
         Assert.Equal(TransferJobStatus.Failed, finalResult.Status);
         Assert.Equal(initialResult.JobId, finalResult.JobId);
         Assert.Equal(requestId, finalResult.Sui);
+
+        var failedTransferJobState = Assert.IsType<FailedTransferJobState>(finalResult);
+        Assert.NotNull(failedTransferJobState.ErrorMessage);
+        Assert.NotNull(failedTransferJobState.StackTrace);
+        Assert.Contains("Mock error", failedTransferJobState.ErrorMessage);
     }
 
     [Fact]

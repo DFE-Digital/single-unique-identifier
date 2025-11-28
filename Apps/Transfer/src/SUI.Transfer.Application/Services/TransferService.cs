@@ -32,7 +32,7 @@ public class TransferService(
         async Task PerformTransferJobAsync()
         {
             using var logScope = logger.BeginScope(
-                "Starting transfer job for sui {sui} (Job ID: {jobId})",
+                "Starting transfer job for sui {Sui} (Job ID: {JobId})",
                 sui,
                 jobId
             );
@@ -45,10 +45,11 @@ public class TransferService(
 
                 UpdateJobState(jobId, new CompletedTransferJobState(jobId, sui, consolidatedData));
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException e)
             {
                 logger.LogWarning(
-                    "Transfer job for sui {sui} (Job ID: {jobId}) was canceled while running",
+                    e,
+                    "Transfer job for sui {Sui} (Job ID: {JobId}) was canceled while running",
                     sui,
                     jobId
                 );
@@ -58,7 +59,7 @@ public class TransferService(
             {
                 logger.LogError(
                     e,
-                    "Error occurred during transfer job for sui {sui} (Job ID: {jobId})",
+                    "Error occurred during transfer job for sui {Sui} (Job ID: {JobId})",
                     sui,
                     jobId
                 );
