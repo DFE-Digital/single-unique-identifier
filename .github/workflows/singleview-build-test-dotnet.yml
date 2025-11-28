@@ -23,5 +23,6 @@ jobs:
       contents: read
       pull-requests: write
       checks: write
+      packages: read
     with:
       directory_name: Apps/SingleView

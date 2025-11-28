@@ -4,5 +4,5 @@ namespace SUI.SingleView.Application.Services;
 
 public interface IRecordService
 {
-    PersonModel GetRecord(string nhsNumber);
+    Task<PersonModel> GetRecordAsync(string nhsNumber);
 }

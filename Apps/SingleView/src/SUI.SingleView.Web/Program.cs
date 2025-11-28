@@ -2,6 +2,7 @@ using System.Reflection;
 using FluentValidation;
 using GovUk.Frontend.AspNetCore;
 using SUI.SingleView.Application.Services;
+using SUI.Transfer.API.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,11 @@ builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IRecordService, RecordService>();
+
+builder.Services.AddTransferClient(
+    builder.Configuration["TransferClient:BaseUrl"] ?? string.Empty,
+    builder.Configuration["TransferClient:ApiKey"] ?? string.Empty
+);
 
 var app = builder.Build();
 

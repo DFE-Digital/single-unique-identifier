@@ -70,4 +70,17 @@ dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
 dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
 dotnet pwsh ./Apps/Matching/test_and_cover_matching.ps1
 ```
+## Set up Private Nuget Feed
+
+We are using GitHub Packages for hosting API Clients, this feed require you to sign in to be able to do a restore.
+You will need to get a 'Personal Access Token (Classic)' from GitHub.
+
+click on your photo in the top right > click Settings > Developer Settings > Personal access tokens > Tokens (classic) > 
+click generate new token (classic) > add a note to describe the token > set an expiration date > 
+check the 'write:packages' permission > click Generate token.
+
+Save a copy on the token on your machine incase you need it in the future.
+
+When you try and restore a project for the first time that is using a GitHub package feed Rider will bring up a login box.
+Put your GitHub username in the username field and your Token in the password field.
 
