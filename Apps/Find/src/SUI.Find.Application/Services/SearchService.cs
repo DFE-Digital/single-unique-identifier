@@ -96,13 +96,13 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
                 return SearchResultsDto.NotFound(jobId);
             }
 
-            var meta = ReadOrchestratorInput<SearchJobOrchestrationInput>(metaData);
+            var meta = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (meta is null)
             {
                 return SearchResultsDto.Error(jobId, "Failed to read search job metadata.");
             }
 
-            if (meta.ClientId != clientId)
+            if (meta.PolicyContext.ClientId != clientId)
             {
                 logger.LogWarning(
                     "Unauthorized access attempt to search job {JobId} by client {ClientId}.",
