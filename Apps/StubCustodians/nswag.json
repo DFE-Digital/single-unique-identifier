@@ -3,7 +3,7 @@
   "defaultVariables": null,
   "documentGenerator": {
     "fromDocument": {
-      "url": "./src/SUI.StubCustodians.API.Client/spec.yml",
+      "url": "./custodians-openapi.yaml",
       "output": null,
       "newLineBehaviour": "Auto"
     }
