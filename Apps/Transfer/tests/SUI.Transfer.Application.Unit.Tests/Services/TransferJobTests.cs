@@ -14,6 +14,8 @@ public class TransferJobTests
         Substitute.For<IRecordConsolidator>();
     private readonly IConsolidatedDataAggregator _mockConsolidatedDataAggregator =
         Substitute.For<IConsolidatedDataAggregator>();
+    private readonly IAggregatedDataRepository _mockAggregatedDataRepository =
+        Substitute.For<IAggregatedDataRepository>();
     private readonly IHostApplicationLifetime _mockHostApplicationLifetime =
         Substitute.For<IHostApplicationLifetime>();
     private readonly ILogger<TransferJob> _mockLogger = Substitute.For<ILogger<TransferJob>>();
@@ -27,6 +29,7 @@ public class TransferJobTests
             _mockRecordFetcher,
             _mockRecordConsolidator,
             _mockConsolidatedDataAggregator,
+            _mockAggregatedDataRepository,
             _mockHostApplicationLifetime,
             _mockLogger
         );
@@ -115,5 +118,6 @@ public class TransferJobTests
             .FetchRecordsAsync(sui, mockRecordPointers, Arg.Any<CancellationToken>());
         _mockRecordConsolidator.Received().ConsolidateRecords(mockUnconsolidatedData);
         _mockConsolidatedDataAggregator.Received().ApplyAggregations(mockConsolidatedData);
+        await _mockAggregatedDataRepository.Received().AddOrUpdateAsync(mockAggregatedData);
     }
 }

@@ -9,6 +9,7 @@ public class TransferJob(
     IRecordFetcher recordFetcher,
     IRecordConsolidator recordConsolidator,
     IConsolidatedDataAggregator consolidatedDataAggregator,
+    IAggregatedDataRepository aggregatedDataRepository,
     IHostApplicationLifetime hostApplicationLifetime,
     ILogger<TransferJob> logger
 ) : ITransferJob
@@ -50,6 +51,11 @@ public class TransferJob(
 
         // Apply aggregations
         cancellationToken.ThrowIfCancellationRequested();
-        return consolidatedDataAggregator.ApplyAggregations(consolidatedData);
+        var aggregatedData = consolidatedDataAggregator.ApplyAggregations(consolidatedData);
+
+        // Store the Aggregated Data, with a configured Time to Live (TTL)
+        await aggregatedDataRepository.AddOrUpdateAsync(aggregatedData);
+
+        return aggregatedData;
     }
 }

@@ -4,6 +4,10 @@ namespace SUI.Transfer.Domain;
 
 public record AggregatedData(ConsolidatedData ConsolidatedData)
 {
+    public string Sui { get; } = ConsolidatedData.Sui;
+
+    public ConsolidatedData ConsolidatedData { get; } = ConsolidatedData;
+
     public required EducationAttendanceV1? EducationAttendanceCurrentAcademicYear { get; init; }
 
     public required EducationAttendanceV1? EducationAttendanceLastAcademicYear { get; init; }
