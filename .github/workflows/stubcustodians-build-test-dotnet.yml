@@ -67,7 +67,7 @@ jobs:
 
       # Upload OpenAPI Spec
       - name: Upload Generated OpenAPI Spec
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: stub-custodians-openapi
           path: custodians-openapi-generated.yaml
