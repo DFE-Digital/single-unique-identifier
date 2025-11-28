@@ -1,4 +1,6 @@
-﻿namespace SUI.Transfer.Domain.Unit.Tests;
+﻿using SUI.StubCustodians.API.Client;
+
+namespace SUI.Transfer.Domain.Unit.Tests;
 
 public class UnconsolidatedDataTests
 {

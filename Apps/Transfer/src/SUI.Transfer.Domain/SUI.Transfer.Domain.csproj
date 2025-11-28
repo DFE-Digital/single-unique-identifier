@@ -4,4 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SUI.StubCustodians.API.Client" Version="1.1.0" />
+  </ItemGroup>
 </Project>

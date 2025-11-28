@@ -1,4 +1,6 @@
-﻿namespace SUI.Transfer.Domain;
+﻿using SUI.StubCustodians.API.Client;
+
+namespace SUI.Transfer.Domain;
 
 public record ConsolidatedData(string Sui)
 {

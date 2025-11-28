@@ -96,14 +96,15 @@ public sealed class TransferServiceTests : IDisposable
 
         // Assert - final state should be Completed
         var finalResult = _sut.GetTransferJobState(initialResult.JobId);
-        Assert.Equal(
-            new CompletedTransferJobState(
-                initialResult.JobId,
-                requestId,
-                CreateEmptyAggregatedConsolidatedData(requestId)
-            ),
-            finalResult
-        );
+        finalResult
+            .Should()
+            .BeEquivalentTo(
+                new CompletedTransferJobState(
+                    initialResult.JobId,
+                    requestId,
+                    CreateEmptyAggregatedConsolidatedData(requestId)
+                )
+            );
     }
 
     [Fact]
