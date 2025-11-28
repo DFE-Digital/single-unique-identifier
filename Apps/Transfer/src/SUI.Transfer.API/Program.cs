@@ -29,7 +29,10 @@ builder
 
 builder.Services.AddAuthorizationBuilder();
 
-builder.Services.AddSingleton<ITransferService, TransferService>();
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<ITransferJob, TransferJob>();
+builder.Services.AddScoped<ITransferService, TransferService>();
 
 builder.Services.Configure<JsonOptions>(options =>
 {
