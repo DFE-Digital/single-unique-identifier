@@ -113,40 +113,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
 
-  '/api/v1/records/EducationAttendanceHistoryRecordV1/{sui}':
-    get:
-      parameters:
-        - name: sui
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Record found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EducationAttendanceHistoryEnvelopeV1'
-        '400':
-          description: Required parameters are missing or invalid.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '404':
-          description: Record not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        default:
-          description: Unexpected error.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-
   '/api/v1/records/ChildHealthDataRecordV1/{sui}':
     get:
       parameters:
@@ -347,12 +313,6 @@ components:
           items:
             $ref: '#/components/schemas/EducationActiveStatusAndPlanV1'
           nullable: true
-      additionalProperties: false
-
-    # EducationAttendanceHistory record type v1
-    EducationAttendanceHistoryRecordV1:
-      type: object
-      properties:
         educationAttendances:
           type: array
           items:
@@ -736,23 +696,6 @@ components:
                 - https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json
             data:
               $ref: '#/components/schemas/EducationDetailsRecordV1'
-          required:
-            - data
-          additionalProperties: false
-
-    EducationAttendanceHistoryEnvelopeV1:
-      allOf:
-        - $ref: '#/components/schemas/RecordEnvelopeBase'
-        - type: object
-          description: Envelope for EducationAttendanceHistoryRecordV1 records.
-          properties:
-            schemaUri:
-              type: string
-              format: uri
-              enum:
-                - https://schemas.example.gov.uk/sui/EducationAttendanceHistoryRecordV1.json
-            data:
-              $ref: '#/components/schemas/EducationAttendanceHistoryRecordV1'
           required:
             - data
           additionalProperties: false
