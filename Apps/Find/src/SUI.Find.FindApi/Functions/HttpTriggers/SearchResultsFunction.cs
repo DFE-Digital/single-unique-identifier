@@ -3,13 +3,16 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.DurableTask.Client;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.Utility;
 
 namespace SUI.Find.FindApi.Functions.HttpTriggers;
 
-public class SearchResultsFunction
+public class SearchResultsFunction(ILogger<SearchResultsFunction> logger)
 {
     #region OpenApi
     [OpenApiOperation(
@@ -56,6 +59,24 @@ public class SearchResultsFunction
         CancellationToken cancellationToken
     )
     {
+        using var logScope = logger.BeginScope(
+            new Dictionary<string, object> { ["CorrelationId"] = context.InvocationId }
+        );
+
+        if (
+            !context.Items.TryGetValue(ApplicationConstants.Auth.HttpContextKey, out var authObj)
+            || authObj is not AuthContext authContext
+        )
+        {
+            return await HttpResponseUtility.ProblemResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "Unauthorized",
+                "",
+                context.InvocationId,
+                cancellationToken
+            );
+        }
         // TODO: DI  the SearchService one the PR for it is merged
         throw new NotImplementedException();
     }
