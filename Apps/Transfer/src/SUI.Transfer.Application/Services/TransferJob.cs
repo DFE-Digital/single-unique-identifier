@@ -46,12 +46,10 @@ public class TransferJob(
 
         // Consolidate records
         cancellationToken.ThrowIfCancellationRequested();
-        logger.LogDebug("Consolidating records for sui {Sui}", sui);
         var consolidatedData = recordConsolidator.ConsolidateRecords(unconsolidatedData);
 
         // Apply aggregations
         cancellationToken.ThrowIfCancellationRequested();
-        logger.LogDebug("Aggregating records for sui {Sui}", sui);
         return consolidatedDataAggregator.ApplyAggregations(consolidatedData);
     }
 }

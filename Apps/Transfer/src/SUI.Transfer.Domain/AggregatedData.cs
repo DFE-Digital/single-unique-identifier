@@ -12,9 +12,9 @@ public record AggregatedData(ConsolidatedData ConsolidatedData)
 
     public required HealthAttendanceSummary? HealthAttendanceSummaryLast5Years { get; init; }
 
-    public required CSCReferralSummary[]? CSCReferralSummaryPast6Months { get; init; }
+    public required ChildrensSocialCareReferralSummary[]? CSCReferralSummaryPast6Months { get; init; }
 
-    public required CSCReferralSummary[]? CSCReferralSummaryPast12Months { get; init; }
+    public required ChildrensSocialCareReferralSummary[]? CSCReferralSummaryPast12Months { get; init; }
 
-    public required CSCReferralSummary[]? CSCReferralSummaryPast5Years { get; init; }
+    public required ChildrensSocialCareReferralSummary[]? CSCReferralSummaryPast5Years { get; init; }
 }
