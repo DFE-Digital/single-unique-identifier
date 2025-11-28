@@ -17,7 +17,7 @@ public class DataView : PageModel
         _recordService = recordService;
     }
 
-    public async Task OnGet()
+    public async Task OnGetAsync()
     {
         PersonModel = await _recordService.GetRecord("1234567890");
     }
