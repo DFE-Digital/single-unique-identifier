@@ -1,3 +1,11 @@
 namespace SUI.Find.Application.Dtos;
 
-public record SearchJobOrchestrationInput(string ClientId, string Suid);
+public sealed record PolicyContext(string ClientId, IReadOnlyList<string> Scopes);
+
+public record SearchJobMetadata(string PersonId, DateTime RequestedAtUtc);
+
+public record SearchJobOrchestrationInput(
+    string Suid,
+    SearchJobMetadata Metadata,
+    PolicyContext PolicyContext
+);

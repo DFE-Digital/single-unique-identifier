@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
+using SUI.Find.Application.Dtos;
 
 namespace SUI.Find.FindApi.Functions.Orchestrators;
 
@@ -14,7 +15,7 @@ public class SearchOrchestrator
         [OrchestrationTrigger] TaskOrchestrationContext context
     )
     {
-        var suid = context.GetInput<string>();
+        var suid = context.GetInput<SearchJobOrchestrationInput>();
         // TODO: Activities
         return $"Search completed for SUID: {suid}";
     }
