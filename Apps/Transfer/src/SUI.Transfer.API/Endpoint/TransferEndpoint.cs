@@ -15,17 +15,17 @@ public static class TransferEndpoint
 
         transferGroup
             .MapGet(
-                "/transfer/{id}",
+                "/transfer/{sui}",
                 [Authorize]
                 Ok<QueuedTransferJobState> (
                     [Description(
                         "The single unique identifier for the data which is being requested."
                     )]
-                        string id,
+                        string sui,
                     [FromServices] ITransferService transferService
                 ) =>
                 {
-                    var result = transferService.BeginTransferJob(id);
+                    var result = transferService.BeginTransferJob(sui);
 
                     return TypedResults.Ok(result);
                 }
