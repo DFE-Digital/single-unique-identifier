@@ -4,7 +4,6 @@ using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Services;
 
-// rs-todo: tests for TransferJob
 public class TransferJob(
     IRecordFinder recordFinder,
     IRecordFetcher recordFetcher,
@@ -21,7 +20,7 @@ public class TransferJob(
         var cancellationToken = hostApplicationLifetime.ApplicationStopping;
 
         // Find records
-        cancellationToken.ThrowIfCancellationRequested(); // rs-todo: test to verify this does happen
+        cancellationToken.ThrowIfCancellationRequested();
         logger.LogInformation("Finding records for sui {Sui}", sui);
         var recordPointers = await recordFinder.FindRecordsAsync(sui, cancellationToken);
         logger.LogInformation(
