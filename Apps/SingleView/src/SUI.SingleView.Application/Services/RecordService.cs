@@ -16,7 +16,7 @@ public class RecordService : IRecordService
         _logger = logger;
     }
 
-    public async Task<PersonModel> GetRecord(string nhsNumber)
+    public async Task<PersonModel> GetRecordAsync(string nhsNumber)
     {
         var id = string.Empty;
         try
