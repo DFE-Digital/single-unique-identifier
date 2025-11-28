@@ -17,7 +17,6 @@ public interface ITransferService
     public record RunningTransferJobState(Guid JobId, string Sui)
         : TransferJobState(JobId, Sui, TransferJobStatus.Running);
 
-    // rs-todo: add consolidated record, and provider errors
     public record CompletedTransferJobState(
         Guid JobId,
         string Sui,
