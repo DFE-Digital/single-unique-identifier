@@ -9,5 +9,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/SUI.Transfer.API.Unit.Tests/SUI.Transfer.API.Unit.Tests.csproj" />
     <Project Path="tests/SUI.Transfer.Application.Unit.Tests/SUI.Transfer.Application.Unit.Tests.csproj" />
+    <Project Path="tests/SUI.Transfer.Domain.Unit.Tests/SUI.Transfer.Domain.Unit.Tests.csproj" />
   </Folder>
 </Solution>

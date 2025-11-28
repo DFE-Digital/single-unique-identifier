@@ -14,7 +14,7 @@ public record UnconsolidatedData(string Sui)
 
     public required FailedFetch[] FailedFetches { get; init; }
 
-    public int CountOfRecordsSuccessfullyFetched => // rs-todo: tests
+    public int CountOfRecordsSuccessfullyFetched =>
         ChildPersonalDetailsRecords.Length
         + ChildSocialCareDetailsRecords.Length
         + EducationDetailsRecords.Length
