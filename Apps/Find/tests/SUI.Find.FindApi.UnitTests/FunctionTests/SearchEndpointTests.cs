@@ -10,6 +10,7 @@ using SUI.Find.FindApi.Functions.HttpTriggers;
 using SUI.Find.FindApi.Functions.Orchestrators;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.UnitTests.Mocks;
+using SUI.Find.FindApi.Utility;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
@@ -22,8 +23,7 @@ public class SearchEndpointTests
     private const string ValidSuid = "1234567890123456"; 
     private const string InvalidSuid = "short";
     private const string TestClientId = "test-client-id";
-    private const string InstanceId = $"{ValidSuid}-{TestClientId}";
-    
+    private readonly string InstanceId;
     public SearchEndpointTests()
     {
         var logger = new LoggerFactory();
@@ -35,6 +35,9 @@ public class SearchEndpointTests
             [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(TestClientId, []),
         };
         _context.Items.Returns(items);
+        
+        var hashedClientId = HashUtility.HashInput(TestClientId);
+        InstanceId = $"{ValidSuid}-{hashedClientId}";
     }
 
     [Fact]

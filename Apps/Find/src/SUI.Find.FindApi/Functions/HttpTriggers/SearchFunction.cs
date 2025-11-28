@@ -49,7 +49,7 @@ public class SearchFunction(ILogger<SearchFunction> logger)
         FunctionContext context
     )
     {
-        
+
         if (
             !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
             || authObj is not AuthContext authContext
@@ -63,8 +63,8 @@ public class SearchFunction(ILogger<SearchFunction> logger)
                 context.InvocationId
             );
         }
-        
-        var clientId = authContext?.ClientId;
+
+        var hashedClientId = HashUtility.HashInput(authContext!.ClientId);
 
         var searchRequest = await JsonSerializer.DeserializeAsync<StartSearchRequest>(req.Body);
 
@@ -81,7 +81,7 @@ public class SearchFunction(ILogger<SearchFunction> logger)
 
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);
 
-        var instanceId = $"{searchRequest!.Suid}-{clientId}";
+        var instanceId = $"{searchRequest!.Suid}-{hashedClientId}";
 
         var existingInstance = await client.GetInstanceAsync(instanceId);
         var hasExistingInstance = existingInstance != null &&
@@ -89,7 +89,7 @@ public class SearchFunction(ILogger<SearchFunction> logger)
                                    existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Pending);
         if (hasExistingInstance)
         {
-            var originalJobId = existingInstance?.InstanceId;
+            var originalJobId = existingInstance!.InstanceId;
             var jobStatus = existingInstance?.RuntimeStatus == OrchestrationRuntimeStatus.Running
                 ? SearchStatus.Running
                 : SearchStatus.Queued;

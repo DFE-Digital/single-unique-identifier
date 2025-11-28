@@ -21,12 +21,12 @@ public static class StartSearchRequestValidator
 
         if (request.Suid.Length != AesBlockSize)
         {
-            errorMessage = $"Suid must be exactly {AesBlockSize} characters";
+            errorMessage = $"Suid is invalid";
             return false;
         }
-        
+
         errorMessage = null;
         return true;
     }
-    
+
 }
