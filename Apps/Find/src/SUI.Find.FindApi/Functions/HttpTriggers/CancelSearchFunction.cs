@@ -59,7 +59,7 @@ public class CancelSearchFunction(
         );
 
         if (
-            !context.Items.TryGetValue("AuthContext", out var authObj)
+            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
             || authObj is not AuthContext authContext
         )
         {
