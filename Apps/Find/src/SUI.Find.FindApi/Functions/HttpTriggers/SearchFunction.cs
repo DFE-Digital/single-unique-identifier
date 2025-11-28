@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using SUI.Find.FindApi.Attributes;
@@ -46,6 +47,10 @@ public class SearchFunction(ILogger<SearchFunction> logger)
         FunctionContext context
     )
     {
+        var authContext = context.Items.TryGetValue("AuthContext", out var authObj) ? authObj as AuthContext : null;
+
+        var clientId = authContext?.ClientId ?? "unknown_client";
+
         var searchRequest = await JsonSerializer.DeserializeAsync<StartSearchRequest>(req.Body);
 
         if (!StartSearchRequestValidator.IsValid(searchRequest, out var errorMessage))
@@ -66,13 +71,57 @@ public class SearchFunction(ILogger<SearchFunction> logger)
 
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);
 
-        var acceptedResponse = req.CreateResponse(HttpStatusCode.Accepted);
+        var instanceId = $"{searchRequest!.Suid}-{clientId}";
 
+        var existingInstance = await client.GetInstanceAsync(instanceId);
+        var hasExistingInstance = existingInstance != null &&
+                                  (existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Running ||
+                                   existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Pending);
+        if (hasExistingInstance)
+        {
+            var originalJobId = existingInstance?.InstanceId;
+            var jobStatus = existingInstance?.RuntimeStatus == OrchestrationRuntimeStatus.Running
+                ? SearchStatus.Running
+                : SearchStatus.Queued;
+
+            logger.LogInformation(
+                "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
+                originalJobId,
+                jobStatus
+            );
+
+            var originalJob = new SearchJob
+            {
+                JobId = originalJobId!,
+                Suid = searchRequest.Suid,
+                Status = jobStatus,
+                CreatedAt = existingInstance!.CreatedAt,
+                LastUpdatedAt = existingInstance.LastUpdatedAt,
+                Links = new Dictionary<string, HalLink>
+                {
+                    { "self", new HalLink($"/v1/searches/{originalJobId}", "GET") },
+                    { "results", new HalLink($"/v1/searches/{originalJobId}/results", "GET") },
+                    { "cancel", new HalLink($"/v1/searches/{originalJobId}", "DELETE") },
+                },
+            };
+            var duplicateSearchResponse = req.CreateResponse(HttpStatusCode.Accepted);
+
+            await duplicateSearchResponse.WriteAsJsonAsync(originalJob);
+            logger.LogInformation(
+                "Returning original Search Request with JobId: {JobId}", originalJobId
+            );
+            return duplicateSearchResponse;
+        }
+
+
+        var acceptedResponse = req.CreateResponse(HttpStatusCode.Accepted);
+        Console.WriteLine("Scheduled new orchestration with instanceId: {0}", instanceId);
         var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
             nameof(SearchOrchestrator),
-            searchRequest!.Suid
+            searchRequest.Suid,
+            new StartOrchestrationOptions { InstanceId = instanceId }
         );
-
+        Console.WriteLine("Scheduled new orchestration with JobId: {0}", jobId);
         var searchJob = new SearchJob
         {
             JobId = jobId,
@@ -89,7 +138,10 @@ public class SearchFunction(ILogger<SearchFunction> logger)
         };
 
         await acceptedResponse.WriteAsJsonAsync(searchJob);
-
+        logger.LogInformation(
+            "Creating a new Search Request with JobId: {JobId}", searchJob.JobId
+        );
         return acceptedResponse;
     }
+
 }
