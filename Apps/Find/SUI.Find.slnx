@@ -6,6 +6,7 @@
     <Project Path="src\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests\SUI.Find.ApplicationTests\SUI.Find.ApplicationTests.csproj" />
     <Project Path="tests\SUI.Find.FindApi.IntegrationTests\SUI.Find.FindApi.IntegrationTests.csproj" />
     <Project Path="tests\SUI.Find.FindApi.UnitTests\SUI.Find.FindApi.UnitTests.csproj" />
     <Project Path="tests\SUI.Find.Infrastructure.UnitTests\SUI.Find.Infrastructure.UnitTests.csproj" />
