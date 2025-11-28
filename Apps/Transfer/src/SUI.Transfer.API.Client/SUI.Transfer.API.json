@@ -1,0 +1,76 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SUI.Transfer.API | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/transfer/{id}": {
+      "get": {
+        "tags": [
+          "SUI Transfer API - Transfer"
+        ],
+        "summary": "Transfer custodian data for a given child",
+        "description": "This endpoint requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The single unique identifier for the data which is being requested.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "x-api-key": [ ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TransferResult": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "x-api-key": {
+        "type": "apiKey",
+        "name": "x-api-key",
+        "in": "header"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "SUI Transfer API - Transfer"
+    }
+  ]
+}

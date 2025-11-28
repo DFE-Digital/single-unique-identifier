@@ -91,7 +91,7 @@ public class SearchEndpointTests
         var responseData = await JsonSerializer.DeserializeAsync<SearchJob>(result.Body);
         Assert.NotNull(responseData);
         Assert.True(responseData.Links.ContainsKey("self"));
-        Assert.True(responseData.Links.ContainsKey("results"));
+        Assert.True(responseData.Links.ContainsKey("status"));
         Assert.True(responseData.Links.ContainsKey("cancel"));
     }
 

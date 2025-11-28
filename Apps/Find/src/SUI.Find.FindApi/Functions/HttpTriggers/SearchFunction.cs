@@ -97,12 +97,6 @@ public class SearchFunction(ILogger<SearchFunction> logger)
                 Status = jobStatus,
                 CreatedAt = existingInstance!.CreatedAt,
                 LastUpdatedAt = existingInstance.LastUpdatedAt,
-                Links = new Dictionary<string, HalLink>
-                {
-                    { "self", new HalLink($"/v1/searches/{originalJobId}", "GET") },
-                    { "results", new HalLink($"/v1/searches/{originalJobId}/results", "GET") },
-                    { "cancel", new HalLink($"/v1/searches/{originalJobId}", "DELETE") },
-                },
             };
             var duplicateSearchResponse = req.CreateResponse(HttpStatusCode.Accepted);
 
@@ -115,13 +109,13 @@ public class SearchFunction(ILogger<SearchFunction> logger)
 
 
         var acceptedResponse = req.CreateResponse(HttpStatusCode.Accepted);
-        Console.WriteLine("Scheduled new orchestration with instanceId: {0}", instanceId);
+
         var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
             nameof(SearchOrchestrator),
             searchRequest.Suid,
             new StartOrchestrationOptions { InstanceId = instanceId }
         );
-        Console.WriteLine("Scheduled new orchestration with JobId: {0}", jobId);
+
         var searchJob = new SearchJob
         {
             JobId = jobId,
@@ -129,12 +123,6 @@ public class SearchFunction(ILogger<SearchFunction> logger)
             Status = SearchStatus.Queued,
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,
-            Links = new Dictionary<string, HalLink>
-            {
-                { "self", new HalLink($"/v1/searches/{jobId}", "GET") },
-                { "results", new HalLink($"/v1/searches/{jobId}/results", "GET") },
-                { "cancel", new HalLink($"/v1/searches/{jobId}", "DELETE") },
-            },
         };
 
         await acceptedResponse.WriteAsJsonAsync(searchJob);

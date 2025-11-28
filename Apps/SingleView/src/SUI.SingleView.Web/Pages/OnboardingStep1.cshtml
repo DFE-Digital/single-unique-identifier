@@ -1,33 +1,27 @@
 @page
 @model OnboardingStep1
 @{
-    ViewBag.Title = "Child Safeguarding Service";
+    ViewBag.Title = "Childrens Safeguarding Service";
     ViewBag.BackLinkPath = nameof(Index);
 }
 
 <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
-<govuk-notification-banner>
-    <govuk-notification-banner-title heading-level="2" id="banner-title">
-        Important
-    </govuk-notification-banner-title>
-    <p class="govuk-notification-banner__heading">
-        These records contain sensitive information
-    </p>
-    <p class="govuk-notification-banner__heading">
-        You can legally xxxxxx
-    </p>
-</govuk-notification-banner>
 <p class="govuk-body">
     These records show personal data such as details about a child and their family, historical involvement, active
-    plans and additional needs
+    plans and additional needs.
 </p>
-<p class="govuk-body">Depending on what is available, you may also see information from:</p>
+<p class="govuk-body">Depending on what is available in your local area, you may see information from the following
+    areas:</p>
 <ul class="govuk-list govuk-list--bullet">
     <li><b>Childrens Services</b> including support plans and provisions</li>
-    <li><b>Education</b> including attendance and behaviour records, school moves</li>
+    <li><b>Education</b> including school moves, attendance and behaviour</li>
     <li><b>Crime</b> including Probation, Youth offending and Police</li>
-    <li><b>Health</b> including clinical diagnoses</li>
-    <li><b>Housing</b> including household members, complaints</li>
+    <li><b>Health</b> including active health statuses</li>
+    <li><b>Housing</b> including household members</li>
 </ul>
+<govuk-warning-text icon-fallback-text="Warning">
+    These records contain sensitive information about children and should only be used to support safeguarding concerns
+    and preventative measures
+</govuk-warning-text>
 
-<govuk-button-link asp-page="@Model.NextStep">Continue</govuk-button-link>
+<govuk-button-link asp-page="@nameof(OnboardingStep2)">Continue</govuk-button-link>

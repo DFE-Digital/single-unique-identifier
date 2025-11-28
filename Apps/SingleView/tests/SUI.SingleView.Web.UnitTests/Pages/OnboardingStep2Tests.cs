@@ -8,25 +8,15 @@ namespace SUI.SingleView.Web.UnitTests.Pages;
 public class OnboardingStep2Tests : PageModelTestBase<OnboardingStep2>
 {
     [Fact]
-    public void OnPost_WhenSelectedOptionsNotPresent_ShowsError()
+    public void OnGet_ReturnsPage()
     {
-        var sut = new OnboardingStep2(MockLogger) { PageContext = GetPageContext() };
-        sut.OnGet();
-        var result = sut.OnPost();
-        result.ShouldBeOfType<PageResult>();
-        sut.ShowError.ShouldBeTrue();
-    }
+        // Arrange
+        var sut = new OnboardingStep2(MockLogger);
 
-    [Fact]
-    public void OnPost_WhenSelectedOptionsPresent_RedirectsToSigninPage()
-    {
-        var sut = new OnboardingStep2(MockLogger)
-        {
-            PageContext = GetPageContext(),
-            SelectedOptions = ["terms", "analytics"],
-        };
-        var result = sut.OnPost();
-        result.ShouldBeOfType<RedirectToPageResult>();
-        ((RedirectToPageResult)result).PageName.ShouldBe("./Signin");
+        // Act
+        var result = sut.OnGet();
+
+        // Assert
+        result.ShouldBeOfType<PageResult>();
     }
 }
