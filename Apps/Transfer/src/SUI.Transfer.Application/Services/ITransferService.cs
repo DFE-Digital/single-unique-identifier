@@ -1,4 +1,5 @@
 using SUI.Transfer.Application.Models;
+using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Services;
 
@@ -17,8 +18,11 @@ public interface ITransferService
         : TransferJobState(JobId, Sui, TransferJobStatus.Running);
 
     // rs-todo: add consolidated record, and provider errors
-    public record CompletedTransferJobState(Guid JobId, string Sui)
-        : TransferJobState(JobId, Sui, TransferJobStatus.Completed);
+    public record CompletedTransferJobState(
+        Guid JobId,
+        string Sui,
+        AggregatedConsolidatedData ConsolidatedData
+    ) : TransferJobState(JobId, Sui, TransferJobStatus.Completed);
 
     public record FailedTransferJobState(
         Guid JobId,

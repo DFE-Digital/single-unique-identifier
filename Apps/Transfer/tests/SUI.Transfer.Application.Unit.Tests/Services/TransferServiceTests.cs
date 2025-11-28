@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Transfer.Application.Models;
 using SUI.Transfer.Application.Services;
+using SUI.Transfer.Domain;
 using static SUI.Transfer.Application.Services.ITransferService;
 
 namespace SUI.Transfer.Application.Unit.Tests.Services;
@@ -27,6 +28,29 @@ public sealed class TransferServiceTests : IDisposable
         _testMemoryCache.Dispose();
     }
 
+    private static AggregatedConsolidatedData CreateEmptyAggregatedConsolidatedData(string sui) =>
+        new(
+            new ConsolidatedData(sui)
+            {
+                ChildPersonalDetailsRecord = new(),
+                ChildSocialCareDetailsRecord = new(),
+                EducationDetailsRecord = new(),
+                ChildHealthDataRecord = new(),
+                ChildLinkedCrimeDataRecord = new(),
+                CountOfRecordsSuccessfullyFetched = 0,
+                FailedFetches = [],
+            }
+        )
+        {
+            EducationAttendanceCurrentAcademicYear = null,
+            EducationAttendanceLastAcademicYear = null,
+            HealthAttendanceSummaryLast12Months = null,
+            HealthAttendanceSummaryLast5Years = null,
+            CSCReferralSummaryPast6Months = null,
+            CSCReferralSummaryPast12Months = null,
+            CSCReferralSummaryPast5Years = null,
+        };
+
     [Fact]
     public async Task Transfer_HappyPath_Test()
     {
@@ -35,14 +59,16 @@ public sealed class TransferServiceTests : IDisposable
 
         var mutex = new SemaphoreSlim(0, 1);
         _mockTransferJob
-            .When(x => x.TransferAsync(Arg.Any<Guid>(), requestId))
-            .Do(i =>
+            .TransferAsync(Arg.Any<Guid>(), requestId)
+            .Returns(callInfo =>
             {
-                var jobId = i.Arg<Guid>();
+                var jobId = callInfo.Arg<Guid>();
 
                 // Verify that the intermediate state is as expected
                 var intermediateResult = _sut.GetTransferJobState(jobId);
                 Assert.Equal(new RunningTransferJobState(jobId, requestId), intermediateResult);
+
+                return Task.FromResult(CreateEmptyAggregatedConsolidatedData(requestId));
             });
 
         var mockJobScope = Substitute.For<IDisposable>();
@@ -70,7 +96,14 @@ public sealed class TransferServiceTests : IDisposable
 
         // Assert - final state should be Completed
         var finalResult = _sut.GetTransferJobState(initialResult.JobId);
-        Assert.Equal(new CompletedTransferJobState(initialResult.JobId, requestId), finalResult);
+        Assert.Equal(
+            new CompletedTransferJobState(
+                initialResult.JobId,
+                requestId,
+                CreateEmptyAggregatedConsolidatedData(requestId)
+            ),
+            finalResult
+        );
     }
 
     [Fact]
@@ -110,6 +143,7 @@ public sealed class TransferServiceTests : IDisposable
         // Assert - final state should be Failed
         var finalResult = _sut.GetTransferJobState(initialResult.JobId);
         Assert.NotNull(finalResult);
+        Assert.IsType<FailedTransferJobState>(finalResult);
         Assert.Equal(TransferJobStatus.Failed, finalResult.Status);
         Assert.Equal(initialResult.JobId, finalResult.JobId);
         Assert.Equal(requestId, finalResult.Sui);
@@ -152,6 +186,7 @@ public sealed class TransferServiceTests : IDisposable
         // Assert - final state should be Canceled
         var finalResult = _sut.GetTransferJobState(initialResult.JobId);
         Assert.NotNull(finalResult);
+        Assert.IsType<CancelledTransferJobState>(finalResult);
         Assert.Equal(TransferJobStatus.Canceled, finalResult.Status);
         Assert.Equal(initialResult.JobId, finalResult.JobId);
         Assert.Equal(requestId, finalResult.Sui);

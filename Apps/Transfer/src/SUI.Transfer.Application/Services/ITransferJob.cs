@@ -1,6 +1,8 @@
-﻿namespace SUI.Transfer.Application.Services;
+﻿using SUI.Transfer.Domain;
 
-public interface ITransferJob // rs-todo: implement, and write unit tests
+namespace SUI.Transfer.Application.Services;
+
+public interface ITransferJob
 {
-    Task TransferAsync(Guid jobId, string sui);
+    Task<AggregatedConsolidatedData> TransferAsync(Guid jobId, string sui);
 }
