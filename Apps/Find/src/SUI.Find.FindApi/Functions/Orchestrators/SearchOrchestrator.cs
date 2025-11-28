@@ -15,7 +15,7 @@ public class SearchOrchestrator
         [OrchestrationTrigger] TaskOrchestrationContext context
     )
     {
-        var suid = context.GetInput<SearchJobOrchestrationInput>();
+        var suid = context.GetInput<SearchOrchestratorInput>();
         // TODO: Activities
         return $"Search completed for SUID: {suid}";
     }

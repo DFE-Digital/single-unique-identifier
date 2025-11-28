@@ -134,7 +134,7 @@ public class SearchFunction(ILogger<SearchFunction> logger)
 
         var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
             nameof(SearchOrchestrator),
-            new SearchJobOrchestrationInput(searchRequest.Suid, metaData, policyData),
+            new SearchOrchestratorInput(searchRequest.Suid, metaData, policyData),
             new StartOrchestrationOptions { InstanceId = hashedInstanceId }
         );
 

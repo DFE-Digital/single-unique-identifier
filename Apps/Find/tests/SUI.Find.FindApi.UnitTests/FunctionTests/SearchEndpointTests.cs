@@ -51,7 +51,7 @@ public class SearchEndpointTests
         _client
             .ScheduleNewOrchestrationInstanceAsync(
                 nameof(SearchOrchestrator),
-                Arg.Is<SearchJobOrchestrationInput>(a => a.Suid == InstanceId)
+                Arg.Is<SearchOrchestratorInput>(a => a.Suid == InstanceId)
             )
             .Returns("test-job-id");
 

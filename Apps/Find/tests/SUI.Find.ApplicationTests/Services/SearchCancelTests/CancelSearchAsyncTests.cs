@@ -18,8 +18,8 @@ public class CancelSearchAsyncTests
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
         var policyData = new PolicyContext(ClientId, []);
         _searchService
-            .ReadOrchestratorInput<SearchJobOrchestrationInput>(Arg.Any<OrchestrationMetadata>())
-            .Returns(new SearchJobOrchestrationInput("test-suid", metaData, policyData));
+            .ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
+            .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
     }
 
     [Fact]
@@ -127,8 +127,8 @@ public class CancelSearchAsyncTests
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
         var policyData = new PolicyContext("different-client-id", []);
         _searchService
-            .ReadOrchestratorInput<SearchJobOrchestrationInput>(meta)
-            .Returns(new SearchJobOrchestrationInput("test-suid", metaData, policyData));
+            .ReadOrchestratorInput<SearchOrchestratorInput>(meta)
+            .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
         var result = await _searchService.CancelSearchAsync(
             "unauth-job",

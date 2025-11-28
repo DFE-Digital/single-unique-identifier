@@ -33,7 +33,7 @@ public class SearchService : ISearchService
 
             // Check if the job belongs to the requesting client
             // (Assuming clientId is stored in the input of the orchestration)
-            var input = ReadOrchestratorInput<SearchJobOrchestrationInput>(metaData);
+            var input = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
                 return new CancelSearchDto(CancelSearchResult.Unauthorized, "Unauthorized");
