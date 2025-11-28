@@ -15,13 +15,13 @@ public class TransferJob(
 {
     public async Task<AggregatedData> TransferAsync(Guid jobId, string sui)
     {
-        logger.LogInformation("Starting transfer process sui {Sui} (Job ID: {JobId})", sui, jobId);
+        logger.LogDebug("Starting transfer process sui {Sui} (Job ID: {JobId})", sui, jobId);
 
         var cancellationToken = hostApplicationLifetime.ApplicationStopping;
 
         // Find records
         cancellationToken.ThrowIfCancellationRequested();
-        logger.LogInformation("Finding records for sui {Sui}", sui);
+        logger.LogDebug("Finding records for sui {Sui}", sui);
         var recordPointers = await recordFinder.FindRecordsAsync(sui, cancellationToken);
         logger.LogInformation(
             "Found {NumOfRecordsPointers} records for sui {Sui}",
@@ -31,7 +31,7 @@ public class TransferJob(
 
         // Fetch records
         cancellationToken.ThrowIfCancellationRequested();
-        logger.LogInformation("Fetching records for sui {Sui}", sui);
+        logger.LogDebug("Fetching records for sui {Sui}", sui);
         var unconsolidatedData = await recordFetcher.FetchRecordsAsync(
             sui,
             recordPointers,
@@ -46,12 +46,12 @@ public class TransferJob(
 
         // Consolidate records
         cancellationToken.ThrowIfCancellationRequested();
-        logger.LogInformation("Consolidating records for sui {Sui}", sui);
+        logger.LogDebug("Consolidating records for sui {Sui}", sui);
         var consolidatedData = recordConsolidator.ConsolidateRecords(unconsolidatedData);
 
         // Apply aggregations
         cancellationToken.ThrowIfCancellationRequested();
-        logger.LogInformation("Aggregating records for sui {Sui}", sui);
+        logger.LogDebug("Aggregating records for sui {Sui}", sui);
         return consolidatedDataAggregator.ApplyAggregations(consolidatedData);
     }
 }
