@@ -1,0 +1,735 @@
+openapi: 3.0.4
+info:
+  title: SUI Custodians Data API
+  version: '1.0'
+  description: |
+    The Custodians API is part of the Single Unique Identifier (SUI)
+    Multi Agency Information sharing (MAIS) programme for children's social care.
+
+    It provides an interface to retrieve records of data associated with a given
+    SUI, to enable presenting and/or analysing this data for the improved
+    safeguarding of children.
+
+paths:
+  '/api/v1/records/ChildPersonalDetailsRecordV1/{sui}':
+    get:
+      parameters:
+        - name: sui
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildPersonalDetailsEnvelopeV1'
+        '400':
+          description: Required parameters are missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Record not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  '/api/v1/records/ChildSocialCareDetailsRecordV1/{sui}':
+    get:
+      parameters:
+        - name: sui
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildSocialCareDetailsEnvelopeV1'
+        '400':
+          description: Required parameters are missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Record not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  '/api/v1/records/EducationDetailsRecordV1/{sui}':
+    get:
+      parameters:
+        - name: sui
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EducationDetailsEnvelopeV1'
+        '400':
+          description: Required parameters are missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Record not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  '/api/v1/records/ChildHealthDataRecordV1/{sui}':
+    get:
+      parameters:
+        - name: sui
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildHealthDataEnvelopeV1'
+        '400':
+          description: Required parameters are missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Record not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  '/api/v1/records/ChildLinkedCrimeDataRecordV1/{sui}':
+    get:
+      parameters:
+        - name: sui
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildLinkedCrimeDataEnvelopeV1'
+        '400':
+          description: Required parameters are missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Record not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+components:
+  schemas:
+    #==============
+    # Record Types:
+
+    # ChildPersonalDetails record type v1
+    ChildPersonalDetailsRecordV1:
+      type: object
+      properties:
+        firstName:
+          type: string
+          nullable: true
+          description: The child's first name.
+          example: Sarah
+        lastName:
+          type: string
+          nullable: true
+          description: The child's last name.
+          example: Smith
+        dateOfBirth:
+          type: string
+          format: date
+          nullable: true
+          description: The child's date of birth.
+          example: 2011-09-25
+        address:
+          $ref: '#/components/schemas/AddressV1'
+        namesOfIndividualsResidingAtMainAddress:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: The full names of the other people known to be residing at the child's main address.
+          example:
+            - James Smith
+            - Henry Smith
+            - Thomas Smith
+            - Jason Archer
+            - Sarah Flint-Smith
+        birthAssignedSex:
+          type: string
+          nullable: true
+          example: Female
+        pronouns:
+          type: string
+          nullable: true
+          example: She/her
+        ethnicity:
+          type: string
+          nullable: true
+          example: Irish Traveller
+        firstLanguage:
+          type: string
+          nullable: true
+          example: English
+        designatedLocalAuthority:
+          type: string
+          nullable: true
+          example: Bromley
+        englishAsAdditionalLanguage:
+          type: boolean
+          nullable: true
+        braille:
+          type: boolean
+          nullable: true
+        signLanguage:
+          type: boolean
+          nullable: true
+        makaton:
+          type: boolean
+          nullable: true
+        interpreter:
+          type: boolean
+          nullable: true
+        relatedPeople:
+          type: array
+          items:
+            $ref: '#/components/schemas/RelatedPersonV1'
+          nullable: true
+      additionalProperties: false
+
+    # ChildSocialCareDetails record type v1
+    ChildSocialCareDetailsRecordV1:
+      type: object
+      properties:
+        keyWorker:
+          type: string
+          nullable: true
+          example: Alex Patel
+        dutyContactDetails:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["csc@bromley.gov.uk", "08792675387"]
+        teamInvolvement:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Disabled Childrens Team", "Neighbourhood Team"]
+        cscActiveStatusesAndPlans:
+          type: array
+          items:
+            $ref: '#/components/schemas/CSCActiveStatusAndPlanV1'
+          nullable: true
+        cscReferrals:
+          type: array
+          items:
+            $ref: '#/components/schemas/CSCReferralV1'
+          nullable: true
+      additionalProperties: false
+
+    # EducationDetails record type v1
+    EducationDetailsRecordV1:
+      type: object
+      properties:
+        educationSettingName:
+          type: string
+          nullable: true
+          example: Redwood Academy
+        educationSettingAddress:
+          $ref: '#/components/schemas/AddressV1'
+        educationSettingTelephone:
+          type: string
+          nullable: true
+          example: "0123456789"
+        educationActiveStatusesAndPlans:
+          type: array
+          items:
+            $ref: '#/components/schemas/EducationActiveStatusAndPlanV1'
+          nullable: true
+        educationAttendances:
+          type: array
+          items:
+            $ref: '#/components/schemas/EducationAttendanceV1'
+          nullable: true
+      additionalProperties: false
+
+    # ChildHealthData record type v1
+    ChildHealthDataRecordV1:
+      type: object
+      properties:
+        registeredGP:
+          type: string
+          nullable: true
+          example: Dr E Green
+        gpAddress:
+          $ref: '#/components/schemas/AddressV1'
+        gpTelephone:
+          type: string
+          nullable: true
+          example: "0114 272 2100"
+        camhsContactAddress:
+          $ref: '#/components/schemas/AddressV1'
+        camhsContactTelephone:
+          type: string
+          nullable: true
+          example: "01422 345926"
+        healthActiveStatusesAndPlans:
+          type: array
+          items:
+            $ref: '#/components/schemas/HealthActiveStatusAndPlanV1'
+          nullable: true
+        missedAppointments:
+          type: array
+          items:
+            $ref: '#/components/schemas/HealthMissedAppointmentV1'
+          nullable: true
+        emergencyDepartmentAttendances:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmergencyDepartmentAttendanceV1'
+          nullable: true
+      additionalProperties: false
+
+    # ChildLinkedCrimeData record type v1
+    ChildLinkedCrimeDataRecordV1:
+      type: object
+      properties:
+        policeMarkerDetails:
+          type: string
+          nullable: true
+          example: Individuals at the address may resort to violent behaviour
+        servicesKnownTo:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Youth justice service (YJS)", "Police"]
+        lastPoliceProtectionPowerEvent:
+          type: string
+          nullable: true
+        missingEpisodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CrimeMissingEpisodeV1'
+          nullable: true
+        riskSexualExploitation:
+          type: boolean
+          nullable: true
+        riskCriminalExploitation:
+          type: boolean
+          nullable: true
+        riskRadicalisation:
+          type: boolean
+          nullable: true
+        riskModernSlaveryAndTrafficking:
+          type: boolean
+          nullable: true
+        riskGangsAndYouthViolence:
+          type: boolean
+          nullable: true
+        crimeActiveStatusesAndPlans:
+          type: array
+          items:
+            $ref: '#/components/schemas/CrimeActiveStatusAndPlanV1'
+          nullable: true
+      additionalProperties: false
+
+    #==============
+    # DTOs:
+
+    ProblemDetails:
+      type: object
+      description: RFC 7807 problem details.
+      properties:
+        type:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        status:
+          type: integer
+          format: int32
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        instance:
+          type: string
+          nullable: true
+      additionalProperties: true
+
+    AddressV1:
+      type: object
+      properties:
+        line1:
+          type: string
+          nullable: true
+          example: 12 Redrood Drive
+        line2:
+          type: string
+          nullable: true
+          example: Maltby
+        townOrCity:
+          type: string
+          nullable: true
+          example: Derby
+        county:
+          type: string
+          nullable: true
+          example: Derbyshire
+        postcode:
+          type: string
+          nullable: true
+          example: SE6 8DL
+      additionalProperties: false
+
+    RelatedPersonV1:
+      type: object
+      properties:
+        relationshipToTheChild:
+          type: string
+          nullable: true
+          example: Father
+        name:
+          type: string
+          nullable: true
+          example: James Smith
+        dob:
+          type: string
+          format: date
+          nullable: true
+          example: 1978-11-01
+        risk:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Individual may possess firearms"]
+        servicesKnownTo:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Police", "Probation", "Mental Health"]
+      additionalProperties: false
+
+    CSCActiveStatusAndPlanV1:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+          example: Child In Need
+        plan:
+          type: string
+          nullable: true
+          example: Child in need plan
+      additionalProperties: false
+
+    CSCReferralV1:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          nullable: true
+          example: 2025-08-16
+        type:
+          type: string
+          nullable: true
+          example: Early Help
+      additionalProperties: false
+
+    EducationActiveStatusAndPlanV1:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+          example: SEND
+        plan:
+          type: string
+          nullable: true
+          example: Education, Health and Care (EHC) plan
+      additionalProperties: false
+
+    EducationAttendanceV1:
+      type: object
+      properties:
+        academicTermYearStart:
+          type: integer
+          format: int32
+          nullable: true
+          example: 2024
+        academicTermYearEnd:
+          type: integer
+          format: int32
+          nullable: true
+          example: 2025
+        attendancePercentage:
+          type: number
+          format: float
+          nullable: true
+          example: 70
+        unauthorisedAbsencePercentage:
+          type: number
+          format: float
+          nullable: true
+          example: 2
+        suspensions:
+          type: integer
+          format: int32
+          nullable: true
+          example: 1
+        exclusions:
+          type: integer
+          format: int32
+          nullable: true
+          example: 0
+        schoolMovesNonTransitional:
+          type: integer
+          format: int32
+          nullable: true
+          example: 0
+      additionalProperties: false
+
+    EmergencyDepartmentAttendanceV1:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          nullable: true
+          example: 2025-06-12
+      additionalProperties: false
+
+    HealthActiveStatusAndPlanV1:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+          example: Open to CAMHS
+        plan:
+          type: string
+          nullable: true
+          example: CAMHS plan
+      additionalProperties: false
+
+    HealthMissedAppointmentV1:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          nullable: true
+          example: 2025-07-24
+        setting:
+          $ref: '#/components/schemas/HealthSettingV1'
+      additionalProperties: false
+
+    HealthSettingV1:
+      enum:
+        - Other
+        - Hospital
+        - GP
+        - Community
+      type: string
+      example: GP
+
+    CrimeActiveStatusAndPlanV1:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+          example: Open to Youth Justice Service
+        plan:
+          type: string
+          nullable: true
+      additionalProperties: false
+
+    CrimeMissingEpisodeV1:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          nullable: true
+      additionalProperties: false
+
+    #==============
+    # Envelopes:
+
+    RecordEnvelopeBase:
+      type: object
+      description: Common fields for all record envelopes.
+      properties:
+        providerSystemId:
+          type: string
+          description: Identifier of the participating system/provider.
+          example: SystemXYZ
+        schemaUri:
+          type: string
+          format: uri
+          description: |
+            URI of the JSON Schema that describes the 'data' payload.
+            This URI specifies the record type and its specific version.
+      required:
+        - providerSystemId
+        - recordType
+        - schemaUri
+      additionalProperties: false
+
+    ChildPersonalDetailsEnvelopeV1:
+      allOf:
+        - $ref: '#/components/schemas/RecordEnvelopeBase'
+        - type: object
+          description: Envelope for ChildPersonalDetailsRecordV1 records.
+          properties:
+            schemaUri:
+              type: string
+              format: uri
+              enum:
+                - https://schemas.example.gov.uk/sui/ChildPersonalDetailsRecordV1.json
+            data:
+              $ref: '#/components/schemas/ChildPersonalDetailsRecordV1'
+          required:
+            - data
+          additionalProperties: false
+
+    ChildSocialCareDetailsEnvelopeV1:
+      allOf:
+        - $ref: '#/components/schemas/RecordEnvelopeBase'
+        - type: object
+          description: Envelope for ChildSocialCareDetailsRecordV1 records.
+          properties:
+            schemaUri:
+              type: string
+              format: uri
+              enum:
+                - https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1.json
+            data:
+              $ref: '#/components/schemas/ChildSocialCareDetailsRecordV1'
+          required:
+            - data
+          additionalProperties: false
+
+    EducationDetailsEnvelopeV1:
+      allOf:
+        - $ref: '#/components/schemas/RecordEnvelopeBase'
+        - type: object
+          description: Envelope for EducationDetailsRecordV1 records.
+          properties:
+            schemaUri:
+              type: string
+              format: uri
+              enum:
+                - https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json
+            data:
+              $ref: '#/components/schemas/EducationDetailsRecordV1'
+          required:
+            - data
+          additionalProperties: false
+
+    ChildHealthDataEnvelopeV1:
+      allOf:
+        - $ref: '#/components/schemas/RecordEnvelopeBase'
+        - type: object
+          description: Envelope for ChildHealthDataRecordV1 records.
+          properties:
+            schemaUri:
+              type: string
+              format: uri
+              enum:
+                - https://schemas.example.gov.uk/sui/ChildHealthDataRecordV1.json
+            data:
+              $ref: '#/components/schemas/ChildHealthDataRecordV1'
+          required:
+            - data
+          additionalProperties: false
+
+    ChildLinkedCrimeDataEnvelopeV1:
+      allOf:
+        - $ref: '#/components/schemas/RecordEnvelopeBase'
+        - type: object
+          description: Envelope for ChildLinkedCrimeDataRecordV1 records.
+          properties:
+            schemaUri:
+              type: string
+              format: uri
+              enum:
+                - https://schemas.example.gov.uk/sui/ChildLinkedCrimeDataRecordV1.json
+            data:
+              $ref: '#/components/schemas/ChildLinkedCrimeDataRecordV1'
+          required:
+            - data
+          additionalProperties: false

@@ -80,12 +80,6 @@ public class SearchFunction(ILogger<SearchFunction> logger)
             Status = SearchStatus.Queued,
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,
-            Links = new Dictionary<string, HalLink>
-            {
-                { "self", new HalLink($"/v1/searches/{jobId}", "GET") },
-                { "results", new HalLink($"/v1/searches/{jobId}/results", "GET") },
-                { "cancel", new HalLink($"/v1/searches/{jobId}", "DELETE") },
-            },
         };
 
         await acceptedResponse.WriteAsJsonAsync(searchJob);

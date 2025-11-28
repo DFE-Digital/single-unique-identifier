@@ -10,11 +10,16 @@ public static class HttpResponseUtility
         HttpRequestData req,
         HttpStatusCode code,
         string title,
-        string detail
+        string detail,
+        string? instance = null,
+        CancellationToken cancellationToken = default
     )
     {
         var res = req.CreateResponse(code);
-        await res.WriteAsJsonAsync(new Problem("about:blank", title, (int)code, detail, null));
+        await res.WriteAsJsonAsync(
+            new Problem("about:blank", title, (int)code, detail, instance),
+            cancellationToken
+        );
         return res;
     }
 }
