@@ -2,6 +2,7 @@ using Microsoft.DurableTask.Client;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.SearchCancelTests;
