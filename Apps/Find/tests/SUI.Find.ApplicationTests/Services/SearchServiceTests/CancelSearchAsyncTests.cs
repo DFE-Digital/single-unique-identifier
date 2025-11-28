@@ -6,7 +6,7 @@ using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 
-namespace SUI.Find.ApplicationTests.Services.SearchCancelTests;
+namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
 public class CancelSearchAsyncTests
 {

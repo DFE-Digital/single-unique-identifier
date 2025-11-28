@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
@@ -43,7 +44,6 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
             }
 
             // Check if the job belongs to the requesting client
-            // (Assuming clientId is stored in the input of the orchestration)
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
@@ -112,7 +112,26 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
                 return SearchResultsDto.Unauthorized(jobId);
             }
 
-            var items = metaData.ReadOutputAs<SearchResultItem[]>();
+            if (metaData.RuntimeStatus != OrchestrationRuntimeStatus.Completed)
+            {
+                return SearchResultsDto.Success(
+                    jobId,
+                    meta.Suid,
+                    metaData.RuntimeStatus.ToSuiSearchStatus(),
+                    []
+                );
+            }
+
+            if (string.IsNullOrEmpty(metaData.SerializedOutput))
+            {
+                return SearchResultsDto.Success(
+                    jobId,
+                    meta.Suid,
+                    metaData.RuntimeStatus.ToSuiSearchStatus(),
+                    [] // No results found
+                );
+            }
+            var items = JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput);
 
             return SearchResultsDto.Success(
                 jobId,
