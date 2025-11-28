@@ -39,11 +39,11 @@ public class TransferService(
 
             try
             {
-                JobsState[jobId] = new RunningTransferJobState(jobId, sui);
+                UpdateJobState(jobId, new RunningTransferJobState(jobId, sui));
 
                 var consolidatedData = await transferJob.TransferAsync(jobId, sui);
 
-                JobsState[jobId] = new CompletedTransferJobState(jobId, sui, consolidatedData);
+                UpdateJobState(jobId, new CompletedTransferJobState(jobId, sui, consolidatedData));
             }
             catch (OperationCanceledException)
             {
@@ -52,7 +52,7 @@ public class TransferService(
                     sui,
                     jobId
                 );
-                JobsState[jobId] = new CancelledTransferJobState(jobId, sui);
+                UpdateJobState(jobId, new CancelledTransferJobState(jobId, sui));
             }
             catch (Exception e)
             {
@@ -62,15 +62,16 @@ public class TransferService(
                     sui,
                     jobId
                 );
-                JobsState[jobId] = new FailedTransferJobState(
+                UpdateJobState(
                     jobId,
-                    sui,
-                    e.ToString(),
-                    e.StackTrace
+                    new FailedTransferJobState(jobId, sui, e.ToString(), e.StackTrace)
                 );
             }
         }
     }
 
     public TransferJobState? GetTransferJobState(Guid jobId) => JobsState.GetValueOrDefault(jobId);
+
+    private void UpdateJobState(Guid jobId, TransferJobState newState) =>
+        JobsState[jobId] = newState;
 }
