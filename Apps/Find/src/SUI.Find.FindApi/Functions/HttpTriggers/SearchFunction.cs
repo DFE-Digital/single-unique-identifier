@@ -6,9 +6,11 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Functions.Orchestrators;
 using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.Utility;
 using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Functions.HttpTriggers;
@@ -47,26 +49,34 @@ public class SearchFunction(ILogger<SearchFunction> logger)
         FunctionContext context
     )
     {
-        var authContext = context.Items.TryGetValue("AuthContext", out var authObj) ? authObj as AuthContext : null;
-
-        var clientId = authContext?.ClientId ?? "unknown_client";
+        
+        if (
+            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
+            || authObj is not AuthContext authContext
+        )
+        {
+            return await HttpResponseUtility.ProblemResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "Unauthorized",
+                "",
+                context.InvocationId
+            );
+        }
+        
+        var clientId = authContext?.ClientId;
 
         var searchRequest = await JsonSerializer.DeserializeAsync<StartSearchRequest>(req.Body);
 
         if (!StartSearchRequestValidator.IsValid(searchRequest, out var errorMessage))
         {
-            var problem = new Problem(
-                Type: "about:blank",
-                Title: "Invalid Search Request",
-                Detail: errorMessage,
-                Status: (int)HttpStatusCode.BadRequest,
-                Instance: $"urn:trace:{context.InvocationId}"
-            );
-
-            var response = req.CreateResponse(HttpStatusCode.BadRequest);
-            await response.WriteAsJsonAsync(problem);
-
-            return response;
+            return await HttpResponseUtility.ProblemResponse(
+                req,
+                HttpStatusCode.BadRequest,
+                "Invalid Search Request",
+                errorMessage ?? "",
+                $"urn:trace:{context.InvocationId}"
+                );
         }
 
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);

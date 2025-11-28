@@ -24,9 +24,7 @@ public class StartSearchRequestValidatorTests
 
     [Theory]
     [InlineData("123456789")] // Too short
-    [InlineData("12345678901")] // Too long
-    [InlineData("12345ABCDE")] // Non-numeric
-    [InlineData("1234567890")] // Invalid checksum
+    [InlineData("12345678901234567")] // Too long
     public void ShouldReturnFalse_WhenSuidIsInvalid(string? suid)
     {
         // Arrange
@@ -42,8 +40,8 @@ public class StartSearchRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("9434765870")] // Valid NHS number
-    [InlineData(" 943 476 5870 ")] // Valid NHS number with spaces
+    [InlineData("1234567890123456")] // Valid Suid
+    [InlineData("abcdefghijklmnop")] // Valid Suid
     public void ShouldReturnTrue_WhenSuidIsValid(string suid)
     {
         // Arrange

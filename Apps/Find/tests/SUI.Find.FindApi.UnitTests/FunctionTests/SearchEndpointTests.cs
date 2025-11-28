@@ -5,6 +5,7 @@ using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Functions.HttpTriggers;
 using SUI.Find.FindApi.Functions.Orchestrators;
 using SUI.Find.FindApi.Models;
@@ -18,8 +19,10 @@ public class SearchEndpointTests
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
     private readonly FunctionContext _context = Substitute.For<FunctionContext>();
 
-    private const string ValidNhsId = "9434765870";
-    private const string InvalidNhsId = "1234567890";
+    private const string ValidSuid = "1234567890123456"; 
+    private const string InvalidSuid = "short";
+    private const string TestClientId = "test-client-id";
+    private const string InstanceId = $"{ValidSuid}-{TestClientId}";
     
     public SearchEndpointTests()
     {
@@ -27,7 +30,10 @@ public class SearchEndpointTests
         var log = logger.CreateLogger<SearchFunction>();
         _sut = new SearchFunction(log);
         _context.InvocationId.Returns(Guid.NewGuid().ToString());
-        var items = new Dictionary<object, object>();
+        var items = new Dictionary<object, object>
+        {
+            [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(TestClientId, []),
+        };
         _context.Items.Returns(items);
     }
 
@@ -35,10 +41,10 @@ public class SearchEndpointTests
     public async Task ShouldReturn202_WhenRequestSuidIsValid()
     {
         // Arrange
-        var data = new StartSearchRequest(ValidNhsId);
+        var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
         _client
-            .ScheduleNewOrchestrationInstanceAsync(nameof(SearchOrchestrator), ValidNhsId)
+            .ScheduleNewOrchestrationInstanceAsync(nameof(SearchOrchestrator), ValidSuid)
             .Returns("test-job-id");
 
         // Act
@@ -52,7 +58,7 @@ public class SearchEndpointTests
     public async Task ShouldReturn202_WithSearchJobData_WhenSuccessful()
     {
         // Arrange
-        var data = new StartSearchRequest(ValidNhsId);
+        var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
         _client.ScheduleNewOrchestrationInstanceAsync(
             Arg.Any<TaskName>(),                 
@@ -77,10 +83,10 @@ public class SearchEndpointTests
     public async Task ShouldReturn202_WithLinks_WhenSuccessful()
     {
         // Arrange
-        var data = new StartSearchRequest(ValidNhsId);
+        var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
         _client
-            .ScheduleNewOrchestrationInstanceAsync("SearchOrchestrator", ValidNhsId)
+            .ScheduleNewOrchestrationInstanceAsync("SearchOrchestrator", ValidSuid)
             .Returns("test-job-id");
 
         // Act
@@ -99,7 +105,7 @@ public class SearchEndpointTests
     public async Task ShouldReturn400_WhenRequestSuidIsInValid()
     {
         // Arrange
-        var data = new StartSearchRequest(InvalidNhsId);
+        var data = new StartSearchRequest(InvalidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
 
         // Act
@@ -117,12 +123,11 @@ public class SearchEndpointTests
     public async Task ShouldReturn400_AndInstanceShouldContainCorrelationId_WhenRequestSuidIsInValid()
     {
         // Arrange
-        var data = new StartSearchRequest(InvalidNhsId);
+        _context.Items["AuthContext"] = new AuthContext(TestClientId, ["scope"]);
+        
+        var data = new StartSearchRequest(InvalidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
-        httpRequestData.FunctionContext.InvocationId.Returns(
-            "urn:trace:123e4567-e89b-12d3-a456-426614174000"
-        );
-
+        
         // Act
         var result = await _sut.Searches(httpRequestData, _client, _context);
 
@@ -140,19 +145,14 @@ public class SearchEndpointTests
     public async Task ShouldReturn202_ExistingJob_WhenJobIsRunning_And_RequestIsDuplicated()
     {
         // Arrange
-        var suid = ValidNhsId;
-        var clientId = "test-client";
-        var instanceId = $"{suid}-{clientId}";
-        var originalJobId = $"{suid}-{clientId}";
+        _context.Items["AuthContext"] = new AuthContext(TestClientId, ["scope"]);
         
-        _context.Items["AuthContext"] = new AuthContext(clientId, ["scope"]);
-        
-        var data = new StartSearchRequest(suid);
+        var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
         
         var mockOrchestrationMetadata = new OrchestrationMetadata(
             nameof(SearchOrchestrator), 
-            originalJobId
+            InstanceId
         )
         {
             RuntimeStatus = OrchestrationRuntimeStatus.Running,
@@ -160,13 +160,13 @@ public class SearchEndpointTests
             LastUpdatedAt = default,
         };
 
-        _client.GetInstanceAsync(instanceId).Returns(
+        _client.GetInstanceAsync(InstanceId).Returns(
             mockOrchestrationMetadata
         );
         
         _client
-            .ScheduleNewOrchestrationInstanceAsync("SearchOrchestrator", ValidNhsId, new StartOrchestrationOptions( InstanceId: instanceId))
-            .Returns(instanceId);
+            .ScheduleNewOrchestrationInstanceAsync("SearchOrchestrator", ValidSuid, new StartOrchestrationOptions( InstanceId: InstanceId))
+            .Returns(InstanceId);
  
 
         // Act
@@ -176,7 +176,7 @@ public class SearchEndpointTests
         Assert.Equal(HttpStatusCode.Accepted, result.StatusCode);
         result.Body.Position = 0;
         var responseData = await JsonSerializer.DeserializeAsync<SearchJob>(result.Body);
-        Assert.Equal(originalJobId, responseData?.JobId);
+        Assert.Equal(InstanceId, responseData?.JobId);
         Assert.Equal(SearchStatus.Running, responseData?.Status);
         
         await _client.DidNotReceive().ScheduleNewOrchestrationInstanceAsync(
@@ -190,19 +190,14 @@ public class SearchEndpointTests
     public async Task ShouldReturn202_ExistingJob_WhenJobIsQueued_And_RequestIsDuplicated()
     {
         // Arrange
-        var suid = ValidNhsId;
-        var clientId = "test-client";
-        var instanceId = $"{suid}-{clientId}";
-        var originalJobId = $"{suid}-{clientId}";
+        _context.Items["AuthContext"] = new AuthContext(TestClientId, ["scope"]);
         
-        _context.Items["AuthContext"] = new AuthContext(clientId, ["scope"]);
-        
-        var data = new StartSearchRequest(suid);
+        var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
         
         var mockOrchestrationMetadata = new OrchestrationMetadata(
             nameof(SearchOrchestrator), 
-            originalJobId
+            InstanceId
         )
         {
             RuntimeStatus = OrchestrationRuntimeStatus.Pending,
@@ -210,7 +205,7 @@ public class SearchEndpointTests
             LastUpdatedAt = default,
         };
 
-        _client.GetInstanceAsync(instanceId).Returns(
+        _client.GetInstanceAsync(InstanceId).Returns(
             mockOrchestrationMetadata
         );
 
@@ -221,7 +216,7 @@ public class SearchEndpointTests
         Assert.Equal(HttpStatusCode.Accepted, result.StatusCode);
         result.Body.Position = 0;
         var responseData = await JsonSerializer.DeserializeAsync<SearchJob>(result.Body);
-        Assert.Equal(originalJobId, responseData?.JobId);
+        Assert.Equal(InstanceId, responseData?.JobId);
         Assert.Equal(SearchStatus.Queued, responseData?.Status);
         
         await _client.DidNotReceive().ScheduleNewOrchestrationInstanceAsync(
@@ -235,18 +230,14 @@ public class SearchEndpointTests
     public async Task ShouldReturn202_WithNewSearchJob_WhenPreviousJobIsCompleted()
     {
         // Arrange
-        var suid = ValidNhsId;
-        var clientId = "test-client";
-        var instanceId = $"{suid}-{clientId}";
+        _context.Items["AuthContext"] = new AuthContext(TestClientId, ["scope"]);
         
-        _context.Items["AuthContext"] = new AuthContext(clientId, ["scope"]);
-        
-        var data = new StartSearchRequest(suid);
+        var data = new StartSearchRequest(ValidSuid);
         var httpRequestData = MockHttpRequestData.CreateJson(data);
         
         var mockOrchestrationMetadata = new OrchestrationMetadata(
             nameof(SearchOrchestrator), 
-            instanceId 
+            InstanceId 
         )
         {
             RuntimeStatus = OrchestrationRuntimeStatus.Completed,
@@ -254,7 +245,7 @@ public class SearchEndpointTests
             LastUpdatedAt = default,
         };
 
-        _client.GetInstanceAsync(instanceId).Returns(
+        _client.GetInstanceAsync(InstanceId).Returns(
             mockOrchestrationMetadata
         );
         
@@ -262,7 +253,7 @@ public class SearchEndpointTests
             Arg.Any<TaskName>(), 
             Arg.Any<object>(), 
             Arg.Any<StartOrchestrationOptions>()
-        ).Returns(instanceId);
+        ).Returns(InstanceId);
 
         // Act
         var result = await _sut.Searches(httpRequestData, _client, _context);
@@ -271,8 +262,8 @@ public class SearchEndpointTests
         Assert.Equal(HttpStatusCode.Accepted, result.StatusCode);
         result.Body.Position = 0;
         var responseData = await JsonSerializer.DeserializeAsync<SearchJob>(result.Body);
-        Assert.Equal(instanceId, responseData?.JobId);
-        Assert.Equal(suid, responseData?.Suid);
+        Assert.Equal(InstanceId, responseData?.JobId);
+        Assert.Equal(ValidSuid, responseData?.Suid);
         Assert.Equal(SearchStatus.Queued, responseData?.Status);
         
         await _client.Received().ScheduleNewOrchestrationInstanceAsync(
