@@ -96,7 +96,6 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
                 return SearchResultsDto.NotFound(jobId);
             }
 
-            var test = ReadOrchestratorInput<string>(metaData);
             var meta = ReadOrchestratorInput<SearchJobOrchestrationInput>(metaData);
             if (meta is null)
             {
@@ -122,8 +121,13 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
                 items is { Length: > 0 } ? items : []
             );
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError(
+                "Error retrieving search results for JobId {JobId}. Error: {ErrorMessage}.",
+                jobId,
+                ex.Message
+            );
             return SearchResultsDto.Error(
                 jobId,
                 "An error occurred while retrieving search results."
