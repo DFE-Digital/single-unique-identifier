@@ -112,7 +112,7 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
                 return SearchResultsDto.Unauthorized(jobId);
             }
 
-            if (metaData.RuntimeStatus != OrchestrationRuntimeStatus.Completed)
+            if (metaData.IsRunning)
             {
                 return SearchResultsDto.Success(
                     jobId,

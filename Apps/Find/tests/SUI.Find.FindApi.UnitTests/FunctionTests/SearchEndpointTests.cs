@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Enums;
 using SUI.Find.FindApi.Functions.HttpTriggers;
 using SUI.Find.FindApi.Functions.Orchestrators;
 using SUI.Find.FindApi.Models;

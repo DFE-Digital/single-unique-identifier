@@ -8,6 +8,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Functions.Orchestrators;

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using SUI.Find.Application.Enums;
 
 namespace SUI.Find.FindApi.Models;
 

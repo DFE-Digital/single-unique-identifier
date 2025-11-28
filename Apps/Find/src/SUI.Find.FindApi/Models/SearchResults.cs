@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 
 namespace SUI.Find.FindApi.Models;
@@ -6,8 +8,12 @@ public record SearchResults
 {
     public required string JobId { get; set; } = string.Empty;
     public required string Suid { get; set; } = string.Empty;
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required SearchStatus Status { get; set; }
     public required SearchResultItem[] Items { get; set; } = [];
+
+    [JsonPropertyName("_links")]
     public required Dictionary<string, HalLink> Links { get; set; } = [];
 
     public static SearchResults FromDto(SearchResultsDto dto)
@@ -16,7 +22,7 @@ public record SearchResults
         {
             JobId = dto.JobId,
             Suid = dto.Suid,
-            Status = (SearchStatus)dto.Status,
+            Status = dto.Status,
             Items = dto.Items,
             Links = new Dictionary<string, HalLink>()
             {

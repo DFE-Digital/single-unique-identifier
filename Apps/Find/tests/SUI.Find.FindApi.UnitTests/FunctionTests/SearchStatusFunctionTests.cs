@@ -4,6 +4,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using NSubstitute;
+using SUI.Find.Application.Enums;
 using SUI.Find.FindApi.Functions.HttpTriggers;
 using SUI.Find.FindApi.Models;
 
