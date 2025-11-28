@@ -25,29 +25,30 @@ public class ConsolidatedDataAggregatorTests
         );
 
         // ASSERT
-        Assert.Equal(
-            new AggregatedConsolidatedData(
-                new ConsolidatedData("XXX 000 1234")
+        result
+            .Should()
+            .BeEquivalentTo(
+                new AggregatedConsolidatedData(
+                    new ConsolidatedData("XXX 000 1234")
+                    {
+                        ChildPersonalDetailsRecord = null,
+                        ChildSocialCareDetailsRecord = null,
+                        EducationDetailsRecord = null,
+                        ChildHealthDataRecord = null,
+                        ChildLinkedCrimeDataRecord = null,
+                        CountOfRecordsSuccessfullyFetched = 0,
+                        FailedFetches = [],
+                    }
+                )
                 {
-                    ChildPersonalDetailsRecord = null,
-                    ChildSocialCareDetailsRecord = null,
-                    EducationDetailsRecord = null,
-                    ChildHealthDataRecord = null,
-                    ChildLinkedCrimeDataRecord = null,
-                    CountOfRecordsSuccessfullyFetched = 0,
-                    FailedFetches = [],
+                    EducationAttendanceCurrentAcademicYear = null,
+                    EducationAttendanceLastAcademicYear = null,
+                    HealthAttendanceSummaryLast12Months = null,
+                    HealthAttendanceSummaryLast5Years = null,
+                    CSCReferralSummaryPast6Months = null,
+                    CSCReferralSummaryPast12Months = null,
+                    CSCReferralSummaryPast5Years = null,
                 }
-            )
-            {
-                EducationAttendanceCurrentAcademicYear = null,
-                EducationAttendanceLastAcademicYear = null,
-                HealthAttendanceSummaryLast12Months = null,
-                HealthAttendanceSummaryLast5Years = null,
-                CSCReferralSummaryPast6Months = null,
-                CSCReferralSummaryPast12Months = null,
-                CSCReferralSummaryPast5Years = null,
-            },
-            result
-        );
+            );
     }
 }

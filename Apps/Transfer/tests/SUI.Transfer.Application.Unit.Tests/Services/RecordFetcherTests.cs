@@ -14,17 +14,18 @@ public class RecordFetcherTests
         var result = await sut.FetchRecordsAsync("XXX 000 1234", [], CancellationToken.None);
 
         // ASSERT
-        Assert.Equal(
-            new UnconsolidatedData("XXX 000 1234")
-            {
-                ChildPersonalDetailsRecords = [],
-                ChildSocialCareDetailsRecords = [],
-                EducationDetailsRecords = [],
-                ChildHealthDataRecords = [],
-                ChildLinkedCrimeDataRecords = [],
-                FailedFetches = [],
-            },
-            result
-        );
+        result
+            .Should()
+            .BeEquivalentTo(
+                new UnconsolidatedData("XXX 000 1234")
+                {
+                    ChildPersonalDetailsRecords = [],
+                    ChildSocialCareDetailsRecords = [],
+                    EducationDetailsRecords = [],
+                    ChildHealthDataRecords = [],
+                    ChildLinkedCrimeDataRecords = [],
+                    FailedFetches = [],
+                }
+            );
     }
 }

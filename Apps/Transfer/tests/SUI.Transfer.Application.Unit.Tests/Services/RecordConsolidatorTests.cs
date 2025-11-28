@@ -24,18 +24,19 @@ public class RecordConsolidatorTests
         );
 
         // ASSERT
-        Assert.Equal(
-            new ConsolidatedData("XXX 000 1234")
-            {
-                ChildPersonalDetailsRecord = null,
-                ChildSocialCareDetailsRecord = null,
-                EducationDetailsRecord = null,
-                ChildHealthDataRecord = null,
-                ChildLinkedCrimeDataRecord = null,
-                CountOfRecordsSuccessfullyFetched = 0,
-                FailedFetches = [],
-            },
-            result
-        );
+        result
+            .Should()
+            .BeEquivalentTo(
+                new ConsolidatedData("XXX 000 1234")
+                {
+                    ChildPersonalDetailsRecord = null,
+                    ChildSocialCareDetailsRecord = null,
+                    EducationDetailsRecord = null,
+                    ChildHealthDataRecord = null,
+                    ChildLinkedCrimeDataRecord = null,
+                    CountOfRecordsSuccessfullyFetched = 0,
+                    FailedFetches = [],
+                }
+            );
     }
 }

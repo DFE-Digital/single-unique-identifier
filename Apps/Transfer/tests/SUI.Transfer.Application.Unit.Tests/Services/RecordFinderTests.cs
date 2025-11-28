@@ -14,9 +14,9 @@ public class RecordFinderTests
         var result = await sut.FindRecordsAsync("XXX 000 1234", CancellationToken.None);
 
         // ASSERT
-        Assert.Equal(
-            new[]
-            {
+        result
+            .Should()
+            .BeEquivalentTo([
                 new RecordPointer(
                     "LAC-SYSTEM-01",
                     "Example LA Case Management System",
@@ -27,8 +27,6 @@ public class RecordFinderTests
                     "Example GP Clinical System",
                     "https://nhs-gp-01.example.nhs.uk/patient/SUI-1234567890"
                 ),
-            },
-            result
-        );
+            ]);
     }
 }
