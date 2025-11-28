@@ -1,5 +1,4 @@
 ﻿using SUI.Transfer.Application.Services;
-using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Unit.Tests.Services;
 
@@ -16,17 +15,25 @@ public class RecordFinderTests
         // ASSERT
         result
             .Should()
+            .AllSatisfy(recordPointer =>
+                recordPointer.ProviderSystemId.Should().Be("StubCustodians")
+            );
+
+        result
+            .Should()
+            .AllSatisfy(recordPointer =>
+                recordPointer.ProviderName.Should().Be("SUI Custodian Stubs")
+            );
+
+        result
+            .Select(x => x.RecordUrl)
+            .Should()
             .BeEquivalentTo([
-                new RecordPointer(
-                    "LAC-SYSTEM-01",
-                    "Example LA Case Management System",
-                    "https://lac-system-01.example.gov.uk/api/records/ABC-123456"
-                ),
-                new RecordPointer(
-                    "NHS-GP-01",
-                    "Example GP Clinical System",
-                    "https://nhs-gp-01.example.nhs.uk/patient/SUI-1234567890"
-                ),
+                "https://localhost:7256/api/v1/records/ChildPersonalDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/ChildSocialCareDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/EducationDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/ChildHealthDataRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/ChildLinkedCrimeDataRecordV1/XXX0001234",
             ]);
     }
 }
