@@ -2,9 +2,8 @@ using System.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using SUI.Transfer.Application.Models;
 using SUI.Transfer.Application.Services;
-using SUI.Transfer.Infrastructure.Authentication;
+using static SUI.Transfer.Application.Services.ITransferService;
 
 namespace SUI.Transfer.API.Endpoint;
 
@@ -18,7 +17,7 @@ public static class TransferEndpoint
             .MapGet(
                 "/transfer/{id}",
                 [Authorize]
-                async Task<Results<Ok<TransferResult>, NotFound>> (
+                Ok<QueuedTransferJobState> (
                     [Description(
                         "The single unique identifier for the data which is being requested."
                     )]
@@ -26,16 +25,14 @@ public static class TransferEndpoint
                     [FromServices] ITransferService transferService
                 ) =>
                 {
-                    var result = await transferService.TransferAsync(id);
+                    var result = transferService.BeginTransferJob(id);
 
-                    return result.Success
-                        ? TypedResults.Ok(result.Result)
-                        : TypedResults.NotFound();
+                    return TypedResults.Ok(result);
                 }
             )
             .WithSummary("Transfer custodian data for a given child")
             .WithDescription(
-                "This endpoint requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form."
+                "This endpoint begins a job that requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form."
             );
     }
 }
