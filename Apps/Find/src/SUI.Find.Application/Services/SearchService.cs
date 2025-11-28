@@ -1,6 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.DurableTask.Client;
+using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Extensions;
+using SUI.Find.Application.Models;
 
 namespace SUI.Find.Application.Services;
 
@@ -12,9 +15,17 @@ public interface ISearchService
         DurableTaskClient client,
         CancellationToken cancellationToken
     );
+
+    Task<SearchResultsDto> GetSearchResultsAsync(
+        string jobId,
+        string clientId,
+        DurableTaskClient client,
+        CancellationToken cancellationToken
+    );
 }
 
-public class SearchService : ISearchService
+// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
+public class SearchService(ILogger<SearchService> logger) : ISearchService
 {
     public async Task<CancelSearchDto> CancelSearchAsync(
         string jobId,
@@ -61,6 +72,61 @@ public class SearchService : ISearchService
             return new CancelSearchDto(
                 CancelSearchResult.Failed,
                 "Failed to cancel the search job."
+            );
+        }
+    }
+
+    public async Task<SearchResultsDto> GetSearchResultsAsync(
+        string jobId,
+        string clientId,
+        DurableTaskClient client,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            var metaData = await client.GetInstanceAsync(
+                jobId,
+                true,
+                cancellation: cancellationToken
+            );
+            if (metaData is null)
+            {
+                logger.LogInformation("Search job with ID {JobId} not found.", jobId);
+                return SearchResultsDto.NotFound(jobId);
+            }
+
+            var test = ReadOrchestratorInput<string>(metaData);
+            var meta = ReadOrchestratorInput<SearchJobOrchestrationInput>(metaData);
+            if (meta is null)
+            {
+                return SearchResultsDto.Error(jobId, "Failed to read search job metadata.");
+            }
+
+            if (meta.ClientId != clientId)
+            {
+                logger.LogWarning(
+                    "Unauthorized access attempt to search job {JobId} by client {ClientId}.",
+                    jobId,
+                    clientId
+                );
+                return SearchResultsDto.Unauthorized(jobId);
+            }
+
+            var items = metaData.ReadOutputAs<SearchResultItem[]>();
+
+            return SearchResultsDto.Success(
+                jobId,
+                meta.Suid,
+                metaData.RuntimeStatus.ToSuiSearchStatus(),
+                items is { Length: > 0 } ? items : []
+            );
+        }
+        catch
+        {
+            return SearchResultsDto.Error(
+                jobId,
+                "An error occurred while retrieving search results."
             );
         }
     }
