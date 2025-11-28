@@ -15,13 +15,13 @@ public class DataViewTests : PageModelTestBase<DataView>
     private readonly IRecordService _mockRecordService = Substitute.For<IRecordService>();
 
     [Fact]
-    public void OnGet_ReturnsPage()
+    public async Task OnGet_ReturnsPage()
     {
         var sut = new DataView(MockLogger, _mockRecordService);
-        _mockRecordService.GetRecord("1234567890").Returns(new PersonModel());
+        _mockRecordService.GetRecordAsync("1234567890").Returns(new PersonModel());
 
         // Act
-        sut.OnGet();
+        await sut.OnGetAsync();
 
         // Assert
         sut.PersonModel.ShouldBeOfType<PersonModel>();

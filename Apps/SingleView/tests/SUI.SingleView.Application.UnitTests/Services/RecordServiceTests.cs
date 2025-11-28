@@ -27,7 +27,7 @@ public class RecordServiceTests
         var recordService = new RecordService(_mockTransferClient, _mockLogger);
 
         // Act
-        var result = await recordService.GetRecord(nhsNumber);
+        var result = await recordService.GetRecordAsync(nhsNumber);
 
         // Assert
         result.ShouldNotBeNull();
