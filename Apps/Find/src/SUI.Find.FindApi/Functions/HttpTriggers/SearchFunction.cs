@@ -3,11 +3,14 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Functions.Orchestrators;
 using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.Utility;
 using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Functions.HttpTriggers;
@@ -46,31 +49,81 @@ public class SearchFunction(ILogger<SearchFunction> logger)
         FunctionContext context
     )
     {
+
+        if (
+            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
+            || authObj is not AuthContext authContext
+        )
+        {
+            return await HttpResponseUtility.ProblemResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "Unauthorized",
+                "",
+                context.InvocationId
+            );
+        }
+
+        var hashedClientId = HashUtility.HashInput(authContext!.ClientId);
+
         var searchRequest = await JsonSerializer.DeserializeAsync<StartSearchRequest>(req.Body);
 
         if (!StartSearchRequestValidator.IsValid(searchRequest, out var errorMessage))
         {
-            var problem = new Problem(
-                Type: "about:blank",
-                Title: "Invalid Search Request",
-                Detail: errorMessage,
-                Status: (int)HttpStatusCode.BadRequest,
-                Instance: $"urn:trace:{context.InvocationId}"
-            );
-
-            var response = req.CreateResponse(HttpStatusCode.BadRequest);
-            await response.WriteAsJsonAsync(problem);
-
-            return response;
+            return await HttpResponseUtility.ProblemResponse(
+                req,
+                HttpStatusCode.BadRequest,
+                "Invalid Search Request",
+                errorMessage ?? "",
+                $"urn:trace:{context.InvocationId}"
+                );
         }
 
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);
+
+        var instanceId = $"{searchRequest!.Suid}-{hashedClientId}";
+
+        var existingInstance = await client.GetInstanceAsync(instanceId);
+        var hasExistingInstance = existingInstance != null &&
+                                  (existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Running ||
+                                   existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Pending);
+        if (hasExistingInstance)
+        {
+            var originalJobId = existingInstance!.InstanceId;
+            var jobStatus = existingInstance?.RuntimeStatus == OrchestrationRuntimeStatus.Running
+                ? SearchStatus.Running
+                : SearchStatus.Queued;
+
+            logger.LogInformation(
+                "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
+                originalJobId,
+                jobStatus
+            );
+
+            var originalJob = new SearchJob
+            {
+                JobId = originalJobId!,
+                Suid = searchRequest.Suid,
+                Status = jobStatus,
+                CreatedAt = existingInstance!.CreatedAt,
+                LastUpdatedAt = existingInstance.LastUpdatedAt,
+            };
+            var duplicateSearchResponse = req.CreateResponse(HttpStatusCode.Accepted);
+
+            await duplicateSearchResponse.WriteAsJsonAsync(originalJob);
+            logger.LogInformation(
+                "Returning original Search Request with JobId: {JobId}", originalJobId
+            );
+            return duplicateSearchResponse;
+        }
+
 
         var acceptedResponse = req.CreateResponse(HttpStatusCode.Accepted);
 
         var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
             nameof(SearchOrchestrator),
-            searchRequest!.Suid
+            searchRequest.Suid,
+            new StartOrchestrationOptions { InstanceId = instanceId }
         );
 
         var searchJob = new SearchJob
@@ -83,7 +136,10 @@ public class SearchFunction(ILogger<SearchFunction> logger)
         };
 
         await acceptedResponse.WriteAsJsonAsync(searchJob);
-
+        logger.LogInformation(
+            "Creating a new Search Request with JobId: {JobId}", searchJob.JobId
+        );
         return acceptedResponse;
     }
+
 }

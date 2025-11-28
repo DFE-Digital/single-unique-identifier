@@ -4,6 +4,7 @@ namespace SUI.Find.FindApi.Validators;
 
 public static class StartSearchRequestValidator
 {
+    private const int AesBlockSize = 16;
     public static bool IsValid(StartSearchRequest? request, out string? errorMessage)
     {
         if (request == null)
@@ -14,27 +15,13 @@ public static class StartSearchRequestValidator
 
         if (string.IsNullOrWhiteSpace(request.Suid))
         {
-            errorMessage = "NHS number is required";
+            errorMessage = "Suid is required";
             return false;
         }
 
-        var nhsNumber = request.Suid.Replace(" ", "");
-
-        if (nhsNumber.Length != 10)
+        if (request.Suid.Length != AesBlockSize)
         {
-            errorMessage = "NHS number must be 10 digits";
-            return false;
-        }
-
-        if (!long.TryParse(nhsNumber, out _))
-        {
-            errorMessage = "NHS number must contain only digits";
-            return false;
-        }
-
-        if (!IsValidNhsNumberChecksum(nhsNumber))
-        {
-            errorMessage = "NHS number checksum is invalid";
+            errorMessage = $"Suid is invalid";
             return false;
         }
 
@@ -42,25 +29,4 @@ public static class StartSearchRequestValidator
         return true;
     }
 
-    private static bool IsValidNhsNumberChecksum(string nhsNumber)
-    {
-        var sum = 0;
-        for (var i = 0; i < 9; i++)
-        {
-            sum += (nhsNumber[i] - '0') * (10 - i);
-        }
-
-        var checkDigit = 11 - (sum % 11);
-        if (checkDigit == 11)
-        {
-            checkDigit = 0;
-        }
-
-        if (checkDigit == 10)
-        {
-            return false;
-        }
-
-        return checkDigit == (nhsNumber[9] - '0');
-    }
 }
