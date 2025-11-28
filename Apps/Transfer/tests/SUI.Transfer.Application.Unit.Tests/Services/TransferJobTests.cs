@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Transfer.Application.Services;
+using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Unit.Tests.Services;
 
@@ -46,5 +47,73 @@ public class TransferJobTests
         );
     }
 
-    // rs-todo: tests for TransferAsync
+    [Fact]
+    public async Task TransferAsync_Does_Flow_AsExpected()
+    {
+        const string sui = "999 123 4566";
+        var jobId = Guid.NewGuid();
+
+        RecordPointer[] mockRecordPointers = [];
+
+        _mockRecordFinder
+            .FindRecordsAsync(sui, Arg.Any<CancellationToken>())
+            .Returns(mockRecordPointers);
+
+        UnconsolidatedData mockUnconsolidatedData = new(sui)
+        {
+            ChildPersonalDetailsRecords = [],
+            ChildSocialCareDetailsRecords = [],
+            EducationDetailsRecords = [],
+            ChildHealthDataRecords = [],
+            ChildLinkedCrimeDataRecords = [],
+            FailedFetches = [],
+        };
+
+        _mockRecordFetcher
+            .FetchRecordsAsync(sui, mockRecordPointers, Arg.Any<CancellationToken>())
+            .Returns(mockUnconsolidatedData);
+
+        ConsolidatedData mockConsolidatedData = new(sui)
+        {
+            ChildPersonalDetailsRecord = null,
+            ChildSocialCareDetailsRecord = null,
+            EducationDetailsRecord = null,
+            ChildHealthDataRecord = null,
+            ChildLinkedCrimeDataRecord = null,
+            CountOfRecordsSuccessfullyFetched = 0,
+            FailedFetches = [],
+        };
+
+        _mockRecordConsolidator
+            .ConsolidateRecords(mockUnconsolidatedData)
+            .Returns(mockConsolidatedData);
+
+        AggregatedConsolidatedData mockAggregatedConsolidatedData = new(mockConsolidatedData)
+        {
+            EducationAttendanceCurrentAcademicYear = null,
+            EducationAttendanceLastAcademicYear = null,
+            HealthAttendanceSummaryLast12Months = null,
+            HealthAttendanceSummaryLast5Years = null,
+            CSCReferralSummaryPast6Months = [],
+            CSCReferralSummaryPast12Months = [],
+            CSCReferralSummaryPast5Years = [],
+        };
+
+        _mockConsolidatedDataAggregator
+            .ApplyAggregations(mockConsolidatedData)
+            .Returns(mockAggregatedConsolidatedData);
+
+        // ACT
+        var result = await _sut.TransferAsync(jobId, sui);
+
+        // ASSERT
+        result.Should().BeSameAs(mockAggregatedConsolidatedData);
+
+        await _mockRecordFinder.Received().FindRecordsAsync(sui, Arg.Any<CancellationToken>());
+        await _mockRecordFetcher
+            .Received()
+            .FetchRecordsAsync(sui, mockRecordPointers, Arg.Any<CancellationToken>());
+        _mockRecordConsolidator.Received().ConsolidateRecords(mockUnconsolidatedData);
+        _mockConsolidatedDataAggregator.Received().ApplyAggregations(mockConsolidatedData);
+    }
 }
