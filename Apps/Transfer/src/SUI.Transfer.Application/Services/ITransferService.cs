@@ -28,5 +28,5 @@ public interface ITransferService
     ) : TransferJobState(JobId, Sui, TransferJobStatus.Failed);
 
     public record CancelledTransferJobState(Guid JobId, string Sui)
-        : TransferJobState(JobId, Sui, TransferJobStatus.Cancelled);
+        : TransferJobState(JobId, Sui, TransferJobStatus.Canceled);
 }

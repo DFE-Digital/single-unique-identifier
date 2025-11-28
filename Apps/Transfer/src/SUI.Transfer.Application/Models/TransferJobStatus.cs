@@ -6,5 +6,5 @@ public enum TransferJobStatus
     Running,
     Completed,
     Failed,
-    Cancelled,
+    Canceled,
 }

@@ -31,19 +31,28 @@ public class TransferService(
 
         async Task PerformTransferJobAsync()
         {
+            using var logScope = logger.BeginScope(
+                "Starting transfer job for sui {sui} (Job ID: {jobId})",
+                sui,
+                jobId
+            );
+
             try
             {
-                using var logScope = logger.BeginScope(
-                    "Starting transfer job for sui {sui} (Job ID: {jobId})",
-                    sui,
-                    jobId
-                );
-
                 JobsState[jobId] = new RunningTransferJobState(jobId, sui);
 
                 await transferJob.TransferAsync(jobId, sui);
 
                 JobsState[jobId] = new CompletedTransferJobState(jobId, sui);
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogWarning(
+                    "Transfer job for sui {sui} (Job ID: {jobId}) was canceled while running",
+                    sui,
+                    jobId
+                );
+                JobsState[jobId] = new CancelledTransferJobState(jobId, sui);
             }
             catch (Exception e)
             {
