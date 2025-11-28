@@ -22,26 +22,6 @@ public class TransferJob(
 
         // Find records
         cancellationToken.ThrowIfCancellationRequested(); // rs-todo: test to verify this does happen
-        var recordPointers = await FindRecordsAsync(sui, cancellationToken);
-
-        // Fetch records
-        cancellationToken.ThrowIfCancellationRequested();
-        var unconsolidatedData = await FetchRecordsAsync(sui, recordPointers, cancellationToken);
-
-        // Consolidate records
-        cancellationToken.ThrowIfCancellationRequested();
-        var consolidatedData = ConsolidateRecords(sui, unconsolidatedData);
-
-        // Apply aggregations
-        cancellationToken.ThrowIfCancellationRequested();
-        return ApplyAggregations(sui, consolidatedData);
-    }
-
-    private async Task<RecordPointer[]> FindRecordsAsync(
-        string sui,
-        CancellationToken cancellationToken
-    )
-    {
         logger.LogInformation("Finding records for sui {Sui}", sui);
         var recordPointers = await recordFinder.FindRecordsAsync(sui, cancellationToken);
         logger.LogInformation(
@@ -49,15 +29,9 @@ public class TransferJob(
             recordPointers.Length,
             sui
         );
-        return recordPointers;
-    }
 
-    private async Task<UnconsolidatedData> FetchRecordsAsync(
-        string sui,
-        RecordPointer[] recordPointers,
-        CancellationToken cancellationToken
-    )
-    {
+        // Fetch records
+        cancellationToken.ThrowIfCancellationRequested();
         logger.LogInformation("Fetching records for sui {Sui}", sui);
         var unconsolidatedData = await recordFetcher.FetchRecordsAsync(
             sui,
@@ -70,20 +44,14 @@ public class TransferJob(
             sui,
             unconsolidatedData.FailedFetches.Length
         );
-        return unconsolidatedData;
-    }
 
-    private ConsolidatedData ConsolidateRecords(string sui, UnconsolidatedData unconsolidatedData)
-    {
+        // Consolidate records
+        cancellationToken.ThrowIfCancellationRequested();
         logger.LogInformation("Consolidating records for sui {Sui}", sui);
-        return recordConsolidator.ConsolidateRecords(unconsolidatedData);
-    }
+        var consolidatedData = recordConsolidator.ConsolidateRecords(unconsolidatedData);
 
-    private AggregatedConsolidatedData ApplyAggregations(
-        string sui,
-        ConsolidatedData consolidatedData
-    )
-    {
+        // Apply aggregations
+        cancellationToken.ThrowIfCancellationRequested();
         logger.LogInformation("Aggregating records for sui {Sui}", sui);
         return consolidatedDataAggregator.ApplyAggregations(consolidatedData);
     }
