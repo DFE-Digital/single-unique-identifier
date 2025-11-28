@@ -58,10 +58,10 @@ jobs:
           ls $HOME/.dotnet/tools
 
       # Generate OpenAPI Spec
-      - name: Generate OpenAPI JSON
+      - name: Generate OpenAPI YAML
         run: |
           swagger tofile \
-            --output custodians-openapi.json \
+            --output custodians-openapi-generated.yaml \
             Apps/StubCustodians/src/SUI.StubCustodians.API/bin/Release/net9.0/SUI.StubCustodians.API.dll \
             v1
 
@@ -70,4 +70,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: stub-custodians-openapi
-          path: custodians-openapi.json
+          path: custodians-openapi-generated.yaml
