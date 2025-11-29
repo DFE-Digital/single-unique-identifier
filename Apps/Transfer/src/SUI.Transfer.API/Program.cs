@@ -34,7 +34,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IRecordFinder, RecordFinder>();
 builder.Services.AddScoped<IRecordFetcher, RecordFetcher>();
 builder.Services.AddScoped<IRecordConsolidator, RecordConsolidator>();
-builder.Services.AddScoped<IConsolidatedDataAggregator, ConsolidatedDataAggregator>();
+builder.Services.AddScoped<IEducationAttendanceAggregator, EducationAttendanceAggregator>();
 builder.Services.AddScoped<IAggregatedDataRepository, AggregatedDataRepository>();
 builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();

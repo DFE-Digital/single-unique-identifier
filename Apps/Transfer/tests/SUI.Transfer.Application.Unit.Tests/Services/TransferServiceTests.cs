@@ -43,13 +43,10 @@ public sealed class TransferServiceTests : IDisposable
             }
         )
         {
-            EducationAttendanceCurrentAcademicYear = null,
-            EducationAttendanceLastAcademicYear = null,
-            HealthAttendanceSummaryLast12Months = null,
-            HealthAttendanceSummaryLast5Years = null,
-            CSCReferralSummaryPast6Months = null,
-            CSCReferralSummaryPast12Months = null,
-            CSCReferralSummaryPast5Years = null,
+            EducationAttendanceSummaries = null,
+            HealthAttendanceSummaries = null,
+            ChildrensSocialCareReferralSummaries = null,
+            CrimeMissingEpisodesPast6Months = null,
         };
 
     [Fact]

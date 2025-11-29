@@ -26,13 +26,10 @@ public class AggregatedDataRepositoryTests
                     }
                 )
                 {
-                    EducationAttendanceCurrentAcademicYear = null,
-                    EducationAttendanceLastAcademicYear = null,
-                    HealthAttendanceSummaryLast12Months = null,
-                    HealthAttendanceSummaryLast5Years = null,
-                    CSCReferralSummaryPast6Months = [],
-                    CSCReferralSummaryPast12Months = [],
-                    CSCReferralSummaryPast5Years = [],
+                    EducationAttendanceSummaries = null,
+                    HealthAttendanceSummaries = null,
+                    ChildrensSocialCareReferralSummaries = null,
+                    CrimeMissingEpisodesPast6Months = null,
                 }
             );
 

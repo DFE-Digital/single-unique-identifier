@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUI.StubCustodians.API.Client;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
 
@@ -12,8 +13,8 @@ public class TransferJobTests
     private readonly IRecordFetcher _mockRecordFetcher = Substitute.For<IRecordFetcher>();
     private readonly IRecordConsolidator _mockRecordConsolidator =
         Substitute.For<IRecordConsolidator>();
-    private readonly IConsolidatedDataAggregator _mockConsolidatedDataAggregator =
-        Substitute.For<IConsolidatedDataAggregator>();
+    private readonly IEducationAttendanceAggregator _mockEducationAttendanceAggregator =
+        Substitute.For<IEducationAttendanceAggregator>();
     private readonly IAggregatedDataRepository _mockAggregatedDataRepository =
         Substitute.For<IAggregatedDataRepository>();
     private readonly IHostApplicationLifetime _mockHostApplicationLifetime =
@@ -28,7 +29,7 @@ public class TransferJobTests
             _mockRecordFinder,
             _mockRecordFetcher,
             _mockRecordConsolidator,
-            _mockConsolidatedDataAggregator,
+            _mockEducationAttendanceAggregator,
             _mockAggregatedDataRepository,
             _mockHostApplicationLifetime,
             _mockLogger
@@ -91,33 +92,41 @@ public class TransferJobTests
             .ConsolidateRecords(mockUnconsolidatedData)
             .Returns(mockConsolidatedData);
 
-        AggregatedData mockAggregatedData = new(jobId, mockConsolidatedData)
+        var mockEducationAttendanceSummaries = new EducationAttendanceSummaries
         {
-            EducationAttendanceCurrentAcademicYear = null,
-            EducationAttendanceLastAcademicYear = null,
-            HealthAttendanceSummaryLast12Months = null,
-            HealthAttendanceSummaryLast5Years = null,
-            CSCReferralSummaryPast6Months = [],
-            CSCReferralSummaryPast12Months = [],
-            CSCReferralSummaryPast5Years = [],
+            CurrentAcademicYear = new EducationAttendanceV1 { AttendancePercentage = 90 },
+            LastAcademicYear = new EducationAttendanceV1 { AttendancePercentage = 80 },
         };
 
-        _mockConsolidatedDataAggregator
-            .ApplyAggregations(jobId, mockConsolidatedData)
-            .Returns(mockAggregatedData);
+        _mockEducationAttendanceAggregator
+            .ApplyAggregation(mockConsolidatedData)
+            .Returns(mockEducationAttendanceSummaries);
+
+        AggregatedData expectedAggregatedData = new(jobId, mockConsolidatedData)
+        {
+            EducationAttendanceSummaries = mockEducationAttendanceSummaries,
+            HealthAttendanceSummaries = null,
+            ChildrensSocialCareReferralSummaries = null,
+            CrimeMissingEpisodesPast6Months = null,
+        };
 
         // ACT
         var result = await _sut.TransferAsync(jobId, sui);
 
         // ASSERT
-        result.Should().BeSameAs(mockAggregatedData);
+        result
+            .Should()
+            .BeEquivalentTo(
+                expectedAggregatedData,
+                options => options.Excluding(x => x.CreatedDate)
+            );
 
         await _mockRecordFinder.Received().FindRecordsAsync(sui, Arg.Any<CancellationToken>());
         await _mockRecordFetcher
             .Received()
             .FetchRecordsAsync(sui, mockRecordPointers, Arg.Any<CancellationToken>());
         _mockRecordConsolidator.Received().ConsolidateRecords(mockUnconsolidatedData);
-        _mockConsolidatedDataAggregator.Received().ApplyAggregations(jobId, mockConsolidatedData);
-        await _mockAggregatedDataRepository.Received().AddOrUpdateAsync(mockAggregatedData);
+        _mockEducationAttendanceAggregator.Received().ApplyAggregation(mockConsolidatedData);
+        await _mockAggregatedDataRepository.Received().AddOrUpdateAsync(result);
     }
 }
