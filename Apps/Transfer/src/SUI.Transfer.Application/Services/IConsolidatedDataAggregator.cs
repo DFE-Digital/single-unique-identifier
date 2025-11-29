@@ -4,5 +4,5 @@ namespace SUI.Transfer.Application.Services;
 
 public interface IConsolidatedDataAggregator
 {
-    AggregatedData ApplyAggregations(ConsolidatedData consolidatedData);
+    AggregatedData ApplyAggregations(Guid jobId, ConsolidatedData consolidatedData);
 }

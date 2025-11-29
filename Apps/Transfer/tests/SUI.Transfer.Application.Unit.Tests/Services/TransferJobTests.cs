@@ -91,7 +91,7 @@ public class TransferJobTests
             .ConsolidateRecords(mockUnconsolidatedData)
             .Returns(mockConsolidatedData);
 
-        AggregatedData mockAggregatedData = new(mockConsolidatedData)
+        AggregatedData mockAggregatedData = new(jobId, mockConsolidatedData)
         {
             EducationAttendanceCurrentAcademicYear = null,
             EducationAttendanceLastAcademicYear = null,
@@ -103,7 +103,7 @@ public class TransferJobTests
         };
 
         _mockConsolidatedDataAggregator
-            .ApplyAggregations(mockConsolidatedData)
+            .ApplyAggregations(jobId, mockConsolidatedData)
             .Returns(mockAggregatedData);
 
         // ACT
@@ -117,7 +117,7 @@ public class TransferJobTests
             .Received()
             .FetchRecordsAsync(sui, mockRecordPointers, Arg.Any<CancellationToken>());
         _mockRecordConsolidator.Received().ConsolidateRecords(mockUnconsolidatedData);
-        _mockConsolidatedDataAggregator.Received().ApplyAggregations(mockConsolidatedData);
+        _mockConsolidatedDataAggregator.Received().ApplyAggregations(jobId, mockConsolidatedData);
         await _mockAggregatedDataRepository.Received().AddOrUpdateAsync(mockAggregatedData);
     }
 }

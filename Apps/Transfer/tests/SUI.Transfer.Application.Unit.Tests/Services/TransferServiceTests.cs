@@ -28,8 +28,9 @@ public sealed class TransferServiceTests : IDisposable
         _testMemoryCache.Dispose();
     }
 
-    private static AggregatedData CreateEmptyAggregatedConsolidatedData(string sui) =>
+    private static AggregatedData CreateEmptyAggregatedConsolidatedData(Guid jobId, string sui) =>
         new(
+            jobId,
             new ConsolidatedData(sui)
             {
                 ChildPersonalDetailsRecord = new(),
@@ -68,7 +69,7 @@ public sealed class TransferServiceTests : IDisposable
                 var intermediateResult = _sut.GetTransferJobState(jobId);
                 Assert.Equal(new RunningTransferJobState(jobId, requestId), intermediateResult);
 
-                return Task.FromResult(CreateEmptyAggregatedConsolidatedData(requestId));
+                return Task.FromResult(CreateEmptyAggregatedConsolidatedData(jobId, requestId));
             });
 
         var mockJobScope = Substitute.For<IDisposable>();
@@ -102,8 +103,9 @@ public sealed class TransferServiceTests : IDisposable
                 new CompletedTransferJobState(
                     initialResult.JobId,
                     requestId,
-                    CreateEmptyAggregatedConsolidatedData(requestId)
-                )
+                    CreateEmptyAggregatedConsolidatedData(initialResult.JobId, requestId)
+                ),
+                options => options.Excluding(x => x.AggregatedData.CreatedDate)
             );
     }
 

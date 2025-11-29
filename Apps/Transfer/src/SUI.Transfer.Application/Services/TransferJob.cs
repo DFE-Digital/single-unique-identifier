@@ -51,7 +51,7 @@ public class TransferJob(
 
         // Apply aggregations
         cancellationToken.ThrowIfCancellationRequested();
-        var aggregatedData = consolidatedDataAggregator.ApplyAggregations(consolidatedData);
+        var aggregatedData = consolidatedDataAggregator.ApplyAggregations(jobId, consolidatedData);
 
         // Store the Aggregated Data, with a configured Time to Live (TTL)
         await aggregatedDataRepository.AddOrUpdateAsync(aggregatedData);

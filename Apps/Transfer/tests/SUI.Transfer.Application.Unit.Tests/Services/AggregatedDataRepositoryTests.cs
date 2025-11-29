@@ -13,6 +13,7 @@ public class AggregatedDataRepositoryTests
         var action = async () =>
             await sut.AddOrUpdateAsync(
                 new AggregatedData(
+                    JobId: Guid.NewGuid(),
                     new ConsolidatedData("9990000123")
                     {
                         ChildPersonalDetailsRecord = null,

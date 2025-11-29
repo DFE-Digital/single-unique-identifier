@@ -9,9 +9,11 @@ public class ConsolidatedDataAggregatorTests
     public void ApplyAggregations_Does_Aggregate_AsExpected()
     {
         var sut = new ConsolidatedDataAggregator();
+        var jobId = Guid.NewGuid();
 
         // ACT
         var result = sut.ApplyAggregations(
+            jobId,
             new ConsolidatedData("XXX 000 1234")
             {
                 ChildPersonalDetailsRecord = null,
@@ -29,6 +31,7 @@ public class ConsolidatedDataAggregatorTests
             .Should()
             .BeEquivalentTo(
                 new AggregatedData(
+                    jobId,
                     new ConsolidatedData("XXX 000 1234")
                     {
                         ChildPersonalDetailsRecord = null,
@@ -48,7 +51,8 @@ public class ConsolidatedDataAggregatorTests
                     CSCReferralSummaryPast6Months = null,
                     CSCReferralSummaryPast12Months = null,
                     CSCReferralSummaryPast5Years = null,
-                }
+                },
+                options => options.Excluding(x => x.CreatedDate)
             );
     }
 }
