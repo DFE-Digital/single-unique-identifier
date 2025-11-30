@@ -13,6 +13,9 @@ public class TransferService(
     {
         var jobId = Guid.NewGuid();
 
+        // Normalize the SUI
+        sui = sui.ToUpperInvariant().Replace(" ", "");
+
         // Queue the transfer job to be run in the background.
         // This can be revisited in the future, if we need to use a more advanced scheduling/queueing approach.
         Task.Run(PerformTransferJobAsync);

@@ -234,4 +234,35 @@ public class TransferServiceTests
         Assert.Equal(initialResult.JobId, finalResult.JobId);
         Assert.Equal(requestId, finalResult.Sui);
     }
+
+    [Theory]
+    [InlineData("aBc 123", "ABC123")]
+    [InlineData("999 0000 111", "9990000111")]
+    public async Task Transfer_Does_Normalize_SUI(string inputSui, string expectedNormalizedSui)
+    {
+        var mutex = new SemaphoreSlim(0, 1);
+
+        var mockJobScope = Substitute.For<IDisposable>();
+        mockJobScope
+            .When(x => x.Dispose())
+            .Do(_ =>
+            {
+                // Let the test continue
+                mutex.Release();
+            });
+
+        _mockLogger.BeginScope(Arg.Any<object>()).Returns(mockJobScope);
+
+        // Act
+        var initialResult = _sut.BeginTransferJob(inputSui);
+
+        // Assert
+        Assert.True(await mutex.WaitAsync(TimeSpan.FromSeconds(5)));
+
+        var finalResult = await _sut.GetTransferJobStateAsync(initialResult.JobId);
+
+        Assert.IsType<CompletedTransferJobState>(finalResult);
+
+        await _mockTransferJob.Received().TransferAsync(initialResult.JobId, expectedNormalizedSui);
+    }
 }
