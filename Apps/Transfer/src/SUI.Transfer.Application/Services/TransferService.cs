@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using SUI.Transfer.Domain;
 
@@ -6,19 +5,10 @@ namespace SUI.Transfer.Application.Services;
 
 public class TransferService(
     ITransferJob transferJob,
-    IMemoryCache memoryCache,
+    ITransferJobStateRepository transferJobStateRepository,
     ILogger<TransferService> logger
 ) : ITransferService
 {
-    private const string JobsStateKey = "TransferJobsState";
-
-    private Dictionary<Guid, TransferJobState> JobsState =>
-        memoryCache.GetOrCreate(
-            JobsStateKey,
-            _ => new Dictionary<Guid, TransferJobState>(),
-            new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromDays(1))
-        )!;
-
     public QueuedTransferJobState BeginTransferJob(string sui)
     {
         var jobId = Guid.NewGuid();
@@ -39,11 +29,13 @@ public class TransferService(
 
             try
             {
-                UpdateJobState(jobId, new RunningTransferJobState(jobId, sui));
+                await UpdateJobStateAsync(new RunningTransferJobState(jobId, sui));
 
                 var aggregatedData = await transferJob.TransferAsync(jobId, sui);
 
-                UpdateJobState(jobId, new CompletedTransferJobState(jobId, sui, aggregatedData));
+                await UpdateJobStateAsync(
+                    new CompletedTransferJobState(jobId, sui, aggregatedData)
+                );
             }
             catch (OperationCanceledException e)
             {
@@ -53,7 +45,7 @@ public class TransferService(
                     sui,
                     jobId
                 );
-                UpdateJobState(jobId, new CancelledTransferJobState(jobId, sui));
+                await UpdateJobStateAsync(new CancelledTransferJobState(jobId, sui));
             }
             catch (Exception e)
             {
@@ -63,16 +55,16 @@ public class TransferService(
                     sui,
                     jobId
                 );
-                UpdateJobState(
-                    jobId,
+                await UpdateJobStateAsync(
                     new FailedTransferJobState(jobId, sui, e.ToString(), e.StackTrace)
                 );
             }
         }
     }
 
-    public TransferJobState? GetTransferJobState(Guid jobId) => JobsState.GetValueOrDefault(jobId);
+    public async Task<TransferJobState?> GetTransferJobStateAsync(Guid jobId) =>
+        await transferJobStateRepository.GetAsync(jobId);
 
-    private void UpdateJobState(Guid jobId, TransferJobState newState) =>
-        JobsState[jobId] = newState;
+    private async Task UpdateJobStateAsync(TransferJobState newState) =>
+        await transferJobStateRepository.AddOrUpdateAsync(newState);
 }

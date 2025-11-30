@@ -9,7 +9,6 @@ public class TransferJob(
     IRecordFetcher recordFetcher,
     IRecordConsolidator recordConsolidator,
     IEducationAttendanceAggregator educationAttendanceAggregator,
-    IAggregatedDataRepository aggregatedDataRepository,
     IHostApplicationLifetime hostApplicationLifetime,
     ILogger<TransferJob> logger
 ) : ITransferJob
@@ -51,7 +50,7 @@ public class TransferJob(
 
         // Apply aggregations
         cancellationToken.ThrowIfCancellationRequested();
-        var aggregatedData = new AggregatedData(jobId, consolidatedData)
+        return new AggregatedData(jobId, consolidatedData)
         {
             EducationAttendanceSummaries = educationAttendanceAggregator.ApplyAggregation(
                 consolidatedData
@@ -60,10 +59,5 @@ public class TransferJob(
             ChildrensSocialCareReferralSummaries = null,
             CrimeMissingEpisodesPast6Months = null,
         };
-
-        // Store the Aggregated Data, with a configured Time to Live (TTL)
-        await aggregatedDataRepository.AddOrUpdateAsync(aggregatedData);
-
-        return aggregatedData;
     }
 }

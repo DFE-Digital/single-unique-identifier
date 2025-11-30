@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Transfer.Application.Models;
 using SUI.Transfer.Application.Services;
@@ -8,11 +7,12 @@ using Xunit.Abstractions;
 
 namespace SUI.Transfer.Application.Unit.Tests.Services;
 
-public sealed class TransferServiceTests : IDisposable
+public class TransferServiceTests
 {
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly ITransferJob _mockTransferJob = Substitute.For<ITransferJob>();
-    private readonly MemoryCache _testMemoryCache = new(new MemoryCacheOptions());
+    private readonly ITransferJobStateRepository _stubTransferJobStateRepository =
+        new StubTransferJobStateRepository();
     private readonly ILogger<TransferService> _mockLogger = Substitute.For<
         ILogger<TransferService>
     >();
@@ -22,12 +22,21 @@ public sealed class TransferServiceTests : IDisposable
     public TransferServiceTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
-        _sut = new TransferService(_mockTransferJob, _testMemoryCache, _mockLogger);
+        _sut = new TransferService(_mockTransferJob, _stubTransferJobStateRepository, _mockLogger);
     }
 
-    public void Dispose()
+    private class StubTransferJobStateRepository : ITransferJobStateRepository
     {
-        _testMemoryCache.Dispose();
+        private readonly Dictionary<Guid, TransferJobState> _jobStates = new();
+
+        public Task AddOrUpdateAsync(TransferJobState transferJobState)
+        {
+            _jobStates[transferJobState.JobId] = transferJobState;
+            return Task.CompletedTask;
+        }
+
+        public Task<TransferJobState?> GetAsync(Guid jobId) =>
+            Task.FromResult(_jobStates.GetValueOrDefault(jobId));
     }
 
     private static AggregatedData CreateEmptyAggregatedConsolidatedData(Guid jobId, string sui) =>
@@ -60,12 +69,12 @@ public sealed class TransferServiceTests : IDisposable
         var mutex = new SemaphoreSlim(0, 1);
         _mockTransferJob
             .TransferAsync(Arg.Any<Guid>(), requestId)
-            .Returns(callInfo =>
+            .Returns(async callInfo =>
             {
                 var jobId = callInfo.Arg<Guid>();
 
                 // Verify that the intermediate state is as expected
-                var intermediateResult = _sut.GetTransferJobState(jobId);
+                var intermediateResult = await _sut.GetTransferJobStateAsync(jobId);
                 Assert.NotNull(intermediateResult);
                 Assert.Equal(
                     new RunningTransferJobState(jobId, requestId)
@@ -75,7 +84,7 @@ public sealed class TransferServiceTests : IDisposable
                     intermediateResult
                 );
 
-                return Task.FromResult(CreateEmptyAggregatedConsolidatedData(jobId, requestId));
+                return CreateEmptyAggregatedConsolidatedData(jobId, requestId);
             });
 
         var mockJobScope = Substitute.For<IDisposable>();
@@ -108,7 +117,7 @@ public sealed class TransferServiceTests : IDisposable
         await _mockTransferJob.Received().TransferAsync(initialResult.JobId, requestId);
 
         // Assert - final state should be Completed
-        var finalResult = _sut.GetTransferJobState(initialResult.JobId);
+        var finalResult = await _sut.GetTransferJobStateAsync(initialResult.JobId);
         _testOutputHelper.WriteLine(finalResult?.ToString());
 
         finalResult
@@ -165,7 +174,7 @@ public sealed class TransferServiceTests : IDisposable
         await _mockTransferJob.Received().TransferAsync(initialResult.JobId, requestId);
 
         // Assert - final state should be Failed
-        var finalResult = _sut.GetTransferJobState(initialResult.JobId);
+        var finalResult = await _sut.GetTransferJobStateAsync(initialResult.JobId);
         Assert.NotNull(finalResult);
         Assert.Equal(TransferJobStatus.Failed, finalResult.Status);
         Assert.Equal(initialResult.JobId, finalResult.JobId);
@@ -217,8 +226,8 @@ public sealed class TransferServiceTests : IDisposable
         // Assert - transfer job should have been called as expected
         await _mockTransferJob.Received().TransferAsync(initialResult.JobId, requestId);
 
-        // Assert - final state should be Canceled
-        var finalResult = _sut.GetTransferJobState(initialResult.JobId);
+        // Assert - final state should be CancelLed
+        var finalResult = await _sut.GetTransferJobStateAsync(initialResult.JobId);
         Assert.NotNull(finalResult);
         Assert.IsType<CancelledTransferJobState>(finalResult);
         Assert.Equal(TransferJobStatus.Canceled, finalResult.Status);

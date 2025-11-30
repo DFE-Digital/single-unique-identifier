@@ -7,5 +7,5 @@ public interface ITransferService
 {
     QueuedTransferJobState BeginTransferJob(string sui);
 
-    public TransferJobState? GetTransferJobState(Guid jobId);
+    Task<TransferJobState?> GetTransferJobStateAsync(Guid jobId);
 }
