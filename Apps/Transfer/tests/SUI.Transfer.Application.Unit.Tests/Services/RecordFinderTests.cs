@@ -10,30 +10,55 @@ public class RecordFinderTests
         var sut = new RecordFinder();
 
         // ACT
-        var result = await sut.FindRecordsAsync("XXX 000 1234", CancellationToken.None);
+        var result = await sut.FindRecordsAsync("XXX0001234", CancellationToken.None);
 
         // ASSERT
         result
+            .Select(x => x.ProviderSystemId)
+            .Distinct()
             .Should()
-            .AllSatisfy(recordPointer =>
-                recordPointer.ProviderSystemId.Should().Be("StubCustodians")
-            );
+            .BeEquivalentTo([
+                "MockSocialCareProvider",
+                "MockEducationProvider",
+                "MockHealthcareProvider",
+                "MockCrimeDataProvider",
+            ]);
 
         result
+            .Select(x => x.ProviderName)
+            .Distinct()
             .Should()
-            .AllSatisfy(recordPointer =>
-                recordPointer.ProviderName.Should().Be("SUI Custodian Stubs")
-            );
+            .BeEquivalentTo([
+                "SUI Custodian Stub - MockSocialCareProvider",
+                "SUI Custodian Stub - MockEducationProvider",
+                "SUI Custodian Stub - MockHealthcareProvider",
+                "SUI Custodian Stub - MockCrimeDataProvider",
+            ]);
 
         result
             .Select(x => x.RecordUrl)
             .Should()
             .BeEquivalentTo([
-                "https://localhost:7256/api/v1/records/ChildPersonalDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/ChildSocialCareDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/EducationDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/ChildHealthDataRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/ChildLinkedCrimeDataRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockSocialCareProvider/ChildPersonalDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockSocialCareProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockSocialCareProvider/EducationDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockSocialCareProvider/ChildHealthDataRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockSocialCareProvider/ChildLinkedCrimeDataRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockEducationProvider/ChildPersonalDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockEducationProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockEducationProvider/EducationDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockEducationProvider/ChildHealthDataRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockEducationProvider/ChildLinkedCrimeDataRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockHealthcareProvider/ChildPersonalDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockHealthcareProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockHealthcareProvider/EducationDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockHealthcareProvider/ChildHealthDataRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockHealthcareProvider/ChildLinkedCrimeDataRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/ChildPersonalDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/EducationDetailsRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/ChildHealthDataRecordV1/XXX0001234",
+                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/ChildLinkedCrimeDataRecordV1/XXX0001234",
             ]);
     }
 }

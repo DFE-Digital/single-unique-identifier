@@ -6,25 +6,36 @@ public class RecordFinder : IRecordFinder
 {
     private const string StubCustodiansBaseUri = "https://localhost:7256";
 
-    private static readonly string[] StubCustodiansEndpoints =
+    private static readonly string[] StubProviderIds =
     [
-        "/api/v1/records/ChildPersonalDetailsRecordV1",
-        "/api/v1/records/ChildSocialCareDetailsRecordV1",
-        "/api/v1/records/EducationDetailsRecordV1",
-        "/api/v1/records/ChildHealthDataRecordV1",
-        "/api/v1/records/ChildLinkedCrimeDataRecordV1",
+        "MockSocialCareProvider",
+        "MockEducationProvider",
+        "MockHealthcareProvider",
+        "MockCrimeDataProvider",
     ];
+
+    private static readonly (string ProviderId, string EndpointUri)[] StubCustodiansEndpoints =
+        StubProviderIds
+            .SelectMany(providerId =>
+                new[]
+                {
+                    (providerId, $"/api/v1/records/{providerId}/ChildPersonalDetailsRecordV1"),
+                    (providerId, $"/api/v1/records/{providerId}/ChildSocialCareDetailsRecordV1"),
+                    (providerId, $"/api/v1/records/{providerId}/EducationDetailsRecordV1"),
+                    (providerId, $"/api/v1/records/{providerId}/ChildHealthDataRecordV1"),
+                    (providerId, $"/api/v1/records/{providerId}/ChildLinkedCrimeDataRecordV1"),
+                }
+            )
+            .ToArray();
 
     public Task<RecordPointer[]> FindRecordsAsync(string sui, CancellationToken cancellationToken)
     {
-        sui = sui.Replace(" ", "");
-
         return Task.FromResult(
             StubCustodiansEndpoints
-                .Select(endpointPath => new RecordPointer(
-                    ProviderSystemId: "StubCustodians",
-                    ProviderName: "SUI Custodian Stubs",
-                    RecordUrl: $"{StubCustodiansBaseUri}{endpointPath}/{sui}"
+                .Select(endpoint => new RecordPointer(
+                    ProviderSystemId: endpoint.ProviderId,
+                    ProviderName: $"SUI Custodian Stub - {endpoint.ProviderId}",
+                    RecordUrl: $"{StubCustodiansBaseUri}{endpoint.EndpointUri}/{sui}"
                 ))
                 .ToArray()
         );
