@@ -4,12 +4,13 @@ using NSubstitute;
 using SUI.Transfer.Application.Models;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
-using static SUI.Transfer.Application.Services.ITransferService;
+using Xunit.Abstractions;
 
 namespace SUI.Transfer.Application.Unit.Tests.Services;
 
 public sealed class TransferServiceTests : IDisposable
 {
+    private readonly ITestOutputHelper _testOutputHelper;
     private readonly ITransferJob _mockTransferJob = Substitute.For<ITransferJob>();
     private readonly MemoryCache _testMemoryCache = new(new MemoryCacheOptions());
     private readonly ILogger<TransferService> _mockLogger = Substitute.For<
@@ -18,8 +19,9 @@ public sealed class TransferServiceTests : IDisposable
 
     private readonly TransferService _sut;
 
-    public TransferServiceTests()
+    public TransferServiceTests(ITestOutputHelper testOutputHelper)
     {
+        _testOutputHelper = testOutputHelper;
         _sut = new TransferService(_mockTransferJob, _testMemoryCache, _mockLogger);
     }
 
@@ -64,7 +66,14 @@ public sealed class TransferServiceTests : IDisposable
 
                 // Verify that the intermediate state is as expected
                 var intermediateResult = _sut.GetTransferJobState(jobId);
-                Assert.Equal(new RunningTransferJobState(jobId, requestId), intermediateResult);
+                Assert.NotNull(intermediateResult);
+                Assert.Equal(
+                    new RunningTransferJobState(jobId, requestId)
+                    {
+                        Timestamp = intermediateResult.Timestamp,
+                    },
+                    intermediateResult
+                );
 
                 return Task.FromResult(CreateEmptyAggregatedConsolidatedData(jobId, requestId));
             });
@@ -87,13 +96,21 @@ public sealed class TransferServiceTests : IDisposable
 
         // Assert - initial result should be Queued
         Assert.NotNull(initialResult);
-        Assert.Equal(new QueuedTransferJobState(initialResult.JobId, requestId), initialResult);
+        Assert.Equal(
+            new QueuedTransferJobState(initialResult.JobId, requestId)
+            {
+                Timestamp = initialResult.Timestamp,
+            },
+            initialResult
+        );
 
         // Assert - transfer job should have been called as expected
         await _mockTransferJob.Received().TransferAsync(initialResult.JobId, requestId);
 
         // Assert - final state should be Completed
         var finalResult = _sut.GetTransferJobState(initialResult.JobId);
+        _testOutputHelper.WriteLine(finalResult?.ToString());
+
         finalResult
             .Should()
             .BeEquivalentTo(
@@ -102,7 +119,8 @@ public sealed class TransferServiceTests : IDisposable
                     requestId,
                     CreateEmptyAggregatedConsolidatedData(initialResult.JobId, requestId)
                 ),
-                options => options.Excluding(x => x.AggregatedData.CreatedDate)
+                options =>
+                    options.Excluding(x => x.Timestamp).Excluding(x => x.AggregatedData.CreatedDate)
             );
     }
 
@@ -135,7 +153,13 @@ public sealed class TransferServiceTests : IDisposable
 
         // Assert - initial result should be Queued
         Assert.NotNull(initialResult);
-        Assert.Equal(new QueuedTransferJobState(initialResult.JobId, requestId), initialResult);
+        Assert.Equal(
+            new QueuedTransferJobState(initialResult.JobId, requestId)
+            {
+                Timestamp = initialResult.Timestamp,
+            },
+            initialResult
+        );
 
         // Assert - transfer job should have been called as expected
         await _mockTransferJob.Received().TransferAsync(initialResult.JobId, requestId);
@@ -182,7 +206,13 @@ public sealed class TransferServiceTests : IDisposable
 
         // Assert - initial result should be Queued
         Assert.NotNull(initialResult);
-        Assert.Equal(new QueuedTransferJobState(initialResult.JobId, requestId), initialResult);
+        Assert.Equal(
+            new QueuedTransferJobState(initialResult.JobId, requestId)
+            {
+                Timestamp = initialResult.Timestamp,
+            },
+            initialResult
+        );
 
         // Assert - transfer job should have been called as expected
         await _mockTransferJob.Received().TransferAsync(initialResult.JobId, requestId);

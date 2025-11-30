@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using static SUI.Transfer.Application.Services.ITransferService;
+using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Services;
 

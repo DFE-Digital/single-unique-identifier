@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using SUI.Transfer.Application.Models;
 using SUI.Transfer.Application.Services;
-using static SUI.Transfer.Application.Services.ITransferService;
+using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.API.Unit.Tests.Endpoint;
 
@@ -102,6 +101,12 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             _jsonSerializerOptions
         );
         Assert.NotNull(content);
-        Assert.Equal(new QueuedTransferJobState(mockResponse.JobId, testId), content);
+        Assert.Equal(
+            new QueuedTransferJobState(mockResponse.JobId, testId)
+            {
+                Timestamp = content.Timestamp,
+            },
+            content
+        );
     }
 }
