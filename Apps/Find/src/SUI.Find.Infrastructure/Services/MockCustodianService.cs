@@ -81,12 +81,12 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
     }
 
     // Only used for deserializing the mock org-directory.json, so it can exist locally
-    private class MockOrgDirectory
+    private sealed class MockOrgDirectory
     {
         public List<MockOrganisation> Organisations { get; set; } = null!;
     }
 
-    private class MockOrganisation
+    private sealed class MockOrganisation
     {
         public string OrgId { get; set; } = null!;
         public string OrgName { get; set; } = null!;
@@ -96,13 +96,13 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         public MockEncryption Encryption { get; set; } = null!;
     }
 
-    private class MockRecord
+    private sealed class MockRecord
     {
         public string RecordType { get; set; } = null!;
         public MockConnection Connection { get; set; } = null!;
     }
 
-    private class MockConnection
+    private sealed class MockConnection
     {
         public string Method { get; set; } = null!;
         public string Url { get; set; } = null!;
@@ -111,7 +111,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         public MockAuth Auth { get; set; } = null!;
     }
 
-    private class MockAuth
+    private sealed class MockAuth
     {
         public string Type { get; set; } = null!;
         public string TokenUrl { get; set; } = null!;
@@ -120,14 +120,14 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         public string ClientSecret { get; set; } = null!;
     }
 
-    private class MockDsaPolicy
+    private sealed class MockDsaPolicy
     {
         public string Version { get; set; } = null!;
         public List<MockDsaRule> Defaults { get; set; } = null!;
         public List<MockDsaException> Exceptions { get; set; } = null!;
     }
 
-    private class MockDsaRule
+    private sealed class MockDsaRule
     {
         public string Effect { get; set; } = null!;
         public List<string> Modes { get; set; } = null!;
@@ -137,7 +137,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         public string ValidFrom { get; set; } = null!;
     }
 
-    private class MockDsaException
+    private sealed class MockDsaException
     {
         public string Effect { get; set; } = null!;
         public List<string> Modes { get; set; } = null!;
@@ -150,7 +150,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         public string Reason { get; set; } = null!;
     }
 
-    private class MockEncryption
+    private sealed class MockEncryption
     {
         public string Algorithm { get; set; } = null!;
         public string KeyId { get; set; } = null!;
