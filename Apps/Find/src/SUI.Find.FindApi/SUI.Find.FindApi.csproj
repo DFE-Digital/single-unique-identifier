@@ -29,11 +29,6 @@
     />
   </ItemGroup>
   <ItemGroup>
-    <None Update="openapi_v1.yaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
