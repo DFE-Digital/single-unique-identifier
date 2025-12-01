@@ -1,0 +1,128 @@
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using SUI.StubCustodians.API.Client;
+using SUI.Transfer.Application.Services;
+using SUI.Transfer.Domain;
+
+namespace SUI.Transfer.Application.Unit.Tests.Services;
+
+public class TransferJobTests
+{
+    private readonly IRecordFinder _mockRecordFinder = Substitute.For<IRecordFinder>();
+    private readonly IRecordFetcher _mockRecordFetcher = Substitute.For<IRecordFetcher>();
+    private readonly IRecordConsolidator _mockRecordConsolidator =
+        Substitute.For<IRecordConsolidator>();
+    private readonly IEducationAttendanceAggregator _mockEducationAttendanceAggregator =
+        Substitute.For<IEducationAttendanceAggregator>();
+    private readonly IHostApplicationLifetime _mockHostApplicationLifetime =
+        Substitute.For<IHostApplicationLifetime>();
+    private readonly ILogger<TransferJob> _mockLogger = Substitute.For<ILogger<TransferJob>>();
+
+    private readonly TransferJob _sut;
+
+    public TransferJobTests()
+    {
+        _sut = new TransferJob(
+            _mockRecordFinder,
+            _mockRecordFetcher,
+            _mockRecordConsolidator,
+            _mockEducationAttendanceAggregator,
+            _mockHostApplicationLifetime,
+            _mockLogger
+        );
+    }
+
+    [Fact]
+    public async Task TransferAsync_Does_ThrowIfCancellationRequested()
+    {
+        using var cts = new CancellationTokenSource();
+
+        _mockHostApplicationLifetime.ApplicationStopping.Returns(cts.Token);
+
+        await cts.CancelAsync();
+
+        // ACT & ASSERT
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await _sut.TransferAsync(Guid.NewGuid(), "")
+        );
+    }
+
+    [Fact]
+    public async Task TransferAsync_Does_Flow_AsExpected()
+    {
+        const string sui = "999 123 4566";
+        var jobId = Guid.NewGuid();
+
+        RecordPointer[] mockRecordPointers = [];
+
+        _mockRecordFinder
+            .FindRecordsAsync(sui, Arg.Any<CancellationToken>())
+            .Returns(mockRecordPointers);
+
+        UnconsolidatedData mockUnconsolidatedData = new(sui)
+        {
+            ChildPersonalDetailsRecords = [],
+            ChildSocialCareDetailsRecords = [],
+            EducationDetailsRecords = [],
+            ChildHealthDataRecords = [],
+            ChildLinkedCrimeDataRecords = [],
+            FailedFetches = [],
+        };
+
+        _mockRecordFetcher
+            .FetchRecordsAsync(sui, mockRecordPointers, Arg.Any<CancellationToken>())
+            .Returns(mockUnconsolidatedData);
+
+        ConsolidatedData mockConsolidatedData = new(sui)
+        {
+            ChildPersonalDetailsRecord = null,
+            ChildSocialCareDetailsRecord = null,
+            EducationDetailsRecord = null,
+            ChildHealthDataRecord = null,
+            ChildLinkedCrimeDataRecord = null,
+            CountOfRecordsSuccessfullyFetched = 0,
+            FailedFetches = [],
+        };
+
+        _mockRecordConsolidator
+            .ConsolidateRecords(mockUnconsolidatedData)
+            .Returns(mockConsolidatedData);
+
+        var mockEducationAttendanceSummaries = new EducationAttendanceSummaries
+        {
+            CurrentAcademicYear = new EducationAttendanceV1 { AttendancePercentage = 90 },
+            LastAcademicYear = new EducationAttendanceV1 { AttendancePercentage = 80 },
+        };
+
+        _mockEducationAttendanceAggregator
+            .ApplyAggregation(mockConsolidatedData)
+            .Returns(mockEducationAttendanceSummaries);
+
+        AggregatedData expectedAggregatedData = new(jobId, mockConsolidatedData)
+        {
+            EducationAttendanceSummaries = mockEducationAttendanceSummaries,
+            HealthAttendanceSummaries = null,
+            ChildrensSocialCareReferralSummaries = null,
+            CrimeMissingEpisodesPast6Months = null,
+        };
+
+        // ACT
+        var result = await _sut.TransferAsync(jobId, sui);
+
+        // ASSERT
+        result
+            .Should()
+            .BeEquivalentTo(
+                expectedAggregatedData,
+                options => options.Excluding(x => x.CreatedDate)
+            );
+
+        await _mockRecordFinder.Received().FindRecordsAsync(sui, Arg.Any<CancellationToken>());
+        await _mockRecordFetcher
+            .Received()
+            .FetchRecordsAsync(sui, mockRecordPointers, Arg.Any<CancellationToken>());
+        _mockRecordConsolidator.Received().ConsolidateRecords(mockUnconsolidatedData);
+        _mockEducationAttendanceAggregator.Received().ApplyAggregation(mockConsolidatedData);
+    }
+}

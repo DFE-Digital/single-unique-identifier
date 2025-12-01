@@ -6,6 +6,7 @@ using SUI.Transfer.API.Endpoint;
 using SUI.Transfer.API.OpenApiTransformers;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Infrastructure.Authentication;
+using SUI.Transfer.Infrastructure.Repositories;
 using AuthenticationOptions = SUI.Transfer.Infrastructure.Authentication.AuthenticationOptions;
 
 Env.TraversePath().Load();
@@ -29,7 +30,15 @@ builder
 
 builder.Services.AddAuthorizationBuilder();
 
-builder.Services.AddSingleton<ITransferService, TransferService>();
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<IRecordFinder, RecordFinder>();
+builder.Services.AddScoped<IRecordFetcher, RecordFetcher>();
+builder.Services.AddScoped<IRecordConsolidator, RecordConsolidator>();
+builder.Services.AddScoped<IEducationAttendanceAggregator, EducationAttendanceAggregator>();
+builder.Services.AddScoped<ITransferJob, TransferJob>();
+builder.Services.AddScoped<ITransferService, TransferService>();
+builder.Services.AddScoped<ITransferJobStateRepository, TransferJobStateMemoryCacheRepository>();
 
 builder.Services.Configure<JsonOptions>(options =>
 {
