@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Builds, packs, and pushes the StubCustodians API Client NuGet package to GitHub Packages.
+    Builds, packs, and pushes the Custodians API Client NuGet package to GitHub Packages.
 
 .DESCRIPTION
     This script:
@@ -35,9 +35,9 @@ $ErrorActionPreference = "Stop"
 
 # --- CONFIGURATION ---
 $GitHubUsername = "DFE-Digital"
-$PackageName    = "SUI.StubCustodians.API.Client"
-$ProjectPath    = "./Apps/StubCustodians/src/SUI.StubCustodians.API.Client/SUI.StubCustodians.API.Client.csproj"
-$BaseDir        = "./Apps/StubCustodians/src/SUI.StubCustodians.API.Client/bin/$Configuration"
+$PackageName    = "SUI.Custodians.API.Client"
+$ProjectPath    = "./Apps/Custodians/src/SUI.Custodians.API.Client/SUI.Custodians.API.Client.csproj"
+$BaseDir        = "./Apps/Custodians/src/SUI.Custodians.API.Client/bin/$Configuration"
 # ---------------------------------------------
 
 # ---- STEP 1: BUILD PROJECT ----

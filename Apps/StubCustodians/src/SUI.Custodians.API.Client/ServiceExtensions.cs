@@ -1,19 +1,19 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace SUI.StubCustodians.API.Client;
+namespace SUI.Custodians.API.Client;
 
 [ExcludeFromCodeCoverage]
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddTransferClient(
+    public static IServiceCollection AddCustodiansClient(
         this IServiceCollection services,
         string baseAddress,
         string apiKey
     )
     {
         services.AddHttpClient(
-            nameof(StubCustodiansApi),
+            nameof(CustodiansApi),
             (sp, client) =>
             {
                 client.BaseAddress = new Uri(baseAddress);
@@ -21,11 +21,10 @@ public static class ServiceExtensions
             }
         );
 
-        services.AddTransient<IStubCustodiansApi, StubCustodiansApi>(
-            provider => new StubCustodiansApi(
+        services.AddTransient<ICustodiansApi, CustodiansApi>(provider => new CustodiansApi(
                 provider
                     .GetRequiredService<IHttpClientFactory>()
-                    .CreateClient(nameof(StubCustodiansApi))
+                    .CreateClient(nameof(CustodiansApi))
             )
         );
         return services;
