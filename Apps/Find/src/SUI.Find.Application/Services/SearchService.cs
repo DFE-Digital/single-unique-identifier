@@ -151,6 +151,7 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
         catch (Exception ex)
         {
             logger.LogError(
+                ex,
                 "Error retrieving search results for JobId {JobId}. Error: {ErrorMessage}.",
                 jobId,
                 ex.Message
@@ -199,6 +200,7 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
         catch (Exception ex)
         {
             logger.LogError(
+                ex,
                 "Error retrieving search job status for JobId {JobId}. Error: {ErrorMessage}.",
                 jobId,
                 ex.Message
