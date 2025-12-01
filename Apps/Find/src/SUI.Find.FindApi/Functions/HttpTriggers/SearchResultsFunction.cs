@@ -108,7 +108,7 @@ public class SearchResultsFunction(
                 context.InvocationId,
                 cancellationToken
             ),
-            SearchResult.Failed => await HttpResponseUtility.InternalServerErrorResponse(
+            _ => await HttpResponseUtility.InternalServerErrorResponse(
                 req,
                 context.InvocationId,
                 cancellationToken
