@@ -6,6 +6,8 @@ using Microsoft.Extensions.Primitives;
 using NSubstitute;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Enums;
+using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Functions.HttpTriggers;
 using SUI.Find.FindApi.Models;
@@ -46,7 +48,18 @@ public class CancelSearchFunctionTests
         );
         _searchService
             .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
-            .Returns(new CancelSearchDto(CancelSearchResult.Canceled, string.Empty));
+            .Returns(
+                new SearchCancelResult.Success(
+                    new SearchJobDto
+                    {
+                        JobId = JobId,
+                        Suid = "test-suid",
+                        Status = SearchStatus.Cancelled,
+                        CreatedAt = DateTime.UtcNow,
+                        LastUpdatedAt = default,
+                    }
+                )
+            );
 
         // Act
         var result = await _sut.CancelSearch(
@@ -70,7 +83,7 @@ public class CancelSearchFunctionTests
         );
         _searchService
             .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
-            .Returns(new CancelSearchDto(CancelSearchResult.NotFound, string.Empty));
+            .Returns(new SearchCancelResult.NotFound());
 
         // Act
         var result = await _sut.CancelSearch(
@@ -89,7 +102,7 @@ public class CancelSearchFunctionTests
     }
 
     [Fact]
-    public async Task ShouldReturnCannotCancelResponse_WhenJobIsInNonCancellableState()
+    public async Task ShouldReturnSuccess_WhenJobIsInNonCancellableState()
     {
         // Arrange
         var httpRequestData = MockHttpRequestData.Create(
@@ -97,7 +110,18 @@ public class CancelSearchFunctionTests
         );
         _searchService
             .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
-            .Returns(new CancelSearchDto(CancelSearchResult.CannotCancel, string.Empty));
+            .Returns(
+                new SearchCancelResult.Success(
+                    new SearchJobDto
+                    {
+                        JobId = JobId,
+                        Suid = "test-suid",
+                        Status = SearchStatus.Cancelled,
+                        CreatedAt = DateTime.UtcNow,
+                        LastUpdatedAt = default,
+                    }
+                )
+            );
 
         // Act
         var result = await _sut.CancelSearch(
@@ -110,9 +134,10 @@ public class CancelSearchFunctionTests
 
         // Assert
         result.Body.Position = 0;
-        var problemResponse = await JsonSerializer.DeserializeAsync<Problem>(result.Body);
-        Assert.Equal((int)System.Net.HttpStatusCode.BadRequest, problemResponse!.Status);
-        Assert.Equal(System.Net.HttpStatusCode.BadRequest, result.StatusCode);
+        var response = await JsonSerializer.DeserializeAsync<SearchJob>(result.Body);
+        Assert.Equal(System.Net.HttpStatusCode.Accepted, result.StatusCode);
+        Assert.Equal(JobId, response!.JobId);
+        Assert.Equal("test-suid", response.Suid);
     }
 
     [Fact]
@@ -124,7 +149,7 @@ public class CancelSearchFunctionTests
         );
         _searchService
             .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
-            .Returns(new CancelSearchDto(CancelSearchResult.Failed, string.Empty));
+            .Returns(new SearchCancelResult.Error());
 
         // Act
         var result = await _sut.CancelSearch(

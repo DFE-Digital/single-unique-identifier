@@ -40,7 +40,7 @@ public class CancelSearchAsyncTests
             CancellationToken.None
         );
 
-        Assert.Equal(CancelSearchResult.NotFound, result.Result);
+        Assert.IsType<SearchCancelResult.NotFound>(result);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class CancelSearchAsyncTests
             CancellationToken.None
         );
 
-        Assert.Equal(CancelSearchResult.CannotCancel, result.Result);
+        Assert.IsType<SearchCancelResult.Success>(result);
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class CancelSearchAsyncTests
             CancellationToken.None
         );
 
-        Assert.Equal(CancelSearchResult.CannotCancel, result.Result);
+        Assert.IsType<SearchCancelResult.Success>(result);
     }
 
     [Fact]
@@ -97,7 +97,12 @@ public class CancelSearchAsyncTests
             CancellationToken.None
         );
 
-        Assert.Equal(CancelSearchResult.Canceled, result.Result);
+        Assert.IsType<SearchCancelResult.Success>(result);
+        // Assert body
+        var successResult = result as SearchCancelResult.Success;
+        var body = successResult?.Result;
+        Assert.NotNull(successResult);
+        Assert.Equal("test-suid", body?.Suid);
     }
 
     [Fact]
@@ -114,8 +119,7 @@ public class CancelSearchAsyncTests
             CancellationToken.None
         );
 
-        Assert.Equal(CancelSearchResult.Failed, result.Result);
-        Assert.NotNull(result.ErrorMessage);
+        Assert.IsType<SearchCancelResult.Error>(result);
     }
 
     [Fact]
@@ -141,7 +145,6 @@ public class CancelSearchAsyncTests
             CancellationToken.None
         );
 
-        Assert.Equal(CancelSearchResult.Unauthorized, result.Result);
-        Assert.Equal("Unauthorized", result.ErrorMessage);
+        Assert.IsType<SearchCancelResult.Unauthorized>(result);
     }
 }
