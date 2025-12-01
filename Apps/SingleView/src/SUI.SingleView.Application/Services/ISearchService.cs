@@ -4,9 +4,9 @@ namespace SUI.SingleView.Application.Services;
 
 public interface ISearchService
 {
-    List<SearchResult> Search(string nhsNumber);
+    Task<IList<SearchResult>> SearchAsync(string nhsNumber);
 
-    List<SearchResult> Search(
+    Task<IList<SearchResult>> SearchAsync(
         string? firstName,
         string? lastName,
         DateTime? dateOfBirth,
