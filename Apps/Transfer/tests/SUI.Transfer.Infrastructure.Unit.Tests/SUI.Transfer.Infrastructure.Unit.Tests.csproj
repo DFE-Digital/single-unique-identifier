@@ -11,7 +11,6 @@
     <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="NSubstitute" Version="5.3.0" />
-    <PackageReference Include="SUI.Custodians.API.Client" Version="1.0.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
