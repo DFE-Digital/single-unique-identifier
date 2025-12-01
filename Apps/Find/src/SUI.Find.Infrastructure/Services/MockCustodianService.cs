@@ -18,18 +18,19 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
 
     public async Task<IReadOnlyList<ProviderDefinition>> GetCustodiansAsync()
     {
+        const string fileName = "org-directory.json";
         var baseDir = AppContext.BaseDirectory;
-        var filePath = Path.Combine(baseDir, "Data", "org-directory.json");
+        var filePath = Path.Combine(baseDir, "Data", fileName);
 
         if (!File.Exists(filePath))
         {
-            throw new InvalidOperationException($"Auth store file not found at: {filePath}");
+            throw new InvalidOperationException($"File not found at: {filePath}");
         }
 
         var json = await fileSystem.File.ReadAllTextAsync(filePath);
         var doc =
             JsonSerializer.Deserialize<MockOrgDirectory>(json, _jsonSerializerOptions)
-            ?? throw new InvalidOperationException("Failed to deserialize org-directory.json");
+            ?? throw new InvalidOperationException($"Failed to deserialize {fileName}");
 
         var providers = new List<ProviderDefinition>();
 
@@ -79,6 +80,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         return providers;
     }
 
+    // Only used for deserializing the mock org-directory.json, so it can exist locally
     private class MockOrgDirectory
     {
         public List<MockOrganisation> Organisations { get; set; } = null!;
