@@ -110,7 +110,7 @@ public class SearchResultsFunction(
                 req,
                 HttpStatusCode.Unauthorized,
                 "Unauthorized",
-                "You do not have permission to access this search job.",
+                "You do not have permission to access this search.",
                 context.InvocationId,
                 cancellationToken
             ),

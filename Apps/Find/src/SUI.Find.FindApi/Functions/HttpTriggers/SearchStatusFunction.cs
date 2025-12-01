@@ -6,7 +6,10 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Enums;
+using SUI.Find.Application.Models;
+using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
@@ -14,7 +17,10 @@ using SUI.Find.FindApi.Utility;
 namespace SUI.Find.FindApi.Functions.HttpTriggers;
 
 // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-public class SearchStatusFunction(ILogger<SearchStatusFunction> logger)
+public class SearchStatusFunction(
+    ILogger<SearchStatusFunction> logger,
+    ISearchService searchService
+)
 {
     #region OpenAPI
     [OpenApiOperation(
@@ -64,58 +70,62 @@ public class SearchStatusFunction(ILogger<SearchStatusFunction> logger)
         CancellationToken cancellationToken
     )
     {
+        using var logScope = logger.BeginScope(
+            new Dictionary<string, object> { ["CorrelationId"] = context.InvocationId }
+        );
+
         logger.LogInformation("Requesting Search Job Status for Id: {JobId}", jobId);
-        var jobStatus = await client.GetInstanceAsync(jobId, true, cancellationToken);
-        if (jobStatus is null)
+        if (
+            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
+            || authObj is not AuthContext authContext
+        )
         {
             return await HttpResponseUtility.ProblemResponse(
                 req,
-                HttpStatusCode.NotFound,
-                "Not Found",
-                $"No search job found with Id: {jobId}",
+                HttpStatusCode.Unauthorized,
+                "Unauthorized",
+                "",
                 context.InvocationId,
                 cancellationToken
             );
         }
+        var jobStatus = await searchService.GetSearchStatusAsync(
+            jobId,
+            authContext.ClientId,
+            client,
+            cancellationToken
+        );
 
-        var response = req.CreateResponse(HttpStatusCode.OK);
-
-        var searchJob = CreateSearchJobFromMetadata(jobStatus);
-
-        await response.WriteAsJsonAsync(searchJob, cancellationToken);
-        return response;
-    }
-
-    private SearchJob CreateSearchJobFromMetadata(OrchestrationMetadata jobStatus)
-    {
-        return new SearchJob
+        return jobStatus switch
         {
-            JobId = jobStatus.InstanceId,
-            Suid = GetSuidFromJobStatus(jobStatus),
-            Status = ConvertOrchestrationStatusToSearchStatus(jobStatus),
-            CreatedAt = jobStatus.CreatedAt,
-            LastUpdatedAt = jobStatus.LastUpdatedAt,
+            SearchJobResult.Success s => await CreateSuccessResponse(req, s.Job, cancellationToken),
+            SearchJobResult.NotFound => await HttpResponseUtility.NotFoundResponse(
+                req,
+                context.InvocationId,
+                cancellationToken
+            ),
+            SearchJobResult.Unauthorized => await HttpResponseUtility.UnauthorizedResponse(
+                req,
+                context.InvocationId,
+                cancellationToken
+            ),
+            _ => await HttpResponseUtility.InternalServerErrorResponse(
+                req,
+                context.InvocationId,
+                cancellationToken
+            ),
         };
     }
 
-    [ExcludeFromCodeCoverage(Justification = "Sealed method that is hard to mock in unit tests")]
-    // Made virtual to allow mocking in unit tests
-    public virtual string GetSuidFromJobStatus(OrchestrationMetadata jobStatus)
-    {
-        return jobStatus.ReadInputAs<string>() ?? string.Empty;
-    }
-
-    private static SearchStatus ConvertOrchestrationStatusToSearchStatus(
-        OrchestrationMetadata status
+    private static async Task<HttpResponseData> CreateSuccessResponse(
+        HttpRequestData req,
+        SearchJobDto result,
+        CancellationToken cancellationToken
     )
     {
-        return status.RuntimeStatus switch
-        {
-            OrchestrationRuntimeStatus.Pending => SearchStatus.Queued,
-            OrchestrationRuntimeStatus.Running => SearchStatus.Running,
-            OrchestrationRuntimeStatus.Completed => SearchStatus.Completed,
-            OrchestrationRuntimeStatus.Terminated => SearchStatus.Cancelled,
-            _ => SearchStatus.Failed,
-        };
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        var searchResults = SearchJob.FromDto(result);
+        await response.WriteAsJsonAsync(searchResults, cancellationToken);
+        return response;
     }
 }
