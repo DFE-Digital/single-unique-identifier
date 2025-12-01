@@ -54,9 +54,9 @@ public class Search(
         }
 
         if (!string.IsNullOrEmpty(NhsNumber))
-            Results = searchService.Search(NhsNumber);
+            Results = await searchService.SearchAsync(NhsNumber);
         else
-            Results = searchService.Search(
+            Results = await searchService.SearchAsync(
                 FirstName,
                 LastName,
                 DateOfBirth,

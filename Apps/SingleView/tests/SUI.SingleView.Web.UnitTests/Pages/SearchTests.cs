@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using NSubstitute;
 using Shouldly;
 using SUI.SingleView.Application.Services;
+using SUI.SingleView.Domain.Models;
 using SUI.SingleView.Domain.UnitTests.Extensions;
 using SUI.SingleView.Domain.UnitTests.Fakers;
 using SUI.SingleView.Web.Pages;
@@ -37,8 +38,12 @@ public class SearchTests : PageModelTestBase<Search>
     {
         var nhsNumber = _faker.GenerateNhsNumber();
         _mockSearchService
-            .Search(nhsNumber.Value)
-            .Returns(new SearchResultFaker().WithNhsNumber(nhsNumber).Generate(1));
+            .SearchAsync(nhsNumber.Value)
+            .Returns(
+                Task.FromResult<IList<SearchResult>>(
+                    new SearchResultFaker().WithNhsNumber(nhsNumber).Generate(1)
+                )
+            );
         var sut = new Search(MockLogger, _validator, _mockSearchService) { NhsNumber = nhsNumber };
 
         // Act
@@ -58,8 +63,12 @@ public class SearchTests : PageModelTestBase<Search>
         var lastName = _faker.Name.LastName();
         var expectedName = $"{firstName} {lastName}";
         _mockSearchService
-            .Search(firstName, lastName, null, null, null)
-            .Returns(new SearchResultFaker().WithName(expectedName).Generate(1));
+            .SearchAsync(firstName, lastName, null, null, null)
+            .Returns(
+                Task.FromResult<IList<SearchResult>>(
+                    new SearchResultFaker().WithName(expectedName).Generate(1)
+                )
+            );
         var sut = new Search(MockLogger, _validator, _mockSearchService)
         {
             FirstName = firstName,
@@ -82,8 +91,12 @@ public class SearchTests : PageModelTestBase<Search>
     {
         var dateOfBirth = _faker.Date.Past(18);
         _mockSearchService
-            .Search(null, null, dateOfBirth, null, null)
-            .Returns(new SearchResultFaker().WithDateOfBirth(dateOfBirth).Generate(1));
+            .SearchAsync(null, null, dateOfBirth, null, null)
+            .Returns(
+                Task.FromResult<IList<SearchResult>>(
+                    new SearchResultFaker().WithDateOfBirth(dateOfBirth).Generate(1)
+                )
+            );
         var sut = new Search(MockLogger, _validator, _mockSearchService)
         {
             DateOfBirth = dateOfBirth,
@@ -105,8 +118,12 @@ public class SearchTests : PageModelTestBase<Search>
     {
         var address = new AddressFaker().Generate();
         _mockSearchService
-            .Search(null, null, null, address.AddressLine1, address.Postcode)
-            .Returns(new SearchResultFaker().WithAddress(address).Generate(1));
+            .SearchAsync(null, null, null, address.AddressLine1, address.Postcode)
+            .Returns(
+                Task.FromResult<IList<SearchResult>>(
+                    new SearchResultFaker().WithAddress(address).Generate(1)
+                )
+            );
         var sut = new Search(MockLogger, _validator, _mockSearchService)
         {
             HouseNumberOrName = address.AddressLine1,
