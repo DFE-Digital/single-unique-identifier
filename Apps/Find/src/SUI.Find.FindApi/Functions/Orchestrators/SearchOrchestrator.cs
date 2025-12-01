@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Models;
 
 namespace SUI.Find.FindApi.Functions.Orchestrators;
 
@@ -11,12 +12,12 @@ namespace SUI.Find.FindApi.Functions.Orchestrators;
 public class SearchOrchestrator
 {
     [Function("SearchOrchestrator")]
-    public static async Task<string> RunOrchestrator(
+    public static async Task<SearchResultItem[]> RunOrchestrator(
         [OrchestrationTrigger] TaskOrchestrationContext context
     )
     {
-        var suid = context.GetInput<SearchOrchestratorInput>();
+        var data = context.GetInput<SearchOrchestratorInput>();
         // TODO: Activities
-        return $"Search completed for SUID: {suid}";
+        return [];
     }
 }

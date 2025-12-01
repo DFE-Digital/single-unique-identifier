@@ -1,22 +1,26 @@
 using Microsoft.DurableTask.Client;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 
-namespace SUI.Find.ApplicationTests.Services.SearchCancelTests;
+namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
 public class CancelSearchAsyncTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
-    private readonly SearchService _searchService = Substitute.ForPartsOf<SearchService>(null);
+    private readonly SearchService _searchService;
     private const string ClientId = "test-client-id";
 
     public CancelSearchAsyncTests()
     {
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
         var policyData = new PolicyContext(ClientId, []);
+        _searchService = Substitute.ForPartsOf<SearchService>(
+            Substitute.For<ILogger<SearchService>>()
+        );
         _searchService
             .ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));

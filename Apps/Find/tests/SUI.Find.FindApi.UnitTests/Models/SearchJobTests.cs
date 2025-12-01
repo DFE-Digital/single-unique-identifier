@@ -1,3 +1,4 @@
+using SUI.Find.Application.Enums;
 using SUI.Find.FindApi.Models;
 
 namespace SUI.Find.FindApi.UnitTests.Models;
