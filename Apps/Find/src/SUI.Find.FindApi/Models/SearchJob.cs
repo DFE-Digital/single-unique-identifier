@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using SUI.Find.Application.Enums;
+using SUI.Find.Application.Models;
 
 namespace SUI.Find.FindApi.Models;
 
@@ -32,5 +33,17 @@ public record SearchJob
 
             return links;
         }
+    }
+
+    public static SearchJob FromDto(SearchJobDto dto)
+    {
+        return new SearchJob
+        {
+            JobId = dto.JobId,
+            Suid = dto.Suid,
+            Status = dto.Status,
+            CreatedAt = dto.CreatedAt,
+            LastUpdatedAt = dto.LastUpdatedAt,
+        };
     }
 }

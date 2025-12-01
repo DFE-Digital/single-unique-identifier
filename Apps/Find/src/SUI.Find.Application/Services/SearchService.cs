@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Models;
+using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Services;
 
@@ -18,6 +19,13 @@ public interface ISearchService
     );
 
     Task<SearchResultsDto> GetSearchResultsAsync(
+        string jobId,
+        string clientId,
+        DurableTaskClient client,
+        CancellationToken cancellationToken
+    );
+
+    Task<SearchJobResult> GetSearchStatusAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -151,6 +159,51 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
                 jobId,
                 "An error occurred while retrieving search results."
             );
+        }
+    }
+
+    public async Task<SearchJobResult> GetSearchStatusAsync(
+        string jobId,
+        string clientId,
+        DurableTaskClient client,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            var jobStatus = await client.GetInstanceAsync(jobId, true, cancellationToken);
+            if (jobStatus is null)
+            {
+                return new SearchJobResult.NotFound();
+            }
+
+            var input = ReadOrchestratorInput<SearchOrchestratorInput>(jobStatus);
+            if (input is null || input.PolicyContext.ClientId != clientId)
+            {
+                return new SearchJobResult.Unauthorized();
+            }
+
+            var dto = new SearchJobDto
+            {
+                JobId = jobId,
+                Suid = input.Suid,
+                Status = jobStatus.RuntimeStatus.ToSuiSearchStatus(),
+                CreatedAt = jobStatus.CreatedAt,
+                LastUpdatedAt = jobStatus.LastUpdatedAt,
+            };
+
+            var searchJob = new SearchJobResult.Success(dto);
+
+            return searchJob;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                "Error retrieving search job status for JobId {JobId}. Error: {ErrorMessage}.",
+                jobId,
+                ex.Message
+            );
+            return new SearchJobResult.Failed();
         }
     }
 
