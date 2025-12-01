@@ -59,7 +59,7 @@
         "exceptions": []
       },
       "encryption": {
-        "algorithm": "AES-256-ECB",
+        "algorithm": "AES-256-CBC",
         "keyId": "LOCAL-AUTHORITY-01-KEY-1",
         "key": "Kz4KY01cCpp1rvQ4Lj540n8Pp4EHBZ0HbNm6KvuzUaw="
       }
@@ -153,7 +153,7 @@
         ]
       },
       "encryption": {
-        "algorithm": "AES-256-ECB",
+        "algorithm": "AES-256-CBC",
         "keyId": "EDUCATION-01-KEY-1",
         "key": "1hF0NhwSCLGSVD3Bzmy4ob/mHEai2DZFQsgK+f4TpXQ="
       }
@@ -218,7 +218,7 @@
         "exceptions": []
       },
       "encryption": {
-        "algorithm": "AES-256-ECB",
+        "algorithm": "AES-256-CBC",
         "keyId": "HEALTH-01-KEY-1",
         "key": "LVth7FDlT7WJtSfnYH0fUbQlgN5IL45NHPxe2q/0cno="
       }
@@ -279,7 +279,7 @@
         ]
       },
       "encryption": {
-        "algorithm": "AES-256-ECB",
+        "algorithm": "AES-256-CBC",
         "keyId": "POLICE-01-KEY-1",
         "key": "hVVOB+IwSa3VXQs9AD90XM6j4Q2wk1HJ5FdV5nbedlI="
       }
@@ -344,7 +344,7 @@
         "exceptions": []
       },
       "encryption": {
-        "algorithm": "AES-256-ECB",
+        "algorithm": "AES-256-CBC",
         "keyId": "HOUSING-01-KEY-1",
         "key": "MNDT3oAYRDadaPNO8hyntQLSagFQ9mpLVeD4Eq8JV4U="
       }
