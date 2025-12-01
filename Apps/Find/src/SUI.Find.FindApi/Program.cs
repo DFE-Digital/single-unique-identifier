@@ -34,7 +34,7 @@ builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
 builder.Services.AddSingleton<ISearchService, SearchService>();
 
 // Use mock services for all environments for now while in prototype
-builder.Services.AddSingleton<IAuthStoreService, FileAuthStoreService>();
+builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<ICustodianService, MockCustodianService>();
 
 // Add this after other service registrations

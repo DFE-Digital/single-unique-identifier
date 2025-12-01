@@ -4,6 +4,9 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
 
+// ReSharper disable ClassNeverInstantiated.Local
+// ReSharper disable UnusedMember.Local
+
 namespace SUI.Find.Infrastructure.Services;
 
 public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
@@ -25,7 +28,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
 
         var json = await fileSystem.File.ReadAllTextAsync(filePath);
         var doc =
-            JsonSerializer.Deserialize<OrgDirectory>(json, _jsonSerializerOptions)
+            JsonSerializer.Deserialize<MockOrgDirectory>(json, _jsonSerializerOptions)
             ?? throw new InvalidOperationException("Failed to deserialize org-directory.json");
 
         var providers = new List<ProviderDefinition>();
@@ -53,11 +56,11 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
                             {
                                 Type = conn.Auth.Type,
                                 TokenUrl = conn.Auth.TokenUrl,
-                                Scopes = conn.Auth.Scopes?.ToArray() ?? [],
-                                ClientId = conn.Auth.ClientId ?? string.Empty,
+                                Scopes = conn.Auth.Scopes.ToArray() ?? [],
+                                ClientId = conn.Auth.ClientId,
                                 ClientSecret = conn.Auth.ClientSecret,
                             },
-                            BodyTemplateJson = conn.BodyTemplate.ToString(),
+                            BodyTemplateJson = conn.BodyTemplate?.ToString(),
                         },
                         Encryption =
                             org.Encryption == null
@@ -75,80 +78,80 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
 
         return providers;
     }
-}
 
-public class OrgDirectory
-{
-    public List<Organisation> Organisations { get; set; }
-}
+    private class MockOrgDirectory
+    {
+        public List<MockOrganisation> Organisations { get; set; } = null!;
+    }
 
-public class Organisation
-{
-    public string OrgId { get; set; }
-    public string OrgName { get; set; }
-    public string OrgType { get; set; }
-    public List<Record> Records { get; set; }
-    public DsaPolicy DsaPolicy { get; set; }
-    public Encryption Encryption { get; set; }
-}
+    private class MockOrganisation
+    {
+        public string OrgId { get; set; } = null!;
+        public string OrgName { get; set; } = null!;
+        public string OrgType { get; set; } = null!;
+        public List<MockRecord> Records { get; set; } = null!;
+        public MockDsaPolicy DsaPolicy { get; set; } = null!;
+        public MockEncryption Encryption { get; set; } = null!;
+    }
 
-public class Record
-{
-    public string RecordType { get; set; }
-    public Connection Connection { get; set; }
-}
+    private class MockRecord
+    {
+        public string RecordType { get; set; } = null!;
+        public MockConnection Connection { get; set; } = null!;
+    }
 
-public class Connection
-{
-    public string Method { get; set; }
-    public string Url { get; set; }
-    public string PersonIdPosition { get; set; }
-    public Dictionary<string, object> BodyTemplate { get; set; } = [];
-    public Auth Auth { get; set; }
-}
+    private class MockConnection
+    {
+        public string Method { get; set; } = null!;
+        public string Url { get; set; } = null!;
+        public string PersonIdPosition { get; set; } = null!;
+        public Dictionary<string, object>? BodyTemplate { get; set; } = null;
+        public MockAuth Auth { get; set; } = null!;
+    }
 
-public class Auth
-{
-    public string Type { get; set; }
-    public string TokenUrl { get; set; }
-    public List<string> Scopes { get; set; }
-    public string ClientId { get; set; }
-    public string ClientSecret { get; set; }
-}
+    private class MockAuth
+    {
+        public string Type { get; set; } = null!;
+        public string TokenUrl { get; set; } = null!;
+        public List<string> Scopes { get; set; } = null!;
+        public string ClientId { get; set; } = null!;
+        public string ClientSecret { get; set; } = null!;
+    }
 
-public class DsaPolicy
-{
-    public string Version { get; set; }
-    public List<DsaRule> Defaults { get; set; }
-    public List<DsaException> Exceptions { get; set; }
-}
+    private class MockDsaPolicy
+    {
+        public string Version { get; set; } = null!;
+        public List<MockDsaRule> Defaults { get; set; } = null!;
+        public List<MockDsaException> Exceptions { get; set; } = null!;
+    }
 
-public class DsaRule
-{
-    public string Effect { get; set; }
-    public List<string> Modes { get; set; }
-    public List<string> DataTypes { get; set; }
-    public List<string> DestOrgTypes { get; set; }
-    public List<string> Purposes { get; set; }
-    public string ValidFrom { get; set; }
-}
+    private class MockDsaRule
+    {
+        public string Effect { get; set; } = null!;
+        public List<string> Modes { get; set; } = null!;
+        public List<string> DataTypes { get; set; } = null!;
+        public List<string> DestOrgTypes { get; set; } = null!;
+        public List<string> Purposes { get; set; } = null!;
+        public string ValidFrom { get; set; } = null!;
+    }
 
-public class DsaException
-{
-    public string Effect { get; set; }
-    public List<string> Modes { get; set; }
-    public List<string> DataTypes { get; set; }
-    public List<string> DestOrgTypes { get; set; }
-    public List<string> DestOrgIds { get; set; }
-    public List<string> Purposes { get; set; }
-    public string ValidFrom { get; set; }
-    public string ValidUntil { get; set; }
-    public string Reason { get; set; }
-}
+    private class MockDsaException
+    {
+        public string Effect { get; set; } = null!;
+        public List<string> Modes { get; set; } = null!;
+        public List<string> DataTypes { get; set; } = null!;
+        public List<string> DestOrgTypes { get; set; } = null!;
+        public List<string> DestOrgIds { get; set; } = null!;
+        public List<string> Purposes { get; set; } = null!;
+        public string ValidFrom { get; set; } = null!;
+        public string ValidUntil { get; set; } = null!;
+        public string Reason { get; set; } = null!;
+    }
 
-public class Encryption
-{
-    public string Algorithm { get; set; }
-    public string KeyId { get; set; }
-    public string Key { get; set; }
+    private class MockEncryption
+    {
+        public string Algorithm { get; set; } = null!;
+        public string KeyId { get; set; } = null!;
+        public string Key { get; set; } = null!;
+    }
 }
