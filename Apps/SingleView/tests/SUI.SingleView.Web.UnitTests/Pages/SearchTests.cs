@@ -1,12 +1,16 @@
+using System;
 using Bogus;
 using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Shouldly;
 using SUI.SingleView.Application.Services;
 using SUI.SingleView.Domain.Models;
 using SUI.SingleView.Domain.UnitTests.Extensions;
 using SUI.SingleView.Domain.UnitTests.Fakers;
+using SUI.SingleView.Web.Models;
 using SUI.SingleView.Web.Pages;
 using SUI.SingleView.Web.Validators;
 
@@ -175,5 +179,70 @@ public class SearchTests : PageModelTestBase<Search>
         sut.ModelState[nameof(sut.NhsNumber)]!
             .Errors[0]
             .ErrorMessage.ShouldBe("Enter a valid 10-digit NHS number");
+    }
+
+    [Fact]
+    public async Task OnPostAsync_WhenSearchThrows_PropagatesException()
+    {
+        var nhsNumber = _faker.GenerateNhsNumber();
+        _mockSearchService.SearchAsync(nhsNumber.Value).Throws(new InvalidOperationException());
+        var sut = new Search(MockLogger, _validator, _mockSearchService) { NhsNumber = nhsNumber };
+
+        // Act / Assert
+        await Should.ThrowAsync<InvalidOperationException>(() => sut.OnPostAsync());
+    }
+
+    [Fact]
+    public async Task OnPostSearchAsync_WithValidNhsNumber_ReturnsJsonSuccess()
+    {
+        var nhsNumber = _faker.GenerateNhsNumber();
+        var expected = new SearchResultFaker().WithNhsNumber(nhsNumber).Generate(1);
+        _mockSearchService
+            .SearchAsync(nhsNumber.Value)
+            .Returns(Task.FromResult<IList<SearchResult>>(expected));
+        var sut = new Search(MockLogger, _validator, _mockSearchService) { NhsNumber = nhsNumber };
+
+        // Act
+        var result = await sut.OnPostSearchAsync();
+
+        // Assert
+        var jsonResult = result.ShouldBeOfType<JsonResult>();
+        var response = jsonResult.Value.ShouldBeOfType<SearchApiResponse>();
+        response.Success.ShouldBeTrue();
+        response.Results.ShouldNotBeNull();
+        response.Results.ShouldBe(expected);
+    }
+
+    [Fact]
+    public async Task OnPostSearchAsync_WithInvalidNhsNumber_ReturnsJsonError()
+    {
+        var sut = new Search(MockLogger, _validator, _mockSearchService) { NhsNumber = "foo" };
+
+        // Act
+        var result = await sut.OnPostSearchAsync();
+
+        // Assert
+        var jsonResult = result.ShouldBeOfType<JsonResult>();
+        var response = jsonResult.Value.ShouldBeOfType<SearchApiResponse>();
+        response.Success.ShouldBeFalse();
+        response.ErrorMessage.ShouldNotBeNull();
+        response.ErrorMessage.ShouldContain("Enter a valid 10-digit NHS number");
+    }
+
+    [Fact]
+    public async Task OnPostSearchAsync_WithException_ReturnsGenericErrorMessage()
+    {
+        var nhsNumber = _faker.GenerateNhsNumber();
+        _mockSearchService.SearchAsync(nhsNumber.Value).Throws(new InvalidOperationException());
+        var sut = new Search(MockLogger, _validator, _mockSearchService) { NhsNumber = nhsNumber };
+
+        // Act
+        var result = await sut.OnPostSearchAsync();
+
+        // Assert
+        var jsonResult = result.ShouldBeOfType<JsonResult>();
+        var response = jsonResult.Value.ShouldBeOfType<SearchApiResponse>();
+        response.Success.ShouldBeFalse();
+        response.ErrorMessage.ShouldBe("An error occurred while searching. Please try again.");
     }
 }
