@@ -57,7 +57,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
                             {
                                 Type = conn.Auth.Type,
                                 TokenUrl = conn.Auth.TokenUrl,
-                                Scopes = conn.Auth.Scopes.ToArray() ?? [],
+                                Scopes = conn.Auth.Scopes.ToArray(),
                                 ClientId = conn.Auth.ClientId,
                                 ClientSecret = conn.Auth.ClientSecret,
                             },
