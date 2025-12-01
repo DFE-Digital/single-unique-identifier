@@ -20,12 +20,12 @@
 #pragma warning disable 8625 // Disable "CS8625 Cannot convert null literal to non-nullable reference type"
 #pragma warning disable 8765 // Disable "CS8765 Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes)."
 
-namespace SUI.StubCustodians.API.Client
+namespace SUI.Custodians.API.Client
 {
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial interface IStubCustodiansApi
+    public partial interface ICustodiansApi
     {
         /// <returns>Record found.</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
@@ -75,14 +75,14 @@ namespace SUI.StubCustodians.API.Client
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class StubCustodiansApi : IStubCustodiansApi
+    public partial class CustodiansApi : ICustodiansApi
     {
         private System.Net.Http.HttpClient _httpClient;
         private static System.Lazy<System.Text.Json.JsonSerializerOptions> _settings = new System.Lazy<System.Text.Json.JsonSerializerOptions>(CreateSerializerSettings, true);
         private System.Text.Json.JsonSerializerOptions _instanceSettings;
 
     #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public StubCustodiansApi(System.Net.Http.HttpClient httpClient)
+        public CustodiansApi(System.Net.Http.HttpClient httpClient)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             _httpClient = httpClient;
@@ -920,18 +920,33 @@ namespace SUI.StubCustodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("missingEpisodes")]
         public System.Collections.Generic.ICollection<CrimeMissingEpisodeV1> MissingEpisodes { get; set; }
 
+        /// <summary>
+        /// Risk of Sexual Exploitation (last 5 years)
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("riskSexualExploitation")]
         public bool? RiskSexualExploitation { get; set; }
 
+        /// <summary>
+        /// Risk of Criminal Exploitation (last 5 years)
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("riskCriminalExploitation")]
         public bool? RiskCriminalExploitation { get; set; }
 
+        /// <summary>
+        /// Risk of Radicalisation (last 5 years)
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("riskRadicalisation")]
         public bool? RiskRadicalisation { get; set; }
 
+        /// <summary>
+        /// Risk of Modern Slavery and Trafficking (last 5 years)
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("riskModernSlaveryAndTrafficking")]
         public bool? RiskModernSlaveryAndTrafficking { get; set; }
 
+        /// <summary>
+        /// Risk of Gangs and Youth Violence (last 5 years)
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("riskGangsAndYouthViolence")]
         public bool? RiskGangsAndYouthViolence { get; set; }
 

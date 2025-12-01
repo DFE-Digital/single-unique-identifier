@@ -1,6 +1,6 @@
 ﻿<Solution>
   <Folder Name="/src/">
-    <Project Path="src\SUI.StubCustodians.API.Client\SUI.StubCustodians.API.Client.csproj" />
+    <Project Path="src\SUI.Custodians.API.Client\SUI.Custodians.API.Client.csproj" />
     <Project Path="src\SUI.StubCustodians.API\SUI.StubCustodians.API.csproj" />
     <Project Path="src\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />
     <Project Path="src\SUI.StubCustodians.Domain\SUI.StubCustodians.Domain.csproj" />

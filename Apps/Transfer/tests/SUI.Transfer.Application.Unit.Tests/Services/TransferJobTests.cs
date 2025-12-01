@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using SUI.StubCustodians.API.Client;
+using SUI.Custodians.API.Client;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
 

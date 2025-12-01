@@ -1,4 +1,4 @@
-﻿using SUI.StubCustodians.API.Client;
+﻿using SUI.Custodians.API.Client;
 
 namespace SUI.Transfer.Domain.Unit.Tests;
 
