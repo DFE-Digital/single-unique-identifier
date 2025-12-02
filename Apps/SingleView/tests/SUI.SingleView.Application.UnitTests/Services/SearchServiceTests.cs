@@ -1,4 +1,3 @@
-using System.Threading;
 using Bogus;
 using Shouldly;
 using SUI.SingleView.Application.Services;
