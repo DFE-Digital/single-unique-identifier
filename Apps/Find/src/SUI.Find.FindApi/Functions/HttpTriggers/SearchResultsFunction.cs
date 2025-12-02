@@ -91,34 +91,25 @@ public class SearchResultsFunction(
             cancellationToken
         );
 
-        return result.ResultsStatus switch
+        return result switch
         {
-            SearchResultsStatus.Success => await CreateSuccessResponse(
+            SearchResult.Success searchResult => await CreateSuccessResponse(
                 req,
-                result,
+                searchResult.Result,
                 cancellationToken
             ),
-            SearchResultsStatus.NotFound => await HttpResponseUtility.ProblemResponse(
+            SearchResult.NotFound => await HttpResponseUtility.NotFoundResponse(
                 req,
-                HttpStatusCode.NotFound,
-                "Not Found",
-                $"Search job with ID {jobId} not found.",
                 context.InvocationId,
                 cancellationToken
             ),
-            SearchResultsStatus.Unauthorized => await HttpResponseUtility.ProblemResponse(
+            SearchResult.Unauthorized => await HttpResponseUtility.UnauthorizedResponse(
                 req,
-                HttpStatusCode.Unauthorized,
-                "Unauthorized",
-                "You do not have permission to access this search.",
                 context.InvocationId,
                 cancellationToken
             ),
-            _ => await HttpResponseUtility.ProblemResponse(
+            _ => await HttpResponseUtility.InternalServerErrorResponse(
                 req,
-                HttpStatusCode.InternalServerError,
-                "Internal Server Error",
-                result.ErrorMessage ?? "An error occurred while retrieving search results.",
                 context.InvocationId,
                 cancellationToken
             ),

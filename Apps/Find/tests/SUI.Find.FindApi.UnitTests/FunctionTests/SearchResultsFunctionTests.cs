@@ -19,6 +19,7 @@ public class SearchResultsFunctionTests
     private readonly ILogger<SearchResultsFunction> _logger = Substitute.For<
         ILogger<SearchResultsFunction>
     >();
+
     private readonly ISearchService _searchService = Substitute.For<ISearchService>();
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
     private readonly SearchResultsFunction _sut;
@@ -64,15 +65,16 @@ public class SearchResultsFunctionTests
     [Fact]
     public async Task ReturnsSuccess_WhenResultsFound()
     {
-        var dto = SearchResultsDto.Success(
-            "job-1",
-            "suid",
-            SearchStatus.Completed,
-            [CreateSearchResultItem()]
-        );
+        var dto = new SearchResultsDto()
+        {
+            JobId = "job-1",
+            Suid = "suid",
+            Status = SearchStatus.Completed,
+            Items = [CreateSearchResultItem()],
+        };
         _searchService
             .GetSearchResultsAsync("job-1", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(dto);
+            .Returns(new SearchResult.Success(dto));
 
         var response = await _sut.SearchResultsTrigger(
             _httpRequestData,
@@ -88,10 +90,9 @@ public class SearchResultsFunctionTests
     [Fact]
     public async Task ReturnsNotFound_WhenJobNotFound()
     {
-        var dto = SearchResultsDto.NotFound(JobId);
         _searchService
             .GetSearchResultsAsync("job-2", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(dto);
+            .Returns(new SearchResult.NotFound());
 
         var response = await _sut.SearchResultsTrigger(
             _httpRequestData,
@@ -107,10 +108,9 @@ public class SearchResultsFunctionTests
     [Fact]
     public async Task ReturnsUnauthorized_WhenUnauthorized()
     {
-        var dto = SearchResultsDto.Unauthorized(JobId);
         _searchService
             .GetSearchResultsAsync("job-3", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(dto);
+            .Returns(new SearchResult.Unauthorized());
 
         var response = await _sut.SearchResultsTrigger(
             _httpRequestData,
@@ -126,10 +126,9 @@ public class SearchResultsFunctionTests
     [Fact]
     public async Task ReturnsInternalServerError_OnError()
     {
-        var dto = SearchResultsDto.Error(JobId);
         _searchService
             .GetSearchResultsAsync("job-4", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(dto);
+            .Returns(new SearchResult.Failed());
 
         var response = await _sut.SearchResultsTrigger(
             _httpRequestData,
