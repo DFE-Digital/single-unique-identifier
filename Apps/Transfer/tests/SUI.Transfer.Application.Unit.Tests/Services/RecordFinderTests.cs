@@ -38,27 +38,30 @@ public class RecordFinderTests
         result
             .Select(x => x.RecordUrl)
             .Should()
-            .BeEquivalentTo([
-                "https://localhost:7256/api/v1/records/MockSocialCareProvider/ChildPersonalDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockSocialCareProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockSocialCareProvider/EducationDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockSocialCareProvider/ChildHealthDataRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockSocialCareProvider/ChildLinkedCrimeDataRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockEducationProvider/ChildPersonalDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockEducationProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockEducationProvider/EducationDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockEducationProvider/ChildHealthDataRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockEducationProvider/ChildLinkedCrimeDataRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockHealthcareProvider/ChildPersonalDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockHealthcareProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockHealthcareProvider/EducationDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockHealthcareProvider/ChildHealthDataRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockHealthcareProvider/ChildLinkedCrimeDataRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/ChildPersonalDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/EducationDetailsRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/ChildHealthDataRecordV1/XXX0001234",
-                "https://localhost:7256/api/v1/records/MockCrimeDataProvider/ChildLinkedCrimeDataRecordV1/XXX0001234",
-            ]);
+            .BeEquivalentTo(
+                [
+                    "https://localhost:7256/api/v1/records/MockSocialCareProvider/PersonalDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockSocialCareProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockSocialCareProvider/EducationDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockSocialCareProvider/HealthDataRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockSocialCareProvider/CrimeDataRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockEducationProvider/PersonalDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockEducationProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockEducationProvider/EducationDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockEducationProvider/HealthDataRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockEducationProvider/CrimeDataRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockHealthcareProvider/PersonalDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockHealthcareProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockHealthcareProvider/EducationDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockHealthcareProvider/HealthDataRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockHealthcareProvider/CrimeDataRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockCrimeDataProvider/PersonalDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockCrimeDataProvider/ChildSocialCareDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockCrimeDataProvider/EducationDetailsRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockCrimeDataProvider/HealthDataRecordV1/XXX0001234",
+                    "https://localhost:7256/api/v1/records/MockCrimeDataProvider/CrimeDataRecordV1/XXX0001234",
+                ],
+                options => options.WithStrictOrdering()
+            );
     }
 }
