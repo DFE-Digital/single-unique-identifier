@@ -8,6 +8,6 @@
     <ProjectReference Include="..\SUI.Find.Domain\SUI.Find.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.DurableTask.Client" Version="1.17.1" />
+    <PackageReference Include="Microsoft.DurableTask.Client" />
   </ItemGroup>
 </Project>

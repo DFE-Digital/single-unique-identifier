@@ -6,6 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />
-    <ProjectReference Include="..\SUI.StubCustodians.Domain\SUI.StubCustodians.Domain.csproj" />
+    <ProjectReference Include="..\SUI.Custodians.Domain\SUI.Custodians.Domain.csproj" />
   </ItemGroup>
 </Project>

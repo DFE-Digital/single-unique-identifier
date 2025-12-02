@@ -11,7 +11,7 @@ public interface IAuthStoreService
     Task<Result<AuthClient>> GetClientByCredentials(string clientId, string clientSecret);
 }
 
-public class FileAuthStoreService(IFileSystem fileSystem) : IAuthStoreService
+public class MockAuthStoreService(IFileSystem fileSystem) : IAuthStoreService
 {
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {

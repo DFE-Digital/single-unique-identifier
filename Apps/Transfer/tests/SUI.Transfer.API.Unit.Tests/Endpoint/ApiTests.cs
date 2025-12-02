@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
-using SUI.Transfer.Application.Models;
 using SUI.Transfer.Application.Services;
+using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.API.Unit.Tests.Endpoint;
 
@@ -82,17 +82,13 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task GetTransfer_WhenFound_ReturnsOkResult()
+    public async Task GetTransfer_WithCorrectApiKey_ReturnsOkResult()
     {
         // Arrange
         var testId = "999-000-1234";
-        var mockResponse = new TransferResponse
-        {
-            Result = new TransferResult { Id = testId },
-            Success = true,
-        };
+        var mockResponse = new QueuedTransferJobState(Guid.NewGuid(), testId);
 
-        _mockTransferService.TransferAsync(Arg.Any<string>()).Returns(mockResponse);
+        _mockTransferService.BeginTransferJob(Arg.Any<string>()).Returns(mockResponse);
 
         _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
@@ -101,32 +97,16 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
-        var content = await httpResponse.Content.ReadFromJsonAsync<TransferResult>(
+        var content = await httpResponse.Content.ReadFromJsonAsync<QueuedTransferJobState>(
             _jsonSerializerOptions
         );
         Assert.NotNull(content);
-        Assert.Equal(testId, content.Id);
-    }
-
-    [Fact]
-    public async Task GetTransfer_WhenNotFound_ReturnsNotFoundResult()
-    {
-        // Arrange
-        var testId = "999-000-1234";
-        var mockResponse = new TransferResponse
-        {
-            Result = new TransferResult { Id = "000-000-0000" },
-            Success = false,
-        };
-
-        _mockTransferService.TransferAsync(Arg.Any<string>()).Returns(mockResponse);
-
-        _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
-
-        // Act
-        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        Assert.Equal(
+            new QueuedTransferJobState(mockResponse.JobId, testId)
+            {
+                Timestamp = content.Timestamp,
+            },
+            content
+        );
     }
 }

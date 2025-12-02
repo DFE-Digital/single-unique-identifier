@@ -382,18 +382,23 @@ components:
         riskSexualExploitation:
           type: boolean
           nullable: true
+          description: "Risk of Sexual Exploitation (last 5 years)"
         riskCriminalExploitation:
           type: boolean
           nullable: true
+          description: "Risk of Criminal Exploitation (last 5 years)"
         riskRadicalisation:
           type: boolean
           nullable: true
+          description: "Risk of Radicalisation (last 5 years)"
         riskModernSlaveryAndTrafficking:
           type: boolean
           nullable: true
+          description: "Risk of Modern Slavery and Trafficking (last 5 years)"
         riskGangsAndYouthViolence:
           type: boolean
           nullable: true
+          description: "Risk of Gangs and Youth Violence (last 5 years)"
         crimeActiveStatusesAndPlans:
           type: array
           items:

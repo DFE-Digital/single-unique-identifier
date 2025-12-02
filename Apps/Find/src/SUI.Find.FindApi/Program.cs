@@ -32,14 +32,10 @@ builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
 builder.Services.AddSingleton<ISearchService, SearchService>();
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddSingleton<IAuthStoreService, FileAuthStoreService>();
-}
-else
-{
-    builder.Services.AddSingleton<IAuthStoreService, SecureAuthStoreService>();
-}
+
+// Use mock services for all environments for now while in prototype
+builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
+builder.Services.AddSingleton<ICustodianService, MockCustodianService>();
 
 // Add this after other service registrations
 builder.Services.AddHostedService<AzureStorageTableStartup>();

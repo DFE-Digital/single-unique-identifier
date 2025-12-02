@@ -45,7 +45,7 @@
       "useRequestAndResponseSerializationSettings": false,
       "serializeTypeInformation": false,
       "queryNullValue": "",
-      "className": "StubCustodiansApi",
+      "className": "CustodiansApi",
       "operationGenerationMode": "MultipleClientsFromOperationId",
       "includedOperationIds": [],
       "excludedOperationIds": [],
@@ -62,7 +62,7 @@
       "wrapResponseMethods": [],
       "generateResponseClasses": true,
       "responseClass": "SwaggerResponse",
-      "namespace": "SUI.StubCustodians.API.Client",
+      "namespace": "SUI.Custodians.API.Client",
       "requiredPropertiesMustBeDefined": true,
       "dateType": "System.DateTimeOffset",
       "jsonConverters": null,
@@ -97,7 +97,7 @@
       "templateDirectory": null,
       "serviceHost": null,
       "serviceSchemes": null,
-      "output": "./src/SUI.StubCustodians.API.Client/StubCustodiansApi.cs",
+      "output": "./src/SUI.Custodians.API.Client/CustodiansApi.cs",
       "newLineBehavior": "Auto"
     }
   }

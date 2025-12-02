@@ -1,8 +1,11 @@
 using SUI.Transfer.Application.Models;
+using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Services;
 
 public interface ITransferService
 {
-    Task<TransferResponse> TransferAsync(string id);
+    QueuedTransferJobState BeginTransferJob(string sui);
+
+    Task<TransferJobState?> GetTransferJobStateAsync(Guid jobId);
 }

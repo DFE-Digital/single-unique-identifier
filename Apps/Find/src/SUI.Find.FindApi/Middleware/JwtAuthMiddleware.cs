@@ -4,7 +4,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.IdentityModel.Tokens;
 using SUI.Find.Application.Constants;
