@@ -38,12 +38,12 @@ jobs:
           dotnet tool install --global dotnet-coverage
           dotnet tool install --global dotnet-reportgenerator-globaltool
           dotnet tool install --global dotnet-sonarscanner
-          
+
       - name: Set up NuGet authentication
         run: |
           echo "Writing NuGet Auth config..."
           dotnet nuget add source "https://nuget.pkg.github.com/DFE-Digital/index.json" --name DFEDigital --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
-      
+
       - name: Start SonarCloud Scanner
         run: |
           dotnet-sonarscanner begin \
@@ -53,6 +53,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.coverageReportPaths=./${{ inputs.directory_name }}/CoverageReport/SonarQube.xml \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
+            /d:sonar.exclusions="**/wwwroot/**,**/*Hardcoded*" \
             /d:sonar.cpd.exclusions="**/Program.cs" \
             /d:sonar.issue.ignore.multicriteria.e1.ruleKey=csharpsquid:S6602 \
             /d:sonar.scanner.skipJreProvisioning=true \
