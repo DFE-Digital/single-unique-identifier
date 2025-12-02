@@ -16,17 +16,24 @@ public class RecordService : IRecordService
         _logger = logger;
     }
 
-    public async Task<PersonModel> GetRecordAsync(string nhsNumber)
+    public async Task<PersonModel> GetRecordAsync(
+        string nhsNumber,
+        CancellationToken cancellationToken = default
+    )
     {
         var id = string.Empty;
         try
         {
-            var result = await _transferApi.TransferAsync(nhsNumber);
+            var result = await _transferApi.TransferAsync(nhsNumber, cancellationToken);
             id = result.Id;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred when trying to get the record for {Id}", nhsNumber);
+            _logger.LogError(
+                ex,
+                "An error occurred when trying to get the record for {Id}",
+                nhsNumber
+            );
         }
 
         return new PersonModel
