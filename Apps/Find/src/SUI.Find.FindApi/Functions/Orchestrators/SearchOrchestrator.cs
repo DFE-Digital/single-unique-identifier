@@ -63,6 +63,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         }
         catch (TaskFailedException ec)
         {
+            // TODO : Implement proper DLQ handling and logging
             logger.LogError(ec, "Search Orchestrator failed after all retry attempts for InstanceId: {InstanceId}", context.InstanceId);
             throw;
         }
