@@ -1,9 +1,9 @@
 ﻿<Solution>
   <Folder Name="/src/">
     <Project Path="src\SUI.Custodians.API.Client\SUI.Custodians.API.Client.csproj" />
+    <Project Path="src\SUI.Custodians.Domain\SUI.Custodians.Domain.csproj" />
     <Project Path="src\SUI.StubCustodians.API\SUI.StubCustodians.API.csproj" />
     <Project Path="src\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />
-    <Project Path="src\SUI.StubCustodians.Domain\SUI.StubCustodians.Domain.csproj" />
     <Project Path="src\SUI.StubCustodians.Infrastructure\SUI.StubCustodians.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
