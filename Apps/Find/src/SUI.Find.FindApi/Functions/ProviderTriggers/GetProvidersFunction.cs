@@ -1,14 +1,15 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 
 namespace SUI.Find.FindApi.Functions.ProviderTriggers;
 
-public class GetProvidersFunction(ILogger<GetProvidersFunction> logger)
+public class GetProvidersFunction(ILogger<GetProvidersFunction> logger, ICustodianService custodianService)
 {
     [Function(nameof(GetProvidersFunction))]
 
-    public async Task<List<ProviderDefinition>> GetProviders([ActivityTrigger] string invocationId, string suid, FunctionContext context)
+    public async Task<IReadOnlyList<ProviderDefinition>> GetProviders([ActivityTrigger] string invocationId, string suid)
     {
         using var logScope = logger.BeginScope(
             "CorrelationId: {CorrelationId}", invocationId
@@ -16,36 +17,11 @@ public class GetProvidersFunction(ILogger<GetProvidersFunction> logger)
 
         logger.LogInformation("Get Providers triggered");
 
-        var result = new List<ProviderDefinition>
-        {
-            new ProviderDefinition{
-                OrgId = "12345",
-                OrgName = "Test Provider 1",
-                OrgType = "Local Authority 1",
-                ProviderSystem = "Test System 1",
-                ProviderName = "Test Provider Name 1"
-            },
-            new ProviderDefinition
-            {
-                OrgId = "678910",
-                OrgName = "Test Provider 2",
-                OrgType = "School" ,
-                ProviderSystem = "Test System 2",
-                ProviderName = "Test Provider Name 2"
-            },
-            new ProviderDefinition
-            {
-                OrgId = "111213",
-                OrgName = "Test Provider 3",
-                OrgType = "Police Force",
-                ProviderSystem = "Test System",
-                ProviderName = "Test Provider Name 3"
-            }
-
-        };
+        var results = await custodianService.GetCustodiansAsync();
 
         logger.LogInformation("Get Providers request completed");
 
-        return result;
+        return results;
+
     }
 }
