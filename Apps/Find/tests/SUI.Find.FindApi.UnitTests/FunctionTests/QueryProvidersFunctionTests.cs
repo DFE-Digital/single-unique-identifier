@@ -23,7 +23,16 @@ public class QueryProvidersFunctionTests
     public async Task QueryProvider_ReturnsMappedSearchResult()
     {
         // Arrange
-        var providerDef = new ProviderDefinition("org1", "Provider 1", "Type A", "System A", "Provider Name 1");
+        var providerDef = new ProviderDefinition
+        {
+            OrgId = "org1",
+            OrgName = "Provider 1",
+            OrgType = "Type A",
+            ProviderSystem = "System A",
+            ProviderName = "Provider Name 1",
+            RecordType = "Test Record Type"
+
+        };
         var input = new QueryProviderInput("test-client-1", "instance-123", "1234567890123456", providerDef);
 
         // Act
@@ -31,11 +40,11 @@ public class QueryProvidersFunctionTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("System A", result.ProviderSystem);
-        Assert.Equal("Provider Name 1", result.ProviderName);
-        Assert.Equal("Test Record Type", result.RecordType);
-        Assert.Equal($"https://example.com/record/{providerDef.OrgId}/{input.InstanceId}", result.RecordUrl);
-        
-        
+        Assert.Equal("System A", result[0].ProviderSystem);
+        Assert.Equal("Provider Name 1", result[0].ProviderName);
+        Assert.Equal("Test Record Type", result[0].RecordType);
+        Assert.Equal($"https://example.com/record/{providerDef.OrgId}/{input.InstanceId}", result[0].RecordUrl);
+
+
     }
 }

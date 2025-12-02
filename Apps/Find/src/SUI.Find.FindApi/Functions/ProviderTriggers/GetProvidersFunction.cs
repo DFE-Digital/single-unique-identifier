@@ -14,27 +14,29 @@ public class GetProvidersFunction(ILogger<GetProvidersFunction> logger)
 
         var result = new List<ProviderDefinition>
         {
-            new ProviderDefinition(
-                OrgId: "12345",
-                OrgName: "Test Provider 1",
-                OrgType: "Local Authority 1",
-                ProviderSystem: "Test System 1",
-                ProviderName: "Test Provider Name 1"
-            ),
-            new ProviderDefinition(
-                OrgId: "678910",
-                OrgName: "Test Provider 2",
-                OrgType: "School" ,
-                ProviderSystem: "Test System 2",
-                ProviderName: "Test Provider Name 2"
-            ),
-            new ProviderDefinition(
-                OrgId: "111213",
-                OrgName: "Test Provider 3",
-                OrgType: "Police Force",
-                ProviderSystem: "Test System",
-                ProviderName: "Test Provider Name 3"
-            )
+            new ProviderDefinition{
+                OrgId = "12345",
+                OrgName = "Test Provider 1",
+                OrgType = "Local Authority 1",
+                ProviderSystem = "Test System 1",
+                ProviderName = "Test Provider Name 1"
+            },
+            new ProviderDefinition
+            {
+                OrgId = "678910",
+                OrgName = "Test Provider 2",
+                OrgType = "School" ,
+                ProviderSystem = "Test System 2",
+                ProviderName = "Test Provider Name 2"
+            },
+            new ProviderDefinition
+            {
+                OrgId = "111213",
+                OrgName = "Test Provider 3",
+                OrgType = "Police Force",
+                ProviderSystem = "Test System",
+                ProviderName = "Test Provider Name 3"
+            }
 
         };
 

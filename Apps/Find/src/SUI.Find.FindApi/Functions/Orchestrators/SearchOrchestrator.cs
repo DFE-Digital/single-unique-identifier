@@ -22,23 +22,23 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             firstRetryInterval: TimeSpan.FromSeconds(5),
             backoffCoefficient: 2.0
         ));
-        
+
         var data = context.GetInput<SearchOrchestratorInput>();
-        
+
         if (data is null || string.IsNullOrWhiteSpace(data.Suid) || string.IsNullOrWhiteSpace(data.Metadata.PersonId) || string.IsNullOrWhiteSpace(data.PolicyContext.ClientId))
         {
             logger.LogError("Invalid input in Search Orchestrator: {InstanceId}", context.InstanceId);
             throw new Exception("Invalid input in Search Orchestrator");
         }
-        
+
         logger.LogInformation("Search Orchestrator started for InstanceId: {InstanceId}", context.InstanceId);
-        
+
         try
         {
             var availableProviders =
                 await context.CallActivityAsync<List<ProviderDefinition>>("GetProvidersFunction", data.Suid);
 
-            if(availableProviders.Count == 0)
+            if (availableProviders.Count == 0)
             {
                 logger.LogWarning("No available providers found for InstanceId: {InstanceId}", context.InstanceId);
 
@@ -57,7 +57,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             var results = await Task.WhenAll(tasks);
 
             var aggregatedResults = results.SelectMany(r => r).ToList();
-            
+
             return aggregatedResults;
 
         }

@@ -8,11 +8,11 @@ namespace SUI.Find.FindApi.Functions.ProviderTriggers;
 public class QueryProvidersFunction(ILogger<QueryProvidersFunction> logger)
 {
     [Function(nameof(QueryProvidersFunction))]
-    public async Task<SearchResultItem> QueryProvider([ActivityTrigger] QueryProviderInput data, FunctionContext context)
+    public async Task<IReadOnlyList<SearchResultItem>>QueryProvider([ActivityTrigger] QueryProviderInput data, FunctionContext context)
     {
         logger.LogInformation("Query Provider triggered for InstanceId: {InstanceId}", data.InstanceId);
-        
-        
+
+
         var result = new SearchResultItem
         (
             ProviderSystem: data.Provider.ProviderSystem,
@@ -23,6 +23,6 @@ public class QueryProvidersFunction(ILogger<QueryProvidersFunction> logger)
 
         logger.LogInformation("Query Provider request completed for SUID: {InstanceID}", data.InstanceId);
 
-        return result;
+        return [result];
     }
 }

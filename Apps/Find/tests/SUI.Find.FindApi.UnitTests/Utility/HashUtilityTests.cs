@@ -17,7 +17,7 @@ public class HashUtilityTests
         // Assert
         Assert.NotNull(hash1);
         Assert.NotEmpty(hash1);
-        Assert.Equal(hash1, hash2); 
+        Assert.Equal(hash1, hash2);
     }
 
     [Fact]
