@@ -7,6 +7,4 @@ public class SearchApiResponse
     public bool Success { get; set; }
     public string? ErrorMessage { get; set; }
     public IList<SearchResult>? Results { get; set; }
-    public bool HasResults => Results?.Count > 0;
-    public int ResultCount => Results?.Count ?? 0;
 }
