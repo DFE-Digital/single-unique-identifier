@@ -94,7 +94,6 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         }
 
         return new List<ProviderDefinition> { custodian };
-        ;
     }
     
     // Only used for deserializing the mock org-directory.json, so it can exist locally

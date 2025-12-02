@@ -56,4 +56,42 @@ public class MockCustodianServiceTests
         Assert.Equal("body", edu.Connection.PersonIdPosition);
         Assert.NotNull(edu.Connection.BodyTemplateJson);
     }
+    
+    [Fact]
+    public async Task GetCustodianAsync_ReturnsCustodian_WhenFound()
+    {
+        // Arrange
+        var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "org-directory.json");
+        var fileContent = await File.ReadAllTextAsync(filePath);
+        _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
+
+        var targetOrgId = "LOCAL-AUTHORITY-01";
+
+        // Act
+        var result = await _sut.GetCustodianAsync(targetOrgId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result); 
+        Assert.Equal(targetOrgId, result[0].OrgId);
+        Assert.Equal("Example Local Authority", result[0].OrgName);
+    }
+    
+    [Fact]
+    public async Task GetCustodianAsync_ThrowsKeyNotFound_WhenNotFound()
+    {
+        // Arrange
+        var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "org-directory.json");
+        var fileContent = await File.ReadAllTextAsync(filePath);
+        _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
+
+        var targetOrgId = "NON-EXISTENT-ORG-ID";
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _sut.GetCustodianAsync(targetOrgId)
+        );
+
+        Assert.Contains(targetOrgId, ex.Message);
+    }
 }
