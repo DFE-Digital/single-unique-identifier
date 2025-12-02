@@ -4,5 +4,8 @@ namespace SUI.SingleView.Application.Services;
 
 public interface IRecordService
 {
-    Task<PersonModel> GetRecordAsync(string nhsNumber);
+    Task<PersonModel> GetRecordAsync(
+        string nhsNumber,
+        CancellationToken cancellationToken = default
+    );
 }

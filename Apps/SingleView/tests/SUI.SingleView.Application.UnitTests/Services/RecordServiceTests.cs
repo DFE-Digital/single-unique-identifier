@@ -17,7 +17,7 @@ public class RecordServiceTests
     private readonly Faker _faker = new("en_GB");
 
     [Fact]
-    public async Task Search_WithNhsNumber_ReturnsResults()
+    public async Task GetRecordAsync_WithNhsNumber_ReturnsResults()
     {
         // Arrange
         var nhsNumber = _faker.GenerateNhsNumber().Value;
@@ -27,7 +27,10 @@ public class RecordServiceTests
         var recordService = new RecordService(_mockTransferClient, _mockLogger);
 
         // Act
-        var result = await recordService.GetRecordAsync(nhsNumber);
+        var result = await recordService.GetRecordAsync(
+            nhsNumber,
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         result.ShouldNotBeNull();
