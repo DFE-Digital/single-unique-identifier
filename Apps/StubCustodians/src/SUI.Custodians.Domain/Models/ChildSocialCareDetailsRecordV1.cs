@@ -23,5 +23,5 @@ public record ChildSocialCareDetailsRecordV1 : SuiRecord
     /// <summary>
     /// Child Social Care Referrals
     /// </summary>
-    public IReadOnlyCollection<CSCReferralV1>? CSCReferrals { get; init; }
+    public IReadOnlyCollection<ChildSocialCareReferralV1>? CSCReferrals { get; init; }
 }
