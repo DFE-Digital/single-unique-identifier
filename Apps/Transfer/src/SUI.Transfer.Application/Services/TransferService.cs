@@ -34,11 +34,9 @@ public class TransferService(
             {
                 await UpdateJobStateAsync(new RunningTransferJobState(jobId, sui));
 
-                var aggregatedData = await transferJob.TransferAsync(jobId, sui);
+                var conformedData = await transferJob.TransferAsync(jobId, sui);
 
-                await UpdateJobStateAsync(
-                    new CompletedTransferJobState(jobId, sui, aggregatedData)
-                );
+                await UpdateJobStateAsync(new CompletedTransferJobState(jobId, sui, conformedData));
             }
             catch (OperationCanceledException e)
             {
