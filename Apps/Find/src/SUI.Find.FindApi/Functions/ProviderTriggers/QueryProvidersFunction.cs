@@ -8,9 +8,12 @@ namespace SUI.Find.FindApi.Functions.ProviderTriggers;
 public class QueryProvidersFunction(ILogger<QueryProvidersFunction> logger)
 {
     [Function(nameof(QueryProvidersFunction))]
-    public async Task<IReadOnlyList<SearchResultItem>>QueryProvider([ActivityTrigger] QueryProviderInput data, FunctionContext context)
+    public async Task<IReadOnlyList<SearchResultItem>> QueryProvider([ActivityTrigger] QueryProviderInput data, FunctionContext context)
     {
-        logger.LogInformation("Query Provider triggered for InstanceId: {InstanceId}", data.InstanceId);
+        using var logScope = logger.BeginScope(
+            "CorrelationId: {CorrelationId}", data.InvocationId
+        );
+        logger.LogInformation("Query Provider triggered");
 
 
         var result = new SearchResultItem
@@ -21,7 +24,7 @@ public class QueryProvidersFunction(ILogger<QueryProvidersFunction> logger)
             RecordUrl: $"https://example.com/record/{data.Provider.OrgId}/{data.InstanceId}"
         );
 
-        logger.LogInformation("Query Provider request completed for SUID: {InstanceID}", data.InstanceId);
+        logger.LogInformation("Query Provider request completed");
 
         return [result];
     }

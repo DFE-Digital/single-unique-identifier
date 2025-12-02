@@ -33,7 +33,7 @@ public class QueryProvidersFunctionTests
             RecordType = "Test Record Type"
 
         };
-        var input = new QueryProviderInput("test-client-1", "instance-123", "1234567890123456", providerDef);
+        var input = new QueryProviderInput("test-client-1", "instance-123", "invocation-123", "1234567890123456", providerDef);
 
         // Act
         var result = await _function.QueryProvider(input, _mockContext);

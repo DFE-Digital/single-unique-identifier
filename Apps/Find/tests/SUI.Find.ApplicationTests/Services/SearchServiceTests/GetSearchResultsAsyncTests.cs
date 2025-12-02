@@ -18,7 +18,7 @@ public class GetSearchResultsAsyncTests
 
     public GetSearchResultsAsyncTests()
     {
-        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
+        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext(ClientId, []);
         _searchService = Substitute.ForPartsOf<SearchService>(
             Substitute.For<ILogger<SearchService>>()
@@ -55,7 +55,7 @@ public class GetSearchResultsAsyncTests
         _client.GetInstanceAsync("unauth-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
         // Mock the ReadOrchestratorInput to return a different clientId
-        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
+        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext("different-client-id", []);
         _searchService
             .ReadOrchestratorInput<SearchOrchestratorInput>(meta)

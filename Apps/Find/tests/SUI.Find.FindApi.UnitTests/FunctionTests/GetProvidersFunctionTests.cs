@@ -22,9 +22,10 @@ public class GetProvidersFunctionTests
     {
         // Arrange
         string suid = "1234567890123456";
+        string invocationId = "invocation-id";
 
         // Act
-        var result = await _function.GetProviders(suid, _mockContext);
+        var result = await _function.GetProviders(invocationId, suid, _mockContext);
 
         // Assert
         Assert.NotNull(result);

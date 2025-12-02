@@ -8,9 +8,13 @@ public class GetProvidersFunction(ILogger<GetProvidersFunction> logger)
 {
     [Function(nameof(GetProvidersFunction))]
 
-    public async Task<List<ProviderDefinition>> GetProviders([ActivityTrigger] string suid, FunctionContext context)
+    public async Task<List<ProviderDefinition>> GetProviders([ActivityTrigger] string invocationId, string suid, FunctionContext context)
     {
-        logger.LogInformation("Get Providers triggered for SUID: {Suid}", suid);
+        using var logScope = logger.BeginScope(
+            "CorrelationId: {CorrelationId}", invocationId
+        );
+
+        logger.LogInformation("Get Providers triggered");
 
         var result = new List<ProviderDefinition>
         {
@@ -40,7 +44,7 @@ public class GetProvidersFunction(ILogger<GetProvidersFunction> logger)
 
         };
 
-        logger.LogInformation("Get Providers request completed for SUID: {Suid}", suid);
+        logger.LogInformation("Get Providers request completed");
 
         return result;
     }

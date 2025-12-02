@@ -17,6 +17,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         [OrchestrationTrigger] TaskOrchestrationContext context
     )
     {
+
         var options = TaskOptions.FromRetryPolicy(new RetryPolicy(
             maxNumberOfAttempts: 5,
             firstRetryInterval: TimeSpan.FromSeconds(5),
@@ -27,46 +28,38 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
 
         if (data is null || string.IsNullOrWhiteSpace(data.Suid) || string.IsNullOrWhiteSpace(data.Metadata.PersonId) || string.IsNullOrWhiteSpace(data.PolicyContext.ClientId))
         {
-            logger.LogError("Invalid input in Search Orchestrator: {InstanceId}", context.InstanceId);
-            throw new Exception("Invalid input in Search Orchestrator");
+            throw new ArgumentException("Invalid input in Search Orchestrator");
         }
 
-        logger.LogInformation("Search Orchestrator started for InstanceId: {InstanceId}", context.InstanceId);
+        using var logScope = logger.BeginScope(
+            "CorrelationId: {CorrelationId}", data.Metadata.InvocationId
+        );
 
-        try
+        logger.LogInformation("Search Orchestrator started");
+
+        var availableProviders =
+            await context.CallActivityAsync<List<ProviderDefinition>>("GetProvidersFunction", data.Suid);
+
+        if (availableProviders.Count == 0)
         {
-            var availableProviders =
-                await context.CallActivityAsync<List<ProviderDefinition>>("GetProvidersFunction", data.Suid);
+            logger.LogWarning("No available providers found");
 
-            if (availableProviders.Count == 0)
-            {
-                logger.LogWarning("No available providers found for InstanceId: {InstanceId}", context.InstanceId);
-
-                return new List<SearchResultItem>();
-            }
-
-            var tasks = new List<Task<IReadOnlyList<SearchResultItem>>>(availableProviders.Count);
-
-            foreach (var provider in availableProviders)
-            {
-                tasks.Add(context.CallActivityAsync<IReadOnlyList<SearchResultItem>>("QueryProvidersFunction",
-                    new QueryProviderInput(data.PolicyContext.ClientId, context.InstanceId, data.Suid, provider),
-                    options));
-            }
-
-            var results = await Task.WhenAll(tasks);
-
-            var aggregatedResults = results.SelectMany(r => r).ToList();
-
-            return aggregatedResults;
-
+            return new List<SearchResultItem>();
         }
-        catch (TaskFailedException ec)
+
+        var tasks = new List<Task<IReadOnlyList<SearchResultItem>>>(availableProviders.Count);
+
+        foreach (var provider in availableProviders)
         {
-            // TODO : Implement proper DLQ handling and logging
-            logger.LogError(ec, "Search Orchestrator failed after all retry attempts for InstanceId: {InstanceId}", context.InstanceId);
-            throw;
+            tasks.Add(context.CallActivityAsync<IReadOnlyList<SearchResultItem>>("QueryProvidersFunction",
+                new QueryProviderInput(data.PolicyContext.ClientId, context.InstanceId, data.Metadata.InvocationId, data.Suid, provider),
+                options));
         }
 
+        var results = await Task.WhenAll(tasks);
+
+        var aggregatedResults = results.SelectMany(r => r).ToList();
+
+        return aggregatedResults;
     }
 }
