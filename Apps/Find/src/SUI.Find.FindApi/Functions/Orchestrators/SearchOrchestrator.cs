@@ -31,7 +31,6 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             throw new Exception("Invalid input in Search Orchestrator");
         }
         
-        // will InstanceId be hashed here for PII compliance?
         logger.LogInformation("Search Orchestrator started for InstanceId: {InstanceId}", context.InstanceId);
         
         try
