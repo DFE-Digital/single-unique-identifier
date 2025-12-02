@@ -11,14 +11,14 @@ namespace SUI.Find.Application.Services;
 
 public interface ISearchService
 {
-    Task<CancelSearchDto> CancelSearchAsync(
+    Task<SearchCancelResult> CancelSearchAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     );
 
-    Task<SearchResultsDto> GetSearchResultsAsync(
+    Task<SearchResult> GetSearchResultsAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -36,7 +36,7 @@ public interface ISearchService
 // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 public class SearchService(ILogger<SearchService> logger) : ISearchService
 {
-    public async Task<CancelSearchDto> CancelSearchAsync(
+    public async Task<SearchCancelResult> CancelSearchAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -48,14 +48,14 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
             var metaData = await client.GetInstanceAsync(jobId, cancellation: cancellationToken);
             if (metaData is null)
             {
-                return new CancelSearchDto(CancelSearchResult.NotFound, "No search job found.");
+                return new SearchCancelResult.NotFound();
             }
 
             // Check if the job belongs to the requesting client
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
-                return new CancelSearchDto(CancelSearchResult.Unauthorized, "Unauthorized");
+                return new SearchCancelResult.Unauthorized();
             }
 
             var canCancel =
@@ -65,26 +65,35 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
 
             if (!canCancel)
             {
-                var state = metaData.RuntimeStatus.ToString();
-                return new CancelSearchDto(
-                    CancelSearchResult.CannotCancel,
-                    $"Search job cannot be canceled in its current state: {state}"
+                logger.LogWarning(
+                    "Cannot cancel search job {JobId} in status {Status}.",
+                    jobId,
+                    metaData.RuntimeStatus
                 );
             }
 
             await client.TerminateInstanceAsync(jobId, "Cancelled by user", cancellationToken);
-            return new CancelSearchDto(CancelSearchResult.Canceled, string.Empty);
-        }
-        catch
-        {
-            return new CancelSearchDto(
-                CancelSearchResult.Failed,
-                "Failed to cancel the search job."
+
+            // return success regardless of whether it could be cancelled. Keeps it idempotent.
+            return new SearchCancelResult.Success(
+                new SearchJobDto
+                {
+                    JobId = jobId,
+                    Suid = input.Suid,
+                    Status = OrchestrationRuntimeStatus.Terminated.ToSuiSearchStatus(),
+                    CreatedAt = metaData.CreatedAt,
+                    LastUpdatedAt = metaData.LastUpdatedAt,
+                }
             );
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error cancelling search job {JobId}.", jobId);
+            return new SearchCancelResult.Error();
         }
     }
 
-    public async Task<SearchResultsDto> GetSearchResultsAsync(
+    public async Task<SearchResult> GetSearchResultsAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -101,13 +110,14 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
             if (metaData is null)
             {
                 logger.LogInformation("Search job with ID {JobId} not found.", jobId);
-                return SearchResultsDto.NotFound(jobId);
+                return new SearchResult.NotFound();
             }
 
             var meta = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (meta is null)
             {
-                return SearchResultsDto.Error(jobId, "Failed to read search job metadata.");
+                logger.LogWarning("Failed to read metadata for search job {JobId}.", jobId);
+                return new SearchResult.Failed();
             }
 
             if (meta.PolicyContext.ClientId != clientId)
@@ -117,35 +127,44 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
                     jobId,
                     clientId
                 );
-                return SearchResultsDto.Unauthorized(jobId);
+                return new SearchResult.Unauthorized();
             }
 
             if (metaData.IsRunning)
             {
-                return SearchResultsDto.Success(
-                    jobId,
-                    meta.Suid,
-                    metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    []
+                return new SearchResult.Success(
+                    new SearchResultsDto
+                    {
+                        JobId = jobId,
+                        Suid = meta.Suid,
+                        Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
+                        Items = [],
+                    }
                 );
             }
 
             if (string.IsNullOrEmpty(metaData.SerializedOutput))
             {
-                return SearchResultsDto.Success(
-                    jobId,
-                    meta.Suid,
-                    metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    [] // No results found
+                return new SearchResult.Success(
+                    new SearchResultsDto
+                    {
+                        JobId = jobId,
+                        Suid = meta.Suid,
+                        Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
+                        Items = [],
+                    }
                 );
             }
             var items = JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput);
 
-            return SearchResultsDto.Success(
-                jobId,
-                meta.Suid,
-                metaData.RuntimeStatus.ToSuiSearchStatus(),
-                items is { Length: > 0 } ? items : []
+            return new SearchResult.Success(
+                new SearchResultsDto
+                {
+                    JobId = jobId,
+                    Suid = meta.Suid,
+                    Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
+                    Items = items ?? [],
+                }
             );
         }
         catch (Exception ex)
@@ -156,10 +175,7 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
                 jobId,
                 ex.Message
             );
-            return SearchResultsDto.Error(
-                jobId,
-                "An error occurred while retrieving search results."
-            );
+            return new SearchResult.Failed();
         }
     }
 

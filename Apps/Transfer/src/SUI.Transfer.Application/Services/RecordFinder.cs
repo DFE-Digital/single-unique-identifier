@@ -19,11 +19,11 @@ public class RecordFinder : IRecordFinder
             .SelectMany(providerId =>
                 new[]
                 {
-                    (providerId, $"/api/v1/records/{providerId}/ChildPersonalDetailsRecordV1"),
+                    (providerId, $"/api/v1/records/{providerId}/PersonalDetailsRecordV1"),
                     (providerId, $"/api/v1/records/{providerId}/ChildSocialCareDetailsRecordV1"),
                     (providerId, $"/api/v1/records/{providerId}/EducationDetailsRecordV1"),
-                    (providerId, $"/api/v1/records/{providerId}/ChildHealthDataRecordV1"),
-                    (providerId, $"/api/v1/records/{providerId}/ChildLinkedCrimeDataRecordV1"),
+                    (providerId, $"/api/v1/records/{providerId}/HealthDataRecordV1"),
+                    (providerId, $"/api/v1/records/{providerId}/CrimeDataRecordV1"),
                 }
             )
             .ToArray();

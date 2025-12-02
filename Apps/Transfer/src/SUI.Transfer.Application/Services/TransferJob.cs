@@ -8,12 +8,12 @@ public class TransferJob(
     IRecordFinder recordFinder,
     IRecordFetcher recordFetcher,
     IRecordConsolidator recordConsolidator,
-    IEducationAttendanceAggregator educationAttendanceAggregator,
+    IEducationAttendanceTransformer educationAttendanceTransformer,
     IHostApplicationLifetime hostApplicationLifetime,
     ILogger<TransferJob> logger
 ) : ITransferJob
 {
-    public async Task<AggregatedData> TransferAsync(Guid jobId, string sui)
+    public async Task<ConformedData> TransferAsync(Guid jobId, string sui)
     {
         logger.LogDebug("Starting transfer process sui {Sui} (Job ID: {JobId})", sui, jobId);
 
@@ -48,11 +48,11 @@ public class TransferJob(
         cancellationToken.ThrowIfCancellationRequested();
         var consolidatedData = recordConsolidator.ConsolidateRecords(unconsolidatedData);
 
-        // Apply aggregations
+        // Apply conformations (transformations and aggregations)
         cancellationToken.ThrowIfCancellationRequested();
-        return new AggregatedData(jobId, consolidatedData)
+        return new ConformedData(jobId, consolidatedData)
         {
-            EducationAttendanceSummaries = educationAttendanceAggregator.ApplyAggregation(
+            EducationAttendanceSummaries = educationAttendanceTransformer.ApplyTransformation(
                 consolidatedData
             ),
             HealthAttendanceSummaries = null,

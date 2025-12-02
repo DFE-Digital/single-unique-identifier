@@ -39,7 +39,7 @@ public class TransferServiceTests
             Task.FromResult(_jobStates.GetValueOrDefault(jobId));
     }
 
-    private static AggregatedData CreateEmptyAggregatedConsolidatedData(Guid jobId, string sui) =>
+    private static ConformedData CreateEmptyConformedConsolidatedData(Guid jobId, string sui) =>
         new(
             jobId,
             new ConsolidatedData(sui)
@@ -84,7 +84,7 @@ public class TransferServiceTests
                     intermediateResult
                 );
 
-                return CreateEmptyAggregatedConsolidatedData(jobId, requestId);
+                return CreateEmptyConformedConsolidatedData(jobId, requestId);
             });
 
         var mockJobScope = Substitute.For<IDisposable>();
@@ -126,10 +126,10 @@ public class TransferServiceTests
                 new CompletedTransferJobState(
                     initialResult.JobId,
                     requestId,
-                    CreateEmptyAggregatedConsolidatedData(initialResult.JobId, requestId)
+                    CreateEmptyConformedConsolidatedData(initialResult.JobId, requestId)
                 ),
                 options =>
-                    options.Excluding(x => x.Timestamp).Excluding(x => x.AggregatedData.CreatedDate)
+                    options.Excluding(x => x.Timestamp).Excluding(x => x.ConformedData.CreatedDate)
             );
     }
 
@@ -229,8 +229,12 @@ public class TransferServiceTests
         // Assert - final state should be CancelLed
         var finalResult = await _sut.GetTransferJobStateAsync(initialResult.JobId);
         Assert.NotNull(finalResult);
-        Assert.IsType<CancelledTransferJobState>(finalResult);
+        var cancelledJobState = Assert.IsType<CancelledTransferJobState>(finalResult);
         Assert.Equal(TransferJobStatus.Canceled, finalResult.Status);
+        Assert.Equal(
+            "Cancelled while running, due to host application shutdown",
+            cancelledJobState.CancellationReason
+        );
         Assert.Equal(initialResult.JobId, finalResult.JobId);
         Assert.Equal(requestId, finalResult.Sui);
     }

@@ -13,7 +13,7 @@ public record QueuedTransferJobState(Guid JobId, string Sui)
 public record RunningTransferJobState(Guid JobId, string Sui)
     : TransferJobState(JobId, Sui, TransferJobStatus.Running);
 
-public record CompletedTransferJobState(Guid JobId, string Sui, AggregatedData AggregatedData)
+public record CompletedTransferJobState(Guid JobId, string Sui, ConformedData ConformedData)
     : TransferJobState(JobId, Sui, TransferJobStatus.Completed);
 
 public record FailedTransferJobState(
@@ -23,5 +23,5 @@ public record FailedTransferJobState(
     string? StackTrace
 ) : TransferJobState(JobId, Sui, TransferJobStatus.Failed);
 
-public record CancelledTransferJobState(Guid JobId, string Sui)
+public record CancelledTransferJobState(Guid JobId, string Sui, string CancellationReason)
     : TransferJobState(JobId, Sui, TransferJobStatus.Canceled);

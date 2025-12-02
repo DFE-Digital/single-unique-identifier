@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -7,7 +6,6 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Attributes;
