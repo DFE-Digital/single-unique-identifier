@@ -60,7 +60,11 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         var testId = "999-000-1234";
 
         // Act
-        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
+        var httpResponse = await _client.PostAsJsonAsync(
+            "/api/v1/transfer/",
+            testId,
+            _jsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
@@ -75,7 +79,11 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         _client.DefaultRequestHeaders.Add("X-Api-Key", "INCORRECT_API_KEY");
 
         // Act
-        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
+        var httpResponse = await _client.PostAsJsonAsync(
+            "/api/v1/transfer/",
+            testId,
+            _jsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
@@ -93,7 +101,11 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
         // Act
-        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
+        var httpResponse = await _client.PostAsJsonAsync(
+            "/api/v1/transfer/",
+            testId,
+            _jsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
