@@ -130,7 +130,8 @@ public class SearchFunction(ILogger<SearchFunction> logger)
 
         var metaData = new SearchJobMetadata(
             PersonId: "TODO: Populate PersonId",
-            RequestedAtUtc: DateTime.UtcNow
+            RequestedAtUtc: DateTime.UtcNow,
+            InvocationId: context.InvocationId
         );
 
         var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
