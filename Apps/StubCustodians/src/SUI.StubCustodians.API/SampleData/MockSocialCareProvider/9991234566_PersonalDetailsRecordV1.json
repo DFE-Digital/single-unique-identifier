@@ -1,0 +1,18 @@
+{
+  "firstName": "Sarah",
+  "lastName": "Smith",
+  "dateOfBirth": "2011-09-25",
+  "address": null,
+  "namesOfIndividualsResidingAtMainAddress": null,
+  "birthAssignedSex": "Female",
+  "pronouns": "She/her",
+  "ethnicity": "Irish Traveller",
+  "firstLanguage": "English",
+  "designatedLocalAuthority": "Bromley",
+  "englishAsAdditionalLanguage": false,
+  "braille": true,
+  "signLanguage": null,
+  "makaton": false,
+  "interpreter": null,
+  "relatedPeople": null
+}
