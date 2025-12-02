@@ -13,8 +13,8 @@ public class TransferJobTests
     private readonly IRecordFetcher _mockRecordFetcher = Substitute.For<IRecordFetcher>();
     private readonly IRecordConsolidator _mockRecordConsolidator =
         Substitute.For<IRecordConsolidator>();
-    private readonly IEducationAttendanceAggregator _mockEducationAttendanceAggregator =
-        Substitute.For<IEducationAttendanceAggregator>();
+    private readonly IEducationAttendanceTransformer _mockEducationAttendanceTransformer =
+        Substitute.For<IEducationAttendanceTransformer>();
     private readonly IHostApplicationLifetime _mockHostApplicationLifetime =
         Substitute.For<IHostApplicationLifetime>();
     private readonly ILogger<TransferJob> _mockLogger = Substitute.For<ILogger<TransferJob>>();
@@ -27,7 +27,7 @@ public class TransferJobTests
             _mockRecordFinder,
             _mockRecordFetcher,
             _mockRecordConsolidator,
-            _mockEducationAttendanceAggregator,
+            _mockEducationAttendanceTransformer,
             _mockHostApplicationLifetime,
             _mockLogger
         );
@@ -95,11 +95,11 @@ public class TransferJobTests
             LastAcademicYear = new EducationAttendanceV1 { AttendancePercentage = 80 },
         };
 
-        _mockEducationAttendanceAggregator
-            .ApplyAggregation(mockConsolidatedData)
+        _mockEducationAttendanceTransformer
+            .ApplyTransformation(mockConsolidatedData)
             .Returns(mockEducationAttendanceSummaries);
 
-        AggregatedData expectedAggregatedData = new(jobId, mockConsolidatedData)
+        ConformedData expectedConformedData = new(jobId, mockConsolidatedData)
         {
             EducationAttendanceSummaries = mockEducationAttendanceSummaries,
             HealthAttendanceSummaries = null,
@@ -114,7 +114,7 @@ public class TransferJobTests
         result
             .Should()
             .BeEquivalentTo(
-                expectedAggregatedData,
+                expectedConformedData,
                 options => options.Excluding(x => x.CreatedDate)
             );
 
@@ -123,6 +123,6 @@ public class TransferJobTests
             .Received()
             .FetchRecordsAsync(sui, mockRecordPointers, Arg.Any<CancellationToken>());
         _mockRecordConsolidator.Received().ConsolidateRecords(mockUnconsolidatedData);
-        _mockEducationAttendanceAggregator.Received().ApplyAggregation(mockConsolidatedData);
+        _mockEducationAttendanceTransformer.Received().ApplyTransformation(mockConsolidatedData);
     }
 }

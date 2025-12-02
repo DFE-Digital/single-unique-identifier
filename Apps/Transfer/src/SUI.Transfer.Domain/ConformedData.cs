@@ -2,7 +2,10 @@
 
 namespace SUI.Transfer.Domain;
 
-public record AggregatedData(Guid JobId, ConsolidatedData ConsolidatedData)
+/// <summary>
+/// Represents consolidated and conformed (transformed and aggregated) data about a person with a specified single-unique-identifier.
+/// </summary>
+public record ConformedData(Guid JobId, ConsolidatedData ConsolidatedData)
 {
     public string Sui { get; } = ConsolidatedData.Sui;
 

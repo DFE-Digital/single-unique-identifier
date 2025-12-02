@@ -3,15 +3,15 @@ using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Unit.Tests.Services;
 
-public class EducationAttendanceAggregatorTests
+public class EducationAttendanceTransformerTests
 {
     [Fact]
-    public void ApplyAggregation_Test()
+    public void ApplyTransformation_Test()
     {
-        var sut = new EducationAttendanceAggregator();
+        var sut = new EducationAttendanceTransformer();
 
         // ACT
-        var result = sut.ApplyAggregation(
+        var result = sut.ApplyTransformation(
             new ConsolidatedData("XXX 000 1234")
             {
                 ChildPersonalDetailsRecord = null,

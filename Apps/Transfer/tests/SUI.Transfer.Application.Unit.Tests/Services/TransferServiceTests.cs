@@ -39,7 +39,7 @@ public class TransferServiceTests
             Task.FromResult(_jobStates.GetValueOrDefault(jobId));
     }
 
-    private static AggregatedData CreateEmptyAggregatedConsolidatedData(Guid jobId, string sui) =>
+    private static ConformedData CreateEmptyConformedConsolidatedData(Guid jobId, string sui) =>
         new(
             jobId,
             new ConsolidatedData(sui)
@@ -84,7 +84,7 @@ public class TransferServiceTests
                     intermediateResult
                 );
 
-                return CreateEmptyAggregatedConsolidatedData(jobId, requestId);
+                return CreateEmptyConformedConsolidatedData(jobId, requestId);
             });
 
         var mockJobScope = Substitute.For<IDisposable>();
@@ -126,10 +126,10 @@ public class TransferServiceTests
                 new CompletedTransferJobState(
                     initialResult.JobId,
                     requestId,
-                    CreateEmptyAggregatedConsolidatedData(initialResult.JobId, requestId)
+                    CreateEmptyConformedConsolidatedData(initialResult.JobId, requestId)
                 ),
                 options =>
-                    options.Excluding(x => x.Timestamp).Excluding(x => x.AggregatedData.CreatedDate)
+                    options.Excluding(x => x.Timestamp).Excluding(x => x.ConformedData.CreatedDate)
             );
     }
 
