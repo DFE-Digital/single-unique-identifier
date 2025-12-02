@@ -60,6 +60,24 @@ public static class HttpResponseUtility
         return await res;
     }
 
+    public static async Task<HttpResponseData> BadRequestResponse(
+        HttpRequestData req,
+        string traceId,
+        string detail,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var res = ProblemResponse(
+            req,
+            HttpStatusCode.BadRequest,
+            "Bad Request",
+            detail,
+            $"urn:trace:{traceId}",
+            cancellationToken
+        );
+        return await res;
+    }
+
     public static async Task<HttpResponseData> InternalServerErrorResponse(
         HttpRequestData req,
         string? traceId,
@@ -75,5 +93,16 @@ public static class HttpResponseUtility
             cancellationToken
         );
         return await res;
+    }
+
+    public static async Task<HttpResponseData> AcceptedResponse<T>(
+        HttpRequestData req,
+        T body,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var res = req.CreateResponse(HttpStatusCode.Accepted);
+        await res.WriteAsJsonAsync(body, cancellationToken);
+        return res;
     }
 }
