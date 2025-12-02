@@ -23,5 +23,5 @@ public record FailedTransferJobState(
     string? StackTrace
 ) : TransferJobState(JobId, Sui, TransferJobStatus.Failed);
 
-public record CancelledTransferJobState(Guid JobId, string Sui)
+public record CancelledTransferJobState(Guid JobId, string Sui, string CancellationReason)
     : TransferJobState(JobId, Sui, TransferJobStatus.Canceled);

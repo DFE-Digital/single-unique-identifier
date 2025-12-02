@@ -229,8 +229,12 @@ public class TransferServiceTests
         // Assert - final state should be CancelLed
         var finalResult = await _sut.GetTransferJobStateAsync(initialResult.JobId);
         Assert.NotNull(finalResult);
-        Assert.IsType<CancelledTransferJobState>(finalResult);
+        var cancelledJobState = Assert.IsType<CancelledTransferJobState>(finalResult);
         Assert.Equal(TransferJobStatus.Canceled, finalResult.Status);
+        Assert.Equal(
+            "Cancelled while running, due to host application shutdown",
+            cancelledJobState.CancellationReason
+        );
         Assert.Equal(initialResult.JobId, finalResult.JobId);
         Assert.Equal(requestId, finalResult.Sui);
     }

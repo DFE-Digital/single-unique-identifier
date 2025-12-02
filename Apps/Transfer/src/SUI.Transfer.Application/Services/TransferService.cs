@@ -48,7 +48,13 @@ public class TransferService(
                     sui,
                     jobId
                 );
-                await UpdateJobStateAsync(new CancelledTransferJobState(jobId, sui));
+                await UpdateJobStateAsync(
+                    new CancelledTransferJobState(
+                        jobId,
+                        sui,
+                        "Cancelled while running, due to host application shutdown"
+                    )
+                );
             }
             catch (Exception e)
             {
