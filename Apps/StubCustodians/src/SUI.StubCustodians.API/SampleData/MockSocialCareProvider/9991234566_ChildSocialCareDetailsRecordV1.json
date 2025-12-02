@@ -1,0 +1,27 @@
+{
+  "keyWorker": "Alex Patel",
+  "dutyContactDetails": [
+    "csc@bromley.gov.uk",
+    "08792675387"
+  ],
+  "teamInvolvement": [
+    "Disabled Children Team",
+    "Neighbourhood Team"
+  ],
+  "cscActiveStatusesAndPlans": [
+    {
+      "status": "Child In Need",
+      "plan": "Child in need plan"
+    }
+  ],
+  "cscReferrals": [
+    {
+      "date": "2022-10-01",
+      "type": "Early Help"
+    },
+    {
+      "date": "2022-10-02",
+      "type": "Social Care"
+    }
+  ]
+}

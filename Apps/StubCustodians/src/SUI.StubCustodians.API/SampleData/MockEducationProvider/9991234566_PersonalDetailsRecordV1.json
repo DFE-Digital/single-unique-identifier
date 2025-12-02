@@ -1,0 +1,30 @@
+{
+  "firstName": null,
+  "lastName": null,
+  "dateOfBirth": null,
+  "address": {
+    "line1": "12 Burton Street",
+    "line2": null,
+    "townOrCity": "London",
+    "county": null,
+    "postcode": "SW1A 0AA"
+  },
+  "namesOfIndividualsResidingAtMainAddress": [
+    "James Smith",
+    "Henry Smith",
+    "Thomas Smith",
+    "Jason Archer",
+    "Sarah Flint-Smith"
+  ],
+  "birthAssignedSex": null,
+  "pronouns": null,
+  "ethnicity": null,
+  "firstLanguage": null,
+  "designatedLocalAuthority": null,
+  "englishAsAdditionalLanguage": null,
+  "braille": null,
+  "signLanguage": true,
+  "makaton": true,
+  "interpreter": null,
+  "relatedPeople": null
+}  

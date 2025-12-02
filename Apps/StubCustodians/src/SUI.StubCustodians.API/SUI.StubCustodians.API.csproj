@@ -19,4 +19,8 @@
     <ProjectReference Include="..\SUI.Custodians.Domain\SUI.Custodians.Domain.csproj" />
     <ProjectReference Include="..\SUI.StubCustodians.Infrastructure\SUI.StubCustodians.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="SampleData\Arbor\1111111111.json" />
+    <_ContentIncludedByDefault Remove="SampleData\Niche\1111111111.json" />
+  </ItemGroup>
 </Project>

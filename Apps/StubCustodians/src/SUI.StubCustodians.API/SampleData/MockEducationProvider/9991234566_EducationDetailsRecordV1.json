@@ -1,0 +1,37 @@
+{
+  "educationSettingName": "Redwood Academy",
+  "educationSettingAddress": {
+    "line1": "Redrood Drive",
+    "line2": "Maltby",
+    "townOrCity": "London",
+    "county": null,
+    "postcode": "SE6 8DL"
+  },
+  "educationSettingTelephone": "0123456789",
+  "educationActiveStatusesAndPlans": [
+    {
+      "status": "SEND",
+      "plan": "Education, Health and Care (EHC) plan"
+    }
+  ],
+  "educationAttendances": [
+    {
+      "academicTermYearStart": 2024,
+      "academicTermYearEnd": 2025,
+      "attendancePercentage": 70,
+      "unauthorisedAbsencePercentage": 2,
+      "suspensions": 1,
+      "exclusions": 0,
+      "schoolMovesNonTransitional": 0
+    },
+    {
+      "academicTermYearStart": 2023,
+      "academicTermYearEnd": 2024,
+      "attendancePercentage": 62.7,
+      "unauthorisedAbsencePercentage": 9,
+      "suspensions": 3,
+      "exclusions": 1,
+      "schoolMovesNonTransitional": 1
+    }
+  ]
+}

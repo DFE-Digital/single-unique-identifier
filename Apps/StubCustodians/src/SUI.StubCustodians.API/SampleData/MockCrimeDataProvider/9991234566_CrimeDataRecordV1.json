@@ -1,0 +1,24 @@
+{
+  "policeMarkerDetails": "Individuals at the address may resort to violent behaviour",
+  "servicesKnownTo": [
+    "Youth justice service (YJS)",
+    "Police"
+  ],
+  "lastPoliceProtectionPowerEvent": "None",
+  "missingEpisodes": [
+    {
+      "date": "2024-10-30"  
+    }
+  ],
+  "riskSexualExploitation": null,
+  "riskCriminalExploitation": true,
+  "riskRadicalisation": true,
+  "riskModernSlaveryAndTrafficking": null,
+  "riskGangsAndYouthViolence": true,
+  "crimeActiveStatusesAndPlans": [
+    {
+      "status": "Open to Youth Justice Service",
+      "plan": null
+    }
+  ]
+}
