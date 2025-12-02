@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace SUI.Find.FindApi.Models;
+namespace SUI.Find.Application.Models;
 
 // Mimicks Pilot 1 MatchPersonRequest
 public record MatchPersonRequest

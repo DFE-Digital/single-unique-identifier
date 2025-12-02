@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using SUI.Find.FindApi.Models;
+using SUI.Find.Application.Models;
 
 namespace SUI.Find.FindApi.Validators;
 

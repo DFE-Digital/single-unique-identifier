@@ -6,15 +6,17 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
+using SUI.Find.Application.Models;
+using SUI.Find.Application.Services;
+using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
 using SUI.Find.FindApi.Validators;
 
-namespace SUI.Find.FindApi.Functions.HttpTriggersForMocks;
+namespace SUI.Find.FindApi.Functions.HttpTriggers;
 
-[ExcludeFromCodeCoverage(Justification = "All mock implementation.")]
-public class MatchFunction(ILogger<MatchFunction> logger)
+public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService service)
 {
     [Function(nameof(MatchPerson))]
     [RequiredScopes("match-record.read")]
@@ -24,7 +26,7 @@ public class MatchFunction(ILogger<MatchFunction> logger)
         Summary = "Locate a persons unique id"
     )]
     [OpenApiRequestBody("application/json", typeof(MatchPersonRequest), Required = true)]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(MatchPersonResponse))]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(PersonMatch))]
     [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
@@ -50,21 +52,9 @@ public class MatchFunction(ILogger<MatchFunction> logger)
             );
         }
 
-        MatchPersonRequest? model;
-        try
-        {
-            model = await JsonSerializer.DeserializeAsync<MatchPersonRequest>(
-                req.Body,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
-                cancellationToken
-            );
-        }
-        catch
-        {
-            model = null;
-        }
+        var requestIsValid = TryGetMatchResponseRequestModel(req, out var request);
 
-        if (model is null)
+        if (!requestIsValid)
         {
             return await HttpResponseUtility.ProblemResponse(
                 req,
@@ -76,7 +66,7 @@ public class MatchFunction(ILogger<MatchFunction> logger)
             );
         }
 
-        var isValid = DataAnnotationValidator.Validate(model, out var validationResults);
+        var isValid = DataAnnotationValidator.Validate(request, out var validationResults);
         if (!isValid)
         {
             return await HttpResponseUtility.ProblemResponse(
@@ -89,9 +79,61 @@ public class MatchFunction(ILogger<MatchFunction> logger)
             );
         }
 
-        // TODO: Create service to get mock data.
-        // TODO: Go get mock data and return if it matches the request.
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        return response;
+        var personMatch = await service.MatchPersonAsync(request, authContext.ClientId);
+        return personMatch switch
+        {
+            MatchPersonResponse.Match match => CreateOkResponse(req, match.PersonId),
+            MatchPersonResponse.NoMatch => await HttpResponseUtility.NotFoundResponse(
+                req,
+                context.InvocationId,
+                cancellationToken
+            ),
+            _ => await HttpResponseUtility.InternalServerErrorResponse(
+                req,
+                context.InvocationId,
+                cancellationToken
+            ),
+        };
+    }
+
+    private static bool TryGetMatchResponseRequestModel(
+        HttpRequestData req,
+        out MatchPersonRequest model
+    )
+    {
+        model = new MatchPersonRequest();
+        try
+        {
+            var requestBody = req.ReadAsString();
+            if (string.IsNullOrWhiteSpace(requestBody))
+            {
+                return false;
+            }
+
+            var mpr = JsonSerializer.Deserialize<MatchPersonRequest>(
+                requestBody,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+
+            if (mpr is null)
+            {
+                return false;
+            }
+
+            model = mpr;
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static HttpResponseData CreateOkResponse(HttpRequestData req, EncryptedPersonId match)
+    {
+        var res = req.CreateResponse(HttpStatusCode.OK);
+        var responseBody = new PersonMatch(match.ToString());
+        res.WriteString(JsonSerializer.Serialize(responseBody));
+        return res;
     }
 }

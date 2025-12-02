@@ -23,8 +23,8 @@ public class StartSearchRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("123456789")] // Too short
-    [InlineData("12345678901234567")] // Too long
+    [InlineData("Cy14hyZL-4LSIwVy50p-H")] // Too short
+    [InlineData("Cy13hyZL-4LSIwVy50p-Hgglsa")] // Too long
     public void ShouldReturnFalse_WhenSuidIsInvalid(string? suid)
     {
         // Arrange
@@ -40,8 +40,8 @@ public class StartSearchRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("1234567890123456")] // Valid Suid
-    [InlineData("abcdefghijklmnop")] // Valid Suid
+    [InlineData("Cy13hyZL-4LSIwVy50p-Hg")] // Valid Suid
+    [InlineData("Cy13hyZL-4LSIwVy50l-Hg")] // Valid Suid
     public void ShouldReturnTrue_WhenSuidIsValid(string suid)
     {
         // Arrange

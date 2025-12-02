@@ -36,6 +36,8 @@ builder.Services.AddSingleton<ISearchService, SearchService>();
 // Use mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<ICustodianService, MockCustodianService>();
+builder.Services.AddSingleton<IMatchRepository, MockMatchRepository>();
+builder.Services.AddSingleton<IMatchingService, MatchingService>();
 
 // Add this after other service registrations
 builder.Services.AddHostedService<AzureStorageTableStartup>();
