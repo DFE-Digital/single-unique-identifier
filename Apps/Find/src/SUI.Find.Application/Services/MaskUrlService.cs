@@ -2,13 +2,29 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Services;
+
+public interface IMaskUrlService
+{
+    Task<IReadOnlyList<SearchResultItem>> CreateMaskedFetchUrlsAsync(
+        List<SearchResultItem> items,
+        QueryProviderInput input,
+        CancellationToken ct
+    );
+
+    Task<Result<ResolvedFetchMapping>> ResolveAsync(
+        string requestingOrg,
+        string fetchId,
+        CancellationToken ct
+    );
+}
 
 public class MaskUrlService(
     ILogger<MaskUrlService> logger,
     IFetchUrlStorageService fetchUrlStorageService
-)
+) : IMaskUrlService
 {
     public async Task<IReadOnlyList<SearchResultItem>> CreateMaskedFetchUrlsAsync(
         List<SearchResultItem> items,
@@ -49,5 +65,40 @@ public class MaskUrlService(
         }
 
         return masked;
+    }
+
+    public async Task<Result<ResolvedFetchMapping>> ResolveAsync(
+        string requestingOrg,
+        string fetchId,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            var res = await fetchUrlStorageService.GetAsync(
+                requestingOrg: requestingOrg,
+                fetchId: fetchId,
+                ct: ct
+            );
+
+            if (!res.Success || res.Value is null)
+            {
+                return Result<ResolvedFetchMapping>.Fail(
+                    res.Error ?? "Failed to resolve fetch URL"
+                );
+            }
+
+            return Result<ResolvedFetchMapping>.Ok(
+                new ResolvedFetchMapping(
+                    TargetUrl: res.Value.TargetUrl,
+                    TargetOrgId: res.Value.TargetOrgId,
+                    RecordType: res.Value.RecordType
+                )
+            );
+        }
+        catch
+        {
+            return Result<ResolvedFetchMapping>.Fail("Failed to resolve fetch URL");
+        }
     }
 }
