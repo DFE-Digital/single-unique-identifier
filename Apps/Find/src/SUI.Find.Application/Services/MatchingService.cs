@@ -23,25 +23,44 @@ public class MatchingService(
         string clientId
     )
     {
-        var orgs = await custodianService.GetCustodiansAsync();
-        var thisOrg = orgs.FirstOrDefault(o => o.OrgId == clientId);
-        if (thisOrg?.Encryption is null)
+        try
         {
-            logger.LogError("Custodian organisation not found for client ID: {ClientId}", clientId);
-            return new MatchPersonResponse.Error("Custodian organisation not found.");
-        }
+            var org = await custodianService.GetCustodianAsync(clientId);
+            if (!org.Success || org.Value is null)
+            {
+                logger.LogError(
+                    "Custodian organisation not found for client ID: {ClientId}",
+                    clientId
+                );
+                return new MatchPersonResponse.NoMatch();
+            }
 
-        var response = await repository.MatchPersonAsync(request);
-        return response switch
+            if (org.Value.Encryption is null)
+            {
+                logger.LogError(
+                    "Encryption definition not found for custodian organisation: {OrgId}",
+                    org.Value.OrgId
+                );
+                return new MatchPersonResponse.Error("Encryption definition not found.");
+            }
+
+            var response = await repository.MatchPersonAsync(request);
+            return response switch
+            {
+                MatchFhirResponse.NoMatch => new MatchPersonResponse.NoMatch(),
+                MatchFhirResponse.Error error => new MatchPersonResponse.Error(error.ErrorMessage),
+                MatchFhirResponse.Match match => HandleEncryptPersonIdResult(
+                    match.NhsNumber,
+                    org.Value.Encryption
+                ),
+                _ => new MatchPersonResponse.Error("Unknown response from match repository."),
+            };
+        }
+        catch (Exception ex)
         {
-            MatchFhirResponse.NoMatch => new MatchPersonResponse.NoMatch(),
-            MatchFhirResponse.Error error => new MatchPersonResponse.Error(error.ErrorMessage),
-            MatchFhirResponse.Match match => HandleEncryptPersonIdResult(
-                match.NhsNumber,
-                thisOrg.Encryption
-            ),
-            _ => new MatchPersonResponse.Error("Unknown response from match repository."),
-        };
+            logger.LogError(ex, "An error occurred while matching person.");
+            return new MatchPersonResponse.Error("An internal error occurred.");
+        }
     }
 
     private MatchPersonResponse HandleEncryptPersonIdResult(
