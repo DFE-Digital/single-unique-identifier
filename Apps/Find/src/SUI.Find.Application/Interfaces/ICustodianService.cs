@@ -1,10 +1,11 @@
 using SUI.Find.Application.Models;
+using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Interfaces;
 
 public interface ICustodianService
 {
     Task<IReadOnlyList<ProviderDefinition>> GetCustodiansAsync();
-    Task<IReadOnlyList<ProviderDefinition>> GetCustodianAsync(string orgId);
+    Task<Result<ProviderDefinition>> GetCustodianAsync(string orgId);
     
 }

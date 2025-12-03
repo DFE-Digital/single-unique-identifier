@@ -72,9 +72,9 @@ public class MockCustodianServiceTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Single(result); 
-        Assert.Equal(targetOrgId, result[0].OrgId);
-        Assert.Equal("Example Local Authority", result[0].OrgName);
+        Assert.True(result.Success);
+        Assert.Equal(targetOrgId, result?.Value?.OrgId);
+        Assert.Equal("Example Local Authority", result?.Value?.OrgName);
     }
     
     [Fact]
@@ -87,11 +87,11 @@ public class MockCustodianServiceTests
 
         var targetOrgId = "NON-EXISTENT-ORG-ID";
 
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => _sut.GetCustodianAsync(targetOrgId)
-        );
+        // Act 
+        var result = await _sut.GetCustodianAsync(targetOrgId);
 
-        Assert.Contains(targetOrgId, ex.Message);
+        // Assert
+        Assert.False(result.Success);
+        Assert.Contains(targetOrgId, result.Error);
     }
 }
