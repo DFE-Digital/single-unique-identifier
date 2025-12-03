@@ -10,6 +10,7 @@ public class TransferJob(
     IRecordConsolidator recordConsolidator,
     IEducationAttendanceTransformer educationAttendanceTransformer,
     IHealthAttendanceAggregator healthAttendanceAggregator,
+    IMissingEpisodesTransformer missingEpisodesTransformer,
     IHostApplicationLifetime hostApplicationLifetime,
     ILogger<TransferJob> logger,
     TimeProvider timeProvider
@@ -60,7 +61,9 @@ public class TransferJob(
             HealthAttendanceSummaries = healthAttendanceAggregator.ApplyAggregation(
                 consolidatedData
             ),
-            ChildrensSocialCareReferralSummaries = null,
+            ChildrensSocialCareReferralSummaries = missingEpisodesTransformer.ApplyTransformation(
+                consolidatedData
+            ),
             CrimeMissingEpisodesPast6Months = null,
         };
     }
