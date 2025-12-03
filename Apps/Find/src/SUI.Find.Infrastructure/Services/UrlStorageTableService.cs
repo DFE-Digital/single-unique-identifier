@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models;
@@ -17,6 +18,7 @@ public interface IUrlStorageTableService
     );
 }
 
+[ExcludeFromCodeCoverage(Justification = "Uses TableServiceClient directly")]
 public class UrlStorageTableService(TableServiceClient client)
     : IUrlStorageTableService,
         ITableServiceEnsureCreated
