@@ -54,7 +54,7 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task GetTransfer_WithoutApiKey_ReturnsUnauthorized()
+    public async Task PostTransfer_WithoutApiKey_ReturnsUnauthorized()
     {
         //Arrange
         var testId = "999-000-1234";
@@ -71,7 +71,7 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task GetTransfer_WithIncorrectApiKey_ReturnsUnauthorized()
+    public async Task PostTransfer_WithIncorrectApiKey_ReturnsUnauthorized()
     {
         //Arrange
         var testId = "999-000-1234";
@@ -90,7 +90,7 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task GetTransfer_WithCorrectApiKey_ReturnsOkResult()
+    public async Task PostTransfer_WithCorrectApiKey_ReturnsOkResult()
     {
         // Arrange
         var testId = "999-000-1234";
