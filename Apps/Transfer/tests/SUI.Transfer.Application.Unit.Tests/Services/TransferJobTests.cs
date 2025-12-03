@@ -15,6 +15,8 @@ public class TransferJobTests
         Substitute.For<IRecordConsolidator>();
     private readonly IEducationAttendanceTransformer _mockEducationAttendanceTransformer =
         Substitute.For<IEducationAttendanceTransformer>();
+    private readonly IHealthAttendanceAggregator _mockHealthAttendanceAggregator =
+        Substitute.For<IHealthAttendanceAggregator>();
     private readonly IHostApplicationLifetime _mockHostApplicationLifetime =
         Substitute.For<IHostApplicationLifetime>();
     private readonly ILogger<TransferJob> _mockLogger = Substitute.For<ILogger<TransferJob>>();
@@ -28,6 +30,7 @@ public class TransferJobTests
             _mockRecordFetcher,
             _mockRecordConsolidator,
             _mockEducationAttendanceTransformer,
+            _mockHealthAttendanceAggregator,
             _mockHostApplicationLifetime,
             _mockLogger,
             TimeProvider.System
