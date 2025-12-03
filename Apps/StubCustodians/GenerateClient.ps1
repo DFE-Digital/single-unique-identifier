@@ -40,6 +40,6 @@ if (-Not (Test-Path $OutputSpec)) {
 }
 
 Write-Host "Generating client using NSwag..."
-dotnet nswag run $NswagConfig
+nswag run $NswagConfig
 
 Write-Host "Client generation complete!"
