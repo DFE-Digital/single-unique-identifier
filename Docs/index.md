@@ -25,7 +25,7 @@ visualised in an interactive UI using Structurizr.
     images and does not require a license to use for commercial purposes.
 2. Run Structurizr using Docker, from this repo's root:
     ```
-    docker run -it --rm -p 8080:8080 -v ./Docs/:/usr/local/structurizr structurizr/lite
+    docker run -it --rm -p 2323:8080 -v ./Docs/:/usr/local/structurizr structurizr/lite
     ```
 
 ## Contents
