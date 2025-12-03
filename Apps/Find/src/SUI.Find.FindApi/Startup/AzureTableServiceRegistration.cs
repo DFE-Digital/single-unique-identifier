@@ -1,9 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using SUI.Find.Infrastructure.Interfaces;
-using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Startup;
 
+[ExcludeFromCodeCoverage(Justification = "Simple DI registration code")]
 public static class AzureTableServiceRegistration
 {
     public static void AddAzureTableServices(this IServiceCollection services)
