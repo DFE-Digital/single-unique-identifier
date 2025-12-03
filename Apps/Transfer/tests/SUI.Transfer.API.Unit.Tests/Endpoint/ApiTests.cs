@@ -94,7 +94,8 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     {
         // Arrange
         var testId = "999-000-1234";
-        var mockResponse = new QueuedTransferJobState(Guid.NewGuid(), testId);
+        var createdAt = TimeProvider.System.GetUtcNow();
+        var mockResponse = new QueuedTransferJobState(Guid.NewGuid(), testId, createdAt);
 
         _mockTransferService.BeginTransferJob(Arg.Any<string>()).Returns(mockResponse);
 
@@ -114,9 +115,9 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         );
         Assert.NotNull(content);
         Assert.Equal(
-            new QueuedTransferJobState(mockResponse.JobId, testId)
+            new QueuedTransferJobState(mockResponse.JobId, testId, createdAt)
             {
-                Timestamp = content.Timestamp,
+                LastUpdatedAt = content.LastUpdatedAt,
             },
             content
         );

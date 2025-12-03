@@ -77,9 +77,9 @@ public class TransferServiceTests
                 var intermediateResult = await _sut.GetTransferJobStateAsync(jobId);
                 Assert.NotNull(intermediateResult);
                 Assert.Equal(
-                    new RunningTransferJobState(jobId, requestId)
+                    new RunningTransferJobState(jobId, requestId, intermediateResult.CreatedAt)
                     {
-                        Timestamp = intermediateResult.Timestamp,
+                        LastUpdatedAt = intermediateResult.LastUpdatedAt,
                     },
                     intermediateResult
                 );
@@ -106,9 +106,9 @@ public class TransferServiceTests
         // Assert - initial result should be Queued
         Assert.NotNull(initialResult);
         Assert.Equal(
-            new QueuedTransferJobState(initialResult.JobId, requestId)
+            new QueuedTransferJobState(initialResult.JobId, requestId, initialResult.CreatedAt)
             {
-                Timestamp = initialResult.Timestamp,
+                LastUpdatedAt = initialResult.LastUpdatedAt,
             },
             initialResult
         );
@@ -126,10 +126,14 @@ public class TransferServiceTests
                 new CompletedTransferJobState(
                     initialResult.JobId,
                     requestId,
-                    CreateEmptyConformedConsolidatedData(initialResult.JobId, requestId)
+                    CreateEmptyConformedConsolidatedData(initialResult.JobId, requestId),
+                    initialResult.CreatedAt
                 ),
                 options =>
-                    options.Excluding(x => x.Timestamp).Excluding(x => x.ConformedData.CreatedDate)
+                    options
+                        .Excluding(x => x.LastUpdatedAt)
+                        .Excluding(x => x.CreatedAt)
+                        .Excluding(x => x.ConformedData.CreatedDate)
             );
     }
 
@@ -163,9 +167,9 @@ public class TransferServiceTests
         // Assert - initial result should be Queued
         Assert.NotNull(initialResult);
         Assert.Equal(
-            new QueuedTransferJobState(initialResult.JobId, requestId)
+            new QueuedTransferJobState(initialResult.JobId, requestId, initialResult.CreatedAt)
             {
-                Timestamp = initialResult.Timestamp,
+                LastUpdatedAt = initialResult.LastUpdatedAt,
             },
             initialResult
         );
@@ -216,9 +220,9 @@ public class TransferServiceTests
         // Assert - initial result should be Queued
         Assert.NotNull(initialResult);
         Assert.Equal(
-            new QueuedTransferJobState(initialResult.JobId, requestId)
+            new QueuedTransferJobState(initialResult.JobId, requestId, initialResult.CreatedAt)
             {
-                Timestamp = initialResult.Timestamp,
+                LastUpdatedAt = initialResult.LastUpdatedAt,
             },
             initialResult
         );
