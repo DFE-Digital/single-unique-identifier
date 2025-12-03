@@ -30,8 +30,15 @@ if (-Not (Test-Path $DllPath)) {
     exit 1
 }
 
+# Check for global swagger tool
+if (-not (Get-Command swagger -ErrorAction SilentlyContinue)) {
+    Write-Host "Swashbuckle CLI not found globally. Installing..."
+    dotnet tool install --global Swashbuckle.AspNetCore.Cli --version 9.0.6
+    # Ensure the global tools path is in the PATH
+    $env:PATH += ";" + "$HOME/.dotnet/tools"
+}
+
 Write-Host "Generating OpenAPI JSON from DLL..."
-# Using Swashbuckle CLI (installed globally) to generate JSON spec
 swagger tofile --output $OutputSpec $DllPath v1
 
 if (-Not (Test-Path $OutputSpec)) {
@@ -40,6 +47,6 @@ if (-Not (Test-Path $OutputSpec)) {
 }
 
 Write-Host "Generating client using NSwag..."
-nswag run $NswagConfig
+dotnet nswag run $NswagConfig
 
 Write-Host "Client generation complete!"
