@@ -64,7 +64,7 @@ namespace SUI.StubCustodians.API.Controllers
             _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
 
             var result = await _mediator.Send(
-                new GetPersonalDetailsRecordQuery()
+                new GetChildSocialCareRecordQuery()
                 {
                     Sui = sui,
                     ProviderSystemId = providerSystemId,
@@ -91,7 +91,7 @@ namespace SUI.StubCustodians.API.Controllers
             _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
 
             var result = await _mediator.Send(
-                new GetPersonalDetailsRecordQuery()
+                new GetEducationDetailsRecordQuery()
                 {
                     Sui = sui,
                     ProviderSystemId = providerSystemId,
@@ -115,11 +115,7 @@ namespace SUI.StubCustodians.API.Controllers
             _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
 
             var result = await _mediator.Send(
-                new GetPersonalDetailsRecordQuery()
-                {
-                    Sui = sui,
-                    ProviderSystemId = providerSystemId,
-                }
+                new GetHealthDataRecordQuery() { Sui = sui, ProviderSystemId = providerSystemId }
             );
 
             _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
@@ -139,11 +135,7 @@ namespace SUI.StubCustodians.API.Controllers
             _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
 
             var result = await _mediator.Send(
-                new GetPersonalDetailsRecordQuery()
-                {
-                    Sui = sui,
-                    ProviderSystemId = providerSystemId,
-                }
+                new GetCrimeDataRecordQuery() { Sui = sui, ProviderSystemId = providerSystemId }
             );
 
             _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
