@@ -1,0 +1,1014 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Custodians API",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/v1/Records/{providerSystemId}/PersonalDetailsRecordV1/{sui}": {
+      "get": {
+        "tags": [
+          "Records"
+        ],
+        "parameters": [
+          {
+            "name": "sui",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalDetailsRecordV1RecordEnvelope"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalDetailsRecordV1RecordEnvelope"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalDetailsRecordV1RecordEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Records/{providerSystemId}/ChildSocialCareDetailsRecordV1/{sui}": {
+      "get": {
+        "tags": [
+          "Records"
+        ],
+        "parameters": [
+          {
+            "name": "sui",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChildSocialCareDetailsRecordV1RecordEnvelope"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChildSocialCareDetailsRecordV1RecordEnvelope"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChildSocialCareDetailsRecordV1RecordEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Records/{providerSystemId}/EducationDetailsRecordV1/{sui}": {
+      "get": {
+        "tags": [
+          "Records"
+        ],
+        "parameters": [
+          {
+            "name": "sui",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/EducationDetailsRecordV1RecordEnvelope"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/EducationDetailsRecordV1RecordEnvelope"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/EducationDetailsRecordV1RecordEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Records/{providerSystemId}/HealthDataRecordV1/{sui}": {
+      "get": {
+        "tags": [
+          "Records"
+        ],
+        "parameters": [
+          {
+            "name": "sui",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthDataRecordV1RecordEnvelope"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthDataRecordV1RecordEnvelope"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthDataRecordV1RecordEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Records/{providerSystemId}/CrimeDataRecordV1/{sui}": {
+      "get": {
+        "tags": [
+          "Records"
+        ],
+        "parameters": [
+          {
+            "name": "sui",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrimeDataRecordV1RecordEnvelope"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrimeDataRecordV1RecordEnvelope"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrimeDataRecordV1RecordEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddressV1": {
+        "type": "object",
+        "properties": {
+          "line1": {
+            "type": "string",
+            "nullable": true
+          },
+          "line2": {
+            "type": "string",
+            "nullable": true
+          },
+          "townOrCity": {
+            "type": "string",
+            "nullable": true
+          },
+          "county": {
+            "type": "string",
+            "nullable": true
+          },
+          "postcode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChildSocialCareDetailsRecordV1": {
+        "type": "object",
+        "properties": {
+          "keyWorker": {
+            "type": "string",
+            "nullable": true
+          },
+          "dutyContactDetails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "teamInvolvement": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "cscReferrals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChildSocialCareReferralV1"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChildSocialCareDetailsRecordV1RecordEnvelope": {
+        "required": [
+          "payload",
+          "providerSystemId",
+          "schemaUri"
+        ],
+        "type": "object",
+        "properties": {
+          "providerSystemId": {
+            "type": "string",
+            "nullable": true
+          },
+          "schemaUri": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ChildSocialCareDetailsRecordV1"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChildSocialCareReferralV1": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CrimeDataRecordV1": {
+        "type": "object",
+        "properties": {
+          "policeMarkerDetails": {
+            "type": "string",
+            "nullable": true
+          },
+          "servicesKnownTo": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "lastPoliceProtectionPowerEvent": {
+            "type": "string",
+            "nullable": true
+          },
+          "missingEpisodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CrimeMissingEpisodeV1"
+            },
+            "nullable": true
+          },
+          "linkedCrimeRisks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LinkedCrimeRiskV1"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CrimeDataRecordV1RecordEnvelope": {
+        "required": [
+          "payload",
+          "providerSystemId",
+          "schemaUri"
+        ],
+        "type": "object",
+        "properties": {
+          "providerSystemId": {
+            "type": "string",
+            "nullable": true
+          },
+          "schemaUri": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "payload": {
+            "$ref": "#/components/schemas/CrimeDataRecordV1"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CrimeMissingEpisodeV1": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CrimeRiskTypeV1": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "EducationAttendanceV1": {
+        "type": "object",
+        "properties": {
+          "academicTermYearStart": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "academicTermYearEnd": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "attendancePercentage": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "unauthorisedAbsencePercentage": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "suspensions": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "exclusions": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "schoolMovesNonTransitional": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EducationDetailsRecordV1": {
+        "type": "object",
+        "properties": {
+          "educationSettingName": {
+            "type": "string",
+            "nullable": true
+          },
+          "educationSettingAddress": {
+            "$ref": "#/components/schemas/AddressV1"
+          },
+          "educationSettingTelephone": {
+            "type": "string",
+            "nullable": true
+          },
+          "educationAttendances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EducationAttendanceV1"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EducationDetailsRecordV1RecordEnvelope": {
+        "required": [
+          "payload",
+          "providerSystemId",
+          "schemaUri"
+        ],
+        "type": "object",
+        "properties": {
+          "providerSystemId": {
+            "type": "string",
+            "nullable": true
+          },
+          "schemaUri": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "payload": {
+            "$ref": "#/components/schemas/EducationDetailsRecordV1"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EmergencyDepartmentAttendanceV1": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ErrorInfo": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FailureInfo": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/FailureKind"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorInfo"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FailureKind": {
+        "enum": [
+          0,
+          400,
+          404,
+          409
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "HealthDataRecordV1": {
+        "type": "object",
+        "properties": {
+          "registeredGP": {
+            "type": "string",
+            "nullable": true
+          },
+          "gpAddress": {
+            "$ref": "#/components/schemas/AddressV1"
+          },
+          "gpTelephone": {
+            "type": "string",
+            "nullable": true
+          },
+          "camhsContactAddress": {
+            "$ref": "#/components/schemas/AddressV1"
+          },
+          "camhsContactTelephone": {
+            "type": "string",
+            "nullable": true
+          },
+          "missedAppointments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HealthMissedAppointmentV1"
+            },
+            "nullable": true
+          },
+          "emergencyDepartmentAttendances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmergencyDepartmentAttendanceV1"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "HealthDataRecordV1RecordEnvelope": {
+        "required": [
+          "payload",
+          "providerSystemId",
+          "schemaUri"
+        ],
+        "type": "object",
+        "properties": {
+          "providerSystemId": {
+            "type": "string",
+            "nullable": true
+          },
+          "schemaUri": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "payload": {
+            "$ref": "#/components/schemas/HealthDataRecordV1"
+          }
+        },
+        "additionalProperties": false
+      },
+      "HealthMissedAppointmentV1": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "setting": {
+            "$ref": "#/components/schemas/HealthSettingV1"
+          }
+        },
+        "additionalProperties": false
+      },
+      "HealthSettingV1": {
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "LinkedCrimeRiskV1": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "riskType": {
+            "$ref": "#/components/schemas/CrimeRiskTypeV1"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PersonalDetailsRecordV1": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "address": {
+            "$ref": "#/components/schemas/AddressV1"
+          },
+          "namesOfIndividualsResidingAtMainAddress": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "birthAssignedSex": {
+            "type": "string",
+            "nullable": true
+          },
+          "pronouns": {
+            "type": "string",
+            "nullable": true
+          },
+          "ethnicity": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstLanguage": {
+            "type": "string",
+            "nullable": true
+          },
+          "designatedLocalAuthority": {
+            "type": "string",
+            "nullable": true
+          },
+          "englishAsAdditionalLanguage": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "braille": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "signLanguage": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "makaton": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "interpreter": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "relatedPeople": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedPersonV1"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PersonalDetailsRecordV1RecordEnvelope": {
+        "required": [
+          "payload",
+          "providerSystemId",
+          "schemaUri"
+        ],
+        "type": "object",
+        "properties": {
+          "providerSystemId": {
+            "type": "string",
+            "nullable": true
+          },
+          "schemaUri": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "payload": {
+            "$ref": "#/components/schemas/PersonalDetailsRecordV1"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "RelatedPersonV1": {
+        "type": "object",
+        "properties": {
+          "relationshipToTheChild": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "dob": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "risk": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
