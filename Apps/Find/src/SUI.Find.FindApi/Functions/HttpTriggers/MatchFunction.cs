@@ -110,17 +110,17 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
                 return false;
             }
 
-            var mpr = JsonSerializer.Deserialize<MatchPersonRequest>(
+            var request = JsonSerializer.Deserialize<MatchPersonRequest>(
                 requestBody,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                JsonSerializerUtility.GetCaseInsensitiveOptions()
             );
 
-            if (mpr is null)
+            if (request is null)
             {
                 return false;
             }
 
-            model = mpr;
+            model = request;
             return true;
         }
         catch (JsonException)

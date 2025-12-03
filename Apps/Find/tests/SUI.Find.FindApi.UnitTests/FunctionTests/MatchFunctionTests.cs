@@ -110,4 +110,48 @@ public class MatchFunctionTests
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
+
+    [Fact]
+    public async Task ShouldReturnUnauthorized_WhenAuthContextMissing()
+    {
+        // Arrange
+        var function = CreateFunction();
+        var context = Substitute.For<FunctionContext>();
+        context.Items.Returns(new Dictionary<object, object>());
+        context.InvocationId.Returns(Guid.NewGuid().ToString());
+        var validRequest = new MatchPersonRequest
+        {
+            Given = "John",
+            Family = "Doe",
+            BirthDate = DateOnly.Parse("1990-01-01"),
+        };
+        var req = MockHttpRequestData.CreateJson(validRequest);
+
+        // Act
+        var response = await function.MatchPerson(req, context, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ShouldReturnBadRequest_WhenRequestModelIsInvalid()
+    {
+        // Arrange
+        var service = Substitute.For<IMatchingService>();
+        var logger = Substitute.For<ILogger<MatchFunction>>();
+        var function = new MatchFunction(logger, service);
+
+        var context = CreateContextWithAuth();
+        context.InvocationId.Returns(Guid.NewGuid().ToString());
+
+        // Malformed request (empty body)
+        var req = MockHttpRequestData.CreateJson("");
+
+        // Act
+        var response = await function.MatchPerson(req, context, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }
