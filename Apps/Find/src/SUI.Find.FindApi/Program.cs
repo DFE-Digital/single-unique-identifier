@@ -27,7 +27,7 @@ builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
 // Custom application services
 builder.Services.AddSingleton<IAuditService, AuditStorageTableService>();
-builder.Services.AddSingleton<IUrlStorageTableService, UrlStorageTableService>();
+builder.Services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();

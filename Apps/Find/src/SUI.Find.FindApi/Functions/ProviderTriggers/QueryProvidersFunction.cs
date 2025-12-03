@@ -20,7 +20,7 @@ public class QueryProvidersFunction(ILogger<QueryProvidersFunction> logger)
             ProviderSystem: data.Provider.ProviderSystem,
             ProviderName: data.Provider.ProviderName,
             RecordType: "Test Record Type",
-            RecordUrl: $"https://example.com/record/{data.Provider.OrgId}/{data.InstanceId}"
+            RecordUrl: $"https://example.com/record/{data.Provider.OrgId}/{data.JobId}"
         );
 
         logger.LogInformation("Query Provider request completed");

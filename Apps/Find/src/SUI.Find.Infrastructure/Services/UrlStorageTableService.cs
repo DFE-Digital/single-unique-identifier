@@ -1,56 +1,37 @@
 using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.Infrastructure.Services;
 
-public interface IUrlStorageTableService
-{
-    Task AddAsync(
-        string jobId,
-        string targetUrl,
-        string targetOrg,
-        string requestingOrg,
-        string recordType,
-        TimeSpan ttl,
-        CancellationToken ct
-    );
-}
-
 [ExcludeFromCodeCoverage(Justification = "Uses TableServiceClient directly")]
 public class UrlStorageTableService(TableServiceClient client)
-    : IUrlStorageTableService,
+    : IFetchUrlStorageService,
         ITableServiceEnsureCreated
 {
-    public async Task AddAsync(
-        string jobId,
-        string targetUrl,
-        string targetOrg,
-        string requestingOrg,
-        string recordType,
-        TimeSpan ttl,
-        CancellationToken ct
-    )
+    public async Task AddAsync(AddFetchUrlRequest request, CancellationToken ct)
     {
         var tableClient = client.GetTableClient(
             InfrastructureConstants.StorageTableUrlMappings.TableName
         );
 
-        var partitionKey = jobId[..2]; // Simple partitioning: first 2 chars of id
-        var expiresAt = DateTimeOffset.UtcNow.Add(ttl);
+        var partitionKey = request.JobId[..2]; // Simple partitioning: first 2 chars of id
+        var expiresAt = DateTimeOffset.UtcNow.Add(request.Ttl);
 
         var entity = new FetchUrlMappingEntity
         {
             PartitionKey = partitionKey,
-            RowKey = jobId,
+            RowKey = request.FetchId,
             Timestamp = DateTimeOffset.Now,
-            TargetUrl = targetUrl,
+            TargetUrl = request.TargetUrl,
             ExpiresAtUtc = expiresAt,
-            TargetOrgId = targetOrg,
-            RequestingOrgId = requestingOrg,
-            RecordType = recordType,
-            JobId = jobId,
+            TargetOrgId = request.TargetOrg,
+            RequestingOrgId = request.RequestingOrg,
+            RecordType = request.RecordType,
+            JobId = request.JobId,
         };
 
         await tableClient.AddEntityAsync(entity, ct);
