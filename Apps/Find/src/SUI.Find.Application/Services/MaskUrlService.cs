@@ -59,7 +59,7 @@ public class MaskUrlService(
             }
             catch (Exception ex)
             {
-                logger.LogWarning("Failed to mask URL: {Error}", ex.Message);
+                logger.LogWarning(ex, "Failed to mask URL: {Error}", ex.Message);
                 // Do nothing else, we don't want to reveal original URL if masking fails
             }
         }
