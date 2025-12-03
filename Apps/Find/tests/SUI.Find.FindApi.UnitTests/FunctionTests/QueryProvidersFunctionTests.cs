@@ -9,7 +9,9 @@ namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
 public class QueryProvidersFunctionTests
 {
-    private readonly ILogger<QueryProvidersFunction> _mockLogger = Substitute.For<ILogger<QueryProvidersFunction>>();
+    private readonly ILogger<QueryProvidersFunction> _mockLogger = Substitute.For<
+        ILogger<QueryProvidersFunction>
+    >();
     private readonly FunctionContext _mockContext;
     private readonly QueryProvidersFunction _function;
 
@@ -30,21 +32,27 @@ public class QueryProvidersFunctionTests
             OrgType = "Type A",
             ProviderSystem = "System A",
             ProviderName = "Provider Name 1",
-            RecordType = "Test Record Type"
-
+            RecordType = "Test Record Type",
         };
-        var input = new QueryProviderInput("test-client-1", "instance-123", "invocation-123", "1234567890123456", providerDef);
+        var input = new QueryProviderInput(
+            "test-client-1",
+            "instance-123",
+            "invocation-123",
+            "1234567890123456",
+            providerDef
+        );
 
         // Act
-        var result = await _function.QueryProvider(input, _mockContext);
+        var result = await _function.QueryProvider(_mockContext, input);
 
         // Assert
         Assert.NotNull(result);
         Assert.Equal("System A", result[0].ProviderSystem);
         Assert.Equal("Provider Name 1", result[0].ProviderName);
         Assert.Equal("Test Record Type", result[0].RecordType);
-        Assert.Equal($"https://example.com/record/{providerDef.OrgId}/{input.InstanceId}", result[0].RecordUrl);
-
-
+        Assert.Equal(
+            $"https://example.com/record/{providerDef.OrgId}/{input.InstanceId}",
+            result[0].RecordUrl
+        );
     }
 }
