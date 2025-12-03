@@ -112,7 +112,7 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
 
             var request = JsonSerializer.Deserialize<MatchPersonRequest>(
                 requestBody,
-                JsonSerializerUtility.GetCaseInsensitiveOptions()
+                JsonSerializerOptions.Web
             );
 
             if (request is null)

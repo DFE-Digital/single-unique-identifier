@@ -26,7 +26,7 @@ public class MockMatchRepository(ILogger<MockMatchRepository> logger, IFileSyste
             var mockData = await fileSystem.File.ReadAllTextAsync(mockDataPath);
             var mockPersons = JsonSerializer.Deserialize<MockPdsStore>(
                 mockData,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                JsonSerializerOptions.Web
             );
 
             // Find based on Given, Family and Birthdate - case insensitive
