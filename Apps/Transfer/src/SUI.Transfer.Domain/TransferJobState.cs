@@ -19,15 +19,10 @@ public abstract record TransferJobState(
         {
             var links = new Dictionary<string, HalLink>
             {
-                { "self", new HalLink($"/v1/searches/{JobId}", "GET") },
-                { "status", new HalLink($"/v1/searches/{JobId}", "GET") },
-                { "cancel", new HalLink($"/v1/searches/{JobId}", "DELETE") },
+                { "status", new HalLink($"/v1/transfer/{JobId}", "GET") },
+                { "results", new HalLink($"/v1/transfer/{JobId}/results", "GET") },
+                { "cancel", new HalLink($"/v1/transfer/{JobId}", "DELETE") },
             };
-
-            if (Status == TransferJobStatus.Completed)
-            {
-                links.Add("results", new HalLink($"/v1/searches/{JobId}/results", "GET"));
-            }
 
             return links;
         }
