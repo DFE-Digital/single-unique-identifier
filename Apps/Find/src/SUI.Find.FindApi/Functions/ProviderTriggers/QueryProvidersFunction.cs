@@ -12,7 +12,8 @@ namespace SUI.Find.FindApi.Functions.ProviderTriggers;
 public class QueryProvidersFunction(
     ILogger<QueryProvidersFunction> logger,
     IHttpClientFactory httpClientFactory,
-    IPersonIdEncryptionService encryptionService)
+    IPersonIdEncryptionService encryptionService,
+    IMaskUrlService maskUrlService)
 {
     [Function(nameof(QueryProvidersFunction))]
     public async Task<IReadOnlyList<SearchResultItem>> QueryProvider(
@@ -49,7 +50,6 @@ public class QueryProvidersFunction(
 
         using var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, encryptedPersonId.Value!, bearerToken);
 
-        // TODO confirm client name is correct
         using var httpClient = httpClientFactory.CreateClient("providers");
         using var response = await httpClient.SendAsync(request, context.CancellationToken);
 
@@ -81,15 +81,11 @@ public class QueryProvidersFunction(
             return [];
         }
 
-        var maskedItems = searchResultItems.Select(item =>
-        {
-            var fetchId = Guid.NewGuid().ToString();
-            return item with { RecordUrl = $"/v1/records/{fetchId}" };
-        }).ToList();
+        var maskedSearchResultItems = await maskUrlService.CreateAsync(searchResultItems, data, context.CancellationToken);
 
         logger.LogInformation("Query Provider request completed");
 
-        return maskedItems;
+        return maskedSearchResultItems;
     }
 }
 

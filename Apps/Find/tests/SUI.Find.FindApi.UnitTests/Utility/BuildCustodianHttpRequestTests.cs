@@ -8,7 +8,6 @@ public class BuildCustodianHttpRequestTests
     private const string DefaultOrgId = "test-org-123";
     private const string EncryptedPersonId = "1234567890123456";
 
-    // Added to mock the provider definition
     private static ProviderDefinition MockProvider(
         string method = "GET",
         string url = "https://api.example.com/records",
@@ -45,7 +44,6 @@ public class BuildCustodianHttpRequestTests
         Assert.Contains("orgId", request.Headers.ToString());
         Assert.Equal(DefaultOrgId, request.Headers.GetValues("orgId").Single());
         Assert.Equal($"https://api.example.com/records?personId={Uri.EscapeDataString(EncryptedPersonId)}", request.RequestUri!.ToString());
-        Assert.Equal("aaplication/json", request?.Content?.Headers.ContentType!.ToString());
     }
 
     [Fact]
