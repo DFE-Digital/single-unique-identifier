@@ -8,7 +8,7 @@ using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
-public class BaseSearchService
+public class BaseSearchServiceTests
 {
     protected readonly SearchService Sut;
     protected readonly ILogger<SearchService> Logger = Substitute.For<ILogger<SearchService>>();
@@ -17,7 +17,7 @@ public class BaseSearchService
     protected readonly IPersonIdEncryptionService EncryptionService =
         Substitute.For<IPersonIdEncryptionService>();
 
-    protected BaseSearchService()
+    protected BaseSearchServiceTests()
     {
         Sut = Substitute.ForPartsOf<SearchService>(
             Logger,

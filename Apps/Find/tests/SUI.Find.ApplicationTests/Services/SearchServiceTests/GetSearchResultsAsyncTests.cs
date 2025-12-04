@@ -8,7 +8,7 @@ using SUI.Find.Application.Models;
 
 namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
-public class GetSearchResultsAsyncTests : BaseSearchService
+public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
     private const string ClientId = "test-client-id";
@@ -42,8 +42,7 @@ public class GetSearchResultsAsyncTests : BaseSearchService
         // Mock the ReadOrchestratorInput to return a different clientId
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext("different-client-id", []);
-        Sut
-            .ReadOrchestratorInput<SearchOrchestratorInput>(meta)
+        Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
         var result = await Sut.GetSearchResultsAsync(

@@ -9,7 +9,7 @@ using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
-public class CancelSearchAsyncTests : BaseSearchService
+public class CancelSearchAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
     private const string ClientId = "test-client-id";
@@ -18,8 +18,7 @@ public class CancelSearchAsyncTests : BaseSearchService
     {
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext("test-client-id", []);
-        Sut
-            .ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
+        Sut.ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
     }
 
@@ -131,8 +130,7 @@ public class CancelSearchAsyncTests : BaseSearchService
         // Mock the ReadOrchestratorInput to return a different clientId
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext("different-client-id", []);
-        Sut
-            .ReadOrchestratorInput<SearchOrchestratorInput>(meta)
+        Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
         var result = await Sut.CancelSearchAsync(

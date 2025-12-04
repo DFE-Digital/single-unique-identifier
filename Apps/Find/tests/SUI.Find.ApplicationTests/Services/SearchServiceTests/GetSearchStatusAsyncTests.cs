@@ -9,7 +9,7 @@ using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
-public class GetSearchStatusAsyncTests : BaseSearchService
+public class GetSearchStatusAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
     private const string ClientId = "test-client-id";

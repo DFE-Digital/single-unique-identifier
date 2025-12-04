@@ -9,7 +9,7 @@ using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
-public class StartSearchAsyncTests : BaseSearchService
+public class StartSearchAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
 
