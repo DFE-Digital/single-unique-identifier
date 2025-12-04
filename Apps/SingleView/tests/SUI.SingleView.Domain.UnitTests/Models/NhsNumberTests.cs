@@ -81,6 +81,17 @@ public class NhsNumberTests
     }
 
     [Fact]
+    public void Parse_WithInvalidNhsNumber_ThrowsException()
+    {
+        // Arrange
+        var invalidNhsNumber = "12345"; // Invalid length and format
+
+        // Act / Assert
+        var exception = Should.Throw<FormatException>(() => NhsNumber.Parse(invalidNhsNumber));
+        exception.Message.ShouldBe("Invalid NHS number.");
+    }
+
+    [Fact]
     public void Implicit_ToString_ReturnsNhsNumber()
     {
         // Arrange
