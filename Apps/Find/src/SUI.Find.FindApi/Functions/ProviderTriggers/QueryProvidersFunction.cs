@@ -34,6 +34,7 @@ public class QueryProvidersFunction(
         var authConnection = data.Provider.Connection.Auth;
         var bearerToken = authConnection is null
             ? null
+            // TODO Add OutboundAuthTokenService to get real token
             : "test-bearer-token";
 
         if (!encryptedPersonId.Success)

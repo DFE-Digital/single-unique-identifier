@@ -65,4 +65,7 @@ builder.Services.AddSingleton(sp =>
     return new TableServiceClient(connection);
 });
 
+// TODO will need considering as part clean arch changes
+builder.Services.AddHttpClient("providers");
+
 await builder.Build().RunAsync();
