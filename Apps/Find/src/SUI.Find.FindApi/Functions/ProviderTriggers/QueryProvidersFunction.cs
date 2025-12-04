@@ -8,6 +8,7 @@ using SUI.Find.FindApi.Utility;
 
 namespace SUI.Find.FindApi.Functions.ProviderTriggers;
 
+// TODO this needs separating according to clean architecture principles
 public class QueryProvidersFunction(
     ILogger<QueryProvidersFunction> logger,
     IHttpClientFactory httpClientFactory,
