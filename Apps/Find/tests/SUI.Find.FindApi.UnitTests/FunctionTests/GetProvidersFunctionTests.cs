@@ -25,14 +25,14 @@ public class GetProvidersFunctionTests
         // Arrange
         string suid = "1234567890123456";
         string invocationId = "invocation-id";
-        
+
         var expectedProviders = new List<ProviderDefinition>
         {
             new ProviderDefinition { OrgId = "12345", OrgName = "Test Provider 1", OrgType = "Type A", ProviderSystem = "System A", ProviderName = "Provider Name 1" },
             new ProviderDefinition { OrgId = "67890", OrgName = "Test Provider 2", OrgType = "Type B", ProviderSystem = "System B", ProviderName = "Provider Name 2" },
             new ProviderDefinition { OrgId = "54321", OrgName = "Test Provider 3", OrgType = "Type C", ProviderSystem = "System C", ProviderName = "Provider Name 3" }
         };
-        
+
         _mockCustodianService.GetCustodiansAsync().Returns(expectedProviders);
 
         // Act
@@ -45,7 +45,7 @@ public class GetProvidersFunctionTests
         Assert.Equal("Test Provider 1", result[0].OrgName);
         await _mockCustodianService.Received(1).GetCustodiansAsync();
     }
-    
+
     [Fact]
     public async Task GetProviders_ReturnsEmptyList_WhenNoProvidersAvailable()
     {
@@ -73,7 +73,7 @@ public class GetProvidersFunctionTests
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _function.GetProviders(invocationId, suid));
-        
+
         Assert.Equal("Datasource not available", ex.Message);
     }
 }

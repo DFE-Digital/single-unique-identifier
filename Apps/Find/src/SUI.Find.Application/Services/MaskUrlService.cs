@@ -6,20 +6,6 @@ using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Services;
 
-public interface IMaskUrlService
-{
-    Task<IReadOnlyList<SearchResultItem>> CreateAsync(
-        List<SearchResultItem> items,
-        QueryProviderInput input,
-        CancellationToken ct
-    );
-
-    Task<Result<ResolvedFetchMapping>> ResolveAsync(
-        string requestingOrg,
-        string fetchId,
-        CancellationToken ct
-    );
-}
 
 public class MaskUrlService(
     ILogger<MaskUrlService> logger,
