@@ -2,9 +2,9 @@
 
 public record ChildrensServicesReferralSummaries
 {
-    public required ChildrensServicesReferralSummary[]? Past6Months { get; init; }
+    public required IReadOnlyCollection<ChildrensServicesReferralSummary>? Past6Months { get; init; }
 
-    public required ChildrensServicesReferralSummary[]? Past12Months { get; init; }
+    public required IReadOnlyCollection<ChildrensServicesReferralSummary>? Past12Months { get; init; }
 
-    public required ChildrensServicesReferralSummary[]? Past5Years { get; init; }
+    public required IReadOnlyCollection<ChildrensServicesReferralSummary>? Past5Years { get; init; }
 }

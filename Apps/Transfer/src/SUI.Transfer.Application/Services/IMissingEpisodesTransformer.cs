@@ -4,5 +4,5 @@ namespace SUI.Transfer.Application.Services;
 
 public interface IMissingEpisodesTransformer
 {
-    ChildrensServicesReferralSummaries? ApplyTransformation(ConsolidatedData consolidatedData);
+    CrimeMissingEpisodesSummaries? ApplyTransformation(ConsolidatedData consolidatedData);
 }

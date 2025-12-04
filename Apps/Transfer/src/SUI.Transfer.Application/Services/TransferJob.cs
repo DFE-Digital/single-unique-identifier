@@ -61,10 +61,10 @@ public class TransferJob(
             HealthAttendanceSummaries = healthAttendanceAggregator.ApplyAggregation(
                 consolidatedData
             ),
-            ChildrensSocialCareReferralSummaries = missingEpisodesTransformer.ApplyTransformation(
+            ChildrensSocialCareReferralSummaries = null,
+            CrimeMissingEpisodesSummaries = missingEpisodesTransformer.ApplyTransformation(
                 consolidatedData
             ),
-            CrimeMissingEpisodesPast6Months = null,
         };
     }
 }

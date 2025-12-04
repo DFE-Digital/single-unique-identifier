@@ -106,6 +106,25 @@ public class TransferJobTests
             .ApplyTransformation(mockConsolidatedData)
             .Returns(mockEducationAttendanceSummaries);
 
+        var mockHealthAttendanceSummaries = new HealthAttendanceSummaries
+        {
+            Last5Years = new HealthAttendanceSummary(1, 2, 3, 4),
+            Last12Months = null,
+        };
+
+        _mockHealthAttendanceAggregator
+            .ApplyAggregation(mockConsolidatedData)
+            .Returns(mockHealthAttendanceSummaries);
+
+        var mockCrimeMissingEpisodesSummaries = new CrimeMissingEpisodesSummaries
+        {
+            Last6Months = [],
+        };
+
+        _mockMissingEpisodesTransformer
+            .ApplyTransformation(mockConsolidatedData)
+            .Returns(mockCrimeMissingEpisodesSummaries);
+
         ConformedData expectedConformedData = new(
             jobId,
             mockConsolidatedData,
@@ -113,9 +132,9 @@ public class TransferJobTests
         )
         {
             EducationAttendanceSummaries = mockEducationAttendanceSummaries,
-            HealthAttendanceSummaries = null,
+            HealthAttendanceSummaries = mockHealthAttendanceSummaries,
             ChildrensSocialCareReferralSummaries = null,
-            CrimeMissingEpisodesPast6Months = null,
+            CrimeMissingEpisodesSummaries = mockCrimeMissingEpisodesSummaries,
         };
 
         // ACT
@@ -135,5 +154,7 @@ public class TransferJobTests
             .FetchRecordsAsync(sui, mockRecordPointers, Arg.Any<CancellationToken>());
         _mockRecordConsolidator.Received().ConsolidateRecords(mockUnconsolidatedData);
         _mockEducationAttendanceTransformer.Received().ApplyTransformation(mockConsolidatedData);
+        _mockHealthAttendanceAggregator.Received().ApplyAggregation(mockConsolidatedData);
+        _mockMissingEpisodesTransformer.Received().ApplyTransformation(mockConsolidatedData);
     }
 }

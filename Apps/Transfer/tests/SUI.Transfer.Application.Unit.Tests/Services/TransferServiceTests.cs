@@ -67,7 +67,7 @@ public class TransferServiceTests
             EducationAttendanceSummaries = null,
             HealthAttendanceSummaries = null,
             ChildrensSocialCareReferralSummaries = null,
-            CrimeMissingEpisodesPast6Months = null,
+            CrimeMissingEpisodesSummaries = null,
         };
 
     [Fact]
