@@ -341,6 +341,26 @@ public class SearchServiceTests
         fakeDelay.LastDelay.ShouldBe(TimeSpan.FromSeconds(3));
     }
 
+    [Fact]
+    public async Task Search_WhenDelayArgumentsNull_UsesDefaults()
+    {
+        var searchService = new SearchService(null, null);
+
+        var result = await searchService.SearchAsync(null, null, null, null, null);
+
+        result.ShouldNotBeNull();
+        result.ShouldBeOfType<List<SearchResult>>();
+    }
+
+    [Fact]
+    public async Task Search_WithWhitespacePostcode_ReturnsResults()
+    {
+        var result = await _searchService.SearchAsync(null, null, null, null, "   ");
+
+        result.ShouldNotBeNull();
+        result.ShouldBeOfType<List<SearchResult>>();
+    }
+
     private sealed class FakeDelay : IDelay
     {
         public int CallCount { get; private set; }
