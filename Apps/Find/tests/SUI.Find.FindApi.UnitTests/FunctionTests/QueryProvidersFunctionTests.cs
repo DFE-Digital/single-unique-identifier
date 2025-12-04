@@ -2,6 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Functions.ProviderTriggers;
 
@@ -12,13 +13,15 @@ public class QueryProvidersFunctionTests
     private readonly ILogger<QueryProvidersFunction> _mockLogger = Substitute.For<
         ILogger<QueryProvidersFunction>
     >();
+    private readonly IHttpClientFactory _httpClientFactory = Substitute.For<IHttpClientFactory>();
+    private readonly IPersonIdEncryptionService _encryptionService = Substitute.For<IPersonIdEncryptionService>();
     private readonly FunctionContext _mockContext;
     private readonly QueryProvidersFunction _function;
 
     public QueryProvidersFunctionTests()
     {
         _mockContext = Substitute.For<FunctionContext>();
-        _function = new QueryProvidersFunction(_mockLogger);
+        _function = new QueryProvidersFunction(_mockLogger, _httpClientFactory, _encryptionService);
     }
 
     [Fact]
