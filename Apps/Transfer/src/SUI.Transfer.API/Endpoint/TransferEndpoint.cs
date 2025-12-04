@@ -14,13 +14,14 @@ public static class TransferEndpoint
         var transferGroup = app.MapGroup("api/v1/").WithTags("SUI Transfer API - Transfer");
 
         transferGroup
-            .MapGet(
-                "/transfer/{sui}",
+            .MapPost(
+                "/transfer",
                 [Authorize]
                 Ok<QueuedTransferJobState> (
                     [Description(
                         "The single unique identifier for the data which is being requested."
                     )]
+                    [FromBody]
                         string sui,
                     [FromServices] ITransferService transferService
                 ) =>
@@ -34,5 +35,13 @@ public static class TransferEndpoint
             .WithDescription(
                 "This endpoint begins a job that requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form."
             );
+
+        transferGroup.MapDelete(
+            "/transfer/{jobId}",
+            [Authorize]
+            Ok<CancelledTransferJobState> (
+                [Description("The guid id of the job being cancelled.")] Guid jobId
+            ) => throw new NotImplementedException("To be implemented by SUI-1271")
+        );
     }
 }
