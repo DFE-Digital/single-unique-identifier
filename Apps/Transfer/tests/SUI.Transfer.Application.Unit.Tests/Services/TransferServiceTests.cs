@@ -66,7 +66,7 @@ public class TransferServiceTests
         {
             EducationAttendanceSummaries = null,
             HealthAttendanceSummaries = null,
-            ChildrensSocialCareReferralSummaries = null,
+            ChildServicesReferralSummaries = null,
             CrimeMissingEpisodesSummaries = null,
         };
 

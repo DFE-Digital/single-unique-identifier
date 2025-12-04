@@ -17,6 +17,8 @@ public class TransferJobTests
         Substitute.For<IEducationAttendanceTransformer>();
     private readonly IHealthAttendanceAggregator _mockHealthAttendanceAggregator =
         Substitute.For<IHealthAttendanceAggregator>();
+    private readonly IChildServicesReferralAggregator _mockChildServicesReferralAggregator =
+        Substitute.For<IChildServicesReferralAggregator>();
     private readonly IMissingEpisodesTransformer _mockMissingEpisodesTransformer =
         Substitute.For<IMissingEpisodesTransformer>();
     private readonly IHostApplicationLifetime _mockHostApplicationLifetime =
@@ -33,6 +35,7 @@ public class TransferJobTests
             _mockRecordConsolidator,
             _mockEducationAttendanceTransformer,
             _mockHealthAttendanceAggregator,
+            _mockChildServicesReferralAggregator,
             _mockMissingEpisodesTransformer,
             _mockHostApplicationLifetime,
             _mockLogger,
@@ -133,7 +136,7 @@ public class TransferJobTests
         {
             EducationAttendanceSummaries = mockEducationAttendanceSummaries,
             HealthAttendanceSummaries = mockHealthAttendanceSummaries,
-            ChildrensSocialCareReferralSummaries = null,
+            ChildServicesReferralSummaries = null,
             CrimeMissingEpisodesSummaries = mockCrimeMissingEpisodesSummaries,
         };
 
@@ -155,6 +158,7 @@ public class TransferJobTests
         _mockRecordConsolidator.Received().ConsolidateRecords(mockUnconsolidatedData);
         _mockEducationAttendanceTransformer.Received().ApplyTransformation(mockConsolidatedData);
         _mockHealthAttendanceAggregator.Received().ApplyAggregation(mockConsolidatedData);
+        _mockChildServicesReferralAggregator.Received().ApplyAggregation(mockConsolidatedData);
         _mockMissingEpisodesTransformer.Received().ApplyTransformation(mockConsolidatedData);
     }
 }

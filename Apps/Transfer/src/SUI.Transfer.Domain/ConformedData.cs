@@ -20,7 +20,7 @@ public record ConformedData(
 
     public required HealthAttendanceSummaries? HealthAttendanceSummaries { get; init; }
 
-    public required ChildrensServicesReferralSummaries? ChildrensSocialCareReferralSummaries { get; init; }
+    public required ChildServicesReferralSummaries? ChildServicesReferralSummaries { get; init; }
 
     public required CrimeMissingEpisodesSummaries? CrimeMissingEpisodesSummaries { get; set; }
 }

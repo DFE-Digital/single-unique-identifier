@@ -37,6 +37,7 @@ builder.Services.AddScoped<IRecordFetcher, RecordFetcher>();
 builder.Services.AddScoped<IRecordConsolidator, RecordConsolidator>();
 builder.Services.AddScoped<IEducationAttendanceTransformer, EducationAttendanceTransformer>();
 builder.Services.AddScoped<IHealthAttendanceAggregator, HealthAttendanceAggregator>();
+builder.Services.AddScoped<IChildServicesReferralAggregator, ChildServicesReferralAggregator>();
 builder.Services.AddScoped<IMissingEpisodesTransformer, MissingEpisodesTransformer>();
 builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();
