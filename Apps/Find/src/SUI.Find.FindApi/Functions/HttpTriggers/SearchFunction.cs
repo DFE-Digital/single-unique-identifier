@@ -22,7 +22,7 @@ public class SearchFunction(ILogger<SearchFunction> logger)
 {
     [OpenApiOperation(
         operationId: "searches",
-        tags: ["Search"],
+        tags: ["Searches"],
         Summary = "Submit a new search request"
     )]
     [OpenApiRequestBody(
