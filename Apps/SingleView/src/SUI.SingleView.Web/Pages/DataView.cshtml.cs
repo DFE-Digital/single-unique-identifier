@@ -14,11 +14,14 @@ public class DataView(ILogger<DataView> logger, IRecordService recordService) : 
     [BindProperty(SupportsGet = true)]
     public string? PersonId { get; set; }
 
-    public async Task<PageResult> OnGetAsync(bool prefetch = false)
+    public async Task<PageResult> OnGetAsync(
+        bool prefetch = false,
+        CancellationToken cancellationToken = default
+    )
     {
         if (prefetch && !string.IsNullOrWhiteSpace(PersonId))
         {
-            PersonModel = await recordService.GetRecordAsync(PersonId);
+            PersonModel = await recordService.GetRecordAsync(PersonId, cancellationToken);
         }
 
         return Page();
