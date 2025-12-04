@@ -17,14 +17,18 @@ public class DataViewTests : PageModelTestBase<DataView>
         var sut = new DataView(MockLogger, _mockRecordService);
         const string nhsNumber = "1234567890";
         sut.PersonId = nhsNumber;
-        _mockRecordService.GetRecordAsync(nhsNumber).Returns(new PersonModel());
+        _mockRecordService
+            .GetRecordAsync(nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new PersonModel());
 
         // Act
-        var result = await sut.OnGetAsync(true);
+        var result = await sut.OnGetAsync(true, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeOfType<PageResult>();
-        await _mockRecordService.Received(1).GetRecordAsync(nhsNumber);
+        await _mockRecordService
+            .Received(1)
+            .GetRecordAsync(nhsNumber, TestContext.Current.CancellationToken);
         sut.PersonModel.ShouldBeOfType<PersonModel>();
     }
 
@@ -34,14 +38,18 @@ public class DataViewTests : PageModelTestBase<DataView>
         var sut = new DataView(MockLogger, _mockRecordService);
         const string nhsNumber = "1234567890";
         sut.PersonId = nhsNumber;
-        _mockRecordService.GetRecordAsync(nhsNumber).Returns(new PersonModel());
+        _mockRecordService
+            .GetRecordAsync(nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new PersonModel());
 
         // Act
-        var result = await sut.OnGetAsync(false);
+        var result = await sut.OnGetAsync(false, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeOfType<PageResult>();
-        await _mockRecordService.DidNotReceiveWithAnyArgs().GetRecordAsync(nhsNumber);
+        await _mockRecordService
+            .DidNotReceiveWithAnyArgs()
+            .GetRecordAsync(nhsNumber, Arg.Any<CancellationToken>());
         sut.PersonModel.ShouldBeNull();
     }
 }
