@@ -7,5 +7,5 @@ public interface ICustodianService
 {
     Task<IReadOnlyList<ProviderDefinition>> GetCustodiansAsync();
     Task<Result<ProviderDefinition>> GetCustodianAsync(string orgId);
-    
+
 }
