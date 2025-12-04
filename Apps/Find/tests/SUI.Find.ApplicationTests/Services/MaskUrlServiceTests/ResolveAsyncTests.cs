@@ -63,4 +63,21 @@ public class ResolveAsyncTests
         Assert.Null(result.Value);
         Assert.Equal("Failed to resolve fetch URL", result.Error);
     }
+
+    [Fact]
+    public async Task ShouldReturnFail_WhenStorageFetchIsNotSuccessful()
+    {
+        // Arrange
+        _fetchUrlStorageService
+            .GetAsync(OrgId, FetchId, Arg.Any<CancellationToken>())
+            .Returns(Result<ResolvedFetchMapping>.Fail("Not found"));
+
+        // Act
+        var result = await _service.ResolveAsync(OrgId, FetchId, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Null(result.Value);
+        Assert.Equal("Not found", result.Error);
+    }
 }

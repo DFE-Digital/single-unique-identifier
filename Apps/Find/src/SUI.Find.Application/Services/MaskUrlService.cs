@@ -8,7 +8,7 @@ namespace SUI.Find.Application.Services;
 
 public interface IMaskUrlService
 {
-    Task<IReadOnlyList<SearchResultItem>> CreateMaskedFetchUrlsAsync(
+    Task<IReadOnlyList<SearchResultItem>> CreateAsync(
         List<SearchResultItem> items,
         QueryProviderInput input,
         CancellationToken ct
@@ -26,13 +26,13 @@ public class MaskUrlService(
     IFetchUrlStorageService fetchUrlStorageService
 ) : IMaskUrlService
 {
-    public async Task<IReadOnlyList<SearchResultItem>> CreateMaskedFetchUrlsAsync(
+    public async Task<IReadOnlyList<SearchResultItem>> CreateAsync(
         List<SearchResultItem> items,
         QueryProviderInput input,
         CancellationToken ct
     )
     {
-        var masked = new List<SearchResultItem>(items.Count);
+        var masked = new List<SearchResultItem>();
         foreach (var item in items)
         {
             try
@@ -96,8 +96,9 @@ public class MaskUrlService(
                 )
             );
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Error resolving fetch URL for FetchId {FetchId}", fetchId);
             return Result<ResolvedFetchMapping>.Fail("Failed to resolve fetch URL");
         }
     }

@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Azure;
 using Azure.Data.Tables;
 
 namespace SUI.Find.Infrastructure.Models;
 
+[ExcludeFromCodeCoverage(Justification = "Simple data model for Azure Table Storage")]
 public sealed class FetchUrlMappingEntity : ITableEntity
 {
     public string PartitionKey { get; set; } = string.Empty;

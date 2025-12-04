@@ -84,8 +84,13 @@ public class UrlStorageTableService(
                 )
             );
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError(
+                ex,
+                "Error retrieving fetch URL mapping for FetchId {FetchId}",
+                fetchId
+            );
             return Result<ResolvedFetchMapping>.Fail("Failed to retrieve fetch URL mapping");
         }
     }

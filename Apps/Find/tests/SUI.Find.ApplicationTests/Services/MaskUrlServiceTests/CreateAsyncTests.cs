@@ -8,7 +8,7 @@ using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.MaskUrlServiceTests;
 
-public class CreateMaskedFetchUrlsAsyncTests
+public class CreateAsyncTests
 {
     private readonly ILogger<MaskUrlService> _logger = Substitute.For<ILogger<MaskUrlService>>();
     private readonly IFetchUrlStorageService _fetchUrlStorageService =
@@ -35,7 +35,7 @@ public class CreateMaskedFetchUrlsAsyncTests
 
         // Act
         var service = new MaskUrlService(_logger, _fetchUrlStorageService);
-        var result = await service.CreateMaskedFetchUrlsAsync(
+        var result = await service.CreateAsync(
             items,
             queryProviderInput,
             CancellationToken.None
@@ -71,7 +71,7 @@ public class CreateMaskedFetchUrlsAsyncTests
         var service = new MaskUrlService(_logger, _fetchUrlStorageService);
 
         // Act
-        var result = await service.CreateMaskedFetchUrlsAsync(
+        var result = await service.CreateAsync(
             [],
             queryProviderInput,
             CancellationToken.None
@@ -105,7 +105,7 @@ public class CreateMaskedFetchUrlsAsyncTests
 
         // Act
         var service = new MaskUrlService(_logger, _fetchUrlStorageService);
-        var result = await service.CreateMaskedFetchUrlsAsync(
+        var result = await service.CreateAsync(
             items,
             queryProviderInput,
             CancellationToken.None
@@ -145,7 +145,7 @@ public class CreateMaskedFetchUrlsAsyncTests
         var service = new MaskUrlService(_logger, _fetchUrlStorageService);
 
         // Act
-        var result = await service.CreateMaskedFetchUrlsAsync(
+        var result = await service.CreateAsync(
             items,
             queryProviderInput,
             CancellationToken.None
