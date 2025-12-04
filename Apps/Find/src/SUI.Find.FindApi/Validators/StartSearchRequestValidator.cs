@@ -1,10 +1,10 @@
 using SUI.Find.FindApi.Models;
+using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Validators;
 
 public static class StartSearchRequestValidator
 {
-    private const int AesBlockSize = 16;
     public static bool IsValid(StartSearchRequest? request, out string? errorMessage)
     {
         if (request == null)
@@ -19,14 +19,22 @@ public static class StartSearchRequestValidator
             return false;
         }
 
-        if (request.Suid.Length != AesBlockSize)
+        try
         {
-            errorMessage = $"Suid is invalid";
+            var bytes = PersonIdEncryptionService.Base64UrlDecodeNoPadding(request.Suid);
+            if (bytes.Length != 16)
+            {
+                errorMessage = "Suid is invalid";
+                return false;
+            }
+        }
+        catch (FormatException)
+        {
+            errorMessage = "Suid is not valid Base64Url";
             return false;
         }
 
         errorMessage = null;
         return true;
     }
-
 }

@@ -27,15 +27,19 @@ builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
 // Custom application services
 builder.Services.AddSingleton<IAuditService, AuditStorageTableService>();
-builder.Services.AddSingleton<ITableStorageAuditService, AuditStorageTableService>();
+builder.Services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>();
+builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
 builder.Services.AddSingleton<ISearchService, SearchService>();
+builder.Services.AddAzureTableServices();
 
 // Use mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<ICustodianService, MockCustodianService>();
+builder.Services.AddSingleton<IMatchRepository, MockMatchRepository>();
+builder.Services.AddSingleton<IMatchingService, MatchingService>();
 
 // Add this after other service registrations
 builder.Services.AddHostedService<AzureStorageTableStartup>();

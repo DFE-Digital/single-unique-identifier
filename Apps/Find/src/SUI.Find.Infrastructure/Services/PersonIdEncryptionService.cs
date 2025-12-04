@@ -193,7 +193,7 @@ public class PersonIdEncryptionService(ILogger<PersonIdEncryptionService> logger
         return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 
-    private static byte[] Base64UrlDecodeNoPadding(string s)
+    public static byte[] Base64UrlDecodeNoPadding(string s)
     {
         var b64 = s.Replace('-', '+').Replace('_', '/');
         switch (b64.Length % 4)

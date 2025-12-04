@@ -66,7 +66,10 @@ public class SearchFunction(ILogger<SearchFunction> logger)
             );
         }
 
-        var searchRequest = await JsonSerializer.DeserializeAsync<StartSearchRequest>(req.Body);
+        var searchRequest = await JsonSerializer.DeserializeAsync<StartSearchRequest>(
+            req.Body,
+            JsonSerializerOptions.Web
+        );
 
         if (!StartSearchRequestValidator.IsValid(searchRequest, out var errorMessage))
         {

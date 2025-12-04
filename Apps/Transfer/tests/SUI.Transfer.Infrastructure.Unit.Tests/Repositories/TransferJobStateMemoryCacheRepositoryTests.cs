@@ -21,7 +21,11 @@ public sealed class TransferJobStateMemoryCacheRepositoryTests : IDisposable
     [Fact]
     public async Task AddOrUpdateAsync_Adds_IfNotAlreadyPresent()
     {
-        var jobState = new QueuedTransferJobState(Guid.NewGuid(), "xyz");
+        var jobState = new QueuedTransferJobState(
+            Guid.NewGuid(),
+            "xyz",
+            TimeProvider.System.GetUtcNow()
+        );
 
         // ACT
         await _sut.AddOrUpdateAsync(jobState);
@@ -35,11 +39,12 @@ public sealed class TransferJobStateMemoryCacheRepositoryTests : IDisposable
     public async Task AddOrUpdateAsync_Updates_IfAlreadyPresent()
     {
         var jobId = Guid.NewGuid();
-        var jobState1 = new QueuedTransferJobState(jobId, "xyz");
+        var createdAt = TimeProvider.System.GetUtcNow();
+        var jobState1 = new QueuedTransferJobState(jobId, "xyz", createdAt);
 
         await _sut.AddOrUpdateAsync(jobState1);
 
-        var jobState2 = new RunningTransferJobState(jobId, "xyz");
+        var jobState2 = new RunningTransferJobState(jobId, "xyz", createdAt);
 
         // ACT
         await _sut.AddOrUpdateAsync(jobState2);

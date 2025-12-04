@@ -9,4 +9,9 @@ public static class InfrastructureConstants
     {
         public const string TableName = "AuditLogs";
     }
+
+    public static class StorageTableUrlMappings
+    {
+        public const string TableName = "ResultsUrlMappings";
+    }
 }

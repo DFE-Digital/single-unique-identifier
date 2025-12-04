@@ -54,20 +54,24 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task GetTransfer_WithoutApiKey_ReturnsUnauthorized()
+    public async Task PostTransfer_WithoutApiKey_ReturnsUnauthorized()
     {
         //Arrange
         var testId = "999-000-1234";
 
         // Act
-        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
+        var httpResponse = await _client.PostAsJsonAsync(
+            "/api/v1/transfer/",
+            testId,
+            _jsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
     }
 
     [Fact]
-    public async Task GetTransfer_WithIncorrectApiKey_ReturnsUnauthorized()
+    public async Task PostTransfer_WithIncorrectApiKey_ReturnsUnauthorized()
     {
         //Arrange
         var testId = "999-000-1234";
@@ -75,25 +79,34 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         _client.DefaultRequestHeaders.Add("X-Api-Key", "INCORRECT_API_KEY");
 
         // Act
-        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
+        var httpResponse = await _client.PostAsJsonAsync(
+            "/api/v1/transfer/",
+            testId,
+            _jsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
     }
 
     [Fact]
-    public async Task GetTransfer_WithCorrectApiKey_ReturnsOkResult()
+    public async Task PostTransfer_WithCorrectApiKey_ReturnsOkResult()
     {
         // Arrange
         var testId = "999-000-1234";
-        var mockResponse = new QueuedTransferJobState(Guid.NewGuid(), testId);
+        var createdAt = TimeProvider.System.GetUtcNow();
+        var mockResponse = new QueuedTransferJobState(Guid.NewGuid(), testId, createdAt);
 
         _mockTransferService.BeginTransferJob(Arg.Any<string>()).Returns(mockResponse);
 
         _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
         // Act
-        var httpResponse = await _client.GetAsync("/api/v1/transfer/" + testId);
+        var httpResponse = await _client.PostAsJsonAsync(
+            "/api/v1/transfer/",
+            testId,
+            _jsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
@@ -102,9 +115,9 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         );
         Assert.NotNull(content);
         Assert.Equal(
-            new QueuedTransferJobState(mockResponse.JobId, testId)
+            new QueuedTransferJobState(mockResponse.JobId, testId, createdAt)
             {
-                Timestamp = content.Timestamp,
+                LastUpdatedAt = content.LastUpdatedAt,
             },
             content
         );

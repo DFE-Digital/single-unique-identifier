@@ -22,8 +22,8 @@ public class SearchEndpointTests
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
     private readonly FunctionContext _context = Substitute.For<FunctionContext>();
 
-    private const string ValidSuid = "1234567890123456";
-    private const string InvalidSuid = "short";
+    private const string ValidSuid = "Cy13hyZL-4LSIwVy50p-Hg";
+    private const string InvalidSuid = "invalid_suid!";
     private const string TestClientId = "test-client-id";
     private readonly string InstanceId;
 
@@ -131,7 +131,7 @@ public class SearchEndpointTests
     }
 
     [Fact]
-    public async Task ShouldReturn400_AndInstanceShouldContainCorrelationId_WhenRequestSuidIsInValid()
+    public async Task ShouldReturn400_AndInstanceShouldContainCorrelationId_WhenRequestSuidIsInvalid()
     {
         // Arrange
         _context.Items["AuthContext"] = new AuthContext(TestClientId, ["scope"]);

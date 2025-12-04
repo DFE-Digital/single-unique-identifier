@@ -54,7 +54,7 @@ public class QueryProvidersFunctionTests
         Assert.Equal("Provider Name 1", result[0].ProviderName);
         Assert.Equal("Test Record Type", result[0].RecordType);
         Assert.Equal(
-            $"https://example.com/record/{providerDef.OrgId}/{input.InstanceId}",
+            $"https://example.com/record/{providerDef.OrgId}/{input.JobId}",
             result[0].RecordUrl
         );
     }
