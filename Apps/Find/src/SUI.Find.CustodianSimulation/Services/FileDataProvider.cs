@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using SUI.Find.CustodianSimulation.Interfaces;
 using SUI.Find.CustodianSimulation.Models;
 
 namespace SUI.Find.CustodianSimulation.Services;
 
+[ExcludeFromCodeCoverage(Justification = "Mocked simulator")]
 public sealed class FileDataProvider(IRandomDelayService throttleService) : IDataProvider
 {
     private readonly Dictionary<string, CustodianConfig> _cache = new(

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Microsoft.Azure.Functions.Worker.Http;
 using SUI.Find.CustodianSimulation.Interfaces;
@@ -5,6 +6,7 @@ using SUI.Find.CustodianSimulation.Models;
 
 namespace SUI.Find.CustodianSimulation.Services;
 
+[ExcludeFromCodeCoverage(Justification = "Mocked simulator")]
 internal static class ManifestService
 {
     internal static async Task<HttpResponseData> HandleAsync(

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Reflection;
@@ -11,10 +12,11 @@ using SUI.Find.CustodianSimulation.Models;
 
 namespace SUI.Find.CustodianSimulation.Services;
 
+[ExcludeFromCodeCoverage(Justification = "Mocked simulator")]
 public sealed class ScopeEnforcementService : IFunctionsWorkerMiddleware
 {
-    private static readonly JwtSecurityTokenHandler Handler = new JwtSecurityTokenHandler();
-    private static readonly Lazy<AuthStore> Store = new Lazy<AuthStore>(LoadAuthStore);
+    private static readonly JwtSecurityTokenHandler Handler = new();
+    private static readonly Lazy<AuthStore> Store = new(LoadAuthStore);
     private static readonly Assembly Assembly = typeof(ScopeEnforcementService).Assembly;
 
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
@@ -146,13 +148,13 @@ public sealed class ScopeEnforcementService : IFunctionsWorkerMiddleware
 
         if (string.IsNullOrWhiteSpace(entryPoint))
         {
-            return Array.Empty<string>();
+            return [];
         }
 
         var lastDot = entryPoint.LastIndexOf('.');
         if (lastDot < 0 || lastDot == entryPoint.Length - 1)
         {
-            return Array.Empty<string>();
+            return [];
         }
 
         var typeName = entryPoint.Substring(0, lastDot);
@@ -161,7 +163,7 @@ public sealed class ScopeEnforcementService : IFunctionsWorkerMiddleware
         var type = Assembly.GetType(typeName);
         if (type is null)
         {
-            return Array.Empty<string>();
+            return [];
         }
 
         var method = type.GetMethod(
@@ -170,11 +172,11 @@ public sealed class ScopeEnforcementService : IFunctionsWorkerMiddleware
         );
         if (method is null)
         {
-            return Array.Empty<string>();
+            return [];
         }
 
         var attr = method.GetCustomAttribute<RequiredScopesAttribute>();
-        return attr?.Scopes?.ToArray() ?? Array.Empty<string>();
+        return attr?.Scopes?.ToArray() ?? [];
     }
 
     private static AuthStore LoadAuthStore()

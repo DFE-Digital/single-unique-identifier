@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using SUI.Find.CustodianSimulation.Interfaces;
 
 namespace SUI.Find.CustodianSimulation.Services;
 
+[ExcludeFromCodeCoverage(Justification = "Mocked simulator")]
 public sealed class RandomDelayService : IRandomDelayService
 {
     private readonly int _minMs;

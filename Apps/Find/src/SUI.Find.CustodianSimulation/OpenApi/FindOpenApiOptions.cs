@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.OpenApi.Models;
 
 namespace SUI.Find.CustodianSimulation.OpenApi;
 
+[ExcludeFromCodeCoverage(Justification = "OpenAPI documentation")]
 public sealed class CustodianSimulatorOpenApiOptions : DefaultOpenApiConfigurationOptions
 {
     public CustodianSimulatorOpenApiOptions()
