@@ -1,18 +1,20 @@
-using SUI.Find.FindApi.Utility;
+using SUI.Find.Infrastructure.Services;
 
-namespace SUI.Find.FindApi.UnitTests.Utility;
+namespace SUI.Find.Infrastructure.UnitTests.Services;
 
-public class HashUtilityTests
+public class HashServiceTests
 {
+    private readonly HashService _sut = new HashService();
+    
     [Fact]
     public void HashInput_ShouldBeDeterministic_ForSameInput()
     {
         // Arrange
-        var input = "test-client-id";
+        const string input = "test-client-id";
 
         // Act
-        var hash1 = HashUtility.HashInput(input);
-        var hash2 = HashUtility.HashInput(input);
+        var hash1 = _sut.HmacSha256Hash(input);
+        var hash2 = _sut.HmacSha256Hash(input);
 
         // Assert
         Assert.NotNull(hash1);
@@ -24,12 +26,12 @@ public class HashUtilityTests
     public void HashInput_ShouldReturnDifferentHashes_ForDifferentInputs()
     {
         // Arrange
-        var input1 = "test-client-id-a";
-        var input2 = "test-client-id-b";
+        const string input1 = "test-client-id-a";
+        const string input2 = "test-client-id-b";
 
         // Act
-        var hash1 = HashUtility.HashInput(input1);
-        var hash2 = HashUtility.HashInput(input2);
+        var hash1 = _sut.HmacSha256Hash(input1);
+        var hash2 = _sut.HmacSha256Hash(input2);
 
         // Assert
         Assert.NotEqual(hash1, hash2);
@@ -41,7 +43,7 @@ public class HashUtilityTests
     public void HashInput_ShouldReturnEmptyString_WhenInputIsNullOrEmpty(string? input)
     {
         // Act
-        var result = HashUtility.HashInput(input);
+        var result = _sut.HmacSha256Hash(input!);
 
         // Assert
         Assert.Equal(string.Empty, result);

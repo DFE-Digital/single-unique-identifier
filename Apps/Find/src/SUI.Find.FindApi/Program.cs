@@ -33,6 +33,7 @@ builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
 builder.Services.AddSingleton<ISearchService, SearchService>();
+builder.Services.AddSingleton<IHashService, HashService>();
 builder.Services.AddAzureTableServices();
 
 // Use mock services for all environments for now while in prototype

@@ -143,7 +143,7 @@ public class SearchStatusFunctionTests
         var dto = new SearchJobDto
         {
             JobId = "job-5",
-            Suid = "SUI-123",
+            PersonId = "SUI-123",
             Status = SearchStatus.Completed,
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,

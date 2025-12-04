@@ -3,22 +3,20 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Dtos;
-using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Services;
+using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Attributes;
-using SUI.Find.FindApi.Functions.Orchestrators;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
 using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Functions.HttpTriggers;
 
-public class SearchFunction(ILogger<SearchFunction> logger)
+public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searchService)
 {
     [OpenApiOperation(
         operationId: "searches",
@@ -49,7 +47,8 @@ public class SearchFunction(ILogger<SearchFunction> logger)
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/searches")]
             HttpRequestData req,
         [DurableClient] DurableTaskClient client,
-        FunctionContext context
+        FunctionContext context,
+        CancellationToken cancellationToken
     )
     {
         if (
@@ -62,98 +61,64 @@ public class SearchFunction(ILogger<SearchFunction> logger)
                 HttpStatusCode.Unauthorized,
                 "Unauthorized",
                 "",
-                context.InvocationId
+                context.InvocationId,
+                cancellationToken
             );
         }
 
         var searchRequest = await JsonSerializer.DeserializeAsync<StartSearchRequest>(
             req.Body,
-            JsonSerializerOptions.Web
+            JsonSerializerOptions.Web,
+            cancellationToken
         );
 
         if (!StartSearchRequestValidator.IsValid(searchRequest, out var errorMessage))
         {
-            return await HttpResponseUtility.ProblemResponse(
+            return await HttpResponseUtility.BadRequestResponse(
                 req,
-                HttpStatusCode.BadRequest,
-                "Invalid Search Request",
-                errorMessage ?? "",
-                $"urn:trace:{context.InvocationId}"
+                context.InvocationId,
+                errorMessage,
+                cancellationToken: cancellationToken
             );
         }
 
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);
 
-        var instanceId = $"{searchRequest!.Suid}-{authContext.ClientId}";
-        var hashedInstanceId = HashUtility.HashInput(instanceId);
-
-        var existingInstance = await client.GetInstanceAsync(hashedInstanceId);
-        var hasExistingInstance =
-            existingInstance is
-            {
-                RuntimeStatus: OrchestrationRuntimeStatus.Running
-                    or OrchestrationRuntimeStatus.Pending
-            };
-
-        if (hasExistingInstance)
-        {
-            var originalJobId = existingInstance!.InstanceId;
-            var jobStatus =
-                existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Running
-                    ? SearchStatus.Running
-                    : SearchStatus.Queued;
-
-            logger.LogInformation(
-                "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
-                originalJobId,
-                jobStatus
-            );
-
-            var originalJob = new SearchJob
-            {
-                JobId = originalJobId,
-                Suid = searchRequest.Suid,
-                Status = jobStatus,
-                CreatedAt = existingInstance.CreatedAt,
-                LastUpdatedAt = existingInstance.LastUpdatedAt,
-            };
-            var duplicateSearchResponse = req.CreateResponse(HttpStatusCode.Accepted);
-
-            await duplicateSearchResponse.WriteAsJsonAsync(originalJob);
-            logger.LogInformation(
-                "Returning original Search Request with JobId: {JobId}",
-                originalJobId
-            );
-            return duplicateSearchResponse;
-        }
-
-        var acceptedResponse = req.CreateResponse(HttpStatusCode.Accepted);
-
-        var policyData = new PolicyContext(authContext.ClientId, Scopes: authContext.Scopes);
-
-        var metaData = new SearchJobMetadata(
-            PersonId: "TODO: Populate PersonId",
-            RequestedAtUtc: DateTime.UtcNow,
-            InvocationId: context.InvocationId
+        var personId = new EncryptedPersonId(searchRequest!.Suid);
+        var searchJob = await searchService.StartSearchAsync(
+            personId,
+            authContext.ClientId,
+            authContext.Scopes.ToArray(),
+            client,
+            context.InvocationId,
+            cancellationToken
         );
 
-        var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
-            nameof(SearchOrchestrator),
-            new SearchOrchestratorInput(searchRequest.Suid, metaData, policyData),
-            new StartOrchestrationOptions { InstanceId = hashedInstanceId }
-        );
-
-        var searchJob = new SearchJob
+        return searchJob switch
         {
-            JobId = jobId,
-            Suid = searchRequest.Suid,
-            Status = SearchStatus.Queued,
-            CreatedAt = DateTime.UtcNow,
-            LastUpdatedAt = DateTime.UtcNow,
+            SearchJobResult.Success s => await CreateSuccessResponse(req, s.Job, cancellationToken),
+            SearchJobResult.Unauthorized => await HttpResponseUtility.UnauthorizedResponse(
+                req,
+                context.InvocationId,
+                cancellationToken
+            ),
+            _ => await HttpResponseUtility.InternalServerErrorResponse(
+                req,
+                context.InvocationId,
+                cancellationToken
+            ),
         };
+    }
 
-        await acceptedResponse.WriteAsJsonAsync(searchJob);
-        logger.LogInformation("Creating a new Search Request with JobId: {JobId}", searchJob.JobId);
-        return acceptedResponse;
+    private static async Task<HttpResponseData> CreateSuccessResponse(
+        HttpRequestData req,
+        SearchJobDto result,
+        CancellationToken cancellationToken
+    )
+    {
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        var searchResults = SearchJob.FromDto(result);
+        await response.WriteAsJsonAsync(searchResults, cancellationToken);
+        return response;
     }
 }
