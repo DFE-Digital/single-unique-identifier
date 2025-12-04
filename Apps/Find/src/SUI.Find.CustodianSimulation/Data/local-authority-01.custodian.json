@@ -1,0 +1,35 @@
+{
+  "orgId": "LOCAL-AUTHORITY-01",
+  "orgName": "Example Local Authority",
+  "orgType": "LOCAL_AUTHORITY",
+  "records": [
+    {
+      "recordId": "CSC-5919-A",
+      "personId": "Cy13hyZL-4LSIwVy50p-Hg",
+      "recordType": "local-authority.children-social-care",
+      "dataType": "local-authority.children-social-care.case.v1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/local-authority.children-social-care.case.v1.json",
+      "payload": {
+        "caseId": "CASE-765919",
+        "childNhsNumber": "9434765919",
+        "startDate": "2025-02-14",
+        "endDate": null,
+        "status": "open"
+      }
+    },
+    {
+      "recordId": "CSC-1234-A",
+      "personId": "9D8EHKuYWQVYGYVbSb0JZg",
+      "recordType": "local-authority.children-social-care",
+      "dataType": "local-authority.children-social-care.case.v1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/local-authority.children-social-care.case.v1.json",
+      "payload": {
+        "caseId": "CASE-771234",
+        "childNhsNumber": "4857771234",
+        "startDate": "2025-02-14",
+        "endDate": null,
+        "status": "open"
+      }
+    }
+  ]
+}

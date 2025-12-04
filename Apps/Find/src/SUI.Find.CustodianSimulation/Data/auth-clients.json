@@ -1,0 +1,17 @@
+{
+  "issuer": "https://sandbox.api.example.gov.uk/find-a-record/auth",
+  "audience": "custodian-simulator",
+  "signingKey": "n4XQb7JcA1uV0pLh93ZmRk2YsFTxGqW8dE5Cv6tNByHoUfSiPlKjMwTaGrQeSzV",
+  "defaultTokenLifetimeMinutes": 60,
+  "clients": [
+    {
+      "enabled": true,
+      "clientId": "SUI-SERVICE",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "find-record.read",
+        "fetch-record.read"
+      ]
+    }
+  ]
+}
