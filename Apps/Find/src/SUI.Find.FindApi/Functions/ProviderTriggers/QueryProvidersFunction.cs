@@ -7,7 +7,6 @@ using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Utility;
 
 namespace SUI.Find.FindApi.Functions.ProviderTriggers;
-// TODO confirm if encrypted personid is passed in url
 
 public class QueryProvidersFunction(
     ILogger<QueryProvidersFunction> logger,
@@ -21,20 +20,17 @@ public class QueryProvidersFunction(
         QueryProviderInput data
     )
     {
-        var (
-            clientId, instanceId, invocationId, suid, provider
-            ) = data;
 
-        using var logScope = logger.BeginScope("CorrelationId: {CorrelationId}", invocationId);
+        using var logScope = logger.BeginScope("CorrelationId: {CorrelationId}", data.InvocationId);
         logger.LogInformation("Query Provider triggered");
 
-        if (provider.Encryption is null)
+        if (data?.Provider.Encryption is null)
         {
-            throw new InvalidOperationException($"Provider '{provider.OrgId}' has no encryption configured.");
+            throw new InvalidOperationException($"Provider '{data?.Provider.OrgId}' has no encryption configured.");
         }
 
-        var encryptedPersonId = encryptionService.EncryptNhsToPersonId(suid, provider.Encryption);
-        var authConnection = provider.Connection.Auth;
+        var encryptedPersonId = encryptionService.EncryptNhsToPersonId(data.Suid, data.Provider.Encryption);
+        var authConnection = data.Provider.Connection.Auth;
         var bearerToken = authConnection is null
             ? null
             : "test-bearer-token";
@@ -42,20 +38,20 @@ public class QueryProvidersFunction(
         if (!encryptedPersonId.Success)
         {
             logger.LogError("Encryption failed for provider {Provider}: {ErrorMessage}",
-                provider.ProviderName,
+                data.Provider.ProviderName,
                 encryptedPersonId.Error);
 
             return [];
         }
 
-        using var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, encryptedPersonId.Value!, bearerToken);
+        using var request = BuildCustodianHttpRequest.BuildHttpRequest(data.Provider, encryptedPersonId.Value!, bearerToken);
 
         using var httpClient = httpClientFactory.CreateClient("providers");
         using var response = await httpClient.SendAsync(request, context.CancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogInformation("Provider '{Provider}' returned status code {StatusCode}", provider.ProviderName,
+            logger.LogInformation("Provider '{Provider}' returned status code {StatusCode}", data.Provider.ProviderName,
                 response.StatusCode);
 
             return [];
