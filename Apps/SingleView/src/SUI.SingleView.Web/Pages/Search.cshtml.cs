@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using SUI.SingleView.Application.Services;
 using SUI.SingleView.Domain.Models;
 using SUI.SingleView.Web.Extensions;
-using SUI.SingleView.Web.Models;
-using ValidationResult = FluentValidation.Results.ValidationResult;
 
 namespace SUI.SingleView.Web.Pages;
 
@@ -47,102 +45,27 @@ public class Search(
     }
 
     /// <summary>
-    /// Handles the standard non-AJAX POST: validate, run search, and re-render with errors or results.
+    /// Handles the POST (also used by the AJAX-enhanced flow) and returns the rendered page.
     /// </summary>
-    public async Task<IActionResult> OnPostAsync() =>
-        await HandleSearchAsync(
-            onValidationFailure: validation =>
-            {
-                validation.AddToModelState(ModelState);
-                return Page();
-            },
-            onSuccess: results =>
-            {
-                Results = results;
-                return Page();
-            }
-        );
-
-    /// <summary>
-    /// Handles the AJAX POST for progressive enhancement: returns JSON for client-side update without a full reload.
-    /// </summary>
-    public async Task<IActionResult> OnPostSearchAsync() =>
-        await HandleSearchAsync(
-            onValidationFailure: validation => new JsonResult(
-                new SearchApiResponse
-                {
-                    Success = false,
-                    ErrorMessage = string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)),
-                }
-            ),
-            onSuccess: results => new JsonResult(
-                new SearchApiResponse { Success = true, Results = results }
-            ),
-            onError: ex =>
-            {
-                _logger.LogError(ex, "Error occurred during search");
-                return new JsonResult(
-                    new SearchApiResponse
-                    {
-                        Success = false,
-                        ErrorMessage = "An error occurred while searching. Please try again.",
-                    }
-                );
-            }
-        );
-
-    private async Task<IActionResult> HandleSearchAsync(
-        Func<ValidationResult, IActionResult> onValidationFailure,
-        Func<IList<SearchResult>, IActionResult> onSuccess,
-        Func<Exception, IActionResult>? onError = null
-    )
-    {
-        try
-        {
-            var (validationResult, results) = await ValidateAndSearchAsync();
-
-            return !validationResult.IsValid
-                ? onValidationFailure(validationResult)
-                : onSuccess(results!);
-        }
-        catch (Exception ex)
-        {
-            if (onError is not null)
-            {
-                return onError(ex);
-            }
-
-            throw;
-        }
-    }
-
-    private async Task<(
-        ValidationResult ValidationResult,
-        IList<SearchResult>? Results
-    )> ValidateAndSearchAsync()
+    public async Task<IActionResult> OnPostAsync()
     {
         var validationResult = await validator.ValidateAsync(this);
         if (!validationResult.IsValid)
         {
-            return (validationResult, null);
+            validationResult.AddToModelState(ModelState);
+            return Page();
         }
 
-        IList<SearchResult> results;
-        if (!string.IsNullOrEmpty(NhsNumber))
-        {
-            results = await searchService.SearchAsync(NhsNumber);
-        }
-        else
-        {
-            results = await searchService.SearchAsync(
+        Results = !string.IsNullOrEmpty(NhsNumber)
+            ? await searchService.SearchAsync(NhsNumber)
+            : await searchService.SearchAsync(
                 FirstName,
                 LastName,
                 DateOfBirth,
                 HouseNumberOrName,
                 Postcode
             );
-        }
 
-        return (validationResult, results);
+        return Page();
     }
 }
