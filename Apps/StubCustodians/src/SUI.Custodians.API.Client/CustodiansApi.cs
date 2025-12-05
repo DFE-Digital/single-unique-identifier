@@ -29,48 +29,48 @@ namespace SUI.Custodians.API.Client
     {
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<PersonalDetailsRecordV1RecordEnvelope> PersonalDetailsRecordV1Async(string sui, string providerSystemId);
+        System.Threading.Tasks.Task<RecordEnvelopeOfPersonalDetailsRecordV1> PersonalDetailsRecordV1Async(string sui, string providerSystemId);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<PersonalDetailsRecordV1RecordEnvelope> PersonalDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<RecordEnvelopeOfPersonalDetailsRecordV1> PersonalDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildSocialCareDetailsRecordV1RecordEnvelope> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId);
-
-        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>OK</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildSocialCareDetailsRecordV1RecordEnvelope> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
-
-        /// <returns>OK</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<EducationDetailsRecordV1RecordEnvelope> EducationDetailsRecordV1Async(string sui, string providerSystemId);
+        System.Threading.Tasks.Task<RecordEnvelopeOfChildSocialCareDetailsRecordV1> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<EducationDetailsRecordV1RecordEnvelope> EducationDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<RecordEnvelopeOfChildSocialCareDetailsRecordV1> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<HealthDataRecordV1RecordEnvelope> HealthDataRecordV1Async(string sui, string providerSystemId);
-
-        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>OK</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<HealthDataRecordV1RecordEnvelope> HealthDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
-
-        /// <returns>OK</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<CrimeDataRecordV1RecordEnvelope> CrimeDataRecordV1Async(string sui, string providerSystemId);
+        System.Threading.Tasks.Task<RecordEnvelopeOfEducationDetailsRecordV1> EducationDetailsRecordV1Async(string sui, string providerSystemId);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<CrimeDataRecordV1RecordEnvelope> CrimeDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<RecordEnvelopeOfEducationDetailsRecordV1> EducationDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
+
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<RecordEnvelopeOfHealthDataRecordV1> HealthDataRecordV1Async(string sui, string providerSystemId);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<RecordEnvelopeOfHealthDataRecordV1> HealthDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
+
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<RecordEnvelopeOfCrimeDataRecordV1> CrimeDataRecordV1Async(string sui, string providerSystemId);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<RecordEnvelopeOfCrimeDataRecordV1> CrimeDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
 
     }
 
@@ -108,7 +108,7 @@ namespace SUI.Custodians.API.Client
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<PersonalDetailsRecordV1RecordEnvelope> PersonalDetailsRecordV1Async(string sui, string providerSystemId)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfPersonalDetailsRecordV1> PersonalDetailsRecordV1Async(string sui, string providerSystemId)
         {
             return PersonalDetailsRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
@@ -116,7 +116,7 @@ namespace SUI.Custodians.API.Client
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<PersonalDetailsRecordV1RecordEnvelope> PersonalDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfPersonalDetailsRecordV1> PersonalDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
@@ -166,7 +166,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<PersonalDetailsRecordV1RecordEnvelope>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfPersonalDetailsRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -215,7 +215,7 @@ namespace SUI.Custodians.API.Client
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<ChildSocialCareDetailsRecordV1RecordEnvelope> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfChildSocialCareDetailsRecordV1> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId)
         {
             return ChildSocialCareDetailsRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
@@ -223,7 +223,7 @@ namespace SUI.Custodians.API.Client
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ChildSocialCareDetailsRecordV1RecordEnvelope> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfChildSocialCareDetailsRecordV1> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
@@ -273,7 +273,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ChildSocialCareDetailsRecordV1RecordEnvelope>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfChildSocialCareDetailsRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -322,7 +322,7 @@ namespace SUI.Custodians.API.Client
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<EducationDetailsRecordV1RecordEnvelope> EducationDetailsRecordV1Async(string sui, string providerSystemId)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfEducationDetailsRecordV1> EducationDetailsRecordV1Async(string sui, string providerSystemId)
         {
             return EducationDetailsRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
@@ -330,7 +330,7 @@ namespace SUI.Custodians.API.Client
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<EducationDetailsRecordV1RecordEnvelope> EducationDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfEducationDetailsRecordV1> EducationDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
@@ -380,7 +380,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<EducationDetailsRecordV1RecordEnvelope>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfEducationDetailsRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -429,7 +429,7 @@ namespace SUI.Custodians.API.Client
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<HealthDataRecordV1RecordEnvelope> HealthDataRecordV1Async(string sui, string providerSystemId)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfHealthDataRecordV1> HealthDataRecordV1Async(string sui, string providerSystemId)
         {
             return HealthDataRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
@@ -437,7 +437,7 @@ namespace SUI.Custodians.API.Client
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<HealthDataRecordV1RecordEnvelope> HealthDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfHealthDataRecordV1> HealthDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
@@ -487,7 +487,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<HealthDataRecordV1RecordEnvelope>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfHealthDataRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -536,7 +536,7 @@ namespace SUI.Custodians.API.Client
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<CrimeDataRecordV1RecordEnvelope> CrimeDataRecordV1Async(string sui, string providerSystemId)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfCrimeDataRecordV1> CrimeDataRecordV1Async(string sui, string providerSystemId)
         {
             return CrimeDataRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
@@ -544,7 +544,7 @@ namespace SUI.Custodians.API.Client
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<CrimeDataRecordV1RecordEnvelope> CrimeDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfCrimeDataRecordV1> CrimeDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
@@ -594,7 +594,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<CrimeDataRecordV1RecordEnvelope>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfCrimeDataRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -789,6 +789,15 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("postcode")]
         public string Postcode { get; set; }
 
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -807,21 +816,14 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("cscReferrals")]
         public System.Collections.Generic.ICollection<ChildSocialCareReferralV1> CscReferrals { get; set; }
 
-    }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ChildSocialCareDetailsRecordV1RecordEnvelope
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        public string ProviderSystemId { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        public System.Uri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("payload")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public ChildSocialCareDetailsRecordV1 Payload { get; set; } = new ChildSocialCareDetailsRecordV1();
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -835,6 +837,15 @@ namespace SUI.Custodians.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string Type { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -857,21 +868,14 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("linkedCrimeRisks")]
         public System.Collections.Generic.ICollection<LinkedCrimeRiskV1> LinkedCrimeRisks { get; set; }
 
-    }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class CrimeDataRecordV1RecordEnvelope
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        public string ProviderSystemId { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        public System.Uri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("payload")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public CrimeDataRecordV1 Payload { get; set; } = new CrimeDataRecordV1();
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -883,21 +887,14 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Date { get; set; }
 
-    }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum CrimeRiskTypeV1
-    {
-
-        _0 = 0,
-
-        _1 = 1,
-
-        _2 = 2,
-
-        _3 = 3,
-
-        _4 = 4,
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -926,6 +923,15 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("schoolMovesNonTransitional")]
         public int? SchoolMovesNonTransitional { get; set; }
 
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -944,21 +950,14 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("educationAttendances")]
         public System.Collections.Generic.ICollection<EducationAttendanceV1> EducationAttendances { get; set; }
 
-    }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class EducationDetailsRecordV1RecordEnvelope
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        public string ProviderSystemId { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        public System.Uri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("payload")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public EducationDetailsRecordV1 Payload { get; set; } = new EducationDetailsRecordV1();
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -969,6 +968,15 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("date")]
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Date { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -982,6 +990,15 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("message")]
         public string Message { get; set; }
 
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -989,24 +1006,19 @@ namespace SUI.Custodians.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("kind")]
-        public FailureKind Kind { get; set; }
+        public int Kind { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("errors")]
         public System.Collections.Generic.ICollection<ErrorInfo> Errors { get; set; }
 
-    }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum FailureKind
-    {
-
-        _0 = 0,
-
-        _400 = 400,
-
-        _404 = 404,
-
-        _409 = 409,
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -1035,21 +1047,14 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("emergencyDepartmentAttendances")]
         public System.Collections.Generic.ICollection<EmergencyDepartmentAttendanceV1> EmergencyDepartmentAttendances { get; set; }
 
-    }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class HealthDataRecordV1RecordEnvelope
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        public string ProviderSystemId { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        public System.Uri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("payload")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public HealthDataRecordV1 Payload { get; set; } = new HealthDataRecordV1();
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -1062,21 +1067,16 @@ namespace SUI.Custodians.API.Client
         public System.DateTimeOffset? Date { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("setting")]
-        public HealthSettingV1 Setting { get; set; }
+        public int? Setting { get; set; }
 
-    }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum HealthSettingV1
-    {
-
-        _0 = 0,
-
-        _1 = 1,
-
-        _2 = 2,
-
-        _3 = 3,
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -1089,7 +1089,16 @@ namespace SUI.Custodians.API.Client
         public System.DateTimeOffset? Date { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("riskType")]
-        public CrimeRiskTypeV1 RiskType { get; set; }
+        public int? RiskType { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -1146,21 +1155,14 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("relatedPeople")]
         public System.Collections.Generic.ICollection<RelatedPersonV1> RelatedPeople { get; set; }
 
-    }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class PersonalDetailsRecordV1RecordEnvelope
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        public string ProviderSystemId { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        public System.Uri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("payload")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public PersonalDetailsRecordV1 Payload { get; set; } = new PersonalDetailsRecordV1();
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -1195,6 +1197,141 @@ namespace SUI.Custodians.API.Client
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordEnvelopeOfChildSocialCareDetailsRecordV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public ChildSocialCareDetailsRecordV1 Payload { get; set; } = new ChildSocialCareDetailsRecordV1();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordEnvelopeOfCrimeDataRecordV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public CrimeDataRecordV1 Payload { get; set; } = new CrimeDataRecordV1();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordEnvelopeOfEducationDetailsRecordV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public EducationDetailsRecordV1 Payload { get; set; } = new EducationDetailsRecordV1();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordEnvelopeOfHealthDataRecordV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public HealthDataRecordV1 Payload { get; set; } = new HealthDataRecordV1();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordEnvelopeOfPersonalDetailsRecordV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public PersonalDetailsRecordV1 Payload { get; set; } = new PersonalDetailsRecordV1();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class RelatedPersonV1
     {
 
@@ -1210,6 +1347,15 @@ namespace SUI.Custodians.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("risk")]
         public System.Collections.Generic.ICollection<string> Risk { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 

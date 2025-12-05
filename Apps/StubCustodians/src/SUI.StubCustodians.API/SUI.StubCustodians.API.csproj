@@ -6,7 +6,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
-    <OpenApiDocumentsDirectory>$(SolutionDir)Apps/StubCustodians/src/SUI.Custodians.API.Client</OpenApiDocumentsDirectory>
+    <OpenApiDocumentsDirectory>../SUI.Custodians.API.Client</OpenApiDocumentsDirectory>
+    <OpenApiGenerateDocumentsOptions>--file-name custodians-openapi-generated</OpenApiGenerateDocumentsOptions>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />

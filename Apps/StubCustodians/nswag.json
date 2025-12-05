@@ -3,7 +3,7 @@
   "defaultVariables": null,
   "documentGenerator": {
     "fromDocument": {
-      "url": "./src/SUI.Custodians.API.Client/SUI.Custodians.API.json",
+      "url": "./src/SUI.Custodians.API.Client/custodians-openapi-generated.json",
       "output": null,
       "newLineBehaviour": "Auto"
     }
