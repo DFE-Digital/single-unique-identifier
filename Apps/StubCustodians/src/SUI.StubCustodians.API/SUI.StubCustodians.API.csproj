@@ -5,7 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    <!-- ignore missing XML comment warnings -->
+    <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
+    <OpenApiDocumentsDirectory>$(SolutionDir)Apps/StubCustodians/src/SUI.Custodians.API.Client</OpenApiDocumentsDirectory>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
