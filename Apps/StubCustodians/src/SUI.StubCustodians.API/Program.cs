@@ -57,7 +57,7 @@ namespace SUI.StubCustodians.API
             {
                 var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
-                app.MapOpenApi();
+                app.MapOpenApi("/openapi/v1.json");
 
                 app.UseSwaggerUI(options =>
                 {
