@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using SUI.StubCustodians.Application.Common;
 
 namespace SUI.StubCustodians.Application.Queries
 {
+    [ExcludeFromCodeCoverage]
     public abstract record GetRecordQueryBase
     {
         public required string Sui { get; init; }
