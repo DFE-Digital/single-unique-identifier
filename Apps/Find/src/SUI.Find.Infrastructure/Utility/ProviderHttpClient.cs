@@ -26,13 +26,13 @@ public class ProviderHttpClient(IHttpClientFactory httpClientFactory, ILogger<Pr
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                logger.LogInformation("Provider returned 404 Not Found for URL: {Url}", url);
-                return Result<string>.Fail("No record found.");
+                logger.LogInformation("Provider returned 404 Not Found for URL");
+                return Result<string>.Fail("NotFound");
             }
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("Provider returned unexpected status: {StatusCode} for URL: {Url}", response.StatusCode, url);
+                logger.LogWarning("Provider returned unexpected status: {StatusCode}", response.StatusCode);
                 return Result<string>.Fail($"Custodian returned unexpected status: {response.StatusCode}");
             }
 
@@ -41,8 +41,8 @@ public class ProviderHttpClient(IHttpClientFactory httpClientFactory, ILogger<Pr
         }
         catch (HttpRequestException ex)
         {
-            logger.LogError(ex, "HTTP Request failed for URL: {Url}", url);
-            return Result<string>.Fail($"Connectivity Error: {ex.Message}");
+            logger.LogError(ex, "HTTP Request failed");
+            return Result<string>.Fail($"Connection Error: {ex.Message}");
         }
     }
 }

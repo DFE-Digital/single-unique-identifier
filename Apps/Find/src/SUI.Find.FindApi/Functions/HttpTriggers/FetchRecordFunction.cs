@@ -73,12 +73,23 @@ public class FetchRecordFunction(ILogger<FetchRecordFunction> logger, IFetchReco
 
         if (!result.Success)
         {
-            logger.LogInformation("Record {RecordId} not found.", recordId);
+            if (result.Error == "NotFound")
+            {
+                logger.LogInformation("Record not found: {RecordId}.", recordId);
+                return await HttpResponseUtility.NotFoundResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                );
+            }
+
+            logger.LogInformation("Error searching for record: {RecordId}.", recordId);
             return await HttpResponseUtility.InternalServerErrorResponse(
                 req,
                 context.InvocationId,
                 cancellationToken
             );
+
         }
 
         return await HttpResponseUtility.OkResponse(req, result.Value, cancellationToken);

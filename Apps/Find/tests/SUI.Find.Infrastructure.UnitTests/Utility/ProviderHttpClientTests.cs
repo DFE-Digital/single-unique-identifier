@@ -48,7 +48,7 @@ public class ProviderHttpClientTests
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("No record found.", result.Error);
+        Assert.Equal("NotFound", result.Error);
     }
 
     [Fact]

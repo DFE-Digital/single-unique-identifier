@@ -47,7 +47,7 @@ public class FetchRecordFunctionTests
             .Returns(Result<RecordBase>.Ok(expectedResult));
 
         // Act
-        var response = await _sut.FetchRecord(request, "rec-123", context, CancellationToken.None);
+        var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -67,7 +67,7 @@ public class FetchRecordFunctionTests
         var request = MockHttpRequestData.Create();
 
         // Act
-        var response = await _sut.FetchRecord(request, "record-id", context, CancellationToken.None);
+        var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -81,7 +81,7 @@ public class FetchRecordFunctionTests
         var request = MockHttpRequestData.Create();
 
         // Act
-        var response = await _sut.FetchRecord(request, "record-id", context, CancellationToken.None);
+        var response = await _sut.FetchRecord(request, "", context, CancellationToken.None);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -98,7 +98,7 @@ public class FetchRecordFunctionTests
             .Returns(Result<RecordBase>.Fail("Error Fetching Record"));
 
         // Act
-        var response = await _sut.FetchRecord(request, "record-id", context, CancellationToken.None);
+        var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
