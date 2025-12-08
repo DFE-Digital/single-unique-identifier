@@ -12,7 +12,8 @@ public class BuildCustodianHttpRequestTests
         string method = "GET",
         string url = "https://api.example.com/records",
         string personIdPosition = "query",
-        string? bodyTemplate = null)
+        string? bodyTemplate = null
+    )
     {
         return new ProviderDefinition
         {
@@ -22,8 +23,8 @@ public class BuildCustodianHttpRequestTests
                 Method = method,
                 Url = url,
                 PersonIdPosition = personIdPosition,
-                BodyTemplateJson = bodyTemplate
-            }
+                BodyTemplateJson = bodyTemplate,
+            },
         };
     }
 
@@ -31,7 +32,10 @@ public class BuildCustodianHttpRequestTests
     [InlineData("get", "GET")]
     [InlineData("Post", "POST")]
     [InlineData("pUt", "PUT")]
-    public void BuildHttpRequest_ReturnConfiguredHttpRequest(string inputMethod, string expectedMethod)
+    public void BuildHttpRequest_ReturnConfiguredHttpRequest(
+        string inputMethod,
+        string expectedMethod
+    )
     {
         // Arrange
         var provider = MockProvider(method: inputMethod);
@@ -43,7 +47,10 @@ public class BuildCustodianHttpRequestTests
         Assert.Equal(expectedMethod, request.Method.Method);
         Assert.Contains("orgId", request.Headers.ToString());
         Assert.Equal(DefaultOrgId, request.Headers.GetValues("orgId").Single());
-        Assert.Equal($"https://api.example.com/records?personId={Uri.EscapeDataString(EncryptedPersonId)}", request.RequestUri!.ToString());
+        Assert.Equal(
+            $"https://api.example.com/records?personId={Uri.EscapeDataString(EncryptedPersonId)}",
+            request.RequestUri!.ToString()
+        );
     }
 
     [Fact]
@@ -57,7 +64,10 @@ public class BuildCustodianHttpRequestTests
         var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, null);
 
         // Assert
-        Assert.Equal($"https://api.example.com/records?{Uri.EscapeDataString(EncryptedPersonId)}", request?.RequestUri?.ToString());
+        Assert.Equal(
+            $"https://api.example.com/records?{Uri.EscapeDataString(EncryptedPersonId)}",
+            request?.RequestUri?.ToString()
+        );
     }
 
     [Fact]
@@ -68,7 +78,11 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider();
 
         // Act
-        var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, token);
+        var request = BuildCustodianHttpRequest.BuildHttpRequest(
+            provider,
+            EncryptedPersonId,
+            token
+        );
 
         // Assert
         Assert.NotNull(request.Headers.Authorization);
@@ -86,7 +100,11 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider();
 
         // Act
-        var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, token);
+        var request = BuildCustodianHttpRequest.BuildHttpRequest(
+            provider,
+            EncryptedPersonId,
+            token
+        );
 
         // Assert
         Assert.Null(request.Headers.Authorization);
@@ -115,14 +133,17 @@ public class BuildCustodianHttpRequestTests
     public void BuildHttpRequest_ShouldNotBuildBodyForNotAllowedMethods(string method)
     {
         // Arrange
-        var provider = MockProvider(method: method, personIdPosition: "body", bodyTemplate: "{\"id\":\"{personId}\"}");
+        var provider = MockProvider(
+            method: method,
+            personIdPosition: "body",
+            bodyTemplate: "{\"id\":\"{personId}\"}"
+        );
 
         // Act
         var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, null);
 
         // Assert
         Assert.Null(request.Content);
-
     }
 
     [Fact]
@@ -130,14 +151,20 @@ public class BuildCustodianHttpRequestTests
     {
         // Arrange
         var template = "{\"records\": { \"id\": \"{personId}\" }}";
-        var provider = MockProvider(method: "POST", personIdPosition: "query", bodyTemplate: template);
+        var provider = MockProvider(
+            method: "POST",
+            personIdPosition: "query",
+            bodyTemplate: template
+        );
 
         // Act
         var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, null);
 
         // Assert
         Assert.NotNull(request.Content);
-        Assert.Equal($"{{\"records\": {{ \"id\": \"{EncryptedPersonId}\" }}}}", request.Content.ReadAsStringAsync().Result);
+        Assert.Equal(
+            $"{{\"records\": {{ \"id\": \"{EncryptedPersonId}\" }}}}",
+            request.Content.ReadAsStringAsync().Result
+        );
     }
-
 }

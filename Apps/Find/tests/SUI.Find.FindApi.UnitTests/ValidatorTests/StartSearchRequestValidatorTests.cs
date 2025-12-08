@@ -53,6 +53,6 @@ public class StartSearchRequestValidatorTests
 
         // Assert
         Assert.True(isValid);
-        Assert.Null(errorMessage);
+        Assert.True(string.IsNullOrEmpty(errorMessage));
     }
 }

@@ -1,3 +1,22 @@
+const parser = new DOMParser();
+
+const focusElement = (el) => {
+    if (!el) return;
+    if (!el.hasAttribute('tabindex')) {
+        el.setAttribute('tabindex', '-1');
+    }
+    el.focus({ preventScroll: false });
+};
+
+const parseHtml = (html) => parser.parseFromString(html, 'text/html');
+
+const fetchHtmlDocument = async (url, options = {}) => {
+    const response = await fetch(url, options);
+    const html = await response.text();
+    const doc = parseHtml(html);
+    return { response, doc };
+};
+
 (() => {
     const root = document.querySelector('[data-search-root]');
     if (!root || typeof window.fetch !== 'function' || typeof window.DOMParser !== 'function') {
@@ -19,8 +38,6 @@
         resultsHeading,
         currentRequest;
 
-    const parser = new DOMParser();
-
     const setRefs = () => {
         form = root.querySelector('[data-search-form]');
         resultsContainer = root.querySelector('[data-search-results]');
@@ -36,14 +53,6 @@
         formHeading = root.querySelector('[data-search-form-heading]');
         loadingHeading = root.querySelector('[data-search-loading-heading]');
         resultsHeading = root.querySelector('[data-search-results-heading]');
-    };
-
-    const focusElement = (el) => {
-        if (!el) return;
-        if (!el.hasAttribute('tabindex')) {
-            el.setAttribute('tabindex', '-1');
-        }
-        el.focus({ preventScroll: false });
     };
 
     const applyBackLink = () => {
@@ -207,7 +216,7 @@
         currentRequest = controller;
 
         try {
-            const response = await fetch(actionUrl, {
+            const { response, doc } = await fetchHtmlDocument(actionUrl, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -216,9 +225,6 @@
                 },
                 signal: controller.signal,
             });
-
-            const html = await response.text();
-            const doc = parser.parseFromString(html, 'text/html');
 
             if (!response.ok) {
                 showError('We could not complete the search. Please try again.');
@@ -260,4 +266,68 @@
     setRefs();
     applyBackLink();
     attachHandler();
+})();
+
+(async () => {
+    const recordRoot = document.querySelector('[data-record-root]');
+    if (!recordRoot || typeof window.fetch !== 'function' || typeof window.DOMParser !== 'function') {
+        return;
+    }
+
+    const recordUrl = recordRoot.getAttribute('data-record-url');
+    const spinner = recordRoot.querySelector('.app-search__loading');
+    const content = recordRoot.querySelector('[data-record-content]');
+
+    const focusHeading = () => {
+        const heading = recordRoot.querySelector('h1');
+        if (heading) {
+            focusElement(heading);
+        }
+    };
+
+    const renderFromDoc = (doc) => {
+        const newRoot = doc.querySelector('[data-record-root]');
+        const newContent = newRoot?.querySelector('[data-record-content]');
+
+        if (newContent && content) {
+            content.replaceWith(newContent);
+        } else if (content) {
+            content.hidden = false;
+        } else if (newContent) {
+            recordRoot.appendChild(newContent);
+        }
+
+        if (spinner) {
+            spinner.hidden = true;
+        }
+
+        const newTitle = doc.querySelector('title')?.textContent;
+        if (newTitle) {
+            document.title = newTitle;
+        }
+
+        focusHeading();
+    };
+
+    const fetchContent = async () => {
+        if (!recordUrl) return;
+        try {
+            const { doc } = await fetchHtmlDocument(recordUrl, { headers: { Accept: 'text/html' } });
+            renderFromDoc(doc);
+        } catch (error) {
+            console.error('Failed to load record', error);
+            if (spinner) {
+                const label = spinner.querySelector('.app-spinner__label');
+                if (label) {
+                    label.textContent = 'We could not load this record. Please try again.';
+                }
+            }
+        }
+    };
+
+    if (!content) {
+        await fetchContent();
+    } else {
+        focusHeading();
+    }
 })();

@@ -36,7 +36,7 @@ public static class HttpResponseUtility
                 "Unauthorised",
                 401,
                 "Missing or invalid bearer token.",
-                $"traceId:{traceId}"
+                $"urn:trace::{traceId}"
             ),
             cancellationToken
         );
@@ -64,6 +64,7 @@ public static class HttpResponseUtility
         HttpRequestData req,
         string traceId,
         string detail,
+        string title = "Bad Request",
         CancellationToken cancellationToken = default
     )
     {

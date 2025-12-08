@@ -1,16 +1,30 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Text.Json;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
+using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.Services;
 
 public interface ISearchService
 {
+    Task<SearchJobResult> StartSearchAsync(
+        EncryptedPersonId personId,
+        string clientId,
+        string[] scopes,
+        DurableTaskClient client,
+        string correlationId,
+        CancellationToken cancellationToken
+    );
+
     Task<SearchCancelResult> CancelSearchAsync(
         string jobId,
         string clientId,
@@ -34,8 +48,124 @@ public interface ISearchService
 }
 
 // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
-public class SearchService(ILogger<SearchService> logger) : ISearchService
+public class SearchService(
+    ILogger<SearchService> logger,
+    IPersonIdEncryptionService encryptionService,
+    ICustodianService custodianService,
+    IHashService hashService
+) : ISearchService
 {
+    public async Task<SearchJobResult> StartSearchAsync(
+        EncryptedPersonId personId,
+        string clientId,
+        string[] scopes,
+        DurableTaskClient client,
+        string correlationId,
+        CancellationToken cancellationToken
+    )
+    {
+        var instanceId = $"{personId}-{clientId}";
+        var hashedInstanceId = hashService.HmacSha256Hash(instanceId);
+
+        var existingInstance = await client.GetInstanceAsync(
+            hashedInstanceId,
+            cancellation: cancellationToken
+        );
+        var hasExistingInstance =
+            existingInstance is
+            {
+                RuntimeStatus: OrchestrationRuntimeStatus.Running
+                    or OrchestrationRuntimeStatus.Pending
+            };
+
+        if (hasExistingInstance)
+        {
+            var originalJobId = existingInstance!.InstanceId;
+            var jobStatus =
+                existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Running
+                    ? SearchStatus.Running
+                    : SearchStatus.Queued;
+
+            logger.LogInformation(
+                "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
+                originalJobId,
+                jobStatus
+            );
+
+            var originalJob = new SearchJobDto
+            {
+                JobId = originalJobId,
+                PersonId = personId.EncryptedValue,
+                Status = jobStatus,
+                CreatedAt = existingInstance.CreatedAt,
+                LastUpdatedAt = existingInstance.LastUpdatedAt,
+            };
+
+            return new SearchJobResult.Success(originalJob);
+        }
+
+        var encryptDefinition = await custodianService.GetCustodianAsync(clientId);
+        if (!encryptDefinition.Success || encryptDefinition.Value is null)
+        {
+            logger.LogWarning(
+                "No custodian configuration found for ClientId: {ClientId}.",
+                clientId
+            );
+            return new SearchJobResult.Failed();
+        }
+
+        if (encryptDefinition.Value.Encryption is null)
+        {
+            logger.LogWarning(
+                "Custodian configuration for ClientId: {ClientId} has no encryption defined.",
+                clientId
+            );
+            return new SearchJobResult.Failed();
+        }
+
+        var unencryptedPersonId = encryptionService.DecryptPersonIdToNhs(
+            personId.EncryptedValue,
+            encryptDefinition.Value.Encryption
+        );
+        if (!unencryptedPersonId.Success || unencryptedPersonId.Value is null)
+        {
+            logger.LogWarning("Failed to decrypt SUID for ClientId: {ClientId}.", clientId);
+            return new SearchJobResult.Failed();
+        }
+
+        var metaData = new SearchJobMetadata(
+            personId.EncryptedValue,
+            DateTime.UtcNow,
+            correlationId
+        );
+
+        var policyContext = new PolicyContext(clientId, scopes);
+
+        var orchestratorInput = new SearchOrchestratorInput(
+            unencryptedPersonId.Value,
+            metaData,
+            policyContext
+        );
+
+        var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
+            "SearchOrchestrator",
+            orchestratorInput,
+            new StartOrchestrationOptions { InstanceId = hashedInstanceId },
+            cancellationToken
+        );
+
+        var searchJob = new SearchJobDto
+        {
+            JobId = jobId,
+            PersonId = personId.EncryptedValue,
+            Status = SearchStatus.Queued,
+            CreatedAt = DateTime.UtcNow,
+            LastUpdatedAt = DateTime.UtcNow,
+        };
+
+        return new SearchJobResult.Success(searchJob);
+    }
+
     public async Task<SearchCancelResult> CancelSearchAsync(
         string jobId,
         string clientId,
@@ -79,7 +209,7 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
                 new SearchJobDto
                 {
                     JobId = jobId,
-                    Suid = input.Suid,
+                    PersonId = input.Suid,
                     Status = OrchestrationRuntimeStatus.Terminated.ToSuiSearchStatus(),
                     CreatedAt = metaData.CreatedAt,
                     LastUpdatedAt = metaData.LastUpdatedAt,
@@ -203,7 +333,7 @@ public class SearchService(ILogger<SearchService> logger) : ISearchService
             var dto = new SearchJobDto
             {
                 JobId = jobId,
-                Suid = input.Suid,
+                PersonId = input.Suid,
                 Status = jobStatus.RuntimeStatus.ToSuiSearchStatus(),
                 CreatedAt = jobStatus.CreatedAt,
                 LastUpdatedAt = jobStatus.LastUpdatedAt,

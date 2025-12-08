@@ -3,26 +3,22 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
-public class CancelSearchAsyncTests
+public class CancelSearchAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
-    private readonly SearchService _searchService;
     private const string ClientId = "test-client-id";
 
     public CancelSearchAsyncTests()
     {
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
-        var policyData = new PolicyContext(ClientId, []);
-        _searchService = Substitute.ForPartsOf<SearchService>(
-            Substitute.For<ILogger<SearchService>>()
-        );
-        _searchService
-            .ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
+        var policyData = new PolicyContext("test-client-id", []);
+        Sut.ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
     }
 
@@ -33,7 +29,7 @@ public class CancelSearchAsyncTests
             .GetInstanceAsync("not-found-job", Arg.Any<CancellationToken>())
             .Returns((OrchestrationMetadata?)null);
 
-        var result = await _searchService.CancelSearchAsync(
+        var result = await Sut.CancelSearchAsync(
             "not-found-job",
             ClientId,
             _client,
@@ -52,7 +48,7 @@ public class CancelSearchAsyncTests
         };
         _client.GetInstanceAsync("completed-job", Arg.Any<CancellationToken>()).Returns(meta);
 
-        var result = await _searchService.CancelSearchAsync(
+        var result = await Sut.CancelSearchAsync(
             "completed-job",
             ClientId,
             _client,
@@ -71,7 +67,7 @@ public class CancelSearchAsyncTests
         };
         _client.GetInstanceAsync("non-cancellable-job", Arg.Any<CancellationToken>()).Returns(meta);
 
-        var result = await _searchService.CancelSearchAsync(
+        var result = await Sut.CancelSearchAsync(
             "non-cancellable-job",
             ClientId,
             _client,
@@ -90,7 +86,7 @@ public class CancelSearchAsyncTests
         };
         _client.GetInstanceAsync("cancel-job", Arg.Any<CancellationToken>()).Returns(meta);
 
-        var result = await _searchService.CancelSearchAsync(
+        var result = await Sut.CancelSearchAsync(
             "cancel-job",
             ClientId,
             _client,
@@ -102,7 +98,7 @@ public class CancelSearchAsyncTests
         var successResult = result as SearchCancelResult.Success;
         var body = successResult?.Result;
         Assert.NotNull(successResult);
-        Assert.Equal("test-suid", body?.Suid);
+        Assert.Equal("test-suid", body?.PersonId);
     }
 
     [Fact]
@@ -112,7 +108,7 @@ public class CancelSearchAsyncTests
             .GetInstanceAsync("fail-job", Arg.Any<CancellationToken>())
             .Throws(new Exception("fail"));
 
-        var result = await _searchService.CancelSearchAsync(
+        var result = await Sut.CancelSearchAsync(
             "fail-job",
             ClientId,
             _client,
@@ -134,11 +130,10 @@ public class CancelSearchAsyncTests
         // Mock the ReadOrchestratorInput to return a different clientId
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext("different-client-id", []);
-        _searchService
-            .ReadOrchestratorInput<SearchOrchestratorInput>(meta)
+        Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
-        var result = await _searchService.CancelSearchAsync(
+        var result = await Sut.CancelSearchAsync(
             "unauth-job",
             ClientId,
             _client,

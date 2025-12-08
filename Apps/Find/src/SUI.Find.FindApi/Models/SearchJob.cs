@@ -40,7 +40,7 @@ public record SearchJob
         return new SearchJob
         {
             JobId = dto.JobId,
-            Suid = dto.Suid,
+            Suid = dto.PersonId,
             Status = dto.Status,
             CreatedAt = dto.CreatedAt,
             LastUpdatedAt = dto.LastUpdatedAt,

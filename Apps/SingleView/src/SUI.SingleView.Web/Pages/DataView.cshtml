@@ -1,40 +1,62 @@
-@page
+@page "{personId?}"
 @model DataView
 @{
-    ViewBag.Title = @Model.PersonModel.Name;
-    ViewBag.BackLinkPath = nameof(Search);
+    ViewBag.BackLinkPath = Url.Page(nameof(Search));
+    var recordUrl = Url.Page("DataView", new { personId = Model.PersonId, prefetch = true });
+    ViewBag.Title = Model.PersonModel is not null ? Model.PersonModel.Name : "Checking for updates from safeguarding partners";
 }
 
-<h1 class="govuk-heading-xl">@ViewBag.Title</h1>
-<p class="govuk-body">
-    NHS Number: @Model.PersonModel.NhsNumber
-</p>
-<div class="govuk-!-margin-bottom-7">
-    @foreach (var tag in Model.PersonModel.Tags)
+<div class="app-data-view" data-record-root data-record-url="@recordUrl">
+    @if (Model.PersonModel is null)
     {
-        <govuk-tag class="govuk-tag--dark-blue">@tag</govuk-tag>
+        <div class="app-search__loading" aria-live="polite" aria-busy="true" role="status">
+            <h1 class="govuk-heading-xl" tabindex="-1">Checking for updates from safeguarding partners</h1>
+            <div class="app-spinner app-spinner--large">
+                <div class="app-spinner__circle"></div>
+                <div class="app-spinner__label govuk-body govuk-!-font-size-19">Loading …</div>
+            </div>
+            <span class="govuk-visually-hidden">Loading safeguarding updates…</span>
+        </div>
+        <noscript>
+            <meta http-equiv="refresh" content="0;url=@recordUrl" />
+        </noscript>
+    }
+    else
+    {
+        <div data-record-content>
+            <h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+            <p class="govuk-body">
+                NHS Number: @Model.PersonModel.NhsNumber
+            </p>
+            <div class="govuk-!-margin-bottom-7">
+                @foreach (var tag in Model.PersonModel.Tags)
+                {
+                    <govuk-tag class="govuk-tag--dark-blue">@tag</govuk-tag>
+                }
+            </div>
+            @if (Model.PersonModel.ImportantMessages.Any())
+            {
+                <govuk-notification-banner>
+                    @foreach (var message in Model.PersonModel.ImportantMessages)
+                    {
+                        <p class="govuk-notification-banner__heading">
+                            @message
+                        </p>
+                    }
+                </govuk-notification-banner>
+            }
+
+            <partial name="_DataView__ChildRecordSection"/>
+
+            <partial name="_DataView__ChildDetailsSection"/>
+
+            <partial name="_DataView__ChildrensSocialCareSection"/>
+
+            <partial name="_DataView__EducationSection"/>
+
+            <partial name="_DataView__HealthSection"/>
+
+            <partial name="_DataView__CrimeSection"/>
+        </div>
     }
 </div>
-@if (Model.PersonModel.ImportantMessages.Any())
-{
-    <govuk-notification-banner>
-        @foreach (var message in Model.PersonModel.ImportantMessages)
-        {
-            <p class="govuk-notification-banner__heading">
-                @message
-            </p>
-        }
-    </govuk-notification-banner>
-}
-
-<partial name="_DataView__ChildRecordSection"/>
-
-<partial name="_DataView__ChildDetailsSection"/>
-
-<partial name="_DataView__ChildrensSocialCareSection"/>
-
-<partial name="_DataView__EducationSection"/>
-
-<partial name="_DataView__HealthSection"/>
-
-<partial name="_DataView__CrimeSection"/>
