@@ -83,7 +83,7 @@ namespace SUI.StubCustodians.API
                     var payloadType = type.GetGenericArguments()[0];
                     schemaUriSchema.Description ??= "URI of the payload schema";
                     schemaUriSchema.Example = new OpenApiString(
-                        $"#/components/schemas/{payloadType.Name}"
+                        $"https://schemas.example.gov.uk/sui/{payloadType.Name}"
                     );
                 }
             }

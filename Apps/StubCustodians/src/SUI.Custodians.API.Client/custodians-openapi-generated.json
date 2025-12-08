@@ -976,7 +976,7 @@
             "type": "string",
             "description": "URI of the payload schema",
             "format": "uri",
-            "example": "#/components/schemas/ChildSocialCareDetailsRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/ChildSocialCareDetailsRecordV1"
@@ -998,7 +998,7 @@
             "type": "string",
             "description": "URI of the payload schema",
             "format": "uri",
-            "example": "#/components/schemas/CrimeDataRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/CrimeDataRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/CrimeDataRecordV1"
@@ -1020,7 +1020,7 @@
             "type": "string",
             "description": "URI of the payload schema",
             "format": "uri",
-            "example": "#/components/schemas/EducationDetailsRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/EducationDetailsRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/EducationDetailsRecordV1"
@@ -1042,7 +1042,7 @@
             "type": "string",
             "description": "URI of the payload schema",
             "format": "uri",
-            "example": "#/components/schemas/HealthDataRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/HealthDataRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/HealthDataRecordV1"
@@ -1064,7 +1064,7 @@
             "type": "string",
             "description": "URI of the payload schema",
             "format": "uri",
-            "example": "#/components/schemas/PersonalDetailsRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/PersonalDetailsRecordV1"
