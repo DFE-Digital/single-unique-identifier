@@ -61,6 +61,7 @@ public class FetchRecordFunction(ILogger<FetchRecordFunction> logger, IFetchReco
                 req,
                 context.InvocationId,
                 "Invalid record Id",
+                "Bad or missing recordId parameter",
                 cancellationToken
             );
         }
