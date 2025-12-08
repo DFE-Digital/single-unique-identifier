@@ -1,0 +1,68 @@
+name: Terraform Core Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: d01
+        type: choice
+        options:
+          - d01
+      apply:
+        description: Apply changes (otherwise plan only)
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.environment }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Load environment config
+        id: env_config
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ env.TARGET_ENVIRONMENT }}
+
+      - name: Terraform init
+        run: |
+          terraform -chdir=terraform/core init \
+            -backend-config="resource_group_name=${{ steps.env_config.outputs.state_rg }}" \
+            -backend-config="storage_account_name=${{ steps.env_config.outputs.state_storage }}" \
+            -backend-config="container_name=${{ steps.env_config.outputs.state_container }}" \
+            -backend-config="key=${{ steps.env_config.outputs.state_key }}"
+
+      - name: Terraform validate
+        run: terraform -chdir=terraform/core validate
+
+      - name: Terraform plan
+        run: terraform -chdir=terraform/core plan -input=false -var-file=../${{ steps.env_config.outputs.tfvars_path }} -out=tfplan
+
+      - name: Terraform apply
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.apply == 'true'
+        run: terraform -chdir=terraform/core apply -input=false tfplan
