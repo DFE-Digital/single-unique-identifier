@@ -71,9 +71,20 @@ namespace SUI.StubCustodians.API
                     && schema.Properties.TryGetValue("payload", out var payloadSchema)
                 )
                 {
+                    // Keep payload fully expanded
                     payloadSchema.Description ??= GetXmlSummary(payloadProp);
                     payloadSchema.Example ??= GetXmlExample(payloadProp);
                     ApplyXmlToSchema(payloadSchema, payloadProp.PropertyType, visited);
+                }
+
+                // Set schemaUri as string reference
+                if (schema.Properties.TryGetValue("schemaUri", out var schemaUriSchema))
+                {
+                    var payloadType = type.GetGenericArguments()[0];
+                    schemaUriSchema.Description ??= "URI of the payload schema";
+                    schemaUriSchema.Example = new OpenApiString(
+                        $"#/components/schemas/{payloadType.Name}"
+                    );
                 }
             }
 

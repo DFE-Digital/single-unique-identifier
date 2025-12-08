@@ -974,7 +974,9 @@
           },
           "schemaUri": {
             "type": "string",
-            "format": "uri"
+            "description": "URI of the payload schema",
+            "format": "uri",
+            "example": "#/components/schemas/ChildSocialCareDetailsRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/ChildSocialCareDetailsRecordV1"
@@ -994,7 +996,9 @@
           },
           "schemaUri": {
             "type": "string",
-            "format": "uri"
+            "description": "URI of the payload schema",
+            "format": "uri",
+            "example": "#/components/schemas/CrimeDataRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/CrimeDataRecordV1"
@@ -1014,7 +1018,9 @@
           },
           "schemaUri": {
             "type": "string",
-            "format": "uri"
+            "description": "URI of the payload schema",
+            "format": "uri",
+            "example": "#/components/schemas/EducationDetailsRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/EducationDetailsRecordV1"
@@ -1034,7 +1040,9 @@
           },
           "schemaUri": {
             "type": "string",
-            "format": "uri"
+            "description": "URI of the payload schema",
+            "format": "uri",
+            "example": "#/components/schemas/HealthDataRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/HealthDataRecordV1"
@@ -1054,7 +1062,9 @@
           },
           "schemaUri": {
             "type": "string",
-            "format": "uri"
+            "description": "URI of the payload schema",
+            "format": "uri",
+            "example": "#/components/schemas/PersonalDetailsRecordV1"
           },
           "payload": {
             "$ref": "#/components/schemas/PersonalDetailsRecordV1"
