@@ -8,12 +8,14 @@ This folder holds the Terraform for the platform, including shared foundations (
 - `service-<name>/`: Create a new root per service (for example `service-singleview/`, `service-transfer/`) that composes service-specific modules and consumes outputs from `core` (for example, resource group).
 - `modules/resource_group`: Creates the environment resource group; future service modules can be added under `modules/<service>` and wired into the relevant service root.
 - `environments/*.tfvars`: Per-environment configuration; source of truth for naming and tags.
+- `service-example/`: Example service root showing how to consume outputs from `core` via remote state and set a per-service state key.
 
 ## Running via GitHub Actions (manual)
 
 - `Terraform Backend Bootstrap`: Seeds the tfstate resource group/storage/container for the selected environment.
 - `Terraform Core Infrastructure`: Runs init/validate/plan, and apply when `apply=true`, using the core root (`terraform/core`) with tfvars-driven naming and OIDC auth.
 - `Terraform Plan and Apply`: Internal reusable workflow used by the core and service workflows.
+- `Terraform Service Example`: Illustrative workflow for a service root; it is disabled via `if: ${{ false }}` to prevent accidental runs. Copy/enable per service with the correct root/path/state key.
 
 ### GitHub secrets expected
 
@@ -39,3 +41,13 @@ Create `modules/<service>` with its resources and inputs. Then:
 - Create a new root under `terraform/service-<name>/` that calls the service module and consumes outputs from `core` (for example, `module.resource_group.name`/`location`).
 - Add any service-specific variables to the shared tfvars files so each environment’s settings stay in one place.
 - Add a dedicated GitHub Actions workflow for the service root (similar to the core workflow) so plans/applies are isolated per service.
+
+### Example service root
+
+`terraform/service-example/` demonstrates:
+
+- Deriving backend names from the same tfvars values (subscription/environment/region).
+- Using `terraform_remote_state` to read `resource_group_name`/`resource_group_location` from the `core` state (key `<env>/terraform.tfstate`).
+- An example per-service state key (`<env>/service-example.tfstate`).
+- Where to call a service module (commented-out stub) that would use the core outputs and service-specific variables.
+- A disabled GitHub Actions workflow (`.github/workflows/terraform-service-example.yml`) that calls the reusable workflow; set `if: ${{ true }}` (or remove) when ready to use.
