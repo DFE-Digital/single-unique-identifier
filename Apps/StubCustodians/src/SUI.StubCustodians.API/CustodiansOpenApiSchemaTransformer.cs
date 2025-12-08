@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.OpenApi;
@@ -6,6 +7,7 @@ using Microsoft.OpenApi.Models;
 
 namespace SUI.StubCustodians.API
 {
+    [ExcludeFromCodeCoverage]
     public class CustodiansOpenApiSchemaTransformer : IOpenApiSchemaTransformer
     {
         private readonly List<XDocument> _xmlDocs = new();
