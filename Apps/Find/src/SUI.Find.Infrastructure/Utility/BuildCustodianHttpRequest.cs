@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using SUI.Find.Application.Models;
 
-namespace SUI.Find.FindApi.Utility;
+namespace SUI.Find.Infrastructure.Utility;
 
 public static class BuildCustodianHttpRequest
 {

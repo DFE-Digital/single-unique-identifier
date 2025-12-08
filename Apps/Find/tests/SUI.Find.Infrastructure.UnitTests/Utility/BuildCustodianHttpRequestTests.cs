@@ -1,7 +1,7 @@
 using SUI.Find.Application.Models;
-using SUI.Find.FindApi.Utility;
+using SUI.Find.Infrastructure.Utility;
 
-namespace SUI.Find.FindApi.UnitTests.Utility;
+namespace SUI.Find.Infrastructure.UnitTests.Utility;
 
 public class BuildCustodianHttpRequestTests
 {
