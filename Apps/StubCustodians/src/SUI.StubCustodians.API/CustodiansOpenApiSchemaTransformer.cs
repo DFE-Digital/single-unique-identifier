@@ -43,8 +43,10 @@ namespace SUI.StubCustodians.API
             CancellationToken cancellationToken
         )
         {
-            if (schema == null || context.JsonTypeInfo?.Type == null)
+            if (context.JsonTypeInfo?.Type == null)
+            {
                 return Task.CompletedTask;
+            }
 
             ApplyXmlToSchema(schema, context.JsonTypeInfo.Type, new HashSet<Type>());
 
@@ -53,8 +55,10 @@ namespace SUI.StubCustodians.API
 
         private void ApplyXmlToSchema(OpenApiSchema schema, Type type, HashSet<Type> visited)
         {
-            if (type == null || visited.Contains(type))
+            if (visited.Contains(type))
+            {
                 return;
+            }
 
             visited.Add(type);
 
@@ -101,10 +105,10 @@ namespace SUI.StubCustodians.API
             }
         }
 
-        private string ToCamelCase(string name) =>
+        private static string ToCamelCase(string name) =>
             char.ToLowerInvariant(name[0]) + name.Substring(1);
 
-        private bool IsSimpleType(Type type) =>
+        private static bool IsSimpleType(Type type) =>
             type.IsPrimitive
             || type == typeof(string)
             || type == typeof(decimal)
