@@ -5,6 +5,7 @@ using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Utility;
+using SUI.Find.Infrastructure.Utility;
 
 namespace SUI.Find.FindApi.Functions.ProviderTriggers;
 
