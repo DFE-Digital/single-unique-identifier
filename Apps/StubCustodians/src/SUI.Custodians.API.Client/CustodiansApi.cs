@@ -774,18 +774,33 @@ namespace SUI.Custodians.API.Client
     public partial class AddressV1
     {
 
+        /// <summary>
+        /// Line 1 of the address
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("line1")]
         public string Line1 { get; set; }
 
+        /// <summary>
+        /// Line 2 of the address
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("line2")]
         public string Line2 { get; set; }
 
+        /// <summary>
+        /// Town or city
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("townOrCity")]
         public string TownOrCity { get; set; }
 
+        /// <summary>
+        /// County
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("county")]
         public string County { get; set; }
 
+        /// <summary>
+        /// Postcode
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("postcode")]
         public string Postcode { get; set; }
 
@@ -804,12 +819,21 @@ namespace SUI.Custodians.API.Client
     public partial class ChildSocialCareDetailsRecordV1
     {
 
+        /// <summary>
+        /// CSC - Key worker
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("keyWorker")]
         public string KeyWorker { get; set; }
 
+        /// <summary>
+        /// CSC - Duty contact details
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("dutyContactDetails")]
         public System.Collections.Generic.ICollection<string> DutyContactDetails { get; set; }
 
+        /// <summary>
+        /// CSC - Team involvement
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("teamInvolvement")]
         public System.Collections.Generic.ICollection<string> TeamInvolvement { get; set; }
 
@@ -831,10 +855,16 @@ namespace SUI.Custodians.API.Client
     public partial class ChildSocialCareReferralV1
     {
 
+        /// <summary>
+        /// CSC - Referral history - Date
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("date")]
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Date { get; set; }
 
+        /// <summary>
+        /// CSC - Referral history - Type
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string Type { get; set; }
 
@@ -853,18 +883,33 @@ namespace SUI.Custodians.API.Client
     public partial class CrimeDataRecordV1
     {
 
+        /// <summary>
+        /// Police marker details
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("policeMarkerDetails")]
         public string PoliceMarkerDetails { get; set; }
 
+        /// <summary>
+        /// Crime - Services known to
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("servicesKnownTo")]
         public System.Collections.Generic.ICollection<string> ServicesKnownTo { get; set; }
 
+        /// <summary>
+        /// Last Police Protection Power event
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("lastPoliceProtectionPowerEvent")]
         public string LastPoliceProtectionPowerEvent { get; set; }
 
+        /// <summary>
+        /// Police - Missing Episodes
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("missingEpisodes")]
         public System.Collections.Generic.ICollection<CrimeMissingEpisodeV1> MissingEpisodes { get; set; }
 
+        /// <summary>
+        /// Linked crime risks
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("linkedCrimeRisks")]
         public System.Collections.Generic.ICollection<LinkedCrimeRiskV1> LinkedCrimeRisks { get; set; }
 
@@ -883,6 +928,9 @@ namespace SUI.Custodians.API.Client
     public partial class CrimeMissingEpisodeV1
     {
 
+        /// <summary>
+        /// Missing episode date
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("date")]
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Date { get; set; }
@@ -902,24 +950,45 @@ namespace SUI.Custodians.API.Client
     public partial class EducationAttendanceV1
     {
 
+        /// <summary>
+        /// Education attendance history - Academic Term Year Start
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("academicTermYearStart")]
         public int? AcademicTermYearStart { get; set; }
 
+        /// <summary>
+        /// Education attendance history - Academic Term Year End
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("academicTermYearEnd")]
         public int? AcademicTermYearEnd { get; set; }
 
+        /// <summary>
+        /// Education attendance history - Attendance Percentage
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("attendancePercentage")]
         public float? AttendancePercentage { get; set; }
 
+        /// <summary>
+        /// Education attendance history - Unauthorised Absence Percentage
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("unauthorisedAbsencePercentage")]
         public float? UnauthorisedAbsencePercentage { get; set; }
 
+        /// <summary>
+        /// Education attendance history - Suspensions
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("suspensions")]
         public int? Suspensions { get; set; }
 
+        /// <summary>
+        /// Education attendance history - Exclusions
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("exclusions")]
         public int? Exclusions { get; set; }
 
+        /// <summary>
+        /// Education attendance history - School moves non transitional
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schoolMovesNonTransitional")]
         public int? SchoolMovesNonTransitional { get; set; }
 
@@ -938,15 +1007,24 @@ namespace SUI.Custodians.API.Client
     public partial class EducationDetailsRecordV1
     {
 
+        /// <summary>
+        /// Education setting - Name
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("educationSettingName")]
         public string EducationSettingName { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("educationSettingAddress")]
         public AddressV1 EducationSettingAddress { get; set; }
 
+        /// <summary>
+        /// Education setting - Telephone
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("educationSettingTelephone")]
         public string EducationSettingTelephone { get; set; }
 
+        /// <summary>
+        /// Education Attendances
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("educationAttendances")]
         public System.Collections.Generic.ICollection<EducationAttendanceV1> EducationAttendances { get; set; }
 
@@ -965,6 +1043,9 @@ namespace SUI.Custodians.API.Client
     public partial class EmergencyDepartmentAttendanceV1
     {
 
+        /// <summary>
+        /// Health - Emergency department attendance - Date
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("date")]
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Date { get; set; }
@@ -1026,6 +1107,9 @@ namespace SUI.Custodians.API.Client
     public partial class HealthDataRecordV1
     {
 
+        /// <summary>
+        /// Registered GP
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("registeredGP")]
         public string RegisteredGP { get; set; }
 
@@ -1041,6 +1125,9 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("camhsContactTelephone")]
         public string CamhsContactTelephone { get; set; }
 
+        /// <summary>
+        /// Missed Healthcare Appointments
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("missedAppointments")]
         public System.Collections.Generic.ICollection<HealthMissedAppointmentV1> MissedAppointments { get; set; }
 
@@ -1062,6 +1149,9 @@ namespace SUI.Custodians.API.Client
     public partial class HealthMissedAppointmentV1
     {
 
+        /// <summary>
+        /// Health - Missed appointments history - Date
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("date")]
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Date { get; set; }
@@ -1084,6 +1174,9 @@ namespace SUI.Custodians.API.Client
     public partial class LinkedCrimeRiskV1
     {
 
+        /// <summary>
+        /// Crime - Risk - Date
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("date")]
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Date { get; set; }
@@ -1106,12 +1199,21 @@ namespace SUI.Custodians.API.Client
     public partial class PersonalDetailsRecordV1
     {
 
+        /// <summary>
+        /// The child's first name.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("firstName")]
         public string FirstName { get; set; }
 
+        /// <summary>
+        /// The child's last name.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("lastName")]
         public string LastName { get; set; }
 
+        /// <summary>
+        /// The child's date of birth.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("dateOfBirth")]
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? DateOfBirth { get; set; }
@@ -1119,39 +1221,75 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("address")]
         public AddressV1 Address { get; set; }
 
+        /// <summary>
+        /// The full names of the other people known to be residing at the child's main address.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("namesOfIndividualsResidingAtMainAddress")]
         public System.Collections.Generic.ICollection<string> NamesOfIndividualsResidingAtMainAddress { get; set; }
 
+        /// <summary>
+        /// Birth assigned sex
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("birthAssignedSex")]
         public string BirthAssignedSex { get; set; }
 
+        /// <summary>
+        /// Pronouns
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("pronouns")]
         public string Pronouns { get; set; }
 
+        /// <summary>
+        /// Ethnicity
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ethnicity")]
         public string Ethnicity { get; set; }
 
+        /// <summary>
+        /// First language
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("firstLanguage")]
         public string FirstLanguage { get; set; }
 
+        /// <summary>
+        /// Designated Local Authority
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("designatedLocalAuthority")]
         public string DesignatedLocalAuthority { get; set; }
 
+        /// <summary>
+        /// Communication need: English as additional language (EAL)
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("englishAsAdditionalLanguage")]
         public bool? EnglishAsAdditionalLanguage { get; set; }
 
+        /// <summary>
+        /// Communication need: Braille needed
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("braille")]
         public bool? Braille { get; set; }
 
+        /// <summary>
+        /// Communication need: Sign language
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("signLanguage")]
         public bool? SignLanguage { get; set; }
 
+        /// <summary>
+        /// Communication need: Makaton needed
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("makaton")]
         public bool? Makaton { get; set; }
 
+        /// <summary>
+        /// Communication need: Interpreter needed
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("interpreter")]
         public bool? Interpreter { get; set; }
 
+        /// <summary>
+        /// The people known to be related to the child.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("relatedPeople")]
         public System.Collections.Generic.ICollection<RelatedPersonV1> RelatedPeople { get; set; }
 
@@ -1204,6 +1342,9 @@ namespace SUI.Custodians.API.Client
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string ProviderSystemId { get; set; }
 
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public System.Uri SchemaUri { get; set; }
@@ -1231,6 +1372,9 @@ namespace SUI.Custodians.API.Client
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string ProviderSystemId { get; set; }
 
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public System.Uri SchemaUri { get; set; }
@@ -1258,6 +1402,9 @@ namespace SUI.Custodians.API.Client
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string ProviderSystemId { get; set; }
 
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public System.Uri SchemaUri { get; set; }
@@ -1285,6 +1432,9 @@ namespace SUI.Custodians.API.Client
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string ProviderSystemId { get; set; }
 
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public System.Uri SchemaUri { get; set; }
@@ -1312,6 +1462,9 @@ namespace SUI.Custodians.API.Client
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string ProviderSystemId { get; set; }
 
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public System.Uri SchemaUri { get; set; }
@@ -1335,9 +1488,15 @@ namespace SUI.Custodians.API.Client
     public partial class RelatedPersonV1
     {
 
+        /// <summary>
+        /// Related Person - Relationship to the child
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("relationshipToTheChild")]
         public string RelationshipToTheChild { get; set; }
 
+        /// <summary>
+        /// Related Person - Full Name
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string Name { get; set; }
 
@@ -1345,6 +1504,9 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Dob { get; set; }
 
+        /// <summary>
+        /// Risks posed by the Related Person
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("risk")]
         public System.Collections.Generic.ICollection<string> Risk { get; set; }
 
