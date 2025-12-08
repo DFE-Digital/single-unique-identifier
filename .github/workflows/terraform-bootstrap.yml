@@ -1,0 +1,72 @@
+name: Terraform Backend Bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to bootstrap (matches tfvars name)
+        required: true
+        default: d01
+        type: choice
+        options:
+          - d01
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.environment }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: Load environment config
+        id: env_config
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ env.TARGET_ENVIRONMENT }}
+
+      - name: Bootstrap backend resources
+        uses: azure/powershell@v2
+        with:
+          inlineScript: |
+            Write-Host "Using:"
+            Write-Host "  Resource group:   ${{ steps.env_config.outputs.state_rg }}"
+            Write-Host "  Storage account:  ${{ steps.env_config.outputs.state_storage }}"
+            Write-Host "  Container:        ${{ steps.env_config.outputs.state_container }}"
+            Write-Host "  Location:         ${{ steps.env_config.outputs.location }}"
+
+            # Resource group
+            New-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -Location "${{ steps.env_config.outputs.location }}" -ErrorAction Stop | Out-Null
+
+            # Storage account
+            $storage = New-AzStorageAccount `
+              -Name "${{ steps.env_config.outputs.state_storage }}" `
+              -ResourceGroupName "${{ steps.env_config.outputs.state_rg }}" `
+              -Location "${{ steps.env_config.outputs.location }}" `
+              -SkuName Standard_LRS `
+              -Kind StorageV2 `
+              -MinimumTlsVersion TLS1_2 `
+              -ErrorAction Stop
+
+            # Container
+            $ctx = $storage.Context
+            $null = New-AzStorageContainer -Name "${{ steps.env_config.outputs.state_container }}" -Context $ctx -ErrorAction SilentlyContinue
+          azPSVersion: "latest"
