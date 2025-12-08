@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.API
 {
@@ -45,19 +46,69 @@ namespace SUI.StubCustodians.API
             if (schema == null || context.JsonTypeInfo?.Type == null)
                 return Task.CompletedTask;
 
-            var type = context.JsonTypeInfo.Type;
+            ApplyXmlToSchema(schema, context.JsonTypeInfo.Type, new HashSet<Type>());
+
+            return Task.CompletedTask;
+        }
+
+        private void ApplyXmlToSchema(OpenApiSchema schema, Type type, HashSet<Type> visited)
+        {
+            if (type == null || visited.Contains(type))
+                return;
+
+            visited.Add(type);
+
+            // Handle generic wrappers (like RecordEnvelope<T>)
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RecordEnvelope<>))
+            {
+                var payloadProp = type.GetProperty("Payload");
+                if (
+                    payloadProp != null
+                    && schema.Properties.TryGetValue("payload", out var payloadSchema)
+                )
+                {
+                    payloadSchema.Description ??= GetXmlSummary(payloadProp);
+                    payloadSchema.Example ??= GetXmlExample(payloadProp);
+                    ApplyXmlToSchema(payloadSchema, payloadProp.PropertyType, visited);
+                }
+            }
 
             foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (!schema.Properties.TryGetValue(prop.Name, out var propSchema))
+                if (!schema.Properties.TryGetValue(ToCamelCase(prop.Name), out var propSchema))
                     continue;
 
                 propSchema.Description ??= GetXmlSummary(prop);
                 propSchema.Example ??= GetXmlExample(prop);
-            }
 
-            return Task.CompletedTask;
+                // Recursively handle nested types
+                if (!IsSimpleType(prop.PropertyType))
+                {
+                    if (
+                        typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType)
+                        && prop.PropertyType.IsGenericType
+                    )
+                    {
+                        var itemType = prop.PropertyType.GetGenericArguments()[0];
+                        if (propSchema.Items != null)
+                            ApplyXmlToSchema(propSchema.Items, itemType, visited);
+                    }
+                    else
+                    {
+                        ApplyXmlToSchema(propSchema, prop.PropertyType, visited);
+                    }
+                }
+            }
         }
+
+        private string ToCamelCase(string name) =>
+            char.ToLowerInvariant(name[0]) + name.Substring(1);
+
+        private bool IsSimpleType(Type type) =>
+            type.IsPrimitive
+            || type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(DateTime);
 
         private string? GetXmlSummary(MemberInfo member)
         {
