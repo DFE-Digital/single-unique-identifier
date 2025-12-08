@@ -41,6 +41,7 @@ builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<ICustodianService, MockCustodianService>();
 builder.Services.AddSingleton<IMatchRepository, MockMatchRepository>();
 builder.Services.AddSingleton<IMatchingService, MatchingService>();
+builder.Services.AddSingleton<IOutboundAuthService, OutboundAuthService>();
 
 // Add this after other service registrations
 builder.Services.AddHostedService<AzureStorageTableStartup>();
