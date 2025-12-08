@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "SUI.StubCustodians.API | v1",
-    "version": "1.0.0"
+    "title": "Custodians API",
+    "version": "1.0"
   },
   "paths": {
     "/api/v1/Records/{providerSystemId}/PersonalDetailsRecordV1/{sui}": {

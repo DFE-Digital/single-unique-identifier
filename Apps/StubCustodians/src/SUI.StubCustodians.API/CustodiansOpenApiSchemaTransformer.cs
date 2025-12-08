@@ -1,0 +1,101 @@
+using System.Reflection;
+using System.Xml.Linq;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
+
+namespace SUI.StubCustodians.API
+{
+    public class CustodiansOpenApiSchemaTransformer : IOpenApiSchemaTransformer
+    {
+        private readonly List<XDocument> _xmlDocs = new();
+
+        public CustodiansOpenApiSchemaTransformer(IWebHostEnvironment env)
+        {
+            // Load XML docs for API + dependent projects
+            var assemblies = new[]
+            {
+                Assembly.GetEntryAssembly()!,
+                typeof(SUI.Custodians.Domain.Models.CrimeDataRecordV1).Assembly,
+                typeof(SUI.StubCustodians.Application.Models.RecordEnvelope<>).Assembly,
+            };
+
+            foreach (var asm in assemblies)
+            {
+                var xmlPath = Path.Combine(
+                    env.ContentRootPath,
+                    "bin",
+                    "Debug",
+                    "net9.0",
+                    $"{asm.GetName().Name}.xml"
+                );
+                if (File.Exists(xmlPath))
+                    _xmlDocs.Add(XDocument.Load(xmlPath));
+            }
+        }
+
+        public Task TransformAsync(
+            OpenApiSchema schema,
+            OpenApiSchemaTransformerContext context,
+            CancellationToken cancellationToken
+        )
+        {
+            if (schema == null || context.JsonTypeInfo?.Type == null)
+                return Task.CompletedTask;
+
+            var type = context.JsonTypeInfo.Type;
+
+            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!schema.Properties.TryGetValue(prop.Name, out var propSchema))
+                    continue;
+
+                propSchema.Description ??= GetXmlSummary(prop);
+                propSchema.Example ??= GetXmlExample(prop);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private string? GetXmlSummary(MemberInfo member)
+        {
+            var memberName = member switch
+            {
+                Type t => $"T:{t.FullName}",
+                PropertyInfo p => $"P:{p.DeclaringType!.FullName}.{p.Name}",
+                _ => null,
+            };
+
+            if (memberName == null)
+                return null;
+
+            foreach (var doc in _xmlDocs)
+            {
+                var element = doc.Descendants("member")
+                    .FirstOrDefault(x => (string?)x.Attribute("name") == memberName);
+                var summary = element?.Element("summary")?.Value?.Trim();
+                if (!string.IsNullOrWhiteSpace(summary))
+                    return summary;
+            }
+
+            return null;
+        }
+
+        private OpenApiString? GetXmlExample(PropertyInfo prop)
+        {
+            var memberName = $"P:{prop.DeclaringType!.FullName}.{prop.Name}";
+
+            foreach (var doc in _xmlDocs)
+            {
+                var element = doc.Descendants("member")
+                    .FirstOrDefault(x => (string?)x.Attribute("name") == memberName);
+
+                var example = element?.Element("example")?.Value?.Trim();
+                if (!string.IsNullOrWhiteSpace(example))
+                    return new OpenApiString(example);
+            }
+
+            return null;
+        }
+    }
+}

@@ -6,11 +6,11 @@ using Microsoft.OpenApi.Models;
 namespace SUI.StubCustodians.API
 {
     [ExcludeFromCodeCoverage]
-    public class ConfigureOpenApiOptions : IOpenApiDocumentTransformer
+    public class CustodiansOpenApiDocumentTransformer : IOpenApiDocumentTransformer
     {
         private readonly IApiVersionDescriptionProvider _provider;
 
-        public ConfigureOpenApiOptions(IApiVersionDescriptionProvider provider)
+        public CustodiansOpenApiDocumentTransformer(IApiVersionDescriptionProvider provider)
         {
             _provider = provider;
         }

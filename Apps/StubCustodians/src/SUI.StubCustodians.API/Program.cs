@@ -20,11 +20,11 @@ namespace SUI.StubCustodians.API
 
             builder.Services.AddControllers();
 
-            builder.Services.AddOpenApi();
-            builder.Services.AddSingleton<
-                Microsoft.AspNetCore.OpenApi.IOpenApiDocumentTransformer,
-                ConfigureOpenApiOptions
-            >();
+            builder.Services.AddOpenApi(options =>
+            {
+                options.AddSchemaTransformer<CustodiansOpenApiSchemaTransformer>();
+                options.AddDocumentTransformer<CustodiansOpenApiDocumentTransformer>();
+            });
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddProblemDetails();
