@@ -20,10 +20,6 @@ public record PersonalDetailsRecordV1 : SuiRecord
     /// <example>2011-09-25</example>
     public DateOnly? DateOfBirth { get; init; }
 
-    /// <summary>
-    /// The latest known address of the child's main residence.
-    /// </summary>
-    /// <example>12 Burton Street, London, SW1A 0AA</example>
     public AddressV1? Address { get; init; }
 
     /// <summary>

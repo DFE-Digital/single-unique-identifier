@@ -448,79 +448,33 @@
         "properties": {
           "line1": {
             "type": "string",
-            "nullable": true
+            "description": "Line 1 of the address",
+            "nullable": true,
+            "example": "123 Kew Gardens"
           },
           "line2": {
             "type": "string",
-            "nullable": true
+            "description": "Line 2 of the address",
+            "nullable": true,
+            "example": "Bakers Lane"
           },
           "townOrCity": {
             "type": "string",
-            "nullable": true
+            "description": "Town or city",
+            "nullable": true,
+            "example": "Bath"
           },
           "county": {
             "type": "string",
-            "nullable": true
+            "description": "County",
+            "nullable": true,
+            "example": "Somerset"
           },
           "postcode": {
             "type": "string",
-            "nullable": true
-          }
-        },
-        "description": "The latest known address of the child's main residence.",
-        "nullable": true,
-        "example": "12 Burton Street, London, SW1A 0AA"
-      },
-      "AddressV12": {
-        "type": "object",
-        "properties": {
-          "line1": {
-            "type": "string",
-            "nullable": true
-          },
-          "line2": {
-            "type": "string",
-            "nullable": true
-          },
-          "townOrCity": {
-            "type": "string",
-            "nullable": true
-          },
-          "county": {
-            "type": "string",
-            "nullable": true
-          },
-          "postcode": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "description": "Education setting - Address",
-        "nullable": true,
-        "example": "Redrood Drive, Maltby, London, SE6 8DL"
-      },
-      "AddressV13": {
-        "type": "object",
-        "properties": {
-          "line1": {
-            "type": "string",
-            "nullable": true
-          },
-          "line2": {
-            "type": "string",
-            "nullable": true
-          },
-          "townOrCity": {
-            "type": "string",
-            "nullable": true
-          },
-          "county": {
-            "type": "string",
-            "nullable": true
-          },
-          "postcode": {
-            "type": "string",
-            "nullable": true
+            "description": "Postcode",
+            "nullable": true,
+            "example": "BA1 2AB"
           }
         },
         "nullable": true
@@ -695,7 +649,7 @@
             "example": "Redwood Academy"
           },
           "educationSettingAddress": {
-            "$ref": "#/components/schemas/AddressV12"
+            "$ref": "#/components/schemas/AddressV1"
           },
           "educationSettingTelephone": {
             "type": "string",
@@ -764,14 +718,14 @@
             "example": "Dr E Green"
           },
           "gpAddress": {
-            "$ref": "#/components/schemas/AddressV13"
+            "$ref": "#/components/schemas/AddressV1"
           },
           "gpTelephone": {
             "type": "string",
             "nullable": true
           },
           "camhsContactAddress": {
-            "$ref": "#/components/schemas/AddressV13"
+            "$ref": "#/components/schemas/AddressV1"
           },
           "camhsContactTelephone": {
             "type": "string",
