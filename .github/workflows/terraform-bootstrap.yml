@@ -1,4 +1,5 @@
 name: Terraform Backend Bootstrap
+run-name: Terraform Backend Bootstrap - ${{ inputs.environment }}
 
 on:
   workflow_dispatch:
@@ -43,7 +44,7 @@ jobs:
         with:
           environment: ${{ env.TARGET_ENVIRONMENT }}
 
-      - name: Bootstrap backend resources
+      - name: Create terraform state storage in Azure
         uses: azure/powershell@v2
         with:
           inlineScript: |

@@ -13,6 +13,7 @@ This folder holds the Terraform for the platform, including shared foundations (
 
 - `Terraform Backend Bootstrap`: Seeds the tfstate resource group/storage/container for the selected environment.
 - `Terraform Core Infrastructure`: Runs init/validate/plan, and apply when `apply=true`, using the core root (`terraform/core`) with tfvars-driven naming and OIDC auth.
+- `Terraform Plan and Apply`: Internal reusable workflow used by the core and service workflows.
 
 ### GitHub secrets expected
 
