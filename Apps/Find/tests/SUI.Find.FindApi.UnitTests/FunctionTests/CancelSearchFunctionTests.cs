@@ -53,7 +53,7 @@ public class CancelSearchFunctionTests
                     new SearchJobDto
                     {
                         JobId = JobId,
-                        Suid = "test-suid",
+                        PersonId = "test-suid",
                         Status = SearchStatus.Cancelled,
                         CreatedAt = DateTime.UtcNow,
                         LastUpdatedAt = default,
@@ -115,7 +115,7 @@ public class CancelSearchFunctionTests
                     new SearchJobDto
                     {
                         JobId = JobId,
-                        Suid = "test-suid",
+                        PersonId = "test-suid",
                         Status = SearchStatus.Cancelled,
                         CreatedAt = DateTime.UtcNow,
                         LastUpdatedAt = default,
