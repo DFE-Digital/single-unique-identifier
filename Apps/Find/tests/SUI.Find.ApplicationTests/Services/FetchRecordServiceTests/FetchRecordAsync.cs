@@ -47,7 +47,7 @@ public class FetchRecordAsyncTests
             .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("access-token"));
 
-        var expectedResult = new RecordBase(RecordId: "record-123", ProviderSystem: "provider-system", DataType: "data-type", Suid: "suid-456");
+        var expectedResult = new CustodianRecord { RecordId = "record-123", RecordType = "record-type", DataType = "data-type", PersonId = "person-456", SchemaUri = "schema-uri", Payload = JsonSerializer.Deserialize<JsonElement>("{}") };
 
         var jsonResponse = JsonSerializer.Serialize(expectedResult);
 
@@ -60,7 +60,7 @@ public class FetchRecordAsyncTests
         // Assert
         Assert.True(result.Success);
         Assert.Equal(expectedResult.RecordId, result.Value?.RecordId);
-        Assert.Equal(expectedResult.Suid, result.Value?.Suid);
+        Assert.Equal(expectedResult.PersonId, result.Value?.PersonId);
     }
 
     [Fact]

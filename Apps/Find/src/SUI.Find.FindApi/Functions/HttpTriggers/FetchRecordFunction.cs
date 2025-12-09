@@ -22,7 +22,7 @@ public class FetchRecordFunction(ILogger<FetchRecordFunction> logger, IFetchReco
         tags: ["Fetch"],
         Summary = "Fetch a record from a participating system")]
     [OpenApiParameter("recordId", In = ParameterLocation.Path, Required = true, Type = typeof(string))]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(RecordBase))]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(CustodianRecord))]
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.BadGateway, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> FetchRecord(

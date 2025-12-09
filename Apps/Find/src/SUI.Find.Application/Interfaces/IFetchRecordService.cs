@@ -6,5 +6,5 @@ namespace SUI.Find.Application.Interfaces;
 
 public interface IFetchRecordService
 {
-    Task<Result<RecordBase>> FetchRecordAsync(string fetchId, string requestingOrgId, CancellationToken cancellationToken);
+    Task<Result<CustodianRecord>> FetchRecordAsync(string fetchId, string requestingOrgId, CancellationToken cancellationToken);
 }

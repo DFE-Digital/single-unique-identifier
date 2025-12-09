@@ -39,12 +39,12 @@ public class FetchRecordFunctionTests
     {
         // Arrange
         var context = CreateContextWithAuth();
-        var request = MockHttpRequestData.CreateJson("{recordId : 'record-123'}");
+        var request = MockHttpRequestData.Create();
 
-        var expectedResult = new RecordBase(RecordId: "record-123", ProviderSystem: "provider-system", DataType: "data-type", Suid: "suid-456");
+        var expectedResult = new CustodianRecord { RecordId = "record-123", RecordType = "record-type", DataType = "data-type", PersonId = "person-456", SchemaUri = "schema-uri", Payload = JsonSerializer.Deserialize<JsonElement>("{}") };
 
         _mockService.FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<RecordBase>.Ok(expectedResult));
+            .Returns(Result<CustodianRecord>.Ok(expectedResult));
 
         // Act
         var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);
@@ -52,7 +52,7 @@ public class FetchRecordFunctionTests
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         response.Body.Position = 0;
-        var responseBody = await JsonSerializer.DeserializeAsync<RecordBase>(response.Body);
+        var responseBody = await JsonSerializer.DeserializeAsync<CustodianRecord>(response.Body);
         Assert.NotNull(responseBody);
         Assert.Equal("record-123", responseBody.RecordId);
     }
@@ -95,7 +95,7 @@ public class FetchRecordFunctionTests
         var request = MockHttpRequestData.Create();
 
         _mockService.FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<RecordBase>.Fail("Error Fetching Record"));
+            .Returns(Result<CustodianRecord>.Fail("Error Fetching Record"));
 
         // Act
         var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);

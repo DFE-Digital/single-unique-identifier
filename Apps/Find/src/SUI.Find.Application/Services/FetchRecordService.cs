@@ -8,7 +8,7 @@ namespace SUI.Find.Application.Services;
 
 public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlService maskUrlService, ICustodianService custodianService, IProviderHttpClient providerClient, IOutboundAuthService outboundAuthService) : IFetchRecordService
 {
-    public async Task<Result<RecordBase>> FetchRecordAsync(string fetchId, string requestingOrgId, CancellationToken cancellationToken)
+    public async Task<Result<CustodianRecord>> FetchRecordAsync(string fetchId, string requestingOrgId, CancellationToken cancellationToken)
     {
         var resolvedMapping = await maskUrlService.ResolveAsync(requestingOrgId, fetchId, cancellationToken);
 
@@ -16,7 +16,7 @@ public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlServ
         {
             logger.LogError("Failed to resolve fetch mapping for ID {FetchId} and Requesting Org {RequestingOrgId}.",
                 fetchId, requestingOrgId);
-            return Result<RecordBase>.Fail(resolvedMapping.Error ?? "Failed to resolve fetch mapping.");
+            return Result<CustodianRecord>.Fail(resolvedMapping.Error ?? "Failed to resolve fetch mapping.");
         }
 
         var provider = await custodianService.GetCustodianAsync(resolvedMapping.Value.TargetOrgId);
@@ -25,7 +25,7 @@ public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlServ
         {
             logger.LogError("Failed to retrieve custodian organisation for Org ID {OrgId}",
                 resolvedMapping.Value.TargetOrgId);
-            return Result<RecordBase>.Fail(provider.Error ?? "Failed to retrieve custodian organisation.");
+            return Result<CustodianRecord>.Fail(provider.Error ?? "Failed to retrieve custodian organisation.");
         }
 
         var tokenResult = await outboundAuthService.GetAccessTokenAsync(
@@ -41,7 +41,7 @@ public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlServ
                 tokenResult.Error
             );
 
-            return Result<RecordBase>.Fail("Unable to obtain access token for fetch record.");
+            return Result<CustodianRecord>.Fail("Unable to obtain access token for fetch record.");
         }
 
         logger.LogInformation("Fetch Record access token obtained");
@@ -56,19 +56,19 @@ public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlServ
         if (!response.Success)
         {
             logger.LogError("Failed to fetch record: {Error}", response.Error);
-            return Result<RecordBase>.Fail(response.Error ?? "Error fetching record from provider.");
+            return Result<CustodianRecord>.Fail(response.Error ?? "Error fetching record from provider.");
         }
 
         if (string.IsNullOrWhiteSpace(response.Value))
         {
             logger.LogInformation("Fetch Record return empty response");
-            return Result<RecordBase>.Fail("Requested record is empty");
+            return Result<CustodianRecord>.Fail("Requested record is empty");
         }
 
-        var recordContent = JsonSerializer.Deserialize<RecordBase>(
+        var recordContent = JsonSerializer.Deserialize<CustodianRecord>(
             response.Value,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-        return Result<RecordBase>.Ok(recordContent);
+        return Result<CustodianRecord>.Ok(recordContent);
     }
 }
