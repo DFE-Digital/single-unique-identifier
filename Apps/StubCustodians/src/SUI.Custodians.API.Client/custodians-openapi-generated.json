@@ -511,9 +511,11 @@
             "items": {
               "$ref": "#/components/schemas/ChildSocialCareReferralV1"
             },
+            "description": "Child Social Care Referrals",
             "nullable": true
           }
-        }
+        },
+        "description": "Details related to the Children's Social Care and other Children's Services for a specific child."
       },
       "ChildSocialCareReferralV1": {
         "type": "object",
@@ -572,7 +574,8 @@
             "description": "Linked crime risks",
             "nullable": true
           }
-        }
+        },
+        "description": "Crime-linked data about a specific child."
       },
       "CrimeMissingEpisodeV1": {
         "type": "object",
@@ -665,7 +668,8 @@
             "description": "Education Attendances",
             "nullable": true
           }
-        }
+        },
+        "description": "Education related data about a specific child."
       },
       "EmergencyDepartmentAttendanceV1": {
         "type": "object",
@@ -722,14 +726,18 @@
           },
           "gpTelephone": {
             "type": "string",
-            "nullable": true
+            "description": "GP Telephone",
+            "nullable": true,
+            "example": "0114 272 2100"
           },
           "camhsContactAddress": {
             "$ref": "#/components/schemas/AddressV1"
           },
           "camhsContactTelephone": {
             "type": "string",
-            "nullable": true
+            "description": "Child and Adolescent Mental Health Services - Contact telephone",
+            "nullable": true,
+            "example": "01422 345926"
           },
           "missedAppointments": {
             "type": "array",
@@ -744,9 +752,11 @@
             "items": {
               "$ref": "#/components/schemas/EmergencyDepartmentAttendanceV1"
             },
+            "description": "Emergency (A&E) Department Attendances",
             "nullable": true
           }
-        }
+        },
+        "description": "Details related to Healthcare about a specific child."
       },
       "HealthMissedAppointmentV1": {
         "type": "object",
@@ -887,7 +897,8 @@
             "description": "The people known to be related to the child.",
             "nullable": true
           }
-        }
+        },
+        "description": "General personal details about a specific child."
       },
       "ProblemDetails": {
         "type": "object",
@@ -917,18 +928,14 @@
       },
       "RecordEnvelopeOfChildSocialCareDetailsRecordV1": {
         "required": [
-          "providerSystemId",
           "schemaUri",
           "payload"
         ],
         "type": "object",
         "properties": {
-          "providerSystemId": {
-            "type": "string"
-          },
           "schemaUri": {
             "type": "string",
-            "description": "URI of the payload schema",
+            "description": "URI of the ChildSocialCareDetailsRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1"
           },
@@ -939,18 +946,14 @@
       },
       "RecordEnvelopeOfCrimeDataRecordV1": {
         "required": [
-          "providerSystemId",
           "schemaUri",
           "payload"
         ],
         "type": "object",
         "properties": {
-          "providerSystemId": {
-            "type": "string"
-          },
           "schemaUri": {
             "type": "string",
-            "description": "URI of the payload schema",
+            "description": "URI of the CrimeDataRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/CrimeDataRecordV1"
           },
@@ -961,18 +964,14 @@
       },
       "RecordEnvelopeOfEducationDetailsRecordV1": {
         "required": [
-          "providerSystemId",
           "schemaUri",
           "payload"
         ],
         "type": "object",
         "properties": {
-          "providerSystemId": {
-            "type": "string"
-          },
           "schemaUri": {
             "type": "string",
-            "description": "URI of the payload schema",
+            "description": "URI of the EducationDetailsRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/EducationDetailsRecordV1"
           },
@@ -983,18 +982,14 @@
       },
       "RecordEnvelopeOfHealthDataRecordV1": {
         "required": [
-          "providerSystemId",
           "schemaUri",
           "payload"
         ],
         "type": "object",
         "properties": {
-          "providerSystemId": {
-            "type": "string"
-          },
           "schemaUri": {
             "type": "string",
-            "description": "URI of the payload schema",
+            "description": "URI of the HealthDataRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/HealthDataRecordV1"
           },
@@ -1005,18 +1000,14 @@
       },
       "RecordEnvelopeOfPersonalDetailsRecordV1": {
         "required": [
-          "providerSystemId",
           "schemaUri",
           "payload"
         ],
         "type": "object",
         "properties": {
-          "providerSystemId": {
-            "type": "string"
-          },
           "schemaUri": {
             "type": "string",
-            "description": "URI of the payload schema",
+            "description": "URI of the PersonalDetailsRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1"
           },
@@ -1042,8 +1033,10 @@
           },
           "dob": {
             "type": "string",
+            "description": "Related Person - Date of birth",
             "format": "date",
-            "nullable": true
+            "nullable": true,
+            "example": "1978-11-01"
           },
           "risk": {
             "type": "array",
@@ -1054,7 +1047,8 @@
             "nullable": true,
             "example": "Individual may possess firearms"
           }
-        }
+        },
+        "description": "Represents a person related to a specific child."
       }
     }
   },

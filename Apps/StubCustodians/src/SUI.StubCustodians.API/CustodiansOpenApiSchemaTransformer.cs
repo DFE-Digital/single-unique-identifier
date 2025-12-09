@@ -11,31 +11,26 @@ namespace SUI.StubCustodians.API
     [ExcludeFromCodeCoverage]
     public class CustodiansOpenApiSchemaTransformer : IOpenApiSchemaTransformer
     {
-        private readonly List<XDocument> _xmlDocs = new();
+        private static readonly string LogOutputPath;
 
-        public CustodiansOpenApiSchemaTransformer(IWebHostEnvironment env)
+        static CustodiansOpenApiSchemaTransformer()
         {
-            // Load XML docs for API + dependent projects
-            var assemblies = new[]
-            {
-                Assembly.GetEntryAssembly()!,
-                typeof(SUI.Custodians.Domain.Models.CrimeDataRecordV1).Assembly,
-                typeof(SUI.StubCustodians.Application.Models.RecordEnvelope<>).Assembly,
-            };
-
-            foreach (var asm in assemblies)
-            {
-                var xmlPath = Path.Combine(
-                    env.ContentRootPath,
-                    "bin",
-                    "Debug",
-                    "net9.0",
-                    $"{asm.GetName().Name}.xml"
-                );
-                if (File.Exists(xmlPath))
-                    _xmlDocs.Add(XDocument.Load(xmlPath));
-            }
+            LogOutputPath = Path.Combine(
+                Path.GetDirectoryName(typeof(CustodiansOpenApiSchemaTransformer).Assembly.Location)
+                    ?? "",
+                $"{nameof(CustodiansOpenApiSchemaTransformer)}.log"
+            );
+            using var _ = File.Create(LogOutputPath);
         }
+
+        private static void Log(string message)
+        {
+#if DEBUG
+            File.AppendAllLines(LogOutputPath, [message]);
+#endif
+        }
+
+        private readonly Dictionary<Assembly, XDocument> _xmlDocs = [];
 
         public Task TransformAsync(
             OpenApiSchema schema,
@@ -43,127 +38,108 @@ namespace SUI.StubCustodians.API
             CancellationToken cancellationToken
         )
         {
-            if (context.JsonTypeInfo?.Type == null)
+            Log(
+                $"TransformAsync: {context.DocumentName} - {context.JsonPropertyInfo?.DeclaringType} {context.JsonPropertyInfo?.Name}"
+            );
+
+            var declaringType = context.JsonPropertyInfo?.DeclaringType;
+
+            // Handle `SchemaUri` special case, so that we specify to implementors what the correct SchemaUri is for each record type.
+            if (
+                declaringType is { IsGenericType: true }
+                && declaringType.GetGenericTypeDefinition() == typeof(RecordEnvelope<>)
+            )
             {
-                return Task.CompletedTask;
-            }
-
-            ApplyXmlToSchema(schema, context.JsonTypeInfo.Type, new HashSet<Type>());
-
-            return Task.CompletedTask;
-        }
-
-        private void ApplyXmlToSchema(OpenApiSchema schema, Type type, HashSet<Type> visited)
-        {
-            if (visited.Contains(type))
-            {
-                return;
-            }
-
-            visited.Add(type);
-
-            // Handle generic wrappers (like RecordEnvelope<T>)
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RecordEnvelope<>))
-            {
-                var payloadProp = type.GetProperty("Payload");
                 if (
-                    payloadProp != null
-                    && schema.Properties.TryGetValue("payload", out var payloadSchema)
+                    context.JsonPropertyInfo?.Name
+                    == ToCamelCase(nameof(RecordEnvelope<object>.SchemaUri))
                 )
                 {
-                    // Keep payload fully expanded
-                    payloadSchema.Description ??= GetXmlSummary(payloadProp);
-                    payloadSchema.Example ??= GetXmlExample(payloadProp);
-                    ApplyXmlToSchema(payloadSchema, payloadProp.PropertyType, visited);
-                }
-
-                // Set schemaUri as string reference
-                if (schema.Properties.TryGetValue("schemaUri", out var schemaUriSchema))
-                {
-                    var payloadType = type.GetGenericArguments()[0];
-                    schemaUriSchema.Description ??= "URI of the payload schema";
-                    schemaUriSchema.Example = new OpenApiString(
+                    var payloadType = declaringType.GetGenericArguments()[0];
+                    schema.Description ??= $"URI of the {payloadType.Name} payload schema";
+                    schema.Example = new OpenApiString(
                         $"https://schemas.example.gov.uk/sui/{payloadType.Name}"
                     );
                 }
             }
 
-            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            // Pull in descriptions and examples from XML documentation comments
+            // Note that the JSON schema doesn't allow anything at the same level of $ref, and the correct way is to provide the description in the referenced object.
+            // See: https://datatracker.ietf.org/doc/html/draft-pbryan-zyp-json-ref-03#section-3
+            // The MS OpenAPI library obeys this rule, however if different descriptions are provided the library creates duplicate schemas.
+            // So, for references, we must provide the same generic description.
+            var isRef =
+                context.JsonTypeInfo is { Type.IsValueType: false }
+                && context.JsonTypeInfo.Type != typeof(string)
+                && schema.Type != "array";
+
+            if (isRef)
             {
-                if (!schema.Properties.TryGetValue(ToCamelCase(prop.Name), out var propSchema))
-                    continue;
+                schema.Description ??= GetXmlSummary(context.JsonTypeInfo.Type);
+            }
+            else
+            {
+                var prop = context.JsonPropertyInfo?.DeclaringType.GetProperty(
+                    context.JsonPropertyInfo.Name,
+                    BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
+                );
 
-                propSchema.Description ??= GetXmlSummary(prop);
-                propSchema.Example ??= GetXmlExample(prop);
-
-                // Recursively handle nested types
-                if (!IsSimpleType(prop.PropertyType))
+                if (prop != null)
                 {
-                    if (
-                        typeof(System.Collections.IEnumerable).IsAssignableFrom(prop.PropertyType)
-                        && prop.PropertyType.IsGenericType
-                    )
-                    {
-                        var itemType = prop.PropertyType.GetGenericArguments()[0];
-                        if (propSchema.Items != null)
-                            ApplyXmlToSchema(propSchema.Items, itemType, visited);
-                    }
-                    else
-                    {
-                        ApplyXmlToSchema(propSchema, prop.PropertyType, visited);
-                    }
+                    schema.Description ??= GetXmlSummary(prop);
+                    schema.Example ??= GetXmlExample(prop);
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         private static string ToCamelCase(string name) =>
-            char.ToLowerInvariant(name[0]) + name.Substring(1);
+            char.ToLowerInvariant(name[0]) + name[1..];
 
-        private static bool IsSimpleType(Type type) =>
-            type.IsPrimitive
-            || type == typeof(string)
-            || type == typeof(decimal)
-            || type == typeof(DateTime);
-
-        private string? GetXmlSummary(MemberInfo member)
+        private XDocument? GetXmlDoc(Assembly assembly)
         {
-            var memberName = member switch
-            {
-                Type t => $"T:{t.FullName}",
-                PropertyInfo p => $"P:{p.DeclaringType!.FullName}.{p.Name}",
-                _ => null,
-            };
+            if (_xmlDocs.TryGetValue(assembly, out var xmlDocs))
+                return xmlDocs;
 
-            if (memberName == null)
+            var assemblyDirectory = Path.GetDirectoryName(assembly.Location);
+            if (assemblyDirectory == null)
                 return null;
 
-            foreach (var doc in _xmlDocs)
-            {
-                var element = doc.Descendants("member")
-                    .FirstOrDefault(x => (string?)x.Attribute("name") == memberName);
-                var summary = element?.Element("summary")?.Value?.Trim();
-                if (!string.IsNullOrWhiteSpace(summary))
-                    return summary;
-            }
-
-            return null;
+            var xmlPath = Path.Combine(assemblyDirectory, $"{assembly.GetName().Name}.xml");
+            return File.Exists(xmlPath) ? _xmlDocs[assembly] = XDocument.Load(xmlPath) : null;
         }
+
+        private string? GetXmlDocValue(MemberInfo member, string elementName)
+        {
+            var (memberName, assembly) = member switch
+            {
+                Type t => ($"T:{t.FullName}", t.Assembly),
+                PropertyInfo p => (
+                    $"P:{p.DeclaringType?.FullName}.{p.Name}",
+                    p.DeclaringType?.Assembly
+                ),
+                _ => (null, null),
+            };
+
+            if (memberName == null || assembly == null)
+                return null;
+
+            var xmlDoc = GetXmlDoc(assembly);
+
+            var element = xmlDoc
+                ?.Descendants("member")
+                .FirstOrDefault(x => (string?)x.Attribute("name") == memberName);
+            var summary = element?.Element(elementName)?.Value?.Trim();
+            return !string.IsNullOrWhiteSpace(summary) ? summary : null;
+        }
+
+        private string? GetXmlSummary(MemberInfo member) => GetXmlDocValue(member, "summary");
 
         private OpenApiString? GetXmlExample(PropertyInfo prop)
         {
-            var memberName = $"P:{prop.DeclaringType!.FullName}.{prop.Name}";
-
-            foreach (var doc in _xmlDocs)
-            {
-                var element = doc.Descendants("member")
-                    .FirstOrDefault(x => (string?)x.Attribute("name") == memberName);
-
-                var example = element?.Element("example")?.Value?.Trim();
-                if (!string.IsNullOrWhiteSpace(example))
-                    return new OpenApiString(example);
-            }
-
-            return null;
+            var example = GetXmlDocValue(prop, "example");
+            return !string.IsNullOrWhiteSpace(example) ? new OpenApiString(example) : null;
         }
     }
 }
