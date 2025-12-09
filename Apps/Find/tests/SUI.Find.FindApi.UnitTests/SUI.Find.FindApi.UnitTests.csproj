@@ -18,7 +18,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SUI.Find.FindApi\SUI.Find.FindApi.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utility\" />
-  </ItemGroup>
 </Project>

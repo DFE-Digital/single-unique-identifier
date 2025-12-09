@@ -5,6 +5,7 @@ using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Utility;
+using SUI.Find.Infrastructure.Utility;
 
 namespace SUI.Find.FindApi.Functions.ProviderTriggers;
 
@@ -13,7 +14,9 @@ public class QueryProvidersFunction(
     ILogger<QueryProvidersFunction> logger,
     IHttpClientFactory httpClientFactory,
     IPersonIdEncryptionService encryptionService,
-    IMaskUrlService maskUrlService)
+    IMaskUrlService maskUrlService,
+    IOutboundAuthService outboundAuthService
+)
 {
     [Function(nameof(QueryProvidersFunction))]
     public async Task<IReadOnlyList<SearchResultItem>> QueryProvider(
@@ -21,40 +24,64 @@ public class QueryProvidersFunction(
         QueryProviderInput data
     )
     {
-
         using var logScope = logger.BeginScope("CorrelationId: {CorrelationId}", data.InvocationId);
         logger.LogInformation("Query Provider triggered");
 
         if (data?.Provider.Encryption is null)
         {
-            throw new InvalidOperationException($"Provider '{data?.Provider.OrgId}' has no encryption configured.");
+            throw new InvalidOperationException(
+                $"Provider '{data?.Provider.OrgId}' has no encryption configured."
+            );
         }
 
-        var encryptedPersonId = encryptionService.EncryptNhsToPersonId(data.Suid, data.Provider.Encryption);
-        var authConnection = data.Provider.Connection.Auth;
-        var bearerToken = authConnection is null
-            ? null
-            // TODO Add OutboundAuthTokenService to get real token
-            : "test-bearer-token";
+        var encryptedPersonId = encryptionService.EncryptNhsToPersonId(
+            data.Suid,
+            data.Provider.Encryption
+        );
 
         if (!encryptedPersonId.Success)
         {
-            logger.LogError("Encryption failed for provider {Provider}: {ErrorMessage}",
+            logger.LogError(
+                "Encryption failed for provider {Provider}: {ErrorMessage}",
                 data.Provider.ProviderName,
-                encryptedPersonId.Error);
+                encryptedPersonId.Error
+            );
 
             return [];
         }
 
-        using var request = BuildCustodianHttpRequest.BuildHttpRequest(data.Provider, encryptedPersonId.Value!, bearerToken);
+        var tokenResult = await outboundAuthService.GetAccessTokenAsync(
+            data.Provider,
+            CancellationToken.None
+        );
+        if (!tokenResult.Success || string.IsNullOrWhiteSpace(tokenResult.Value))
+        {
+            logger.LogError(
+                "Failed to obtain access token for provider {Provider}: {ErrorMessage}",
+                data.Provider.ProviderName,
+                tokenResult.Error
+            );
+
+            return [];
+        }
+        logger.LogInformation("Query Provider access token obtained");
+
+        using var request = BuildCustodianHttpRequest.BuildHttpRequest(
+            data.Provider,
+            encryptedPersonId.Value!,
+            tokenResult.Value
+        );
 
         using var httpClient = httpClientFactory.CreateClient("providers");
         using var response = await httpClient.SendAsync(request, context.CancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogInformation("Provider '{Provider}' returned status code {StatusCode}", data.Provider.ProviderName,
-                response.StatusCode);
+            logger.LogInformation(
+                "Provider '{Provider}' returned status code {StatusCode}",
+                data.Provider.ProviderName,
+                response.StatusCode
+            );
 
             return [];
         }
@@ -70,8 +97,8 @@ public class QueryProvidersFunction(
 
         var searchResultItems = JsonSerializer.Deserialize<List<SearchResultItem>>(
             responseContent,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+        );
 
         if (searchResultItems is null || searchResultItems.Count == 0)
         {
@@ -79,14 +106,14 @@ public class QueryProvidersFunction(
             return [];
         }
 
-        var maskedSearchResultItems = await maskUrlService.CreateAsync(searchResultItems, data, context.CancellationToken);
+        var maskedSearchResultItems = await maskUrlService.CreateAsync(
+            searchResultItems,
+            data,
+            context.CancellationToken
+        );
 
         logger.LogInformation("Query Provider request completed");
 
         return maskedSearchResultItems;
     }
 }
-
-
-
-
