@@ -7,7 +7,7 @@
     <tbody class="govuk-table__body">
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Name</th>
-        <td class="govuk-table__cell">@Model.PersonModel.Name</td>
+        <td class="govuk-table__cell">@Model.PersonModel!.Name</td>
     </tr>
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Date of birth</th>
@@ -16,7 +16,7 @@
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Main address</th>
         <td class="govuk-table__cell">
-            @Html.DisplayFor(x => x.PersonModel.MainAddress)
+            @Html.DisplayFor(x => x.PersonModel!.MainAddress)
             @if (Model.PersonModel.PoliceMarker)
             {
                 <govuk-tag class="govuk-tag--dark-blue">POLICE MARKER</govuk-tag>
@@ -32,7 +32,7 @@
     }
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Individuals residing at Main address</th>
-        <td class="govuk-table__cell">@Html.DisplayFor(x => x.PersonModel.IndividualsAtMainAddress, "StringList")</td>
+        <td class="govuk-table__cell">@Html.DisplayFor(x => x.PersonModel!.IndividualsAtMainAddress, "StringList")</td>
     </tr>
     </tbody>
 </table>

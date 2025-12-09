@@ -44,19 +44,21 @@ public class Search(
         return Page();
     }
 
+    /// <summary>
+    /// Handles the POST (also used by the AJAX-enhanced flow) and returns the rendered page.
+    /// </summary>
     public async Task<IActionResult> OnPostAsync()
     {
-        var result = await validator.ValidateAsync(this);
-        if (!result.IsValid)
+        var validationResult = await validator.ValidateAsync(this);
+        if (!validationResult.IsValid)
         {
-            result.AddToModelState(ModelState);
+            validationResult.AddToModelState(ModelState);
             return Page();
         }
 
-        if (!string.IsNullOrEmpty(NhsNumber))
-            Results = searchService.Search(NhsNumber);
-        else
-            Results = searchService.Search(
+        Results = !string.IsNullOrEmpty(NhsNumber)
+            ? await searchService.SearchAsync(NhsNumber)
+            : await searchService.SearchAsync(
                 FirstName,
                 LastName,
                 DateOfBirth,

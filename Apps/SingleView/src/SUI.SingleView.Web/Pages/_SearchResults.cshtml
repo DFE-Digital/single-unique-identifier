@@ -1,7 +1,7 @@
 @using SUI.SingleView.Domain.Extensions
 @model Search
 
-<h1 class="govuk-heading-xl">@ViewBag.Title</h1>
+<h1 class="govuk-heading-xl" data-search-results-heading tabindex="-1">@ViewBag.ResultsTitle</h1>
 <p class="govuk-body">
     @(Model.Results?.Count ?? 0) results found
 </p>
@@ -26,7 +26,7 @@
                 <td class="govuk-table__cell">@result.DateOfBirth.ToString("dd MMMM yyyy")<br/>(@result.DateOfBirth.ToAgeInYearsString())</td>
                 <td class="govuk-table__cell">@result.NhsNumber.ToString()</td>
                 <td class="govuk-table__cell">
-                    <a class="govuk-link" asp-page="DataView" asp-route-personId="@result.NhsNumber">View record</a>
+                    <a class="govuk-link" asp-page="DataView" asp-route-personId="@result.NhsNumber" data-view-record-link>View record</a>
                 </td>
             </tr>
         }

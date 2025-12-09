@@ -12,6 +12,7 @@ public class TransferService(
     public QueuedTransferJobState BeginTransferJob(string sui)
     {
         var jobId = Guid.NewGuid();
+        var createdAt = TimeProvider.System.GetUtcNow();
 
         // Normalize the SUI
         sui = sui.ToUpperInvariant().Replace(" ", "");
@@ -20,7 +21,7 @@ public class TransferService(
         // This can be revisited in the future, if we need to use a more advanced scheduling/queueing approach.
         Task.Run(PerformTransferJobAsync);
 
-        return new QueuedTransferJobState(jobId, sui);
+        return new QueuedTransferJobState(jobId, sui, createdAt);
 
         async Task PerformTransferJobAsync()
         {
@@ -32,11 +33,13 @@ public class TransferService(
 
             try
             {
-                await UpdateJobStateAsync(new RunningTransferJobState(jobId, sui));
+                await UpdateJobStateAsync(new RunningTransferJobState(jobId, sui, createdAt));
 
                 var conformedData = await transferJob.TransferAsync(jobId, sui);
 
-                await UpdateJobStateAsync(new CompletedTransferJobState(jobId, sui, conformedData));
+                await UpdateJobStateAsync(
+                    new CompletedTransferJobState(jobId, sui, conformedData, createdAt)
+                );
             }
             catch (OperationCanceledException e)
             {
@@ -50,7 +53,8 @@ public class TransferService(
                     new CancelledTransferJobState(
                         jobId,
                         sui,
-                        "Cancelled while running, due to host application shutdown"
+                        "Cancelled while running, due to host application shutdown",
+                        createdAt
                     )
                 );
             }
@@ -63,7 +67,7 @@ public class TransferService(
                     jobId
                 );
                 await UpdateJobStateAsync(
-                    new FailedTransferJobState(jobId, sui, e.ToString(), e.StackTrace)
+                    new FailedTransferJobState(jobId, sui, e.ToString(), e.StackTrace, createdAt)
                 );
             }
         }

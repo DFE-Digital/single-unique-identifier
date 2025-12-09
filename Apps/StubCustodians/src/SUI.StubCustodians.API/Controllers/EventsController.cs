@@ -7,6 +7,7 @@ using SUI.StubCustodians.Application.Queries;
 
 namespace SUI.StubCustodians.API.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]

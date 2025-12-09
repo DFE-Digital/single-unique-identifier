@@ -1,10 +1,10 @@
 using Bogus;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Shouldly;
 using SUI.SingleView.Application.Models;
 using SUI.SingleView.Application.Services;
-using SUI.SingleView.Domain.Models;
 using SUI.SingleView.Domain.UnitTests.Extensions;
 using SUI.Transfer.API.Client;
 
@@ -15,21 +15,106 @@ public class RecordServiceTests
     private readonly ILogger<RecordService> _mockLogger = Substitute.For<ILogger<RecordService>>();
     private readonly ITransferApi _mockTransferClient = Substitute.For<ITransferApi>();
     private readonly Faker _faker = new("en_GB");
+    private readonly IDelay _delay = Substitute.For<IDelay>();
 
     [Fact]
-    public async Task Search_WithNhsNumber_ReturnsResults()
+    public async Task GetRecordAsync_WithNhsNumber_ReturnsResults()
     {
         // Arrange
         var nhsNumber = _faker.GenerateNhsNumber().Value;
         _mockTransferClient
             .TransferAsync(nhsNumber, TestContext.Current.CancellationToken)
             .Returns(new TransferResult { Id = nhsNumber });
-        var recordService = new RecordService(_mockTransferClient, _mockLogger);
+        var recordService = new RecordService(
+            _mockTransferClient,
+            _mockLogger,
+            _delay,
+            artificialDelay: TimeSpan.Zero
+        );
 
         // Act
-        var result = await recordService.GetRecordAsync(nhsNumber);
+        var result = await recordService.GetRecordAsync(
+            nhsNumber,
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
+        result.ShouldNotBeNull();
+        result.ShouldBeOfType<PersonModel>();
+    }
+
+    [Fact]
+    public async Task GetRecordAsync_WhenTransferExceptionThrown_LogsError()
+    {
+        // Arrange
+        var nhsNumber = _faker.GenerateNhsNumber().Value;
+        var expectedException = new InvalidOperationException();
+        _mockTransferClient
+            .TransferAsync(nhsNumber, TestContext.Current.CancellationToken)
+            .Throws(expectedException);
+        var recordService = new RecordService(
+            _mockTransferClient,
+            _mockLogger,
+            _delay,
+            artificialDelay: TimeSpan.Zero
+        );
+
+        // Act
+        _ = await recordService.GetRecordAsync(nhsNumber, TestContext.Current.CancellationToken);
+
+        // Assert
+        var call = _mockLogger
+            .ReceivedCalls()
+            .FirstOrDefault(c =>
+                c.GetMethodInfo().Name == "Log" && (LogLevel)c.GetArguments()[0]! == LogLevel.Error
+            );
+
+        call.ShouldNotBeNull();
+        call.GetArguments()[2]!
+            .ToString()
+            .ShouldBe($"An error occurred when trying to get the record for {nhsNumber}");
+        call.GetArguments()[3].ShouldBeOfType<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task GetRecordAsync_UsesConfiguredDelay()
+    {
+        // Arrange
+        var nhsNumber = _faker.GenerateNhsNumber().Value;
+        _mockTransferClient
+            .TransferAsync(nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new TransferResult { Id = nhsNumber });
+        var configuredDelay = TimeSpan.FromMilliseconds(10);
+        var recordService = new RecordService(
+            _mockTransferClient,
+            _mockLogger,
+            _delay,
+            configuredDelay
+        );
+
+        // Act
+        await recordService.GetRecordAsync(nhsNumber, TestContext.Current.CancellationToken);
+
+        // Assert
+        await _delay.Received(1).DelayAsync(configuredDelay, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GetRecordAsync_WhenDelayArgumentsNull_UsesDefaults()
+    {
+        var nhsNumber = _faker.GenerateNhsNumber().Value;
+        _mockTransferClient
+            .TransferAsync(nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new TransferResult { Id = nhsNumber });
+
+        // Pass null for delay and artificialDelay to hit defaults
+        var recordService = new RecordService(_mockTransferClient, _mockLogger, null, null);
+
+        var result = await recordService.GetRecordAsync(
+            nhsNumber,
+            TestContext.Current.CancellationToken
+        );
+
         result.ShouldNotBeNull();
         result.ShouldBeOfType<PersonModel>();
     }

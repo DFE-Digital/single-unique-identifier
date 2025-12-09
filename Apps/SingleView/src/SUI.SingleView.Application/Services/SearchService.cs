@@ -5,19 +5,23 @@ using SUI.SingleView.Domain.Models;
 
 namespace SUI.SingleView.Application.Services;
 
-public class SearchService : ISearchService
+public class SearchService(IDelay? delay = null, TimeSpan? artificialDelay = null) : ISearchService
 {
-    public List<SearchResult> Search(string nhsNumber) =>
-        Search(new SearchQuery(nhsNumber, null, null, null, null, null));
+    private static readonly TimeSpan DefaultArtificialDelay = TimeSpan.FromSeconds(3);
+    private readonly TimeSpan _artificialDelay = artificialDelay ?? DefaultArtificialDelay;
+    private readonly IDelay _delay = delay ?? new SystemDelay();
 
-    public List<SearchResult> Search(
+    public async Task<IList<SearchResult>> SearchAsync(string nhsNumber) =>
+        await SearchAsync(new SearchQuery(nhsNumber, null, null, null, null, null));
+
+    public async Task<IList<SearchResult>> SearchAsync(
         string? firstName,
         string? lastName,
         DateTime? dateOfBirth,
         string? houseNumberOrName,
         string? postcode
     ) =>
-        Search(
+        await SearchAsync(
             new SearchQuery(null, firstName, lastName, dateOfBirth, houseNumberOrName, postcode)
         );
 
@@ -26,18 +30,24 @@ public class SearchService : ISearchService
             ? string.Empty
             : postcode.Replace(" ", "", StringComparison.Ordinal).ToUpperInvariant();
 
-    private List<SearchResult> Search(SearchQuery query)
+    private async Task<List<SearchResult>> SearchAsync(SearchQuery query)
     {
         // TODO: Replace this with an actual call to the matcher API
-        return HardcodedSearch(query);
+        return await HardcodedSearchAsync(query);
     }
 
     /// <summary>
     /// Temporary search implementation until searching API implemented.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    private static List<SearchResult> HardcodedSearch(SearchQuery query)
+    private async Task<List<SearchResult>> HardcodedSearchAsync(SearchQuery query)
     {
+        // Artificial delay to surface loading state in the UI while using stub data
+        if (_artificialDelay > TimeSpan.Zero)
+        {
+            await _delay.DelayAsync(_artificialDelay);
+        }
+
         IEnumerable<SearchResult> results = HardCodedSearchResults.All;
 
         // 1. If an NHS number is provided, treat as the primary key and only match on that
@@ -98,9 +108,9 @@ public class SearchService : ISearchService
         }
 
         // 5. Postcode (normalised)
-        if (!string.IsNullOrWhiteSpace(query.Postcode))
+        var qPostcode = NormalizePostcode(query.Postcode);
+        if (!string.IsNullOrEmpty(qPostcode))
         {
-            var qPostcode = NormalizePostcode(query.Postcode);
             results = results.Where(r => NormalizePostcode(r.Address.Postcode) == qPostcode);
         }
 

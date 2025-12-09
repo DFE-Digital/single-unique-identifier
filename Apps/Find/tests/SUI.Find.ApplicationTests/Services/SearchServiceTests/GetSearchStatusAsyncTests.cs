@@ -9,23 +9,10 @@ using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
-public class GetSearchStatusAsyncTests
+public class GetSearchStatusAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
-    private readonly SearchService _searchService;
     private const string ClientId = "test-client-id";
-
-    public GetSearchStatusAsyncTests()
-    {
-        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
-        var policyData = new PolicyContext(ClientId, []);
-        _searchService = Substitute.ForPartsOf<SearchService>(
-            Substitute.For<ILogger<SearchService>>()
-        );
-        _searchService
-            .ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
-            .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
-    }
 
     [Fact]
     public async Task ShouldReturnNotFound_WhenJobDoesNotExist()
@@ -34,7 +21,7 @@ public class GetSearchStatusAsyncTests
             .GetInstanceAsync("not-found-job", Arg.Any<CancellationToken>())
             .Returns((OrchestrationMetadata?)null);
 
-        var result = await _searchService.GetSearchStatusAsync(
+        var result = await Sut.GetSearchStatusAsync(
             "not-found-job",
             ClientId,
             _client,
@@ -55,13 +42,12 @@ public class GetSearchStatusAsyncTests
         };
         _client.GetInstanceAsync("unauth-job", true, Arg.Any<CancellationToken>()).Returns(meta);
         // Mock the ReadOrchestratorInput to return a different clientId
-        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
+        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext("different-client-id", []);
-        _searchService
-            .ReadOrchestratorInput<SearchOrchestratorInput>(meta)
+        Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
-        var result = await _searchService.GetSearchStatusAsync(
+        var result = await Sut.GetSearchStatusAsync(
             "unauth-job",
             ClientId,
             _client,
@@ -79,13 +65,12 @@ public class GetSearchStatusAsyncTests
             RuntimeStatus = OrchestrationRuntimeStatus.Running,
         };
         _client.GetInstanceAsync("auth-job", true, Arg.Any<CancellationToken>()).Returns(meta);
-        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
+        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext(ClientId, []);
-        _searchService
-            .ReadOrchestratorInput<SearchOrchestratorInput>(meta)
+        Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
-        var result = await _searchService.GetSearchStatusAsync(
+        var result = await Sut.GetSearchStatusAsync(
             "auth-job",
             ClientId,
             _client,
@@ -93,7 +78,7 @@ public class GetSearchStatusAsyncTests
         );
 
         var successResult = Assert.IsType<SearchJobResult.Success>(result);
-        Assert.Equal("test-suid", successResult.Job.Suid);
+        Assert.Equal("test-suid", successResult.Job.PersonId);
         Assert.Equal("auth-job", successResult.Job.JobId);
         Assert.Equal(SearchStatus.Running, successResult.Job.Status);
     }
@@ -105,7 +90,7 @@ public class GetSearchStatusAsyncTests
             .GetInstanceAsync("error-job", true, Arg.Any<CancellationToken>())
             .Throws(new Exception("Test exception"));
 
-        var result = await _searchService.GetSearchStatusAsync(
+        var result = await Sut.GetSearchStatusAsync(
             "error-job",
             ClientId,
             _client,

@@ -12,6 +12,7 @@ builder.Services.AddGovUkFrontend(options => options.Rebrand = true);
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
+builder.Services.AddSingleton<IDelay, SystemDelay>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IRecordService, RecordService>();
 

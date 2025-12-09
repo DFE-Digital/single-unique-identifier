@@ -11,7 +11,6 @@ public record HealthDataRecordV1 : SuiRecord
     /// <summary>
     /// GP Address
     /// </summary>
-    /// <example>Duke Medical Centre, 28 Talbot Road, Sheffield, S2 2TD</example>
     public AddressV1? GPAddress { get; init; }
 
     /// <summary>

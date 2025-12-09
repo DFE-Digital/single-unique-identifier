@@ -1,32 +1,17 @@
 using System.Text.Json;
 using Microsoft.DurableTask.Client;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
-using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.SearchServiceTests;
 
-public class GetSearchResultsAsyncTests
+public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
-    private readonly SearchService _searchService;
     private const string ClientId = "test-client-id";
-
-    public GetSearchResultsAsyncTests()
-    {
-        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
-        var policyData = new PolicyContext(ClientId, []);
-        _searchService = Substitute.ForPartsOf<SearchService>(
-            Substitute.For<ILogger<SearchService>>()
-        );
-        _searchService
-            .ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
-            .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
-    }
 
     [Fact]
     public async Task ShouldReturnNotFound_WhenJobDoesNotExist()
@@ -35,7 +20,7 @@ public class GetSearchResultsAsyncTests
             .GetInstanceAsync("not-found-job", Arg.Any<CancellationToken>())
             .Returns((OrchestrationMetadata?)null);
 
-        var result = await _searchService.GetSearchResultsAsync(
+        var result = await Sut.GetSearchResultsAsync(
             "not-found-job",
             ClientId,
             _client,
@@ -55,13 +40,12 @@ public class GetSearchResultsAsyncTests
         _client.GetInstanceAsync("unauth-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
         // Mock the ReadOrchestratorInput to return a different clientId
-        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow);
+        var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext("different-client-id", []);
-        _searchService
-            .ReadOrchestratorInput<SearchOrchestratorInput>(meta)
+        Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
-        var result = await _searchService.GetSearchResultsAsync(
+        var result = await Sut.GetSearchResultsAsync(
             "unauth-job",
             ClientId,
             _client,
@@ -78,7 +62,7 @@ public class GetSearchResultsAsyncTests
             .GetInstanceAsync("fail-job", true, Arg.Any<CancellationToken>())
             .Throws(new Exception("fail"));
 
-        var result = await _searchService.GetSearchResultsAsync(
+        var result = await Sut.GetSearchResultsAsync(
             "fail-job",
             ClientId,
             _client,
@@ -97,7 +81,7 @@ public class GetSearchResultsAsyncTests
         };
         _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
-        var result = await _searchService.GetSearchResultsAsync(
+        var result = await Sut.GetSearchResultsAsync(
             "running-job",
             ClientId,
             _client,
@@ -121,7 +105,7 @@ public class GetSearchResultsAsyncTests
         };
         _client.GetInstanceAsync("empty-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
-        var result = await _searchService.GetSearchResultsAsync(
+        var result = await Sut.GetSearchResultsAsync(
             "empty-job",
             ClientId,
             _client,
@@ -161,7 +145,7 @@ public class GetSearchResultsAsyncTests
         };
         _client.GetInstanceAsync("success-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
-        var result = await _searchService.GetSearchResultsAsync(
+        var result = await Sut.GetSearchResultsAsync(
             "success-job",
             ClientId,
             _client,

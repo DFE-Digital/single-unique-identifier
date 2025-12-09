@@ -54,15 +54,17 @@ Each solution is structured according to Clean Architecture principles
 
 ## Run tests and collect coverage locally
 
-You can run tests and generate coverage reports from anywhere within the repository by following the steps below. 
+You can run tests and generate coverage reports from anywhere within the repository by following the steps below.
 All required tools (PowerShell 7.5.4, ReportGenerator, etc.) are installed as local .NET tools.
 
 1. Restore local tools (This installs PowerShell and all other required tools locally.)
+
 ```
 dotnet tool restore
 ```
 
 2. Run the test & coverage scripts (You can run the wrapper script for each solution i.e: `dotnet pwsh <relative path to the solution scoped script>`)
+
 ```
 dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
 dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
@@ -76,12 +78,23 @@ dotnet pwsh ./Apps/Matching/test_and_cover_matching.ps1
 We are using GitHub Packages for hosting API Clients, this feed require you to sign in to be able to do a restore.
 You will need to get a 'Personal Access Token (Classic)' from GitHub.
 
-click on your photo in the top right > click Settings > Developer Settings > Personal access tokens > Tokens (classic) > 
-click generate new token (classic) > add a note to describe the token > set an expiration date > 
+click on your photo in the top right > click Settings > Developer Settings > Personal access tokens > Tokens (classic) >
+click generate new token (classic) > add a note to describe the token > set an expiration date >
 check the 'write:packages' permission > click Generate token.
 
 Save a copy on the token on your machine incase you need it in the future.
 
-When you try and restore a project for the first time that is using a GitHub package feed Rider will bring up a login box.
+### JetBrains Rider IDE
+
+When you try and restore a project for the first time that is using a GitHub package feed, Rider will bring up a login box.
 Put your GitHub username in the username field and your Token in the password field.
 
+### CLI
+
+If using the `dotnet` cli tool, you can set the `GITHUB_USERNAME` and `GITHUB_TOKEN_DFENUGET` environment variables (referenced in the `nuget.config` files) to specify the credentials for the nuget feed.
+
+Example:
+
+```
+GITHUB_USERNAME=YourGitHubUsername GITHUB_TOKEN_DFENUGET=YourTokenHere dotnet watch run --launch-profile https
+```

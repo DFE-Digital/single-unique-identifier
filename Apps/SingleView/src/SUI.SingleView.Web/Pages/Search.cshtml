@@ -2,15 +2,37 @@
 @model SUI.SingleView.Web.Pages.Search
 
 @{
-    ViewBag.Title = Model.HasResults ? "Search results" : "Find a child's safeguarding record";
-    ViewBag.BackLinkPath = nameof(SignIn);
+    const string formTitle = "Find a child's safeguarding record";
+    const string resultsTitle = "Search results";
+    ViewBag.Title = Model.HasResults ? resultsTitle : formTitle;
+    ViewBag.FormTitle = formTitle;
+    ViewBag.ResultsTitle = resultsTitle;
+    ViewBag.BackLinkPath = Model.HasResults ? nameof(Search) : nameof(SignIn);
 }
 
-@if (Model.HasResults)
-{
-    <partial name="_SearchResults"/>
-}
-else
-{
-    <partial name="_SearchForm"/>
-}
+<div class="app-search"
+     data-search-root
+     data-back-link-href="@ViewBag.BackLinkPath"
+     data-back-link-form="@nameof(SignIn)"
+     data-back-link-results="@Url.Page("/Search")"
+     data-back-link-text="@(ViewBag.BackLinkText ?? "Back")">
+    <div data-search-form-wrapper @(Model.HasResults ? "hidden" : "")>
+        <partial name="_SearchForm"/>
+    </div>
+
+    <div class="app-search__loading" data-search-loading hidden aria-live="polite" aria-busy="true" role="status">
+        <h1 class="govuk-heading-xl" data-search-loading-heading tabindex="-1">Searching for a match</h1>
+        <div class="app-spinner app-spinner--large" aria-hidden="true">
+            <div class="app-spinner__circle"></div>
+            <div class="app-spinner__label govuk-body govuk-!-font-size-19">Loading …</div>
+        </div>
+        <span class="govuk-visually-hidden">Searching for a match...</span>
+    </div>
+
+    <div class="app-search__results govuk-!-margin-top-6" data-search-results aria-live="polite" @(Model.HasResults ? "" : "hidden")>
+        @if (Model.HasResults)
+        {
+            <partial name="_SearchResults"/>
+        }
+    </div>
+</div>

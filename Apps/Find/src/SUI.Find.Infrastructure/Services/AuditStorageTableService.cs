@@ -2,11 +2,14 @@ using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Models;
+using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Services;
 
 [ExcludeFromCodeCoverage(Justification = "Basic Infrastructure code.")]
-public class AuditStorageTableService(TableServiceClient client) : ITableStorageAuditService
+public class AuditStorageTableService(TableServiceClient client)
+    : IAuditService,
+        ITableServiceEnsureCreated
 {
     public async Task WriteAccessAuditLogAsync(AuditAccessMessage accessMessage)
     {

@@ -1,24 +1,29 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SUI.SingleView.Application.Models;
 using SUI.SingleView.Application.Services;
 
 namespace SUI.SingleView.Web.Pages;
 
-public class DataView : PageModel
+public class DataView(ILogger<DataView> logger, IRecordService recordService) : PageModel
 {
-    private readonly ILogger<DataView> _logger;
-    private readonly IRecordService _recordService;
+    private readonly ILogger<DataView> _logger = logger;
 
-    public PersonModel PersonModel { get; set; } = null!;
+    public PersonModel? PersonModel { get; set; }
 
-    public DataView(ILogger<DataView> logger, IRecordService recordService)
+    [BindProperty(SupportsGet = true)]
+    public string? PersonId { get; set; }
+
+    public async Task<PageResult> OnGetAsync(
+        bool prefetch = false,
+        CancellationToken cancellationToken = default
+    )
     {
-        _logger = logger;
-        _recordService = recordService;
-    }
+        if (prefetch && !string.IsNullOrWhiteSpace(PersonId))
+        {
+            PersonModel = await recordService.GetRecordAsync(PersonId, cancellationToken);
+        }
 
-    public async Task OnGetAsync()
-    {
-        PersonModel = await _recordService.GetRecordAsync("1234567890");
+        return Page();
     }
 }

@@ -5,28 +5,40 @@ using SUI.Transfer.API.Client;
 
 namespace SUI.SingleView.Application.Services;
 
-public class RecordService : IRecordService
+public class RecordService(
+    ITransferApi transferApi,
+    ILogger<RecordService> logger,
+    IDelay? delay = null,
+    TimeSpan? artificialDelay = null
+) : IRecordService
 {
-    private readonly ITransferApi _transferApi;
-    private readonly ILogger<RecordService> _logger;
+    private readonly IDelay _delay = delay ?? new SystemDelay();
+    private readonly TimeSpan _artificialDelay = artificialDelay ?? DefaultArtificialDelay;
+    private static readonly TimeSpan DefaultArtificialDelay = TimeSpan.FromSeconds(3);
 
-    public RecordService(ITransferApi transferApi, ILogger<RecordService> logger)
-    {
-        _transferApi = transferApi;
-        _logger = logger;
-    }
-
-    public async Task<PersonModel> GetRecordAsync(string nhsNumber)
+    public async Task<PersonModel> GetRecordAsync(
+        string nhsNumber,
+        CancellationToken cancellationToken = default
+    )
     {
         var id = string.Empty;
         try
         {
-            var result = await _transferApi.TransferAsync(nhsNumber);
+            if (_artificialDelay > TimeSpan.Zero)
+            {
+                await _delay.DelayAsync(_artificialDelay, cancellationToken);
+            }
+
+            var result = await transferApi.TransferAsync(nhsNumber, cancellationToken);
             id = result.Id;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred when trying to get the record for {Id}", nhsNumber);
+            logger.LogError(
+                ex,
+                "An error occurred when trying to get the record for {Id}",
+                nhsNumber
+            );
         }
 
         return new PersonModel
