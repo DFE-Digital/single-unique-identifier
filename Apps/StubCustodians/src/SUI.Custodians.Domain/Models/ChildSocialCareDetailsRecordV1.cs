@@ -1,5 +1,8 @@
 namespace SUI.Custodians.Domain.Models;
 
+/// <summary>
+/// Details related to the Children's Social Care and other Children's Services for a specific child.
+/// </summary>
 public record ChildSocialCareDetailsRecordV1 : SuiRecord
 {
     /// <summary>

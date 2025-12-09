@@ -1,5 +1,8 @@
 namespace SUI.Custodians.Domain.Models;
 
+/// <summary>
+/// Details related to Healthcare about a specific child.
+/// </summary>
 public record HealthDataRecordV1 : SuiRecord
 {
     /// <summary>
@@ -11,6 +14,7 @@ public record HealthDataRecordV1 : SuiRecord
     /// <summary>
     /// GP Address
     /// </summary>
+    /// <example>Duke Medical Centre, 28 Talbot Road, Sheffield, S2 2TD</example>
     public AddressV1? GPAddress { get; init; }
 
     /// <summary>

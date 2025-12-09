@@ -815,6 +815,9 @@ namespace SUI.Custodians.API.Client
 
     }
 
+    /// <summary>
+    /// Details related to the Children's Social Care and other Children's Services for a specific child.
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class ChildSocialCareDetailsRecordV1
     {
@@ -837,6 +840,9 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("teamInvolvement")]
         public System.Collections.Generic.ICollection<string> TeamInvolvement { get; set; }
 
+        /// <summary>
+        /// Child Social Care Referrals
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("cscReferrals")]
         public System.Collections.Generic.ICollection<ChildSocialCareReferralV1> CscReferrals { get; set; }
 
@@ -879,6 +885,9 @@ namespace SUI.Custodians.API.Client
 
     }
 
+    /// <summary>
+    /// Crime-linked data about a specific child.
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class CrimeDataRecordV1
     {
@@ -1003,6 +1012,9 @@ namespace SUI.Custodians.API.Client
 
     }
 
+    /// <summary>
+    /// Education related data about a specific child.
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class EducationDetailsRecordV1
     {
@@ -1103,6 +1115,9 @@ namespace SUI.Custodians.API.Client
 
     }
 
+    /// <summary>
+    /// Details related to Healthcare about a specific child.
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class HealthDataRecordV1
     {
@@ -1116,12 +1131,18 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("gpAddress")]
         public AddressV1 GpAddress { get; set; }
 
+        /// <summary>
+        /// GP Telephone
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("gpTelephone")]
         public string GpTelephone { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("camhsContactAddress")]
         public AddressV1 CamhsContactAddress { get; set; }
 
+        /// <summary>
+        /// Child and Adolescent Mental Health Services - Contact telephone
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("camhsContactTelephone")]
         public string CamhsContactTelephone { get; set; }
 
@@ -1131,6 +1152,9 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("missedAppointments")]
         public System.Collections.Generic.ICollection<HealthMissedAppointmentV1> MissedAppointments { get; set; }
 
+        /// <summary>
+        /// Emergency (A&amp;E) Department Attendances
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("emergencyDepartmentAttendances")]
         public System.Collections.Generic.ICollection<EmergencyDepartmentAttendanceV1> EmergencyDepartmentAttendances { get; set; }
 
@@ -1195,6 +1219,9 @@ namespace SUI.Custodians.API.Client
 
     }
 
+    /// <summary>
+    /// General personal details about a specific child.
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class PersonalDetailsRecordV1
     {
@@ -1338,12 +1365,8 @@ namespace SUI.Custodians.API.Client
     public partial class RecordEnvelopeOfChildSocialCareDetailsRecordV1
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
-
         /// <summary>
-        /// URI of the payload schema
+        /// URI of the ChildSocialCareDetailsRecordV1 payload schema
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -1368,12 +1391,8 @@ namespace SUI.Custodians.API.Client
     public partial class RecordEnvelopeOfCrimeDataRecordV1
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
-
         /// <summary>
-        /// URI of the payload schema
+        /// URI of the CrimeDataRecordV1 payload schema
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -1398,12 +1417,8 @@ namespace SUI.Custodians.API.Client
     public partial class RecordEnvelopeOfEducationDetailsRecordV1
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
-
         /// <summary>
-        /// URI of the payload schema
+        /// URI of the EducationDetailsRecordV1 payload schema
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -1428,12 +1443,8 @@ namespace SUI.Custodians.API.Client
     public partial class RecordEnvelopeOfHealthDataRecordV1
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
-
         /// <summary>
-        /// URI of the payload schema
+        /// URI of the HealthDataRecordV1 payload schema
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -1458,12 +1469,8 @@ namespace SUI.Custodians.API.Client
     public partial class RecordEnvelopeOfPersonalDetailsRecordV1
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
-
         /// <summary>
-        /// URI of the payload schema
+        /// URI of the PersonalDetailsRecordV1 payload schema
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
@@ -1484,6 +1491,9 @@ namespace SUI.Custodians.API.Client
 
     }
 
+    /// <summary>
+    /// Represents a person related to a specific child.
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class RelatedPersonV1
     {
@@ -1500,6 +1510,9 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Related Person - Date of birth
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("dob")]
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Dob { get; set; }

@@ -1,5 +1,8 @@
 namespace SUI.Custodians.Domain.Models;
 
+/// <summary>
+/// Crime-linked data about a specific child.
+/// </summary>
 public record CrimeDataRecordV1 : SuiRecord
 {
     /// <summary>
