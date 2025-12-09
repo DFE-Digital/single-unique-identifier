@@ -40,6 +40,7 @@ builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
 builder.Services.AddSingleton<ISearchService, SearchService>();
 builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
 builder.Services.AddSingleton<IHashService, HashService>();
+builder.Services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
 builder.Services.AddAzureTableServices();
 
 // Use mock services for all environments for now while in prototype
