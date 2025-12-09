@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
@@ -65,7 +66,7 @@ public class OutboundAuthService(
             }
         );
 
-        using var http = httpClientFactory.CreateClient("providers");
+        using var http = httpClientFactory.CreateClient(ApplicationConstants.Providers.LoggingName);
         using var res = await http.SendAsync(request, cancellationToken);
         if (!res.IsSuccessStatusCode)
         {

@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Services;
@@ -70,7 +71,9 @@ public class OutboundAuthServiceTests
                     )
             )
         );
-        _httpClientFactory.CreateClient("providers").Returns(handler);
+        _httpClientFactory
+            .CreateClient(ApplicationConstants.Providers.LoggingName)
+            .Returns(handler);
 
         var service = new OutboundAuthService(_logger, _httpClientFactory);
 
@@ -96,7 +99,9 @@ public class OutboundAuthServiceTests
             )
         );
 
-        _httpClientFactory.CreateClient("providers").Returns(handler);
+        _httpClientFactory
+            .CreateClient(ApplicationConstants.Providers.LoggingName)
+            .Returns(handler);
 
         var service = new OutboundAuthService(_logger, _httpClientFactory);
 
@@ -129,7 +134,9 @@ public class OutboundAuthServiceTests
                     )
             )
         );
-        _httpClientFactory.CreateClient("providers").Returns(handler);
+        _httpClientFactory
+            .CreateClient(ApplicationConstants.Providers.LoggingName)
+            .Returns(handler);
 
         var service = new OutboundAuthService(_logger, _httpClientFactory);
 
