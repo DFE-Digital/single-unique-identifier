@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace SUI.Find.Application.Models;
 
 public record RecordBase(

@@ -6,7 +6,7 @@ using SUI.Find.Application.Models;
 
 namespace SUI.Find.Application.Services;
 
-public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlService maskUrlService, ICustodianService custodianService, IProviderHttpClient providerClient) : IFetchRecordService
+public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlService maskUrlService, ICustodianService custodianService, IProviderHttpClient providerClient, IOutboundAuthService outboundAuthService) : IFetchRecordService
 {
     public async Task<Result<RecordBase>> FetchRecordAsync(string fetchId, string requestingOrgId, CancellationToken cancellationToken)
     {
@@ -28,15 +28,28 @@ public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlServ
             return Result<RecordBase>.Fail(provider.Error ?? "Failed to retrieve custodian organisation.");
         }
 
-        var authConnection = provider.Value.Connection.Auth;
-        var bearerToken = authConnection is null
-            ? null
-            // TODO Add OutboundAuthTokenService to get real token
-            : "test-bearer-token";
+        var tokenResult = await outboundAuthService.GetAccessTokenAsync(
+            provider.Value,
+            CancellationToken.None
+        );
+
+        if (!tokenResult.Success || string.IsNullOrWhiteSpace(tokenResult.Value))
+        {
+            logger.LogError(
+                "Failed to obtain access token for provider {Provider}: {ErrorMessage}",
+                provider.Value.ProviderName,
+                tokenResult.Error
+            );
+
+            return Result<RecordBase>.Fail("Unable to obtain access token for fetch record.");
+        }
+
+        logger.LogInformation("Fetch Record access token obtained");
+
 
         var response = await providerClient.GetAsync(
             resolvedMapping.Value.TargetUrl,
-            bearerToken,
+            tokenResult.Value,
             cancellationToken
         );
 
@@ -46,8 +59,14 @@ public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlServ
             return Result<RecordBase>.Fail(response.Error ?? "Error fetching record from provider.");
         }
 
+        if (string.IsNullOrWhiteSpace(response.Value))
+        {
+            logger.LogInformation("Fetch Record return empty response");
+            return Result<RecordBase>.Fail("Fetched record is empty");
+        }
+
         var recordContent = JsonSerializer.Deserialize<RecordBase>(
-            response.Value!,
+            response.Value,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         return Result<RecordBase>.Ok(recordContent);
