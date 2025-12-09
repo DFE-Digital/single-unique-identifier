@@ -1,21 +1,17 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Functions.HttpTriggers;
-using SUI.Find.FindApi.Functions.Orchestrators;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.UnitTests.Mocks;
-using SUI.Find.FindApi.Utility;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
@@ -29,7 +25,6 @@ public class SearchEndpointTests
     private const string ValidSuid = "Cy13hyZL-4LSIwVy50p-Hg";
     private const string InvalidSuid = "invalid-suid";
     private const string TestClientId = "test-client-id";
-    private readonly string InstanceId;
 
     public SearchEndpointTests()
     {
