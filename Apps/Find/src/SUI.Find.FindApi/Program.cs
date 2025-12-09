@@ -72,13 +72,13 @@ builder.Services.AddSingleton(sp =>
 });
 
 builder
-    .Services.AddHttpClient("providers")
+    .Services.AddHttpClient(ApplicationConstants.Providers.LoggingName)
     .AddPolicyHandler(_ =>
     {
         var logger = builder
             .Services.BuildServiceProvider()
             .GetRequiredService<ILoggerFactory>()
-            .CreateLogger("providers");
+            .CreateLogger(ApplicationConstants.Providers.LoggingName);
 
         return HttpPolicyExtensions
             .HandleTransientHttpError()
