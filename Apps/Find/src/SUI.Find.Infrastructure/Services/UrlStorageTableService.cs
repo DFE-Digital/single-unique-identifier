@@ -22,7 +22,7 @@ public class UrlStorageTableService(
             InfrastructureConstants.StorageTableUrlMappings.TableName
         );
 
-        var partitionKey = request.JobId[..2]; // Simple partitioning: first 2 chars of id
+        var partitionKey = request.RequestingOrg[..5]; // Simple partitioning: first 5 chars of id
         var expiresAt = DateTimeOffset.UtcNow.Add(request.Ttl);
 
         var entity = new FetchUrlMappingEntity
@@ -49,7 +49,7 @@ public class UrlStorageTableService(
     {
         try
         {
-            var partitionKey = fetchId[..2];
+            var partitionKey = requestingOrg[..5];
             var tableClient = client.GetTableClient(
                 InfrastructureConstants.StorageTableUrlMappings.TableName
             );

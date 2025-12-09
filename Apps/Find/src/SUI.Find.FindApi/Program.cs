@@ -17,6 +17,7 @@ using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
 using SUI.Find.Infrastructure.Services;
+using SUI.Find.Infrastructure.Utility;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -37,6 +38,7 @@ builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
 builder.Services.AddSingleton<ISearchService, SearchService>();
+builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
 builder.Services.AddSingleton<IHashService, HashService>();
 builder.Services.AddAzureTableServices();
 

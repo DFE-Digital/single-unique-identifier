@@ -1,0 +1,85 @@
+name: Load Terraform vars
+description: Reads environment values from a tfvars file and computes backend naming
+
+inputs:
+  environment:
+    description: Environment name (matches tfvars filename without extension)
+    required: true
+  terraform-dir:
+    description: Path to terraform directory
+    required: false
+    default: terraform
+  container-name:
+    description: Terraform state container name
+    required: false
+    default: tfstate
+
+outputs:
+  subscription_prefix:
+    description: subscription_prefix from tfvars
+  environment_id:
+    description: environment_id from tfvars
+  region_short:
+    description: region_short from tfvars
+  location:
+    description: location from tfvars
+  tfvars_path:
+    description: Relative path to the tfvars file
+  state_rg:
+    description: Derived state resource group name
+  state_storage:
+    description: Derived state storage account name
+  state_container:
+    description: State container name
+  state_key:
+    description: State key path
+
+runs:
+  using: composite
+  steps:
+    - name: Load tfvars and compute backend names
+      shell: bash
+      run: |
+        TFVARS_PATH="${{ inputs.terraform-dir }}/environments/${{ inputs.environment }}.tfvars"
+
+        if [ ! -f "$TFVARS_PATH" ]; then
+          echo "Missing tfvars: $TFVARS_PATH"
+          exit 1
+        fi
+
+        get_tfvar() {
+          awk -F '=' -v key="$1" '
+            $0 !~ /^#/ && $1 ~ key {
+              gsub(/^[ \t]+|[ \t]+$/, "", $2);
+              gsub(/"/, "", $2);
+              print $2;
+              exit
+            }' "$TFVARS_PATH"
+        }
+
+        SUBSCRIPTION_PREFIX=$(get_tfvar subscription_prefix)
+        ENVIRONMENT_ID=$(get_tfvar environment_id)
+        REGION_SHORT=$(get_tfvar region_short)
+        LOCATION=$(get_tfvar location)
+
+        if [ -z "$SUBSCRIPTION_PREFIX" ] || [ -z "$ENVIRONMENT_ID" ] || [ -z "$REGION_SHORT" ] || [ -z "$LOCATION" ]; then
+          echo "Missing subscription_prefix, environment_id, region_short, or location in $TFVARS_PATH"
+          exit 1
+        fi
+
+        STATE_RG="${SUBSCRIPTION_PREFIX}${ENVIRONMENT_ID}rg-${REGION_SHORT}-tfstate"
+        STATE_STORAGE="${SUBSCRIPTION_PREFIX}${ENVIRONMENT_ID}sttfstate01"
+        STATE_CONTAINER="${{ inputs.container-name }}"
+        STATE_KEY="${ENVIRONMENT_ID}/terraform.tfstate"
+
+        {
+          echo "subscription_prefix=$SUBSCRIPTION_PREFIX"
+          echo "environment_id=$ENVIRONMENT_ID"
+          echo "region_short=$REGION_SHORT"
+          echo "location=$LOCATION"
+          echo "tfvars_path=environments/${{ inputs.environment }}.tfvars"
+          echo "state_rg=$STATE_RG"
+          echo "state_storage=$STATE_STORAGE"
+          echo "state_container=$STATE_CONTAINER"
+          echo "state_key=$STATE_KEY"
+        } >> "$GITHUB_OUTPUT"
