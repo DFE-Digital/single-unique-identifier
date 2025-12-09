@@ -71,6 +71,6 @@ builder.Services.AddSingleton(sp =>
 
 // TODO will need considering as part clean arch changes
 builder.Services.AddHttpClient("providers");
-builder.Services.AddScoped<IProviderHttpClient, ProviderHttpClient>();
+builder.Services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
 
 await builder.Build().RunAsync();
