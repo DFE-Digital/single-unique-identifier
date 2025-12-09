@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+using System.Net;
 using Azure.Data.Tables;
 using Azure.Storage.Queues;
 using Microsoft.Azure.Functions.Worker;
@@ -6,6 +7,9 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Extensions.Http;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Services;
@@ -67,7 +71,31 @@ builder.Services.AddSingleton(sp =>
     return new TableServiceClient(connection);
 });
 
-// TODO will need considering as part clean arch changes
-builder.Services.AddHttpClient("providers");
+builder
+    .Services.AddHttpClient("providers")
+    .AddPolicyHandler(_ =>
+    {
+        var logger = builder
+            .Services.BuildServiceProvider()
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("providers");
+
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .OrResult(msg => msg.StatusCode == HttpStatusCode.TooManyRequests)
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: retryAttempt =>
+                    TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                onRetry: (outcome, timespan, retryCount, context) =>
+                {
+                    logger.LogInformation(
+                        "Retrying after {TotalSeconds} seconds (attempt {RetryCount})",
+                        timespan.TotalSeconds,
+                        retryCount
+                    );
+                }
+            );
+    });
 
 await builder.Build().RunAsync();
