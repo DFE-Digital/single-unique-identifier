@@ -36,7 +36,7 @@ public record HealthDataRecordV1 : SuiRecord
     public IReadOnlyCollection<HealthMissedAppointmentV1>? MissedAppointments { get; init; }
 
     /// <summary>
-    /// Emergency (A&E) Department Attendances
+    /// Emergency (A&amp;E) Department Attendances
     /// </summary>
     public IReadOnlyCollection<EmergencyDepartmentAttendanceV1>? EmergencyDepartmentAttendances { get; init; }
 }
