@@ -164,7 +164,7 @@ public class BuildCustodianHttpRequestTests
         Assert.NotNull(request.Content);
         Assert.Equal(
             $"{{\"records\": {{ \"id\": \"{EncryptedPersonId}\" }}}}",
-            request.Content.ReadAsStringAsync().Result
+            await request.Content.ReadAsStringAsync()
         );
     }
 }
