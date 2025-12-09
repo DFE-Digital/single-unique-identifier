@@ -103,7 +103,22 @@ public class FetchRecordFunctionTests
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
+    [Fact]
+    public async Task FetchRecord_ReturnsNotFound_WhenServiceReturnsNotFoundErrors()
+    {
+        // Arrange
+        var context = CreateContextWithAuth();
+        var request = MockHttpRequestData.Create();
 
+        _mockService.FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<CustodianRecord>.Fail("NotFound"));
+
+        // Act
+        var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 
 
 }
