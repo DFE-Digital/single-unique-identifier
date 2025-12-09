@@ -2,7 +2,7 @@ namespace SUI.Transfer.Domain;
 
 public static class TransferJobStateFactory
 {
-    public static RunningTransferJobState RunJob(
+    public static RunningTransferJobState RunningJob(
         TransferJobState jobState,
         DateTimeOffset lastUpdatedAt
     )
@@ -15,7 +15,7 @@ public static class TransferJobStateFactory
         );
     }
 
-    public static CancelledTransferJobState CancelJob(
+    public static CancelledTransferJobState CancelledJob(
         TransferJobState jobState,
         string cancellationReason,
         DateTimeOffset lastUpdatedAt
@@ -30,9 +30,9 @@ public static class TransferJobStateFactory
         );
     }
 
-    public static CompletedTransferJobState CompleteJob(
+    public static CompletedTransferJobState CompletedJob(
         TransferJobState jobState,
-        ConformedData? conformedData,
+        ConformedData conformedData,
         DateTimeOffset lastUpdatedAt
     )
     {
@@ -45,7 +45,7 @@ public static class TransferJobStateFactory
         );
     }
 
-    public static FailedTransferJobState FailJob(
+    public static FailedTransferJobState FailedJob(
         TransferJobState jobState,
         string errorMessage,
         string stackTrace,

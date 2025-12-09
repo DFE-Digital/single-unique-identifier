@@ -35,13 +35,13 @@ public class TransferService(
             try
             {
                 await UpdateJobStateAsync(
-                    TransferJobStateFactory.RunJob(jobState, timeProvider.GetUtcNow())
+                    TransferJobStateFactory.RunningJob(jobState, timeProvider.GetUtcNow())
                 );
 
                 var conformedData = await transferJob.TransferAsync(jobId, sui);
 
                 await UpdateJobStateAsync(
-                    TransferJobStateFactory.CompleteJob(
+                    TransferJobStateFactory.CompletedJob(
                         jobState,
                         conformedData,
                         timeProvider.GetUtcNow()
@@ -57,7 +57,7 @@ public class TransferService(
                     jobId
                 );
                 await UpdateJobStateAsync(
-                    TransferJobStateFactory.CancelJob(
+                    TransferJobStateFactory.CancelledJob(
                         jobState,
                         "Cancelled while running, due to host application shutdown",
                         timeProvider.GetUtcNow()
@@ -73,7 +73,7 @@ public class TransferService(
                     jobId
                 );
                 await UpdateJobStateAsync(
-                    TransferJobStateFactory.FailJob(
+                    TransferJobStateFactory.FailedJob(
                         jobState,
                         e.ToString(),
                         e.StackTrace ?? string.Empty,

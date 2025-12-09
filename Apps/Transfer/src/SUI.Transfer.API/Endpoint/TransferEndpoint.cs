@@ -52,15 +52,7 @@ public static class TransferEndpoint
                     if (result is null)
                         return TypedResults.NotFound();
 
-                    return TypedResults.Ok(
-                        result.Status == TransferJobStatus.Completed
-                            ? TransferJobStateFactory.CompleteJob(
-                                result,
-                                null,
-                                result.LastUpdatedAt
-                            ) // avoid sending results from status endpoint
-                            : result
-                    );
+                    return TypedResults.Ok(result);
                 }
             )
             .WithSummary("Get Status of Transfer job")

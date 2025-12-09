@@ -87,7 +87,7 @@ public class TransferServiceTests
                 var intermediateResult = await _sut.GetTransferJobStateAsync(jobId);
                 Assert.NotNull(intermediateResult);
                 Assert.Equal(
-                    TransferJobStateFactory.RunJob(
+                    TransferJobStateFactory.RunningJob(
                         intermediateResult,
                         intermediateResult.LastUpdatedAt
                     ),
@@ -137,7 +137,7 @@ public class TransferServiceTests
         finalResult
             .Should()
             .BeEquivalentTo(
-                TransferJobStateFactory.CompleteJob(
+                TransferJobStateFactory.CompletedJob(
                     initialResult,
                     CreateEmptyConformedConsolidatedData(
                         initialResult.JobId,

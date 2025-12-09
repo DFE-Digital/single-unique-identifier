@@ -168,7 +168,7 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task GetTransferStatus_WithCompletedJobId_ReturnsOk_WithoutData()
+    public async Task GetTransferStatus_WithCompletedJobId_ReturnsOk_WithData()
     {
         //Arrange
         var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
@@ -178,13 +178,6 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             testJobId,
             testSui,
             CreateEmptyConformedConsolidatedData(testJobId, testSui, createdAt),
-            createdAt,
-            createdAt
-        );
-        var expectedResponse = new CompletedTransferJobState(
-            testJobId,
-            testSui,
-            null,
             createdAt,
             createdAt
         );
@@ -202,8 +195,7 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             _jsonSerializerOptions
         );
         Assert.NotNull(content);
-        Assert.Null(content.ConformedData);
-        Assert.Equivalent(expectedResponse, content);
+        Assert.Equivalent(mockResponse, content);
     }
 
     [Fact]

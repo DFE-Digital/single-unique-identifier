@@ -35,7 +35,7 @@ public abstract record TransferJobState(
 public record CompletedTransferJobState(
     Guid JobId,
     string Sui,
-    ConformedData? ConformedData,
+    ConformedData ConformedData,
     DateTimeOffset CreatedAt,
     DateTimeOffset LastUpdatedAt
 )
