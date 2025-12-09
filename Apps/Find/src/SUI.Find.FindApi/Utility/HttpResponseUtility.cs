@@ -106,4 +106,15 @@ public static class HttpResponseUtility
         await res.WriteAsJsonAsync(body, cancellationToken);
         return res;
     }
+
+    public static async Task<HttpResponseData> OkResponse<T>(
+        HttpRequestData req,
+        T body,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var res = req.CreateResponse(HttpStatusCode.OK);
+        await res.WriteAsJsonAsync(body, cancellationToken);
+        return res;
+    }
 }
