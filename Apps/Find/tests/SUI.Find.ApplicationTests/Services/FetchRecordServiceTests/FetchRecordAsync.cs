@@ -14,6 +14,7 @@ public class FetchRecordAsyncTests
     private readonly IMaskUrlService _mockMaskUrlService = Substitute.For<IMaskUrlService>();
     private readonly ICustodianService _mockCustodianService = Substitute.For<ICustodianService>();
     private readonly IProviderHttpClient _mockProviderClient = Substitute.For<IProviderHttpClient>();
+    private readonly IOutboundAuthService _mockOutboundAuthService = Substitute.For<IOutboundAuthService>();
     private readonly FetchRecordService _sut;
 
     public FetchRecordAsyncTests()
@@ -22,7 +23,8 @@ public class FetchRecordAsyncTests
             _mockLogger,
             _mockMaskUrlService,
             _mockCustodianService,
-            _mockProviderClient
+            _mockProviderClient,
+            _mockOutboundAuthService
         );
     }
 
@@ -75,6 +77,9 @@ public class FetchRecordAsyncTests
         };
         _mockCustodianService.GetCustodianAsync("TargetOrg")
             .Returns(Result<ProviderDefinition>.Ok(providerDef));
+        _mockOutboundAuthService
+            .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Ok("access-token"));
 
         _mockProviderClient.GetAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Result<string>.Fail("Upstream error"));
@@ -102,6 +107,9 @@ public class FetchRecordAsyncTests
         };
         _mockCustodianService.GetCustodianAsync("TargetOrg")
             .Returns(Result<ProviderDefinition>.Ok(providerDef));
+        _mockOutboundAuthService
+            .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Ok("access-token"));
 
         var expectedResult = new RecordBase(RecordId: "record-123", ProviderSystem: "provider-system", DataType: "data-type", Suid: "suid-456");
 
