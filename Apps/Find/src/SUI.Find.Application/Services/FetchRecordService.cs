@@ -62,7 +62,7 @@ public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlServ
         if (string.IsNullOrWhiteSpace(response.Value))
         {
             logger.LogInformation("Fetch Record return empty response");
-            return Result<RecordBase>.Fail("Fetched record is empty");
+            return Result<RecordBase>.Fail("Requested record is empty");
         }
 
         var recordContent = JsonSerializer.Deserialize<RecordBase>(
