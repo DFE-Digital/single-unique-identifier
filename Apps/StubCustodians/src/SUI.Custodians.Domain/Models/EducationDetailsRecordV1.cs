@@ -8,10 +8,6 @@ public record EducationDetailsRecordV1 : SuiRecord
     /// <example>Redwood Academy</example>
     public string? EducationSettingName { get; init; }
 
-    /// <summary>
-    /// Education setting - Address
-    /// </summary>
-    /// <example>Redrood Drive, Maltby, London, SE6 8DL</example>
     public AddressV1? EducationSettingAddress { get; init; }
 
     /// <summary>

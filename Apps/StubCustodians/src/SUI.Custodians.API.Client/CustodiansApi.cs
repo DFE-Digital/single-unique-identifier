@@ -27,50 +27,50 @@ namespace SUI.Custodians.API.Client
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial interface ICustodiansApi
     {
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildPersonalDetailsEnvelopeV1> ChildPersonalDetailsRecordV1Async(string sui);
+        System.Threading.Tasks.Task<RecordEnvelopeOfPersonalDetailsRecordV1> PersonalDetailsRecordV1Async(string sui, string providerSystemId);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildPersonalDetailsEnvelopeV1> ChildPersonalDetailsRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<RecordEnvelopeOfPersonalDetailsRecordV1> PersonalDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
 
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildSocialCareDetailsEnvelopeV1> ChildSocialCareDetailsRecordV1Async(string sui);
-
-        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildSocialCareDetailsEnvelopeV1> ChildSocialCareDetailsRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken);
-
-        /// <returns>Record found.</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<EducationDetailsEnvelopeV1> EducationDetailsRecordV1Async(string sui);
+        System.Threading.Tasks.Task<RecordEnvelopeOfChildSocialCareDetailsRecordV1> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<EducationDetailsEnvelopeV1> EducationDetailsRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<RecordEnvelopeOfChildSocialCareDetailsRecordV1> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
 
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildHealthDataEnvelopeV1> ChildHealthDataRecordV1Async(string sui);
-
-        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildHealthDataEnvelopeV1> ChildHealthDataRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken);
-
-        /// <returns>Record found.</returns>
-        /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildLinkedCrimeDataEnvelopeV1> ChildLinkedCrimeDataRecordV1Async(string sui);
+        System.Threading.Tasks.Task<RecordEnvelopeOfEducationDetailsRecordV1> EducationDetailsRecordV1Async(string sui, string providerSystemId);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<ChildLinkedCrimeDataEnvelopeV1> ChildLinkedCrimeDataRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<RecordEnvelopeOfEducationDetailsRecordV1> EducationDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
+
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<RecordEnvelopeOfHealthDataRecordV1> HealthDataRecordV1Async(string sui, string providerSystemId);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<RecordEnvelopeOfHealthDataRecordV1> HealthDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
+
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<RecordEnvelopeOfCrimeDataRecordV1> CrimeDataRecordV1Async(string sui, string providerSystemId);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<RecordEnvelopeOfCrimeDataRecordV1> CrimeDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken);
 
     }
 
@@ -106,20 +106,23 @@ namespace SUI.Custodians.API.Client
         partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, System.Text.StringBuilder urlBuilder);
         partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
 
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<ChildPersonalDetailsEnvelopeV1> ChildPersonalDetailsRecordV1Async(string sui)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfPersonalDetailsRecordV1> PersonalDetailsRecordV1Async(string sui, string providerSystemId)
         {
-            return ChildPersonalDetailsRecordV1Async(sui, System.Threading.CancellationToken.None);
+            return PersonalDetailsRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ChildPersonalDetailsEnvelopeV1> ChildPersonalDetailsRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfPersonalDetailsRecordV1> PersonalDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
+
+            if (providerSystemId == null)
+                throw new System.ArgumentNullException("providerSystemId");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -128,12 +131,14 @@ namespace SUI.Custodians.API.Client
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
                     request_.Method = new System.Net.Http.HttpMethod("GET");
-                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("text/plain; x-api-version=1.0"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v1/records/ChildPersonalDetailsRecordV1/{sui}"
-                    urlBuilder_.Append("api/v1/records/ChildPersonalDetailsRecordV1/");
+                    // Operation Path: "api/v1/Records/{providerSystemId}/PersonalDetailsRecordV1/{sui}"
+                    urlBuilder_.Append("api/v1/Records/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(providerSystemId, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/PersonalDetailsRecordV1/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(sui, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -161,7 +166,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ChildPersonalDetailsEnvelopeV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfPersonalDetailsRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -171,12 +176,12 @@ namespace SUI.Custodians.API.Client
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<FailureInfo>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Required parameters are missing or invalid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<FailureInfo>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -186,16 +191,12 @@ namespace SUI.Custodians.API.Client
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Record not found.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<ProblemDetails>("Not Found", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new ApiException<ProblemDetails>("Unexpected error.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
                         }
                     }
                     finally
@@ -212,20 +213,23 @@ namespace SUI.Custodians.API.Client
             }
         }
 
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<ChildSocialCareDetailsEnvelopeV1> ChildSocialCareDetailsRecordV1Async(string sui)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfChildSocialCareDetailsRecordV1> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId)
         {
-            return ChildSocialCareDetailsRecordV1Async(sui, System.Threading.CancellationToken.None);
+            return ChildSocialCareDetailsRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ChildSocialCareDetailsEnvelopeV1> ChildSocialCareDetailsRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfChildSocialCareDetailsRecordV1> ChildSocialCareDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
+
+            if (providerSystemId == null)
+                throw new System.ArgumentNullException("providerSystemId");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -234,12 +238,14 @@ namespace SUI.Custodians.API.Client
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
                     request_.Method = new System.Net.Http.HttpMethod("GET");
-                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("text/plain; x-api-version=1.0"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v1/records/ChildSocialCareDetailsRecordV1/{sui}"
-                    urlBuilder_.Append("api/v1/records/ChildSocialCareDetailsRecordV1/");
+                    // Operation Path: "api/v1/Records/{providerSystemId}/ChildSocialCareDetailsRecordV1/{sui}"
+                    urlBuilder_.Append("api/v1/Records/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(providerSystemId, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/ChildSocialCareDetailsRecordV1/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(sui, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -267,7 +273,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ChildSocialCareDetailsEnvelopeV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfChildSocialCareDetailsRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -277,12 +283,12 @@ namespace SUI.Custodians.API.Client
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<FailureInfo>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Required parameters are missing or invalid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<FailureInfo>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -292,16 +298,12 @@ namespace SUI.Custodians.API.Client
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Record not found.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<ProblemDetails>("Not Found", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new ApiException<ProblemDetails>("Unexpected error.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
                         }
                     }
                     finally
@@ -318,20 +320,23 @@ namespace SUI.Custodians.API.Client
             }
         }
 
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<EducationDetailsEnvelopeV1> EducationDetailsRecordV1Async(string sui)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfEducationDetailsRecordV1> EducationDetailsRecordV1Async(string sui, string providerSystemId)
         {
-            return EducationDetailsRecordV1Async(sui, System.Threading.CancellationToken.None);
+            return EducationDetailsRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<EducationDetailsEnvelopeV1> EducationDetailsRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfEducationDetailsRecordV1> EducationDetailsRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
+
+            if (providerSystemId == null)
+                throw new System.ArgumentNullException("providerSystemId");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -340,12 +345,14 @@ namespace SUI.Custodians.API.Client
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
                     request_.Method = new System.Net.Http.HttpMethod("GET");
-                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("text/plain; x-api-version=1.0"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v1/records/EducationDetailsRecordV1/{sui}"
-                    urlBuilder_.Append("api/v1/records/EducationDetailsRecordV1/");
+                    // Operation Path: "api/v1/Records/{providerSystemId}/EducationDetailsRecordV1/{sui}"
+                    urlBuilder_.Append("api/v1/Records/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(providerSystemId, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/EducationDetailsRecordV1/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(sui, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -373,7 +380,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<EducationDetailsEnvelopeV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfEducationDetailsRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -383,12 +390,12 @@ namespace SUI.Custodians.API.Client
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<FailureInfo>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Required parameters are missing or invalid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<FailureInfo>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -398,16 +405,12 @@ namespace SUI.Custodians.API.Client
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Record not found.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<ProblemDetails>("Not Found", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new ApiException<ProblemDetails>("Unexpected error.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
                         }
                     }
                     finally
@@ -424,20 +427,23 @@ namespace SUI.Custodians.API.Client
             }
         }
 
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<ChildHealthDataEnvelopeV1> ChildHealthDataRecordV1Async(string sui)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfHealthDataRecordV1> HealthDataRecordV1Async(string sui, string providerSystemId)
         {
-            return ChildHealthDataRecordV1Async(sui, System.Threading.CancellationToken.None);
+            return HealthDataRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ChildHealthDataEnvelopeV1> ChildHealthDataRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfHealthDataRecordV1> HealthDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
+
+            if (providerSystemId == null)
+                throw new System.ArgumentNullException("providerSystemId");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -446,12 +452,14 @@ namespace SUI.Custodians.API.Client
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
                     request_.Method = new System.Net.Http.HttpMethod("GET");
-                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("text/plain; x-api-version=1.0"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v1/records/ChildHealthDataRecordV1/{sui}"
-                    urlBuilder_.Append("api/v1/records/ChildHealthDataRecordV1/");
+                    // Operation Path: "api/v1/Records/{providerSystemId}/HealthDataRecordV1/{sui}"
+                    urlBuilder_.Append("api/v1/Records/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(providerSystemId, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/HealthDataRecordV1/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(sui, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -479,7 +487,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ChildHealthDataEnvelopeV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfHealthDataRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -489,12 +497,12 @@ namespace SUI.Custodians.API.Client
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<FailureInfo>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Required parameters are missing or invalid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<FailureInfo>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -504,16 +512,12 @@ namespace SUI.Custodians.API.Client
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Record not found.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<ProblemDetails>("Not Found", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new ApiException<ProblemDetails>("Unexpected error.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
                         }
                     }
                     finally
@@ -530,20 +534,23 @@ namespace SUI.Custodians.API.Client
             }
         }
 
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<ChildLinkedCrimeDataEnvelopeV1> ChildLinkedCrimeDataRecordV1Async(string sui)
+        public virtual System.Threading.Tasks.Task<RecordEnvelopeOfCrimeDataRecordV1> CrimeDataRecordV1Async(string sui, string providerSystemId)
         {
-            return ChildLinkedCrimeDataRecordV1Async(sui, System.Threading.CancellationToken.None);
+            return CrimeDataRecordV1Async(sui, providerSystemId, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-        /// <returns>Record found.</returns>
+        /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<ChildLinkedCrimeDataEnvelopeV1> ChildLinkedCrimeDataRecordV1Async(string sui, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<RecordEnvelopeOfCrimeDataRecordV1> CrimeDataRecordV1Async(string sui, string providerSystemId, System.Threading.CancellationToken cancellationToken)
         {
             if (sui == null)
                 throw new System.ArgumentNullException("sui");
+
+            if (providerSystemId == null)
+                throw new System.ArgumentNullException("providerSystemId");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -552,12 +559,14 @@ namespace SUI.Custodians.API.Client
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
                     request_.Method = new System.Net.Http.HttpMethod("GET");
-                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("text/plain; x-api-version=1.0"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v1/records/ChildLinkedCrimeDataRecordV1/{sui}"
-                    urlBuilder_.Append("api/v1/records/ChildLinkedCrimeDataRecordV1/");
+                    // Operation Path: "api/v1/Records/{providerSystemId}/CrimeDataRecordV1/{sui}"
+                    urlBuilder_.Append("api/v1/Records/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(providerSystemId, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/CrimeDataRecordV1/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(sui, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -585,7 +594,7 @@ namespace SUI.Custodians.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ChildLinkedCrimeDataEnvelopeV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<RecordEnvelopeOfCrimeDataRecordV1>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -595,12 +604,12 @@ namespace SUI.Custodians.API.Client
                         else
                         if (status_ == 400)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<FailureInfo>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Required parameters are missing or invalid.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<FailureInfo>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -610,16 +619,12 @@ namespace SUI.Custodians.API.Client
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<ProblemDetails>("Record not found.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<ProblemDetails>("Not Found", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new ApiException<ProblemDetails>("Unexpected error.", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
                         }
                     }
                     finally
@@ -766,7 +771,432 @@ namespace SUI.Custodians.API.Client
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ChildPersonalDetailsRecordV1
+    public partial class AddressV1
+    {
+
+        /// <summary>
+        /// Line 1 of the address
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("line1")]
+        public string Line1 { get; set; }
+
+        /// <summary>
+        /// Line 2 of the address
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("line2")]
+        public string Line2 { get; set; }
+
+        /// <summary>
+        /// Town or city
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("townOrCity")]
+        public string TownOrCity { get; set; }
+
+        /// <summary>
+        /// County
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("county")]
+        public string County { get; set; }
+
+        /// <summary>
+        /// Postcode
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("postcode")]
+        public string Postcode { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ChildSocialCareDetailsRecordV1
+    {
+
+        /// <summary>
+        /// CSC - Key worker
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("keyWorker")]
+        public string KeyWorker { get; set; }
+
+        /// <summary>
+        /// CSC - Duty contact details
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("dutyContactDetails")]
+        public System.Collections.Generic.ICollection<string> DutyContactDetails { get; set; }
+
+        /// <summary>
+        /// CSC - Team involvement
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("teamInvolvement")]
+        public System.Collections.Generic.ICollection<string> TeamInvolvement { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("cscReferrals")]
+        public System.Collections.Generic.ICollection<ChildSocialCareReferralV1> CscReferrals { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ChildSocialCareReferralV1
+    {
+
+        /// <summary>
+        /// CSC - Referral history - Date
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
+        public System.DateTimeOffset? Date { get; set; }
+
+        /// <summary>
+        /// CSC - Referral history - Type
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string Type { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CrimeDataRecordV1
+    {
+
+        /// <summary>
+        /// Police marker details
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("policeMarkerDetails")]
+        public string PoliceMarkerDetails { get; set; }
+
+        /// <summary>
+        /// Crime - Services known to
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("servicesKnownTo")]
+        public System.Collections.Generic.ICollection<string> ServicesKnownTo { get; set; }
+
+        /// <summary>
+        /// Last Police Protection Power event
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("lastPoliceProtectionPowerEvent")]
+        public string LastPoliceProtectionPowerEvent { get; set; }
+
+        /// <summary>
+        /// Police - Missing Episodes
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("missingEpisodes")]
+        public System.Collections.Generic.ICollection<CrimeMissingEpisodeV1> MissingEpisodes { get; set; }
+
+        /// <summary>
+        /// Linked crime risks
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("linkedCrimeRisks")]
+        public System.Collections.Generic.ICollection<LinkedCrimeRiskV1> LinkedCrimeRisks { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CrimeMissingEpisodeV1
+    {
+
+        /// <summary>
+        /// Missing episode date
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
+        public System.DateTimeOffset? Date { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class EducationAttendanceV1
+    {
+
+        /// <summary>
+        /// Education attendance history - Academic Term Year Start
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("academicTermYearStart")]
+        public int? AcademicTermYearStart { get; set; }
+
+        /// <summary>
+        /// Education attendance history - Academic Term Year End
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("academicTermYearEnd")]
+        public int? AcademicTermYearEnd { get; set; }
+
+        /// <summary>
+        /// Education attendance history - Attendance Percentage
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("attendancePercentage")]
+        public float? AttendancePercentage { get; set; }
+
+        /// <summary>
+        /// Education attendance history - Unauthorised Absence Percentage
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("unauthorisedAbsencePercentage")]
+        public float? UnauthorisedAbsencePercentage { get; set; }
+
+        /// <summary>
+        /// Education attendance history - Suspensions
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("suspensions")]
+        public int? Suspensions { get; set; }
+
+        /// <summary>
+        /// Education attendance history - Exclusions
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("exclusions")]
+        public int? Exclusions { get; set; }
+
+        /// <summary>
+        /// Education attendance history - School moves non transitional
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("schoolMovesNonTransitional")]
+        public int? SchoolMovesNonTransitional { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class EducationDetailsRecordV1
+    {
+
+        /// <summary>
+        /// Education setting - Name
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("educationSettingName")]
+        public string EducationSettingName { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("educationSettingAddress")]
+        public AddressV1 EducationSettingAddress { get; set; }
+
+        /// <summary>
+        /// Education setting - Telephone
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("educationSettingTelephone")]
+        public string EducationSettingTelephone { get; set; }
+
+        /// <summary>
+        /// Education Attendances
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("educationAttendances")]
+        public System.Collections.Generic.ICollection<EducationAttendanceV1> EducationAttendances { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class EmergencyDepartmentAttendanceV1
+    {
+
+        /// <summary>
+        /// Health - Emergency department attendance - Date
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
+        public System.DateTimeOffset? Date { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ErrorInfo
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("scope")]
+        public string Scope { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("message")]
+        public string Message { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class FailureInfo
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
+        public int Kind { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("errors")]
+        public System.Collections.Generic.ICollection<ErrorInfo> Errors { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class HealthDataRecordV1
+    {
+
+        /// <summary>
+        /// Registered GP
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("registeredGP")]
+        public string RegisteredGP { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("gpAddress")]
+        public AddressV1 GpAddress { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("gpTelephone")]
+        public string GpTelephone { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("camhsContactAddress")]
+        public AddressV1 CamhsContactAddress { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("camhsContactTelephone")]
+        public string CamhsContactTelephone { get; set; }
+
+        /// <summary>
+        /// Missed Healthcare Appointments
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("missedAppointments")]
+        public System.Collections.Generic.ICollection<HealthMissedAppointmentV1> MissedAppointments { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("emergencyDepartmentAttendances")]
+        public System.Collections.Generic.ICollection<EmergencyDepartmentAttendanceV1> EmergencyDepartmentAttendances { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class HealthMissedAppointmentV1
+    {
+
+        /// <summary>
+        /// Health - Missed appointments history - Date
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
+        public System.DateTimeOffset? Date { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("setting")]
+        public int? Setting { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LinkedCrimeRiskV1
+    {
+
+        /// <summary>
+        /// Crime - Risk - Date
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
+        public System.DateTimeOffset? Date { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("riskType")]
+        public int? RiskType { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class PersonalDetailsRecordV1
     {
 
         /// <summary>
@@ -797,167 +1227,83 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonPropertyName("namesOfIndividualsResidingAtMainAddress")]
         public System.Collections.Generic.ICollection<string> NamesOfIndividualsResidingAtMainAddress { get; set; }
 
+        /// <summary>
+        /// Birth assigned sex
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("birthAssignedSex")]
         public string BirthAssignedSex { get; set; }
 
+        /// <summary>
+        /// Pronouns
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("pronouns")]
         public string Pronouns { get; set; }
 
+        /// <summary>
+        /// Ethnicity
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ethnicity")]
         public string Ethnicity { get; set; }
 
+        /// <summary>
+        /// First language
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("firstLanguage")]
         public string FirstLanguage { get; set; }
 
+        /// <summary>
+        /// Designated Local Authority
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("designatedLocalAuthority")]
         public string DesignatedLocalAuthority { get; set; }
 
+        /// <summary>
+        /// Communication need: English as additional language (EAL)
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("englishAsAdditionalLanguage")]
         public bool? EnglishAsAdditionalLanguage { get; set; }
 
+        /// <summary>
+        /// Communication need: Braille needed
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("braille")]
         public bool? Braille { get; set; }
 
+        /// <summary>
+        /// Communication need: Sign language
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("signLanguage")]
         public bool? SignLanguage { get; set; }
 
+        /// <summary>
+        /// Communication need: Makaton needed
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("makaton")]
         public bool? Makaton { get; set; }
 
+        /// <summary>
+        /// Communication need: Interpreter needed
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("interpreter")]
         public bool? Interpreter { get; set; }
 
+        /// <summary>
+        /// The people known to be related to the child.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("relatedPeople")]
         public System.Collections.Generic.ICollection<RelatedPersonV1> RelatedPeople { get; set; }
 
-    }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ChildSocialCareDetailsRecordV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("keyWorker")]
-        public string KeyWorker { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("dutyContactDetails")]
-        public System.Collections.Generic.ICollection<string> DutyContactDetails { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("teamInvolvement")]
-        public System.Collections.Generic.ICollection<string> TeamInvolvement { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("cscActiveStatusesAndPlans")]
-        public System.Collections.Generic.ICollection<CSCActiveStatusAndPlanV1> CscActiveStatusesAndPlans { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("cscReferrals")]
-        public System.Collections.Generic.ICollection<CSCReferralV1> CscReferrals { get; set; }
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class EducationDetailsRecordV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("educationSettingName")]
-        public string EducationSettingName { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("educationSettingAddress")]
-        public AddressV1 EducationSettingAddress { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("educationSettingTelephone")]
-        public string EducationSettingTelephone { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("educationActiveStatusesAndPlans")]
-        public System.Collections.Generic.ICollection<EducationActiveStatusAndPlanV1> EducationActiveStatusesAndPlans { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("educationAttendances")]
-        public System.Collections.Generic.ICollection<EducationAttendanceV1> EducationAttendances { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ChildHealthDataRecordV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("registeredGP")]
-        public string RegisteredGP { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("gpAddress")]
-        public AddressV1 GpAddress { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("gpTelephone")]
-        public string GpTelephone { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("camhsContactAddress")]
-        public AddressV1 CamhsContactAddress { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("camhsContactTelephone")]
-        public string CamhsContactTelephone { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("healthActiveStatusesAndPlans")]
-        public System.Collections.Generic.ICollection<HealthActiveStatusAndPlanV1> HealthActiveStatusesAndPlans { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("missedAppointments")]
-        public System.Collections.Generic.ICollection<HealthMissedAppointmentV1> MissedAppointments { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("emergencyDepartmentAttendances")]
-        public System.Collections.Generic.ICollection<EmergencyDepartmentAttendanceV1> EmergencyDepartmentAttendances { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ChildLinkedCrimeDataRecordV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("policeMarkerDetails")]
-        public string PoliceMarkerDetails { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("servicesKnownTo")]
-        public System.Collections.Generic.ICollection<string> ServicesKnownTo { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("lastPoliceProtectionPowerEvent")]
-        public string LastPoliceProtectionPowerEvent { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("missingEpisodes")]
-        public System.Collections.Generic.ICollection<CrimeMissingEpisodeV1> MissingEpisodes { get; set; }
-
-        /// <summary>
-        /// Risk of Sexual Exploitation (last 5 years)
-        /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("riskSexualExploitation")]
-        public bool? RiskSexualExploitation { get; set; }
-
-        /// <summary>
-        /// Risk of Criminal Exploitation (last 5 years)
-        /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("riskCriminalExploitation")]
-        public bool? RiskCriminalExploitation { get; set; }
-
-        /// <summary>
-        /// Risk of Radicalisation (last 5 years)
-        /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("riskRadicalisation")]
-        public bool? RiskRadicalisation { get; set; }
-
-        /// <summary>
-        /// Risk of Modern Slavery and Trafficking (last 5 years)
-        /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("riskModernSlaveryAndTrafficking")]
-        public bool? RiskModernSlaveryAndTrafficking { get; set; }
-
-        /// <summary>
-        /// Risk of Gangs and Youth Violence (last 5 years)
-        /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("riskGangsAndYouthViolence")]
-        public bool? RiskGangsAndYouthViolence { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("crimeActiveStatusesAndPlans")]
-        public System.Collections.Generic.ICollection<CrimeActiveStatusAndPlanV1> CrimeActiveStatusesAndPlans { get; set; }
-
-    }
-
-    /// <summary>
-    /// RFC 7807 problem details.
-    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class ProblemDetails
     {
@@ -989,23 +1335,152 @@ namespace SUI.Custodians.API.Client
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class AddressV1
+    public partial class RecordEnvelopeOfChildSocialCareDetailsRecordV1
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("line1")]
-        public string Line1 { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("line2")]
-        public string Line2 { get; set; }
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("townOrCity")]
-        public string TownOrCity { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public ChildSocialCareDetailsRecordV1 Payload { get; set; } = new ChildSocialCareDetailsRecordV1();
 
-        [System.Text.Json.Serialization.JsonPropertyName("county")]
-        public string County { get; set; }
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-        [System.Text.Json.Serialization.JsonPropertyName("postcode")]
-        public string Postcode { get; set; }
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordEnvelopeOfCrimeDataRecordV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public CrimeDataRecordV1 Payload { get; set; } = new CrimeDataRecordV1();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordEnvelopeOfEducationDetailsRecordV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public EducationDetailsRecordV1 Payload { get; set; } = new EducationDetailsRecordV1();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordEnvelopeOfHealthDataRecordV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public HealthDataRecordV1 Payload { get; set; } = new HealthDataRecordV1();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordEnvelopeOfPersonalDetailsRecordV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        /// <summary>
+        /// URI of the payload schema
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Uri SchemaUri { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("payload")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public PersonalDetailsRecordV1 Payload { get; set; } = new PersonalDetailsRecordV1();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
@@ -1013,9 +1488,15 @@ namespace SUI.Custodians.API.Client
     public partial class RelatedPersonV1
     {
 
+        /// <summary>
+        /// Related Person - Relationship to the child
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("relationshipToTheChild")]
         public string RelationshipToTheChild { get; set; }
 
+        /// <summary>
+        /// Related Person - Full Name
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string Name { get; set; }
 
@@ -1023,306 +1504,20 @@ namespace SUI.Custodians.API.Client
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Dob { get; set; }
 
+        /// <summary>
+        /// Risks posed by the Related Person
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("risk")]
         public System.Collections.Generic.ICollection<string> Risk { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("servicesKnownTo")]
-        public System.Collections.Generic.ICollection<string> ServicesKnownTo { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class CSCActiveStatusAndPlanV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public string Status { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("plan")]
-        public string Plan { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class CSCReferralV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("date")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
-        public System.DateTimeOffset? Date { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public string Type { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class EducationActiveStatusAndPlanV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public string Status { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("plan")]
-        public string Plan { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class EducationAttendanceV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("academicTermYearStart")]
-        public int? AcademicTermYearStart { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("academicTermYearEnd")]
-        public int? AcademicTermYearEnd { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("attendancePercentage")]
-        public float? AttendancePercentage { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("unauthorisedAbsencePercentage")]
-        public float? UnauthorisedAbsencePercentage { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("suspensions")]
-        public int? Suspensions { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("exclusions")]
-        public int? Exclusions { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("schoolMovesNonTransitional")]
-        public int? SchoolMovesNonTransitional { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class EmergencyDepartmentAttendanceV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("date")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
-        public System.DateTimeOffset? Date { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class HealthActiveStatusAndPlanV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public string Status { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("plan")]
-        public string Plan { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class HealthMissedAppointmentV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("date")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
-        public System.DateTimeOffset? Date { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("setting")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<HealthSettingV1>))]
-        public HealthSettingV1 Setting { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum HealthSettingV1
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Other")]
-        Other = 0,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Hospital")]
-        Hospital = 1,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"GP")]
-        GP = 2,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Community")]
-        Community = 3,
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class CrimeActiveStatusAndPlanV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public string Status { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("plan")]
-        public string Plan { get; set; }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class CrimeMissingEpisodeV1
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("date")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
-        public System.DateTimeOffset? Date { get; set; }
-
-    }
-
-    /// <summary>
-    /// Common fields for all record envelopes.
-    /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class RecordEnvelopeBase
-    {
-
-        /// <summary>
-        /// Identifier of the participating system/provider.
-        /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
-
-        /// <summary>
-        /// URI of the JSON Schema that describes the 'data' payload.
-        /// <br/>This URI specifies the record type and its specific version.
-        /// <br/>
-        /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.Uri SchemaUri { get; set; }
-
-    }
-
-    /// <summary>
-    /// Envelope for ChildPersonalDetailsRecordV1 records.
-    /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ChildPersonalDetailsEnvelopeV1 : RecordEnvelopeBase
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ChildPersonalDetailsEnvelopeV1SchemaUri>))]
-        public ChildPersonalDetailsEnvelopeV1SchemaUri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public ChildPersonalDetailsRecordV1 Data { get; set; } = new ChildPersonalDetailsRecordV1();
-
-    }
-
-    /// <summary>
-    /// Envelope for ChildSocialCareDetailsRecordV1 records.
-    /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ChildSocialCareDetailsEnvelopeV1 : RecordEnvelopeBase
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ChildSocialCareDetailsEnvelopeV1SchemaUri>))]
-        public ChildSocialCareDetailsEnvelopeV1SchemaUri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public ChildSocialCareDetailsRecordV1 Data { get; set; } = new ChildSocialCareDetailsRecordV1();
-
-    }
-
-    /// <summary>
-    /// Envelope for EducationDetailsRecordV1 records.
-    /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class EducationDetailsEnvelopeV1 : RecordEnvelopeBase
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<EducationDetailsEnvelopeV1SchemaUri>))]
-        public EducationDetailsEnvelopeV1SchemaUri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public EducationDetailsRecordV1 Data { get; set; } = new EducationDetailsRecordV1();
-
-    }
-
-    /// <summary>
-    /// Envelope for ChildHealthDataRecordV1 records.
-    /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ChildHealthDataEnvelopeV1 : RecordEnvelopeBase
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ChildHealthDataEnvelopeV1SchemaUri>))]
-        public ChildHealthDataEnvelopeV1SchemaUri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public ChildHealthDataRecordV1 Data { get; set; } = new ChildHealthDataRecordV1();
-
-    }
-
-    /// <summary>
-    /// Envelope for ChildLinkedCrimeDataRecordV1 records.
-    /// </summary>
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ChildLinkedCrimeDataEnvelopeV1 : RecordEnvelopeBase
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("schemaUri")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ChildLinkedCrimeDataEnvelopeV1SchemaUri>))]
-        public ChildLinkedCrimeDataEnvelopeV1SchemaUri SchemaUri { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [System.ComponentModel.DataAnnotations.Required]
-        public ChildLinkedCrimeDataRecordV1 Data { get; set; } = new ChildLinkedCrimeDataRecordV1();
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum ChildPersonalDetailsEnvelopeV1SchemaUri
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"https://schemas.example.gov.uk/sui/ChildPersonalDetailsRecordV1.json")]
-        Https__schemas_example_gov_uk_sui_ChildPersonalDetailsRecordV1_json = 0,
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum ChildSocialCareDetailsEnvelopeV1SchemaUri
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1.json")]
-        Https__schemas_example_gov_uk_sui_ChildSocialCareDetailsRecordV1_json = 0,
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum EducationDetailsEnvelopeV1SchemaUri
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json")]
-        Https__schemas_example_gov_uk_sui_EducationDetailsRecordV1_json = 0,
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum ChildHealthDataEnvelopeV1SchemaUri
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"https://schemas.example.gov.uk/sui/ChildHealthDataRecordV1.json")]
-        Https__schemas_example_gov_uk_sui_ChildHealthDataRecordV1_json = 0,
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum ChildLinkedCrimeDataEnvelopeV1SchemaUri
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"https://schemas.example.gov.uk/sui/ChildLinkedCrimeDataRecordV1.json")]
-        Https__schemas_example_gov_uk_sui_ChildLinkedCrimeDataRecordV1_json = 0,
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 
