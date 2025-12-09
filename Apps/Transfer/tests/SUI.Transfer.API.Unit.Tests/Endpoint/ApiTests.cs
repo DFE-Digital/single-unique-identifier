@@ -168,6 +168,70 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task GetTransferStatus_WithCompletedJobId_ReturnsOk_WithoutData()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+        var testSui = "999-000-1234";
+        var createdAt = TimeProvider.System.GetUtcNow();
+        var mockResponse = new CompletedTransferJobState(
+            testJobId,
+            testSui,
+            CreateEmptyConformedConsolidatedData(testJobId, testSui, createdAt),
+            createdAt,
+            createdAt
+        );
+        var expectedResponse = new CompletedTransferJobState(
+            testJobId,
+            testSui,
+            null,
+            createdAt,
+            createdAt
+        );
+
+        _mockTransferService.GetTransferJobStateAsync(Arg.Any<Guid>()).Returns(mockResponse);
+
+        _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}/");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
+        var content = await httpResponse.Content.ReadFromJsonAsync<CompletedTransferJobState>(
+            _jsonSerializerOptions
+        );
+        Assert.NotNull(content);
+        Assert.Null(content.ConformedData);
+        Assert.Equivalent(expectedResponse, content);
+    }
+
+    [Fact]
+    public async Task GetTransferStatus_WithUncompletedJobId_ReturnsOk()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+        var testSui = "999-000-1234";
+        var createdAt = TimeProvider.System.GetUtcNow();
+        var mockResponse = new RunningTransferJobState(testJobId, testSui, createdAt, createdAt);
+
+        _mockTransferService.GetTransferJobStateAsync(Arg.Any<Guid>()).Returns(mockResponse);
+
+        _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}/");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
+        var content = await httpResponse.Content.ReadFromJsonAsync<RunningTransferJobState>(
+            _jsonSerializerOptions
+        );
+        Assert.NotNull(content);
+        Assert.Equivalent(mockResponse, content);
+    }
+
+    [Fact]
     public async Task GetTransferResults_WithoutApiKey_ReturnsUnauthorized()
     {
         //Arrange
