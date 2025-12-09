@@ -69,6 +69,6 @@ public class FetchRecordService(ILogger<FetchRecordService> logger, IMaskUrlServ
             response.Value,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-        return Result<CustodianRecord>.Ok(recordContent);
+        return recordContent is not null ? Result<CustodianRecord>.Ok(recordContent) : Result<CustodianRecord>.Fail("Requested record is empty");
     }
 }
