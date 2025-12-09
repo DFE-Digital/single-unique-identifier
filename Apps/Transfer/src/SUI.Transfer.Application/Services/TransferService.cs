@@ -6,22 +6,23 @@ namespace SUI.Transfer.Application.Services;
 public class TransferService(
     ITransferJob transferJob,
     ITransferJobStateRepository transferJobStateRepository,
-    ILogger<TransferService> logger
+    ILogger<TransferService> logger,
+    TimeProvider timeProvider
 ) : ITransferService
 {
     public QueuedTransferJobState BeginTransferJob(string sui)
     {
         var jobId = Guid.NewGuid();
-        var createdAt = TimeProvider.System.GetUtcNow();
 
         // Normalize the SUI
         sui = sui.ToUpperInvariant().Replace(" ", "");
+        var jobState = new QueuedTransferJobState(jobId, sui, timeProvider.GetUtcNow());
 
         // Queue the transfer job to be run in the background.
         // This can be revisited in the future, if we need to use a more advanced scheduling/queueing approach.
         Task.Run(PerformTransferJobAsync);
 
-        return new QueuedTransferJobState(jobId, sui, createdAt);
+        return jobState;
 
         async Task PerformTransferJobAsync()
         {
@@ -33,12 +34,18 @@ public class TransferService(
 
             try
             {
-                await UpdateJobStateAsync(new RunningTransferJobState(jobId, sui, createdAt));
+                await UpdateJobStateAsync(
+                    TransferJobStateFactory.RunJob(jobState, timeProvider.GetUtcNow())
+                );
 
                 var conformedData = await transferJob.TransferAsync(jobId, sui);
 
                 await UpdateJobStateAsync(
-                    new CompletedTransferJobState(jobId, sui, conformedData, createdAt)
+                    TransferJobStateFactory.CompleteJob(
+                        jobState,
+                        conformedData,
+                        timeProvider.GetUtcNow()
+                    )
                 );
             }
             catch (OperationCanceledException e)
@@ -50,11 +57,10 @@ public class TransferService(
                     jobId
                 );
                 await UpdateJobStateAsync(
-                    new CancelledTransferJobState(
-                        jobId,
-                        sui,
+                    TransferJobStateFactory.CancelJob(
+                        jobState,
                         "Cancelled while running, due to host application shutdown",
-                        createdAt
+                        timeProvider.GetUtcNow()
                     )
                 );
             }
@@ -67,7 +73,12 @@ public class TransferService(
                     jobId
                 );
                 await UpdateJobStateAsync(
-                    new FailedTransferJobState(jobId, sui, e.ToString(), e.StackTrace, createdAt)
+                    TransferJobStateFactory.FailJob(
+                        jobState,
+                        e.ToString(),
+                        e.StackTrace ?? string.Empty,
+                        timeProvider.GetUtcNow()
+                    )
                 );
             }
         }

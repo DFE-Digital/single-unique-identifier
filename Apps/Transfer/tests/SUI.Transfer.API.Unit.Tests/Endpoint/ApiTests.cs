@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
+using SUI.Custodians.API.Client;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
 
@@ -122,4 +123,180 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             content
         );
     }
+
+    [Fact]
+    public async Task GetTransferStatus_WithoutApiKey_ReturnsUnauthorized()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTransferStatus_WithIncorrectApiKey_ReturnsUnauthorized()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+
+        _client.DefaultRequestHeaders.Add("X-Api-Key", "INCORRECT_API_KEY");
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTransferStatus_WithUnusedJobId_ReturnsNotFoundResult()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+
+        _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTransferResults_WithoutApiKey_ReturnsUnauthorized()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}/results");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTransferResults_WithIncorrectApiKey_ReturnsUnauthorized()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+
+        _client.DefaultRequestHeaders.Add("X-Api-Key", "INCORRECT_API_KEY");
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}/results");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTransferResults_WithUnusedJobId_ReturnsNotFound()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+
+        _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}/results");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTransferResults_WithNotCompletedJobId_ReturnsBadRequest()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+        var testId = "999-000-1234";
+        var createdAt = TimeProvider.System.GetUtcNow();
+        var mockResponse = new QueuedTransferJobState(testJobId, testId, createdAt);
+
+        _mockTransferService.GetTransferJobStateAsync(Arg.Any<Guid>()).Returns(mockResponse);
+
+        _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}/results");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, httpResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTransferResults_WithCompletedJobId_ReturnsOk()
+    {
+        //Arrange
+        var testJobId = Guid.Parse("7527627D-17AF-451B-9AF2-87E17E577F63");
+        var testSui = "999-000-1234";
+        var createdAt = TimeProvider.System.GetUtcNow();
+        var mockResponse = new CompletedTransferJobState(
+            testJobId,
+            testSui,
+            CreateEmptyConformedConsolidatedData(testJobId, testSui, createdAt),
+            createdAt,
+            createdAt
+        );
+
+        _mockTransferService.GetTransferJobStateAsync(Arg.Any<Guid>()).Returns(mockResponse);
+
+        _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
+
+        // Act
+        var httpResponse = await _client.GetAsync($"/api/v1/transfer/{testJobId}/results");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, httpResponse.StatusCode);
+        var content = await httpResponse.Content.ReadFromJsonAsync<CompletedTransferJobState>(
+            _jsonSerializerOptions
+        );
+        Assert.NotNull(content);
+        Assert.Equivalent(mockResponse, content, true);
+    }
+
+    private static ConformedData CreateEmptyConformedConsolidatedData(
+        Guid jobId,
+        string sui,
+        DateTimeOffset createdAt
+    ) =>
+        new(
+            jobId,
+            new ConsolidatedData(sui)
+            {
+                ChildPersonalDetailsRecord = new ChildPersonalDetailsRecordV1(),
+                ChildSocialCareDetailsRecord = new ChildSocialCareDetailsRecordV1(),
+                EducationDetailsRecord = new EducationDetailsRecordV1(),
+                ChildHealthDataRecord = new ChildHealthDataRecordV1(),
+                ChildLinkedCrimeDataRecord = new ChildLinkedCrimeDataRecordV1(),
+                CountOfRecordsSuccessfullyFetched = 0,
+                FailedFetches = [],
+            },
+            createdAt
+        )
+        {
+            EducationAttendanceSummaries = new EducationAttendanceSummaries
+            {
+                CurrentAcademicYear = new EducationAttendanceV1(),
+                LastAcademicYear = new EducationAttendanceV1(),
+            },
+            HealthAttendanceSummaries = new HealthAttendanceSummaries
+            {
+                Last12Months = new HealthAttendanceSummary(1, 1, 1),
+                Last5Years = new HealthAttendanceSummary(5, 5, 5),
+            },
+            ChildrensSocialCareReferralSummaries = new ChildrensSocialCareReferralSummaries
+            {
+                Past6Months = [],
+                Past12Months = [],
+                Past5Years = [],
+            },
+            CrimeMissingEpisodesPast6Months = [],
+        };
 }

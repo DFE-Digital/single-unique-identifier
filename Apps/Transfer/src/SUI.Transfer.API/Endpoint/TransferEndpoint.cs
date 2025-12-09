@@ -41,7 +41,7 @@ public static class TransferEndpoint
             .MapGet(
                 "/transfer/{jobId}",
                 [Authorize]
-                async Task<IValueHttpResult<TransferJobState>> (
+                async Task<Results<Ok<TransferJobState>, NotFound>> (
                     [Description("The guid id of the job whose status is being requested.")]
                         Guid jobId,
                     [FromServices] ITransferService transferService
@@ -49,13 +49,15 @@ public static class TransferEndpoint
                 {
                     var result = await transferService.GetTransferJobStateAsync(jobId);
 
+                    if (result is null)
+                        return TypedResults.NotFound();
+
                     return TypedResults.Ok(
-                        result?.Status == TransferJobStatus.Completed
-                            ? new CompletedTransferJobState(
-                                result.JobId,
-                                result.Sui,
+                        result.Status == TransferJobStatus.Completed
+                            ? TransferJobStateFactory.CompleteJob(
+                                result,
                                 null,
-                                result.CreatedAt
+                                result.LastUpdatedAt
                             ) // avoid sending results from status endpoint
                             : result
                     );
@@ -68,17 +70,20 @@ public static class TransferEndpoint
             .MapGet(
                 "/transfer/{jobId}/results",
                 [Authorize]
-                async Task<IValueHttpResult<TransferJobState>> (
+                async Task<
+                    Results<Ok<CompletedTransferJobState>, BadRequest<TransferJobState>, NotFound>
+                > (
                     [Description("The guid id of the job whose results are being requested.")]
                         Guid jobId,
                     [FromServices] ITransferService transferService
                 ) =>
                 {
                     var jobState = await transferService.GetTransferJobStateAsync(jobId);
-                    if (jobState is CompletedTransferJobState completedJob)
-                    {
-                        return TypedResults.Ok(completedJob);
-                    }
+                    if (jobState is null)
+                        return TypedResults.NotFound();
+
+                    if (jobState is CompletedTransferJobState completedJobState)
+                        return TypedResults.Ok(completedJobState);
 
                     return TypedResults.BadRequest(jobState);
                 }
