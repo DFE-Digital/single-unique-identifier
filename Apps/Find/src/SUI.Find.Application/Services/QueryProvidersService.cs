@@ -8,8 +8,7 @@ using SUI.Find.Domain.Models;
 namespace SUI.Find.Application.Services;
 
 public class QueryProvidersService(
-    IProviderHttpClient providerHttpClient,
-    IBuildCustodianHttpRequest buildCustodianHttpRequest,
+    IBuildCustodianRequestService buildCustodianRequestService,
     ILogger<QueryProvidersService> logger,
     IPersonIdEncryptionService encryptionService,
     IMaskUrlService maskUrlService,
@@ -55,13 +54,13 @@ public class QueryProvidersService(
             return Result<IReadOnlyList<SearchResultItem>>.Fail(tokenResult.Error ?? "Failed to obtain token");
         }
 
-        using var request = buildCustodianHttpRequest.BuildHttpRequest(
+        var requestDto = new BuildCustodianRequestDto(
             data.Provider,
             encryptedPersonId.Value!,
             tokenResult.Value
         );
 
-        var responseResult = await providerHttpClient.SendAsync(request, cancellationToken);
+        var responseResult = await buildCustodianRequestService.BuildCustodianRequestAsync(requestDto, cancellationToken);
 
         if (!responseResult.Success)
         {

@@ -42,7 +42,7 @@ builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
 builder.Services.AddSingleton<IHashService, HashService>();
 builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
 builder.Services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
-builder.Services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
+builder.Services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
 builder.Services.AddAzureTableServices();
 
 // Use mock services for all environments for now while in prototype

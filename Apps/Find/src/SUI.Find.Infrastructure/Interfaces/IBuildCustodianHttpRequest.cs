@@ -1,6 +1,6 @@
 using SUI.Find.Application.Models;
 
-namespace SUI.Find.Application.Interfaces;
+namespace SUI.Find.Infrastructure.Interfaces;
 
 public interface IBuildCustodianHttpRequest
 {

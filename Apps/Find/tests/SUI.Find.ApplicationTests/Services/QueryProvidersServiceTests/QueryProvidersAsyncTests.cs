@@ -12,8 +12,7 @@ namespace SUI.Find.ApplicationTests.Services.QueryProvidersServiceTests;
 
 public class QueryProvidersAsyncTests
 {
-    private readonly IProviderHttpClient _mockHttpClient = Substitute.For<IProviderHttpClient>();
-    private readonly IBuildCustodianHttpRequest _mockBuildRequest = Substitute.For<IBuildCustodianHttpRequest>();
+    private readonly IBuildCustodianRequestService _mockBuildRequest = Substitute.For<IBuildCustodianRequestService>();
     private readonly ILogger<QueryProvidersService> _mockLogger = Substitute.For<ILogger<QueryProvidersService>>();
     private readonly IPersonIdEncryptionService _mockEncryptionService = Substitute.For<IPersonIdEncryptionService>();
     private readonly IMaskUrlService _mockMaskUrlService = Substitute.For<IMaskUrlService>();
@@ -23,7 +22,6 @@ public class QueryProvidersAsyncTests
     public QueryProvidersAsyncTests()
     {
         _sut = new QueryProvidersService(
-            _mockHttpClient,
             _mockBuildRequest,
             _mockLogger,
             _mockEncryptionService,
@@ -123,11 +121,7 @@ public class QueryProvidersAsyncTests
         _mockAuthService.GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("token"));
 
-        var requestMsg = new HttpRequestMessage();
-        _mockBuildRequest.BuildHttpRequest(input.Provider, "encrypted-id", "token")
-            .Returns(requestMsg);
-
-        _mockHttpClient.SendAsync(requestMsg, Arg.Any<CancellationToken>())
+        _mockBuildRequest.BuildCustodianRequestAsync(Arg.Any<BuildCustodianRequestDto>(), Arg.Any<CancellationToken>())
             .Returns(Result<string>.Fail("Http connection error"));
 
         // Act
@@ -153,11 +147,7 @@ public class QueryProvidersAsyncTests
         _mockAuthService.GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("token"));
 
-        var requestMsg = new HttpRequestMessage();
-        _mockBuildRequest.BuildHttpRequest(input.Provider, "encrypted-id", "token")
-            .Returns(requestMsg);
-
-        _mockHttpClient.SendAsync(requestMsg, Arg.Any<CancellationToken>())
+        _mockBuildRequest.BuildCustodianRequestAsync(Arg.Any<BuildCustodianRequestDto>(), Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok(string.Empty));
 
         // Act
@@ -167,7 +157,34 @@ public class QueryProvidersAsyncTests
         Assert.False(result.Success);
         Assert.Contains("Empty response", result.Error);
     }
+    [Fact]
+    public async Task QueryProvidersAsync_CallsGateway_WithCorrectDto()
+    {
+        // Arrange
+        var encryption = new EncryptionDefinition { Key = "test-key", KeyId = "key-1", Algorithm = "AES" };
+        var input = new QueryProviderInput("client-id-1", "job-id-1", "invocation-id", "1234567890123456", MockProvider(encryption: encryption));
 
+        _mockEncryptionService.EncryptNhsToPersonId(Arg.Any<string>(), encryption)
+            .Returns(Result<string>.Ok("encrypted-id-value"));
+        _mockAuthService.GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Ok("access-token-value"));
+
+        _mockBuildRequest.BuildCustodianRequestAsync(Arg.Any<BuildCustodianRequestDto>(), Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Ok("[]"));
+
+        // Act
+        await _sut.QueryProvidersAsync(input, CancellationToken.None);
+
+        //Assert
+        await _mockBuildRequest.Received(1).BuildCustodianRequestAsync(
+            Arg.Is<BuildCustodianRequestDto>(req =>
+                req.Provider == input.Provider &&
+                req.EncryptedPersonId == "encrypted-id-value" &&
+                req.AccessToken == "access-token-value"
+            ),
+            Arg.Any<CancellationToken>()
+        );
+    }
     [Fact]
     public async Task QueryProvidersAsync_ReturnsOk_WhenSuccessful()
     {
@@ -183,15 +200,11 @@ public class QueryProvidersAsyncTests
         _mockAuthService.GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("token"));
 
-        var requestMsg = new HttpRequestMessage();
-        _mockBuildRequest.BuildHttpRequest(input.Provider, "encrypted-id", "token")
-            .Returns(requestMsg);
-
         var searchItems = new List<SearchResultItem> { new("SystemA", "Provider A", "Type1", "/v1/records/original-id") };
         var json = JsonSerializer.Serialize(searchItems);
 
-        _mockHttpClient.SendAsync(requestMsg, Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Ok(json));
+        _mockBuildRequest.BuildCustodianRequestAsync(Arg.Any<BuildCustodianRequestDto>(), Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Ok(json)); ;
 
         var maskedItems = new List<SearchResultItem> { new("SystemA", "Provider A", "Type1", "/v1/records/masked-id") };
         _mockMaskUrlService.CreateAsync(Arg.Any<List<SearchResultItem>>(), input, Arg.Any<CancellationToken>())
