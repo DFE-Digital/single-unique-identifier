@@ -59,7 +59,7 @@ jobs:
         with:
           inlineScript: |
             $tags = @{
-              Environment      = "${{ steps.env_config.outputs.environment_id }}"
+              Environment      = "${{ steps.env_config.outputs.environment_tag }}"
               Product          = "${{ steps.env_config.outputs.product }}"
               Service_Offering = "${{ steps.env_config.outputs.service_offering }}"
             }
@@ -69,7 +69,7 @@ jobs:
             Write-Host "  Storage account:  ${{ steps.env_config.outputs.state_storage }}"
             Write-Host "  Container:        ${{ steps.env_config.outputs.state_container }}"
             Write-Host "  Location:         ${{ steps.env_config.outputs.location }}"
-            Write-Host "  Tags:             Environment=$(${tags['Environment']}), Product=$(${tags['Product']}), Service_Offering=$(${tags['Service_Offering']})"
+            Write-Host "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=$(${tags['Product']}), Service_Offering=$(${tags['Service_Offering']})"
 
             # Resource group
             New-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -Location "${{ steps.env_config.outputs.location }}" -Tag $tags -ErrorAction Stop | Out-Null

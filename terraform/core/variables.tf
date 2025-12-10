@@ -8,6 +8,11 @@ variable "environment_id" {
   type        = string
 }
 
+variable "environment_tag" {
+  description = "Environment tag value (for example Dev or Test)."
+  type        = string
+}
+
 variable "location" {
   description = "Azure location for the resource group (for example uksouth)."
   type        = string
