@@ -34,7 +34,7 @@ public class FetchRecordAsyncTests
         // Arrange
         var resolvedMapping = new ResolvedFetchMapping("http://target.url", "TargetOrg", "record-type");
         _mockMaskUrlService.ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ResolvedFetchMapping>.Ok(resolvedMapping));
+            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
 
         var providerDef = new ProviderDefinition
         {
@@ -68,14 +68,14 @@ public class FetchRecordAsyncTests
     {
         // Arrange
         _mockMaskUrlService.ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ResolvedFetchMapping>.Fail("Resolution failed"));
+            .Returns(new ResolvedFetchMappingResult.Fail());
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("Resolution failed", result.Error);
+        Assert.False(string.IsNullOrEmpty(result.Error));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class FetchRecordAsyncTests
         // Arrange
         var resolvedMapping = new ResolvedFetchMapping("http://target.url", "TargetOrg", "record-type");
         _mockMaskUrlService.ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ResolvedFetchMapping>.Ok(resolvedMapping));
+            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
 
         _mockCustodianService.GetCustodianAsync("TargetOrg")
             .Returns(Result<ProviderDefinition>.Fail("Custodian not found"));
@@ -103,7 +103,7 @@ public class FetchRecordAsyncTests
         // Arrange
         var resolvedMapping = new ResolvedFetchMapping("http://target.url", "TargetOrg", "record-type");
         _mockMaskUrlService.ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ResolvedFetchMapping>.Ok(resolvedMapping));
+            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
 
         var providerDef = new ProviderDefinition
         {
@@ -132,7 +132,7 @@ public class FetchRecordAsyncTests
         // Arrange
         var resolvedMapping = new ResolvedFetchMapping("http://target.url", "TargetOrg", "record-type");
         _mockMaskUrlService.ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ResolvedFetchMapping>.Ok(resolvedMapping));
+            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
 
         var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
         _mockCustodianService.GetCustodianAsync("TargetOrg")
@@ -156,7 +156,7 @@ public class FetchRecordAsyncTests
         // Arrange
         var resolvedMapping = new ResolvedFetchMapping("http://target.url", "TargetOrg", "record-type");
         _mockMaskUrlService.ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ResolvedFetchMapping>.Ok(resolvedMapping));
+            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
 
         var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
         _mockCustodianService.GetCustodianAsync("TargetOrg")
@@ -183,7 +183,7 @@ public class FetchRecordAsyncTests
         // Arrange
         var resolvedMapping = new ResolvedFetchMapping("http://target.url", "TargetOrg", "record-type");
         _mockMaskUrlService.ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<ResolvedFetchMapping>.Ok(resolvedMapping));
+            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
 
         var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
         _mockCustodianService.GetCustodianAsync("TargetOrg")
