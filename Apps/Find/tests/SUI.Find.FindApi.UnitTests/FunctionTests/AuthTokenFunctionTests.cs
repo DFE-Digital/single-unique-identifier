@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.Find.Domain.Models;
-using SUI.Find.FindApi.Functions.HttpTriggers;
+using SUI.Find.FindApi.Functions.HttpFunctions;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Models.Auth;
 using SUI.Find.FindApi.UnitTests.Mocks;

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
@@ -14,7 +13,7 @@ using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
 using SUI.Find.FindApi.Validators;
 
-namespace SUI.Find.FindApi.Functions.HttpTriggers;
+namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
 public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService service)
 {
