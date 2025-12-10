@@ -87,6 +87,55 @@ jobs:
       - name: "Terraform plan ${{ inputs.root }} (tfvars: ${{ steps.env_config.outputs.tfvars_path }})"
         run: terraform -chdir=${{ inputs.root }} plan -input=false -var-file=../${{ steps.env_config.outputs.tfvars_path }} -out=tfplan
 
+      - name: Summarize tfplan
+        if: always()
+        env:
+          TF_ROOT: ${{ inputs.root }}
+        run: |
+          cd "$TF_ROOT"
+          summary_header="## Plan summary"
+          plan_file="tfplan"
+
+          if [ ! -f "$plan_file" ]; then
+            {
+              echo "$summary_header"
+              echo ""
+              echo "No plan file found (expected $plan_file). The plan step may have failed."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          tmp=$(mktemp)
+          if terraform show -json "$plan_file" > "$tmp"; then
+            adds=$(jq '[.resource_changes[] | select(.change.actions | index("create"))] | length' "$tmp")
+            changes=$(jq '[.resource_changes[] | select(.change.actions | index("update"))] | length' "$tmp")
+            destroys=$(jq '[.resource_changes[] | select(.change.actions | index("delete"))] | length' "$tmp")
+            details=$(jq -r '
+              .resource_changes[]
+              | {addr: .address, acts: (.change.actions | join("/"))}
+              | "- \(.acts): `\(.addr)`"
+            ' "$tmp")
+
+            {
+              echo "$summary_header"
+              echo ""
+              echo "- Adds: \`$adds\`"
+              echo "- Changes: \`$changes\`"
+              echo "- Destroys: \`$destroys\`"
+              if [ -n "$details" ]; then
+                echo ""
+                echo "### Resources"
+                echo "$details"
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "$summary_header"
+              echo ""
+              echo "Failed to parse plan file with \`terraform show -json\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Terraform apply ${{ inputs.root }} (tfplan)
         if: inputs.apply == true
         run: terraform -chdir=${{ inputs.root }} apply -input=false tfplan

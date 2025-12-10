@@ -87,22 +87,40 @@ jobs:
             Write-Host "  Location:         ${{ steps.env_config.outputs.location }}"
             Write-Host "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=$(${tags['Product']}), Service_Offering=$(${tags['Service_Offering']})"
 
-            # Resource group
-            New-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -Location "${{ steps.env_config.outputs.location }}" -Tag $tags -ErrorAction Stop | Out-Null
+            # Resource group (create or update tags)
+            $existingRg = Get-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -ErrorAction SilentlyContinue
+            if ($null -eq $existingRg) {
+              New-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -Location "${{ steps.env_config.outputs.location }}" -Tag $tags -ErrorAction Stop | Out-Null
+              Write-Host "Created resource group."
+            } else {
+              Set-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -Tag $tags -ErrorAction Stop | Out-Null
+              Write-Host "Resource group already exists; tags updated."
+            }
 
             # Storage account
-            $storage = New-AzStorageAccount `
-              -Name "${{ steps.env_config.outputs.state_storage }}" `
-              -ResourceGroupName "${{ steps.env_config.outputs.state_rg }}" `
-              -Location "${{ steps.env_config.outputs.location }}" `
-              -SkuName Standard_LRS `
-              -Kind StorageV2 `
-              -MinimumTlsVersion TLS1_2 `
-              -ErrorAction Stop
+            $storage = Get-AzStorageAccount -Name "${{ steps.env_config.outputs.state_storage }}" -ResourceGroupName "${{ steps.env_config.outputs.state_rg }}" -ErrorAction SilentlyContinue
+            if ($null -eq $storage) {
+              $storage = New-AzStorageAccount `
+                -Name "${{ steps.env_config.outputs.state_storage }}" `
+                -ResourceGroupName "${{ steps.env_config.outputs.state_rg }}" `
+                -Location "${{ steps.env_config.outputs.location }}" `
+                -SkuName Standard_LRS `
+                -Kind StorageV2 `
+                -MinimumTlsVersion TLS1_2 `
+                -ErrorAction Stop
+              Write-Host "Created storage account."
+            } else {
+              Write-Host "Storage account already exists; reusing."
+            }
 
             # Container
             $ctx = $storage.Context
-            $null = New-AzStorageContainer -Name "${{ steps.env_config.outputs.state_container }}" -Context $ctx -ErrorAction SilentlyContinue
+            if (-not (Get-AzStorageContainer -Name "${{ steps.env_config.outputs.state_container }}" -Context $ctx -ErrorAction SilentlyContinue)) {
+              $null = New-AzStorageContainer -Name "${{ steps.env_config.outputs.state_container }}" -Context $ctx -ErrorAction Stop
+              Write-Host "Created container."
+            } else {
+              Write-Host "Container already exists; reusing."
+            }
           azPSVersion: "latest"
 
       - name: Write workflow summary
@@ -117,6 +135,7 @@ jobs:
           LOCATION: ${{ steps.env_config.outputs.location }}
           JOB_STATUS: ${{ job.status }}
         run: |
+          set +e
           env_tag="${ENV_TAG:-unknown}"
           state_rg="${STATE_RG:-unknown}"
           state_storage="${STATE_STORAGE:-unknown}"
@@ -125,6 +144,25 @@ jobs:
           mode=$([ "$DRY_RUN" = "true" ] && echo "dry-run" || echo "apply")
           status_icon=$([ "$JOB_STATUS" = "success" ] && echo "✅" || echo "❌")
 
+          # Best-effort existence checks (management plane) when not a dry run
+          rg_status="⏩ dry-run (not created)"
+          sa_status="⏩ dry-run (not created)"
+          if [ "$mode" != "dry-run" ] && command -v az >/dev/null 2>&1; then
+            if az group show --name "$state_rg" >/dev/null 2>&1; then
+              rg_status="✅ exists"
+            else
+              rg_status="⚠️ missing"
+            fi
+            if az storage account show --name "$state_storage" --resource-group "$state_rg" >/dev/null 2>&1; then
+              sa_status="✅ exists"
+            else
+              sa_status="⚠️ missing"
+            fi
+          elif [ "$mode" != "dry-run" ]; then
+            rg_status="⚪ not checked (az CLI unavailable)"
+            sa_status="⚪ not checked (az CLI unavailable)"
+          fi
+
           {
             echo "## $status_icon Bootstrap"
             echo ""
@@ -132,6 +170,8 @@ jobs:
             echo "- **Environment tag:** \`$env_tag\`"
             echo "- **Mode:** \`$mode\`"
             echo "- **State:** \`$state_rg / $state_storage / $state_container\`"
+            echo "- **Resource group:** $rg_status (\`$state_rg\`)"
+            echo "- **Storage account:** $sa_status (\`$state_storage\`)"
             echo "- **Location:** \`$location\`"
             echo "- **Job status:** $status_icon \`$JOB_STATUS\`"
             echo ""
