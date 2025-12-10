@@ -36,6 +36,7 @@ public class FetchRecordService(
                 "Failed to resolve fetch mapping."
             ),
             ResolvedFetchMappingResult.NotFound => Result<CustodianRecord>.Fail("NotFound"),
+            ResolvedFetchMappingResult.Expired => Result<CustodianRecord>.Fail("NotFound"),
             ResolvedFetchMappingResult.Unauthorized => Result<CustodianRecord>.Fail("Unauthorized"),
             _ => Result<CustodianRecord>.Fail("Failed to fetch mapping."),
         };
