@@ -1,3 +1,5 @@
+namespace SUI.Transfer.Domain;
+
 public enum StatusFlag
 {
     /// <summary>
@@ -49,6 +51,16 @@ public enum StatusFlag
     /// Special educational needs and disabilities (SEND) flag
     /// </summary>
     HasSpecialEducationalNeedsAndDisabilities,
+
+    /// <summary>
+    /// Open to Child and Adolescent Mental Health Services (CAMHS) flag
+    /// </summary>
+    IsOpenToCAMHS,
+
+    /// <summary>
+    /// Open to Youth Justice Service flag
+    /// </summary>
+    IsOpenToYouthJusticeService,
 
     /// <summary>
     /// Risk of exploitation - sexual (CSE)
