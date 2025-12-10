@@ -22,11 +22,6 @@ public class AuditMiddleware(
     private const string TokenPathSegment = "auth/token";
     private const string ExactSearchesEndpoint = "/api/v1/searches";
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
         var invocationId = context.InvocationId;
@@ -104,7 +99,7 @@ public class AuditMiddleware(
     private async Task SendAuditMessage(AuditAccessMessage auditMessage)
     {
         var queueClient = queueClientFactory.GetAuditClient();
-        var messageJson = JsonSerializer.Serialize(auditMessage, JsonOptions);
+        var messageJson = JsonSerializer.Serialize(auditMessage, JsonSerializerOptions.Web);
         var auditMessageBytes = System.Text.Encoding.UTF8.GetBytes(messageJson);
         var base64Message = Convert.ToBase64String(auditMessageBytes);
         try
@@ -128,7 +123,10 @@ public class AuditMiddleware(
     )
     {
         var requestBody = await httpReq.ReadAsStringAsync();
-        var request = JsonSerializer.Deserialize<StartSearchRequest>(requestBody!, JsonOptions);
+        var request = JsonSerializer.Deserialize<StartSearchRequest>(
+            requestBody!,
+            JsonSerializerOptions.Web
+        );
 
         if (request?.Suid is not null)
         {

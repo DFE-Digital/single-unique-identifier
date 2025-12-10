@@ -13,11 +13,6 @@ public interface IAuthStoreService
 
 public class MockAuthStoreService(IFileSystem fileSystem) : IAuthStoreService
 {
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     public async Task<AuthStore> GetAuthStoreAsync()
     {
         return await GetStore();
@@ -64,7 +59,7 @@ public class MockAuthStoreService(IFileSystem fileSystem) : IAuthStoreService
         }
 
         var json = await fileSystem.File.ReadAllTextAsync(filePath);
-        var store = JsonSerializer.Deserialize<AuthStore>(json, _jsonSerializerOptions);
+        var store = JsonSerializer.Deserialize<AuthStore>(json, JsonSerializerOptions.Web);
 
         if (store is null)
         {

@@ -190,10 +190,7 @@ public sealed class ScopeEnforcementService : IFunctionsWorkerMiddleware
         }
 
         var json = File.ReadAllText(filePath);
-        var store = JsonSerializer.Deserialize<AuthStore>(
-            json,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-        );
+        var store = JsonSerializer.Deserialize<AuthStore>(json, JsonSerializerOptions.Web);
 
         if (store is null)
         {

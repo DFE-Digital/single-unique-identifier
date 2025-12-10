@@ -99,7 +99,7 @@ public class QueryProvidersFunction(
 
         var searchResultItems = JsonSerializer.Deserialize<List<SearchResultItem>>(
             responseContent,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            JsonSerializerOptions.Web
         );
 
         if (searchResultItems is null || searchResultItems.Count == 0)
