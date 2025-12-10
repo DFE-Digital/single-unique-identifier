@@ -17,27 +17,37 @@ inputs:
 outputs:
   subscription_prefix:
     description: subscription_prefix from tfvars
+    value: ${{ steps.load.outputs.subscription_prefix }}
   environment_id:
     description: environment_id from tfvars
+    value: ${{ steps.load.outputs.environment_id }}
   region_short:
     description: region_short from tfvars
+    value: ${{ steps.load.outputs.region_short }}
   location:
     description: location from tfvars
+    value: ${{ steps.load.outputs.location }}
   tfvars_path:
     description: Relative path to the tfvars file
+    value: ${{ steps.load.outputs.tfvars_path }}
   state_rg:
     description: Derived state resource group name
+    value: ${{ steps.load.outputs.state_rg }}
   state_storage:
     description: Derived state storage account name
+    value: ${{ steps.load.outputs.state_storage }}
   state_container:
     description: State container name
+    value: ${{ steps.load.outputs.state_container }}
   state_key:
     description: State key path
+    value: ${{ steps.load.outputs.state_key }}
 
 runs:
   using: composite
   steps:
-    - name: Load tfvars and compute backend names
+    - id: load
+      name: Load tfvars and compute backend names
       shell: bash
       run: |
         TFVARS_PATH="${{ inputs.terraform-dir }}/environments/${{ inputs.environment }}.tfvars"
