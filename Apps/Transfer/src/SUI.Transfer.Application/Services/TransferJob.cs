@@ -10,7 +10,8 @@ public class TransferJob(
     IRecordConsolidator recordConsolidator,
     IEducationAttendanceTransformer educationAttendanceTransformer,
     IHostApplicationLifetime hostApplicationLifetime,
-    ILogger<TransferJob> logger
+    ILogger<TransferJob> logger,
+    TimeProvider timeProvider
 ) : ITransferJob
 {
     public async Task<ConformedData> TransferAsync(Guid jobId, string sui)
@@ -50,7 +51,7 @@ public class TransferJob(
 
         // Apply conformations (transformations and aggregations)
         cancellationToken.ThrowIfCancellationRequested();
-        return new ConformedData(jobId, consolidatedData)
+        return new ConformedData(jobId, consolidatedData, timeProvider.GetUtcNow())
         {
             EducationAttendanceSummaries = educationAttendanceTransformer.ApplyTransformation(
                 consolidatedData

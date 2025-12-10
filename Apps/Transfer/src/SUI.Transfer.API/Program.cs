@@ -40,6 +40,8 @@ builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferJobStateRepository, TransferJobStateMemoryCacheRepository>();
 
+builder.Services.AddSingleton(TimeProvider.System);
+
 builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.Converters.Add(
