@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using NSubstitute;
 using SUI.Transfer.API.Endpoint;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
@@ -40,5 +41,76 @@ public class TransferEndpointTests
         var testId = Guid.Empty;
 
         Assert.Throws<NotImplementedException>(() => TransferEndpoint.CancelTransferJob(testId));
+    }
+
+    [Fact]
+    public async Task GetTransferJobStatus_ReturnsQueuedJobStatus()
+    {
+        //Arrange
+        var sui = "999-000-1234";
+        var testId = Guid.NewGuid();
+        var createdAt = TimeProvider.System.GetUtcNow();
+        var mockResponse = new RunningTransferJobState(testId, sui, createdAt, createdAt);
+
+        _mockTransferService.GetTransferJobStateAsync(Arg.Is(testId)).Returns(mockResponse);
+
+        // Act
+        var result = await TransferEndpoint.GetTransferJobStatus(testId, _mockTransferService);
+
+        // Assert
+        Assert.NotNull(result.Result);
+        var okResult = result.Result as Ok<TransferJobState>;
+        Assert.NotNull(okResult);
+        Assert.Equal(200, okResult.StatusCode);
+
+        Assert.Equal(mockResponse, okResult.Value);
+    }
+
+    [Fact]
+    public async Task GetTransferResult_ReturnsCompletedJob()
+    {
+        //Arrange
+        var sui = "999-000-1234";
+        var testId = Guid.NewGuid();
+        var createdAt = TimeProvider.System.GetUtcNow();
+        var mockResponse = new CompletedTransferJobState(
+            testId,
+            sui,
+            new ConformedData(
+                testId,
+                new ConsolidatedData(sui)
+                {
+                    ChildPersonalDetailsRecord = null,
+                    ChildSocialCareDetailsRecord = null,
+                    EducationDetailsRecord = null,
+                    ChildHealthDataRecord = null,
+                    ChildLinkedCrimeDataRecord = null,
+                    CountOfRecordsSuccessfullyFetched = 0,
+                    FailedFetches = [],
+                },
+                createdAt
+            )
+            {
+                EducationAttendanceSummaries = null,
+                HealthAttendanceSummaries = null,
+                ChildrensSocialCareReferralSummaries = null,
+                CrimeMissingEpisodesPast6Months = [],
+            },
+            createdAt,
+            createdAt
+        );
+
+        _mockTransferService.GetTransferJobStateAsync(Arg.Is(testId)).Returns(mockResponse);
+
+        // Act
+        var result = await TransferEndpoint.GetTransferResult(testId, _mockTransferService);
+
+        // Assert
+        Assert.NotNull(result.Result);
+        var okResult = result.Result as Ok<CompletedTransferJobState>;
+        Assert.NotNull(okResult);
+        Assert.Equal(200, okResult.StatusCode);
+
+        Assert.Equal(mockResponse, okResult.Value);
     }
 }
