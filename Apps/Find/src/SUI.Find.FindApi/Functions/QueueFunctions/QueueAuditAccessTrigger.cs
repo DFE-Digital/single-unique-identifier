@@ -4,7 +4,7 @@ using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Models;
 
-namespace SUI.Find.FindApi.Functions.QueueTriggers;
+namespace SUI.Find.FindApi.Functions.QueueFunctions;
 
 public class QueueAuditAccessTrigger(
     ILogger<QueueAuditAccessTrigger> logger,

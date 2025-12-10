@@ -7,7 +7,7 @@ using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
-using SUI.Find.FindApi.Functions.HttpTriggers;
+using SUI.Find.FindApi.Functions.HttpFunctions;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.UnitTests.Mocks;
 
@@ -15,7 +15,9 @@ namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
 public class FetchRecordFunctionTests
 {
-    private readonly ILogger<FetchRecordFunction> _mockLogger = Substitute.For<ILogger<FetchRecordFunction>>();
+    private readonly ILogger<FetchRecordFunction> _mockLogger = Substitute.For<
+        ILogger<FetchRecordFunction>
+    >();
     private readonly IFetchRecordService _mockService = Substitute.For<IFetchRecordService>();
     private readonly FetchRecordFunction _sut;
 
@@ -41,13 +43,27 @@ public class FetchRecordFunctionTests
         var context = CreateContextWithAuth();
         var request = MockHttpRequestData.Create();
 
-        var expectedResult = new CustodianRecord { RecordId = "record-123", RecordType = "record-type", DataType = "data-type", PersonId = "person-456", SchemaUri = "schema-uri", Payload = JsonSerializer.Deserialize<JsonElement>("{}") };
+        var expectedResult = new CustodianRecord
+        {
+            RecordId = "record-123",
+            RecordType = "record-type",
+            DataType = "data-type",
+            PersonId = "person-456",
+            SchemaUri = "schema-uri",
+            Payload = JsonSerializer.Deserialize<JsonElement>("{}"),
+        };
 
-        _mockService.FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _mockService
+            .FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<CustodianRecord>.Ok(expectedResult));
 
         // Act
-        var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);
+        var response = await _sut.FetchRecord(
+            request,
+            "record-123",
+            context,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -56,6 +72,7 @@ public class FetchRecordFunctionTests
         Assert.NotNull(responseBody);
         Assert.Equal("record-123", responseBody.RecordId);
     }
+
     [Fact]
     public async Task FetchRecord_ReturnsUnauthorized_WhenAuthContextMissing()
     {
@@ -67,7 +84,12 @@ public class FetchRecordFunctionTests
         var request = MockHttpRequestData.Create();
 
         // Act
-        var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);
+        var response = await _sut.FetchRecord(
+            request,
+            "record-123",
+            context,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -94,15 +116,22 @@ public class FetchRecordFunctionTests
         var context = CreateContextWithAuth();
         var request = MockHttpRequestData.Create();
 
-        _mockService.FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _mockService
+            .FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<CustodianRecord>.Fail("Error Fetching Record"));
 
         // Act
-        var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);
+        var response = await _sut.FetchRecord(
+            request,
+            "record-123",
+            context,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
+
     [Fact]
     public async Task FetchRecord_ReturnsNotFound_WhenServiceReturnsNotFoundErrors()
     {
@@ -110,15 +139,19 @@ public class FetchRecordFunctionTests
         var context = CreateContextWithAuth();
         var request = MockHttpRequestData.Create();
 
-        _mockService.FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _mockService
+            .FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<CustodianRecord>.Fail("NotFound"));
 
         // Act
-        var response = await _sut.FetchRecord(request, "record-123", context, CancellationToken.None);
+        var response = await _sut.FetchRecord(
+            request,
+            "record-123",
+            context,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
-
 }

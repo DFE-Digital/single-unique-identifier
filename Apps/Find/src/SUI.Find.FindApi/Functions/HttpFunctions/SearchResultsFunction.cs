@@ -6,14 +6,13 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
 
-namespace SUI.Find.FindApi.Functions.HttpTriggers;
+namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
 public class SearchResultsFunction(
     ILogger<SearchResultsFunction> logger,
