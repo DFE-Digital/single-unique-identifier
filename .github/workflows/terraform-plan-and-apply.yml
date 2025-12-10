@@ -105,6 +105,7 @@ jobs:
           JOB_STATUS: ${{ job.status }}
         run: |
           mode=$([ "$APPLY_FLAG" = "true" ] && echo "apply" || echo "plan")
+          status_icon=$([ "$JOB_STATUS" = "success" ] && echo "✅" || echo "❌")
           tfvars="${TFVARS_PATH:-unknown}"
           state_rg="${STATE_RG:-unknown}"
           state_storage="${STATE_STORAGE:-unknown}"
@@ -112,19 +113,14 @@ jobs:
           state_key="${STATE_KEY:-unknown}"
 
           {
-            echo "## Terraform $mode summary"
+            echo "## $status_icon Terraform $mode"
             echo ""
-            echo "| Item | Value |"
-            echo "| --- | --- |"
-            echo "| Environment | \`$INPUT_ENV\` |"
-            echo "| Mode | \`$mode\` |"
-            echo "| Root | \`$ROOT\` |"
-            echo "| tfvars | \`$tfvars\` |"
-            echo "| State RG | \`$state_rg\` |"
-            echo "| State storage | \`$state_storage\` |"
-            echo "| State container | \`$state_container\` |"
-            echo "| State key | \`$state_key\` |"
-            echo "| Job status | \`$JOB_STATUS\` |"
+            echo "- **Environment:** \`$INPUT_ENV\`"
+            echo "- **Mode:** \`$mode\`"
+            echo "- **Root:** \`$ROOT\`"
+            echo "- **tfvars:** \`$tfvars\`"
+            echo "- **State:** \`$state_rg / $state_storage / $state_container / $state_key\`"
+            echo "- **Job status:** $status_icon \`$JOB_STATUS\`"
             echo ""
-            echo "If any values show as \`unknown\`, check tfvars loading and backend configuration."
+            echo "> ℹ️ If any values show as \`unknown\`, check tfvars loading and backend configuration."
           } >> "$GITHUB_STEP_SUMMARY"
