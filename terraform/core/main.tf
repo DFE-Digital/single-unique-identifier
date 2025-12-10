@@ -6,6 +6,8 @@ module "resource_group" {
   region_short        = var.region_short
   descriptor          = var.descriptor
   location            = var.location
+  product             = var.product
+  service_offering    = var.service_offering
   tags                = var.tags
 }
 
