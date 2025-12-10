@@ -3,12 +3,12 @@ using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Unit.Tests.Services;
 
-public class EducationAttendanceTransformerTests
+public class MissingEpisodesTransformerTests
 {
     [Fact]
     public void ApplyTransformation_Test()
     {
-        var sut = new EducationAttendanceTransformer();
+        var sut = new MissingEpisodesTransformer();
 
         // ACT
         var result = sut.ApplyTransformation(

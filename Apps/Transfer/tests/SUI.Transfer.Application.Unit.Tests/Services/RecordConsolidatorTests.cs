@@ -29,11 +29,11 @@ public class RecordConsolidatorTests
             .BeEquivalentTo(
                 new ConsolidatedData("XXX 000 1234")
                 {
-                    ChildPersonalDetailsRecord = null,
-                    ChildSocialCareDetailsRecord = null,
+                    PersonalDetailsRecord = null,
+                    ChildrensServicesDetailsRecord = null,
                     EducationDetailsRecord = null,
-                    ChildHealthDataRecord = null,
-                    ChildLinkedCrimeDataRecord = null,
+                    HealthDataRecord = null,
+                    CrimeDataRecord = null,
                     CountOfRecordsSuccessfullyFetched = 0,
                     FailedFetches = [],
                 }
