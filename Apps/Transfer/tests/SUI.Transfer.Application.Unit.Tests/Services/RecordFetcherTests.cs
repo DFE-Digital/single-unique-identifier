@@ -44,7 +44,6 @@ public class RecordFetcherTests
                 ReturnValue = System.Text.Json.JsonSerializer.Serialize(
                     new RecordEnvelope<EducationDetailsRecordV1>
                     {
-                        ProviderSystemId = "1234",
                         SchemaUri = new Uri(
                             "https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json"
                         ),
@@ -58,7 +57,6 @@ public class RecordFetcherTests
                 ReturnValue = System.Text.Json.JsonSerializer.Serialize(
                     new RecordEnvelope<ChildSocialCareDetailsRecordV1>
                     {
-                        ProviderSystemId = "2345",
                         SchemaUri = new Uri(
                             "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1.json"
                         ),
@@ -72,7 +70,6 @@ public class RecordFetcherTests
                 ReturnValue = System.Text.Json.JsonSerializer.Serialize(
                     new RecordEnvelope<PersonalDetailsRecordV1>
                     {
-                        ProviderSystemId = "2276",
                         SchemaUri = new Uri(
                             "https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json"
                         ),
@@ -86,7 +83,6 @@ public class RecordFetcherTests
                 ReturnValue = System.Text.Json.JsonSerializer.Serialize(
                     new RecordEnvelope<HealthDataRecordV1>
                     {
-                        ProviderSystemId = "23456",
                         SchemaUri = new Uri(
                             "https://schemas.example.gov.uk/sui/HealthDataRecordV1.json"
                         ),
@@ -100,7 +96,6 @@ public class RecordFetcherTests
                 ReturnValue = System.Text.Json.JsonSerializer.Serialize(
                     new RecordEnvelope<CrimeDataRecordV1>
                     {
-                        ProviderSystemId = "3376",
                         SchemaUri = new Uri(
                             "https://schemas.example.gov.uk/sui/CrimeDataRecordV1.json"
                         ),
@@ -114,7 +109,6 @@ public class RecordFetcherTests
                 ReturnValue = System.Text.Json.JsonSerializer.Serialize(
                     new RecordEnvelope<CrimeDataRecordV1>
                     {
-                        ProviderSystemId = "3376",
                         SchemaUri = new Uri(
                             "https://schemas.example.gov.uk/sui/CrimeDataRecordV1.json"
                         ),
@@ -143,7 +137,7 @@ public class RecordFetcherTests
                     ChildSocialCareDetailsRecords =
                     [
                         new ProviderRecord<ChildSocialCareDetailsRecordV1>(
-                            "2345",
+                            "1256",
                             socialCareRecord
                         ),
                     ],
@@ -153,11 +147,11 @@ public class RecordFetcherTests
                     ],
                     ChildHealthDataRecords =
                     [
-                        new ProviderRecord<HealthDataRecordV1>("23456", healthDataRecord),
+                        new ProviderRecord<HealthDataRecordV1>("3276", healthDataRecord),
                     ],
                     ChildLinkedCrimeDataRecords =
                     [
-                        new ProviderRecord<CrimeDataRecordV1>("3376", crimeDataRecord),
+                        new ProviderRecord<CrimeDataRecordV1>("4276", crimeDataRecord),
                     ],
                     FailedFetches =
                     [

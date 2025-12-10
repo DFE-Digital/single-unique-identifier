@@ -78,7 +78,10 @@ public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetche
         {
             case "https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json":
             {
-                var parsedResult = ParsePayload<EducationDetailsRecordV1>(result);
+                var parsedResult = ParsePayload<EducationDetailsRecordV1>(
+                    result,
+                    recordPointer.ProviderSystemId
+                );
                 if (parsedResult != null)
                 {
                     educationRecords.Add(parsedResult);
@@ -88,7 +91,10 @@ public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetche
             }
             case "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1.json":
             {
-                var parsedResult = ParsePayload<ChildSocialCareDetailsRecordV1>(result);
+                var parsedResult = ParsePayload<ChildSocialCareDetailsRecordV1>(
+                    result,
+                    recordPointer.ProviderSystemId
+                );
                 if (parsedResult != null)
                 {
                     childSocialCareDetailsRecords.Add(parsedResult);
@@ -98,7 +104,10 @@ public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetche
             }
             case "https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json":
             {
-                var parsedResult = ParsePayload<PersonalDetailsRecordV1>(result);
+                var parsedResult = ParsePayload<PersonalDetailsRecordV1>(
+                    result,
+                    recordPointer.ProviderSystemId
+                );
                 if (parsedResult != null)
                 {
                     personalDetailsRecords.Add(parsedResult);
@@ -108,7 +117,10 @@ public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetche
             }
             case "https://schemas.example.gov.uk/sui/CrimeDataRecordV1.json":
             {
-                var parsedResult = ParsePayload<CrimeDataRecordV1>(result);
+                var parsedResult = ParsePayload<CrimeDataRecordV1>(
+                    result,
+                    recordPointer.ProviderSystemId
+                );
                 if (parsedResult != null)
                 {
                     crimeDataRecords.Add(parsedResult);
@@ -118,7 +130,10 @@ public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetche
             }
             case "https://schemas.example.gov.uk/sui/HealthDataRecordV1.json":
             {
-                var parsedResult = ParsePayload<HealthDataRecordV1>(result);
+                var parsedResult = ParsePayload<HealthDataRecordV1>(
+                    result,
+                    recordPointer.ProviderSystemId
+                );
                 if (parsedResult != null)
                 {
                     healthDataRecords.Add(parsedResult);
@@ -129,15 +144,10 @@ public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetche
         }
     }
 
-    private static ProviderRecord<T>? ParsePayload<T>(JsonElement result)
+    private static ProviderRecord<T>? ParsePayload<T>(JsonElement result, string providerSystemId)
         where T : class
     {
         var payload = JsonSerializer.Deserialize<T>(result.GetProperty("Payload").GetRawText());
-        return payload != null
-            ? new ProviderRecord<T>(
-                result.GetProperty("ProviderSystemId").GetString() ?? string.Empty,
-                payload
-            )
-            : null;
+        return payload != null ? new ProviderRecord<T>(providerSystemId, payload) : null;
     }
 }
