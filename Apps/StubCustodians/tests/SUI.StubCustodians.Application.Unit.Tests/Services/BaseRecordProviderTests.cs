@@ -92,7 +92,10 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             var result = provider.GetRecordForSui(sui, providerSystemId);
 
             Assert.NotNull(result);
-            Assert.Equal(new Uri("https://sui.gov.uk/schemas/DummyRecord.json"), result.SchemaUri);
+            Assert.Equal(
+                new Uri("https://schemas.example.gov.uk/sui/DummyRecord.json"),
+                result.SchemaUri
+            );
             Assert.Equal("John", result.Payload.Name);
         }
     }

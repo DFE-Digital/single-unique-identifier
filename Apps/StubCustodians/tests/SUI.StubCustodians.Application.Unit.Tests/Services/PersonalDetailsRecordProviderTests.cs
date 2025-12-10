@@ -77,7 +77,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             Assert.NotNull(result);
             Assert.Equal("Alice", result.Payload.FirstName);
             Assert.Equal(
-                new Uri("https://sui.gov.uk/schemas/PersonalDetailsRecordV1.json"),
+                new Uri("https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json"),
                 result.SchemaUri
             );
         }
