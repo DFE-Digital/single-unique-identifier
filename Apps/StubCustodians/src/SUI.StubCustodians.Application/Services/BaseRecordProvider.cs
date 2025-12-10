@@ -37,12 +37,7 @@ public abstract class BaseRecordProvider<T> : IRecordProvider<T>
             return null;
         }
 
-        return new RecordEnvelope<T>
-        {
-            ProviderSystemId = providerSystemId,
-            SchemaUri = new Uri(GetSchemaUri()),
-            Payload = record,
-        };
+        return new RecordEnvelope<T> { SchemaUri = new Uri(GetSchemaUri()), Payload = record };
     }
 
     private string GetSchemaUri()

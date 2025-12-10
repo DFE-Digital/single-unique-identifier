@@ -49,7 +49,6 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             var envelope = new RecordEnvelope<PersonalDetailsRecordV1>
             {
-                ProviderSystemId = provider,
                 Payload = new PersonalDetailsRecordV1(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
@@ -68,7 +67,6 @@ namespace SUI.StubCustodians.API.Unit.Tests
             >();
 
             Assert.NotNull(body);
-            Assert.Equal(provider, body.ProviderSystemId);
         }
 
         [Fact]
@@ -98,7 +96,6 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             var envelope = new RecordEnvelope<ChildSocialCareDetailsRecordV1>
             {
-                ProviderSystemId = provider,
                 Payload = new ChildSocialCareDetailsRecordV1(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
@@ -144,7 +141,6 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             var envelope = new RecordEnvelope<EducationDetailsRecordV1>
             {
-                ProviderSystemId = provider,
                 Payload = new EducationDetailsRecordV1(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
@@ -186,7 +182,6 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             var envelope = new RecordEnvelope<HealthDataRecordV1>
             {
-                ProviderSystemId = provider,
                 Payload = new HealthDataRecordV1(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
@@ -224,7 +219,6 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             var envelope = new RecordEnvelope<CrimeDataRecordV1>
             {
-                ProviderSystemId = provider,
                 Payload = new CrimeDataRecordV1(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
