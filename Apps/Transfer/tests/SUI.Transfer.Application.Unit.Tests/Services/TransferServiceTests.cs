@@ -53,11 +53,11 @@ public class TransferServiceTests
             jobId,
             new ConsolidatedData(sui)
             {
-                ChildPersonalDetailsRecord = new(),
-                ChildSocialCareDetailsRecord = new(),
+                PersonalDetailsRecord = new(),
+                ChildrensServicesDetailsRecord = new(),
                 EducationDetailsRecord = new(),
-                ChildHealthDataRecord = new(),
-                ChildLinkedCrimeDataRecord = new(),
+                HealthDataRecord = new(),
+                CrimeDataRecord = new(),
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
             },
@@ -66,8 +66,9 @@ public class TransferServiceTests
         {
             EducationAttendanceSummaries = null,
             HealthAttendanceSummaries = null,
-            ChildrensSocialCareReferralSummaries = null,
-            CrimeMissingEpisodesPast6Months = null,
+            ChildServicesReferralSummaries = null,
+            CrimeMissingEpisodesSummaries = null,
+            StatusFlags = null,
         };
 
     [Fact]
@@ -150,7 +151,7 @@ public class TransferServiceTests
                     options
                         .Excluding(x => x.LastUpdatedAt)
                         .Excluding(x => x.CreatedAt)
-                        .Excluding(x => x.ConformedData.CreatedDate)
+                        .Excluding(x => x.ConformedData!.CreatedDate)
             );
     }
 

@@ -326,11 +326,11 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             jobId,
             new ConsolidatedData(sui)
             {
-                ChildPersonalDetailsRecord = new ChildPersonalDetailsRecordV1(),
-                ChildSocialCareDetailsRecord = new ChildSocialCareDetailsRecordV1(),
+                PersonalDetailsRecord = new PersonalDetailsRecordV1(),
+                ChildrensServicesDetailsRecord = new ChildSocialCareDetailsRecordV1(),
                 EducationDetailsRecord = new EducationDetailsRecordV1(),
-                ChildHealthDataRecord = new ChildHealthDataRecordV1(),
-                ChildLinkedCrimeDataRecord = new ChildLinkedCrimeDataRecordV1(),
+                HealthDataRecord = null,
+                CrimeDataRecord = null,
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
             },
@@ -339,20 +339,16 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
         {
             EducationAttendanceSummaries = new EducationAttendanceSummaries
             {
-                CurrentAcademicYear = new EducationAttendanceV1(),
+                CurrentAcademicYear = null,
                 LastAcademicYear = new EducationAttendanceV1(),
             },
             HealthAttendanceSummaries = new HealthAttendanceSummaries
             {
-                Last12Months = new HealthAttendanceSummary(1, 1, 1),
-                Last5Years = new HealthAttendanceSummary(5, 5, 5),
+                Last12Months = new HealthAttendanceSummary(1, 1, 1, 1),
+                Last5Years = new HealthAttendanceSummary(5, 5, 5, 5),
             },
-            ChildrensSocialCareReferralSummaries = new ChildrensSocialCareReferralSummaries
-            {
-                Past6Months = [],
-                Past12Months = [],
-                Past5Years = [],
-            },
-            CrimeMissingEpisodesPast6Months = [],
+            ChildServicesReferralSummaries = null,
+            CrimeMissingEpisodesSummaries = null,
+            StatusFlags = null,
         };
 }
