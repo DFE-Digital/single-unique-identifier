@@ -21,6 +21,8 @@ public class TransferJobTests
         Substitute.For<IChildServicesReferralAggregator>();
     private readonly IMissingEpisodesTransformer _mockMissingEpisodesTransformer =
         Substitute.For<IMissingEpisodesTransformer>();
+    private readonly IStatusFlagsTransformer _mockStatusFlagsTransformer =
+        Substitute.For<IStatusFlagsTransformer>();
     private readonly IHostApplicationLifetime _mockHostApplicationLifetime =
         Substitute.For<IHostApplicationLifetime>();
     private readonly ILogger<TransferJob> _mockLogger = Substitute.For<ILogger<TransferJob>>();
@@ -37,6 +39,7 @@ public class TransferJobTests
             _mockHealthAttendanceAggregator,
             _mockChildServicesReferralAggregator,
             _mockMissingEpisodesTransformer,
+            _mockStatusFlagsTransformer,
             _mockHostApplicationLifetime,
             _mockLogger,
             TimeProvider.System
@@ -128,6 +131,12 @@ public class TransferJobTests
             .ApplyTransformation(mockConsolidatedData)
             .Returns(mockCrimeMissingEpisodesSummaries);
 
+        var mockStatusFlags = new StatusFlag[8];
+
+        _mockStatusFlagsTransformer
+            .ApplyTransformation(mockConsolidatedData)
+            .Returns(mockStatusFlags);
+
         ConformedData expectedConformedData = new(
             jobId,
             mockConsolidatedData,
@@ -138,7 +147,7 @@ public class TransferJobTests
             HealthAttendanceSummaries = mockHealthAttendanceSummaries,
             ChildServicesReferralSummaries = null,
             CrimeMissingEpisodesSummaries = mockCrimeMissingEpisodesSummaries,
-            StatusFlags = null,
+            StatusFlags = mockStatusFlags,
         };
 
         // ACT
@@ -161,5 +170,6 @@ public class TransferJobTests
         _mockHealthAttendanceAggregator.Received().ApplyAggregation(mockConsolidatedData);
         _mockChildServicesReferralAggregator.Received().ApplyAggregation(mockConsolidatedData);
         _mockMissingEpisodesTransformer.Received().ApplyTransformation(mockConsolidatedData);
+        _mockStatusFlagsTransformer.Received().ApplyTransformation(mockConsolidatedData);
     }
 }

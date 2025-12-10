@@ -39,6 +39,7 @@ builder.Services.AddScoped<IEducationAttendanceTransformer, EducationAttendanceT
 builder.Services.AddScoped<IHealthAttendanceAggregator, HealthAttendanceAggregator>();
 builder.Services.AddScoped<IChildServicesReferralAggregator, ChildServicesReferralAggregator>();
 builder.Services.AddScoped<IMissingEpisodesTransformer, MissingEpisodesTransformer>();
+builder.Services.AddScoped<IStatusFlagsTransformer, StatusFlagsTransformer>();
 builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferJobStateRepository, TransferJobStateMemoryCacheRepository>();

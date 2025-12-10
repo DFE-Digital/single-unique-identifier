@@ -12,6 +12,7 @@ public class TransferJob(
     IHealthAttendanceAggregator healthAttendanceAggregator,
     IChildServicesReferralAggregator childServicesReferralAggregator,
     IMissingEpisodesTransformer missingEpisodesTransformer,
+    IStatusFlagsTransformer statusFlagsTransformer,
     IHostApplicationLifetime hostApplicationLifetime,
     ILogger<TransferJob> logger,
     TimeProvider timeProvider
@@ -68,7 +69,7 @@ public class TransferJob(
             CrimeMissingEpisodesSummaries = missingEpisodesTransformer.ApplyTransformation(
                 consolidatedData
             ),
-            StatusFlags = null, // rs-todo
+            StatusFlags = statusFlagsTransformer.ApplyTransformation(consolidatedData),
         };
     }
 }
