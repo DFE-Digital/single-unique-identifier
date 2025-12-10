@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using MediatR;
 using SUI.StubCustodians.Application.Common;
-using ResultType = SUI.StubCustodians.Application.Common.HandlerResult<SUI.StubCustodians.Application.Models.RecordEnvelope<SUI.Custodians.Domain.Models.EducationDetailsRecordV1>>;
+using ResultType = SUI.StubCustodians.Application.Common.HandlerResult<SUI.StubCustodians.Application.Models.RecordEnvelope<SUI.Custodians.Domain.Models.HealthDataRecordV1>>;
 
 namespace SUI.StubCustodians.Application.Queries
 {
