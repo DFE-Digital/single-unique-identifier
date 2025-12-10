@@ -42,7 +42,7 @@ public abstract class BaseRecordProvider<T> : IRecordProvider<T>
 
     private string GetSchemaUri()
     {
-        return $"https://sui.gov.uk/schemas/{typeof(T).Name}.json";
+        return $"https://schemas.example.gov.uk/sui/{typeof(T).Name}.json";
     }
 
     private string GetFileName(string sui)
