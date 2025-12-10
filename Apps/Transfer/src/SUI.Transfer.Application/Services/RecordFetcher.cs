@@ -1,15 +1,14 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using SUI.Custodians.API.Client;
 using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Services;
 
-public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetcher
+public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger) : IRecordFetcher
 {
-    private readonly HttpClient _client = httpClientFactory.CreateClient(nameof(RecordFetcher));
-
     public Task<UnconsolidatedData> FetchRecordsAsync(
         string sui,
         RecordPointer[] recordPointers,
@@ -43,17 +42,22 @@ public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetche
                     catch (Exception e)
                     {
                         failedFetches.Add(new FailedFetch(recordPointer, e.Message));
+                        logger.LogError(
+                            e,
+                            "Failed to get record {RecordPointerRecordUrl}",
+                            recordPointer.RecordUrl
+                        );
                     }
                 }
             );
         return Task.FromResult(
             new UnconsolidatedData(sui)
             {
-                ChildPersonalDetailsRecords = personalDetailsRecords.ToArray(),
-                ChildSocialCareDetailsRecords = childSocialCareDetailsRecords.ToArray(),
+                PersonalDetailsRecords = personalDetailsRecords.ToArray(),
+                ChildrensServicesDetailsRecords = childSocialCareDetailsRecords.ToArray(),
                 EducationDetailsRecords = educationRecords.ToArray(),
-                ChildHealthDataRecords = healthDataRecords.ToArray(),
-                ChildLinkedCrimeDataRecords = crimeDataRecords.ToArray(),
+                HealthDataRecords = healthDataRecords.ToArray(),
+                CrimeDataRecords = crimeDataRecords.ToArray(),
                 FailedFetches = failedFetches.ToArray(),
             }
         );
@@ -69,7 +73,7 @@ public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetche
         CancellationToken cancellationToken
     )
     {
-        var result = await _client.GetFromJsonAsync<JsonElement>(
+        var result = await httpClient.GetFromJsonAsync<JsonElement>(
             recordPointer.RecordUrl,
             cancellationToken
         );

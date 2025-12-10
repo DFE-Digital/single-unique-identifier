@@ -44,7 +44,7 @@ builder.Services.AddScoped<IStatusFlagsTransformer, StatusFlagsTransformer>();
 builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferJobStateRepository, TransferJobStateMemoryCacheRepository>();
-builder.Services.AddHttpClient(nameof(RecordFetcher));
+builder.Services.AddHttpClient<RecordFetcher>();
 
 builder.Services.AddSingleton(TimeProvider.System);
 

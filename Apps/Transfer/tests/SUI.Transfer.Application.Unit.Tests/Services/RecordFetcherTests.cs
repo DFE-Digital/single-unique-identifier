@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Reflection;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Custodians.API.Client;
 using SUI.Transfer.Application.Services;
@@ -11,6 +12,8 @@ namespace SUI.Transfer.Application.Unit.Tests.Services;
 
 public class RecordFetcherTests
 {
+    private ILogger<RecordFetcher> _logger = Substitute.For<ILogger<RecordFetcher>>();
+
     [Fact]
     public async Task FetchRecordsAsync_Does_Fetch_AsExpected()
     {
@@ -119,7 +122,7 @@ public class RecordFetcherTests
         };
 
         var client = GetClient(mappings);
-        var sut = new RecordFetcher(client);
+        var sut = new RecordFetcher(client, _logger);
 
         // ACT
         var result = await sut.FetchRecordsAsync("XXX 000 1234", records, CancellationToken.None);
@@ -130,11 +133,11 @@ public class RecordFetcherTests
             .BeEquivalentTo(
                 new UnconsolidatedData("XXX 000 1234")
                 {
-                    ChildPersonalDetailsRecords =
+                    PersonalDetailsRecords =
                     [
                         new ProviderRecord<PersonalDetailsRecordV1>("2276", personalDetailsRecord),
                     ],
-                    ChildSocialCareDetailsRecords =
+                    ChildrensServicesDetailsRecords =
                     [
                         new ProviderRecord<ChildSocialCareDetailsRecordV1>(
                             "1256",
@@ -145,11 +148,11 @@ public class RecordFetcherTests
                     [
                         new ProviderRecord<EducationDetailsRecordV1>("1234", educationRecord),
                     ],
-                    ChildHealthDataRecords =
+                    HealthDataRecords =
                     [
                         new ProviderRecord<HealthDataRecordV1>("3276", healthDataRecord),
                     ],
-                    ChildLinkedCrimeDataRecords =
+                    CrimeDataRecords =
                     [
                         new ProviderRecord<CrimeDataRecordV1>("4276", crimeDataRecord),
                     ],
@@ -166,10 +169,9 @@ public class RecordFetcherTests
             );
     }
 
-    private static IHttpClientFactory GetClient(List<MockResponse> responses)
+    private static HttpClient GetClient(List<MockResponse> responses)
     {
         var httpMessageHandler = Substitute.For<HttpMessageHandler>();
-        var httpClientFactory = Substitute.For<IHttpClientFactory>();
 
         httpMessageHandler
             .GetType()
@@ -216,9 +218,7 @@ public class RecordFetcherTests
         HttpClient httpClient = new(httpMessageHandler);
         httpClient.BaseAddress = new Uri("http://localhost:5432");
 
-        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
-
-        return httpClientFactory;
+        return httpClient;
     }
 
     public class MockResponse
