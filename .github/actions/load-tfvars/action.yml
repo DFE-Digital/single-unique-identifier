@@ -27,6 +27,12 @@ outputs:
   location:
     description: location from tfvars
     value: ${{ steps.load.outputs.location }}
+  product:
+    description: Product tag value
+    value: ${{ steps.load.outputs.product }}
+  service_offering:
+    description: Service_Offering tag value
+    value: ${{ steps.load.outputs.service_offering }}
   tfvars_path:
     description: Relative path to the tfvars file
     value: ${{ steps.load.outputs.tfvars_path }}
@@ -71,9 +77,19 @@ runs:
         ENVIRONMENT_ID=$(get_tfvar environment_id)
         REGION_SHORT=$(get_tfvar region_short)
         LOCATION=$(get_tfvar location)
+        PRODUCT=$(get_tfvar product)
+        SERVICE_OFFERING=$(get_tfvar service_offering)
 
-        if [ -z "$SUBSCRIPTION_PREFIX" ] || [ -z "$ENVIRONMENT_ID" ] || [ -z "$REGION_SHORT" ] || [ -z "$LOCATION" ]; then
-          echo "Missing subscription_prefix, environment_id, region_short, or location in $TFVARS_PATH"
+        missing=()
+        [ -z "$SUBSCRIPTION_PREFIX" ] && missing+=("subscription_prefix")
+        [ -z "$ENVIRONMENT_ID" ] && missing+=("environment_id")
+        [ -z "$REGION_SHORT" ] && missing+=("region_short")
+        [ -z "$LOCATION" ] && missing+=("location")
+        [ -z "$PRODUCT" ] && missing+=("product")
+        [ -z "$SERVICE_OFFERING" ] && missing+=("service_offering")
+
+        if [ "${#missing[@]}" -gt 0 ]; then
+          echo "Missing required values in $TFVARS_PATH: ${missing[*]}"
           exit 1
         fi
 
@@ -87,6 +103,8 @@ runs:
           echo "environment_id=$ENVIRONMENT_ID"
           echo "region_short=$REGION_SHORT"
           echo "location=$LOCATION"
+          echo "product=$PRODUCT"
+          echo "service_offering=$SERVICE_OFFERING"
           echo "tfvars_path=environments/${{ inputs.environment }}.tfvars"
           echo "state_rg=$STATE_RG"
           echo "state_storage=$STATE_STORAGE"

@@ -23,6 +23,16 @@ variable "descriptor" {
   type        = string
 }
 
+variable "product" {
+  description = "Product tag value."
+  type        = string
+}
+
+variable "service_offering" {
+  description = "Service_Offering tag value."
+  type        = string
+}
+
 variable "tags" {
   description = "Additional tags to apply to the resource group."
   type        = map(string)
