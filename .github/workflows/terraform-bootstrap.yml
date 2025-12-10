@@ -11,6 +11,11 @@ on:
         type: choice
         options:
           - d01
+      dry_run:
+        description: Show what would be created without making changes
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   id-token: write
@@ -18,7 +23,7 @@ permissions:
 
 jobs:
   bootstrap:
-    name: Bootstrap backend for ${{ inputs.environment }}
+    name: Bootstrap backend for ${{ inputs.environment }} (${{ inputs.dry_run && 'dry-run' || 'apply' }})
     runs-on: ubuntu-latest
     environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
     env:
@@ -54,7 +59,18 @@ jobs:
         with:
           environment: ${{ env.TARGET_ENVIRONMENT }}
 
+      - name: "Preview backend state RG/storage (${{ steps.env_config.outputs.state_rg }})"
+        if: inputs.dry_run == true
+        run: |
+          echo "Dry run: would create resources with:"
+          echo "  Resource group:   ${{ steps.env_config.outputs.state_rg }}"
+          echo "  Storage account:  ${{ steps.env_config.outputs.state_storage }}"
+          echo "  Container:        ${{ steps.env_config.outputs.state_container }}"
+          echo "  Location:         ${{ steps.env_config.outputs.location }}"
+          echo "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=${{ steps.env_config.outputs.product }}, Service_Offering=${{ steps.env_config.outputs.service_offering }}"
+
       - name: Create backend state RG/storage (${{ steps.env_config.outputs.state_rg }})
+        if: inputs.dry_run != true
         uses: azure/powershell@v2
         with:
           inlineScript: |
@@ -93,6 +109,7 @@ jobs:
         if: always()
         env:
           INPUT_ENV: ${{ inputs.environment }}
+          DRY_RUN: ${{ inputs.dry_run }}
           ENV_TAG: ${{ steps.env_config.outputs.environment_tag }}
           STATE_RG: ${{ steps.env_config.outputs.state_rg }}
           STATE_STORAGE: ${{ steps.env_config.outputs.state_storage }}
@@ -105,6 +122,7 @@ jobs:
           state_storage="${STATE_STORAGE:-unknown}"
           state_container="${STATE_CONTAINER:-unknown}"
           location="${LOCATION:-unknown}"
+          mode=$([ "$DRY_RUN" = "true" ] && echo "dry-run" || echo "apply")
 
           {
             echo "## Bootstrap summary"
@@ -113,6 +131,7 @@ jobs:
             echo "| --- | --- |"
             echo "| Environment | \`$INPUT_ENV\` |"
             echo "| Environment tag | \`$env_tag\` |"
+            echo "| Mode | \`$mode\` |"
             echo "| State RG | \`$state_rg\` |"
             echo "| State storage | \`$state_storage\` |"
             echo "| State container | \`$state_container\` |"
