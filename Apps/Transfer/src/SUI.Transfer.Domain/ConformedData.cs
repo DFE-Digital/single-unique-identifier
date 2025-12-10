@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using SUI.Custodians.API.Client;
-
-namespace SUI.Transfer.Domain;
+﻿namespace SUI.Transfer.Domain;
 
 /// <summary>
 /// Represents consolidated and conformed (transformed and aggregated) data about a person with a specified single-unique-identifier.
@@ -23,4 +20,6 @@ public record ConformedData(
     public required ChildServicesReferralSummaries? ChildServicesReferralSummaries { get; init; }
 
     public required CrimeMissingEpisodesSummaries? CrimeMissingEpisodesSummaries { get; init; }
+
+    public required StatusFlag[]? StatusFlags { get; init; }
 }

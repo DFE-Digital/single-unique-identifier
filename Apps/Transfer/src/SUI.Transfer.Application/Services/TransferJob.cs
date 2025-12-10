@@ -68,6 +68,7 @@ public class TransferJob(
             CrimeMissingEpisodesSummaries = missingEpisodesTransformer.ApplyTransformation(
                 consolidatedData
             ),
+            StatusFlags = null, // rs-todo
         };
     }
 }

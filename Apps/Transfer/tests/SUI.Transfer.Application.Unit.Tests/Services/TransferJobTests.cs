@@ -138,6 +138,7 @@ public class TransferJobTests
             HealthAttendanceSummaries = mockHealthAttendanceSummaries,
             ChildServicesReferralSummaries = null,
             CrimeMissingEpisodesSummaries = mockCrimeMissingEpisodesSummaries,
+            StatusFlags = null,
         };
 
         // ACT

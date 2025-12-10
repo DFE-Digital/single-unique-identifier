@@ -68,6 +68,7 @@ public class TransferServiceTests
             HealthAttendanceSummaries = null,
             ChildServicesReferralSummaries = null,
             CrimeMissingEpisodesSummaries = null,
+            StatusFlags = null,
         };
 
     [Fact]
