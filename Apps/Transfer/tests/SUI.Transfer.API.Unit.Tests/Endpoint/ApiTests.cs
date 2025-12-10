@@ -326,7 +326,7 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             jobId,
             new ConsolidatedData(sui)
             {
-                ChildPersonalDetailsRecord = new ChildPersonalDetailsRecordV1(),
+                ChildPersonalDetailsRecord = new PersonalDetailsRecordV1(),
                 ChildSocialCareDetailsRecord = new ChildSocialCareDetailsRecordV1(),
                 EducationDetailsRecord = new EducationDetailsRecordV1(),
                 ChildHealthDataRecord = null,
