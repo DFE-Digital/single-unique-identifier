@@ -130,6 +130,7 @@ public class RecordFetcher(IHttpClientFactory httpClientFactory) : IRecordFetche
     }
 
     private static ProviderRecord<T>? ParsePayload<T>(JsonElement result)
+        where T : class
     {
         var payload = JsonSerializer.Deserialize<T>(result.GetProperty("Payload").GetRawText());
         return payload != null

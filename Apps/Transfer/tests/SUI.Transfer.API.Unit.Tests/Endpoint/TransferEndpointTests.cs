@@ -80,11 +80,11 @@ public class TransferEndpointTests
                 testId,
                 new ConsolidatedData(sui)
                 {
-                    ChildPersonalDetailsRecord = null,
-                    ChildSocialCareDetailsRecord = null,
+                    PersonalDetailsRecord = null,
+                    ChildrensServicesDetailsRecord = null,
                     EducationDetailsRecord = null,
-                    ChildHealthDataRecord = null,
-                    ChildLinkedCrimeDataRecord = null,
+                    HealthDataRecord = null,
+                    CrimeDataRecord = null,
                     CountOfRecordsSuccessfullyFetched = 0,
                     FailedFetches = [],
                 },
@@ -93,8 +93,9 @@ public class TransferEndpointTests
             {
                 EducationAttendanceSummaries = null,
                 HealthAttendanceSummaries = null,
-                ChildrensSocialCareReferralSummaries = null,
-                CrimeMissingEpisodesPast6Months = [],
+                ChildServicesReferralSummaries = null,
+                CrimeMissingEpisodesSummaries = null,
+                StatusFlags = null,
             },
             createdAt,
             createdAt
