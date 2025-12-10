@@ -8,7 +8,7 @@ using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
-using SUI.Find.FindApi.Functions.ProviderTriggers;
+using SUI.Find.FindApi.Functions.ActivityFunctions;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 

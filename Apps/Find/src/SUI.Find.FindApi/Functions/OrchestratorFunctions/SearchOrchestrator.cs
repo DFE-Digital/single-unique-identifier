@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
 
-namespace SUI.Find.FindApi.Functions.Orchestrators;
+namespace SUI.Find.FindApi.Functions.OrchestratorFunctions;
 
 [ExcludeFromCodeCoverage(
     Justification = "Not Implemented - to be completed as part of future work."

@@ -91,7 +91,7 @@ public class FetchRecordService(
 
         var recordContent = JsonSerializer.Deserialize<CustodianRecord>(
             response.Value,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            JsonSerializerOptions.Web
         );
 
         return recordContent is not null

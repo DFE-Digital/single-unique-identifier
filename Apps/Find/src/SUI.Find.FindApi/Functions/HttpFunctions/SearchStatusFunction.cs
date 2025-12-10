@@ -12,7 +12,7 @@ using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
 
-namespace SUI.Find.FindApi.Functions.HttpTriggers;
+namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
 // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 public class SearchStatusFunction(

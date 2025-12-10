@@ -11,7 +11,7 @@ using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
 
-namespace SUI.Find.FindApi.Functions.HttpTriggers;
+namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
 public class FetchRecordFunction(
     ILogger<FetchRecordFunction> logger,

@@ -14,7 +14,7 @@ using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
 using SUI.Find.FindApi.Validators;
 
-namespace SUI.Find.FindApi.Functions.HttpTriggers;
+namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
 public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searchService)
 {

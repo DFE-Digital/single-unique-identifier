@@ -9,7 +9,7 @@ using SUI.Find.FindApi.Models.Auth;
 using SUI.Find.FindApi.Utility;
 using SUI.Find.Infrastructure.Services;
 
-namespace SUI.Find.FindApi.Functions.HttpTriggers;
+namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
 public class AuthTokenFunction(
     ILogger<AuthTokenFunction> logger,

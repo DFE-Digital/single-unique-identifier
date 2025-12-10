@@ -4,7 +4,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
-using SUI.Find.FindApi.Functions.Orchestrators;
+using SUI.Find.FindApi.Functions.OrchestratorFunctions;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 

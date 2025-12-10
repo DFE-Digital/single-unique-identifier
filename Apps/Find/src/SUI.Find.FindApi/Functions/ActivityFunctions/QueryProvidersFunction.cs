@@ -5,10 +5,9 @@ using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.FindApi.Utility;
 using SUI.Find.Infrastructure.Utility;
 
-namespace SUI.Find.FindApi.Functions.ProviderTriggers;
+namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 
 // TODO this needs separating according to clean architecture principles
 public class QueryProvidersFunction(

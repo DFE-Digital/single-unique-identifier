@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 
-namespace SUI.Find.FindApi.Functions.ProviderTriggers;
+namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 
 public class GetProvidersFunction(
     ILogger<GetProvidersFunction> logger,
