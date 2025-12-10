@@ -22,5 +22,5 @@ public record ConformedData(
 
     public required ChildServicesReferralSummaries? ChildServicesReferralSummaries { get; init; }
 
-    public required CrimeMissingEpisodesSummaries? CrimeMissingEpisodesSummaries { get; set; }
+    public required CrimeMissingEpisodesSummaries? CrimeMissingEpisodesSummaries { get; init; }
 }
