@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using SUI.Transfer.Application.Models;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
 
@@ -21,6 +22,52 @@ public static class TransferEndpoint
             );
 
         transferGroup.MapDelete("/transfer/{jobId}", CancelTransferJob);
+
+        transferGroup
+            .MapGet(
+                "/transfer/{jobId}",
+                [Authorize]
+                async Task<Results<Ok<TransferJobState>, NotFound>> (
+                    [Description("The guid id of the job whose status is being requested.")]
+                        Guid jobId,
+                    [FromServices] ITransferService transferService
+                ) =>
+                {
+                    var result = await transferService.GetTransferJobStateAsync(jobId);
+
+                    if (result is null)
+                        return TypedResults.NotFound();
+
+                    return TypedResults.Ok(result);
+                }
+            )
+            .WithSummary("Get Status of Transfer job")
+            .WithDescription("This endpoint returns the status of a given transfer job.");
+
+        transferGroup
+            .MapGet(
+                "/transfer/{jobId}/results",
+                [Authorize]
+                async Task<
+                    Results<Ok<CompletedTransferJobState>, BadRequest<TransferJobState>, NotFound>
+                > (
+                    [Description("The guid id of the job whose results are being requested.")]
+                        Guid jobId,
+                    [FromServices] ITransferService transferService
+                ) =>
+                {
+                    var jobState = await transferService.GetTransferJobStateAsync(jobId);
+                    if (jobState is null)
+                        return TypedResults.NotFound();
+
+                    if (jobState is CompletedTransferJobState completedJobState)
+                        return TypedResults.Ok(completedJobState);
+
+                    return TypedResults.BadRequest(jobState);
+                }
+            )
+            .WithSummary("Get Result of Transfer Job")
+            .WithDescription("This endpoint returns the results of a transfer job, if completed.");
     }
 
     [Authorize]

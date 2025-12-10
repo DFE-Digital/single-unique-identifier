@@ -44,7 +44,7 @@ public sealed class TransferJobStateMemoryCacheRepositoryTests : IDisposable
 
         await _sut.AddOrUpdateAsync(jobState1);
 
-        var jobState2 = new RunningTransferJobState(jobId, "xyz", createdAt);
+        var jobState2 = TransferJobStateFactory.RunningJob(jobState1, createdAt);
 
         // ACT
         await _sut.AddOrUpdateAsync(jobState2);

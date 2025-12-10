@@ -29,7 +29,8 @@ public class TransferJobTests
             _mockRecordConsolidator,
             _mockEducationAttendanceTransformer,
             _mockHostApplicationLifetime,
-            _mockLogger
+            _mockLogger,
+            TimeProvider.System
         );
     }
 
@@ -99,7 +100,11 @@ public class TransferJobTests
             .ApplyTransformation(mockConsolidatedData)
             .Returns(mockEducationAttendanceSummaries);
 
-        ConformedData expectedConformedData = new(jobId, mockConsolidatedData)
+        ConformedData expectedConformedData = new(
+            jobId,
+            mockConsolidatedData,
+            TimeProvider.System.GetUtcNow()
+        )
         {
             EducationAttendanceSummaries = mockEducationAttendanceSummaries,
             HealthAttendanceSummaries = null,
