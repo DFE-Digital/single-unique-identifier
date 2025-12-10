@@ -151,7 +151,7 @@ public class TransferServiceTests
                     options
                         .Excluding(x => x.LastUpdatedAt)
                         .Excluding(x => x.CreatedAt)
-                        .Excluding(x => x.ConformedData.CreatedDate)
+                        .Excluding(x => x.ConformedData!.CreatedDate)
             );
     }
 
