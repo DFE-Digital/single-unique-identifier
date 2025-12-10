@@ -89,11 +89,11 @@ public class TransferJobTests
 
         ConsolidatedData mockConsolidatedData = new(sui)
         {
-            ChildPersonalDetailsRecord = null,
-            ChildSocialCareDetailsRecord = null,
+            PersonalDetailsRecord = null,
+            ChildrensServicesDetailsRecord = null,
             EducationDetailsRecord = null,
-            ChildHealthDataRecord = null,
-            ChildLinkedCrimeDataRecord = null,
+            HealthDataRecord = null,
+            CrimeDataRecord = null,
             CountOfRecordsSuccessfullyFetched = 0,
             FailedFetches = [],
         };

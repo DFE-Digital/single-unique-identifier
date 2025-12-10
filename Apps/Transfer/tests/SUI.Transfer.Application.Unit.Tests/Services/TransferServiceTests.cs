@@ -53,11 +53,11 @@ public class TransferServiceTests
             jobId,
             new ConsolidatedData(sui)
             {
-                ChildPersonalDetailsRecord = new(),
-                ChildSocialCareDetailsRecord = new(),
+                PersonalDetailsRecord = new(),
+                ChildrensServicesDetailsRecord = new(),
                 EducationDetailsRecord = new(),
-                ChildHealthDataRecord = new(),
-                ChildLinkedCrimeDataRecord = new(),
+                HealthDataRecord = new(),
+                CrimeDataRecord = new(),
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
             },

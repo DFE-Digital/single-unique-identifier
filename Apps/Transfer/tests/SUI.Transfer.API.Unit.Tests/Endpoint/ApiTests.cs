@@ -326,11 +326,11 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             jobId,
             new ConsolidatedData(sui)
             {
-                ChildPersonalDetailsRecord = new PersonalDetailsRecordV1(),
-                ChildSocialCareDetailsRecord = new ChildSocialCareDetailsRecordV1(),
+                PersonalDetailsRecord = new PersonalDetailsRecordV1(),
+                ChildrensServicesDetailsRecord = new ChildSocialCareDetailsRecordV1(),
                 EducationDetailsRecord = new EducationDetailsRecordV1(),
-                ChildHealthDataRecord = null,
-                ChildLinkedCrimeDataRecord = null,
+                HealthDataRecord = null,
+                CrimeDataRecord = null,
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
             },
