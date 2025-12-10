@@ -1,5 +1,6 @@
 subscription_prefix = "s270"
 environment_id      = "d01"
+environment_tag     = "Dev"
 region_short        = "uks"
 descriptor          = "dev"
 location            = "uksouth"

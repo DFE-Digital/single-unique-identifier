@@ -21,6 +21,9 @@ outputs:
   environment_id:
     description: environment_id from tfvars
     value: ${{ steps.load.outputs.environment_id }}
+  environment_tag:
+    description: environment_tag from tfvars (e.g. Dev, Test)
+    value: ${{ steps.load.outputs.environment_tag }}
   region_short:
     description: region_short from tfvars
     value: ${{ steps.load.outputs.region_short }}
@@ -75,6 +78,7 @@ runs:
 
         SUBSCRIPTION_PREFIX=$(get_tfvar subscription_prefix)
         ENVIRONMENT_ID=$(get_tfvar environment_id)
+        ENVIRONMENT_TAG=$(get_tfvar environment_tag)
         REGION_SHORT=$(get_tfvar region_short)
         LOCATION=$(get_tfvar location)
         PRODUCT=$(get_tfvar product)
@@ -83,6 +87,7 @@ runs:
         missing=()
         [ -z "$SUBSCRIPTION_PREFIX" ] && missing+=("subscription_prefix")
         [ -z "$ENVIRONMENT_ID" ] && missing+=("environment_id")
+        [ -z "$ENVIRONMENT_TAG" ] && missing+=("environment_tag")
         [ -z "$REGION_SHORT" ] && missing+=("region_short")
         [ -z "$LOCATION" ] && missing+=("location")
         [ -z "$PRODUCT" ] && missing+=("product")
@@ -101,6 +106,7 @@ runs:
         {
           echo "subscription_prefix=$SUBSCRIPTION_PREFIX"
           echo "environment_id=$ENVIRONMENT_ID"
+          echo "environment_tag=$ENVIRONMENT_TAG"
           echo "region_short=$REGION_SHORT"
           echo "location=$LOCATION"
           echo "product=$PRODUCT"

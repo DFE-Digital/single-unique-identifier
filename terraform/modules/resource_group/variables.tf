@@ -8,6 +8,11 @@ variable "environment_id" {
   type        = string
 }
 
+variable "environment_tag" {
+  description = "Environment tag value (for example Dev or Test)."
+  type        = string
+}
+
 variable "region_short" {
   description = "Short name for the Azure region (for example uks for UK South)."
   type        = string
