@@ -5,7 +5,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services;
 public class HashServiceTests
 {
     private readonly HashService _sut = new HashService();
-    
+
     [Fact]
     public void HashInput_ShouldBeDeterministic_ForSameInput()
     {

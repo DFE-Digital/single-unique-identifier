@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -53,7 +52,7 @@ public class QueryProvidersFunctionTests
     private static ProviderDefinition MockProvider(
         string orgId = "test-org-1",
         string providerName = "Test Provider",
-        EncryptionDefinition encryption = null,
+        EncryptionDefinition? encryption = null,
         string url = "https://test-provider.com/api/records"
     )
     {
@@ -70,7 +69,7 @@ public class QueryProvidersFunctionTests
     {
         var httpClient = new HttpClient(
             new MockHttpMessageHandler(
-                (request, cancellationToken) =>
+                (_, _) =>
                 {
                     var response = new HttpResponseMessage(HttpStatusCode.OK)
                     {
@@ -181,7 +180,7 @@ public class QueryProvidersFunctionTests
 
         var successClient = new HttpClient(
             new MockHttpMessageHandler(
-                (req, ct) =>
+                (_, _) =>
                     Task.FromResult(
                         new HttpResponseMessage(HttpStatusCode.OK)
                         {
@@ -241,7 +240,7 @@ public class QueryProvidersFunctionTests
 
         var failedClient = new HttpClient(
             new MockHttpMessageHandler(
-                (req, ct) =>
+                (_, _) =>
                     Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError))
             )
         );

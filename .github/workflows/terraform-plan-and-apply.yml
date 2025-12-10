@@ -1,0 +1,81 @@
+name: Terraform Plan and Apply
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      apply:
+        required: false
+        default: false
+        type: boolean
+      root:
+        description: Path to Terraform root (relative to repo)
+        required: true
+        type: string
+      state_key:
+        description: Optional override for backend state key
+        required: false
+        type: string
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.environment }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Load environment config
+        id: env_config
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ env.TARGET_ENVIRONMENT }}
+
+      - name: Terraform init
+        env:
+          STATE_KEY: ${{ inputs.state_key || steps.env_config.outputs.state_key }}
+        run: |
+          terraform -chdir=${{ inputs.root }} init \
+            -backend-config="resource_group_name=${{ steps.env_config.outputs.state_rg }}" \
+            -backend-config="storage_account_name=${{ steps.env_config.outputs.state_storage }}" \
+            -backend-config="container_name=${{ steps.env_config.outputs.state_container }}" \
+            -backend-config="key=$STATE_KEY"
+
+      - name: Terraform validate
+        run: terraform -chdir=${{ inputs.root }} validate
+
+      - name: Terraform plan
+        run: terraform -chdir=${{ inputs.root }} plan -input=false -var-file=../${{ steps.env_config.outputs.tfvars_path }} -out=tfplan
+
+      - name: Terraform apply
+        if: inputs.apply == true
+        run: terraform -chdir=${{ inputs.root }} apply -input=false tfplan

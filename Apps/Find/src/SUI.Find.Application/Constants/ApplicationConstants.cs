@@ -11,4 +11,9 @@ public static class ApplicationConstants
     {
         public const string AccessQueueName = "audit-queue";
     }
+
+    public static class Providers
+    {
+        public const string LoggingName = "providers";
+    }
 }

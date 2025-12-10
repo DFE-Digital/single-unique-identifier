@@ -38,7 +38,7 @@ public class SearchOrchestratorFunctionsTests
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
         _mockContext.InstanceId.Returns("instance-123");
 
-        var providers = new List<ProviderDefinition>
+        IReadOnlyList<ProviderDefinition> providers = new List<ProviderDefinition>
         {
             new()
             {
@@ -59,7 +59,7 @@ public class SearchOrchestratorFunctionsTests
         };
 
         _mockContext
-            .CallActivityAsync<List<ProviderDefinition>>(
+            .CallActivityAsync<IReadOnlyList<ProviderDefinition>>(
                 "GetProvidersFunction",
                 input.Suid,
                 Arg.Any<TaskOptions>()
@@ -101,7 +101,7 @@ public class SearchOrchestratorFunctionsTests
 
         await _mockContext
             .Received(1)
-            .CallActivityAsync<List<ProviderDefinition>>(
+            .CallActivityAsync<IReadOnlyList<ProviderDefinition>>(
                 "GetProvidersFunction",
                 input.Suid,
                 Arg.Any<TaskOptions>()

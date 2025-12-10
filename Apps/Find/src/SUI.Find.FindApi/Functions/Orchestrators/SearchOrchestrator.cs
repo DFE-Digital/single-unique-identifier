@@ -44,7 +44,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
 
         logger.LogInformation("Search Orchestrator started");
 
-        var availableProviders = await context.CallActivityAsync<List<ProviderDefinition>>(
+        var availableProviders = await context.CallActivityAsync<IReadOnlyList<ProviderDefinition>>(
             "GetProvidersFunction",
             data.Suid
         );

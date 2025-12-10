@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
@@ -72,7 +73,9 @@ public class QueryProvidersFunction(
             tokenResult.Value
         );
 
-        using var httpClient = httpClientFactory.CreateClient("providers");
+        using var httpClient = httpClientFactory.CreateClient(
+            ApplicationConstants.Providers.LoggingName
+        );
         using var response = await httpClient.SendAsync(request, context.CancellationToken);
 
         if (!response.IsSuccessStatusCode)
