@@ -122,6 +122,17 @@ public class TransferJobTests
             .ApplyAggregation(mockConsolidatedData)
             .Returns(mockHealthAttendanceSummaries);
 
+        var mockChildServicesReferralSummaries = new ChildServicesReferralSummaries
+        {
+            Past6Months = [],
+            Past12Months = null,
+            Past5Years = null,
+        };
+
+        _mockChildServicesReferralAggregator
+            .ApplyAggregation(mockConsolidatedData)
+            .Returns(mockChildServicesReferralSummaries);
+
         var mockCrimeMissingEpisodesSummaries = new CrimeMissingEpisodesSummaries
         {
             Last6Months = [],
@@ -145,7 +156,7 @@ public class TransferJobTests
         {
             EducationAttendanceSummaries = mockEducationAttendanceSummaries,
             HealthAttendanceSummaries = mockHealthAttendanceSummaries,
-            ChildServicesReferralSummaries = null,
+            ChildServicesReferralSummaries = mockChildServicesReferralSummaries,
             CrimeMissingEpisodesSummaries = mockCrimeMissingEpisodesSummaries,
             StatusFlags = mockStatusFlags,
         };
