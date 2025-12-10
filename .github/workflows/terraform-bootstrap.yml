@@ -18,6 +18,7 @@ permissions:
 
 jobs:
   bootstrap:
+    name: Bootstrap backend for ${{ inputs.environment }}
     runs-on: ubuntu-latest
     environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
     env:
@@ -28,10 +29,10 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Azure login
+      - name: Azure login with client secret for ${{ inputs.environment }}
         uses: azure/login@v2
         with:
           # To use OIDC, remove `creds` and uncomment these lines.
@@ -47,13 +48,13 @@ jobs:
             }
           enable-AzPSSession: true
 
-      - name: Load environment config
+      - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
         id: env_config
         uses: ./.github/actions/load-tfvars
         with:
           environment: ${{ env.TARGET_ENVIRONMENT }}
 
-      - name: Create terraform state storage in Azure
+      - name: Create backend state RG/storage (${{ steps.env_config.outputs.state_rg }})
         uses: azure/powershell@v2
         with:
           inlineScript: |

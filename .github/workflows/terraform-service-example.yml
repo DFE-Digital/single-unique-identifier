@@ -1,5 +1,5 @@
 name: Terraform Service Example
-run-name: Terraform Service Example - ${{ inputs.environment }}
+run-name: Terraform Service Example - ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
 
 on:
   workflow_dispatch:
@@ -23,6 +23,7 @@ permissions:
 
 jobs:
   service-example:
+    name: Terraform service-example for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
     # Prevent accidental execution; remove this line when copying this workflow
     if: ${{ false }}
     uses: ./.github/workflows/terraform-plan-and-apply.yml
