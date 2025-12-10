@@ -2,12 +2,13 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Interfaces;
 
 namespace SUI.Find.Infrastructure.Utility;
 
-public static class BuildCustodianHttpRequest
+public class BuildCustodianHttpRequest : IBuildCustodianHttpRequest
 {
-    public static HttpRequestMessage BuildHttpRequest(ProviderDefinition provider, string encryptedPersonId, string? bearerToken)
+    public HttpRequestMessage BuildHttpRequest(ProviderDefinition provider, string encryptedPersonId, string? bearerToken)
     {
         var connectionDefinition = provider.Connection;
         var method = new HttpMethod(connectionDefinition.Method.ToUpperInvariant());
