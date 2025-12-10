@@ -9,11 +9,11 @@ public class UnconsolidatedDataTests
     {
         var sut = new UnconsolidatedData("")
         {
-            ChildPersonalDetailsRecords = new ProviderRecord<ChildPersonalDetailsRecordV1>[2],
+            ChildPersonalDetailsRecords = new ProviderRecord<PersonalDetailsRecordV1>[2],
             ChildSocialCareDetailsRecords = new ProviderRecord<ChildSocialCareDetailsRecordV1>[3],
             EducationDetailsRecords = new ProviderRecord<EducationDetailsRecordV1>[4],
-            ChildHealthDataRecords = new ProviderRecord<ChildHealthDataRecordV1>[5],
-            ChildLinkedCrimeDataRecords = new ProviderRecord<ChildLinkedCrimeDataRecordV1>[6],
+            ChildHealthDataRecords = new ProviderRecord<HealthDataRecordV1>[5],
+            ChildLinkedCrimeDataRecords = new ProviderRecord<CrimeDataRecordV1>[6],
             FailedFetches = new FailedFetch[7],
         };
 
