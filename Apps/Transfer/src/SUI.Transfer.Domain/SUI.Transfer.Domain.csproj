@@ -5,6 +5,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="SUI.Custodians.API.Client" Version="1.0.2" />
+    <PackageReference Include="SUI.Custodians.API.Client" Version="1.0.3" />
   </ItemGroup>
 </Project>

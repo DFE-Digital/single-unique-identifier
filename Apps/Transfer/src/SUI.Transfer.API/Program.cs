@@ -37,6 +37,10 @@ builder.Services.AddScoped<IRecordFinder, RecordFinder>();
 builder.Services.AddScoped<IRecordFetcher, RecordFetcher>();
 builder.Services.AddScoped<IRecordConsolidator, RecordConsolidator>();
 builder.Services.AddScoped<IEducationAttendanceTransformer, EducationAttendanceTransformer>();
+builder.Services.AddScoped<IHealthAttendanceAggregator, HealthAttendanceAggregator>();
+builder.Services.AddScoped<IChildServicesReferralAggregator, ChildServicesReferralAggregator>();
+builder.Services.AddScoped<IMissingEpisodesTransformer, MissingEpisodesTransformer>();
+builder.Services.AddScoped<IStatusFlagsTransformer, StatusFlagsTransformer>();
 builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferJobStateRepository, TransferJobStateMemoryCacheRepository>();
@@ -49,7 +53,6 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.Converters.Add(
         new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
     );
-    options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
 builder.Services.AddCustodiansClient(

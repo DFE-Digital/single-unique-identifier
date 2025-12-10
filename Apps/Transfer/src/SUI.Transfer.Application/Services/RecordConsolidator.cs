@@ -8,11 +8,11 @@ public class RecordConsolidator : IRecordConsolidator
     {
         return new ConsolidatedData(unconsolidatedData.Sui)
         {
-            ChildPersonalDetailsRecord = null,
-            ChildSocialCareDetailsRecord = null,
+            PersonalDetailsRecord = null,
+            ChildrensServicesDetailsRecord = null,
             EducationDetailsRecord = null,
-            ChildHealthDataRecord = null,
-            ChildLinkedCrimeDataRecord = null,
+            HealthDataRecord = null,
+            CrimeDataRecord = null,
             CountOfRecordsSuccessfullyFetched =
                 unconsolidatedData.CountOfRecordsSuccessfullyFetched,
             FailedFetches = [],
