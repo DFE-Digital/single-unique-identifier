@@ -18,9 +18,9 @@ public class QueryProvidersService(
 {
     public async Task<Result<IReadOnlyList<SearchResultItem>>> QueryProvidersAsync(QueryProviderInput data, CancellationToken cancellationToken)
     {
-        if (data?.Provider.Encryption is null)
+        if (data.Provider.Encryption is null)
         {
-            logger.LogError($"Provider {data?.Provider} has no encryption configured");
+            logger.LogError("Provider {ProviderDefinition} has no encryption configured", data.Provider);
             return Result<IReadOnlyList<SearchResultItem>>.Fail("Provider has no encryption configured");
         }
 
@@ -54,7 +54,6 @@ public class QueryProvidersService(
 
             return Result<IReadOnlyList<SearchResultItem>>.Fail(tokenResult.Error ?? "Failed to obtain token");
         }
-        logger.LogInformation("Query Provider access token obtained");
 
         using var request = buildCustodianHttpRequest.BuildHttpRequest(
             data.Provider,
@@ -98,8 +97,6 @@ public class QueryProvidersService(
             cancellationToken
         );
 
-        logger.LogInformation("Query Provider Service Returning Items");
-        
         return Result<IReadOnlyList<SearchResultItem>>.Ok(maskedSearchResultItems);
 
     }

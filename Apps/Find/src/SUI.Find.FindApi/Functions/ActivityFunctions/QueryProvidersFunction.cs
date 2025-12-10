@@ -26,7 +26,7 @@ public class QueryProvidersFunction(
         var results = await queryProvidersService.QueryProvidersAsync(data, cancellationToken);
 
         logger.LogInformation("Query Provider request completed");
-        
+
         return results;
     }
 }
