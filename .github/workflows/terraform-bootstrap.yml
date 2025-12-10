@@ -88,3 +88,36 @@ jobs:
             $ctx = $storage.Context
             $null = New-AzStorageContainer -Name "${{ steps.env_config.outputs.state_container }}" -Context $ctx -ErrorAction SilentlyContinue
           azPSVersion: "latest"
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          INPUT_ENV: ${{ inputs.environment }}
+          ENV_TAG: ${{ steps.env_config.outputs.environment_tag }}
+          STATE_RG: ${{ steps.env_config.outputs.state_rg }}
+          STATE_STORAGE: ${{ steps.env_config.outputs.state_storage }}
+          STATE_CONTAINER: ${{ steps.env_config.outputs.state_container }}
+          LOCATION: ${{ steps.env_config.outputs.location }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          env_tag="${ENV_TAG:-unknown}"
+          state_rg="${STATE_RG:-unknown}"
+          state_storage="${STATE_STORAGE:-unknown}"
+          state_container="${STATE_CONTAINER:-unknown}"
+          location="${LOCATION:-unknown}"
+
+          {
+            echo "## Bootstrap summary"
+            echo ""
+            echo "| Item | Value |"
+            echo "| --- | --- |"
+            echo "| Environment | \`$INPUT_ENV\` |"
+            echo "| Environment tag | \`$env_tag\` |"
+            echo "| State RG | \`$state_rg\` |"
+            echo "| State storage | \`$state_storage\` |"
+            echo "| State container | \`$state_container\` |"
+            echo "| Location | \`$location\` |"
+            echo "| Job status | \`$JOB_STATUS\` |"
+            echo ""
+            echo "If any values show as \`unknown\`, verify tfvars parsing and backend naming."
+          } >> "$GITHUB_STEP_SUMMARY"
