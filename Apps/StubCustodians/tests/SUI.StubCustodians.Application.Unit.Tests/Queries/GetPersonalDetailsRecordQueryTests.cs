@@ -66,7 +66,6 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Queries
 
             var envelope = new RecordEnvelope<PersonalDetailsRecordV1>
             {
-                ProviderSystemId = provider,
                 SchemaUri = new Uri("https://example.com"),
                 Payload = new PersonalDetailsRecordV1(),
             };

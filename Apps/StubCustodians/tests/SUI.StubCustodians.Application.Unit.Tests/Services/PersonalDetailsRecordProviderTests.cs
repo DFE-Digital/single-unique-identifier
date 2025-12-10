@@ -75,7 +75,6 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             var result = provider.GetRecordForSui(sui, providerId);
 
             Assert.NotNull(result);
-            Assert.Equal(providerId, result.ProviderSystemId);
             Assert.Equal("Alice", result.Payload.FirstName);
             Assert.Equal(
                 new Uri("https://sui.gov.uk/schemas/PersonalDetailsRecordV1.json"),
