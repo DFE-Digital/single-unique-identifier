@@ -11,11 +11,6 @@ namespace SUI.Find.Infrastructure.Services;
 
 public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
 {
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
-
     public async Task<IReadOnlyList<ProviderDefinition>> GetCustodiansAsync()
     {
         const string fileName = "org-directory.json";
@@ -29,7 +24,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
 
         var json = await fileSystem.File.ReadAllTextAsync(filePath);
         var doc =
-            JsonSerializer.Deserialize<MockOrgDirectory>(json, _jsonSerializerOptions)
+            JsonSerializer.Deserialize<MockOrgDirectory>(json, JsonSerializerOptions.Web)
             ?? throw new InvalidOperationException($"Failed to deserialize {fileName}");
 
         var providers = new List<ProviderDefinition>();
@@ -84,8 +79,8 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
     {
         var custodians = await GetCustodiansAsync();
 
-        var custodian = custodians.FirstOrDefault(
-            p => string.Equals(p.OrgId, orgId, StringComparison.OrdinalIgnoreCase)
+        var custodian = custodians.FirstOrDefault(p =>
+            string.Equals(p.OrgId, orgId, StringComparison.OrdinalIgnoreCase)
         );
         if (custodian == null)
         {
