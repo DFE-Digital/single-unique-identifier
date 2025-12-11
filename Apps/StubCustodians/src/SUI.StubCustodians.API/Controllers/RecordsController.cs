@@ -66,7 +66,7 @@ namespace SUI.StubCustodians.API.Controllers
             _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
 
             var result = await _mediator.Send(
-                new GetChildSocialCareRecordQuery()
+                new GetChildSocialCareDetailsRecordQuery()
                 {
                     Sui = sui,
                     ProviderSystemId = providerSystemId,
