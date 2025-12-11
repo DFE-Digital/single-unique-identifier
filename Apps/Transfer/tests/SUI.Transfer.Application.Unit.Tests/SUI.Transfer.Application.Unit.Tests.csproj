@@ -23,6 +23,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\SUI.Transfer.Application\SUI.Transfer.Application.csproj" />
-    <ProjectReference Include="..\..\src\SUI.Transfer.Domain\SUI.Transfer.Domain.csproj" />
   </ItemGroup>
 </Project>
