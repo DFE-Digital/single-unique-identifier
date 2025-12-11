@@ -9,8 +9,13 @@ public class TransferJob(
     IRecordFetcher recordFetcher,
     IRecordConsolidator recordConsolidator,
     IEducationAttendanceTransformer educationAttendanceTransformer,
+    IHealthAttendanceAggregator healthAttendanceAggregator,
+    IChildServicesReferralAggregator childServicesReferralAggregator,
+    IMissingEpisodesTransformer missingEpisodesTransformer,
+    IStatusFlagsTransformer statusFlagsTransformer,
     IHostApplicationLifetime hostApplicationLifetime,
-    ILogger<TransferJob> logger
+    ILogger<TransferJob> logger,
+    TimeProvider timeProvider
 ) : ITransferJob
 {
     public async Task<ConformedData> TransferAsync(Guid jobId, string sui)
@@ -50,14 +55,21 @@ public class TransferJob(
 
         // Apply conformations (transformations and aggregations)
         cancellationToken.ThrowIfCancellationRequested();
-        return new ConformedData(jobId, consolidatedData)
+        return new ConformedData(jobId, consolidatedData, timeProvider.GetUtcNow())
         {
             EducationAttendanceSummaries = educationAttendanceTransformer.ApplyTransformation(
                 consolidatedData
             ),
-            HealthAttendanceSummaries = null,
-            ChildrensSocialCareReferralSummaries = null,
-            CrimeMissingEpisodesPast6Months = null,
+            HealthAttendanceSummaries = healthAttendanceAggregator.ApplyAggregation(
+                consolidatedData
+            ),
+            ChildServicesReferralSummaries = childServicesReferralAggregator.ApplyAggregation(
+                consolidatedData
+            ),
+            CrimeMissingEpisodesSummaries = missingEpisodesTransformer.ApplyTransformation(
+                consolidatedData
+            ),
+            StatusFlags = statusFlagsTransformer.ApplyTransformation(consolidatedData),
         };
     }
 }

@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using SUI.Custodians.Domain.Models;
 using SUI.StubCustodians.Application.Contracts.Arbor;
 using SUI.StubCustodians.Application.Contracts.Mosaic;
 using SUI.StubCustodians.Application.Contracts.Niche;
@@ -19,10 +20,15 @@ namespace SUI.StubCustodians.API
 
             builder.Services.AddControllers();
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+            builder.Services.AddOpenApi(options =>
+            {
+                options.AddSchemaTransformer<CustodiansOpenApiSchemaTransformer>();
+                options.AddDocumentTransformer<CustodiansOpenApiDocumentTransformer>();
+            });
+
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddProblemDetails();
+            builder.Services.AddHttpContextAccessor();
 
             builder
                 .Services.AddApiVersioning(opt =>
@@ -49,18 +55,16 @@ namespace SUI.StubCustodians.API
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                var apiVersionDescriptionProvider =
-                    app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+                var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
-                app.UseSwagger();
+                app.MapOpenApi("/openapi/v1.json");
+
                 app.UseSwaggerUI(options =>
                 {
-                    foreach (
-                        var description in apiVersionDescriptionProvider.ApiVersionDescriptions
-                    )
+                    foreach (var description in provider.ApiVersionDescriptions)
                     {
                         options.SwaggerEndpoint(
-                            $"/swagger/{description.GroupName}/swagger.json",
+                            $"/openapi/{description.GroupName}.json",
                             description.GroupName.ToUpperInvariant()
                         );
                     }
@@ -83,7 +87,25 @@ namespace SUI.StubCustodians.API
                 config.RegisterServicesFromAssemblyContaining<GetEventRecordBySuiQuery>();
             });
 
-            string activeCustodian = configuration.GetValue<string>("ActiveCustodian", "Mosaic");
+            services.AddScoped<
+                IRecordProvider<PersonalDetailsRecordV1>,
+                PersonalDetailsRecordProvider
+            >();
+
+            services.AddScoped<
+                IRecordProvider<EducationDetailsRecordV1>,
+                EducationDetailsRecordProvider
+            >();
+
+            services.AddScoped<
+                IRecordProvider<ChildSocialCareDetailsRecordV1>,
+                ChildSocialCareDetailsRecordProvider
+            >();
+
+            string activeCustodian = configuration.GetValue<string>(
+                "ActiveCustodian",
+                "MockEducationProvider"
+            );
 
             if (activeCustodian.Equals("Arbor", StringComparison.OrdinalIgnoreCase))
             {

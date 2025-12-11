@@ -6,7 +6,7 @@ using NSubstitute;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
-using SUI.Find.FindApi.Functions.HttpTriggers;
+using SUI.Find.FindApi.Functions.HttpFunctions;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.UnitTests.Mocks;
 using CancellationToken = System.Threading.CancellationToken;
@@ -143,7 +143,7 @@ public class SearchStatusFunctionTests
         var dto = new SearchJobDto
         {
             JobId = "job-5",
-            Suid = "SUI-123",
+            PersonId = "SUI-123",
             Status = SearchStatus.Completed,
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,

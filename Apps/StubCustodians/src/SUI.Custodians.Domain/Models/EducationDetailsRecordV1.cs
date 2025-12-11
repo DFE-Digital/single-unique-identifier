@@ -1,5 +1,8 @@
 namespace SUI.Custodians.Domain.Models;
 
+/// <summary>
+/// Education related data about a specific child.
+/// </summary>
 public record EducationDetailsRecordV1 : SuiRecord
 {
     /// <summary>

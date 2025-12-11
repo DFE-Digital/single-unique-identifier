@@ -36,7 +36,7 @@ public static class HttpResponseUtility
                 "Unauthorised",
                 401,
                 "Missing or invalid bearer token.",
-                $"traceId:{traceId}"
+                $"urn:trace::{traceId}"
             ),
             cancellationToken
         );
@@ -64,6 +64,7 @@ public static class HttpResponseUtility
         HttpRequestData req,
         string traceId,
         string detail,
+        string title = "Bad Request",
         CancellationToken cancellationToken = default
     )
     {
@@ -102,6 +103,17 @@ public static class HttpResponseUtility
     )
     {
         var res = req.CreateResponse(HttpStatusCode.Accepted);
+        await res.WriteAsJsonAsync(body, cancellationToken);
+        return res;
+    }
+
+    public static async Task<HttpResponseData> OkResponse<T>(
+        HttpRequestData req,
+        T body,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var res = req.CreateResponse(HttpStatusCode.OK);
         await res.WriteAsJsonAsync(body, cancellationToken);
         return res;
     }

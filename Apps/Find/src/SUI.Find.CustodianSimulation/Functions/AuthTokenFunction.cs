@@ -102,7 +102,7 @@ public sealed class AuthTokenFunction
 
         if (requestedScopes.Length == 0)
         {
-            grantedScopes = allowedScopes;
+            grantedScopes = allowedScopes!;
         }
         else
         {
@@ -120,7 +120,7 @@ public sealed class AuthTokenFunction
                 );
             }
 
-            grantedScopes = requestedScopes;
+            grantedScopes = requestedScopes!;
         }
 
         var token = CreateJwt(store, client.ClientId, grantedScopes);

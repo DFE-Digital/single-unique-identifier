@@ -4,14 +4,16 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
-using SUI.Find.FindApi.Functions.Orchestrators;
+using SUI.Find.FindApi.Functions.OrchestratorFunctions;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
 public class SearchOrchestratorFunctionsTests
 {
     private readonly TaskOrchestrationContext _mockContext;
-    private readonly ILogger<SearchOrchestrator> _mockLogger = Substitute.For<ILogger<SearchOrchestrator>>();
+    private readonly ILogger<SearchOrchestrator> _mockLogger = Substitute.For<
+        ILogger<SearchOrchestrator>
+    >();
     private readonly SearchOrchestrator _orchestrator;
 
     public SearchOrchestratorFunctionsTests()
@@ -26,33 +28,67 @@ public class SearchOrchestratorFunctionsTests
         // Arrange
         var input = new SearchOrchestratorInput(
             Suid: "1234567890123456",
-            Metadata: new SearchJobMetadata(PersonId: "person-123", DateTime.UtcNow, "invocation-123"),
+            Metadata: new SearchJobMetadata(
+                PersonId: "person-123",
+                DateTime.UtcNow,
+                "invocation-123"
+            ),
             PolicyContext: new PolicyContext(ClientId: "test-client-1", ["scope1", "scope2"])
         );
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
         _mockContext.InstanceId.Returns("instance-123");
 
-        var providers = new List<ProviderDefinition>
+        IReadOnlyList<ProviderDefinition> providers = new List<ProviderDefinition>
         {
-            new() { OrgId = "org1", OrgName = "Provider 1", OrgType = "Type A", ProviderSystem = "System A", ProviderName = "Provider Name 1" },
-            new() { OrgId = "org2", OrgName = "Provider 2", OrgType = "Type B", ProviderSystem = "System B", ProviderName = "Provider Name 2" }
+            new()
+            {
+                OrgId = "org1",
+                OrgName = "Provider 1",
+                OrgType = "Type A",
+                ProviderSystem = "System A",
+                ProviderName = "Provider Name 1",
+            },
+            new()
+            {
+                OrgId = "org2",
+                OrgName = "Provider 2",
+                OrgType = "Type B",
+                ProviderSystem = "System B",
+                ProviderName = "Provider Name 2",
+            },
         };
 
         _mockContext
-            .CallActivityAsync<List<ProviderDefinition>>("GetProvidersFunction", input.Suid, Arg.Any<TaskOptions>())
+            .CallActivityAsync<IReadOnlyList<ProviderDefinition>>(
+                "GetProvidersFunction",
+                input.Suid,
+                Arg.Any<TaskOptions>()
+            )
             .Returns(providers);
 
-        var result1 = new List<SearchResultItem> { new("System A", "Provider Name 1", "Record", "http://url1") };
-        var result2 = new List<SearchResultItem> { new("System B", "Provider Name 2", "Record", "http://url2") };
+        var result1 = new List<SearchResultItem>
+        {
+            new("System A", "Provider Name 1", "Record", "http://url1"),
+        };
+        var result2 = new List<SearchResultItem>
+        {
+            new("System B", "Provider Name 2", "Record", "http://url2"),
+        };
 
         _mockContext
-            .CallActivityAsync<IReadOnlyList<SearchResultItem>>("QueryProvidersFunction",
-                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org1"), Arg.Any<TaskOptions>())
+            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                "QueryProvidersFunction",
+                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org1"),
+                Arg.Any<TaskOptions>()
+            )
             .Returns(result1);
 
         _mockContext
-            .CallActivityAsync<IReadOnlyList<SearchResultItem>>("QueryProvidersFunction",
-                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org2"), Arg.Any<TaskOptions>())
+            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                "QueryProvidersFunction",
+                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org2"),
+                Arg.Any<TaskOptions>()
+            )
             .Returns(result2);
 
         // Act
@@ -63,8 +99,20 @@ public class SearchOrchestratorFunctionsTests
         Assert.Contains(result, r => r.ProviderSystem == "System A");
         Assert.Contains(result, r => r.ProviderSystem == "System B");
 
-        await _mockContext.Received(1).CallActivityAsync<List<ProviderDefinition>>("GetProvidersFunction", input.Suid, Arg.Any<TaskOptions>());
-        await _mockContext.Received(2).CallActivityAsync<IReadOnlyList<SearchResultItem>>("QueryProvidersFunction", Arg.Any<QueryProviderInput>(), Arg.Any<TaskOptions>());
+        await _mockContext
+            .Received(1)
+            .CallActivityAsync<IReadOnlyList<ProviderDefinition>>(
+                "GetProvidersFunction",
+                input.Suid,
+                Arg.Any<TaskOptions>()
+            );
+        await _mockContext
+            .Received(2)
+            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                "QueryProvidersFunction",
+                Arg.Any<QueryProviderInput>(),
+                Arg.Any<TaskOptions>()
+            );
     }
 
     [Fact]
@@ -73,7 +121,11 @@ public class SearchOrchestratorFunctionsTests
         // Arrange
         var input = new SearchOrchestratorInput(
             Suid: "1234567890123456",
-            Metadata: new SearchJobMetadata(PersonId: "person-123", DateTime.UtcNow, "invocation-123"),
+            Metadata: new SearchJobMetadata(
+                PersonId: "person-123",
+                DateTime.UtcNow,
+                "invocation-123"
+            ),
             PolicyContext: new PolicyContext(ClientId: "test-client-1", ["scope1", "scope2"])
         );
 
@@ -81,7 +133,11 @@ public class SearchOrchestratorFunctionsTests
         _mockContext.InstanceId.Returns("instance-123");
 
         _mockContext
-            .CallActivityAsync<List<ProviderDefinition>>("GetProvidersFunction", input.Suid, Arg.Any<TaskOptions>())
+            .CallActivityAsync<List<ProviderDefinition>>(
+                "GetProvidersFunction",
+                input.Suid,
+                Arg.Any<TaskOptions>()
+            )
             .Returns(new List<ProviderDefinition>());
 
         // Act
@@ -89,7 +145,13 @@ public class SearchOrchestratorFunctionsTests
 
         // Assert
         Assert.Empty(result);
-        await _mockContext.DidNotReceive().CallActivityAsync<IReadOnlyList<SearchResultItem>>("QueryProvidersFunction", Arg.Any<QueryProviderInput>(), Arg.Any<TaskOptions>());
+        await _mockContext
+            .DidNotReceive()
+            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                "QueryProvidersFunction",
+                Arg.Any<QueryProviderInput>(),
+                Arg.Any<TaskOptions>()
+            );
     }
 
     [Fact]
@@ -98,13 +160,19 @@ public class SearchOrchestratorFunctionsTests
         // Arrange
         var input = new SearchOrchestratorInput(
             Suid: "",
-            Metadata: new SearchJobMetadata(PersonId: "person-123", DateTime.UtcNow, "invocation-123"),
+            Metadata: new SearchJobMetadata(
+                PersonId: "person-123",
+                DateTime.UtcNow,
+                "invocation-123"
+            ),
             PolicyContext: new PolicyContext(ClientId: "test-client-1", ["scope1", "scope2"])
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => _orchestrator.RunOrchestrator(_mockContext));
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _orchestrator.RunOrchestrator(_mockContext)
+        );
     }
 }

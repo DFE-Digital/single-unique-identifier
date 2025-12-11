@@ -14,11 +14,11 @@ public class RecordConsolidatorTests
         var result = sut.ConsolidateRecords(
             new UnconsolidatedData("XXX 000 1234")
             {
-                ChildPersonalDetailsRecords = [],
-                ChildSocialCareDetailsRecords = [],
+                PersonalDetailsRecords = [],
+                ChildrensServicesDetailsRecords = [],
                 EducationDetailsRecords = [],
-                ChildHealthDataRecords = [],
-                ChildLinkedCrimeDataRecords = [],
+                HealthDataRecords = [],
+                CrimeDataRecords = [],
                 FailedFetches = [],
             }
         );
@@ -29,11 +29,11 @@ public class RecordConsolidatorTests
             .BeEquivalentTo(
                 new ConsolidatedData("XXX 000 1234")
                 {
-                    ChildPersonalDetailsRecord = null,
-                    ChildSocialCareDetailsRecord = null,
+                    PersonalDetailsRecord = null,
+                    ChildrensServicesDetailsRecord = null,
                     EducationDetailsRecord = null,
-                    ChildHealthDataRecord = null,
-                    ChildLinkedCrimeDataRecord = null,
+                    HealthDataRecord = null,
+                    CrimeDataRecord = null,
                     CountOfRecordsSuccessfullyFetched = 0,
                     FailedFetches = [],
                 }

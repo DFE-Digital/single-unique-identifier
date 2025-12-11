@@ -5,7 +5,7 @@ namespace SUI.Find.FindApi.Validators;
 
 public static class StartSearchRequestValidator
 {
-    public static bool IsValid(StartSearchRequest? request, out string? errorMessage)
+    public static bool IsValid(StartSearchRequest? request, out string errorMessage)
     {
         if (request == null)
         {
@@ -34,7 +34,7 @@ public static class StartSearchRequestValidator
             return false;
         }
 
-        errorMessage = null;
+        errorMessage = string.Empty;
         return true;
     }
 }

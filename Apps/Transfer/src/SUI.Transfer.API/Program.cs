@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using DotNetEnv;
 using Microsoft.AspNetCore.Http.Json;
+using SUI.Custodians.API.Client;
 using SUI.Transfer.API.Endpoint;
 using SUI.Transfer.API.OpenApiTransformers;
 using SUI.Transfer.Application.Services;
@@ -36,9 +37,16 @@ builder.Services.AddScoped<IRecordFinder, RecordFinder>();
 builder.Services.AddScoped<IRecordFetcher, RecordFetcher>();
 builder.Services.AddScoped<IRecordConsolidator, RecordConsolidator>();
 builder.Services.AddScoped<IEducationAttendanceTransformer, EducationAttendanceTransformer>();
+builder.Services.AddScoped<IHealthAttendanceAggregator, HealthAttendanceAggregator>();
+builder.Services.AddScoped<IChildServicesReferralAggregator, ChildServicesReferralAggregator>();
+builder.Services.AddScoped<IMissingEpisodesTransformer, MissingEpisodesTransformer>();
+builder.Services.AddScoped<IStatusFlagsTransformer, StatusFlagsTransformer>();
 builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferJobStateRepository, TransferJobStateMemoryCacheRepository>();
+builder.Services.AddHttpClient<RecordFetcher>();
+
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.Configure<JsonOptions>(options =>
 {
@@ -46,6 +54,11 @@ builder.Services.Configure<JsonOptions>(options =>
         new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
     );
 });
+
+builder.Services.AddCustodiansClient(
+    builder.Configuration["FetchRecordsEndpoint"] ?? string.Empty,
+    builder.Configuration["FetchRecordsApiKey"] ?? string.Empty
+);
 
 var app = builder.Build();
 

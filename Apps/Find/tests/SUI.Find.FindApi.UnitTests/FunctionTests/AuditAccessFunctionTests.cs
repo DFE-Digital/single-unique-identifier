@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Models;
-using SUI.Find.FindApi.Functions.QueueTriggers;
+using SUI.Find.FindApi.Functions.QueueFunctions;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 

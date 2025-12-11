@@ -6,19 +6,19 @@
     <govuk-summary-list>
         <govuk-summary-list-row>
             <govuk-summary-list-row-key>Registered GP</govuk-summary-list-row-key>
-            <govuk-summary-list-row-value>@Model.PersonModel.RegisteredGpName</govuk-summary-list-row-value>
+            <govuk-summary-list-row-value>@Model.PersonModel!.RegisteredGpName</govuk-summary-list-row-value>
         </govuk-summary-list-row>
         <govuk-summary-list-row>
             <govuk-summary-list-row-key>Contact details</govuk-summary-list-row-key>
             <govuk-summary-list-row-value>
-                @Html.DisplayFor(x => x.PersonModel.RegisteredGpContactAddress)
+                @Html.DisplayFor(x => x.PersonModel!.RegisteredGpContactAddress)
                 <br/><br/>
-                @Model.PersonModel.RegisteredGpContactPhone
+                @Model.PersonModel!.RegisteredGpContactPhone
             </govuk-summary-list-row-value>
         </govuk-summary-list-row>
         <govuk-summary-list-row>
             <govuk-summary-list-row-key>CAMHS contact details</govuk-summary-list-row-key>
-            <govuk-summary-list-row-value>@Model.PersonModel.CamhsContactPhone</govuk-summary-list-row-value>
+            <govuk-summary-list-row-value>@Model.PersonModel!.CamhsContactPhone</govuk-summary-list-row-value>
         </govuk-summary-list-row>
     </govuk-summary-list>
 </govuk-summary-card>
@@ -31,7 +31,7 @@
     </tr>
     </thead>
     <tbody class="govuk-table__body">
-    @foreach (var healthPlan in Model.PersonModel.ActiveHealthPlans)
+    @foreach (var healthPlan in Model.PersonModel!.ActiveHealthPlans)
     {
         <tr class="govuk-table__row">
             <td class="govuk-table__header">@healthPlan.Status</td>

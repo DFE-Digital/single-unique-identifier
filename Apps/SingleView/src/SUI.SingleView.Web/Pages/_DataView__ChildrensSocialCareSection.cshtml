@@ -7,7 +7,7 @@
     <tbody class="govuk-table__body">
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Key worker</th>
-        <td class="govuk-table__cell">@Model.PersonModel.KeyWorker</td>
+        <td class="govuk-table__cell">@Model.PersonModel!.KeyWorker</td>
     </tr>
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Duty contact details</th>
@@ -19,7 +19,7 @@
     </tr>
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Team involvement</th>
-        <td class="govuk-table__cell">@Html.DisplayFor(x => x.PersonModel.TeamInvolvement, "StringList")</td>
+        <td class="govuk-table__cell">@Html.DisplayFor(x => x.PersonModel!.TeamInvolvement, "StringList")</td>
     </tr>
     </tbody>
 </table>

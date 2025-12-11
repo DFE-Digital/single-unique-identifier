@@ -108,9 +108,9 @@ public class SearchService(IDelay? delay = null, TimeSpan? artificialDelay = nul
         }
 
         // 5. Postcode (normalised)
-        if (!string.IsNullOrWhiteSpace(query.Postcode))
+        var qPostcode = NormalizePostcode(query.Postcode);
+        if (!string.IsNullOrEmpty(qPostcode))
         {
-            var qPostcode = NormalizePostcode(query.Postcode);
             results = results.Where(r => NormalizePostcode(r.Address.Postcode) == qPostcode);
         }
 

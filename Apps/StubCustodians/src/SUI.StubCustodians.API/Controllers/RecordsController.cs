@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SUI.Custodians.Domain.Models;
@@ -9,8 +10,9 @@ using SUI.StubCustodians.Application.Queries;
 namespace SUI.StubCustodians.API.Controllers
 {
     [ExcludeFromCodeCoverage]
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class RecordsController : ControllerBase
     {
         private readonly ILogger<RecordsController> _logger;
@@ -64,7 +66,7 @@ namespace SUI.StubCustodians.API.Controllers
             _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
 
             var result = await _mediator.Send(
-                new GetChildSocialCareRecordQuery()
+                new GetChildSocialCareDetailsRecordQuery()
                 {
                     Sui = sui,
                     ProviderSystemId = providerSystemId,

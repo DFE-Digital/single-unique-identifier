@@ -1,5 +1,8 @@
 namespace SUI.Custodians.Domain.Models;
 
+/// <summary>
+/// General personal details about a specific child.
+/// </summary>
 public record PersonalDetailsRecordV1 : SuiRecord
 {
     /// <summary>
