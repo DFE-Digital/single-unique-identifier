@@ -75,32 +75,26 @@ public class FetchRecordFunction(
             cancellationToken
         );
 
-        if (!result.Success)
-        {
-            switch (result.Error)
-            {
-                case "NotFound":
-                    return await HttpResponseUtility.NotFoundResponse(
-                        req,
-                        context.InvocationId,
-                        cancellationToken
-                    );
-                case "Unauthorized":
-                    return await HttpResponseUtility.UnauthorizedResponse(
-                        req,
-                        context.InvocationId,
-                        cancellationToken
-                    );
-                default:
-                    logger.LogInformation("Error searching for record: {RecordId}.", recordId);
-                    return await HttpResponseUtility.InternalServerErrorResponse(
-                        req,
-                        context.InvocationId,
-                        cancellationToken
-                    );
-            }
-        }
-
-        return await HttpResponseUtility.OkResponse(req, result.Value, cancellationToken);
+        return await result.Match(
+            async record => await HttpResponseUtility.OkResponse(req, record, cancellationToken),
+            async notFound =>
+                await HttpResponseUtility.NotFoundResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async unauthorized =>
+                await HttpResponseUtility.UnauthorizedResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async error =>
+                await HttpResponseUtility.InternalServerErrorResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                )
+        );
     }
 }

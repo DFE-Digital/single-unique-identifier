@@ -77,9 +77,9 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.True(result.Success);
-        Assert.Equal(expectedResult.RecordId, result.Value?.RecordId);
-        Assert.Equal(expectedResult.PersonId, result.Value?.PersonId);
+        var body = Assert.IsType<CustodianRecord>(result.Value);
+        Assert.Equal(expectedResult.RecordId, body.RecordId);
+        Assert.Equal(expectedResult.PersonId, body.PersonId);
     }
 
     [Fact]
@@ -94,8 +94,7 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.False(string.IsNullOrEmpty(result.Error));
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -119,8 +118,7 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Custodian not found", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -156,8 +154,7 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Upstream error", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -186,8 +183,7 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Unable to obtain access token for fetch record.", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -220,8 +216,7 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Requested record is empty", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -254,12 +249,11 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Requested record is empty", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
-    public async Task FetchRecordAsync_ReturnsFail_WhenRecordsDoNotBelongToCaller()
+    public async Task FetchRecordAsync_ReturnsUnauthorized_WhenRecordsDoNotBelongToCaller()
     {
         // Arrange
         _mockMaskUrlService
@@ -270,12 +264,11 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Unauthorized", result.Error);
+        Assert.IsType<Unauthorized>(result.Value);
     }
 
     [Fact]
-    public async Task FetchRecordAsync_ReturnsFail_WhenRecordsAreExpired()
+    public async Task FetchRecordAsync_ReturnsNotFound_WhenRecordsAreExpired()
     {
         // Arrange
         _mockMaskUrlService
@@ -286,12 +279,11 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("NotFound", result.Error);
+        Assert.IsType<NotFound>(result.Value);
     }
 
     [Fact]
-    public async Task FetchRecordAsync_ReturnsFail_WhenRecordIsNotFound()
+    public async Task FetchRecordAsync_ReturnsNotFound_WhenRecordIsNotFound()
     {
         // Arrange
         _mockMaskUrlService
@@ -302,7 +294,6 @@ public class FetchRecordAsyncTests
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("NotFound", result.Error);
+        Assert.IsType<NotFound>(result.Value);
     }
 }

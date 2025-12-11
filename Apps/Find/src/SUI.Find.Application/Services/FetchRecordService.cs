@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using OneOf;
 using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
@@ -14,7 +15,7 @@ public class FetchRecordService(
     IOutboundAuthService outboundAuthService
 ) : IFetchRecordService
 {
-    public async Task<Domain.Models.Result<CustodianRecord>> FetchRecordAsync(
+    public async Task<OneOf<CustodianRecord, NotFound, Unauthorized, Error>> FetchRecordAsync(
         string fetchId,
         string requestingOrgId,
         CancellationToken cancellationToken
@@ -32,13 +33,14 @@ public class FetchRecordService(
                 successDto,
                 cancellationToken
             ),
-            NotFound _ => Domain.Models.Result<CustodianRecord>.Fail("NotFound"),
-            Unauthorized _ => Domain.Models.Result<CustodianRecord>.Fail("Unauthorized"),
-            _ => Domain.Models.Result<CustodianRecord>.Fail("Failed to fetch mapping."),
+            NotFound notFound => notFound,
+            Unauthorized unauthorized => unauthorized,
+            Error error => error,
+            _ => new Error(),
         };
     }
 
-    private async Task<Domain.Models.Result<CustodianRecord>> GetCustodianDataAsync(
+    private async Task<OneOf<CustodianRecord, NotFound, Unauthorized, Error>> GetCustodianDataAsync(
         ResolvedFetchMapping resolvedMapping,
         CancellationToken cancellationToken
     )
@@ -51,9 +53,7 @@ public class FetchRecordService(
                 "Failed to retrieve custodian organisation for Org ID {OrgId}",
                 resolvedMapping.TargetOrgId
             );
-            return Domain.Models.Result<CustodianRecord>.Fail(
-                provider.Error ?? "Failed to retrieve custodian organisation."
-            );
+            return new Error();
         }
 
         var tokenResult = await outboundAuthService.GetAccessTokenAsync(
@@ -63,18 +63,8 @@ public class FetchRecordService(
 
         if (!tokenResult.Success || string.IsNullOrWhiteSpace(tokenResult.Value))
         {
-            logger.LogError(
-                "Failed to obtain access token for provider {Provider}: {ErrorMessage}",
-                provider.Value.ProviderName,
-                tokenResult.Error
-            );
-
-            return Domain.Models.Result<CustodianRecord>.Fail(
-                "Unable to obtain access token for fetch record."
-            );
+            return new Error();
         }
-
-        logger.LogInformation("Fetch Record access token obtained");
 
         var response = await providerClient.GetAsync(
             resolvedMapping.TargetUrl,
@@ -84,16 +74,13 @@ public class FetchRecordService(
 
         if (!response.Success)
         {
-            logger.LogError("Failed to fetch record: {Error}", response.Error);
-            return Domain.Models.Result<CustodianRecord>.Fail(
-                response.Error ?? "Error fetching record from provider."
-            );
+            return new Error();
         }
 
         if (string.IsNullOrWhiteSpace(response.Value))
         {
-            logger.LogInformation("Fetch Record return empty response");
-            return Domain.Models.Result<CustodianRecord>.Fail("Requested record is empty");
+            logger.LogInformation("Fetch Record returned empty response");
+            return new Error();
         }
 
         var recordContent = JsonSerializer.Deserialize<CustodianRecord>(
@@ -101,8 +88,6 @@ public class FetchRecordService(
             JsonSerializerOptions.Web
         );
 
-        return recordContent is not null
-            ? Domain.Models.Result<CustodianRecord>.Ok(recordContent)
-            : Domain.Models.Result<CustodianRecord>.Fail("Requested record is empty");
+        return recordContent is not null ? recordContent : new Error();
     }
 }
