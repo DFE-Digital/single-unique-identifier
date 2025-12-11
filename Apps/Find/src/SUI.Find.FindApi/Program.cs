@@ -16,6 +16,7 @@ using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
+using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Utility;
 
@@ -43,6 +44,7 @@ builder.Services.AddSingleton<IHashService, HashService>();
 builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
 builder.Services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
 builder.Services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
+builder.Services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
 builder.Services.AddAzureTableServices();
 
 // Use mock services for all environments for now while in prototype
