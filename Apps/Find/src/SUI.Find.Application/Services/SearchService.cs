@@ -41,7 +41,7 @@ public interface ISearchService
         CancellationToken cancellationToken
     );
 
-    Task<SearchJobResult> GetSearchStatusAsync(
+    Task<OneOf<SearchJobDto, Unauthorized, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -311,7 +311,7 @@ public class SearchService(
         }
     }
 
-    public async Task<SearchJobResult> GetSearchStatusAsync(
+    public async Task<OneOf<SearchJobDto, Unauthorized, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -323,13 +323,13 @@ public class SearchService(
             var jobStatus = await client.GetInstanceAsync(jobId, true, cancellationToken);
             if (jobStatus is null)
             {
-                return new SearchJobResult.NotFound();
+                return new NotFound();
             }
 
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(jobStatus);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
-                return new SearchJobResult.Unauthorized();
+                return new Unauthorized();
             }
 
             var dto = new SearchJobDto
@@ -341,9 +341,7 @@ public class SearchService(
                 LastUpdatedAt = jobStatus.LastUpdatedAt,
             };
 
-            var searchJob = new SearchJobResult.Success(dto);
-
-            return searchJob;
+            return dto;
         }
         catch (Exception ex)
         {
@@ -353,7 +351,7 @@ public class SearchService(
                 jobId,
                 ex.Message
             );
-            return new SearchJobResult.Failed();
+            return new Error();
         }
     }
 

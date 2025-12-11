@@ -2,6 +2,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
@@ -28,9 +29,7 @@ public class GetSearchStatusAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        var bob = result.GetType();
-
-        Assert.Equal(typeof(SearchJobResult.NotFound), bob);
+        Assert.IsType<NotFound>(result.Value);
     }
 
     [Fact]
@@ -54,7 +53,7 @@ public class GetSearchStatusAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.Equal(typeof(SearchJobResult.Unauthorized), result.GetType());
+        Assert.IsType<Unauthorized>(result.Value);
     }
 
     [Fact]
@@ -77,10 +76,10 @@ public class GetSearchStatusAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        var successResult = Assert.IsType<SearchJobResult.Success>(result);
-        Assert.Equal("test-suid", successResult.Job.PersonId);
-        Assert.Equal("auth-job", successResult.Job.JobId);
-        Assert.Equal(SearchStatus.Running, successResult.Job.Status);
+        var successResult = Assert.IsType<SearchJobDto>(result.Value);
+        Assert.Equal("test-suid", successResult.PersonId);
+        Assert.Equal("auth-job", successResult.JobId);
+        Assert.Equal(SearchStatus.Running, successResult.Status);
     }
 
     [Fact]
@@ -97,6 +96,6 @@ public class GetSearchStatusAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.Equal(typeof(SearchJobResult.Failed), result.GetType());
+        Assert.IsType<Error>(result.Value);
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using OneOf.Types;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
@@ -73,7 +74,7 @@ public class SearchStatusFunctionTests
         var req = MockHttpRequestData.Create();
         _searchService
             .GetSearchStatusAsync("job-2", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new SearchJobResult.Failed());
+            .Returns(new Error());
 
         // Act
         var response = await _sut.SearchJobTrigger(
@@ -96,7 +97,7 @@ public class SearchStatusFunctionTests
         var req = MockHttpRequestData.Create();
         _searchService
             .GetSearchStatusAsync("job-3", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new SearchJobResult.NotFound());
+            .Returns(new NotFound());
 
         // Act
         var response = await _sut.SearchJobTrigger(
@@ -119,7 +120,7 @@ public class SearchStatusFunctionTests
         var req = MockHttpRequestData.Create();
         _searchService
             .GetSearchStatusAsync("job-4", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new SearchJobResult.Unauthorized());
+            .Returns(new Unauthorized());
 
         // Act
         var response = await _sut.SearchJobTrigger(
@@ -150,7 +151,7 @@ public class SearchStatusFunctionTests
         };
         _searchService
             .GetSearchStatusAsync("job-5", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new SearchJobResult.Success(dto));
+            .Returns(dto);
 
         // Act
         var response = await _sut.SearchJobTrigger(

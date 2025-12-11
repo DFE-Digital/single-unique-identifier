@@ -94,25 +94,27 @@ public class SearchStatusFunction(
             cancellationToken
         );
 
-        return jobStatus switch
-        {
-            SearchJobResult.Success s => await CreateSuccessResponse(req, s.Job, cancellationToken),
-            SearchJobResult.NotFound => await HttpResponseUtility.NotFoundResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-            SearchJobResult.Unauthorized => await HttpResponseUtility.UnauthorizedResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-            _ => await HttpResponseUtility.InternalServerErrorResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-        };
+        return await jobStatus.Match<Task<HttpResponseData>>(
+            async dto => await CreateSuccessResponse(req, dto, cancellationToken),
+            async unauthorized =>
+                await HttpResponseUtility.UnauthorizedResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async notFound =>
+                await HttpResponseUtility.NotFoundResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async error =>
+                await HttpResponseUtility.InternalServerErrorResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                )
+        );
     }
 
     private static async Task<HttpResponseData> CreateSuccessResponse(
