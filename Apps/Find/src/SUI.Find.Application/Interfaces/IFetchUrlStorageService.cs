@@ -7,7 +7,7 @@ namespace SUI.Find.Application.Interfaces;
 public interface IFetchUrlStorageService
 {
     Task AddAsync(AddFetchUrlRequest request, CancellationToken ct);
-    Task<Result<ResolvedFetchMapping>> GetAsync(
+    Task<ResolvedFetchMappingResult> GetAsync(
         string requestingOrg,
         string fetchId,
         CancellationToken ct

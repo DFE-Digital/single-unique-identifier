@@ -65,7 +65,7 @@ public class ProviderHttpClientTests
 
         // Assert
         Assert.False(result.Success);
-        Assert.Contains("Custodian returned unexpected status", result.Error);
+        Assert.Contains("InternalServerError", result.Error);
     }
 
 

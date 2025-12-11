@@ -1,6 +1,6 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using SUI.Custodians.Domain.Models;
 using SUI.StubCustodians.Application.Contracts.Arbor;
 using SUI.StubCustodians.Application.Contracts.Mosaic;
 using SUI.StubCustodians.Application.Contracts.Niche;
@@ -87,7 +87,20 @@ namespace SUI.StubCustodians.API
                 config.RegisterServicesFromAssemblyContaining<GetEventRecordBySuiQuery>();
             });
 
-            string activeCustodian = configuration.GetValue<string>("ActiveCustodian", "Mosaic");
+            services.AddScoped<
+                IRecordProvider<PersonalDetailsRecordV1>,
+                PersonalDetailsRecordProvider
+            >();
+
+            services.AddScoped<
+                IRecordProvider<EducationDetailsRecordV1>,
+                EducationDetailsRecordProvider
+            >();
+
+            string activeCustodian = configuration.GetValue<string>(
+                "ActiveCustodian",
+                "MockEducationProvider"
+            );
 
             if (activeCustodian.Equals("Arbor", StringComparison.OrdinalIgnoreCase))
             {

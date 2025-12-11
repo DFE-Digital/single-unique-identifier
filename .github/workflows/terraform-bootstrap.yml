@@ -11,6 +11,11 @@ on:
         type: choice
         options:
           - d01
+      dry_run:
+        description: Show what would be created without making changes
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   id-token: write
@@ -18,56 +23,157 @@ permissions:
 
 jobs:
   bootstrap:
+    name: Bootstrap backend for ${{ inputs.environment }} (${{ inputs.dry_run && 'dry-run' || 'apply' }})
     runs-on: ubuntu-latest
+    environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      ARM_USE_OIDC: true
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Azure login
+      - name: Azure login with client secret for ${{ inputs.environment }}
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          # To use OIDC, remove `creds` and uncomment these lines.
+          # client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          # tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          # subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          creds: |
+            {
+              "clientSecret": "${{ secrets.AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D }}",
+              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId": "${{ secrets.AZURE_TENANT_ID }}",
+              "clientId": "${{ secrets.AZURE_CLIENT_ID }}"
+            }
           enable-AzPSSession: true
 
-      - name: Load environment config
+      - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
         id: env_config
         uses: ./.github/actions/load-tfvars
         with:
           environment: ${{ env.TARGET_ENVIRONMENT }}
 
-      - name: Create terraform state storage in Azure
+      - name: "Preview backend state RG/storage (${{ steps.env_config.outputs.state_rg }})"
+        if: inputs.dry_run == true
+        run: |
+          echo "Dry run: would create resources with:"
+          echo "  Resource group:   ${{ steps.env_config.outputs.state_rg }}"
+          echo "  Storage account:  ${{ steps.env_config.outputs.state_storage }}"
+          echo "  Container:        ${{ steps.env_config.outputs.state_container }}"
+          echo "  Location:         ${{ steps.env_config.outputs.location }}"
+          echo "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=${{ steps.env_config.outputs.product }}, Service_Offering=${{ steps.env_config.outputs.service_offering }}"
+
+      - name: Create backend state RG/storage (${{ steps.env_config.outputs.state_rg }})
+        if: inputs.dry_run != true
         uses: azure/powershell@v2
         with:
           inlineScript: |
+            $tags = @{
+              Environment      = "${{ steps.env_config.outputs.environment_tag }}"
+              Product          = "${{ steps.env_config.outputs.product }}"
+              Service_Offering = "${{ steps.env_config.outputs.service_offering }}"
+            }
+
             Write-Host "Using:"
             Write-Host "  Resource group:   ${{ steps.env_config.outputs.state_rg }}"
             Write-Host "  Storage account:  ${{ steps.env_config.outputs.state_storage }}"
             Write-Host "  Container:        ${{ steps.env_config.outputs.state_container }}"
             Write-Host "  Location:         ${{ steps.env_config.outputs.location }}"
+            Write-Host "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=$(${tags['Product']}), Service_Offering=$(${tags['Service_Offering']})"
 
-            # Resource group
-            New-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -Location "${{ steps.env_config.outputs.location }}" -ErrorAction Stop | Out-Null
+            # Resource group (create or update tags)
+            $existingRg = Get-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -ErrorAction SilentlyContinue
+            if ($null -eq $existingRg) {
+              New-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -Location "${{ steps.env_config.outputs.location }}" -Tag $tags -ErrorAction Stop | Out-Null
+              Write-Host "Created resource group."
+            } else {
+              Set-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -Tag $tags -ErrorAction Stop | Out-Null
+              Write-Host "Resource group already exists; tags updated."
+            }
 
             # Storage account
-            $storage = New-AzStorageAccount `
-              -Name "${{ steps.env_config.outputs.state_storage }}" `
-              -ResourceGroupName "${{ steps.env_config.outputs.state_rg }}" `
-              -Location "${{ steps.env_config.outputs.location }}" `
-              -SkuName Standard_LRS `
-              -Kind StorageV2 `
-              -MinimumTlsVersion TLS1_2 `
-              -ErrorAction Stop
+            $storage = Get-AzStorageAccount -Name "${{ steps.env_config.outputs.state_storage }}" -ResourceGroupName "${{ steps.env_config.outputs.state_rg }}" -ErrorAction SilentlyContinue
+            if ($null -eq $storage) {
+              $storage = New-AzStorageAccount `
+                -Name "${{ steps.env_config.outputs.state_storage }}" `
+                -ResourceGroupName "${{ steps.env_config.outputs.state_rg }}" `
+                -Location "${{ steps.env_config.outputs.location }}" `
+                -SkuName Standard_LRS `
+                -Kind StorageV2 `
+                -MinimumTlsVersion TLS1_2 `
+                -ErrorAction Stop
+              Write-Host "Created storage account."
+            } else {
+              Write-Host "Storage account already exists; reusing."
+            }
 
             # Container
             $ctx = $storage.Context
-            $null = New-AzStorageContainer -Name "${{ steps.env_config.outputs.state_container }}" -Context $ctx -ErrorAction SilentlyContinue
+            if (-not (Get-AzStorageContainer -Name "${{ steps.env_config.outputs.state_container }}" -Context $ctx -ErrorAction SilentlyContinue)) {
+              $null = New-AzStorageContainer -Name "${{ steps.env_config.outputs.state_container }}" -Context $ctx -ErrorAction Stop
+              Write-Host "Created container."
+            } else {
+              Write-Host "Container already exists; reusing."
+            }
           azPSVersion: "latest"
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          INPUT_ENV: ${{ inputs.environment }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          ENV_TAG: ${{ steps.env_config.outputs.environment_tag }}
+          STATE_RG: ${{ steps.env_config.outputs.state_rg }}
+          STATE_STORAGE: ${{ steps.env_config.outputs.state_storage }}
+          STATE_CONTAINER: ${{ steps.env_config.outputs.state_container }}
+          LOCATION: ${{ steps.env_config.outputs.location }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set +e
+          env_tag="${ENV_TAG:-unknown}"
+          state_rg="${STATE_RG:-unknown}"
+          state_storage="${STATE_STORAGE:-unknown}"
+          state_container="${STATE_CONTAINER:-unknown}"
+          location="${LOCATION:-unknown}"
+          mode=$([ "$DRY_RUN" = "true" ] && echo "dry-run" || echo "apply")
+          status_icon=$([ "$JOB_STATUS" = "success" ] && echo "✅" || echo "❌")
+
+          # Best-effort existence checks (management plane) when not a dry run
+          rg_status="⏩ dry-run (not created)"
+          sa_status="⏩ dry-run (not created)"
+          if [ "$mode" != "dry-run" ] && command -v az >/dev/null 2>&1; then
+            if az group show --name "$state_rg" >/dev/null 2>&1; then
+              rg_status="✅ exists"
+            else
+              rg_status="⚠️ missing"
+            fi
+            if az storage account show --name "$state_storage" --resource-group "$state_rg" >/dev/null 2>&1; then
+              sa_status="✅ exists"
+            else
+              sa_status="⚠️ missing"
+            fi
+          elif [ "$mode" != "dry-run" ]; then
+            rg_status="⚪ not checked (az CLI unavailable)"
+            sa_status="⚪ not checked (az CLI unavailable)"
+          fi
+
+          {
+            echo "## $status_icon Bootstrap"
+            echo ""
+            echo "- **Environment:** \`$INPUT_ENV\`"
+            echo "- **Environment tag:** \`$env_tag\`"
+            echo "- **Mode:** \`$mode\`"
+            echo "- **State:** \`$state_rg / $state_storage / $state_container\`"
+            echo "- **Resource group:** $rg_status (\`$state_rg\`)"
+            echo "- **Storage account:** $sa_status (\`$state_storage\`)"
+            echo "- **Location:** \`$location\`"
+            echo "- **Job status:** $status_icon \`$JOB_STATUS\`"
+            echo ""
+            echo "> ℹ️ If any values show as \`unknown\`, verify tfvars parsing and backend naming."
+          } >> "$GITHUB_STEP_SUMMARY"

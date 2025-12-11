@@ -22,7 +22,12 @@ public class TransferServiceTests
     public TransferServiceTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
-        _sut = new TransferService(_mockTransferJob, _stubTransferJobStateRepository, _mockLogger);
+        _sut = new TransferService(
+            _mockTransferJob,
+            _stubTransferJobStateRepository,
+            _mockLogger,
+            TimeProvider.System
+        );
     }
 
     private class StubTransferJobStateRepository : ITransferJobStateRepository
@@ -39,25 +44,31 @@ public class TransferServiceTests
             Task.FromResult(_jobStates.GetValueOrDefault(jobId));
     }
 
-    private static ConformedData CreateEmptyConformedConsolidatedData(Guid jobId, string sui) =>
+    private static ConformedData CreateEmptyConformedConsolidatedData(
+        Guid jobId,
+        string sui,
+        DateTimeOffset createdDate
+    ) =>
         new(
             jobId,
             new ConsolidatedData(sui)
             {
-                ChildPersonalDetailsRecord = new(),
-                ChildSocialCareDetailsRecord = new(),
+                PersonalDetailsRecord = new(),
+                ChildrensServicesDetailsRecord = new(),
                 EducationDetailsRecord = new(),
-                ChildHealthDataRecord = new(),
-                ChildLinkedCrimeDataRecord = new(),
+                HealthDataRecord = new(),
+                CrimeDataRecord = new(),
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
-            }
+            },
+            createdDate
         )
         {
             EducationAttendanceSummaries = null,
             HealthAttendanceSummaries = null,
-            ChildrensSocialCareReferralSummaries = null,
-            CrimeMissingEpisodesPast6Months = null,
+            ChildServicesReferralSummaries = null,
+            CrimeMissingEpisodesSummaries = null,
+            StatusFlags = null,
         };
 
     [Fact]
@@ -77,14 +88,18 @@ public class TransferServiceTests
                 var intermediateResult = await _sut.GetTransferJobStateAsync(jobId);
                 Assert.NotNull(intermediateResult);
                 Assert.Equal(
-                    new RunningTransferJobState(jobId, requestId, intermediateResult.CreatedAt)
-                    {
-                        LastUpdatedAt = intermediateResult.LastUpdatedAt,
-                    },
+                    TransferJobStateFactory.RunningJob(
+                        intermediateResult,
+                        intermediateResult.LastUpdatedAt
+                    ),
                     intermediateResult
                 );
 
-                return CreateEmptyConformedConsolidatedData(jobId, requestId);
+                return CreateEmptyConformedConsolidatedData(
+                    jobId,
+                    requestId,
+                    intermediateResult.CreatedAt
+                );
             });
 
         var mockJobScope = Substitute.For<IDisposable>();
@@ -123,17 +138,20 @@ public class TransferServiceTests
         finalResult
             .Should()
             .BeEquivalentTo(
-                new CompletedTransferJobState(
-                    initialResult.JobId,
-                    requestId,
-                    CreateEmptyConformedConsolidatedData(initialResult.JobId, requestId),
-                    initialResult.CreatedAt
+                TransferJobStateFactory.CompletedJob(
+                    initialResult,
+                    CreateEmptyConformedConsolidatedData(
+                        initialResult.JobId,
+                        requestId,
+                        initialResult.CreatedAt
+                    ),
+                    initialResult.LastUpdatedAt
                 ),
                 options =>
                     options
                         .Excluding(x => x.LastUpdatedAt)
                         .Excluding(x => x.CreatedAt)
-                        .Excluding(x => x.ConformedData.CreatedDate)
+                        .Excluding(x => x.ConformedData!.CreatedDate)
             );
     }
 
