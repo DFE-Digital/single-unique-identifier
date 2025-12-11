@@ -4,6 +4,8 @@ using System.Text.Json;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using OneOf;
+using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
@@ -16,7 +18,7 @@ namespace SUI.Find.Application.Services;
 
 public interface ISearchService
 {
-    Task<SearchJobResult> StartSearchAsync(
+    Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
         EncryptedPersonId personId,
         string clientId,
         string[] scopes,
@@ -39,7 +41,7 @@ public interface ISearchService
         CancellationToken cancellationToken
     );
 
-    Task<SearchJobResult> GetSearchStatusAsync(
+    Task<OneOf<SearchJobDto, Unauthorized, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -55,7 +57,7 @@ public class SearchService(
     IHashService hashService
 ) : ISearchService
 {
-    public async Task<SearchJobResult> StartSearchAsync(
+    public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
         EncryptedPersonId personId,
         string clientId,
         string[] scopes,
@@ -101,7 +103,7 @@ public class SearchService(
                 LastUpdatedAt = existingInstance.LastUpdatedAt,
             };
 
-            return new SearchJobResult.Success(originalJob);
+            return originalJob;
         }
 
         var encryptDefinition = await custodianService.GetCustodianAsync(clientId);
@@ -111,7 +113,7 @@ public class SearchService(
                 "No custodian configuration found for ClientId: {ClientId}.",
                 clientId
             );
-            return new SearchJobResult.Failed();
+            return new Error();
         }
 
         if (encryptDefinition.Value.Encryption is null)
@@ -120,7 +122,7 @@ public class SearchService(
                 "Custodian configuration for ClientId: {ClientId} has no encryption defined.",
                 clientId
             );
-            return new SearchJobResult.Failed();
+            return new Error();
         }
 
         var unencryptedPersonId = encryptionService.DecryptPersonIdToNhs(
@@ -130,7 +132,7 @@ public class SearchService(
         if (!unencryptedPersonId.Success || unencryptedPersonId.Value is null)
         {
             logger.LogWarning("Failed to decrypt SUID for ClientId: {ClientId}.", clientId);
-            return new SearchJobResult.Failed();
+            return new Error();
         }
 
         var metaData = new SearchJobMetadata(
@@ -163,7 +165,7 @@ public class SearchService(
             LastUpdatedAt = DateTime.UtcNow,
         };
 
-        return new SearchJobResult.Success(searchJob);
+        return searchJob;
     }
 
     public async Task<SearchCancelResult> CancelSearchAsync(
@@ -309,7 +311,7 @@ public class SearchService(
         }
     }
 
-    public async Task<SearchJobResult> GetSearchStatusAsync(
+    public async Task<OneOf<SearchJobDto, Unauthorized, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -321,13 +323,13 @@ public class SearchService(
             var jobStatus = await client.GetInstanceAsync(jobId, true, cancellationToken);
             if (jobStatus is null)
             {
-                return new SearchJobResult.NotFound();
+                return new NotFound();
             }
 
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(jobStatus);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
-                return new SearchJobResult.Unauthorized();
+                return new Unauthorized();
             }
 
             var dto = new SearchJobDto
@@ -339,9 +341,7 @@ public class SearchService(
                 LastUpdatedAt = jobStatus.LastUpdatedAt,
             };
 
-            var searchJob = new SearchJobResult.Success(dto);
-
-            return searchJob;
+            return dto;
         }
         catch (Exception ex)
         {
@@ -351,7 +351,7 @@ public class SearchService(
                 jobId,
                 ex.Message
             );
-            return new SearchJobResult.Failed();
+            return new Error();
         }
     }
 
