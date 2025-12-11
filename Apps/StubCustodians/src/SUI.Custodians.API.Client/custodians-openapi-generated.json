@@ -789,7 +789,14 @@
         }
       },
       "NullableOfCrimeRiskTypeV1": {
-        "type": "integer",
+        "enum": [
+          "SexualExploitation",
+          "CriminalExploitation",
+          "Radicalisation",
+          "ModernSlaveryAndTrafficking",
+          "GangsAndYouthViolence",
+          null
+        ],
         "description": "Crime - Risk - Type",
         "nullable": true,
         "example": "CriminalExploitation"
