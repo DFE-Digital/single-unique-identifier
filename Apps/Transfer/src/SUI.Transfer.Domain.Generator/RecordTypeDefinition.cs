@@ -23,10 +23,10 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
             .ToArray();
 
     public string GenerateInterfaceMethodSource() =>
-        $"    {ConsolidatedName} ConsolidateRecords(IUnconsolidatedRecord<{Name}>[] unconsolidatedRecords, FieldRanker rankField);";
+        $"    {ConsolidatedName} ConsolidateRecords(IProviderRecord<{Name}>[] unconsolidatedRecords, FieldRanker rankField);";
 
     public string GenerateClassMethodSource() =>
-        $"    public {ConsolidatedName} ConsolidateRecords(IUnconsolidatedRecord<{Name}>[] unconsolidatedRecords, FieldRanker rankField) => {ConsolidatedName}.FromUnconsolidated(unconsolidatedRecords, rankField);";
+        $"    public {ConsolidatedName} ConsolidateRecords(IProviderRecord<{Name}>[] unconsolidatedRecords, FieldRanker rankField) => {ConsolidatedName}.FromUnconsolidated(unconsolidatedRecords, rankField);";
 
     public string GenerateConsolidateClassSource()
     {
@@ -55,7 +55,7 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
             {
             {{props}}
 
-                public static {{ConsolidatedName}} FromUnconsolidated(IUnconsolidatedRecord<{{Name}}>[] unconsolidatedRecords, FieldRanker rankField)
+                public static {{ConsolidatedName}} FromUnconsolidated(IProviderRecord<{{Name}}>[] unconsolidatedRecords, FieldRanker rankField)
                 {
                     return new {{ConsolidatedName}}
                     {

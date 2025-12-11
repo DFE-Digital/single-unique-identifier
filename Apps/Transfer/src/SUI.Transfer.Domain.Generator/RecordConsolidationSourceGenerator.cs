@@ -28,7 +28,7 @@ public class RecordConsolidationSourceGenerator : IIncrementalGenerator
             public Type[] RecordTypes { get; } = recordTypes;
         }
 
-        public interface IUnconsolidatedRecord<TRecord>
+        public interface IProviderRecord<TRecord>
         {
         	string ProviderSystemId { get; }
         	TRecord Record { get; }

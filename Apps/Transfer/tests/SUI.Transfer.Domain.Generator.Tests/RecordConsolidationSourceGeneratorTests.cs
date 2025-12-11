@@ -13,7 +13,7 @@ public class RecordConsolidationSourceGeneratorTests
     {
         // ACT
         var result = Sut.ConsolidateRecords(
-            Array.Empty<IUnconsolidatedRecord<ExampleRecord1>>(),
+            Array.Empty<IProviderRecord<ExampleRecord1>>(),
             Substitute.For<FieldRanker>()
         );
 
