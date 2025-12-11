@@ -22,7 +22,7 @@ public class QueryProvidersService(
 
         var searchResultItemsResponse = await buildCustodianRequestService.GetSearchResultItemsFromCustodianAsync(requestDto, cancellationToken);
 
-        if (searchResultItemsResponse.Value == null)
+        if (!searchResultItemsResponse.Success || searchResultItemsResponse.Value == null)
         {
             logger.LogInformation("Get SearchResultItems From custodian service returned null");
             return Result<IReadOnlyList<SearchResultItem>>.Fail("searchResultItemsResponse returned null");
