@@ -5,18 +5,16 @@ using ResultType = SUI.StubCustodians.Application.Common.HandlerResult<SUI.StubC
 
 namespace SUI.StubCustodians.Application.Queries
 {
-    [ExcludeFromCodeCoverage]
-    public record GetChildSocialCareRecordQuery : GetRecordQueryBase, IRequest<ResultType>
+    public record GetChildSocialCareDetailsRecordQuery : GetRecordQueryBase, IRequest<ResultType>
     {
         public IReadOnlyCollection<ErrorInfo> ValidateCommand() => ValidateCommon();
     }
 
-    [ExcludeFromCodeCoverage]
-    public class GetChildSocialCareRecordQueryHandler
-        : IRequestHandler<GetChildSocialCareRecordQuery, ResultType>
+    public class GetChildSocialCareDetailsRecordQueryHandler
+        : IRequestHandler<GetChildSocialCareDetailsRecordQuery, ResultType>
     {
         public Task<ResultType> Handle(
-            GetChildSocialCareRecordQuery request,
+            GetChildSocialCareDetailsRecordQuery request,
             CancellationToken cancellationToken
         )
         {

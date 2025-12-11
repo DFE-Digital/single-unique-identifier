@@ -89,7 +89,7 @@ namespace SUI.StubCustodians.API.Unit.Tests
         /// ChildSocialCareDetailsRecords
         /// </summary>
         [Fact]
-        public async Task GetChildSocialCareRecord_ShouldReturnOk_WhenHandlerSucceeds()
+        public async Task GetChildSocialCareDetailsRecord_ShouldReturnOk_WhenHandlerSucceeds()
         {
             var sui = "23456";
             var provider = "PROVIDER-B";
@@ -101,7 +101,7 @@ namespace SUI.StubCustodians.API.Unit.Tests
             };
 
             _mockMediator
-                .Send(Arg.Any<GetChildSocialCareRecordQuery>(), Arg.Any<CancellationToken>())
+                .Send(Arg.Any<GetChildSocialCareDetailsRecordQuery>(), Arg.Any<CancellationToken>())
                 .Returns(
                     HandlerResult<RecordEnvelope<ChildSocialCareDetailsRecordV1>>.Success(envelope)
                 );
@@ -113,10 +113,10 @@ namespace SUI.StubCustodians.API.Unit.Tests
         }
 
         [Fact]
-        public async Task GetChildSocialCareRecord_ShouldReturnNotFound_WhenHandlerReturnsNotFound()
+        public async Task GetChildSocialCareDetailsRecord_ShouldReturnNotFound_WhenHandlerReturnsNotFound()
         {
             _mockMediator
-                .Send(Arg.Any<GetChildSocialCareRecordQuery>(), Arg.Any<CancellationToken>())
+                .Send(Arg.Any<GetChildSocialCareDetailsRecordQuery>(), Arg.Any<CancellationToken>())
                 .Returns(
                     HandlerResult<RecordEnvelope<ChildSocialCareDetailsRecordV1>>.NotFound(
                         "missing"
