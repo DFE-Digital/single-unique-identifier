@@ -57,6 +57,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         }
 
         var tasks = new List<Task<IReadOnlyList<SearchResultItem>>>(availableProviders.Count);
+        logger.LogInformation("[DEBUG] number of providers found: {0}", availableProviders.Count);
 
         foreach (var provider in availableProviders)
         {
@@ -75,9 +76,14 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             );
         }
 
-        var results = await Task.WhenAll(tasks);
+        var taskResultsList = await Task.WhenAll(tasks);
 
-        var aggregatedResults = results.SelectMany(r => r).ToList();
+        var aggregatedResults = taskResultsList.SelectMany(r => r).ToList();
+
+        logger.LogInformation(
+            "[DEBUG] number of aggregatedResults found: {0}",
+            aggregatedResults.Count
+        );
 
         return aggregatedResults;
     }
