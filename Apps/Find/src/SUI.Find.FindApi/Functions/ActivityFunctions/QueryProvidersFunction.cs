@@ -5,7 +5,6 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
 
-
 namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 
 public class QueryProvidersFunction(
@@ -14,7 +13,7 @@ public class QueryProvidersFunction(
 )
 {
     [Function(nameof(QueryProvidersFunction))]
-    public async Task<Result<IReadOnlyList<SearchResultItem>>> QueryProvider(
+    public async Task<IReadOnlyList<SearchResultItem>> QueryProvider(
         [ActivityTrigger] FunctionContext context,
         QueryProviderInput data,
         CancellationToken cancellationToken
@@ -27,6 +26,6 @@ public class QueryProvidersFunction(
 
         logger.LogInformation("Query Provider request completed");
 
-        return results;
+        return results is { Success: true, Value: not null } ? results.Value : [];
     }
 }

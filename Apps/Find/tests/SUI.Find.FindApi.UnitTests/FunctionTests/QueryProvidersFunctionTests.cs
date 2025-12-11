@@ -11,8 +11,11 @@ namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
 public class QueryProvidersFunctionTests
 {
-    private readonly ILogger<QueryProvidersFunction> _mockLogger = Substitute.For<ILogger<QueryProvidersFunction>>();
-    private readonly IQueryProvidersService _mockQueryProvidersService = Substitute.For<IQueryProvidersService>();
+    private readonly ILogger<QueryProvidersFunction> _mockLogger = Substitute.For<
+        ILogger<QueryProvidersFunction>
+    >();
+    private readonly IQueryProvidersService _mockQueryProvidersService =
+        Substitute.For<IQueryProvidersService>();
     private readonly FunctionContext _mockContext = Substitute.For<FunctionContext>();
     private readonly QueryProvidersFunction _sut;
 
@@ -33,7 +36,10 @@ public class QueryProvidersFunctionTests
             new ProviderDefinition { OrgId = "org1" }
         );
 
-        var expectedItems = new List<SearchResultItem> { new("SystemA", "Provider A", "Type1", "/v1/records/original-id") };
+        var expectedItems = new List<SearchResultItem>
+        {
+            new("SystemA", "Provider A", "Type1", "/v1/records/original-id"),
+        };
         var expectedResult = Result<IReadOnlyList<SearchResultItem>>.Ok(expectedItems);
 
         _mockQueryProvidersService
@@ -44,8 +50,10 @@ public class QueryProvidersFunctionTests
         var result = await _sut.QueryProvider(_mockContext, input, CancellationToken.None);
 
         // Assert
-        await _mockQueryProvidersService.Received(1).QueryProvidersAsync(input, Arg.Any<CancellationToken>());
-        Assert.True(result.Success);
-        Assert.Equal(expectedResult, result);
+        await _mockQueryProvidersService
+            .Received(1)
+            .QueryProvidersAsync(input, Arg.Any<CancellationToken>());
+        Assert.Single(result);
+        Assert.Equal(expectedItems, result);
     }
 }
