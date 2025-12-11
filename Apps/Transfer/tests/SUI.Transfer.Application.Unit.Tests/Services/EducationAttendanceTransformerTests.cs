@@ -50,14 +50,14 @@ public class EducationAttendanceTransformerTests
         var result = sut.ApplyTransformation(
             new ConsolidatedData("999-000-1234")
             {
-                ChildPersonalDetailsRecord = null,
-                ChildSocialCareDetailsRecord = null,
+                PersonalDetailsRecord = null,
+                ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = new EducationDetailsRecordV1
                 {
                     EducationAttendances = null,
                 },
-                ChildHealthDataRecord = null,
-                ChildLinkedCrimeDataRecord = null,
+                HealthDataRecord = null,
+                CrimeDataRecord = null,
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
             }
@@ -87,14 +87,14 @@ public class EducationAttendanceTransformerTests
         var result = sut.ApplyTransformation(
             new ConsolidatedData("999-000-1234")
             {
-                ChildPersonalDetailsRecord = null,
-                ChildSocialCareDetailsRecord = null,
+                PersonalDetailsRecord = null,
+                ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = new EducationDetailsRecordV1
                 {
                     EducationAttendances = new List<EducationAttendanceV1> { attendanceRecord },
                 },
-                ChildHealthDataRecord = null,
-                ChildLinkedCrimeDataRecord = null,
+                HealthDataRecord = null,
+                CrimeDataRecord = null,
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
             }
@@ -137,8 +137,8 @@ public class EducationAttendanceTransformerTests
         var result = sut.ApplyTransformation(
             new ConsolidatedData("999-000-1234")
             {
-                ChildPersonalDetailsRecord = null,
-                ChildSocialCareDetailsRecord = null,
+                PersonalDetailsRecord = null,
+                ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = new EducationDetailsRecordV1
                 {
                     EducationAttendances = new List<EducationAttendanceV1>
@@ -147,8 +147,8 @@ public class EducationAttendanceTransformerTests
                         previousAttendanceRecord,
                     },
                 },
-                ChildHealthDataRecord = null,
-                ChildLinkedCrimeDataRecord = null,
+                HealthDataRecord = null,
+                CrimeDataRecord = null,
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
             }
@@ -193,8 +193,8 @@ public class EducationAttendanceTransformerTests
         var result = sut.ApplyTransformation(
             new ConsolidatedData("999-000-1234")
             {
-                ChildPersonalDetailsRecord = null,
-                ChildSocialCareDetailsRecord = null,
+                PersonalDetailsRecord = null,
+                ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = new EducationDetailsRecordV1
                 {
                     EducationAttendances = new List<EducationAttendanceV1>
@@ -203,8 +203,8 @@ public class EducationAttendanceTransformerTests
                         previousAttendanceRecord,
                     },
                 },
-                ChildHealthDataRecord = null,
-                ChildLinkedCrimeDataRecord = null,
+                HealthDataRecord = null,
+                CrimeDataRecord = null,
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
             }
