@@ -39,7 +39,7 @@ namespace SUI.StubCustodians.Application.Queries
             {
                 return Task.FromResult(
                     ResultType.NotFound(
-                        $"Records of type {typeof(HealthDataRecordV1)} for SUI:'{request.Sui}' not found"
+                        $"Records of type {typeof(CrimeDataRecordV1)} for SUI:'{request.Sui}' not found"
                     )
                 );
             }
