@@ -171,8 +171,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             _cancellationToken
         );
 
-        Assert.IsType<SearchJobDto>(result.Value);
-        var dto = result.AsT0;
+        var dto = Assert.IsType<SearchJobDto>(result.Value);
         Assert.Equal("job-123", dto.JobId);
         Assert.Equal(_personId.EncryptedValue, dto.PersonId);
         Assert.Equal(SearchStatus.Queued, dto.Status);
