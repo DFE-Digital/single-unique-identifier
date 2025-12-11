@@ -27,7 +27,7 @@ public interface ISearchService
         CancellationToken cancellationToken
     );
 
-    Task<SearchCancelResult> CancelSearchAsync(
+    Task<OneOf<SearchJobDto, NotFound, Unauthorized, Error>> CancelSearchAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -168,7 +168,7 @@ public class SearchService(
         return searchJob;
     }
 
-    public async Task<SearchCancelResult> CancelSearchAsync(
+    public async Task<OneOf<SearchJobDto, NotFound, Unauthorized, Error>> CancelSearchAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -180,14 +180,14 @@ public class SearchService(
             var metaData = await client.GetInstanceAsync(jobId, cancellation: cancellationToken);
             if (metaData is null)
             {
-                return new SearchCancelResult.NotFound();
+                return new NotFound();
             }
 
             // Check if the job belongs to the requesting client
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
-                return new SearchCancelResult.Unauthorized();
+                return new Unauthorized();
             }
 
             var canCancel =
@@ -207,21 +207,19 @@ public class SearchService(
             await client.TerminateInstanceAsync(jobId, "Cancelled by user", cancellationToken);
 
             // return success regardless of whether it could be cancelled. Keeps it idempotent.
-            return new SearchCancelResult.Success(
-                new SearchJobDto
-                {
-                    JobId = jobId,
-                    PersonId = input.Suid,
-                    Status = OrchestrationRuntimeStatus.Terminated.ToSuiSearchStatus(),
-                    CreatedAt = metaData.CreatedAt,
-                    LastUpdatedAt = metaData.LastUpdatedAt,
-                }
-            );
+            return new SearchJobDto
+            {
+                JobId = jobId,
+                PersonId = input.Suid,
+                Status = OrchestrationRuntimeStatus.Terminated.ToSuiSearchStatus(),
+                CreatedAt = metaData.CreatedAt,
+                LastUpdatedAt = metaData.LastUpdatedAt,
+            };
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error cancelling search job {JobId}.", jobId);
-            return new SearchCancelResult.Error();
+            return new Error();
         }
     }
 

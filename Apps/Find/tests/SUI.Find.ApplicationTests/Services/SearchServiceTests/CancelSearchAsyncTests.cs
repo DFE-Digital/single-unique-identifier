@@ -2,6 +2,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
@@ -36,7 +37,7 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchCancelResult.NotFound>(result);
+        Assert.IsType<NotFound>(result.Value);
     }
 
     [Fact]
@@ -55,7 +56,8 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchCancelResult.Success>(result);
+        var body = Assert.IsType<SearchJobDto>(result.Value);
+        Assert.Equal("completed-job", body.JobId);
     }
 
     [Fact]
@@ -74,7 +76,9 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchCancelResult.Success>(result);
+        var body = Assert.IsType<SearchJobDto>(result.Value);
+        Assert.NotNull(body);
+        Assert.Equal("non-cancellable-job", body.JobId);
     }
 
     [Fact]
@@ -93,12 +97,9 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchCancelResult.Success>(result);
-        // Assert body
-        var successResult = result as SearchCancelResult.Success;
-        var body = successResult?.Result;
-        Assert.NotNull(successResult);
-        Assert.Equal("test-suid", body?.PersonId);
+        var body = Assert.IsType<SearchJobDto>(result.Value);
+        Assert.NotNull(body);
+        Assert.Equal("test-suid", body.PersonId);
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchCancelResult.Error>(result);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -140,6 +141,6 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchCancelResult.Unauthorized>(result);
+        Assert.IsType<Unauthorized>(result.Value);
     }
 }
