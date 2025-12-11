@@ -88,8 +88,3 @@ FIND is the **only** component capable of cross-custodian correlation.
 
 ## Related Decisions
 - **ADR-SUI-0007** — Cryptographic scheme and key management  
-- **ADR-SUI-0008** — Custodian query and manifest architecture  
-- **ADR-SUI-0008** — Custodian query and manifest architecture  
-- **ADR-SUI-0009** — Search lifecycle and custodian fan-out  
-- **ADR-SUI-0010** — Policy Enforcement Point (PEP) and DSA-based sharing  
-- **ADR-SUI-0011** — FETCH as a central record retrieval function

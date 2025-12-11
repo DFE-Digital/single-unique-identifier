@@ -395,6 +395,5 @@ This scheme satisfies:
 
 
 ## Related Decisions
-
-- **ADR‑SUI-0007** — Custodian-Scoped Identifier Model  
+- **ADR‑SUI-0006** — Custodian-Scoped Encrypted Identifier for Person-Level Correlation
 - **ADR‑SUI-0008** — Identifier Lifecycle & TTL‑Driven Refresh Strategy (TTL & rotation)  
