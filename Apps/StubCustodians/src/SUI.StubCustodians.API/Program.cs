@@ -92,6 +92,11 @@ namespace SUI.StubCustodians.API
                 PersonalDetailsRecordProvider
             >();
 
+            services.AddScoped<
+                IRecordProvider<EducationDetailsRecordV1>,
+                EducationDetailsRecordProvider
+            >();
+
             string activeCustodian = configuration.GetValue<string>(
                 "ActiveCustodian",
                 "MockEducationProvider"

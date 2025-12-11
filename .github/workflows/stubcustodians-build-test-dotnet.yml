@@ -1,4 +1,4 @@
-name: Build, Test and Generate OpenAPI for StubCustodians
+name: Build and Test "StubCustodians" Solution
 
 on:
   workflow_dispatch:
