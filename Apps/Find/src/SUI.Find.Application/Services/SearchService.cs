@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Text.Json;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
@@ -11,7 +10,6 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.Services;
@@ -34,7 +32,7 @@ public interface ISearchService
         CancellationToken cancellationToken
     );
 
-    Task<SearchResult> GetSearchResultsAsync(
+    Task<OneOf<SearchResultsDto, NotFound, Unauthorized, Error>> GetSearchResultsAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -223,7 +221,7 @@ public class SearchService(
         }
     }
 
-    public async Task<SearchResult> GetSearchResultsAsync(
+    public async Task<OneOf<SearchResultsDto, NotFound, Unauthorized, Error>> GetSearchResultsAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -240,14 +238,14 @@ public class SearchService(
             if (metaData is null)
             {
                 logger.LogInformation("Search job with ID {JobId} not found.", jobId);
-                return new SearchResult.NotFound();
+                return new NotFound();
             }
 
             var meta = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (meta is null)
             {
                 logger.LogWarning("Failed to read metadata for search job {JobId}.", jobId);
-                return new SearchResult.Failed();
+                return new Error();
             }
 
             if (meta.PolicyContext.ClientId != clientId)
@@ -257,45 +255,39 @@ public class SearchService(
                     jobId,
                     clientId
                 );
-                return new SearchResult.Unauthorized();
+                return new Unauthorized();
             }
 
             if (metaData.IsRunning)
             {
-                return new SearchResult.Success(
-                    new SearchResultsDto
-                    {
-                        JobId = jobId,
-                        Suid = meta.Suid,
-                        Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                        Items = [],
-                    }
-                );
-            }
-
-            if (string.IsNullOrEmpty(metaData.SerializedOutput))
-            {
-                return new SearchResult.Success(
-                    new SearchResultsDto
-                    {
-                        JobId = jobId,
-                        Suid = meta.Suid,
-                        Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                        Items = [],
-                    }
-                );
-            }
-            var items = JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput);
-
-            return new SearchResult.Success(
-                new SearchResultsDto
+                return new SearchResultsDto
                 {
                     JobId = jobId,
                     Suid = meta.Suid,
                     Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    Items = items ?? [],
-                }
-            );
+                    Items = [],
+                };
+            }
+
+            if (string.IsNullOrEmpty(metaData.SerializedOutput))
+            {
+                return new SearchResultsDto
+                {
+                    JobId = jobId,
+                    Suid = meta.Suid,
+                    Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
+                    Items = [],
+                };
+            }
+            var items = JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput);
+
+            return new SearchResultsDto
+            {
+                JobId = jobId,
+                Suid = meta.Suid,
+                Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
+                Items = items ?? [],
+            };
         }
         catch (Exception ex)
         {
@@ -305,7 +297,7 @@ public class SearchService(
                 jobId,
                 ex.Message
             );
-            return new SearchResult.Failed();
+            return new Error();
         }
     }
 
