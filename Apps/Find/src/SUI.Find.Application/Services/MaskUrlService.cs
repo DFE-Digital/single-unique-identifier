@@ -4,7 +4,6 @@ using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Services;
 
