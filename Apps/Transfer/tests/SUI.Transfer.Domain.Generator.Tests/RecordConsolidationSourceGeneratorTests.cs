@@ -27,4 +27,18 @@ public class RecordConsolidationSourceGeneratorTests
         result.DateOfBirth.Value.Should().BeNull();
         result.DateOfBirth.Values.Should().HaveCount(0);
     }
+
+    // rs-todo: does consolidate when there is a single input record
+
+    // rs-todo: does consolidate when there is a single input record with null values
+
+    // rs-todo: does consolidate when there are multiple input records
+
+    // rs-todo: does support consolidation of records with collection properties
+
+    // rs-todo: does order null values to the back
+
+    // rs-todo: does order by provider name
+
+    // rs-todo: does order by FieldRanker then provider name then null values
 }
