@@ -1,17 +1,24 @@
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Infrastructure.Utility;
 
-public class ProviderHttpClient(IHttpClientFactory httpClientFactory, ILogger<ProviderHttpClient> logger) : IProviderHttpClient
+public class ProviderHttpClient(
+    IHttpClientFactory httpClientFactory,
+    ILogger<ProviderHttpClient> logger
+) : IProviderHttpClient
 {
-    public async Task<Result<string>> GetAsync(string url, string? bearerToken, CancellationToken ct)
+    public async Task<Result<string>> GetAsync(
+        string url,
+        string? bearerToken,
+        CancellationToken ct
+    )
     {
-        var client = httpClientFactory.CreateClient("providers");
+        var client = httpClientFactory.CreateClient(ApplicationConstants.Providers.LoggingName);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
 
@@ -20,20 +27,35 @@ public class ProviderHttpClient(IHttpClientFactory httpClientFactory, ILogger<Pr
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
         }
 
+        return await SendRequestAsync(client, request, ct);
+    }
+
+    public async Task<Result<string>> SendAsync(HttpRequestMessage request, CancellationToken ct)
+    {
+        var client = httpClientFactory.CreateClient(ApplicationConstants.Providers.LoggingName);
+        return await SendRequestAsync(client, request, ct);
+    }
+
+    private async Task<Result<string>> SendRequestAsync(
+        HttpClient client,
+        HttpRequestMessage request,
+        CancellationToken ct
+    )
+    {
         try
         {
             using var response = await client.SendAsync(request, ct);
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                logger.LogInformation("Provider returned 404 Not Found for URL");
+                logger.LogInformation("Http Provider returned: {StatusCode}", response.StatusCode);
                 return Result<string>.Fail("NotFound");
             }
 
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("Provider returned unexpected status: {StatusCode}", response.StatusCode);
-                return Result<string>.Fail($"Custodian returned unexpected status: {response.StatusCode}");
+                logger.LogWarning("Http Provider returned: {StatusCode}", response.StatusCode);
+                return Result<string>.Fail($"StatusCode: {response.StatusCode}");
             }
 
             var content = await response.Content.ReadAsStringAsync(ct);

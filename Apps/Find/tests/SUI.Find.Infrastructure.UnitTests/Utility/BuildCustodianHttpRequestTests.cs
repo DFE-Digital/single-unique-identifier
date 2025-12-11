@@ -5,6 +5,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Utility;
 
 public class BuildCustodianHttpRequestTests
 {
+    private readonly BuildCustodianHttpRequest _sut = new();
     private const string DefaultOrgId = "test-org-123";
     private const string EncryptedPersonId = "1234567890123456";
 
@@ -32,6 +33,8 @@ public class BuildCustodianHttpRequestTests
     [InlineData("get", "GET")]
     [InlineData("Post", "POST")]
     [InlineData("pUt", "PUT")]
+    [InlineData("PaTcH", "PATCH")]
+    [InlineData("delete", "DELETE")]
     public void BuildHttpRequest_ReturnConfiguredHttpRequest(
         string inputMethod,
         string expectedMethod
@@ -41,8 +44,7 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider(method: inputMethod);
 
         // Act
-        var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, null);
-
+        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
         // Assert
         Assert.Equal(expectedMethod, request.Method.Method);
         Assert.Contains("orgId", request.Headers.ToString());
@@ -61,7 +63,7 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider(personIdPosition: "path", url: url);
 
         // Act
-        var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, null);
+        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
 
         // Assert
         Assert.Equal(
@@ -78,11 +80,7 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider();
 
         // Act
-        var request = BuildCustodianHttpRequest.BuildHttpRequest(
-            provider,
-            EncryptedPersonId,
-            token
-        );
+        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, token);
 
         // Assert
         Assert.NotNull(request.Headers.Authorization);
@@ -100,11 +98,7 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider();
 
         // Act
-        var request = BuildCustodianHttpRequest.BuildHttpRequest(
-            provider,
-            EncryptedPersonId,
-            token
-        );
+        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, token);
 
         // Assert
         Assert.Null(request.Headers.Authorization);
@@ -117,7 +111,7 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider(personIdPosition: "header");
 
         // Act
-        var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, null);
+        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
 
         // Assert
         Assert.Contains("personId", request.Headers.ToString());
@@ -140,7 +134,7 @@ public class BuildCustodianHttpRequestTests
         );
 
         // Act
-        var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, null);
+        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
 
         // Assert
         Assert.Null(request.Content);
@@ -158,7 +152,7 @@ public class BuildCustodianHttpRequestTests
         );
 
         // Act
-        var request = BuildCustodianHttpRequest.BuildHttpRequest(provider, EncryptedPersonId, null);
+        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
 
         // Assert
         Assert.NotNull(request.Content);

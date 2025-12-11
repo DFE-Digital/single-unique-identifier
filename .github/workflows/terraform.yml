@@ -1,5 +1,5 @@
 name: Terraform Core Infrastructure
-run-name: Terraform Core Infrastructure - ${{ inputs.environment }}
+run-name: Terraform Core - ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
 
 on:
   workflow_dispatch:
@@ -23,6 +23,7 @@ permissions:
 
 jobs:
   terraform:
+    name: Terraform core for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
     uses: ./.github/workflows/terraform-plan-and-apply.yml
     secrets: inherit
     with:

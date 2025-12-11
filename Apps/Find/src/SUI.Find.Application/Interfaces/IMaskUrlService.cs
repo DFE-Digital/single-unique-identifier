@@ -12,10 +12,9 @@ public interface IMaskUrlService
         CancellationToken ct
     );
 
-    Task<Result<ResolvedFetchMapping>> ResolveAsync(
+    Task<ResolvedFetchMappingResult> ResolveAsync(
         string requestingOrg,
         string fetchId,
         CancellationToken ct
     );
 }
-

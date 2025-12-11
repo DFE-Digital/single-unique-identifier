@@ -75,11 +75,11 @@ public class TransferJobTests
 
         UnconsolidatedData mockUnconsolidatedData = new(sui)
         {
-            ChildPersonalDetailsRecords = [],
-            ChildSocialCareDetailsRecords = [],
+            PersonalDetailsRecords = [],
+            ChildrensServicesDetailsRecords = [],
             EducationDetailsRecords = [],
-            ChildHealthDataRecords = [],
-            ChildLinkedCrimeDataRecords = [],
+            HealthDataRecords = [],
+            CrimeDataRecords = [],
             FailedFetches = [],
         };
 

@@ -4,7 +4,6 @@ using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
-using SUI.Find.Domain.Models;
 
 namespace SUI.Find.ApplicationTests.Services.MaskUrlServiceTests;
 
@@ -34,17 +33,19 @@ public class ResolveAsyncTests
         );
         _fetchUrlStorageService
             .GetAsync(OrgId, FetchId, Arg.Any<CancellationToken>())
-            .Returns(Result<ResolvedFetchMapping>.Ok(mapping));
+            .Returns(new ResolvedFetchMappingResult.Success(mapping));
 
         // Act
         var result = await _service.ResolveAsync(OrgId, FetchId, CancellationToken.None);
 
         // Assert
-        Assert.True(result.Success);
-        Assert.NotNull(result.Value);
-        Assert.Equal(mapping.TargetUrl, result.Value.TargetUrl);
-        Assert.Equal(mapping.TargetOrgId, result.Value.TargetOrgId);
-        Assert.Equal(mapping.RecordType, result.Value.RecordType);
+        Assert.IsType<ResolvedFetchMappingResult.Success>(result);
+        var resultData = result as ResolvedFetchMappingResult.Success;
+        var body = resultData!.ResolvedFetchMapping;
+        Assert.NotNull(body);
+        Assert.Equal(mapping.TargetUrl, body.TargetUrl);
+        Assert.Equal(mapping.TargetOrgId, body.TargetOrgId);
+        Assert.Equal(mapping.RecordType, body.RecordType);
     }
 
     [Fact]
@@ -59,9 +60,7 @@ public class ResolveAsyncTests
         var result = await _service.ResolveAsync(OrgId, FetchId, CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Null(result.Value);
-        Assert.Equal("Failed to resolve fetch URL", result.Error);
+        Assert.IsType<ResolvedFetchMappingResult.Fail>(result);
     }
 
     [Fact]
@@ -70,14 +69,12 @@ public class ResolveAsyncTests
         // Arrange
         _fetchUrlStorageService
             .GetAsync(OrgId, FetchId, Arg.Any<CancellationToken>())
-            .Returns(Result<ResolvedFetchMapping>.Fail("Not found"));
+            .Returns(new ResolvedFetchMappingResult.Fail());
 
         // Act
         var result = await _service.ResolveAsync(OrgId, FetchId, CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Null(result.Value);
-        Assert.Equal("Not found", result.Error);
+        Assert.IsType<ResolvedFetchMappingResult.Fail>(result);
     }
 }

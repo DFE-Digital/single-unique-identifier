@@ -8,6 +8,11 @@ variable "environment_id" {
   type        = string
 }
 
+variable "environment_tag" {
+  description = "Environment tag value (for example Dev or Test)."
+  type        = string
+}
+
 variable "location" {
   description = "Azure location for the resource group (for example uksouth)."
   type        = string
@@ -20,6 +25,16 @@ variable "region_short" {
 
 variable "descriptor" {
   description = "Free text descriptor for the resource group (for example dev)."
+  type        = string
+}
+
+variable "product" {
+  description = "Product tag value."
+  type        = string
+}
+
+variable "service_offering" {
+  description = "Service_Offering tag value."
   type        = string
 }
 
