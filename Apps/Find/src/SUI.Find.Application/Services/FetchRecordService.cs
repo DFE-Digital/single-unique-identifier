@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Services;
 
@@ -14,7 +14,7 @@ public class FetchRecordService(
     IOutboundAuthService outboundAuthService
 ) : IFetchRecordService
 {
-    public async Task<Result<CustodianRecord>> FetchRecordAsync(
+    public async Task<Domain.Models.Result<CustodianRecord>> FetchRecordAsync(
         string fetchId,
         string requestingOrgId,
         CancellationToken cancellationToken
@@ -26,23 +26,19 @@ public class FetchRecordService(
             cancellationToken
         );
 
-        return resolvedMapping switch
+        return resolvedMapping.Value switch
         {
-            ResolvedFetchMappingResult.Success success => await GetCustodianDataAsync(
-                success.ResolvedFetchMapping,
+            ResolvedFetchMapping successDto => await GetCustodianDataAsync(
+                successDto,
                 cancellationToken
             ),
-            ResolvedFetchMappingResult.Fail => Result<CustodianRecord>.Fail(
-                "Failed to resolve fetch mapping."
-            ),
-            ResolvedFetchMappingResult.NotFound => Result<CustodianRecord>.Fail("NotFound"),
-            ResolvedFetchMappingResult.Expired => Result<CustodianRecord>.Fail("NotFound"),
-            ResolvedFetchMappingResult.Unauthorized => Result<CustodianRecord>.Fail("Unauthorized"),
-            _ => Result<CustodianRecord>.Fail("Failed to fetch mapping."),
+            NotFound _ => Domain.Models.Result<CustodianRecord>.Fail("NotFound"),
+            Unauthorized _ => Domain.Models.Result<CustodianRecord>.Fail("Unauthorized"),
+            _ => Domain.Models.Result<CustodianRecord>.Fail("Failed to fetch mapping."),
         };
     }
 
-    private async Task<Result<CustodianRecord>> GetCustodianDataAsync(
+    private async Task<Domain.Models.Result<CustodianRecord>> GetCustodianDataAsync(
         ResolvedFetchMapping resolvedMapping,
         CancellationToken cancellationToken
     )
@@ -55,7 +51,7 @@ public class FetchRecordService(
                 "Failed to retrieve custodian organisation for Org ID {OrgId}",
                 resolvedMapping.TargetOrgId
             );
-            return Result<CustodianRecord>.Fail(
+            return Domain.Models.Result<CustodianRecord>.Fail(
                 provider.Error ?? "Failed to retrieve custodian organisation."
             );
         }
@@ -73,7 +69,9 @@ public class FetchRecordService(
                 tokenResult.Error
             );
 
-            return Result<CustodianRecord>.Fail("Unable to obtain access token for fetch record.");
+            return Domain.Models.Result<CustodianRecord>.Fail(
+                "Unable to obtain access token for fetch record."
+            );
         }
 
         logger.LogInformation("Fetch Record access token obtained");
@@ -87,7 +85,7 @@ public class FetchRecordService(
         if (!response.Success)
         {
             logger.LogError("Failed to fetch record: {Error}", response.Error);
-            return Result<CustodianRecord>.Fail(
+            return Domain.Models.Result<CustodianRecord>.Fail(
                 response.Error ?? "Error fetching record from provider."
             );
         }
@@ -95,7 +93,7 @@ public class FetchRecordService(
         if (string.IsNullOrWhiteSpace(response.Value))
         {
             logger.LogInformation("Fetch Record return empty response");
-            return Result<CustodianRecord>.Fail("Requested record is empty");
+            return Domain.Models.Result<CustodianRecord>.Fail("Requested record is empty");
         }
 
         var recordContent = JsonSerializer.Deserialize<CustodianRecord>(
@@ -104,7 +102,7 @@ public class FetchRecordService(
         );
 
         return recordContent is not null
-            ? Result<CustodianRecord>.Ok(recordContent)
-            : Result<CustodianRecord>.Fail("Requested record is empty");
+            ? Domain.Models.Result<CustodianRecord>.Ok(recordContent)
+            : Domain.Models.Result<CustodianRecord>.Fail("Requested record is empty");
     }
 }

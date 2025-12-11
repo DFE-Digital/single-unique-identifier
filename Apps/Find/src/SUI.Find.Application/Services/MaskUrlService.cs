@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using OneOf;
+using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
@@ -52,7 +54,7 @@ public class MaskUrlService(
         return masked;
     }
 
-    public async Task<ResolvedFetchMappingResult> ResolveAsync(
+    public async Task<OneOf<ResolvedFetchMapping, NotFound, Unauthorized, Error>> ResolveAsync(
         string requestingOrg,
         string fetchId,
         CancellationToken ct
@@ -71,7 +73,7 @@ public class MaskUrlService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get masked URL");
-            return new ResolvedFetchMappingResult.Fail();
+            return new Error();
         }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
@@ -33,15 +34,13 @@ public class ResolveAsyncTests
         );
         _fetchUrlStorageService
             .GetAsync(OrgId, FetchId, Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Success(mapping));
+            .Returns(mapping);
 
         // Act
         var result = await _service.ResolveAsync(OrgId, FetchId, CancellationToken.None);
 
         // Assert
-        Assert.IsType<ResolvedFetchMappingResult.Success>(result);
-        var resultData = result as ResolvedFetchMappingResult.Success;
-        var body = resultData!.ResolvedFetchMapping;
+        var body = Assert.IsType<ResolvedFetchMapping>(result.Value);
         Assert.NotNull(body);
         Assert.Equal(mapping.TargetUrl, body.TargetUrl);
         Assert.Equal(mapping.TargetOrgId, body.TargetOrgId);
@@ -60,21 +59,6 @@ public class ResolveAsyncTests
         var result = await _service.ResolveAsync(OrgId, FetchId, CancellationToken.None);
 
         // Assert
-        Assert.IsType<ResolvedFetchMappingResult.Fail>(result);
-    }
-
-    [Fact]
-    public async Task ShouldReturnFail_WhenStorageFetchIsNotSuccessful()
-    {
-        // Arrange
-        _fetchUrlStorageService
-            .GetAsync(OrgId, FetchId, Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Fail());
-
-        // Act
-        var result = await _service.ResolveAsync(OrgId, FetchId, CancellationToken.None);
-
-        // Assert
-        Assert.IsType<ResolvedFetchMappingResult.Fail>(result);
+        Assert.IsType<Error>(result.Value);
     }
 }
