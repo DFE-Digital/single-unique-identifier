@@ -26,25 +26,34 @@ public class FetchRecordService(
             cancellationToken
         );
 
-        if (!resolvedMapping.Success || resolvedMapping.Value is null)
+        return resolvedMapping switch
         {
-            logger.LogError(
-                "Failed to resolve fetch mapping for ID {FetchId} and Requesting Org {RequestingOrgId}.",
-                fetchId,
-                requestingOrgId
-            );
-            return Result<CustodianRecord>.Fail(
-                resolvedMapping.Error ?? "Failed to resolve fetch mapping."
-            );
-        }
+            ResolvedFetchMappingResult.Success success => await GetCustodianDataAsync(
+                success.ResolvedFetchMapping,
+                cancellationToken
+            ),
+            ResolvedFetchMappingResult.Fail => Result<CustodianRecord>.Fail(
+                "Failed to resolve fetch mapping."
+            ),
+            ResolvedFetchMappingResult.NotFound => Result<CustodianRecord>.Fail("NotFound"),
+            ResolvedFetchMappingResult.Expired => Result<CustodianRecord>.Fail("NotFound"),
+            ResolvedFetchMappingResult.Unauthorized => Result<CustodianRecord>.Fail("Unauthorized"),
+            _ => Result<CustodianRecord>.Fail("Failed to fetch mapping."),
+        };
+    }
 
-        var provider = await custodianService.GetCustodianAsync(resolvedMapping.Value.TargetOrgId);
+    private async Task<Result<CustodianRecord>> GetCustodianDataAsync(
+        ResolvedFetchMapping resolvedMapping,
+        CancellationToken cancellationToken
+    )
+    {
+        var provider = await custodianService.GetCustodianAsync(resolvedMapping.TargetOrgId);
 
         if (!provider.Success || provider.Value is null)
         {
             logger.LogError(
                 "Failed to retrieve custodian organisation for Org ID {OrgId}",
-                resolvedMapping.Value.TargetOrgId
+                resolvedMapping.TargetOrgId
             );
             return Result<CustodianRecord>.Fail(
                 provider.Error ?? "Failed to retrieve custodian organisation."
@@ -70,7 +79,7 @@ public class FetchRecordService(
         logger.LogInformation("Fetch Record access token obtained");
 
         var response = await providerClient.GetAsync(
-            resolvedMapping.Value.TargetUrl,
+            resolvedMapping.TargetUrl,
             tokenResult.Value,
             cancellationToken
         );

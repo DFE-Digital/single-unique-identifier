@@ -6,7 +6,6 @@ using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Services;
 
-
 public class MaskUrlService(
     ILogger<MaskUrlService> logger,
     IFetchUrlStorageService fetchUrlStorageService
@@ -53,7 +52,7 @@ public class MaskUrlService(
         return masked;
     }
 
-    public async Task<Result<ResolvedFetchMapping>> ResolveAsync(
+    public async Task<ResolvedFetchMappingResult> ResolveAsync(
         string requestingOrg,
         string fetchId,
         CancellationToken ct
@@ -67,25 +66,12 @@ public class MaskUrlService(
                 ct: ct
             );
 
-            if (!res.Success || res.Value is null)
-            {
-                return Result<ResolvedFetchMapping>.Fail(
-                    res.Error ?? "Failed to resolve fetch URL"
-                );
-            }
-
-            return Result<ResolvedFetchMapping>.Ok(
-                new ResolvedFetchMapping(
-                    TargetUrl: res.Value.TargetUrl,
-                    TargetOrgId: res.Value.TargetOrgId,
-                    RecordType: res.Value.RecordType
-                )
-            );
+            return res;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error resolving fetch URL for FetchId {FetchId}", fetchId);
-            return Result<ResolvedFetchMapping>.Fail("Failed to resolve fetch URL");
+            logger.LogError(ex, "Failed to get masked URL");
+            return new ResolvedFetchMappingResult.Fail();
         }
     }
 }
