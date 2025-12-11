@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
@@ -38,14 +39,12 @@ public class MatchPersonAsyncTests
     [Fact]
     public async Task ShouldReturnMatch_WhenPersonIsFound()
     {
-        var personId = new EncryptedPersonId("encrypted-id");
-        _matchRepository
-            .MatchPersonAsync(_request)
-            .Returns(new MatchFhirResponse.Match(personId.EncryptedValue));
+        const string personId = "nhs-number-123";
+        _matchRepository.MatchPersonAsync(_request).Returns(personId);
         _custodianService
             .GetCustodianAsync(ClientId)
             .Returns(
-                Result<ProviderDefinition>.Ok(
+                Domain.Models.Result<ProviderDefinition>.Ok(
                     new ProviderDefinition
                     {
                         OrgId = ClientId,
@@ -54,27 +53,29 @@ public class MatchPersonAsyncTests
                     }
                 )
             );
+
+        var encryptedPersonId = new EncryptedPersonId("encrypted-id");
         _personIdEncryptionService
-            .EncryptNhsToPersonId(personId.EncryptedValue, Arg.Any<EncryptionDefinition>())
-            .Returns(Result<string>.Ok("encrypted-id"));
+            .EncryptNhsToPersonId(personId, Arg.Any<EncryptionDefinition>())
+            .Returns(Domain.Models.Result<string>.Ok(encryptedPersonId.EncryptedValue));
 
         var result = await _service.MatchPersonAsync(_request, ClientId);
 
-        Assert.IsType<MatchPersonResponse.Match>(result);
-        Assert.Equal(personId, ((MatchPersonResponse.Match)result).PersonId);
+        var val = Assert.IsType<EncryptedPersonId>(result.Value);
+        Assert.Equal(encryptedPersonId, val);
     }
 
     [Fact]
     public async Task ShouldReturnNoMatch_WhenPersonIsNotFound()
     {
-        _matchRepository.MatchPersonAsync(_request).Returns(new MatchFhirResponse.NoMatch());
+        _matchRepository.MatchPersonAsync(_request).Returns(new NotFound());
         _custodianService
             .GetCustodianAsync(ClientId)
-            .Returns(Result<ProviderDefinition>.Fail("Not found"));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Not found"));
 
         var result = await _service.MatchPersonAsync(_request, ClientId);
 
-        Assert.IsType<MatchPersonResponse.NoMatch>(result);
+        Assert.IsType<NotFound>(result.Value);
     }
 
     [Fact]
@@ -84,20 +85,17 @@ public class MatchPersonAsyncTests
 
         var result = await _service.MatchPersonAsync(_request, ClientId);
 
-        var error = Assert.IsType<MatchPersonResponse.Error>(result);
-        Assert.False(string.IsNullOrEmpty(error.ErrorMessage));
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
     public async Task ShouldReturnError_WhenEncryptionDefinitionIsMissing()
     {
-        _matchRepository
-            .MatchPersonAsync(_request)
-            .Returns(new MatchFhirResponse.Match("nhs-number-123"));
+        _matchRepository.MatchPersonAsync(_request).Returns("nhs-number-123");
         _custodianService
             .GetCustodianAsync(ClientId)
             .Returns(
-                Result<ProviderDefinition>.Ok(
+                Domain.Models.Result<ProviderDefinition>.Ok(
                     new ProviderDefinition
                     {
                         OrgId = ClientId,
@@ -109,7 +107,6 @@ public class MatchPersonAsyncTests
 
         var result = await _service.MatchPersonAsync(_request, ClientId);
 
-        var errorResult = Assert.IsType<MatchPersonResponse.Error>(result);
-        Assert.Equal("Encryption definition not found.", errorResult.ErrorMessage);
+        Assert.IsType<Error>(result.Value);
     }
 }

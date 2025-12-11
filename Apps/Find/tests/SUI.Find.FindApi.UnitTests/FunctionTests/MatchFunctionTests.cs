@@ -6,6 +6,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using OneOf.Types;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.Domain.ValueObjects;
@@ -47,10 +48,10 @@ public class MatchFunctionTests
             BirthDate = DateOnly.Parse("1990-01-01"),
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
-        var personId = new EncryptedPersonId("encrypted-value");
+        var encryptedPersonId = new EncryptedPersonId("encrypted-value");
         _service
             .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
-            .Returns(new MatchPersonResponse.Match(personId));
+            .Returns(encryptedPersonId);
 
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
@@ -78,7 +79,7 @@ public class MatchFunctionTests
         var req = MockHttpRequestData.CreateJson(validRequest);
         _service
             .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
-            .Returns(new MatchPersonResponse.NoMatch());
+            .Returns(new NotFound());
 
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
@@ -102,7 +103,7 @@ public class MatchFunctionTests
         var req = MockHttpRequestData.CreateJson(validRequest);
         _service
             .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
-            .Returns(new MatchPersonResponse.Error("error"));
+            .Returns(new Error());
 
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
