@@ -60,3 +60,6 @@ nunit-*.xml
 .vscode
 .env
 coverage/
+
+# C# source generation
+*.g.cs

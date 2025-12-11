@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "DebugRoslynSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../SUI.Transfer.Domain.Generator.Sample/SUI.Transfer.Domain.Generator.Sample.csproj // rs-todo: this needs to be fixed to be something else!"
+    }
+  }
+}
