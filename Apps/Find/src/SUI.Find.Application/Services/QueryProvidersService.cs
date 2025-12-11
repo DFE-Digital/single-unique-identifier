@@ -10,88 +10,28 @@ namespace SUI.Find.Application.Services;
 public class QueryProvidersService(
     IBuildCustodianRequestService buildCustodianRequestService,
     ILogger<QueryProvidersService> logger,
-    IPersonIdEncryptionService encryptionService,
-    IMaskUrlService maskUrlService,
-    IOutboundAuthService outboundAuthService
+    IMaskUrlService maskUrlService
     ) : IQueryProvidersService
 {
     public async Task<Result<IReadOnlyList<SearchResultItem>>> QueryProvidersAsync(QueryProviderInput data, CancellationToken cancellationToken)
     {
-        if (data.Provider.Encryption is null)
-        {
-            logger.LogError("Provider {ProviderDefinition} has no encryption configured", data.Provider);
-            return Result<IReadOnlyList<SearchResultItem>>.Fail("Provider has no encryption configured");
-        }
-
-        var encryptedPersonId = encryptionService.EncryptNhsToPersonId(
-            data.Suid,
-            data.Provider.Encryption
-        );
-
-        if (!encryptedPersonId.Success)
-        {
-            logger.LogError(
-                "Encryption failed for provider {Provider}: {ErrorMessage}",
-                data.Provider.ProviderName,
-                encryptedPersonId.Error
-            );
-
-            return Result<IReadOnlyList<SearchResultItem>>.Fail(encryptedPersonId.Error ?? "Encryption of PersonId Failed");
-        }
-
-        var tokenResult = await outboundAuthService.GetAccessTokenAsync(
-            data.Provider,
-            CancellationToken.None
-        );
-        if (!tokenResult.Success || string.IsNullOrWhiteSpace(tokenResult.Value))
-        {
-            logger.LogError(
-                "Failed to obtain access token for provider {Provider}: {ErrorMessage}",
-                data.Provider.ProviderName,
-                tokenResult.Error
-            );
-
-            return Result<IReadOnlyList<SearchResultItem>>.Fail(tokenResult.Error ?? "Failed to obtain token");
-        }
-
         var requestDto = new BuildCustodianRequestDto(
             data.Provider,
-            encryptedPersonId.Value!,
-            tokenResult.Value
+            data.Suid
         );
 
-        var responseResult = await buildCustodianRequestService.BuildCustodianRequestAsync(requestDto, cancellationToken);
+        var searchResultItemsResponse = await buildCustodianRequestService.GetSearchResultItemsFromCustodianAsync(requestDto, cancellationToken);
 
-        if (!responseResult.Success)
+        if (searchResultItemsResponse.Value == null)
         {
-            logger.LogInformation(
-                "Provider '{Provider}' returned error {ErrorMessage}",
-                data.Provider.ProviderName,
-                responseResult.Error
-            );
-
-            return Result<IReadOnlyList<SearchResultItem>>.Fail(responseResult.Error ?? "Response from provider unsuccessful");
+            logger.LogInformation("Get SearchResultItems From custodian service returned null");
+            return Result<IReadOnlyList<SearchResultItem>>.Fail("searchResultItemsResponse returned null");
         }
 
-        if (string.IsNullOrWhiteSpace(responseResult.Value))
-        {
-            logger.LogInformation("Provider returned empty response");
-            return Result<IReadOnlyList<SearchResultItem>>.Fail("Empty response returned by provider");
-        }
-
-        var searchResultItems = JsonSerializer.Deserialize<List<SearchResultItem>>(
-            responseResult.Value,
-            JsonSerializerOptions.Web
-        );
-
-        if (searchResultItems is null || searchResultItems.Count == 0)
-        {
-            logger.LogInformation("No search result items found in service response");
-            return Result<IReadOnlyList<SearchResultItem>>.Fail("No search result items");
-        }
+        logger.LogInformation("Starting masking service");
 
         var maskedSearchResultItems = await maskUrlService.CreateAsync(
-            searchResultItems,
+            searchResultItemsResponse.Value,
             data,
             cancellationToken
         );
