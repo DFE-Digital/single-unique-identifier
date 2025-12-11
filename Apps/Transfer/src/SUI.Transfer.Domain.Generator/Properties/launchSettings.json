@@ -3,7 +3,7 @@
   "profiles": {
     "DebugRoslynSourceGenerator": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../SUI.Transfer.Domain/SUI.Transfer.Domain.csproj"
+      "targetProject": "../../tests/SUI.Transfer.Domain.Generator.Tests/SUI.Transfer.Domain.Generator.Tests.csproj"
     }
   }
 }

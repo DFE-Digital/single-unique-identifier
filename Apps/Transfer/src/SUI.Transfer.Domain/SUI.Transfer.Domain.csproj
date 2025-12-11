@@ -23,9 +23,9 @@
 
   <Target Name="DeletePreviouslyGeneratedFilesBeforeBuild" BeforeTargets="BeforeBuild">
     <ItemGroup>
-      <FilesToClean Include="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+      <DirsToClean Include="$(CompilerGeneratedFilesOutputPath)" />
     </ItemGroup>
-    <Message Text="FilesToClean = @(FilesToClean)" Importance="high" />
-    <Delete Files="@(FilesToClean)" />
+    <Message Text="DirsToClean = @(DirsToClean)" Importance="high" />
+    <RemoveDir Directories="@(DirsToClean)" />
   </Target>
 </Project>
