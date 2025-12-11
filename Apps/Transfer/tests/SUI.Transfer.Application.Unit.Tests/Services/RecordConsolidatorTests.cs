@@ -14,11 +14,11 @@ public class RecordConsolidatorTests
         var result = sut.ConsolidateRecords(
             new UnconsolidatedData("XXX 000 1234")
             {
-                ChildPersonalDetailsRecords = [],
-                ChildSocialCareDetailsRecords = [],
+                PersonalDetailsRecords = [],
+                ChildrensServicesDetailsRecords = [],
                 EducationDetailsRecords = [],
-                ChildHealthDataRecords = [],
-                ChildLinkedCrimeDataRecords = [],
+                HealthDataRecords = [],
+                CrimeDataRecords = [],
                 FailedFetches = [],
             }
         );

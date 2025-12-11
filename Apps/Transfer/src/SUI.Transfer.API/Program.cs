@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using DotNetEnv;
 using Microsoft.AspNetCore.Http.Json;
+using SUI.Custodians.API.Client;
 using SUI.Transfer.API.Endpoint;
 using SUI.Transfer.API.OpenApiTransformers;
 using SUI.Transfer.Application.Services;
@@ -43,6 +44,7 @@ builder.Services.AddScoped<IStatusFlagsTransformer, StatusFlagsTransformer>();
 builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferJobStateRepository, TransferJobStateMemoryCacheRepository>();
+builder.Services.AddHttpClient<RecordFetcher>();
 
 builder.Services.AddSingleton(TimeProvider.System);
 
@@ -52,6 +54,11 @@ builder.Services.Configure<JsonOptions>(options =>
         new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
     );
 });
+
+builder.Services.AddCustodiansClient(
+    builder.Configuration["FetchRecordsEndpoint"] ?? string.Empty,
+    builder.Configuration["FetchRecordsApiKey"] ?? string.Empty
+);
 
 var app = builder.Build();
 
