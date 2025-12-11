@@ -102,6 +102,8 @@ namespace SUI.StubCustodians.API
                 ChildSocialCareDetailsRecordProvider
             >();
 
+            services.AddScoped<IRecordProvider<CrimeDataRecordV1>, CrimeDataRecordProvider>();
+
             services.AddScoped<IRecordProvider<HealthDataRecordV1>, HealthDataRecordProvider>();
 
             string activeCustodian = configuration.GetValue<string>(
