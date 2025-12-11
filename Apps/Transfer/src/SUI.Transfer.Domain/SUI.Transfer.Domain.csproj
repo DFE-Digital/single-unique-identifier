@@ -7,14 +7,25 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>.GeneratedFiles</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="SUI.Custodians.API.Client" Version="1.0.3" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference
       Include="..\SUI.Transfer.Domain.Generator\SUI.Transfer.Domain.Generator.csproj"
       OutputItemType="Analyzer"
       ReferenceOutputAssembly="false"
     />
+    <None Include="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
   </ItemGroup>
+
+  <Target Name="DeletePreviouslyGeneratedFilesBeforeBuild" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <FilesToClean Include="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+    </ItemGroup>
+    <Message Text="FilesToClean = @(FilesToClean)" Importance="high" />
+    <Delete Files="@(FilesToClean)" />
+  </Target>
 </Project>

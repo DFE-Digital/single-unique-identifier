@@ -9,12 +9,6 @@
 
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
-
-    <!--
-        rs-todo: needed?...
-        <RootNamespace>SUI.Transfer.Domain.Generator</RootNamespace>
-        <PackageId>SUI.Transfer.Domain.Generator</PackageId>
-        -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,10 +17,5 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.0" />
-
-    <!--
-    rs-todo: needed?...
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.0" />
-    -->
   </ItemGroup>
 </Project>
