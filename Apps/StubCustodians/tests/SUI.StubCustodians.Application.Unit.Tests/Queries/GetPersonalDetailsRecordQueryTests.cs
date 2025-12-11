@@ -38,7 +38,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Queries
         public async Task Handle_ValidRequest_NoRecordFound_ReturnsNotFound()
         {
             var sui = "1234567890";
-            var provider = "MockEducationProvider";
+            var provider = "MockCrimeDataProvider";
 
             var query = new GetPersonalDetailsRecordQuery
             {
@@ -62,7 +62,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Queries
         public async Task Handle_ValidRequest_RecordFound_ReturnsSuccess()
         {
             var sui = "1234567890";
-            var provider = "MockCrimeDataProvider";
+            var provider = "MockEducationProvider";
 
             var envelope = new RecordEnvelope<PersonalDetailsRecordV1>
             {
