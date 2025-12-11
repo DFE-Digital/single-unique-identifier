@@ -94,20 +94,15 @@ public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searc
             cancellationToken
         );
 
-        return searchJob switch
-        {
-            SearchJobResult.Success s => await CreateSuccessResponse(req, s.Job, cancellationToken),
-            SearchJobResult.Unauthorized => await HttpResponseUtility.UnauthorizedResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-            _ => await HttpResponseUtility.InternalServerErrorResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-        };
+        return await searchJob.Match<Task<HttpResponseData>>(
+            async dto => await CreateSuccessResponse(req, dto, cancellationToken),
+            async _ =>
+                await HttpResponseUtility.InternalServerErrorResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                )
+        );
     }
 
     private static async Task<HttpResponseData> CreateSuccessResponse(

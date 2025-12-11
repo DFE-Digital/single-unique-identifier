@@ -1,6 +1,7 @@
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using NSubstitute;
+using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
@@ -42,11 +43,11 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             _cancellationToken
         );
 
-        Assert.IsType<SearchJobResult.Success>(result);
-        var success = (SearchJobResult.Success)result;
-        Assert.Equal("hashed-id", success.Job.JobId);
-        Assert.Equal(_personId.EncryptedValue, success.Job.PersonId);
-        Assert.Equal(SearchStatus.Running, success.Job.Status);
+        Assert.IsType<SearchJobDto>(result.Value);
+        var dto = result.AsT0;
+        Assert.Equal("hashed-id", dto.JobId);
+        Assert.Equal(_personId.EncryptedValue, dto.PersonId);
+        Assert.Equal(SearchStatus.Running, dto.Status);
     }
 
     [Fact]
@@ -60,7 +61,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 
         CustodianService
             .GetCustodianAsync(ClientId)
-            .Returns(Result<ProviderDefinition>.Fail("Custodian not found"));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Custodian not found"));
 
         var result = await Sut.StartSearchAsync(
             _personId,
@@ -71,7 +72,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             _cancellationToken
         );
 
-        Assert.IsType<SearchJobResult.Failed>(result);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -86,7 +87,11 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
         var custodianDef = new ProviderDefinition { Encryption = null };
         CustodianService
             .GetCustodianAsync(ClientId)
-            .Returns(Result<ProviderDefinition>.Ok(new ProviderDefinition() { Encryption = null }));
+            .Returns(
+                Domain.Models.Result<ProviderDefinition>.Ok(
+                    new ProviderDefinition() { Encryption = null }
+                )
+            );
 
         var result = await Sut.StartSearchAsync(
             _personId,
@@ -97,7 +102,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             _cancellationToken
         );
 
-        Assert.IsType<SearchJobResult.Failed>(result);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -112,11 +117,11 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
         var custodianDef = new ProviderDefinition { Encryption = new EncryptionDefinition() };
         CustodianService
             .GetCustodianAsync(ClientId)
-            .Returns(Result<ProviderDefinition>.Ok(custodianDef));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(custodianDef));
 
         EncryptionService
             .DecryptPersonIdToNhs(_personId.EncryptedValue, custodianDef.Encryption)
-            .Returns(Result<string>.Fail("Decryption failed"));
+            .Returns(Domain.Models.Result<string>.Fail("Decryption failed"));
 
         var result = await Sut.StartSearchAsync(
             _personId,
@@ -127,7 +132,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             _cancellationToken
         );
 
-        Assert.IsType<SearchJobResult.Failed>(result);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -142,11 +147,11 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
         var custodianDef = new ProviderDefinition() { Encryption = new EncryptionDefinition() };
         CustodianService
             .GetCustodianAsync(ClientId)
-            .Returns(Result<ProviderDefinition>.Ok(custodianDef));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(custodianDef));
 
         EncryptionService
             .DecryptPersonIdToNhs(_personId.EncryptedValue, custodianDef.Encryption)
-            .Returns(Result<string>.Ok("decrypted-nhs-id"));
+            .Returns(Domain.Models.Result<string>.Ok("decrypted-nhs-id"));
 
         _client
             .ScheduleNewOrchestrationInstanceAsync(
@@ -166,10 +171,10 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             _cancellationToken
         );
 
-        Assert.IsType<SearchJobResult.Success>(result);
-        var success = (SearchJobResult.Success)result;
-        Assert.Equal("job-123", success.Job.JobId);
-        Assert.Equal(_personId.EncryptedValue, success.Job.PersonId);
-        Assert.Equal(SearchStatus.Queued, success.Job.Status);
+        Assert.IsType<SearchJobDto>(result.Value);
+        var dto = result.AsT0;
+        Assert.Equal("job-123", dto.JobId);
+        Assert.Equal(_personId.EncryptedValue, dto.PersonId);
+        Assert.Equal(SearchStatus.Queued, dto.Status);
     }
 }
