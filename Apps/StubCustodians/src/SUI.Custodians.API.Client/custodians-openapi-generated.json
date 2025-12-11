@@ -795,7 +795,13 @@
         "example": "CriminalExploitation"
       },
       "NullableOfHealthSettingV1": {
-        "type": "integer",
+        "enum": [
+          "Other",
+          "Hospital",
+          "GP",
+          "Community",
+          null
+        ],
         "description": "Health - Missed appointments history - Setting",
         "nullable": true,
         "example": "GP"
