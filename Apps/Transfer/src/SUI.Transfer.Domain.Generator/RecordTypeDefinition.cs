@@ -84,26 +84,5 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
                 _ when IsEnumerableProperty(prop) => "x.Value == null || !x.Value.Any()",
                 _ => "object.Equals(x.Value, null)",
             };
-
-        // static string GenerateNullOrEmptyClauses(IPropertySymbol prop) =>
-        //     string.Join(
-        //         " || ",
-        //         new[]
-        //         {
-        //             "object.Equals(x.Value, null)",
-        //             GenerateEmptyStringClauseWhenApplicable(prop),
-        //             GenerateEmptyCollectionClauseWhenApplicable(prop),
-        //         }.Where(x => x != null)
-        //     );
-        //
-        // static string? GenerateEmptyStringClauseWhenApplicable(IPropertySymbol prop) =>
-        //     prop.Type.Name == nameof(String) ? "string.IsNullOrWhiteSpace(x.Value)" : null;
-        //
-        // static string? GenerateEmptyCollectionClauseWhenApplicable(IPropertySymbol prop) =>
-        //     prop.Type.AllInterfaces.Any(i =>
-        //         i.OriginalDefinition.ToString() == "System.Collections.Generic.IEnumerable<T>"
-        //     )
-        //         ? "!x.Value.Any()"
-        //         : null;
     }
 }
