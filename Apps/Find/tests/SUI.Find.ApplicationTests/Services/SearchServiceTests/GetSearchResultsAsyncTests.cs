@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.DurableTask.Client;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
@@ -27,7 +28,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchResult.NotFound>(result);
+        Assert.IsType<NotFound>(result.Value);
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchResult.Unauthorized>(result);
+        Assert.IsType<Unauthorized>(result.Value);
     }
 
     [Fact]
@@ -69,7 +70,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchResult.Failed>(result);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -88,11 +89,9 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchResult.Success>(result);
-        var successResult = result as SearchResult.Success;
-        var resultDto = successResult?.Result;
-        Assert.Equal("test-suid", resultDto?.Suid);
-        Assert.Equal(SearchStatus.Running, resultDto?.Status);
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+        Assert.Equal("test-suid", body.Suid);
+        Assert.Equal(SearchStatus.Running, body.Status);
     }
 
     [Fact]
@@ -112,11 +111,9 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchResult.Success>(result);
-        var successResult = result as SearchResult.Success;
-        var resultDto = successResult?.Result;
-        Assert.Equal("test-suid", resultDto?.Suid);
-        Assert.Equal(SearchStatus.Completed, resultDto?.Status);
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+        Assert.Equal("test-suid", body.Suid);
+        Assert.Equal(SearchStatus.Completed, body.Status);
     }
 
     [Fact]
@@ -152,11 +149,9 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<SearchResult.Success>(result);
-        var successResult = result as SearchResult.Success;
-        var resultDto = successResult?.Result;
-        Assert.Equal("test-suid", resultDto?.Suid);
-        Assert.Equal(SearchStatus.Completed, resultDto?.Status);
-        Assert.Equal(2, resultDto?.Items.Length);
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+        Assert.Equal("test-suid", body.Suid);
+        Assert.Equal(SearchStatus.Completed, body.Status);
+        Assert.Equal(2, body.Items.Length);
     }
 }

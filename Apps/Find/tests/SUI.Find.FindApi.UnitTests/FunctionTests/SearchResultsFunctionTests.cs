@@ -5,6 +5,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using NSubstitute;
+using OneOf.Types;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Functions.HttpFunctions;
@@ -74,7 +75,7 @@ public class SearchResultsFunctionTests
         };
         _searchService
             .GetSearchResultsAsync("job-1", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new SearchResult.Success(dto));
+            .Returns(dto);
 
         var response = await _sut.SearchResultsTrigger(
             _httpRequestData,
@@ -92,7 +93,7 @@ public class SearchResultsFunctionTests
     {
         _searchService
             .GetSearchResultsAsync("job-2", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new SearchResult.NotFound());
+            .Returns(new NotFound());
 
         var response = await _sut.SearchResultsTrigger(
             _httpRequestData,
@@ -110,7 +111,7 @@ public class SearchResultsFunctionTests
     {
         _searchService
             .GetSearchResultsAsync("job-3", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new SearchResult.Unauthorized());
+            .Returns(new Unauthorized());
 
         var response = await _sut.SearchResultsTrigger(
             _httpRequestData,
@@ -128,7 +129,7 @@ public class SearchResultsFunctionTests
     {
         _searchService
             .GetSearchResultsAsync("job-4", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new SearchResult.Failed());
+            .Returns(new Error());
 
         var response = await _sut.SearchResultsTrigger(
             _httpRequestData,

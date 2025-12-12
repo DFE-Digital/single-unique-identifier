@@ -1,6 +1,7 @@
+using OneOf;
+using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Interfaces;
 
@@ -12,7 +13,7 @@ public interface IMaskUrlService
         CancellationToken ct
     );
 
-    Task<ResolvedFetchMappingResult> ResolveAsync(
+    Task<OneOf<ResolvedFetchMapping, NotFound, Unauthorized, Error>> ResolveAsync(
         string requestingOrg,
         string fetchId,
         CancellationToken ct

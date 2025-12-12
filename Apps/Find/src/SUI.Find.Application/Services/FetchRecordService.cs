@@ -1,8 +1,9 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using OneOf;
+using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Services;
 
@@ -14,7 +15,7 @@ public class FetchRecordService(
     IOutboundAuthService outboundAuthService
 ) : IFetchRecordService
 {
-    public async Task<Result<CustodianRecord>> FetchRecordAsync(
+    public async Task<OneOf<CustodianRecord, NotFound, Unauthorized, Error>> FetchRecordAsync(
         string fetchId,
         string requestingOrgId,
         CancellationToken cancellationToken
@@ -26,23 +27,20 @@ public class FetchRecordService(
             cancellationToken
         );
 
-        return resolvedMapping switch
+        return resolvedMapping.Value switch
         {
-            ResolvedFetchMappingResult.Success success => await GetCustodianDataAsync(
-                success.ResolvedFetchMapping,
+            ResolvedFetchMapping successDto => await GetCustodianDataAsync(
+                successDto,
                 cancellationToken
             ),
-            ResolvedFetchMappingResult.Fail => Result<CustodianRecord>.Fail(
-                "Failed to resolve fetch mapping."
-            ),
-            ResolvedFetchMappingResult.NotFound => Result<CustodianRecord>.Fail("NotFound"),
-            ResolvedFetchMappingResult.Expired => Result<CustodianRecord>.Fail("NotFound"),
-            ResolvedFetchMappingResult.Unauthorized => Result<CustodianRecord>.Fail("Unauthorized"),
-            _ => Result<CustodianRecord>.Fail("Failed to fetch mapping."),
+            NotFound notFound => notFound,
+            Unauthorized unauthorized => unauthorized,
+            Error error => error,
+            _ => new Error(),
         };
     }
 
-    private async Task<Result<CustodianRecord>> GetCustodianDataAsync(
+    private async Task<OneOf<CustodianRecord, NotFound, Unauthorized, Error>> GetCustodianDataAsync(
         ResolvedFetchMapping resolvedMapping,
         CancellationToken cancellationToken
     )
@@ -55,9 +53,7 @@ public class FetchRecordService(
                 "Failed to retrieve custodian organisation for Org ID {OrgId}",
                 resolvedMapping.TargetOrgId
             );
-            return Result<CustodianRecord>.Fail(
-                provider.Error ?? "Failed to retrieve custodian organisation."
-            );
+            return new Error();
         }
 
         var tokenResult = await outboundAuthService.GetAccessTokenAsync(
@@ -67,16 +63,8 @@ public class FetchRecordService(
 
         if (!tokenResult.Success || string.IsNullOrWhiteSpace(tokenResult.Value))
         {
-            logger.LogError(
-                "Failed to obtain access token for provider {Provider}: {ErrorMessage}",
-                provider.Value.ProviderName,
-                tokenResult.Error
-            );
-
-            return Result<CustodianRecord>.Fail("Unable to obtain access token for fetch record.");
+            return new Error();
         }
-
-        logger.LogInformation("Fetch Record access token obtained");
 
         var response = await providerClient.GetAsync(
             resolvedMapping.TargetUrl,
@@ -86,16 +74,13 @@ public class FetchRecordService(
 
         if (!response.Success)
         {
-            logger.LogError("Failed to fetch record: {Error}", response.Error);
-            return Result<CustodianRecord>.Fail(
-                response.Error ?? "Error fetching record from provider."
-            );
+            return new Error();
         }
 
         if (string.IsNullOrWhiteSpace(response.Value))
         {
-            logger.LogInformation("Fetch Record return empty response");
-            return Result<CustodianRecord>.Fail("Requested record is empty");
+            logger.LogInformation("Fetch Record returned empty response");
+            return new Error();
         }
 
         var recordContent = JsonSerializer.Deserialize<CustodianRecord>(
@@ -103,8 +88,6 @@ public class FetchRecordService(
             JsonSerializerOptions.Web
         );
 
-        return recordContent is not null
-            ? Result<CustodianRecord>.Ok(recordContent)
-            : Result<CustodianRecord>.Fail("Requested record is empty");
+        return recordContent is not null ? recordContent : new Error();
     }
 }

@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
-using SUI.Find.Domain.Models;
 
 namespace SUI.Find.ApplicationTests.Services.FetchRecordServiceTests;
 
@@ -43,7 +43,7 @@ public class FetchRecordAsyncTests
         );
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
+            .Returns(resolvedMapping);
 
         var providerDef = new ProviderDefinition
         {
@@ -52,10 +52,10 @@ public class FetchRecordAsyncTests
         };
         _mockCustodianService
             .GetCustodianAsync("TargetOrg")
-            .Returns(Result<ProviderDefinition>.Ok(providerDef));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
         _mockOutboundAuthService
             .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Ok("access-token"));
+            .Returns(Domain.Models.Result<string>.Ok("access-token"));
 
         var expectedResult = new CustodianRecord
         {
@@ -71,15 +71,15 @@ public class FetchRecordAsyncTests
 
         _mockProviderClient
             .GetAsync("http://target.url", Arg.Any<string?>(), Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Ok(jsonResponse));
+            .Returns(Domain.Models.Result<string>.Ok(jsonResponse));
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.True(result.Success);
-        Assert.Equal(expectedResult.RecordId, result.Value?.RecordId);
-        Assert.Equal(expectedResult.PersonId, result.Value?.PersonId);
+        var body = Assert.IsType<CustodianRecord>(result.Value);
+        Assert.Equal(expectedResult.RecordId, body.RecordId);
+        Assert.Equal(expectedResult.PersonId, body.PersonId);
     }
 
     [Fact]
@@ -88,14 +88,13 @@ public class FetchRecordAsyncTests
         // Arrange
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Fail());
+            .Returns(new Error());
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.False(string.IsNullOrEmpty(result.Error));
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -109,18 +108,17 @@ public class FetchRecordAsyncTests
         );
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
+            .Returns(resolvedMapping);
 
         _mockCustodianService
             .GetCustodianAsync("TargetOrg")
-            .Returns(Result<ProviderDefinition>.Fail("Custodian not found"));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Custodian not found"));
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Custodian not found", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -134,7 +132,7 @@ public class FetchRecordAsyncTests
         );
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
+            .Returns(resolvedMapping);
 
         var providerDef = new ProviderDefinition
         {
@@ -143,21 +141,20 @@ public class FetchRecordAsyncTests
         };
         _mockCustodianService
             .GetCustodianAsync("TargetOrg")
-            .Returns(Result<ProviderDefinition>.Ok(providerDef));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
         _mockOutboundAuthService
             .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Ok("access-token"));
+            .Returns(Domain.Models.Result<string>.Ok("access-token"));
 
         _mockProviderClient
             .GetAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Fail("Upstream error"));
+            .Returns(Domain.Models.Result<string>.Fail("Upstream error"));
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Upstream error", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -171,23 +168,22 @@ public class FetchRecordAsyncTests
         );
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
+            .Returns(resolvedMapping);
 
         var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
         _mockCustodianService
             .GetCustodianAsync("TargetOrg")
-            .Returns(Result<ProviderDefinition>.Ok(providerDef));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
 
         _mockOutboundAuthService
             .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Fail("Auth Service Unavailable"));
+            .Returns(Domain.Models.Result<string>.Fail("Auth Service Unavailable"));
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Unable to obtain access token for fetch record.", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -201,27 +197,26 @@ public class FetchRecordAsyncTests
         );
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
+            .Returns(resolvedMapping);
 
         var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
         _mockCustodianService
             .GetCustodianAsync("TargetOrg")
-            .Returns(Result<ProviderDefinition>.Ok(providerDef));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
 
         _mockOutboundAuthService
             .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Ok("valid-token"));
+            .Returns(Domain.Models.Result<string>.Ok("valid-token"));
 
         _mockProviderClient
             .GetAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Ok(string.Empty));
+            .Returns(Domain.Models.Result<string>.Ok(string.Empty));
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Requested record is empty", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
@@ -235,74 +230,70 @@ public class FetchRecordAsyncTests
         );
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Success(resolvedMapping));
+            .Returns(resolvedMapping);
 
         var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
         _mockCustodianService
             .GetCustodianAsync("TargetOrg")
-            .Returns(Result<ProviderDefinition>.Ok(providerDef));
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
 
         _mockOutboundAuthService
             .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Ok("valid-token"));
+            .Returns(Domain.Models.Result<string>.Ok("valid-token"));
 
         _mockProviderClient
             .GetAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
-            .Returns(Result<string>.Ok("null"));
+            .Returns(Domain.Models.Result<string>.Ok("null"));
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Requested record is empty", result.Error);
+        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
-    public async Task FetchRecordAsync_ReturnsFail_WhenRecordsDoNotBelongToCaller()
+    public async Task FetchRecordAsync_ReturnsUnauthorized_WhenRecordsDoNotBelongToCaller()
     {
         // Arrange
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Unauthorized());
+            .Returns(new Unauthorized());
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Unauthorized", result.Error);
+        Assert.IsType<Unauthorized>(result.Value);
     }
 
     [Fact]
-    public async Task FetchRecordAsync_ReturnsFail_WhenRecordsAreExpired()
+    public async Task FetchRecordAsync_ReturnsNotFound_WhenRecordsAreExpired()
     {
         // Arrange
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.Expired());
+            .Returns(new NotFound());
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("NotFound", result.Error);
+        Assert.IsType<NotFound>(result.Value);
     }
 
     [Fact]
-    public async Task FetchRecordAsync_ReturnsFail_WhenRecordIsNotFound()
+    public async Task FetchRecordAsync_ReturnsNotFound_WhenRecordIsNotFound()
     {
         // Arrange
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new ResolvedFetchMappingResult.NotFound());
+            .Returns(new NotFound());
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Equal("NotFound", result.Error);
+        Assert.IsType<NotFound>(result.Value);
     }
 }

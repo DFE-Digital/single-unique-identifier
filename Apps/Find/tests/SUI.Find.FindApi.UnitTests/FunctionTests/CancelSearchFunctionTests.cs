@@ -4,6 +4,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using NSubstitute;
+using OneOf.Types;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
@@ -49,16 +50,14 @@ public class CancelSearchFunctionTests
         _searchService
             .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
             .Returns(
-                new SearchCancelResult.Success(
-                    new SearchJobDto
-                    {
-                        JobId = JobId,
-                        PersonId = "test-suid",
-                        Status = SearchStatus.Cancelled,
-                        CreatedAt = DateTime.UtcNow,
-                        LastUpdatedAt = default,
-                    }
-                )
+                new SearchJobDto
+                {
+                    JobId = JobId,
+                    PersonId = "test-suid",
+                    Status = SearchStatus.Cancelled,
+                    CreatedAt = DateTime.UtcNow,
+                    LastUpdatedAt = default,
+                }
             );
 
         // Act
@@ -83,7 +82,7 @@ public class CancelSearchFunctionTests
         );
         _searchService
             .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
-            .Returns(new SearchCancelResult.NotFound());
+            .Returns(new NotFound());
 
         // Act
         var result = await _sut.CancelSearch(
@@ -111,16 +110,14 @@ public class CancelSearchFunctionTests
         _searchService
             .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
             .Returns(
-                new SearchCancelResult.Success(
-                    new SearchJobDto
-                    {
-                        JobId = JobId,
-                        PersonId = "test-suid",
-                        Status = SearchStatus.Cancelled,
-                        CreatedAt = DateTime.UtcNow,
-                        LastUpdatedAt = default,
-                    }
-                )
+                new SearchJobDto
+                {
+                    JobId = JobId,
+                    PersonId = "test-suid",
+                    Status = SearchStatus.Cancelled,
+                    CreatedAt = DateTime.UtcNow,
+                    LastUpdatedAt = default,
+                }
             );
 
         // Act
@@ -149,7 +146,7 @@ public class CancelSearchFunctionTests
         );
         _searchService
             .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
-            .Returns(new SearchCancelResult.Error());
+            .Returns(new Error());
 
         // Act
         var result = await _sut.CancelSearch(
@@ -191,5 +188,31 @@ public class CancelSearchFunctionTests
         var problemResponse = await JsonSerializer.DeserializeAsync<Problem>(result.Body);
         Assert.Equal((int)System.Net.HttpStatusCode.Unauthorized, problemResponse!.Status);
         Assert.Equal(System.Net.HttpStatusCode.Unauthorized, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task ShouldThrowUnauthorizedResponse_WhenUserIsNotAuthorizedToCancelSearch()
+    {
+        // Arrange
+        var httpRequestData = MockHttpRequestData.Create(
+            new Dictionary<string, StringValues> { { "jobId", JobId } }
+        );
+        _searchService
+            .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
+            .Returns(new Unauthorized());
+
+        // Act
+        var result = await _sut.CancelSearch(
+            httpRequestData,
+            _client,
+            JobId,
+            _context,
+            CancellationToken.None
+        );
+
+        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, result.StatusCode);
+        result.Body.Position = 0;
+        var problemResponse = await JsonSerializer.DeserializeAsync<Problem>(result.Body);
+        Assert.Equal((int)System.Net.HttpStatusCode.Unauthorized, problemResponse!.Status);
     }
 }

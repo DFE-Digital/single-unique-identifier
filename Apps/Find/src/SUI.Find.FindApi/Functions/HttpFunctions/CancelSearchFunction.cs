@@ -80,23 +80,31 @@ public class CancelSearchFunction(
             client,
             cancellationToken
         );
-        return result switch
-        {
-            SearchCancelResult.Success job => await HttpResponseUtility.AcceptedResponse(
-                req,
-                SearchJob.FromDto(job.Result),
-                cancellationToken
-            ),
-            SearchCancelResult.NotFound => await HttpResponseUtility.NotFoundResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-            _ => await HttpResponseUtility.InternalServerErrorResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-        };
+        return await result.Match(
+            async job =>
+                await HttpResponseUtility.AcceptedResponse(
+                    req,
+                    SearchJob.FromDto(job),
+                    cancellationToken
+                ),
+            async notFound =>
+                await HttpResponseUtility.NotFoundResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async unauthorized =>
+                await HttpResponseUtility.UnauthorizedResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async error =>
+                await HttpResponseUtility.InternalServerErrorResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                )
+        );
     }
 }
