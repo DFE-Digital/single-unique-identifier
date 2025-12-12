@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using MediatR;
 using SUI.Custodians.Domain.Models;
 using SUI.StubCustodians.Application.Common;
@@ -7,7 +6,6 @@ using ResultType = SUI.StubCustodians.Application.Common.HandlerResult<SUI.StubC
 
 namespace SUI.StubCustodians.Application.Queries
 {
-    [ExcludeFromCodeCoverage]
     public record GetEducationDetailsRecordQuery : GetRecordQueryBase, IRequest<ResultType>
     {
         public IReadOnlyCollection<ErrorInfo> ValidateCommand() => ValidateCommon();

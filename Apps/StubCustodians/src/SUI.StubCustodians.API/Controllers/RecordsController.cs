@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +8,6 @@ using SUI.StubCustodians.Application.Queries;
 
 namespace SUI.StubCustodians.API.Controllers
 {
-    [ExcludeFromCodeCoverage]
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
@@ -17,6 +15,9 @@ namespace SUI.StubCustodians.API.Controllers
     {
         private readonly ILogger<RecordsController> _logger;
         private readonly IMediator _mediator;
+
+        private const string LogStartMessage = "Getting record starting, for sui:'{Sui}'";
+        private const string LogEndMessage = "Getting record ended, for sui:'{Sui}'";
 
         public RecordsController(ILogger<RecordsController> logger, IMediator mediator)
         {
@@ -36,7 +37,7 @@ namespace SUI.StubCustodians.API.Controllers
             [FromRoute] string providerSystemId
         )
         {
-            _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogStartMessage, sui);
 
             var result = await _mediator.Send(
                 new GetPersonalDetailsRecordQuery()
@@ -46,7 +47,7 @@ namespace SUI.StubCustodians.API.Controllers
                 }
             );
 
-            _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogEndMessage, sui);
 
             return result.ToActionResult();
         }
@@ -63,7 +64,7 @@ namespace SUI.StubCustodians.API.Controllers
             [FromRoute] string providerSystemId
         )
         {
-            _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogStartMessage, sui);
 
             var result = await _mediator.Send(
                 new GetChildSocialCareDetailsRecordQuery()
@@ -73,7 +74,7 @@ namespace SUI.StubCustodians.API.Controllers
                 }
             );
 
-            _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogEndMessage, sui);
 
             return result.ToActionResult();
         }
@@ -90,7 +91,7 @@ namespace SUI.StubCustodians.API.Controllers
             [FromRoute] string providerSystemId
         )
         {
-            _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogStartMessage, sui);
 
             var result = await _mediator.Send(
                 new GetEducationDetailsRecordQuery()
@@ -100,7 +101,7 @@ namespace SUI.StubCustodians.API.Controllers
                 }
             );
 
-            _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogEndMessage, sui);
 
             return result.ToActionResult();
         }
@@ -114,13 +115,13 @@ namespace SUI.StubCustodians.API.Controllers
             [FromRoute] string providerSystemId
         )
         {
-            _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogStartMessage, sui);
 
             var result = await _mediator.Send(
                 new GetHealthDataRecordQuery() { Sui = sui, ProviderSystemId = providerSystemId }
             );
 
-            _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogEndMessage, sui);
 
             return result.ToActionResult();
         }
@@ -134,13 +135,13 @@ namespace SUI.StubCustodians.API.Controllers
             [FromRoute] string providerSystemId
         )
         {
-            _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogStartMessage, sui);
 
             var result = await _mediator.Send(
                 new GetCrimeDataRecordQuery() { Sui = sui, ProviderSystemId = providerSystemId }
             );
 
-            _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+            _logger.LogInformation(LogEndMessage, sui);
 
             return result.ToActionResult();
         }
