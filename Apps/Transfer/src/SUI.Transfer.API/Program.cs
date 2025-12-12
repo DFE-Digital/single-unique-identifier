@@ -6,6 +6,7 @@ using SUI.Custodians.API.Client;
 using SUI.Transfer.API.Endpoint;
 using SUI.Transfer.API.OpenApiTransformers;
 using SUI.Transfer.Application.Services;
+using SUI.Transfer.Domain.Services;
 using SUI.Transfer.Infrastructure.Authentication;
 using SUI.Transfer.Infrastructure.Repositories;
 using AuthenticationOptions = SUI.Transfer.Infrastructure.Authentication.AuthenticationOptions;
@@ -45,6 +46,11 @@ builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferJobStateRepository, TransferJobStateMemoryCacheRepository>();
 builder.Services.AddHttpClient<RecordFetcher>();
+
+builder.Services.AddScoped<
+    IConsolidateRecordCollectionsService,
+    ConsolidateRecordCollectionsService
+>();
 
 builder.Services.AddSingleton(TimeProvider.System);
 
