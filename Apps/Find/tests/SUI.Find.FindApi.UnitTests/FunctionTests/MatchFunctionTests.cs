@@ -51,7 +51,7 @@ public class MatchFunctionTests
         var encryptedPersonId = EncryptedPersonId.Create("Cy13hyZL-4LSIwVy50p-Hg");
         _service
             .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
-            .Returns(encryptedPersonId);
+            .Returns(encryptedPersonId.Value!);
 
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
@@ -61,7 +61,7 @@ public class MatchFunctionTests
         response.Body.Position = 0;
         var responseBody = await JsonSerializer.DeserializeAsync<PersonMatch>(response.Body);
         Assert.NotNull(responseBody);
-        Assert.Equal(encryptedPersonId.Value, responseBody.PersonId);
+        Assert.Equal(encryptedPersonId.Value!.Value, responseBody.PersonId);
     }
 
     [Fact]

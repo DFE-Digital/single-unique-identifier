@@ -18,9 +18,9 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     private readonly string[] _scopes = [];
     private const string CorrelationId = "corr-id";
     private readonly CancellationToken _cancellationToken = CancellationToken.None;
-    private readonly EncryptedPersonId _encryptedPersonId = EncryptedPersonId.Create(
-        "Cy13hyZL-4LSIwVy50p-Hg"
-    );
+    private readonly EncryptedPersonId _encryptedPersonId = EncryptedPersonId
+        .Create("Cy13hyZL-4LSIwVy50p-Hg")
+        .Value!;
 
     [Fact]
     public async Task ShouldReturnExistingJob_WhenDuplicateRequest()

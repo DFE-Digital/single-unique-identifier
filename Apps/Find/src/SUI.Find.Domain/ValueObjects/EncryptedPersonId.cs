@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Domain.ValueObjects;
 
@@ -16,24 +17,26 @@ public partial record EncryptedPersonId
         Value = id;
     }
 
-    public static EncryptedPersonId Create(string id)
+    public static Result<EncryptedPersonId> Create(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("EncryptedPersonId cannot be empty.");
 
         if (id.Length != RequiredLength)
         {
-            throw new ArgumentException(
+            return Result<EncryptedPersonId>.Fail(
                 $"EncryptedPersonId must have length of {RequiredLength} characters."
             );
         }
 
         if (!regex.IsMatch(id))
         {
-            throw new ArgumentException("EncryptedPersonId must have a valid Base64 URL string.");
+            return Result<EncryptedPersonId>.Fail(
+                "EncryptedPersonId does not match expected format."
+            );
         }
 
-        return new EncryptedPersonId(id);
+        return Result<EncryptedPersonId>.Ok(new EncryptedPersonId(id));
     }
 
     [GeneratedRegex("^[A-Za-z0-9_-]+$", RegexOptions.Compiled)]
