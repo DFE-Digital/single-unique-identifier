@@ -368,7 +368,102 @@ public class RecordConsolidationSourceGeneratorTests
             );
     }
 
-    // rs-todo: does order by provider name
+    [Fact]
+    public void GeneratedCode_Does_Order_By_ProviderId()
+    {
+        // ACT
+        var result = Sut.ConsolidateRecords(
+            [
+                new TestProviderRecord<ExampleRecord2>(
+                    "ProviderZ",
+                    new ExampleRecord2 { Number = 500 }
+                ),
+                new TestProviderRecord<ExampleRecord2>(
+                    "ProviderA",
+                    new ExampleRecord2 { Number = 999 }
+                ),
+                new TestProviderRecord<ExampleRecord2>(
+                    "ProviderF",
+                    new ExampleRecord2 { Number = 123 }
+                ),
+            ],
+            Substitute.For<FieldRanker>()
+        );
 
-    // rs-todo: does order by FieldRanker then provider name then null values
+        // ASSERT
+        result
+            .Should()
+            .BeEquivalentTo(
+                new
+                {
+                    Number = new
+                    {
+                        Value = 999,
+                        Values = new[]
+                        {
+                            new { ProviderSystemId = "ProviderA", Value = 999 },
+                            new { ProviderSystemId = "ProviderF", Value = 123 },
+                            new { ProviderSystemId = "ProviderZ", Value = 500 },
+                        },
+                    },
+                },
+                options => options.WithStrictOrdering()
+            );
+    }
+
+    [Fact]
+    public void GeneratedCode_Does_Order_By_FieldRanker_Then_ProviderId_Then_Null_Values()
+    {
+        FieldRanker exampleFieldRanker = (providerSystemId, _, _, _) =>
+            providerSystemId switch
+            {
+                "ProviderA" => 1,
+                "ProviderZ" => 2,
+                _ => 3,
+            };
+
+        // ACT
+        var result = Sut.ConsolidateRecords(
+            [
+                new TestProviderRecord<ExampleRecord2>(
+                    "ProviderA",
+                    new ExampleRecord2 { Name = null }
+                ),
+                new TestProviderRecord<ExampleRecord2>(
+                    "ProviderC",
+                    new ExampleRecord2 { Name = "bar" }
+                ),
+                new TestProviderRecord<ExampleRecord2>(
+                    "ProviderB",
+                    new ExampleRecord2 { Name = "foo" }
+                ),
+                new TestProviderRecord<ExampleRecord2>(
+                    "ProviderZ",
+                    new ExampleRecord2 { Name = "Hello world!" }
+                ),
+            ],
+            exampleFieldRanker
+        );
+
+        // ASSERT
+        result
+            .Should()
+            .BeEquivalentTo(
+                new
+                {
+                    Name = new
+                    {
+                        Value = "Hello world!",
+                        Values = new[]
+                        {
+                            new { ProviderSystemId = "ProviderZ", Value = (string?)"Hello world!" },
+                            new { ProviderSystemId = "ProviderB", Value = (string?)"foo" },
+                            new { ProviderSystemId = "ProviderC", Value = (string?)"bar" },
+                            new { ProviderSystemId = "ProviderA", Value = (string?)null },
+                        },
+                    },
+                },
+                options => options.WithStrictOrdering()
+            );
+    }
 }
