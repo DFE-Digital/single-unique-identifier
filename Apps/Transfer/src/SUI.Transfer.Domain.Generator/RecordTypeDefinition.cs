@@ -43,7 +43,8 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
                 $"""
                             {p.Name} = new ConsolidatedField<{p.Type}>(unconsolidatedRecords
                                 .Select(r => new ConsolidatedFieldValue<{p.Type}>(r.Record.{p.Name}, r.ProviderSystemId))
-                                .OrderBy(x => rankField(x.ProviderSystemId, "{Name}", "{p.Name}", "{Name}.{p.Name}"))
+                                .OrderBy(x => object.Equals(x.Value, null) || (x.Value as object is string str && string.IsNullOrWhiteSpace(str)) ? 1 : 0)
+                                .ThenBy(x => rankField(x.ProviderSystemId, "{Name}", "{p.Name}", "{Name}.{p.Name}"))
                                 .ThenBy(x => x.ProviderSystemId)
                                 .ToArray()),
                 """
