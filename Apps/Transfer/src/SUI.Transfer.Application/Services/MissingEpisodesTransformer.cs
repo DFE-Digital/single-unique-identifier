@@ -1,11 +1,34 @@
-﻿using SUI.Transfer.Domain;
+﻿using SUI.Custodians.API.Client;
+using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Services;
 
-public class MissingEpisodesTransformer : IMissingEpisodesTransformer
+public class MissingEpisodesTransformer(TimeProvider timeProvider) : IMissingEpisodesTransformer
 {
     public CrimeMissingEpisodesSummaries? ApplyTransformation(ConsolidatedData consolidatedData)
     {
-        return null;
+        if (
+            consolidatedData.CrimeDataRecord?.MissingEpisodes is null
+            || consolidatedData.CrimeDataRecord.MissingEpisodes.Count.Equals(0)
+        )
+            return null;
+
+        return new CrimeMissingEpisodesSummaries
+        {
+            Last6Months = GetMissingEpisodesFromLast6Months(consolidatedData),
+        };
+    }
+
+    private List<CrimeMissingEpisodeV1> GetMissingEpisodesFromLast6Months(
+        ConsolidatedData consolidatedData
+    )
+    {
+        var sixMonthsAgo = timeProvider.GetUtcNow().AddMonths(-6);
+
+        return consolidatedData
+            .CrimeDataRecord!.MissingEpisodes.Where(x =>
+                x.Date.HasValue && x.Date.Value >= sixMonthsAgo
+            )
+            .ToList();
     }
 }
