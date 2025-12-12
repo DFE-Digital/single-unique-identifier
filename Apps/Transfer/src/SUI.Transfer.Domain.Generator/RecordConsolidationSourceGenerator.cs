@@ -22,6 +22,7 @@ public class RecordConsolidationSourceGenerator : IIncrementalGenerator
 
         using System;
         using System.Diagnostics.CodeAnalysis;
+        using System.Text.Json.Serialization;
 
         namespace {{Namespace}};
 
@@ -43,7 +44,7 @@ public class RecordConsolidationSourceGenerator : IIncrementalGenerator
         {{ExcludeFromCodeCoverageAttributeSource}}
         public record ConsolidatedField<TValue>(IReadOnlyCollection<ConsolidatedFieldValue<TValue>> Values)
         {
-        	// rs-todo: JsonIgnore, but then with tests to verify JSON round trip does work as expected.
+        	[JsonIgnore]
         	public TValue? Value { get; set; } = Values.Count > 0 ? Values.First().Value : default;
         }
 
