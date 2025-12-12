@@ -17,7 +17,7 @@ namespace SUI.Find.Application.Services;
 public interface ISearchService
 {
     Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
-        EncryptedPersonId personId,
+        EncryptedPersonId encryptedPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -56,7 +56,7 @@ public class SearchService(
 ) : ISearchService
 {
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
-        EncryptedPersonId personId,
+        EncryptedPersonId encryptedPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -64,7 +64,7 @@ public class SearchService(
         CancellationToken cancellationToken
     )
     {
-        var instanceId = $"{personId}-{clientId}";
+        var instanceId = $"{encryptedPersonId}-{clientId}";
         var hashedInstanceId = hashService.HmacSha256Hash(instanceId);
 
         var existingInstance = await client.GetInstanceAsync(
@@ -95,7 +95,7 @@ public class SearchService(
             var originalJob = new SearchJobDto
             {
                 JobId = originalJobId,
-                PersonId = personId.EncryptedValue,
+                PersonId = encryptedPersonId.Value,
                 Status = jobStatus,
                 CreatedAt = existingInstance.CreatedAt,
                 LastUpdatedAt = existingInstance.LastUpdatedAt,
@@ -124,7 +124,7 @@ public class SearchService(
         }
 
         var unencryptedPersonId = encryptionService.DecryptPersonIdToNhs(
-            personId.EncryptedValue,
+            encryptedPersonId.Value,
             encryptDefinition.Value.Encryption
         );
         if (!unencryptedPersonId.Success || unencryptedPersonId.Value is null)
@@ -134,7 +134,7 @@ public class SearchService(
         }
 
         var metaData = new SearchJobMetadata(
-            personId.EncryptedValue,
+            encryptedPersonId.Value,
             DateTime.UtcNow,
             correlationId
         );
@@ -157,7 +157,7 @@ public class SearchService(
         var searchJob = new SearchJobDto
         {
             JobId = jobId,
-            PersonId = personId.EncryptedValue,
+            PersonId = encryptedPersonId.Value,
             Status = SearchStatus.Queued,
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,
