@@ -40,12 +40,12 @@ public abstract class BaseRecordProvider<T> : IRecordProvider<T>
         return new RecordEnvelope<T> { SchemaUri = new Uri(GetSchemaUri()), Payload = record };
     }
 
-    private string GetSchemaUri()
+    private static string GetSchemaUri()
     {
         return $"https://schemas.example.gov.uk/sui/{typeof(T).Name}.json";
     }
 
-    private string GetFileName(string sui)
+    private static string GetFileName(string sui)
     {
         return $"{sui}_{typeof(T).Name}.json";
     }
