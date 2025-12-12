@@ -2,7 +2,7 @@
 
 public record ExampleRecord3
 {
-    public string[]? ExampleStringList { get; set; }
+    public ICollection<string>? ExampleStringList { get; set; }
 
     public int[]? ExampleNumberList { get; set; }
 
