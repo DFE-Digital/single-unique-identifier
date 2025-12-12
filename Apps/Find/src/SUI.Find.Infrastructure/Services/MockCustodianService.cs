@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO.Abstractions;
 using System.Text.Json;
 using SUI.Find.Application.Interfaces;
@@ -60,7 +61,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
                         },
                         DsaPolicy = new DsaPolicyDefinition
                         {
-                            Version = DateTimeOffset.Parse(org.DsaPolicy.Version),
+                            Version = DateTimeOffset.Parse(org.DsaPolicy.Version, CultureInfo.InvariantCulture),
                             Defaults = org.DsaPolicy.Defaults.Select(d => new DsaRuleDefinition
                             {
                                 Effect = d.Effect,
