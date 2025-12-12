@@ -131,11 +131,11 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
 
     private static async Task<HttpResponseData> CreateOkResponse(
         HttpRequestData req,
-        EncryptedPersonId match
+        EncryptedPersonId encryptedPersonId
     )
     {
         var res = req.CreateResponse(HttpStatusCode.OK);
-        var responseBody = new PersonMatch(match.EncryptedValue);
+        var responseBody = new PersonMatch(encryptedPersonId.Value);
         await res.WriteAsJsonAsync(responseBody);
         return res;
     }

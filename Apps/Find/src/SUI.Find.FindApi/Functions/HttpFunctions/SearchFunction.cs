@@ -84,9 +84,10 @@ public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searc
 
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);
 
-        var personId = new EncryptedPersonId(searchRequest!.Suid);
+        var encryptedPersonIdResult = EncryptedPersonId.Create(searchRequest!.Suid);
+        var encryptedPersonId = encryptedPersonIdResult.Value!;
         var searchJob = await searchService.StartSearchAsync(
-            personId,
+            encryptedPersonId,
             authContext.ClientId,
             authContext.Scopes.ToArray(),
             client,

@@ -48,10 +48,10 @@ public class MatchFunctionTests
             BirthDate = DateOnly.Parse("1990-01-01"),
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
-        var encryptedPersonId = new EncryptedPersonId("encrypted-value");
+        var encryptedPersonId = EncryptedPersonId.Create("Cy13hyZL-4LSIwVy50p-Hg");
         _service
             .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
-            .Returns(encryptedPersonId);
+            .Returns(encryptedPersonId.Value!);
 
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
@@ -61,7 +61,7 @@ public class MatchFunctionTests
         response.Body.Position = 0;
         var responseBody = await JsonSerializer.DeserializeAsync<PersonMatch>(response.Body);
         Assert.NotNull(responseBody);
-        Assert.Equal("encrypted-value", responseBody.PersonId);
+        Assert.Equal(encryptedPersonId.Value!.Value, responseBody.PersonId);
     }
 
     [Fact]

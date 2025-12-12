@@ -39,8 +39,9 @@ public class MatchPersonAsyncTests
     [Fact]
     public async Task ShouldReturnMatch_WhenPersonIsFound()
     {
-        const string personId = "nhs-number-123";
-        _matchRepository.MatchPersonAsync(_request).Returns(personId);
+        var encryptedPersonIdResult = EncryptedPersonId.Create("Cy13hyZL-4LSIwVy50p-Hg");
+        var encryptedPersonId = encryptedPersonIdResult.Value!;
+        _matchRepository.MatchPersonAsync(_request).Returns("1234567890");
         _custodianService
             .GetCustodianAsync(ClientId)
             .Returns(
@@ -53,11 +54,9 @@ public class MatchPersonAsyncTests
                     }
                 )
             );
-
-        var encryptedPersonId = new EncryptedPersonId("encrypted-id");
         _personIdEncryptionService
-            .EncryptNhsToPersonId(personId, Arg.Any<EncryptionDefinition>())
-            .Returns(Domain.Models.Result<string>.Ok(encryptedPersonId.EncryptedValue));
+            .EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
+            .Returns(Domain.Models.Result<string>.Ok(encryptedPersonId.Value));
 
         var result = await _service.MatchPersonAsync(_request, ClientId);
 
