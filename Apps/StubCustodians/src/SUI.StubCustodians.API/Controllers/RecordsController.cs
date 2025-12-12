@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +8,6 @@ using SUI.StubCustodians.Application.Queries;
 
 namespace SUI.StubCustodians.API.Controllers
 {
-    [ExcludeFromCodeCoverage]
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]

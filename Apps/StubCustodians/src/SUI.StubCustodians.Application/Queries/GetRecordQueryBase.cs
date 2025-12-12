@@ -49,7 +49,10 @@ namespace SUI.StubCustodians.Application.Queries
             )
             {
                 errors.Add(
-                    new ErrorInfo(nameof(ProviderSystemId), "Value specified is not supported.")
+                    new ErrorInfo(
+                        nameof(ProviderSystemId),
+                        $"Value specified is not supported. Please use one of the following: {string.Join(", ", AllowedProviders.Select(p => p))}"
+                    )
                 );
             }
 
