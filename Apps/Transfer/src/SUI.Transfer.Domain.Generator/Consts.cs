@@ -7,4 +7,7 @@ public static class Consts
 ";
 
     public const string TwoNewLines = NewLine + NewLine;
+
+    public const string ExcludeFromCodeCoverageAttributeSource =
+        """[ExcludeFromCodeCoverage(Justification = "Generated code; also coverred by behavioural tests in `RecordConsolidationSourceGeneratorTests`")]""";
 }

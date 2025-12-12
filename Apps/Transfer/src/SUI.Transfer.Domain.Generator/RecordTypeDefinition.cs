@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using static SUI.Transfer.Domain.Generator.Consts;
 
 namespace SUI.Transfer.Domain.Generator;
 
+[ExcludeFromCodeCoverage] // This is thoroughly behaviourally tested by the `RecordConsolidationSourceGeneratorTests`, it just isn't picked up by coverage tools.
 public class RecordTypeDefinition(INamedTypeSymbol symbol)
 {
     public INamedTypeSymbol Symbol { get; } = symbol;
@@ -52,6 +54,7 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
         );
 
         return $$"""
+            {{ExcludeFromCodeCoverageAttributeSource}}
             public record {{ConsolidatedName}}
             {
             {{props}}

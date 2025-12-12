@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -9,6 +10,7 @@ using static SUI.Transfer.Domain.Generator.Consts;
 namespace SUI.Transfer.Domain.Generator;
 
 [Generator]
+[ExcludeFromCodeCoverage] // This is thoroughly behaviourally tested by the `RecordConsolidationSourceGeneratorTests`, it just isn't picked up by coverage tools.
 public class RecordConsolidationSourceGenerator : IIncrementalGenerator
 {
     private const string Namespace = "SUI.Transfer.Domain.SourceGenerated";
@@ -19,10 +21,12 @@ public class RecordConsolidationSourceGenerator : IIncrementalGenerator
         #nullable enable
 
         using System;
+        using System.Diagnostics.CodeAnalysis;
 
         namespace {{Namespace}};
 
         [AttributeUsage(AttributeTargets.Class)]
+        {{ExcludeFromCodeCoverageAttributeSource}}
         public class {{AttributeName}}(params Type[] recordTypes) : Attribute
         {
             public Type[] RecordTypes { get; } = recordTypes;
@@ -36,6 +40,7 @@ public class RecordConsolidationSourceGenerator : IIncrementalGenerator
 
         public delegate int FieldRanker(string ProviderSystemId, string RecordName, string PropertyName, string RecordAndPropertyName);
 
+        {{ExcludeFromCodeCoverageAttributeSource}}
         public record ConsolidatedField<TValue>(IReadOnlyCollection<ConsolidatedFieldValue<TValue>> Values)
         {
         	// rs-todo: JsonIgnore, but then with tests to verify JSON round trip does work as expected.
@@ -165,6 +170,7 @@ public class RecordConsolidationSourceGenerator : IIncrementalGenerator
 
                 using System;
                 using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
                 using {{Namespace}};
                 {{namespaces}}
 
@@ -175,6 +181,7 @@ public class RecordConsolidationSourceGenerator : IIncrementalGenerator
                 {{interfaceMethods}}
                 }
 
+                {{ExcludeFromCodeCoverageAttributeSource}}
                 partial class {{className}} : I{{className}}
                 {
                 {{classMethods}}
