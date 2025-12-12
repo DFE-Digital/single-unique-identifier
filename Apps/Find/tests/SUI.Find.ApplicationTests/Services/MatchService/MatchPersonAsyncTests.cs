@@ -40,9 +40,7 @@ public class MatchPersonAsyncTests
     public async Task ShouldReturnMatch_WhenPersonIsFound()
     {
         var personId = EncryptedPersonId.Create("Cy13hyZL-4LSIwVy50p-Hg");
-        _matchRepository
-            .MatchPersonAsync(_request)
-            .Returns(new MatchFhirResponse.Match(personId.Value));
+        _matchRepository.MatchPersonAsync(_request).Returns("1234567890");
         _custodianService
             .GetCustodianAsync(ClientId)
             .Returns(

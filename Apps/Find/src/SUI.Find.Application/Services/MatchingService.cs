@@ -60,7 +60,7 @@ public class MatchingService(
                     if (encryptionResult is not { Success: true, Value: not null })
                         return new Error();
 
-                    return new EncryptedPersonId(encryptionResult.Value);
+                    return EncryptedPersonId.Create(encryptionResult.Value);
                 },
                 notFound => new NotFound(),
                 error => new Error()
