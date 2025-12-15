@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using SUI.Transfer.Domain.SourceGenerated;
+using SUI.Transfer.Domain.Consolidation;
 using Xunit.Abstractions;
 
 namespace SUI.Transfer.Domain.Generator.Tests;

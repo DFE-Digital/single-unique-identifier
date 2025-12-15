@@ -1,4 +1,4 @@
-﻿using SUI.Transfer.Domain.SourceGenerated;
+﻿using SUI.Transfer.Domain.Consolidation;
 
 namespace SUI.Transfer.Domain;
 

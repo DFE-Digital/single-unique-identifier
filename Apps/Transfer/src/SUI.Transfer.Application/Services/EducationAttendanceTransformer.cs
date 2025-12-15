@@ -1,6 +1,6 @@
 ﻿using SUI.Custodians.API.Client;
 using SUI.Transfer.Domain;
-using SUI.Transfer.Domain.Services;
+using SUI.Transfer.Domain.Consolidation;
 
 namespace SUI.Transfer.Application.Services;
 

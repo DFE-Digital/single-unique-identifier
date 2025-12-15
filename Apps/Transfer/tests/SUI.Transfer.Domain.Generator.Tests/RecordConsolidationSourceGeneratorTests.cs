@@ -1,7 +1,7 @@
 ﻿using NSubstitute;
+using SUI.Transfer.Domain.Consolidation;
 using SUI.Transfer.Domain.Generator.Tests.ExampleModels;
 using SUI.Transfer.Domain.Generator.Tests.MoreExampleModels;
-using SUI.Transfer.Domain.SourceGenerated;
 
 namespace SUI.Transfer.Domain.Generator.Tests;
 

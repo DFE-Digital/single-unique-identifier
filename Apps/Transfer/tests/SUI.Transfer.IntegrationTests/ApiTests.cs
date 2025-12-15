@@ -9,9 +9,9 @@ using NSubstitute;
 using SUI.Custodians.API.Client;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
-using SUI.Transfer.Domain.Services;
+using SUI.Transfer.Domain.Consolidation;
 
-namespace SUI.Transfer.API.Unit.Tests.Endpoint;
+namespace SUI.Transfer.IntegrationTests;
 
 public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
 {

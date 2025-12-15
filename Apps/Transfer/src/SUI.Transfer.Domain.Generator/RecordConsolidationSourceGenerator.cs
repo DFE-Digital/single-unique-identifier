@@ -13,7 +13,7 @@ namespace SUI.Transfer.Domain.Generator;
 [ExcludeFromCodeCoverage] // This is thoroughly behaviourally tested by the `RecordConsolidationSourceGeneratorTests`, it just isn't picked up by coverage tools.
 public class RecordConsolidationSourceGenerator : IIncrementalGenerator
 {
-    private const string Namespace = "SUI.Transfer.Domain.SourceGenerated";
+    private const string Namespace = "SUI.Transfer.Domain.Consolidation";
     private const string AttributeName = "GenerateRecordConsolidationAttribute";
 
     private const string FoundationSourceCode = $$"""
