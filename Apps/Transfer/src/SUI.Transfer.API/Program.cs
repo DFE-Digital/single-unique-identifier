@@ -37,6 +37,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IRecordFinder, RecordFinder>();
 builder.Services.AddScoped<IRecordFetcher, RecordFetcher>();
 builder.Services.AddScoped<IRecordConsolidator, RecordConsolidator>();
+builder.Services.AddScoped<IConsolidationFieldRanker, ConsolidationFieldRanker>();
 builder.Services.AddScoped<IEducationAttendanceTransformer, EducationAttendanceTransformer>();
 builder.Services.AddScoped<IHealthAttendanceAggregator, HealthAttendanceAggregator>();
 builder.Services.AddScoped<IChildServicesReferralAggregator, ChildServicesReferralAggregator>();

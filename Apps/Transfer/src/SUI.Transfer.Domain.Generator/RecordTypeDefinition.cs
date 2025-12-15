@@ -36,22 +36,24 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
         var props = string.Join(
             TwoNewLines,
             Properties.Select(p =>
-                $"    public required ConsolidatedField<{p.Type}> {p.Name} {{ get; init; }}"
+                $"    public ConsolidatedField<{Type(p)}> {p.Name} {{ get; set; }} = ConsolidatedField<{Type(p)}>.Empty;"
             )
         );
 
         var propAssignments = string.Join(
             TwoNewLines,
             Properties.Select(p =>
-                $"""
-                            {p.Name} = new ConsolidatedField<{p.Type}>(unconsolidatedRecords
-                                .Select(r => new ConsolidatedFieldValue<{p.Type}>(r.Record.{p.Name}, r.ProviderSystemId))
+            {
+                var type = Type(p);
+                return $"""
+                            {p.Name} = new ConsolidatedField<{type}>(unconsolidatedRecords
+                                .Select(r => new ConsolidatedFieldValue<{type}>(r.Record.{p.Name}, r.ProviderSystemId))
                                 .OrderBy(x => {GenerateNullOrEmptyClause(p)} ? 1 : 0)
                                 .ThenBy(x => rankField(x.ProviderSystemId, "{Name}", "{p.Name}", "{Name}.{p.Name}"))
                                 .ThenBy(x => x.ProviderSystemId)
                                 .ToArray()),
-                """
-            )
+                """;
+            })
         );
 
         return $$"""
@@ -84,5 +86,11 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
                 _ when IsEnumerableProperty(prop) => "x.Value == null || !x.Value.Any()",
                 _ => "object.Equals(x.Value, null)",
             };
+
+        // Note: we enforce all properties to be nullable on record types, because custodians may not always have all fields
+        static string Type(IPropertySymbol prop) =>
+            prop.Type.NullableAnnotation != NullableAnnotation.Annotated
+                ? $"{prop.Type}?"
+                : prop.Type.ToString();
     }
 }

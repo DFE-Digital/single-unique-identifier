@@ -2,6 +2,7 @@
 using SUI.Custodians.API.Client;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
+using SUI.Transfer.Domain.Services;
 
 namespace SUI.Transfer.Application.Unit.Tests.Services;
 
@@ -52,9 +53,9 @@ public class EducationAttendanceTransformerTests
             {
                 PersonalDetailsRecord = null,
                 ChildrensServicesDetailsRecord = null,
-                EducationDetailsRecord = new EducationDetailsRecordV1
+                EducationDetailsRecord = new EducationDetailsRecordV1Consolidated
                 {
-                    EducationAttendances = null,
+                    EducationAttendances = (List<EducationAttendanceV1>?)null,
                 },
                 HealthDataRecord = null,
                 CrimeDataRecord = null,
@@ -89,7 +90,7 @@ public class EducationAttendanceTransformerTests
             {
                 PersonalDetailsRecord = null,
                 ChildrensServicesDetailsRecord = null,
-                EducationDetailsRecord = new EducationDetailsRecordV1
+                EducationDetailsRecord = new EducationDetailsRecordV1Consolidated
                 {
                     EducationAttendances = new List<EducationAttendanceV1> { attendanceRecord },
                 },
@@ -139,7 +140,7 @@ public class EducationAttendanceTransformerTests
             {
                 PersonalDetailsRecord = null,
                 ChildrensServicesDetailsRecord = null,
-                EducationDetailsRecord = new EducationDetailsRecordV1
+                EducationDetailsRecord = new EducationDetailsRecordV1Consolidated
                 {
                     EducationAttendances = new List<EducationAttendanceV1>
                     {
@@ -195,7 +196,7 @@ public class EducationAttendanceTransformerTests
             {
                 PersonalDetailsRecord = null,
                 ChildrensServicesDetailsRecord = null,
-                EducationDetailsRecord = new EducationDetailsRecordV1
+                EducationDetailsRecord = new EducationDetailsRecordV1Consolidated
                 {
                     EducationAttendances = new List<EducationAttendanceV1>
                     {

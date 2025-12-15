@@ -7,6 +7,10 @@ public record ExampleRecord3
     public int[]? ExampleNumberList { get; set; }
 
     public ExampleDto[]? ExampleDtoList { get; set; }
+
+    public ExampleDto? ExampleDto1 { get; set; }
+
+    public ExampleDto ExampleDto2 { get; set; } = new("", default);
 }
 
 public record ExampleDto(string Name, bool Flag);
