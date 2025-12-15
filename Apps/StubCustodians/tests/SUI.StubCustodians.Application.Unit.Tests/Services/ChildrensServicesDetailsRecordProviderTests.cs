@@ -50,7 +50,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
 
             string filePath = Path.Combine(
                 providerFolder,
-                $"{sui}_ChildSocialCareDetailsRecordV1.json"
+                $"{sui}_ChildrensServicesDetailsRecordV1.json"
             );
             File.WriteAllText(filePath, "invalid json");
 
@@ -76,7 +76,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
 
             string filePath = Path.Combine(
                 providerFolder,
-                $"{sui}_ChildSocialCareDetailsRecordV1.json"
+                $"{sui}_ChildrensServicesDetailsRecordV1.json"
             );
             File.WriteAllText(filePath, JsonSerializer.Serialize(record));
 
