@@ -1,6 +1,6 @@
 namespace SUI.Custodians.Domain.Models;
 
-public record EducationAttendanceV1
+public record YearlyEducationAttendanceV1
 {
     /// <summary>
     /// Education attendance history - Academic Term Year Start
@@ -43,4 +43,10 @@ public record EducationAttendanceV1
     /// </summary>
     /// <example>0</example>
     public int? SchoolMovesNonTransitional { get; init; }
+    
+    /// <summary>
+    /// Education attendance history - School's average attendance
+    /// </summary>
+    /// <example>97.5</example>
+    public float? SchoolsAverageAttendance { get; init; }
 }

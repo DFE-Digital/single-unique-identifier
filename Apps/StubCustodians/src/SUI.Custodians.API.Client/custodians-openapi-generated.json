@@ -588,60 +588,6 @@
           }
         }
       },
-      "EducationAttendanceV1": {
-        "type": "object",
-        "properties": {
-          "academicTermYearStart": {
-            "type": "integer",
-            "description": "Education attendance history - Academic Term Year Start",
-            "format": "int32",
-            "nullable": true,
-            "example": "2024"
-          },
-          "academicTermYearEnd": {
-            "type": "integer",
-            "description": "Education attendance history - Academic Term Year End",
-            "format": "int32",
-            "nullable": true,
-            "example": "2025"
-          },
-          "attendancePercentage": {
-            "type": "number",
-            "description": "Education attendance history - Attendance Percentage",
-            "format": "float",
-            "nullable": true,
-            "example": "70"
-          },
-          "unauthorisedAbsencePercentage": {
-            "type": "number",
-            "description": "Education attendance history - Unauthorised Absence Percentage",
-            "format": "float",
-            "nullable": true,
-            "example": "2"
-          },
-          "suspensions": {
-            "type": "integer",
-            "description": "Education attendance history - Suspensions",
-            "format": "int32",
-            "nullable": true,
-            "example": "1"
-          },
-          "exclusions": {
-            "type": "integer",
-            "description": "Education attendance history - Exclusions",
-            "format": "int32",
-            "nullable": true,
-            "example": "0"
-          },
-          "schoolMovesNonTransitional": {
-            "type": "integer",
-            "description": "Education attendance history - School moves non transitional",
-            "format": "int32",
-            "nullable": true,
-            "example": "0"
-          }
-        }
-      },
       "EducationDetailsRecordV1": {
         "type": "object",
         "properties": {
@@ -660,12 +606,12 @@
             "nullable": true,
             "example": "0123456789"
           },
-          "educationAttendances": {
+          "yearlyEducationAttendances": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EducationAttendanceV1"
+              "$ref": "#/components/schemas/YearlyEducationAttendanceV1"
             },
-            "description": "Education Attendances",
+            "description": "Yearly Education Attendances",
             "nullable": true
           }
         },
@@ -1062,6 +1008,67 @@
           }
         },
         "description": "Represents a person related to a specific child."
+      },
+      "YearlyEducationAttendanceV1": {
+        "type": "object",
+        "properties": {
+          "academicTermYearStart": {
+            "type": "integer",
+            "description": "Education attendance history - Academic Term Year Start",
+            "format": "int32",
+            "nullable": true,
+            "example": "2024"
+          },
+          "academicTermYearEnd": {
+            "type": "integer",
+            "description": "Education attendance history - Academic Term Year End",
+            "format": "int32",
+            "nullable": true,
+            "example": "2025"
+          },
+          "attendancePercentage": {
+            "type": "number",
+            "description": "Education attendance history - Attendance Percentage",
+            "format": "float",
+            "nullable": true,
+            "example": "70"
+          },
+          "unauthorisedAbsencePercentage": {
+            "type": "number",
+            "description": "Education attendance history - Unauthorised Absence Percentage",
+            "format": "float",
+            "nullable": true,
+            "example": "2"
+          },
+          "suspensions": {
+            "type": "integer",
+            "description": "Education attendance history - Suspensions",
+            "format": "int32",
+            "nullable": true,
+            "example": "1"
+          },
+          "exclusions": {
+            "type": "integer",
+            "description": "Education attendance history - Exclusions",
+            "format": "int32",
+            "nullable": true,
+            "example": "0"
+          },
+          "schoolMovesNonTransitional": {
+            "type": "integer",
+            "description": "Education attendance history - School moves non transitional",
+            "format": "int32",
+            "nullable": true,
+            "example": "0"
+          },
+          "schoolsAverageAttendance": {
+            "type": "number",
+            "description": "Education attendance history - School's average attendance",
+            "format": "float",
+            "nullable": true,
+            "example": "97.5"
+          }
+        }
       }
     }
   },
