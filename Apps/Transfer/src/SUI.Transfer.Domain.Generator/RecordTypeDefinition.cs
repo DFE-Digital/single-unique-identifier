@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -45,7 +46,7 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
                 $"""
                             {p.Name} = new ConsolidatedField<{p.Type}>(unconsolidatedRecords
                                 .Select(r => new ConsolidatedFieldValue<{p.Type}>(r.Record.{p.Name}, r.ProviderSystemId))
-                                .OrderBy(x => object.Equals(x.Value, null) || (x.Value as object is string str && string.IsNullOrWhiteSpace(str)) ? 1 : 0)
+                                .OrderBy(x => {GenerateNullOrEmptyClause(p)} ? 1 : 0)
                                 .ThenBy(x => rankField(x.ProviderSystemId, "{Name}", "{p.Name}", "{Name}.{p.Name}"))
                                 .ThenBy(x => x.ProviderSystemId)
                                 .ToArray()),
@@ -68,5 +69,20 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
                 }
             }
             """;
+
+        static bool IsStringProperty(IPropertySymbol prop) => prop.Type.Name == nameof(String);
+
+        static bool IsEnumerableProperty(IPropertySymbol prop) =>
+            prop.Type.AllInterfaces.Any(i =>
+                i.OriginalDefinition.ToString() == "System.Collections.Generic.IEnumerable<T>"
+            );
+
+        static string GenerateNullOrEmptyClause(IPropertySymbol prop) =>
+            prop switch
+            {
+                _ when IsStringProperty(prop) => "string.IsNullOrWhiteSpace(x.Value)",
+                _ when IsEnumerableProperty(prop) => "x.Value == null || !x.Value.Any()",
+                _ => "object.Equals(x.Value, null)",
+            };
     }
 }
