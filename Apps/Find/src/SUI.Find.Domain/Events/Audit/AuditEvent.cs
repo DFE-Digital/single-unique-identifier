@@ -1,18 +1,14 @@
+using System.Text.Json;
+
 namespace SUI.Find.Domain.Events.Audit;
 
-public class AuditEvent<T>
+public class AuditEvent
 {
-    public required string EventId { get; set; } = Guid.NewGuid().ToString();
-
-    public required DateTime Timestamp { get; set; } = DateTime.UtcNow;
-
-    public required string CorrelationId { get; set; }
-
-    public required string ServiceName { get; set; } // e.g. PEP-Service
-
+    public required string EventId { get; set; }
     public required string EventName { get; set; } // e.g. "PEP_INTERACTION", "HTTP_REQUEST", etc.
-
+    public required string ServiceName { get; set; } // e.g. PEP-Service
     public required AuditActor Actor { get; set; }
-
-    public required T Payload { get; set; }
+    public required JsonElement Payload { get; set; }
+    public required DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public required string CorrelationId { get; set; }
 }

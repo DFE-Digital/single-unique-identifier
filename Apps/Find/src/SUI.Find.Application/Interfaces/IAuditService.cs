@@ -4,5 +4,5 @@ namespace SUI.Find.Application.Interfaces;
 
 public interface IAuditService
 {
-    Task WriteAccessAuditLogAsync(AuditAccessMessage accessMessage);
+    Task WriteAccessAuditLogAsync(AuditEvent auditEvent, CancellationToken token);
 }

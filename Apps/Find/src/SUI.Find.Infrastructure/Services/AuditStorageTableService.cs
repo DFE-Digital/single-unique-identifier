@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using Azure.Data.Tables;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Events.Audit;
@@ -11,29 +12,30 @@ public class AuditStorageTableService(TableServiceClient client)
     : IAuditService,
         ITableServiceEnsureCreated
 {
-    public async Task WriteAccessAuditLogAsync(AuditAccessMessage accessMessage)
+    public async Task WriteAccessAuditLogAsync(
+        AuditEvent auditEvent,
+        CancellationToken cancellationToken
+    )
     {
-        await WriteAsync(accessMessage);
-    }
+        var partitionKey = $"{auditEvent.Timestamp:yyyy-MM-dd}";
 
-    private async Task WriteAsync(AuditAccessMessage accessMessage)
-    {
         var tableClient = client.GetTableClient(
             InfrastructureConstants.StorageTableAudit.TableName
         );
 
-        // Partition by clientId to avoid hot partitions, and by month for easier querying
-        var partitionKey = $"{accessMessage.ClientId}_{accessMessage.Timestamp:yyyyMM}";
         await tableClient.AddEntityAsync(
-            new TableEntity(partitionKey, Guid.NewGuid().ToString())
+            new TableEntity(partitionKey, auditEvent.EventId)
             {
-                { "ClientId", accessMessage.ClientId },
-                { "UrlAccessed", accessMessage.Path },
-                { "Method", accessMessage.Method },
-                { "AccessTime", accessMessage.Timestamp.ToUniversalTime() },
-                { "CorrelationId", accessMessage.CorrelationId },
-                { "Suid", accessMessage.Suid },
-            }
+                { "EventId", auditEvent.EventId },
+                { "EventName", auditEvent.EventName },
+                { "ServiceName", auditEvent.ServiceName },
+                { "ActorId", auditEvent.Actor.ActorId },
+                { "ActorRole", auditEvent.Actor.ActorRole },
+                { "Timestamp", auditEvent.Timestamp.ToUniversalTime() },
+                { "CorrelationId", auditEvent.CorrelationId },
+                { "Payload", auditEvent.Payload.ToString() },
+            },
+            cancellationToken
         );
     }
 

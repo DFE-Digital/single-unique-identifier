@@ -13,16 +13,20 @@ public class QueueAuditAccessTrigger(
 {
     [Function(nameof(QueueAuditAccessFunction))]
     public async Task QueueAuditAccessFunction(
-        [QueueTrigger(ApplicationConstants.Audit.AccessQueueName)] AuditAccessMessage accessMessage,
-        FunctionContext context
+        [QueueTrigger(ApplicationConstants.Audit.AccessQueueName)] AuditEvent auditMessage,
+        FunctionContext context,
+        CancellationToken token
     )
     {
         logger.LogInformation(
             "C# Queue trigger function processed: {EventType} for ClientId: {ClientId} at {Timestamp}",
-            accessMessage.EventType,
-            accessMessage.ClientId,
-            accessMessage.Timestamp
+            auditMessage.EventName,
+            auditMessage.Actor.ActorId,
+            auditMessage.Timestamp
         );
-        await auditService.WriteAccessAuditLogAsync(accessMessage);
+
+        await auditService.WriteAccessAuditLogAsync(auditMessage, token);
     }
 }
+
+public class AuditTableMapper { }

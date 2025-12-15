@@ -60,14 +60,10 @@ public class AuditMiddleware(
         {
             var clientId = authContext.ClientId;
 
-            var auditMessage = new AuditAccessMessage
+            var payload = new AuditAccessMessage
             {
-                ClientId = clientId,
                 Path = httpReq.Url.AbsolutePath,
                 Method = httpReq.Method,
-                Timestamp = DateTime.UtcNow,
-                CorrelationId = context.InvocationId,
-                EventType = "Access",
             };
 
             var isSearchRequest = httpReq.Url.AbsolutePath.Equals(
@@ -76,14 +72,24 @@ public class AuditMiddleware(
             );
             if (isSearchRequest)
             {
-                await HandleSearchRequestAuditAsync(httpReq, context, auditMessage);
+                var suid = await GetRequestSuid(httpReq);
+                payload = payload with { Suid = suid };
                 // Very important: Reset the stream position for downstream middleware/functions
                 httpReq.Body.Seek(0, SeekOrigin.Begin);
-                await next(context);
-                return;
             }
 
-            await SendAuditMessage(auditMessage);
+            var auditEvent = new AuditEvent
+            {
+                EventId = Guid.NewGuid().ToString(),
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = context.InvocationId,
+                ServiceName = "AuditMiddleware",
+                EventName = "HTTP_REQUEST",
+                Actor = new AuditActor { ActorId = clientId, ActorRole = "Organisation" },
+                Payload = JsonSerializer.SerializeToElement(payload),
+            };
+
+            await SendAuditMessage(auditEvent);
         }
         else
         {
@@ -96,7 +102,7 @@ public class AuditMiddleware(
         await next(context);
     }
 
-    private async Task SendAuditMessage(AuditAccessMessage auditMessage)
+    private async Task SendAuditMessage(AuditEvent auditMessage)
     {
         var queueClient = queueClientFactory.GetAuditClient();
         var messageJson = JsonSerializer.Serialize(auditMessage, JsonSerializerOptions.Web);
@@ -116,11 +122,7 @@ public class AuditMiddleware(
         }
     }
 
-    private async Task HandleSearchRequestAuditAsync(
-        HttpRequestData httpReq,
-        FunctionContext context,
-        AuditAccessMessage auditAccessMessage
-    )
+    private async Task<string> GetRequestSuid(HttpRequestData httpReq)
     {
         var requestBody = await httpReq.ReadAsStringAsync();
         var request = JsonSerializer.Deserialize<StartSearchRequest>(
@@ -130,17 +132,9 @@ public class AuditMiddleware(
 
         if (request?.Suid is not null)
         {
-            var withSuid = auditAccessMessage with { Suid = request.Suid };
-            await SendAuditMessage(withSuid);
+            return request.Suid;
         }
-        else
-        {
-            // Not an error, just an empty SUID
-            logger.LogInformation(
-                "SUID not found in search request for CorrelationId: {CorrelationId}",
-                context.InvocationId
-            );
-            await SendAuditMessage(auditAccessMessage);
-        }
+
+        return string.Empty;
     }
 }
