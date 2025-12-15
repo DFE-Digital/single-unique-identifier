@@ -7,7 +7,7 @@ using SUI.StubCustodians.Application.Queries;
 
 namespace SUI.StubCustodians.API.Controllers
 {
-    [ApiExplorerSettings(IgnoreApi = true)]
+    [ApiExplorerSettings(IgnoreApi = false)]
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
@@ -30,7 +30,7 @@ namespace SUI.StubCustodians.API.Controllers
         {
             _logger.LogInformation("Getting event record starting, for sui:'{Sui}'", sui);
 
-            var result = await _mediator.Send(new GetEventRecordBySuiQuery() { Sui = sui });
+            var result = await _mediator.Send(new GetEventRecordBySuiQuery { Sui = sui });
 
             _logger.LogInformation("Getting event record ended, for sui:'{Sui}'", sui);
 

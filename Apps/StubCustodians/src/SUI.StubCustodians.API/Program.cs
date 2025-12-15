@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using SUI.Custodians.Domain.Models;
+using SUI.StubCustodians.API.OpenApiTransformers;
 using SUI.StubCustodians.Application.Contracts.Arbor;
 using SUI.StubCustodians.Application.Contracts.Mosaic;
 using SUI.StubCustodians.Application.Contracts.Niche;
@@ -24,6 +25,7 @@ namespace SUI.StubCustodians.API
             {
                 options.AddSchemaTransformer<CustodiansOpenApiSchemaTransformer>();
                 options.AddDocumentTransformer<CustodiansOpenApiDocumentTransformer>();
+                // options.AddSchemaTransformer<DerivedTypeSchemaTransformer>();
             });
 
             builder.Services.AddEndpointsApiExplorer();

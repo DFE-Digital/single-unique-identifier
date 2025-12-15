@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -143,6 +144,78 @@ namespace SUI.StubCustodians.API.Controllers
             _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
 
             return result.ToActionResult();
+        }
+
+        [HttpGet("{providerSystemId}/{sui}")]
+        [ProducesResponseType(typeof(RecordEnvelope<SuiRecord>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(FailureInfo), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetRecord(
+            [FromRoute] string sui,
+            [FromRoute] string providerSystemId
+        )
+        {
+            _logger.LogInformation("Getting record starting, for sui:'{Sui}'", sui);
+
+            switch (providerSystemId)
+            {
+                case "1001":
+                    var result = await _mediator.Send(
+                        new GetPersonalDetailsRecordQuery
+                        {
+                            Sui = sui,
+                            ProviderSystemId = providerSystemId,
+                        }
+                    );
+                    _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+                    return result.ToActionResult();
+
+                case "2001":
+                    var result2 = await _mediator.Send(
+                        new GetChildSocialCareRecordQuery
+                        {
+                            Sui = sui,
+                            ProviderSystemId = providerSystemId,
+                        }
+                    );
+                    _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+                    return result2.ToActionResult();
+
+                case "3001":
+                    var result3 = await _mediator.Send(
+                        new GetHealthDataRecordQuery
+                        {
+                            Sui = sui,
+                            ProviderSystemId = providerSystemId,
+                        }
+                    );
+                    _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+                    return result3.ToActionResult();
+
+                case "4001":
+                    var result4 = await _mediator.Send(
+                        new GetCrimeDataRecordQuery
+                        {
+                            Sui = sui,
+                            ProviderSystemId = providerSystemId,
+                        }
+                    );
+                    _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+                    return result4.ToActionResult();
+
+                case "5001":
+                    var result5 = await _mediator.Send(
+                        new GetEducationDetailsRecordQuery
+                        {
+                            Sui = sui,
+                            ProviderSystemId = providerSystemId,
+                        }
+                    );
+                    _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
+                    return result5.ToActionResult();
+            }
+
+            return NotFound();
         }
     }
 }
