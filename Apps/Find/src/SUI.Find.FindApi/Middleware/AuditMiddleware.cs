@@ -5,7 +5,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
-using SUI.Find.Domain.Models;
+using SUI.Find.Domain.Events.Audit;
 using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Models;
 

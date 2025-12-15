@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using SUI.Find.Application.Interfaces;
-using SUI.Find.Domain.Models;
+using SUI.Find.Domain.Events.Audit;
 using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Services;

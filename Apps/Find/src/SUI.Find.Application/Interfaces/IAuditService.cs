@@ -1,4 +1,4 @@
-using SUI.Find.Domain.Models;
+using SUI.Find.Domain.Events.Audit;
 
 namespace SUI.Find.Application.Interfaces;
 

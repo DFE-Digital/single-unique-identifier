@@ -2,7 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
-using SUI.Find.Domain.Models;
+using SUI.Find.Domain.Events.Audit;
 
 namespace SUI.Find.FindApi.Functions.QueueFunctions;
 

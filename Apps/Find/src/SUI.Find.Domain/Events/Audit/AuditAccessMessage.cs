@@ -1,4 +1,4 @@
-namespace SUI.Find.Domain.Models;
+namespace SUI.Find.Domain.Events.Audit;
 
 public record AuditAccessMessage
 {
