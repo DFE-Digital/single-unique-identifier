@@ -7,8 +7,11 @@ namespace SUI.Find.Infrastructure.UnitTests.Utility;
 
 public class ProviderHttpClientTests
 {
-    private readonly IHttpClientFactory _mockHttpClientFactory = Substitute.For<IHttpClientFactory>();
-    private readonly ILogger<ProviderHttpClient> _mockLogger = Substitute.For<ILogger<ProviderHttpClient>>();
+    private readonly IHttpClientFactory _mockHttpClientFactory =
+        Substitute.For<IHttpClientFactory>();
+    private readonly ILogger<ProviderHttpClient> _mockLogger = Substitute.For<
+        ILogger<ProviderHttpClient>
+    >();
     private readonly ProviderHttpClient _sut;
 
     public ProviderHttpClientTests()
@@ -65,20 +68,24 @@ public class ProviderHttpClientTests
 
         // Assert
         Assert.False(result.Success);
-        Assert.Contains("Custodian returned unexpected status", result.Error);
+        Assert.Contains("InternalServerError", result.Error);
     }
-
 
     private class MockHttpMessageHandler(HttpStatusCode statusCode, string content = "")
         : HttpMessageHandler
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
         {
-            return await Task.FromResult(new HttpResponseMessage
-            {
-                StatusCode = statusCode,
-                Content = new StringContent(content)
-            });
+            return await Task.FromResult(
+                new HttpResponseMessage
+                {
+                    StatusCode = statusCode,
+                    Content = new StringContent(content),
+                }
+            );
         }
     }
 }

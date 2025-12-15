@@ -3,10 +3,10 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using OneOf.Types;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 using SUI.Find.FindApi.Functions.HttpFunctions;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.UnitTests.Mocks;
@@ -55,7 +55,7 @@ public class FetchRecordFunctionTests
 
         _mockService
             .FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<CustodianRecord>.Ok(expectedResult));
+            .Returns(expectedResult);
 
         // Act
         var response = await _sut.FetchRecord(
@@ -118,7 +118,7 @@ public class FetchRecordFunctionTests
 
         _mockService
             .FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<CustodianRecord>.Fail("Error Fetching Record"));
+            .Returns(new Error());
 
         // Act
         var response = await _sut.FetchRecord(
@@ -141,7 +141,7 @@ public class FetchRecordFunctionTests
 
         _mockService
             .FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<CustodianRecord>.Fail("NotFound"));
+            .Returns(new NotFound());
 
         // Act
         var response = await _sut.FetchRecord(
@@ -153,5 +153,28 @@ public class FetchRecordFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ShouldReturnUnauthorized_WhenTheyAreNotTheRecordSearchOwner()
+    {
+        // Arrange
+        var context = CreateContextWithAuth();
+        var request = MockHttpRequestData.Create();
+
+        _mockService
+            .FetchRecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new Unauthorized());
+
+        // Act
+        var response = await _sut.FetchRecord(
+            request,
+            "record-123",
+            context,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 }

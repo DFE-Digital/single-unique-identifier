@@ -9,5 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.DurableTask.Client" />
+    <PackageReference Include="OneOf" />
   </ItemGroup>
 </Project>

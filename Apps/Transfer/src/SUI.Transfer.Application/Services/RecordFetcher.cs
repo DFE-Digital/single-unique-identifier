@@ -49,8 +49,9 @@ public class RecordFetcher(
                         failedFetches.Add(new FailedFetch(recordPointer, e.Message));
                         logger.LogError(
                             e,
-                            "Failed to get record {RecordPointerRecordUrl}",
-                            recordPointer.RecordUrl
+                            "Failed to get record {RecordPointerRecordUrl} from provider {ProviderSystemId}",
+                            recordPointer.RecordUrl,
+                            recordPointer.ProviderSystemId
                         );
                     }
                 }

@@ -32,6 +32,7 @@ public class MockCustodianServiceTests
         Assert.NotNull(la);
         Assert.Equal("Example Local Authority", la.OrgName);
         Assert.Equal("LOCAL_AUTHORITY", la.OrgType);
+        // Connection
         Assert.Equal("GET", la.Connection.Method);
         Assert.Equal(
             "http://localhost:7082/v1/local-authority/manifest/{personId}?recordType=local-authority",
@@ -44,6 +45,28 @@ public class MockCustodianServiceTests
         Assert.Contains("find-record.read fetch-record.read", la.Connection.Auth.Scopes);
         Assert.Equal("SUI-SERVICE", la.Connection.Auth.ClientId);
         Assert.Equal("SUIProject", la.Connection.Auth.ClientSecret);
+        // dsa policy
+
+        Assert.Equal(DateTimeOffset.Parse("2025-11-10T12:00:00Z"), la.DsaPolicy.Version);
+        Assert.NotEmpty(la.DsaPolicy.Defaults);
+        var defaultRule = la.DsaPolicy.Defaults.First();
+        Assert.Equal("allow", defaultRule.Effect);
+        Assert.Contains("EXISTENCE", defaultRule.Modes);
+        Assert.Contains("local_authority_ptr", defaultRule.DataTypes);
+        Assert.Contains("POLICE", defaultRule.DestOrgTypes);
+        Assert.Equal(DateTimeOffset.Parse("2025-01-01T00:00:00Z"), defaultRule.ValidFrom);
+
+        var police = providers.FirstOrDefault(p => p.OrgId == "POLICE-01");
+        Assert.NotNull(police);
+        Assert.NotEmpty(police.DsaPolicy.Exceptions);
+
+        var exceptionRule = police.DsaPolicy.Exceptions.First();
+        Assert.Contains("LOCAL-AUTHORITY-01", exceptionRule.DestOrgIds);
+        Assert.Equal("Timeboxed multi-agency safeguarding operation.", exceptionRule.Reason);
+        Assert.Equal(DateTimeOffset.Parse("2025-12-01T00:00:00Z"), exceptionRule.ValidFrom);
+        Assert.Equal(DateTimeOffset.Parse("2026-03-01T00:00:00Z"), exceptionRule.ValidUntil);
+
+        // encryption
         Assert.NotNull(la.Encryption);
         Assert.Equal("AES-256-ECB", la.Encryption.Algorithm);
 
@@ -87,7 +110,7 @@ public class MockCustodianServiceTests
 
         var targetOrgId = "NON-EXISTENT-ORG-ID";
 
-        // Act 
+        // Act
         var result = await _sut.GetCustodianAsync(targetOrgId);
 
         // Assert

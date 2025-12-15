@@ -79,20 +79,21 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
         }
 
         var personMatch = await service.MatchPersonAsync(request, authContext.ClientId);
-        return personMatch switch
-        {
-            MatchPersonResponse.Match match => CreateOkResponse(req, match.PersonId),
-            MatchPersonResponse.NoMatch => await HttpResponseUtility.NotFoundResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-            _ => await HttpResponseUtility.InternalServerErrorResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-        };
+        return await personMatch.Match(
+            encryptedPersonId => CreateOkResponse(req, encryptedPersonId),
+            async notFound =>
+                await HttpResponseUtility.NotFoundResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async error =>
+                await HttpResponseUtility.InternalServerErrorResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                )
+        );
     }
 
     private static bool TryGetMatchResponseRequestModel(
@@ -128,11 +129,14 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
         }
     }
 
-    private static HttpResponseData CreateOkResponse(HttpRequestData req, EncryptedPersonId match)
+    private static async Task<HttpResponseData> CreateOkResponse(
+        HttpRequestData req,
+        EncryptedPersonId encryptedPersonId
+    )
     {
         var res = req.CreateResponse(HttpStatusCode.OK);
-        var responseBody = new PersonMatch(match.ToString());
-        res.WriteString(JsonSerializer.Serialize(responseBody));
+        var responseBody = new PersonMatch(encryptedPersonId.Value);
+        await res.WriteAsJsonAsync(responseBody);
         return res;
     }
 }

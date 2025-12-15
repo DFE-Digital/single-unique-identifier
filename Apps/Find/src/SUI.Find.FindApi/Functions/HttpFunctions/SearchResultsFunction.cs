@@ -20,6 +20,7 @@ public class SearchResultsFunction(
 )
 {
     #region OpenApi
+
     [OpenApiOperation(
         operationId: "getSearchResults",
         tags: new[] { "Searches" },
@@ -53,6 +54,7 @@ public class SearchResultsFunction(
         Summary = "Error"
     )]
     #endregion
+
     [RequiredScopes("find-record.read")]
     [Function(nameof(SearchResultsTrigger))]
     public async Task<HttpResponseData> SearchResultsTrigger(
@@ -90,29 +92,27 @@ public class SearchResultsFunction(
             cancellationToken
         );
 
-        return result switch
-        {
-            SearchResult.Success searchResult => await CreateSuccessResponse(
-                req,
-                searchResult.Result,
-                cancellationToken
-            ),
-            SearchResult.NotFound => await HttpResponseUtility.NotFoundResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-            SearchResult.Unauthorized => await HttpResponseUtility.UnauthorizedResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-            _ => await HttpResponseUtility.InternalServerErrorResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            ),
-        };
+        return await result.Match(
+            async searchResult => await CreateSuccessResponse(req, searchResult, cancellationToken),
+            async notFound =>
+                await HttpResponseUtility.NotFoundResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async unauthorized =>
+                await HttpResponseUtility.UnauthorizedResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async error =>
+                await HttpResponseUtility.InternalServerErrorResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                )
+        );
     }
 
     private static async Task<HttpResponseData> CreateSuccessResponse(

@@ -1,13 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using SUI.Custodians.Domain.Models;
-using SUI.StubCustodians.API.OpenApiTransformers;
-using SUI.StubCustodians.Application.Contracts.Arbor;
-using SUI.StubCustodians.Application.Contracts.Mosaic;
-using SUI.StubCustodians.Application.Contracts.Niche;
-using SUI.StubCustodians.Application.Contracts.SystmOne;
 using SUI.StubCustodians.Application.Interfaces;
-using SUI.StubCustodians.Application.Mappers;
 using SUI.StubCustodians.Application.Queries;
 using SUI.StubCustodians.Application.Services;
 
@@ -25,7 +19,6 @@ namespace SUI.StubCustodians.API
             {
                 options.AddSchemaTransformer<CustodiansOpenApiSchemaTransformer>();
                 options.AddDocumentTransformer<CustodiansOpenApiDocumentTransformer>();
-                // options.AddSchemaTransformer<DerivedTypeSchemaTransformer>();
             });
 
             builder.Services.AddEndpointsApiExplorer();
@@ -86,7 +79,7 @@ namespace SUI.StubCustodians.API
         {
             services.AddMediatR(config =>
             {
-                config.RegisterServicesFromAssemblyContaining<GetEventRecordBySuiQuery>();
+                config.RegisterServicesFromAssemblyContaining<GetRecordQueryBase>();
             });
 
             services.AddScoped<
@@ -94,35 +87,19 @@ namespace SUI.StubCustodians.API
                 PersonalDetailsRecordProvider
             >();
 
-            string activeCustodian = configuration.GetValue<string>(
-                "ActiveCustodian",
-                "MockEducationProvider"
-            );
+            services.AddScoped<
+                IRecordProvider<EducationDetailsRecordV1>,
+                EducationDetailsRecordProvider
+            >();
 
-            if (activeCustodian.Equals("Arbor", StringComparison.OrdinalIgnoreCase))
-            {
-                services.AddScoped<IEventRecordProvider, ArborEventRecordProvider>();
-                services.AddScoped<IRecordMapper<ArborRecord>, ArborRecordMapper>();
-            }
-            else if (activeCustodian.Equals("Mosaic", StringComparison.OrdinalIgnoreCase))
-            {
-                services.AddScoped<IEventRecordProvider, MosaicEventRecordProvider>();
-                services.AddScoped<IRecordMapper<MosaicRecord>, MosaicRecordMapper>();
-            }
-            else if (activeCustodian.Equals("SystmOne", StringComparison.OrdinalIgnoreCase))
-            {
-                services.AddScoped<IEventRecordProvider, SystmOneEventRecordProvider>();
-                services.AddScoped<IRecordMapper<SystmOneRecord>, SystmOneRecordMapper>();
-            }
-            else if (activeCustodian.Equals("Niche", StringComparison.OrdinalIgnoreCase))
-            {
-                services.AddScoped<IEventRecordProvider, NicheEventRecordProvider>();
-                services.AddScoped<IRecordMapper<NicheRecord>, NicheRecordMapper>();
-            }
-            else
-            {
-                throw new InvalidOperationException($"Unknown Custodian: {activeCustodian}");
-            }
+            services.AddScoped<
+                IRecordProvider<ChildSocialCareDetailsRecordV1>,
+                ChildSocialCareDetailsRecordProvider
+            >();
+
+            services.AddScoped<IRecordProvider<CrimeDataRecordV1>, CrimeDataRecordProvider>();
+
+            services.AddScoped<IRecordProvider<HealthDataRecordV1>, HealthDataRecordProvider>();
         }
     }
 }

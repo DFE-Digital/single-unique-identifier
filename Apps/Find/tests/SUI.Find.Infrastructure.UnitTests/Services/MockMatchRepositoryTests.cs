@@ -2,6 +2,7 @@ using System.IO.Abstractions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using OneOf.Types;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Services;
 
@@ -39,8 +40,8 @@ public class MockMatchRepositoryTests
         var result = await _sut.MatchPersonAsync(request);
 
         // Assert
-        Assert.IsType<MatchFhirResponse.Match>(result);
-        Assert.Equal("9434765919", ((MatchFhirResponse.Match)result).NhsNumber);
+        var data = Assert.IsType<string>(result.Value);
+        Assert.Equal("9434765919", data);
     }
 
     [Fact]
@@ -62,7 +63,7 @@ public class MockMatchRepositoryTests
         var result = await _sut.MatchPersonAsync(request);
 
         // Assert
-        Assert.IsType<MatchFhirResponse.NoMatch>(result);
+        Assert.IsType<NotFound>(result.Value);
     }
 
     [Fact]
@@ -84,7 +85,6 @@ public class MockMatchRepositoryTests
         var result = await _sut.MatchPersonAsync(request);
 
         // Assert
-        var error = Assert.IsType<MatchFhirResponse.Error>(result);
-        Assert.Equal("An error occurred while processing the match request.", error.ErrorMessage);
+        var error = Assert.IsType<Error>(result.Value);
     }
 }

@@ -78,7 +78,7 @@ public sealed class FileDataProvider(IRandomDelayService throttleService) : IDat
 
         var cfg = await JsonSerializer.DeserializeAsync<CustodianConfig>(
             stream,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+            JsonSerializerOptions.Web,
             cancellationToken
         );
 

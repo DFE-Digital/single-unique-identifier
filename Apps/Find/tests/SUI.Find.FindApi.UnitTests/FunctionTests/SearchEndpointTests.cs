@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using OneOf.Types;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
@@ -95,7 +96,7 @@ public class SearchEndpointTests
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(new SearchJobResult.Success(jobDto));
+            .Returns(jobDto);
 
         var response = await _sut.Searches(
             httpRequestData,
@@ -117,33 +118,6 @@ public class SearchEndpointTests
     }
 
     [Fact]
-    public async Task ShouldReturn401_WhenSearchServiceReturnsUnauthorized()
-    {
-        var data = new StartSearchRequest(ValidSuid);
-        var httpRequestData = MockHttpRequestData.CreateJson(data);
-
-        _searchService
-            .StartSearchAsync(
-                Arg.Any<EncryptedPersonId>(),
-                Arg.Any<string>(),
-                Arg.Any<string[]>(),
-                Arg.Any<DurableTaskClient>(),
-                Arg.Any<string>(),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(new SearchJobResult.Unauthorized());
-
-        var response = await _sut.Searches(
-            httpRequestData,
-            _client,
-            _context,
-            CancellationToken.None
-        );
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
     public async Task ShouldReturn500_WhenSearchServiceReturnsFailed()
     {
         var data = new StartSearchRequest(ValidSuid);
@@ -158,7 +132,7 @@ public class SearchEndpointTests
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(new SearchJobResult.Failed());
+            .Returns(new Error());
 
         var response = await _sut.Searches(
             httpRequestData,

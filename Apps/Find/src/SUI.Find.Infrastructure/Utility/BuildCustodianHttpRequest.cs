@@ -2,17 +2,26 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using SUI.Find.Application.Models;
+using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Utility;
 
-public static class BuildCustodianHttpRequest
+public class BuildCustodianHttpRequest : IBuildCustodianHttpRequest
 {
-    public static HttpRequestMessage BuildHttpRequest(ProviderDefinition provider, string encryptedPersonId, string? bearerToken)
+    public HttpRequestMessage BuildHttpRequest(
+        ProviderDefinition provider,
+        string encryptedPersonId,
+        string? bearerToken
+    )
     {
         var connectionDefinition = provider.Connection;
         var method = new HttpMethod(connectionDefinition.Method.ToUpperInvariant());
 
-        var url = MapPersonIdToUrl(connectionDefinition.Url, encryptedPersonId, connectionDefinition.PersonIdPosition);
+        var url = MapPersonIdToUrl(
+            connectionDefinition.Url,
+            encryptedPersonId,
+            connectionDefinition.PersonIdPosition
+        );
 
         var request = new HttpRequestMessage(method, url);
 
@@ -23,12 +32,19 @@ public static class BuildCustodianHttpRequest
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
         }
 
-        if (string.Equals(connectionDefinition.PersonIdPosition, "header", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(
+                connectionDefinition.PersonIdPosition,
+                "header",
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
         {
             request.Headers.Add("personId", encryptedPersonId);
         }
 
-        if (method != HttpMethod.Post && method != HttpMethod.Put && method != HttpMethod.Patch) return request;
+        if (method != HttpMethod.Post && method != HttpMethod.Put && method != HttpMethod.Patch)
+            return request;
 
         var body = BuildHttpBody(connectionDefinition, encryptedPersonId);
 
@@ -44,10 +60,15 @@ public static class BuildCustodianHttpRequest
     {
         if (string.Equals(position, "path", StringComparison.OrdinalIgnoreCase))
         {
-            return url.Replace("{personId}", Uri.EscapeDataString(encryptedPersonId), StringComparison.OrdinalIgnoreCase);
+            return url.Replace(
+                "{personId}",
+                Uri.EscapeDataString(encryptedPersonId),
+                StringComparison.OrdinalIgnoreCase
+            );
         }
 
-        if (!string.Equals(position, "query", StringComparison.OrdinalIgnoreCase)) return url;
+        if (!string.Equals(position, "query", StringComparison.OrdinalIgnoreCase))
+            return url;
 
         var separator = url.Contains('?') ? "&" : "?";
 
@@ -58,9 +79,19 @@ public static class BuildCustodianHttpRequest
     {
         if (!string.IsNullOrWhiteSpace(connectionDefinition.BodyTemplateJson))
         {
-            return connectionDefinition.BodyTemplateJson.Replace("{personId}", personId, StringComparison.OrdinalIgnoreCase);
+            return connectionDefinition.BodyTemplateJson.Replace(
+                "{personId}",
+                personId,
+                StringComparison.OrdinalIgnoreCase
+            );
         }
 
-        return string.Equals(connectionDefinition.PersonIdPosition, "body", StringComparison.OrdinalIgnoreCase) ? JsonSerializer.Serialize(new { personId }) : null;
+        return string.Equals(
+            connectionDefinition.PersonIdPosition,
+            "body",
+            StringComparison.OrdinalIgnoreCase
+        )
+            ? JsonSerializer.Serialize(new { personId })
+            : null;
     }
 }

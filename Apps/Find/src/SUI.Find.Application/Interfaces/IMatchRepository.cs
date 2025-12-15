@@ -1,8 +1,10 @@
+using OneOf;
+using OneOf.Types;
 using SUI.Find.Application.Models;
 
 namespace SUI.Find.Application.Interfaces;
 
 public interface IMatchRepository
 {
-    Task<MatchFhirResponse> MatchPersonAsync(MatchPersonRequest request);
+    Task<OneOf<string, NotFound, Error>> MatchPersonAsync(MatchPersonRequest request);
 }

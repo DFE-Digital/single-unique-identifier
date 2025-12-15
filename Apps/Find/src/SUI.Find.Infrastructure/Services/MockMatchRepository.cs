@@ -1,6 +1,8 @@
 using System.IO.Abstractions;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using OneOf;
+using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Models;
@@ -15,12 +17,11 @@ namespace SUI.Find.Infrastructure.Services;
 public class MockMatchRepository(ILogger<MockMatchRepository> logger, IFileSystem fileSystem)
     : IMatchRepository
 {
-    public async Task<MatchFhirResponse> MatchPersonAsync(MatchPersonRequest request)
+    public async Task<OneOf<string, NotFound, Error>> MatchPersonAsync(MatchPersonRequest request)
     {
         try
         {
             // Simulate a mock match response
-            // TODO: Read Mock file
             var mockDataPath = fileSystem.Path.Combine("Data", "pds-data.json");
             logger.LogInformation("Reading mock data from {MockDataPath}", mockDataPath);
             var mockData = await fileSystem.File.ReadAllTextAsync(mockDataPath);
@@ -43,19 +44,17 @@ public class MockMatchRepository(ILogger<MockMatchRepository> logger, IFileSyste
             if (match == null)
             {
                 logger.LogInformation("No match found");
-                return new MatchFhirResponse.NoMatch();
+                return new NotFound();
             }
 
             logger.LogInformation("Match found");
 
-            return new MatchFhirResponse.Match(match.NhsNumber);
+            return match.NhsNumber;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error occurred while matching person");
-            return new MatchFhirResponse.Error(
-                "An error occurred while processing the match request."
-            );
+            return new Error();
         }
     }
 }

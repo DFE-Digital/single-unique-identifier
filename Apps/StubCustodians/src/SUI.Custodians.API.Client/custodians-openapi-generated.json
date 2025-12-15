@@ -1178,13 +1178,26 @@
         }
       },
       "NullableOfCrimeRiskTypeV1": {
-        "type": "integer",
+        "enum": [
+          "SexualExploitation",
+          "CriminalExploitation",
+          "Radicalisation",
+          "ModernSlaveryAndTrafficking",
+          "GangsAndYouthViolence",
+          null
+        ],
         "description": "Crime - Risk - Type",
         "nullable": true,
         "example": "CriminalExploitation"
       },
       "NullableOfHealthSettingV1": {
-        "type": "integer",
+        "enum": [
+          "Other",
+          "Hospital",
+          "GP",
+          "Community",
+          null
+        ],
         "description": "Health - Missed appointments history - Setting",
         "nullable": true,
         "example": "GP"

@@ -1,26 +1,44 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Domain.ValueObjects;
 
 [ExcludeFromCodeCoverage]
-public sealed record EncryptedPersonId(string EncryptedValue)
+public partial record EncryptedPersonId
 {
-    public static EncryptedPersonId Create(string id)
+    public string Value { get; }
+
+    private const int RequiredLength = 22;
+    private static readonly Regex regex = Base64UrlRegex();
+
+    private EncryptedPersonId(string id)
+    {
+        Value = id;
+    }
+
+    public static Result<EncryptedPersonId> Create(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("EncryptedPersonId cannot be empty.");
 
-        try
+        if (id.Length != RequiredLength)
         {
-            _ = Convert.FromBase64String(id);
-        }
-        catch
-        {
-            throw new ArgumentException("EncryptedPersonId must be valid Base64.");
+            return Result<EncryptedPersonId>.Fail(
+                $"EncryptedPersonId must have length of {RequiredLength} characters."
+            );
         }
 
-        return new EncryptedPersonId(id);
+        if (!regex.IsMatch(id))
+        {
+            return Result<EncryptedPersonId>.Fail(
+                "EncryptedPersonId does not match expected format."
+            );
+        }
+
+        return Result<EncryptedPersonId>.Ok(new EncryptedPersonId(id));
     }
 
-    public override string ToString() => EncryptedValue;
+    [GeneratedRegex("^[A-Za-z0-9_-]+$", RegexOptions.Compiled)]
+    private static partial Regex Base64UrlRegex();
 }

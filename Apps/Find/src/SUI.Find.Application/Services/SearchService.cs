@@ -1,23 +1,23 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Text.Json;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using OneOf;
+using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.Services;
 
 public interface ISearchService
 {
-    Task<SearchJobResult> StartSearchAsync(
-        EncryptedPersonId personId,
+    Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
+        EncryptedPersonId encryptedPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -25,21 +25,21 @@ public interface ISearchService
         CancellationToken cancellationToken
     );
 
-    Task<SearchCancelResult> CancelSearchAsync(
+    Task<OneOf<SearchJobDto, NotFound, Unauthorized, Error>> CancelSearchAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     );
 
-    Task<SearchResult> GetSearchResultsAsync(
+    Task<OneOf<SearchResultsDto, NotFound, Unauthorized, Error>> GetSearchResultsAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     );
 
-    Task<SearchJobResult> GetSearchStatusAsync(
+    Task<OneOf<SearchJobDto, Unauthorized, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -55,8 +55,8 @@ public class SearchService(
     IHashService hashService
 ) : ISearchService
 {
-    public async Task<SearchJobResult> StartSearchAsync(
-        EncryptedPersonId personId,
+    public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
+        EncryptedPersonId encryptedPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -64,7 +64,7 @@ public class SearchService(
         CancellationToken cancellationToken
     )
     {
-        var instanceId = $"{personId}-{clientId}";
+        var instanceId = $"{encryptedPersonId}-{clientId}";
         var hashedInstanceId = hashService.HmacSha256Hash(instanceId);
 
         var existingInstance = await client.GetInstanceAsync(
@@ -95,13 +95,13 @@ public class SearchService(
             var originalJob = new SearchJobDto
             {
                 JobId = originalJobId,
-                PersonId = personId.EncryptedValue,
+                PersonId = encryptedPersonId.Value,
                 Status = jobStatus,
                 CreatedAt = existingInstance.CreatedAt,
                 LastUpdatedAt = existingInstance.LastUpdatedAt,
             };
 
-            return new SearchJobResult.Success(originalJob);
+            return originalJob;
         }
 
         var encryptDefinition = await custodianService.GetCustodianAsync(clientId);
@@ -111,7 +111,7 @@ public class SearchService(
                 "No custodian configuration found for ClientId: {ClientId}.",
                 clientId
             );
-            return new SearchJobResult.Failed();
+            return new Error();
         }
 
         if (encryptDefinition.Value.Encryption is null)
@@ -120,21 +120,21 @@ public class SearchService(
                 "Custodian configuration for ClientId: {ClientId} has no encryption defined.",
                 clientId
             );
-            return new SearchJobResult.Failed();
+            return new Error();
         }
 
         var unencryptedPersonId = encryptionService.DecryptPersonIdToNhs(
-            personId.EncryptedValue,
+            encryptedPersonId.Value,
             encryptDefinition.Value.Encryption
         );
         if (!unencryptedPersonId.Success || unencryptedPersonId.Value is null)
         {
             logger.LogWarning("Failed to decrypt SUID for ClientId: {ClientId}.", clientId);
-            return new SearchJobResult.Failed();
+            return new Error();
         }
 
         var metaData = new SearchJobMetadata(
-            personId.EncryptedValue,
+            encryptedPersonId.Value,
             DateTime.UtcNow,
             correlationId
         );
@@ -157,16 +157,16 @@ public class SearchService(
         var searchJob = new SearchJobDto
         {
             JobId = jobId,
-            PersonId = personId.EncryptedValue,
+            PersonId = encryptedPersonId.Value,
             Status = SearchStatus.Queued,
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,
         };
 
-        return new SearchJobResult.Success(searchJob);
+        return searchJob;
     }
 
-    public async Task<SearchCancelResult> CancelSearchAsync(
+    public async Task<OneOf<SearchJobDto, NotFound, Unauthorized, Error>> CancelSearchAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -178,14 +178,14 @@ public class SearchService(
             var metaData = await client.GetInstanceAsync(jobId, cancellation: cancellationToken);
             if (metaData is null)
             {
-                return new SearchCancelResult.NotFound();
+                return new NotFound();
             }
 
             // Check if the job belongs to the requesting client
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
-                return new SearchCancelResult.Unauthorized();
+                return new Unauthorized();
             }
 
             var canCancel =
@@ -205,25 +205,23 @@ public class SearchService(
             await client.TerminateInstanceAsync(jobId, "Cancelled by user", cancellationToken);
 
             // return success regardless of whether it could be cancelled. Keeps it idempotent.
-            return new SearchCancelResult.Success(
-                new SearchJobDto
-                {
-                    JobId = jobId,
-                    PersonId = input.Suid,
-                    Status = OrchestrationRuntimeStatus.Terminated.ToSuiSearchStatus(),
-                    CreatedAt = metaData.CreatedAt,
-                    LastUpdatedAt = metaData.LastUpdatedAt,
-                }
-            );
+            return new SearchJobDto
+            {
+                JobId = jobId,
+                PersonId = input.Suid,
+                Status = OrchestrationRuntimeStatus.Terminated.ToSuiSearchStatus(),
+                CreatedAt = metaData.CreatedAt,
+                LastUpdatedAt = metaData.LastUpdatedAt,
+            };
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error cancelling search job {JobId}.", jobId);
-            return new SearchCancelResult.Error();
+            return new Error();
         }
     }
 
-    public async Task<SearchResult> GetSearchResultsAsync(
+    public async Task<OneOf<SearchResultsDto, NotFound, Unauthorized, Error>> GetSearchResultsAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -240,14 +238,14 @@ public class SearchService(
             if (metaData is null)
             {
                 logger.LogInformation("Search job with ID {JobId} not found.", jobId);
-                return new SearchResult.NotFound();
+                return new NotFound();
             }
 
             var meta = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (meta is null)
             {
                 logger.LogWarning("Failed to read metadata for search job {JobId}.", jobId);
-                return new SearchResult.Failed();
+                return new Error();
             }
 
             if (meta.PolicyContext.ClientId != clientId)
@@ -257,45 +255,39 @@ public class SearchService(
                     jobId,
                     clientId
                 );
-                return new SearchResult.Unauthorized();
+                return new Unauthorized();
             }
 
             if (metaData.IsRunning)
             {
-                return new SearchResult.Success(
-                    new SearchResultsDto
-                    {
-                        JobId = jobId,
-                        Suid = meta.Suid,
-                        Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                        Items = [],
-                    }
-                );
-            }
-
-            if (string.IsNullOrEmpty(metaData.SerializedOutput))
-            {
-                return new SearchResult.Success(
-                    new SearchResultsDto
-                    {
-                        JobId = jobId,
-                        Suid = meta.Suid,
-                        Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                        Items = [],
-                    }
-                );
-            }
-            var items = JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput);
-
-            return new SearchResult.Success(
-                new SearchResultsDto
+                return new SearchResultsDto
                 {
                     JobId = jobId,
                     Suid = meta.Suid,
                     Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    Items = items ?? [],
-                }
-            );
+                    Items = [],
+                };
+            }
+
+            if (string.IsNullOrEmpty(metaData.SerializedOutput))
+            {
+                return new SearchResultsDto
+                {
+                    JobId = jobId,
+                    Suid = meta.Suid,
+                    Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
+                    Items = [],
+                };
+            }
+            var items = JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput);
+
+            return new SearchResultsDto
+            {
+                JobId = jobId,
+                Suid = meta.Suid,
+                Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
+                Items = items ?? [],
+            };
         }
         catch (Exception ex)
         {
@@ -305,11 +297,11 @@ public class SearchService(
                 jobId,
                 ex.Message
             );
-            return new SearchResult.Failed();
+            return new Error();
         }
     }
 
-    public async Task<SearchJobResult> GetSearchStatusAsync(
+    public async Task<OneOf<SearchJobDto, Unauthorized, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -321,13 +313,13 @@ public class SearchService(
             var jobStatus = await client.GetInstanceAsync(jobId, true, cancellationToken);
             if (jobStatus is null)
             {
-                return new SearchJobResult.NotFound();
+                return new NotFound();
             }
 
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(jobStatus);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
-                return new SearchJobResult.Unauthorized();
+                return new Unauthorized();
             }
 
             var dto = new SearchJobDto
@@ -339,9 +331,7 @@ public class SearchService(
                 LastUpdatedAt = jobStatus.LastUpdatedAt,
             };
 
-            var searchJob = new SearchJobResult.Success(dto);
-
-            return searchJob;
+            return dto;
         }
         catch (Exception ex)
         {
@@ -351,7 +341,7 @@ public class SearchService(
                 jobId,
                 ex.Message
             );
-            return new SearchJobResult.Failed();
+            return new Error();
         }
     }
 

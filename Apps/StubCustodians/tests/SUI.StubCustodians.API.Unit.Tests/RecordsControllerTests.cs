@@ -60,12 +60,12 @@ namespace SUI.StubCustodians.API.Unit.Tests
             var response = await _client.GetAsync(
                 $"/api/v1/records/{provider}/PersonalDetailsRecordV1/{sui}"
             );
-            response.EnsureSuccessStatusCode();
 
             var body = await response.Content.ReadFromJsonAsync<
                 RecordEnvelope<PersonalDetailsRecordV1>
             >();
 
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(body);
         }
 
@@ -89,7 +89,7 @@ namespace SUI.StubCustodians.API.Unit.Tests
         /// ChildSocialCareDetailsRecords
         /// </summary>
         [Fact]
-        public async Task GetChildSocialCareRecord_ShouldReturnOk_WhenHandlerSucceeds()
+        public async Task GetChildSocialCareDetailsRecord_ShouldReturnOk_WhenHandlerSucceeds()
         {
             var sui = "23456";
             var provider = "PROVIDER-B";
@@ -101,7 +101,7 @@ namespace SUI.StubCustodians.API.Unit.Tests
             };
 
             _mockMediator
-                .Send(Arg.Any<GetChildSocialCareRecordQuery>(), Arg.Any<CancellationToken>())
+                .Send(Arg.Any<GetChildSocialCareDetailsRecordQuery>(), Arg.Any<CancellationToken>())
                 .Returns(
                     HandlerResult<RecordEnvelope<ChildSocialCareDetailsRecordV1>>.Success(envelope)
                 );
@@ -109,14 +109,20 @@ namespace SUI.StubCustodians.API.Unit.Tests
             var response = await _client.GetAsync(
                 $"/api/v1/records/{provider}/ChildSocialCareDetailsRecordV1/{sui}"
             );
-            response.EnsureSuccessStatusCode();
+
+            var body = await response.Content.ReadFromJsonAsync<
+                RecordEnvelope<ChildSocialCareDetailsRecordV1>
+            >();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(body);
         }
 
         [Fact]
-        public async Task GetChildSocialCareRecord_ShouldReturnNotFound_WhenHandlerReturnsNotFound()
+        public async Task GetChildSocialCareDetailsRecord_ShouldReturnNotFound_WhenHandlerReturnsNotFound()
         {
             _mockMediator
-                .Send(Arg.Any<GetChildSocialCareRecordQuery>(), Arg.Any<CancellationToken>())
+                .Send(Arg.Any<GetChildSocialCareDetailsRecordQuery>(), Arg.Any<CancellationToken>())
                 .Returns(
                     HandlerResult<RecordEnvelope<ChildSocialCareDetailsRecordV1>>.NotFound(
                         "missing"
@@ -152,7 +158,13 @@ namespace SUI.StubCustodians.API.Unit.Tests
             var response = await _client.GetAsync(
                 $"/api/v1/records/{provider}/EducationDetailsRecordV1/{sui}"
             );
-            response.EnsureSuccessStatusCode();
+
+            var body = await response.Content.ReadFromJsonAsync<
+                RecordEnvelope<EducationDetailsRecordV1>
+            >();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(body);
         }
 
         [Fact]
@@ -193,7 +205,13 @@ namespace SUI.StubCustodians.API.Unit.Tests
             var response = await _client.GetAsync(
                 $"/api/v1/records/{provider}/HealthDataRecordV1/{sui}"
             );
-            response.EnsureSuccessStatusCode();
+
+            var body = await response.Content.ReadFromJsonAsync<
+                RecordEnvelope<HealthDataRecordV1>
+            >();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(body);
         }
 
         [Fact]
@@ -230,7 +248,13 @@ namespace SUI.StubCustodians.API.Unit.Tests
             var response = await _client.GetAsync(
                 $"/api/v1/records/{provider}/CrimeDataRecordV1/{sui}"
             );
-            response.EnsureSuccessStatusCode();
+
+            var body = await response.Content.ReadFromJsonAsync<
+                RecordEnvelope<CrimeDataRecordV1>
+            >();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(body);
         }
 
         [Fact]

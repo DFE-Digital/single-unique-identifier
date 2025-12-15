@@ -75,9 +75,9 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             );
         }
 
-        var results = await Task.WhenAll(tasks);
+        var taskResultsList = await Task.WhenAll(tasks);
 
-        var aggregatedResults = results.SelectMany(r => r).ToList();
+        var aggregatedResults = taskResultsList.SelectMany(r => r).ToList();
 
         return aggregatedResults;
     }

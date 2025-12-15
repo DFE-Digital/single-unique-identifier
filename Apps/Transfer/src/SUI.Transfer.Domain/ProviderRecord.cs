@@ -1,3 +1,6 @@
-﻿namespace SUI.Transfer.Domain;
+﻿using SUI.Transfer.Domain.SourceGenerated;
 
-public record ProviderRecord<TRecord>(string ProviderSystemId, TRecord Record) { }
+namespace SUI.Transfer.Domain;
+
+public record ProviderRecord<TRecord>(string ProviderSystemId, TRecord Record)
+    : IProviderRecord<TRecord> { }

@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
+using OneOf;
+using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Application.Services;
-using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models;
 
@@ -41,7 +41,7 @@ public class UrlStorageTableService(
         await tableClient.AddEntityAsync(entity, ct);
     }
 
-    public async Task<Result<ResolvedFetchMapping>> GetAsync(
+    public async Task<OneOf<ResolvedFetchMapping, NotFound, Unauthorized, Error>> GetAsync(
         string requestingOrg,
         string fetchId,
         CancellationToken ct
@@ -63,7 +63,7 @@ public class UrlStorageTableService(
             if (res.Value.ExpiresAtUtc <= DateTimeOffset.UtcNow)
             {
                 logger.LogWarning("Fetch URL {FetchId} has expired", fetchId);
-                return Result<ResolvedFetchMapping>.Fail("Fetch URL has expired");
+                return new NotFound();
             }
 
             if (res.Value.RequestingOrgId != requestingOrg)
@@ -73,15 +73,13 @@ public class UrlStorageTableService(
                     requestingOrg,
                     fetchId
                 );
-                return Result<ResolvedFetchMapping>.Fail("Requesting organisation does not match");
+                return new Unauthorized();
             }
 
-            return Result<ResolvedFetchMapping>.Ok(
-                new ResolvedFetchMapping(
-                    TargetUrl: res.Value.TargetUrl,
-                    TargetOrgId: res.Value.TargetOrgId,
-                    RecordType: res.Value.RecordType
-                )
+            return new ResolvedFetchMapping(
+                TargetUrl: res.Value.TargetUrl,
+                TargetOrgId: res.Value.TargetOrgId,
+                RecordType: res.Value.RecordType
             );
         }
         catch (Exception ex)
@@ -91,7 +89,7 @@ public class UrlStorageTableService(
                 "Error retrieving fetch URL mapping for FetchId {FetchId}",
                 fetchId
             );
-            return Result<ResolvedFetchMapping>.Fail("Failed to retrieve fetch URL mapping");
+            return new Error();
         }
     }
 

@@ -13,42 +13,46 @@ using SUI.Find.FindApi.Utility;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
-public class FetchRecordFunction(ILogger<FetchRecordFunction> logger, IFetchRecordService fetchRecordService)
+public class FetchRecordFunction(
+    ILogger<FetchRecordFunction> logger,
+    IFetchRecordService fetchRecordService
+)
 {
     [Function(nameof(FetchRecord))]
     [RequiredScopes("fetch-record.read")]
     [OpenApiOperation(
         operationId: "fetchRecord",
         tags: ["Fetch"],
-        Summary = "Fetch a record from a participating system")]
-    [OpenApiParameter("recordId", In = ParameterLocation.Path, Required = true, Type = typeof(string))]
+        Summary = "Fetch a record from a participating system"
+    )]
+    [OpenApiParameter(
+        "recordId",
+        In = ParameterLocation.Path,
+        Required = true,
+        Type = typeof(string)
+    )]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(CustodianRecord))]
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.BadGateway, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> FetchRecord(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/records/{recordId}")]
-        HttpRequestData req,
+            HttpRequestData req,
         string recordId,
         FunctionContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-
         using var logScope = logger.BeginScope(
             new Dictionary<string, object> { ["CorrelationId"] = context.InvocationId }
         );
-
 
         if (
             !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
             || authObj is not AuthContext authContext
         )
         {
-            logger.LogError("Unauthorised request to fetch record.");
-            return await HttpResponseUtility.ProblemResponse(
+            return await HttpResponseUtility.UnauthorizedResponse(
                 req,
-                HttpStatusCode.Unauthorized,
-                "Unauthorised",
-                "",
                 context.InvocationId,
                 cancellationToken
             );
@@ -61,8 +65,7 @@ public class FetchRecordFunction(ILogger<FetchRecordFunction> logger, IFetchReco
                 req,
                 context.InvocationId,
                 "Invalid record Id",
-                "Bad or missing recordId parameter",
-                cancellationToken
+                cancellationToken: cancellationToken
             );
         }
 
@@ -72,28 +75,26 @@ public class FetchRecordFunction(ILogger<FetchRecordFunction> logger, IFetchReco
             cancellationToken
         );
 
-        if (!result.Success)
-        {
-            if (result.Error == "NotFound")
-            {
-                logger.LogInformation("Record not found: {RecordId}.", recordId);
-                return await HttpResponseUtility.NotFoundResponse(
+        return await result.Match(
+            async record => await HttpResponseUtility.OkResponse(req, record, cancellationToken),
+            async notFound =>
+                await HttpResponseUtility.NotFoundResponse(
                     req,
                     context.InvocationId,
                     cancellationToken
-                );
-            }
-
-            logger.LogInformation("Error searching for record: {RecordId}.", recordId);
-            return await HttpResponseUtility.InternalServerErrorResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            );
-
-        }
-
-        return await HttpResponseUtility.OkResponse(req, result.Value, cancellationToken);
-
+                ),
+            async unauthorized =>
+                await HttpResponseUtility.UnauthorizedResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                ),
+            async error =>
+                await HttpResponseUtility.InternalServerErrorResponse(
+                    req,
+                    context.InvocationId,
+                    cancellationToken
+                )
+        );
     }
 }
