@@ -9,7 +9,7 @@ using NSubstitute;
 using SUI.Custodians.API.Client;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
-using SUI.Transfer.Domain.Consolidation;
+using SUI.Transfer.Domain.Services;
 
 namespace SUI.Transfer.IntegrationTests;
 

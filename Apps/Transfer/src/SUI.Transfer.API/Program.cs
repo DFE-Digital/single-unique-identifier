@@ -6,7 +6,7 @@ using SUI.Custodians.API.Client;
 using SUI.Transfer.API.Endpoint;
 using SUI.Transfer.API.OpenApiTransformers;
 using SUI.Transfer.Application.Services;
-using SUI.Transfer.Domain.Consolidation;
+using SUI.Transfer.Domain.Services;
 using SUI.Transfer.Infrastructure.Authentication;
 using SUI.Transfer.Infrastructure.Repositories;
 using AuthenticationOptions = SUI.Transfer.Infrastructure.Authentication.AuthenticationOptions;

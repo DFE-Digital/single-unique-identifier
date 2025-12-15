@@ -1,7 +1,7 @@
 ﻿using SUI.Custodians.API.Client;
 using SUI.Transfer.Domain.SourceGenerated;
 
-namespace SUI.Transfer.Domain.Consolidation;
+namespace SUI.Transfer.Domain.Services;
 
 [GenerateRecordConsolidation(
     typeof(PersonalDetailsRecordV1),
