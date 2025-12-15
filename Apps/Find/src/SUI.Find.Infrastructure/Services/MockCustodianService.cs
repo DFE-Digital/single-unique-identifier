@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO.Abstractions;
 using System.Text.Json;
 using SUI.Find.Application.Interfaces;
@@ -57,6 +58,31 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
                                 ClientSecret = conn.Auth.ClientSecret,
                             },
                             BodyTemplateJson = conn.BodyTemplate?.ToString(),
+                        },
+                        DsaPolicy = new DsaPolicyDefinition
+                        {
+                            Version = DateTimeOffset.Parse(org.DsaPolicy.Version, CultureInfo.InvariantCulture),
+                            Defaults = org.DsaPolicy.Defaults.Select(d => new DsaRuleDefinition
+                            {
+                                Effect = d.Effect,
+                                Modes = d.Modes,
+                                DataTypes = d.DataTypes,
+                                DestOrgTypes = d.DestOrgTypes,
+                                Purposes = d.Purposes,
+                                ValidFrom = d.ValidFrom
+                            }).ToList(),
+                            Exceptions = org.DsaPolicy.Exceptions.Select(e => new DsaRuleDefinition
+                            {
+                                Effect = e.Effect,
+                                Modes = e.Modes,
+                                DataTypes = e.DataTypes,
+                                DestOrgTypes = e.DestOrgTypes,
+                                DestOrgIds = e.DestOrgIds,
+                                Purposes = e.Purposes,
+                                ValidFrom = e.ValidFrom,
+                                ValidUntil = e.ValidUntil,
+                                Reason = e.Reason
+                            }).ToList()
                         },
                         Encryption =
                             org.Encryption == null
@@ -144,7 +170,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         public List<string> DataTypes { get; set; } = null!;
         public List<string> DestOrgTypes { get; set; } = null!;
         public List<string> Purposes { get; set; } = null!;
-        public string ValidFrom { get; set; } = null!;
+        public DateTimeOffset? ValidFrom { get; set; } = null!;
     }
 
     private sealed class MockDsaException
@@ -155,8 +181,8 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         public List<string> DestOrgTypes { get; set; } = null!;
         public List<string> DestOrgIds { get; set; } = null!;
         public List<string> Purposes { get; set; } = null!;
-        public string ValidFrom { get; set; } = null!;
-        public string ValidUntil { get; set; } = null!;
+        public DateTimeOffset? ValidFrom { get; set; } = null!;
+        public DateTimeOffset? ValidUntil { get; set; } = null!;
         public string Reason { get; set; } = null!;
     }
 
