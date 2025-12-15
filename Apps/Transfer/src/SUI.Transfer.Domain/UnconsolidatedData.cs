@@ -1,5 +1,5 @@
 ﻿using SUI.Custodians.API.Client;
-using SUI.Transfer.Domain.Consolidation;
+using SUI.Transfer.Domain.SourceGenerated;
 
 namespace SUI.Transfer.Domain;
 
