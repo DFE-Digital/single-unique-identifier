@@ -86,32 +86,37 @@ namespace SUI.StubCustodians.API.Unit.Tests
         }
 
         /// <summary>
-        /// ChildSocialCareDetailsRecords
+        /// ChildrensServicesDetailsRecords
         /// </summary>
         [Fact]
-        public async Task GetChildSocialCareDetailsRecord_ShouldReturnOk_WhenHandlerSucceeds()
+        public async Task GetChildrensServicesDetailsRecord_ShouldReturnOk_WhenHandlerSucceeds()
         {
             var sui = "23456";
             var provider = "PROVIDER-B";
 
-            var envelope = new RecordEnvelope<ChildSocialCareDetailsRecordV1>
+            var envelope = new RecordEnvelope<ChildrensServicesDetailsRecordV1>
             {
-                Payload = new ChildSocialCareDetailsRecordV1(),
+                Payload = new ChildrensServicesDetailsRecordV1(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
 
             _mockMediator
-                .Send(Arg.Any<GetChildSocialCareDetailsRecordQuery>(), Arg.Any<CancellationToken>())
+                .Send(
+                    Arg.Any<GetChildrensServicesDetailsRecordQuery>(),
+                    Arg.Any<CancellationToken>()
+                )
                 .Returns(
-                    HandlerResult<RecordEnvelope<ChildSocialCareDetailsRecordV1>>.Success(envelope)
+                    HandlerResult<RecordEnvelope<ChildrensServicesDetailsRecordV1>>.Success(
+                        envelope
+                    )
                 );
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/ChildSocialCareDetailsRecordV1/{sui}"
+                $"/api/v1/records/{provider}/ChildrensServicesDetailsRecordV1/{sui}"
             );
 
             var body = await response.Content.ReadFromJsonAsync<
-                RecordEnvelope<ChildSocialCareDetailsRecordV1>
+                RecordEnvelope<ChildrensServicesDetailsRecordV1>
             >();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -119,18 +124,21 @@ namespace SUI.StubCustodians.API.Unit.Tests
         }
 
         [Fact]
-        public async Task GetChildSocialCareDetailsRecord_ShouldReturnNotFound_WhenHandlerReturnsNotFound()
+        public async Task GetChildrensServicesDetailsRecord_ShouldReturnNotFound_WhenHandlerReturnsNotFound()
         {
             _mockMediator
-                .Send(Arg.Any<GetChildSocialCareDetailsRecordQuery>(), Arg.Any<CancellationToken>())
+                .Send(
+                    Arg.Any<GetChildrensServicesDetailsRecordQuery>(),
+                    Arg.Any<CancellationToken>()
+                )
                 .Returns(
-                    HandlerResult<RecordEnvelope<ChildSocialCareDetailsRecordV1>>.NotFound(
+                    HandlerResult<RecordEnvelope<ChildrensServicesDetailsRecordV1>>.NotFound(
                         "missing"
                     )
                 );
 
             var response = await _client.GetAsync(
-                "/api/v1/records/P/ChildSocialCareDetailsRecordV1/NOPE"
+                "/api/v1/records/P/ChildrensServicesDetailsRecordV1/NOPE"
             );
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

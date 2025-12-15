@@ -4,11 +4,11 @@ using SUI.StubCustodians.Application.Services;
 
 namespace SUI.StubCustodians.Application.Unit.Tests.Services
 {
-    public class ChildSocialCareDetailsRecordProviderTests
+    public class ChildrensServicesDetailsRecordProviderTests
     {
         private readonly string _tempDir;
 
-        public ChildSocialCareDetailsRecordProviderTests()
+        public ChildrensServicesDetailsRecordProviderTests()
         {
             var root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             _tempDir = root;
@@ -18,7 +18,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
         [Fact]
         public void GetRecordForSui_ShouldReturnNull_WhenFileDoesNotExist()
         {
-            var provider = new ChildSocialCareDetailsRecordProvider(_tempDir);
+            var provider = new ChildrensServicesDetailsRecordProvider(_tempDir);
 
             var result = provider.GetRecordForSui("1234567890", "MockCrimeDataProvider");
 
@@ -28,7 +28,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
         [Fact]
         public void GetRecordForSui_ShouldThrow_WhenInputsAreInvalid()
         {
-            var provider = new ChildSocialCareDetailsRecordProvider(_tempDir);
+            var provider = new ChildrensServicesDetailsRecordProvider(_tempDir);
 
             Assert.Throws<ArgumentException>(() => provider.GetRecordForSui("", "X"));
             Assert.Throws<ArgumentException>(() => provider.GetRecordForSui("   ", "X"));
@@ -54,7 +54,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             );
             File.WriteAllText(filePath, "invalid json");
 
-            var provider = new ChildSocialCareDetailsRecordProvider(_tempDir);
+            var provider = new ChildrensServicesDetailsRecordProvider(_tempDir);
 
             Assert.Throws<JsonException>(() => provider.GetRecordForSui(sui, providerId));
         }
@@ -68,7 +68,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             string providerFolder = Path.Combine(_tempDir, providerId);
             Directory.CreateDirectory(providerFolder);
 
-            var record = new ChildSocialCareDetailsRecordV1
+            var record = new ChildrensServicesDetailsRecordV1
             {
                 KeyWorker = "Alex McDonald",
                 TeamInvolvement = ["Disabled Kids Team", "SEND Kids Team"],
@@ -80,7 +80,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             );
             File.WriteAllText(filePath, JsonSerializer.Serialize(record));
 
-            var provider = new ChildSocialCareDetailsRecordProvider(_tempDir);
+            var provider = new ChildrensServicesDetailsRecordProvider(_tempDir);
 
             var result = provider.GetRecordForSui(sui, providerId);
 
@@ -89,7 +89,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             Assert.NotNull(result.Payload.TeamInvolvement);
             Assert.Equal(2, result.Payload.TeamInvolvement.Count);
             Assert.Equal(
-                new Uri("https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1.json"),
+                new Uri("https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json"),
                 result.SchemaUri
             );
         }

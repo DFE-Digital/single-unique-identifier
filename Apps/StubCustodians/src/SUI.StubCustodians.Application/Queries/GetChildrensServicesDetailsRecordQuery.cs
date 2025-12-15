@@ -2,29 +2,29 @@ using MediatR;
 using SUI.Custodians.Domain.Models;
 using SUI.StubCustodians.Application.Common;
 using SUI.StubCustodians.Application.Interfaces;
-using ResultType = SUI.StubCustodians.Application.Common.HandlerResult<SUI.StubCustodians.Application.Models.RecordEnvelope<SUI.Custodians.Domain.Models.ChildSocialCareDetailsRecordV1>>;
+using ResultType = SUI.StubCustodians.Application.Common.HandlerResult<SUI.StubCustodians.Application.Models.RecordEnvelope<SUI.Custodians.Domain.Models.ChildrensServicesDetailsRecordV1>>;
 
 namespace SUI.StubCustodians.Application.Queries
 {
-    public record GetChildSocialCareDetailsRecordQuery : GetRecordQueryBase, IRequest<ResultType>
+    public record GetChildrensServicesDetailsRecordQuery : GetRecordQueryBase, IRequest<ResultType>
     {
         public IReadOnlyCollection<ErrorInfo> ValidateCommand() => ValidateCommon();
     }
 
-    public class GetChildSocialCareDetailsRecordQueryHandler
-        : IRequestHandler<GetChildSocialCareDetailsRecordQuery, ResultType>
+    public class GetChildrensServicesDetailsRecordQueryHandler
+        : IRequestHandler<GetChildrensServicesDetailsRecordQuery, ResultType>
     {
-        private readonly IRecordProvider<ChildSocialCareDetailsRecordV1> _recordProvider;
+        private readonly IRecordProvider<ChildrensServicesDetailsRecordV1> _recordProvider;
 
-        public GetChildSocialCareDetailsRecordQueryHandler(
-            IRecordProvider<ChildSocialCareDetailsRecordV1> recordProvider
+        public GetChildrensServicesDetailsRecordQueryHandler(
+            IRecordProvider<ChildrensServicesDetailsRecordV1> recordProvider
         )
         {
             _recordProvider = recordProvider;
         }
 
         public Task<ResultType> Handle(
-            GetChildSocialCareDetailsRecordQuery request,
+            GetChildrensServicesDetailsRecordQuery request,
             CancellationToken cancellationToken
         )
         {
@@ -41,7 +41,7 @@ namespace SUI.StubCustodians.Application.Queries
             {
                 return Task.FromResult(
                     ResultType.NotFound(
-                        $"Records of type {typeof(ChildSocialCareDetailsRecordV1)} for SUI:'{request.Sui}' not found"
+                        $"Records of type {typeof(ChildrensServicesDetailsRecordV1)} for SUI:'{request.Sui}' not found"
                     )
                 );
             }
