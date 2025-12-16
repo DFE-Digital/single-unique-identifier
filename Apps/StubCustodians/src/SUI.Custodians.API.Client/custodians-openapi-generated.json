@@ -584,7 +584,14 @@
             "type": "string",
             "description": "Missing episode date",
             "format": "date",
-            "nullable": true
+            "nullable": true,
+            "example": "2025-06-12"
+          },
+          "returnedHomeInterviewAttended": {
+            "type": "boolean",
+            "description": "Missing episode returned home interview attended",
+            "nullable": true,
+            "example": "true"
           }
         }
       },
