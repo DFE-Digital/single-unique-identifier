@@ -5,105 +5,37 @@
     "version": "1.0"
   },
   "paths": {
-    "/api/v1/Events/{sui}": {
-      "get": {
-        "tags": [
-          "Events"
-        ],
-        "parameters": [
-          {
-            "name": "sui",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventResponse"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventResponse"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/Fetch/{providerSystemId}/{sui}": {
+    "/api/v1/Fetch/{providerSystemId}/{recordType}/{sui}": {
       "get": {
         "tags": [
           "Fetch"
         ],
         "parameters": [
           {
-            "name": "providerSystemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "sui",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
+            }
+          },
+          {
+            "name": "recordType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
+            }
+          },
+          {
+            "name": "providerSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
             }
           }
         ],
@@ -113,17 +45,17 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfJsonDocument"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfSuiRecord"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfJsonDocument"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfSuiRecord"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfJsonDocument"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfSuiRecord"
                 }
               }
             }
@@ -182,7 +114,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           },
           {
@@ -190,7 +123,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           }
         ],
@@ -269,7 +203,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           },
           {
@@ -277,7 +212,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           }
         ],
@@ -356,7 +292,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           },
           {
@@ -364,7 +301,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           }
         ],
@@ -443,7 +381,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           },
           {
@@ -451,7 +390,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           }
         ],
@@ -530,7 +470,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           },
           {
@@ -538,7 +479,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             }
           }
         ],
@@ -559,93 +501,6 @@
               "text/json; x-api-version=1.0": {
                 "schema": {
                   "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecordV1"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/Records/{providerSystemId}/{sui}": {
-      "get": {
-        "tags": [
-          "Records"
-        ],
-        "parameters": [
-          {
-            "name": "sui",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "providerSystemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfSuiRecord"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfSuiRecord"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfSuiRecord"
                 }
               }
             }
@@ -701,48 +556,41 @@
         "properties": {
           "line1": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Line 1 of the address",
             "nullable": true,
             "example": "123 Kew Gardens"
           },
           "line2": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Line 2 of the address",
             "nullable": true,
             "example": "Bakers Lane"
           },
           "townOrCity": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Town or city",
             "nullable": true,
             "example": "Bath"
           },
           "county": {
             "type": "string",
+            "additionalProperties": false,
             "description": "County",
             "nullable": true,
             "example": "Somerset"
           },
           "postcode": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Postcode",
             "nullable": true,
             "example": "BA1 2AB"
           }
         },
-        "nullable": true
-      },
-      "CamhsData": {
-        "type": "object",
-        "properties": {
-          "referrals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Referral"
-            },
-            "nullable": true
-          }
-        },
+        "additionalProperties": false,
         "nullable": true
       },
       "ChildSocialCareDetailsRecordV1": {
@@ -750,6 +598,7 @@
         "properties": {
           "keyWorker": {
             "type": "string",
+            "additionalProperties": false,
             "description": "CSC - Key worker",
             "nullable": true,
             "example": "Alex Patel"
@@ -757,8 +606,10 @@
           "dutyContactDetails": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             },
+            "additionalProperties": false,
             "description": "CSC - Duty contact details",
             "nullable": true,
             "example": "csc@bromley.gov.uk, 08792675387"
@@ -766,8 +617,10 @@
           "teamInvolvement": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             },
+            "additionalProperties": false,
             "description": "CSC - Team involvement",
             "nullable": true,
             "example": "Disabled Childrens Team, Neighbourhood Team"
@@ -777,13 +630,12 @@
             "items": {
               "$ref": "#/components/schemas/ChildSocialCareReferralV1"
             },
+            "additionalProperties": false,
             "description": "Child Social Care Referrals",
             "nullable": true
-          },
-          "test": {
-            "type": "string"
           }
         },
+        "additionalProperties": false,
         "description": "Details related to the Children's Social Care and other Children's Services for a specific child."
       },
       "ChildSocialCareReferralV1": {
@@ -791,6 +643,7 @@
         "properties": {
           "date": {
             "type": "string",
+            "additionalProperties": false,
             "description": "CSC - Referral history - Date",
             "format": "date",
             "nullable": true,
@@ -798,41 +651,20 @@
           },
           "type": {
             "type": "string",
+            "additionalProperties": false,
             "description": "CSC - Referral history - Type",
             "nullable": true,
             "example": "Early Help"
           }
-        }
-      },
-      "ConsolidatedEventData": {
-        "type": "object",
-        "properties": {
-          "personalData": {
-            "$ref": "#/components/schemas/PersonalData"
-          },
-          "educationData": {
-            "$ref": "#/components/schemas/EducationData"
-          },
-          "policeData": {
-            "$ref": "#/components/schemas/PoliceData"
-          },
-          "probationData": {
-            "$ref": "#/components/schemas/ProbationData"
-          },
-          "gpData": {
-            "$ref": "#/components/schemas/GpData"
-          },
-          "camhsData": {
-            "$ref": "#/components/schemas/CamhsData"
-          }
         },
-        "nullable": true
+        "additionalProperties": false
       },
       "CrimeDataRecordV1": {
         "type": "object",
         "properties": {
           "policeMarkerDetails": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Police marker details",
             "nullable": true,
             "example": "Individuals at the address may resort to violent behaviour"
@@ -840,14 +672,17 @@
           "servicesKnownTo": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             },
+            "additionalProperties": false,
             "description": "Crime - Services known to",
             "nullable": true,
             "example": "Youth justice service (YJS), Police"
           },
           "lastPoliceProtectionPowerEvent": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Last Police Protection Power event",
             "nullable": true
           },
@@ -856,6 +691,7 @@
             "items": {
               "$ref": "#/components/schemas/CrimeMissingEpisodeV1"
             },
+            "additionalProperties": false,
             "description": "Police - Missing Episodes",
             "nullable": true
           },
@@ -864,13 +700,12 @@
             "items": {
               "$ref": "#/components/schemas/LinkedCrimeRiskV1"
             },
+            "additionalProperties": false,
             "description": "Linked crime risks",
             "nullable": true
-          },
-          "test": {
-            "type": "string"
           }
         },
+        "additionalProperties": false,
         "description": "Crime-linked data about a specific child."
       },
       "CrimeMissingEpisodeV1": {
@@ -878,17 +713,20 @@
         "properties": {
           "date": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Missing episode date",
             "format": "date",
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
       "EducationAttendanceV1": {
         "type": "object",
         "properties": {
           "academicTermYearStart": {
             "type": "integer",
+            "additionalProperties": false,
             "description": "Education attendance history - Academic Term Year Start",
             "format": "int32",
             "nullable": true,
@@ -896,6 +734,7 @@
           },
           "academicTermYearEnd": {
             "type": "integer",
+            "additionalProperties": false,
             "description": "Education attendance history - Academic Term Year End",
             "format": "int32",
             "nullable": true,
@@ -903,6 +742,7 @@
           },
           "attendancePercentage": {
             "type": "number",
+            "additionalProperties": false,
             "description": "Education attendance history - Attendance Percentage",
             "format": "float",
             "nullable": true,
@@ -910,6 +750,7 @@
           },
           "unauthorisedAbsencePercentage": {
             "type": "number",
+            "additionalProperties": false,
             "description": "Education attendance history - Unauthorised Absence Percentage",
             "format": "float",
             "nullable": true,
@@ -917,6 +758,7 @@
           },
           "suspensions": {
             "type": "integer",
+            "additionalProperties": false,
             "description": "Education attendance history - Suspensions",
             "format": "int32",
             "nullable": true,
@@ -924,6 +766,7 @@
           },
           "exclusions": {
             "type": "integer",
+            "additionalProperties": false,
             "description": "Education attendance history - Exclusions",
             "format": "int32",
             "nullable": true,
@@ -931,40 +774,21 @@
           },
           "schoolMovesNonTransitional": {
             "type": "integer",
+            "additionalProperties": false,
             "description": "Education attendance history - School moves non transitional",
             "format": "int32",
             "nullable": true,
             "example": "0"
           }
-        }
-      },
-      "EducationData": {
-        "type": "object",
-        "properties": {
-          "pupilPremium": {
-            "type": "boolean"
-          },
-          "freeSchoolMeals": {
-            "type": "boolean"
-          },
-          "electivelyHomeEducated": {
-            "type": "boolean"
-          },
-          "schoolsAttended": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/School"
-            },
-            "nullable": true
-          }
         },
-        "nullable": true
+        "additionalProperties": false
       },
       "EducationDetailsRecordV1": {
         "type": "object",
         "properties": {
           "educationSettingName": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Education setting - Name",
             "nullable": true,
             "example": "Redwood Academy"
@@ -974,6 +798,7 @@
           },
           "educationSettingTelephone": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Education setting - Telephone",
             "nullable": true,
             "example": "0123456789"
@@ -983,13 +808,12 @@
             "items": {
               "$ref": "#/components/schemas/EducationAttendanceV1"
             },
+            "additionalProperties": false,
             "description": "Education Attendances",
             "nullable": true
-          },
-          "test": {
-            "type": "string"
           }
         },
+        "additionalProperties": false,
         "description": "Education related data about a specific child."
       },
       "EmergencyDepartmentAttendanceV1": {
@@ -997,38 +821,29 @@
         "properties": {
           "date": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Health - Emergency department attendance - Date",
             "format": "date",
             "nullable": true,
             "example": "2025-06-12"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "ErrorInfo": {
         "type": "object",
         "properties": {
           "scope": {
             "type": "string",
+            "additionalProperties": false,
             "nullable": true
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "additionalProperties": false
           }
-        }
-      },
-      "EventResponse": {
-        "required": [
-          "sui"
-        ],
-        "type": "object",
-        "properties": {
-          "sui": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/ConsolidatedEventData"
-          }
-        }
+        },
+        "additionalProperties": false
       },
       "FailureInfo": {
         "type": "object",
@@ -1040,49 +855,22 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ErrorInfo"
-            }
-          }
-        }
-      },
-      "FailureKind": {
-        "type": "integer"
-      },
-      "GpData": {
-        "required": [
-          "gpName",
-          "gpSurgery",
-          "gpContactNumber"
-        ],
-        "type": "object",
-        "properties": {
-          "gpName": {
-            "type": "string"
-          },
-          "gpSurgery": {
-            "type": "string"
-          },
-          "gpContactNumber": {
-            "type": "string"
-          },
-          "missedAppointmentReasons": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MissedAppointment"
             },
-            "nullable": true
-          },
-          "missedAppointments": {
-            "type": "integer",
-            "format": "int32"
+            "additionalProperties": false
           }
         },
-        "nullable": true
+        "additionalProperties": false
+      },
+      "FailureKind": {
+        "type": "integer",
+        "additionalProperties": false
       },
       "HealthDataRecordV1": {
         "type": "object",
         "properties": {
           "registeredGP": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Registered GP",
             "nullable": true,
             "example": "Dr E Green"
@@ -1092,6 +880,7 @@
           },
           "gpTelephone": {
             "type": "string",
+            "additionalProperties": false,
             "description": "GP Telephone",
             "nullable": true,
             "example": "0114 272 2100"
@@ -1101,6 +890,7 @@
           },
           "camhsContactTelephone": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Child and Adolescent Mental Health Services - Contact telephone",
             "nullable": true,
             "example": "01422 345926"
@@ -1110,6 +900,7 @@
             "items": {
               "$ref": "#/components/schemas/HealthMissedAppointmentV1"
             },
+            "additionalProperties": false,
             "description": "Missed Healthcare Appointments",
             "nullable": true
           },
@@ -1118,13 +909,12 @@
             "items": {
               "$ref": "#/components/schemas/EmergencyDepartmentAttendanceV1"
             },
+            "additionalProperties": false,
             "description": "Emergency (A&E) Department Attendances",
             "nullable": true
-          },
-          "test": {
-            "type": "string"
           }
         },
+        "additionalProperties": false,
         "description": "Details related to Healthcare about a specific child."
       },
       "HealthMissedAppointmentV1": {
@@ -1132,6 +922,7 @@
         "properties": {
           "date": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Health - Missed appointments history - Date",
             "format": "date",
             "nullable": true,
@@ -1140,14 +931,15 @@
           "setting": {
             "$ref": "#/components/schemas/NullableOfHealthSettingV1"
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "JsonDocument": { },
       "LinkedCrimeRiskV1": {
         "type": "object",
         "properties": {
           "date": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Crime - Risk - Date",
             "format": "date",
             "nullable": true,
@@ -1156,26 +948,8 @@
           "riskType": {
             "$ref": "#/components/schemas/NullableOfCrimeRiskTypeV1"
           }
-        }
-      },
-      "MissedAppointment": {
-        "required": [
-          "location"
-        ],
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "reason": {
-            "type": "string",
-            "nullable": true
-          },
-          "location": {
-            "type": "string"
-          }
-        }
+        },
+        "additionalProperties": false
       },
       "NullableOfCrimeRiskTypeV1": {
         "enum": [
@@ -1186,6 +960,7 @@
           "GangsAndYouthViolence",
           null
         ],
+        "additionalProperties": false,
         "description": "Crime - Risk - Type",
         "nullable": true,
         "example": "CriminalExploitation"
@@ -1198,51 +973,31 @@
           "Community",
           null
         ],
+        "additionalProperties": false,
         "description": "Health - Missed appointments history - Setting",
         "nullable": true,
         "example": "GP"
-      },
-      "PersonalData": {
-        "required": [
-          "firstName",
-          "lastName"
-        ],
-        "type": "object",
-        "properties": {
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "dateOfBirth": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "nhsNumber": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "nullable": true
       },
       "PersonalDetailsRecordV1": {
         "type": "object",
         "properties": {
           "firstName": {
             "type": "string",
+            "additionalProperties": false,
             "description": "The child's first name.",
             "nullable": true,
             "example": "Sarah"
           },
           "lastName": {
             "type": "string",
+            "additionalProperties": false,
             "description": "The child's last name.",
             "nullable": true,
             "example": "Smith"
           },
           "dateOfBirth": {
             "type": "string",
+            "additionalProperties": false,
             "description": "The child's date of birth.",
             "format": "date",
             "nullable": true,
@@ -1254,64 +1009,76 @@
           "namesOfIndividualsResidingAtMainAddress": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             },
+            "additionalProperties": false,
             "description": "The full names of the other people known to be residing at the child's main address.",
             "nullable": true,
             "example": "James Smith, Henry Smith, Thomas Smith, Jason Archer, Sarah Flint-Smith"
           },
           "birthAssignedSex": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Birth assigned sex",
             "nullable": true,
             "example": "Female"
           },
           "pronouns": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Pronouns",
             "nullable": true,
             "example": "She/her"
           },
           "ethnicity": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Ethnicity",
             "nullable": true,
             "example": "Irish Traveller"
           },
           "firstLanguage": {
             "type": "string",
+            "additionalProperties": false,
             "description": "First language",
             "nullable": true,
             "example": "English"
           },
           "designatedLocalAuthority": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Designated Local Authority",
             "nullable": true,
             "example": "Bromley"
           },
           "englishAsAdditionalLanguage": {
             "type": "boolean",
+            "additionalProperties": false,
             "description": "Communication need: English as additional language (EAL)",
             "nullable": true
           },
           "braille": {
             "type": "boolean",
+            "additionalProperties": false,
             "description": "Communication need: Braille needed",
             "nullable": true
           },
           "signLanguage": {
             "type": "boolean",
+            "additionalProperties": false,
             "description": "Communication need: Sign language",
             "nullable": true
           },
           "makaton": {
             "type": "boolean",
+            "additionalProperties": false,
             "description": "Communication need: Makaton needed",
             "nullable": true
           },
           "interpreter": {
             "type": "boolean",
+            "additionalProperties": false,
             "description": "Communication need: Interpreter needed",
             "nullable": true
           },
@@ -1320,59 +1087,45 @@
             "items": {
               "$ref": "#/components/schemas/RelatedPersonV1"
             },
+            "additionalProperties": false,
             "description": "The people known to be related to the child.",
             "nullable": true
-          },
-          "test": {
-            "type": "string"
           }
         },
+        "additionalProperties": false,
         "description": "General personal details about a specific child."
-      },
-      "PoliceData": {
-        "type": "object",
-        "properties": {
-          "childProtection": {
-            "type": "boolean"
-          },
-          "knownToPolice": {
-            "type": "boolean"
-          },
-          "policePowersOfProtection": {
-            "type": "boolean"
-          }
-        },
-        "nullable": true
-      },
-      "ProbationData": {
-        "type": "object",
-        "nullable": true
       },
       "ProblemDetails": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
+            "additionalProperties": false,
             "nullable": true
           },
           "title": {
             "type": "string",
+            "additionalProperties": false,
             "nullable": true
           },
           "status": {
             "type": "integer",
+            "additionalProperties": false,
             "format": "int32",
             "nullable": true
           },
           "detail": {
             "type": "string",
+            "additionalProperties": false,
             "nullable": true
           },
           "instance": {
             "type": "string",
+            "additionalProperties": false,
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RecordEnvelopeOfChildSocialCareDetailsRecordV1": {
         "required": [
@@ -1383,6 +1136,7 @@
         "properties": {
           "schemaUri": {
             "type": "string",
+            "additionalProperties": false,
             "description": "URI of the ChildSocialCareDetailsRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1"
@@ -1390,7 +1144,8 @@
           "payload": {
             "$ref": "#/components/schemas/ChildSocialCareDetailsRecordV1"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RecordEnvelopeOfCrimeDataRecordV1": {
         "required": [
@@ -1401,6 +1156,7 @@
         "properties": {
           "schemaUri": {
             "type": "string",
+            "additionalProperties": false,
             "description": "URI of the CrimeDataRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/CrimeDataRecordV1"
@@ -1408,7 +1164,8 @@
           "payload": {
             "$ref": "#/components/schemas/CrimeDataRecordV1"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RecordEnvelopeOfEducationDetailsRecordV1": {
         "required": [
@@ -1419,6 +1176,7 @@
         "properties": {
           "schemaUri": {
             "type": "string",
+            "additionalProperties": false,
             "description": "URI of the EducationDetailsRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/EducationDetailsRecordV1"
@@ -1426,7 +1184,8 @@
           "payload": {
             "$ref": "#/components/schemas/EducationDetailsRecordV1"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RecordEnvelopeOfHealthDataRecordV1": {
         "required": [
@@ -1437,6 +1196,7 @@
         "properties": {
           "schemaUri": {
             "type": "string",
+            "additionalProperties": false,
             "description": "URI of the HealthDataRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/HealthDataRecordV1"
@@ -1444,25 +1204,8 @@
           "payload": {
             "$ref": "#/components/schemas/HealthDataRecordV1"
           }
-        }
-      },
-      "RecordEnvelopeOfJsonDocument": {
-        "required": [
-          "schemaUri",
-          "payload"
-        ],
-        "type": "object",
-        "properties": {
-          "schemaUri": {
-            "type": "string",
-            "description": "URI of the JsonDocument payload schema",
-            "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/JsonDocument"
-          },
-          "payload": {
-            "$ref": "#/components/schemas/JsonDocument"
-          }
-        }
+        },
+        "additionalProperties": false
       },
       "RecordEnvelopeOfPersonalDetailsRecordV1": {
         "required": [
@@ -1473,6 +1216,7 @@
         "properties": {
           "schemaUri": {
             "type": "string",
+            "additionalProperties": false,
             "description": "URI of the PersonalDetailsRecordV1 payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1"
@@ -1480,7 +1224,8 @@
           "payload": {
             "$ref": "#/components/schemas/PersonalDetailsRecordV1"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "RecordEnvelopeOfSuiRecord": {
         "required": [
@@ -1491,6 +1236,7 @@
         "properties": {
           "schemaUri": {
             "type": "string",
+            "additionalProperties": false,
             "description": "URI of the SuiRecord payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/SuiRecord"
@@ -1498,45 +1244,29 @@
           "payload": {
             "$ref": "#/components/schemas/SuiRecord"
           }
-        }
-      },
-      "Referral": {
-        "required": [
-          "id",
-          "date",
-          "reason"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "date": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "reason": {
-            "type": "string"
-          }
-        }
+        },
+        "additionalProperties": false
       },
       "RelatedPersonV1": {
         "type": "object",
         "properties": {
           "relationshipToTheChild": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Related Person - Relationship to the child",
             "nullable": true,
             "example": "Father"
           },
           "name": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Related Person - Full Name",
             "nullable": true,
             "example": "James Smith"
           },
           "dob": {
             "type": "string",
+            "additionalProperties": false,
             "description": "Related Person - Date of birth",
             "format": "date",
             "nullable": true,
@@ -1545,376 +1275,25 @@
           "risk": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "additionalProperties": false
             },
+            "additionalProperties": false,
             "description": "Risks posed by the Related Person",
             "nullable": true,
             "example": "Individual may possess firearms"
           }
         },
+        "additionalProperties": false,
         "description": "Represents a person related to a specific child."
-      },
-      "School": {
-        "required": [
-          "name",
-          "address"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "address": {
-            "type": "string"
-          }
-        }
       },
       "SuiRecord": {
         "type": "object",
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/SuiRecordChildSocialCareDetailsRecordV1"
-          },
-          {
-            "$ref": "#/components/schemas/SuiRecordCrimeDataRecordV1"
-          },
-          {
-            "$ref": "#/components/schemas/SuiRecordEducationDetailsRecordV1"
-          },
-          {
-            "$ref": "#/components/schemas/SuiRecordHealthDataRecordV1"
-          },
-          {
-            "$ref": "#/components/schemas/SuiRecordPersonalDetailsRecordV1"
-          },
-          {
-            "$ref": "#/components/schemas/SuiRecordBase"
-          }
-        ]
-      },
-      "SuiRecordBase": {
-        "properties": {
-          "test": {
-            "type": "string"
-          }
-        }
-      },
-      "SuiRecordChildSocialCareDetailsRecordV1": {
-        "required": [
-          "type"
-        ],
-        "properties": {
-          "type": {
-            "enum": [
-              "ChildSocialCareDetailsRecordV1"
-            ],
-            "type": "string"
-          },
-          "keyWorker": {
-            "type": "string",
-            "description": "CSC - Key worker",
-            "nullable": true,
-            "example": "Alex Patel"
-          },
-          "dutyContactDetails": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "CSC - Duty contact details",
-            "nullable": true,
-            "example": "csc@bromley.gov.uk, 08792675387"
-          },
-          "teamInvolvement": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "CSC - Team involvement",
-            "nullable": true,
-            "example": "Disabled Childrens Team, Neighbourhood Team"
-          },
-          "cscReferrals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ChildSocialCareReferralV1"
-            },
-            "description": "Child Social Care Referrals",
-            "nullable": true
-          },
-          "test": {
-            "type": "string"
-          }
-        },
-        "description": "Details related to the Children's Social Care and other Children's Services for a specific child."
-      },
-      "SuiRecordCrimeDataRecordV1": {
-        "required": [
-          "type"
-        ],
-        "properties": {
-          "type": {
-            "enum": [
-              "CrimeDataRecordV1"
-            ],
-            "type": "string"
-          },
-          "policeMarkerDetails": {
-            "type": "string",
-            "description": "Police marker details",
-            "nullable": true,
-            "example": "Individuals at the address may resort to violent behaviour"
-          },
-          "servicesKnownTo": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Crime - Services known to",
-            "nullable": true,
-            "example": "Youth justice service (YJS), Police"
-          },
-          "lastPoliceProtectionPowerEvent": {
-            "type": "string",
-            "description": "Last Police Protection Power event",
-            "nullable": true
-          },
-          "missingEpisodes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CrimeMissingEpisodeV1"
-            },
-            "description": "Police - Missing Episodes",
-            "nullable": true
-          },
-          "linkedCrimeRisks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LinkedCrimeRiskV1"
-            },
-            "description": "Linked crime risks",
-            "nullable": true
-          },
-          "test": {
-            "type": "string"
-          }
-        },
-        "description": "Crime-linked data about a specific child."
-      },
-      "SuiRecordEducationDetailsRecordV1": {
-        "required": [
-          "type"
-        ],
-        "properties": {
-          "type": {
-            "enum": [
-              "EducationDetailsRecordV1"
-            ],
-            "type": "string"
-          },
-          "educationSettingName": {
-            "type": "string",
-            "description": "Education setting - Name",
-            "nullable": true,
-            "example": "Redwood Academy"
-          },
-          "educationSettingAddress": {
-            "$ref": "#/components/schemas/AddressV1"
-          },
-          "educationSettingTelephone": {
-            "type": "string",
-            "description": "Education setting - Telephone",
-            "nullable": true,
-            "example": "0123456789"
-          },
-          "educationAttendances": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EducationAttendanceV1"
-            },
-            "description": "Education Attendances",
-            "nullable": true
-          },
-          "test": {
-            "type": "string"
-          }
-        },
-        "description": "Education related data about a specific child."
-      },
-      "SuiRecordHealthDataRecordV1": {
-        "required": [
-          "type"
-        ],
-        "properties": {
-          "type": {
-            "enum": [
-              "HealthDataRecordV1"
-            ],
-            "type": "string"
-          },
-          "registeredGP": {
-            "type": "string",
-            "description": "Registered GP",
-            "nullable": true,
-            "example": "Dr E Green"
-          },
-          "gpAddress": {
-            "$ref": "#/components/schemas/AddressV1"
-          },
-          "gpTelephone": {
-            "type": "string",
-            "description": "GP Telephone",
-            "nullable": true,
-            "example": "0114 272 2100"
-          },
-          "camhsContactAddress": {
-            "$ref": "#/components/schemas/AddressV1"
-          },
-          "camhsContactTelephone": {
-            "type": "string",
-            "description": "Child and Adolescent Mental Health Services - Contact telephone",
-            "nullable": true,
-            "example": "01422 345926"
-          },
-          "missedAppointments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/HealthMissedAppointmentV1"
-            },
-            "description": "Missed Healthcare Appointments",
-            "nullable": true
-          },
-          "emergencyDepartmentAttendances": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EmergencyDepartmentAttendanceV1"
-            },
-            "description": "Emergency (A&E) Department Attendances",
-            "nullable": true
-          },
-          "test": {
-            "type": "string"
-          }
-        },
-        "description": "Details related to Healthcare about a specific child."
-      },
-      "SuiRecordPersonalDetailsRecordV1": {
-        "required": [
-          "type"
-        ],
-        "properties": {
-          "type": {
-            "enum": [
-              "PersonalDetailsRecordV1"
-            ],
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string",
-            "description": "The child's first name.",
-            "nullable": true,
-            "example": "Sarah"
-          },
-          "lastName": {
-            "type": "string",
-            "description": "The child's last name.",
-            "nullable": true,
-            "example": "Smith"
-          },
-          "dateOfBirth": {
-            "type": "string",
-            "description": "The child's date of birth.",
-            "format": "date",
-            "nullable": true,
-            "example": "2011-09-25"
-          },
-          "address": {
-            "$ref": "#/components/schemas/AddressV1"
-          },
-          "namesOfIndividualsResidingAtMainAddress": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "The full names of the other people known to be residing at the child's main address.",
-            "nullable": true,
-            "example": "James Smith, Henry Smith, Thomas Smith, Jason Archer, Sarah Flint-Smith"
-          },
-          "birthAssignedSex": {
-            "type": "string",
-            "description": "Birth assigned sex",
-            "nullable": true,
-            "example": "Female"
-          },
-          "pronouns": {
-            "type": "string",
-            "description": "Pronouns",
-            "nullable": true,
-            "example": "She/her"
-          },
-          "ethnicity": {
-            "type": "string",
-            "description": "Ethnicity",
-            "nullable": true,
-            "example": "Irish Traveller"
-          },
-          "firstLanguage": {
-            "type": "string",
-            "description": "First language",
-            "nullable": true,
-            "example": "English"
-          },
-          "designatedLocalAuthority": {
-            "type": "string",
-            "description": "Designated Local Authority",
-            "nullable": true,
-            "example": "Bromley"
-          },
-          "englishAsAdditionalLanguage": {
-            "type": "boolean",
-            "description": "Communication need: English as additional language (EAL)",
-            "nullable": true
-          },
-          "braille": {
-            "type": "boolean",
-            "description": "Communication need: Braille needed",
-            "nullable": true
-          },
-          "signLanguage": {
-            "type": "boolean",
-            "description": "Communication need: Sign language",
-            "nullable": true
-          },
-          "makaton": {
-            "type": "boolean",
-            "description": "Communication need: Makaton needed",
-            "nullable": true
-          },
-          "interpreter": {
-            "type": "boolean",
-            "description": "Communication need: Interpreter needed",
-            "nullable": true
-          },
-          "relatedPeople": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RelatedPersonV1"
-            },
-            "description": "The people known to be related to the child.",
-            "nullable": true
-          },
-          "test": {
-            "type": "string"
-          }
-        },
-        "description": "General personal details about a specific child."
+        "additionalProperties": false
       }
     }
   },
   "tags": [
-    {
-      "name": "Events"
-    },
     {
       "name": "Fetch"
     },

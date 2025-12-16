@@ -91,6 +91,7 @@ namespace SUI.StubCustodians.API
                 }
             }
 
+            schema.AdditionalPropertiesAllowed = false;
             return Task.CompletedTask;
         }
 

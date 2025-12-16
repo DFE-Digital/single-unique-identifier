@@ -34,6 +34,7 @@ builder.Services.AddAuthorizationBuilder();
 
 builder.Services.AddMemoryCache();
 
+builder.Services.AddHttpClient(nameof(RecordFetcher)).AddAsKeyed(ServiceLifetime.Singleton);
 builder.Services.AddScoped<IRecordFinder, RecordFinder>();
 builder.Services.AddScoped<IRecordFetcher, RecordFetcher>();
 builder.Services.AddScoped<IRecordConsolidator, RecordConsolidator>();
@@ -45,7 +46,6 @@ builder.Services.AddScoped<IStatusFlagsTransformer, StatusFlagsTransformer>();
 builder.Services.AddScoped<ITransferJob, TransferJob>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferJobStateRepository, TransferJobStateMemoryCacheRepository>();
-builder.Services.AddHttpClient<RecordFetcher>();
 
 builder.Services.AddScoped<
     IConsolidateRecordCollectionsService,
@@ -61,10 +61,10 @@ builder.Services.Configure<JsonOptions>(options =>
     );
 });
 
-builder.Services.AddCustodiansClient(
-    builder.Configuration["FetchRecordsEndpoint"] ?? string.Empty,
-    builder.Configuration["FetchRecordsApiKey"] ?? string.Empty
-);
+// builder.Services.AddCustodiansClient(
+//     builder.Configuration["FetchRecordsEndpoint"] ?? string.Empty,
+//     builder.Configuration["FetchRecordsApiKey"] ?? string.Empty
+// );
 
 var app = builder.Build();
 
