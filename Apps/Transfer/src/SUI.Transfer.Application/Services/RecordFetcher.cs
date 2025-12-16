@@ -146,6 +146,10 @@ public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger)
 
                 break;
             }
+            default:
+            {
+                throw new ArgumentException($"Invalid SchemaUri: {schemaUri}");
+            }
         }
     }
 
