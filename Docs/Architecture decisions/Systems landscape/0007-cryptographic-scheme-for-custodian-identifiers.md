@@ -51,7 +51,7 @@ This ADR decides which cryptographic scheme we will use and describes the result
 
   `ID_org = AES256_Encrypt(K_org, Payload, deterministic_IV)`
 
-- The payload is, at minimum, the SUI; it may also include versioning metadata (but not TTL — that is covered in ADR‑SUI-0007).  
+- The payload is, at minimum, the SUI; it may also include versioning metadata (but not TTL — that is covered in ADR‑SUI-0008).  
 - FIND holds **all keys** and can:
   - Decrypt the Searcher’s `ID_searcher` to recover the underlying SUI.  
   - Encrypt that SUI with each custodian’s key `K_custodian` to derive their `ID_custodian`.
@@ -211,7 +211,7 @@ This ADR decides which cryptographic scheme we will use and describes the result
 **Decision impact**
 
 - This design is more suitable for **access control** and **short‑lived session tokens**, not for **persistent person identifiers**.  
-- TTL and lifecycle are instead handled in **ADR‑SUI-0007**, separate from the core identifier scheme.  
+- TTL and lifecycle are instead handled in **ADR‑SUI-0008**, separate from the core identifier scheme.  
 - This option is **rejected** for the custodian‑scoped identifier.
 
 
@@ -362,7 +362,7 @@ We adopt the following scheme for custodian-scoped identifiers:
 - Use a **deterministic encryption configuration** (mode + IV derivation) so that identifiers are stable for a given `(Org, SUI, Version)`.  
 - Encode ciphertext using **Crockford Base32**, yielding an alphanumeric, fixed-length canonical identifier.  
 - Optionally append a **checksum character** to detect transmission and entry errors.  
-- Exclude TTL and lifecycle logic from the identifier; these are handled separately in **ADR‑SUI-0007**.
+- Exclude TTL and lifecycle logic from the identifier; these are handled separately in **ADR‑SUI-0008**.
 
 Formula (conceptual):
 
@@ -391,7 +391,7 @@ This scheme satisfies:
   - The same AES mode and deterministic IV derivation approach.  
   - The same Base32 encoding configuration.  
   - The same checksum algorithm, if used.  
-- Key rotation, TTL hints, and identifier refresh strategies are defined in **ADR‑SUI-0007** and subsequent lifecycle ADRs.
+- Key rotation, TTL hints, and identifier refresh strategies are defined in **ADR‑SUI-0008** and subsequent lifecycle ADRs.
 
 
 ## Related Decisions
