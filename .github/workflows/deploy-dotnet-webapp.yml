@@ -1,0 +1,111 @@
+name: Deploy Dotnet Web App
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: Target environment (tfvars name, e.g. d01)
+        required: true
+        type: string
+      web_app_name:
+        description: Optional full Azure Web App name override (when set, no name is computed).
+        required: false
+        default: ""
+        type: string
+      component_descriptor:
+        description: Component descriptor (optionally including instance) used in the computed name (e.g. singleview01).
+        required: false
+        default: ""
+        type: string
+      project_path:
+        description: Path to the web project (*.csproj)
+        required: true
+        type: string
+      dotnet_version:
+        description: Dotnet version to use
+        required: false
+        default: "9.0.x"
+        type: string
+      package_path:
+        description: Publish output directory
+        required: false
+        default: publish
+        type: string
+    secrets:
+      AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D:
+        required: true
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy dotnet web app to Azure
+    runs-on: ubuntu-latest
+    environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.environment }}
+      AZURE_WEBAPP_PACKAGE_PATH: ${{ inputs.package_path }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure login with client secret for ${{ inputs.environment }}
+        uses: azure/login@v2
+        with:
+          creds: |
+            {
+              "clientSecret": "${{ secrets.AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D }}",
+              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId": "${{ secrets.AZURE_TENANT_ID }}",
+              "clientId": "${{ secrets.AZURE_CLIENT_ID }}"
+            }
+
+      - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
+        id: env_config
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ env.TARGET_ENVIRONMENT }}
+
+      - name: Compute web app name
+        id: app_name
+        run: |
+          if [ -n "${{ inputs.web_app_name }}" ]; then
+            webapp_name="${{ inputs.web_app_name }}"
+          elif [ -n "${{ inputs.component_descriptor }}" ]; then
+            webapp_name="${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-${{ inputs.component_descriptor }}"
+          else
+            echo "Either inputs.web_app_name or inputs.component_descriptor must be set."
+            exit 1
+          fi
+          echo "webapp_name=$webapp_name" >> "$GITHUB_OUTPUT"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Publish web app
+        run: |
+          dotnet publish ${{ inputs.project_path }} \
+            -c Release \
+            -o $AZURE_WEBAPP_PACKAGE_PATH
+
+      - name: Archive package
+        run: |
+          cd $AZURE_WEBAPP_PACKAGE_PATH
+          zip -r ../webapp.zip .
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ steps.app_name.outputs.webapp_name }}
+          package: webapp.zip

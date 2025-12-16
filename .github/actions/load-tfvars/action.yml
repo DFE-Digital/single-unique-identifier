@@ -30,6 +30,9 @@ outputs:
   location:
     description: location from tfvars
     value: ${{ steps.load.outputs.location }}
+  descriptor:
+    description: descriptor from tfvars
+    value: ${{ steps.load.outputs.descriptor }}
   product:
     description: Product tag value
     value: ${{ steps.load.outputs.product }}
@@ -81,6 +84,7 @@ runs:
         ENVIRONMENT_TAG=$(get_tfvar environment_tag)
         REGION_SHORT=$(get_tfvar region_short)
         LOCATION=$(get_tfvar location)
+        DESCRIPTOR=$(get_tfvar descriptor)
         PRODUCT=$(get_tfvar product)
         SERVICE_OFFERING=$(get_tfvar service_offering)
 
@@ -90,6 +94,7 @@ runs:
         [ -z "$ENVIRONMENT_TAG" ] && missing+=("environment_tag")
         [ -z "$REGION_SHORT" ] && missing+=("region_short")
         [ -z "$LOCATION" ] && missing+=("location")
+        [ -z "$DESCRIPTOR" ] && missing+=("descriptor")
         [ -z "$PRODUCT" ] && missing+=("product")
         [ -z "$SERVICE_OFFERING" ] && missing+=("service_offering")
 
@@ -109,6 +114,7 @@ runs:
           echo "environment_tag=$ENVIRONMENT_TAG"
           echo "region_short=$REGION_SHORT"
           echo "location=$LOCATION"
+          echo "descriptor=$DESCRIPTOR"
           echo "product=$PRODUCT"
           echo "service_offering=$SERVICE_OFFERING"
           echo "tfvars_path=environments/${{ inputs.environment }}.tfvars"

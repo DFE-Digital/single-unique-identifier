@@ -65,7 +65,7 @@ public class RecordFetcherTests
                     new RecordEnvelope<ChildrensServicesDetailsRecordV1>
                     {
                         SchemaUri = new Uri(
-                            "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1.json"
+                            "https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json"
                         ),
                         Payload = socialCareRecord,
                     }

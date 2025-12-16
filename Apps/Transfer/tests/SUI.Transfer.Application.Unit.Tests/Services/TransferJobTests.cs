@@ -104,8 +104,8 @@ public class TransferJobTests
 
         var mockEducationAttendanceSummaries = new EducationAttendanceSummaries
         {
-            CurrentAcademicYear = new EducationAttendanceV1 { AttendancePercentage = 90 },
-            LastAcademicYear = new EducationAttendanceV1 { AttendancePercentage = 80 },
+            CurrentAcademicYear = new YearlyEducationAttendanceV1() { AttendancePercentage = 90 },
+            LastAcademicYear = new YearlyEducationAttendanceV1() { AttendancePercentage = 80 },
         };
 
         _mockEducationAttendanceTransformer

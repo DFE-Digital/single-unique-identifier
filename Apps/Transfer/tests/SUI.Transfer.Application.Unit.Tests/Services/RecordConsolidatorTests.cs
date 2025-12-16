@@ -24,7 +24,7 @@ public class RecordConsolidatorTests
         var unconsolidatedData = new UnconsolidatedData("XXX 000 1234")
         {
             PersonalDetailsRecords = new IProviderRecord<PersonalDetailsRecordV1>[1],
-            ChildrensServicesDetailsRecords = new IProviderRecord<ChildSocialCareDetailsRecordV1>[
+            ChildrensServicesDetailsRecords = new IProviderRecord<ChildrensServicesDetailsRecordV1>[
                 2
             ],
             EducationDetailsRecords = new IProviderRecord<EducationDetailsRecordV1>[1],

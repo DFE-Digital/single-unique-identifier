@@ -38,7 +38,7 @@ public class RecordFetcher(
                         await BuildRecords(
                             recordPointer,
                             educationRecords,
-                            childSocialCareDetailsRecords,
+                            chilrensServicesDetailsRecords,
                             personalDetailsRecords,
                             crimeDataRecords,
                             healthDataRecords,
@@ -57,12 +57,11 @@ public class RecordFetcher(
                     }
                 }
             );
-        var personalDetailsRecordsArray = personalDetailsRecords.ToArray();
         return Task.FromResult(
             new UnconsolidatedData(sui)
             {
-                PersonalDetailsRecords = personalDetailsRecordsArray,
-                ChildrensServicesDetailsRecords = childSocialCareDetailsRecords.ToArray(),
+                PersonalDetailsRecords = personalDetailsRecords.ToArray(),
+                ChildrensServicesDetailsRecords = chilrensServicesDetailsRecords.ToArray(),
                 EducationDetailsRecords = educationRecords.ToArray(),
                 HealthDataRecords = healthDataRecords.ToArray(),
                 CrimeDataRecords = crimeDataRecords.ToArray(),
@@ -73,13 +72,13 @@ public class RecordFetcher(
 
     private async Task BuildRecords(
         RecordPointer recordPointer,
-        ConcurrentBag<IProviderRecord<EducationDetailsRecordV1>> educationRecords,
+        ConcurrentBag<ProviderRecord<EducationDetailsRecordV1>> educationRecords,
         ConcurrentBag<
-            IProviderRecord<ChildrensServicesDetailsRecordV1>
-        > childSocialCareDetailsRecords,
-        ConcurrentBag<IProviderRecord<PersonalDetailsRecordV1>> personalDetailsRecords,
-        ConcurrentBag<IProviderRecord<CrimeDataRecordV1>> crimeDataRecords,
-        ConcurrentBag<IProviderRecord<HealthDataRecordV1>> healthDataRecords,
+            ProviderRecord<ChildrensServicesDetailsRecordV1>
+        > chilrensServicesDetailsRecords,
+        ConcurrentBag<ProviderRecord<PersonalDetailsRecordV1>> personalDetailsRecords,
+        ConcurrentBag<ProviderRecord<CrimeDataRecordV1>> crimeDataRecords,
+        ConcurrentBag<ProviderRecord<HealthDataRecordV1>> healthDataRecords,
         CancellationToken cancellationToken
     )
     {
@@ -111,7 +110,7 @@ public class RecordFetcher(
                 );
                 if (parsedResult != null)
                 {
-                    childSocialCareDetailsRecords.Add(parsedResult);
+                    chilrensServicesDetailsRecords.Add(parsedResult);
                 }
 
                 break;

@@ -3,10 +3,9 @@ locals {
   state_storage   = format("%s%ssttfstate01", var.subscription_prefix, var.environment_id)
   state_container = "tfstate"
 
-  core_state_key    = format("%s/terraform.tfstate", var.environment_id)
-  service_state_key = format("%s/service-example.tfstate", var.environment_id)
-
-  web_app_descriptor = "example01"
+  core_state_key     = format("%s/terraform.tfstate", var.environment_id)
+  service_state_key  = format("%s/singleview.tfstate", var.environment_id)
+  web_app_descriptor = "singleview01"
   web_app_name       = format("%s%sapp-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.web_app_descriptor)
 }
 
@@ -32,8 +31,7 @@ module "web_app" {
   environment_tag  = var.environment_tag
   product          = var.product
   service_offering = var.service_offering
-
-  dotnet_version = var.webapp_dotnet_version
-  app_settings   = var.app_settings
-  tags           = var.tags
+  dotnet_version   = var.webapp_dotnet_version
+  app_settings     = var.app_settings
+  tags             = var.tags
 }

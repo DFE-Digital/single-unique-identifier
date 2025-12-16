@@ -328,7 +328,7 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             new ConsolidatedData(sui)
             {
                 PersonalDetailsRecord = new PersonalDetailsRecordV1Consolidated(),
-                ChildrensServicesDetailsRecord = new ChildSocialCareDetailsRecordV1Consolidated(),
+                ChildrensServicesDetailsRecord = new ChildrensServicesDetailsRecordV1Consolidated(),
                 EducationDetailsRecord = new EducationDetailsRecordV1Consolidated(),
                 HealthDataRecord = null,
                 CrimeDataRecord = null,
@@ -341,7 +341,7 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             EducationAttendanceSummaries = new EducationAttendanceSummaries
             {
                 CurrentAcademicYear = null,
-                LastAcademicYear = new EducationAttendanceV1(),
+                LastAcademicYear = new YearlyEducationAttendanceV1(),
             },
             HealthAttendanceSummaries = new HealthAttendanceSummaries
             {

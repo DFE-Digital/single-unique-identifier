@@ -19,7 +19,12 @@ variable "region_short" {
 }
 
 variable "descriptor" {
-  description = "Free text descriptor for the resource group (for example dev). Component instance suffix (e.g. 01) is optional and typically omitted for resource groups."
+  description = "Default component descriptor used for resource naming when a more specific descriptor variable is not provided (for example dev). Component instance suffix (e.g. 01) is optional."
+  type        = string
+}
+
+variable "location" {
+  description = "Azure location for the web app (for example uksouth)."
   type        = string
 }
 
@@ -33,13 +38,8 @@ variable "service_offering" {
   type        = string
 }
 
-variable "location" {
-  description = "Azure location for the resource group (for example uksouth)."
-  type        = string
-}
-
 variable "tags" {
-  description = "Tags to propagate to service resources."
+  description = "Additional tags to apply to the web app."
   type        = map(string)
   default     = {}
 }
@@ -57,19 +57,19 @@ variable "webapp_dotnet_version" {
 }
 
 variable "app_service_plan_sku" {
-  description = "SKU name for the shared App Service plan (present to support shared tfvars files; unused by service-example)."
+  description = "SKU name for the shared App Service plan (present to support shared tfvars files; unused by singleview)."
   type        = string
   default     = null
 }
 
 variable "app_service_plan_os_type" {
-  description = "OS type for the App Service plan (present to support shared tfvars files; unused by service-example)."
+  description = "OS type for the App Service plan (present to support shared tfvars files; unused by singleview)."
   type        = string
   default     = null
 }
 
 variable "app_service_plan_worker_count" {
-  description = "Number of workers for the App Service plan (present to support shared tfvars files; unused by service-example)."
+  description = "Number of workers for the App Service plan (present to support shared tfvars files; unused by singleview)."
   type        = number
   default     = null
 }
