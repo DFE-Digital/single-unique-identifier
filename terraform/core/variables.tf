@@ -43,3 +43,20 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "app_service_plan_sku" {
+  description = "SKU name for the shared App Service plan (e.g. B1, P1v2, P1v3)."
+  type        = string
+}
+
+variable "app_service_plan_os_type" {
+  description = "OS type for the App Service plan."
+  type        = string
+  default     = "Linux"
+}
+
+variable "app_service_plan_worker_count" {
+  description = "Number of workers for the App Service plan."
+  type        = number
+  default     = 1
+}
