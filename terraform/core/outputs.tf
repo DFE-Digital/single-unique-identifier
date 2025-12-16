@@ -1,0 +1,29 @@
+output "resource_group_name" {
+  value       = module.resource_group.name
+  description = "Name of the resource group created for this environment."
+}
+
+output "resource_group_location" {
+  value       = module.resource_group.location
+  description = "Location of the resource group created for this environment."
+}
+
+output "app_service_plan_id" {
+  value       = azurerm_service_plan.shared.id
+  description = "ID of the shared App Service plan."
+}
+
+output "app_service_plan_name" {
+  value       = azurerm_service_plan.shared.name
+  description = "Name of the shared App Service plan."
+}
+
+output "app_service_plan_os_type" {
+  value       = azurerm_service_plan.shared.os_type
+  description = "OS type of the shared App Service plan."
+}
+
+output "app_service_plan_sku" {
+  value       = azurerm_service_plan.shared.sku_name
+  description = "SKU of the shared App Service plan."
+}
