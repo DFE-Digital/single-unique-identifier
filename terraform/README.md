@@ -1,6 +1,6 @@
 # Terraform
 
-This folder holds the Terraform for the platform, including shared foundations (resource group) and per-service modules. Every deployable service should have its own Terraform root so it can be planned/applied in isolation.
+This folder holds the Terraform for the platform, including shared foundations and reusable modules. Every deployable service should have its own Terraform root so it can be planned/applied in isolation.
 
 ## Structure
 
@@ -35,13 +35,15 @@ This folder holds the Terraform for the platform, including shared foundations (
 
 The Azure backend must exist before `terraform init` runs. Use the manual workflow `.github/workflows/terraform-bootstrap.yml` to create the state resource group, storage account, and container using the values from the selected tfvars file (backend names are derived from those values).
 
-## Adding a service module
+## Adding a new service
 
-Create `modules/<service>` with its resources and inputs. Then:
+Create a new Terraform root under `terraform/<service>/` (or copy `terraform/service-example/` as a starting point) and compose whichever reusable modules it needs (for example `modules/linux_web_app`), consuming outputs from `core` via remote state. Then:
 
-- Create a new root under `terraform/<service>/` that calls the relevant modules (for example `modules/linux_web_app`) and consumes outputs from `core`.
+- Update the per-service state key (`<env>/<service>.tfstate`) and any hardcoded component descriptors to match the service.
 - Add any service-specific variables to the shared tfvars files so each environment’s settings stay in one place.
-- Add a dedicated GitHub Actions workflow for the service root (similar to the core workflow) so plans/applies are isolated per service.
+- Add a dedicated GitHub Actions workflow for the new root (copy `.github/workflows/terraform-service-example.yml` and update `root`/`state_key`).
+
+Add a new module under `modules/` only when there’s a genuinely reusable slice of infrastructure/configuration that multiple roots will consume.
 
 ### Example service root
 
