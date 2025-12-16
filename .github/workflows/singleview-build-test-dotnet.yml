@@ -50,7 +50,7 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
-      service_prefix: sv
+      component_descriptor: singleview01
       project_path: Apps/SingleView/src/SUI.SingleView.Web/SUI.SingleView.Web.csproj
       package_path: publish
       dotnet_version: "9.0.x"
