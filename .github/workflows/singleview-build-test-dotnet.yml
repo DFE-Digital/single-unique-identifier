@@ -42,12 +42,14 @@ jobs:
 
   deploy-singleview:
     name: SingleView - Deploy Web App
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true'
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: build-and-test-SingleView
     uses: ./.github/workflows/deploy-dotnet-webapp.yml
     secrets: inherit
     with:
-      environment: ${{ github.event.inputs.environment }}
+      environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       service_prefix: sv
       project_path: Apps/SingleView/src/SUI.SingleView.Web/SUI.SingleView.Web.csproj
       package_path: publish
