@@ -19,7 +19,7 @@ variable "region_short" {
 }
 
 variable "descriptor" {
-  description = "Free text descriptor for the resource group (for example dev)."
+  description = "Free text descriptor for the resource group (for example dev). Component instance suffix (e.g. 01) is optional and typically omitted for resource groups."
   type        = string
 }
 

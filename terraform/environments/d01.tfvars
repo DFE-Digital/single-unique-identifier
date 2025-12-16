@@ -1,11 +1,14 @@
-subscription_prefix = "s270"
-environment_id      = "d01"
-environment_tag     = "Dev"
-region_short        = "uks"
-descriptor          = "dev"
-location            = "uksouth"
-product             = "MAIS Pilot 3"
-service_offering    = "MAIS Pilot 3"
+subscription_prefix           = "s270"
+environment_id                = "d01"
+environment_tag               = "Dev"
+region_short                  = "uks"
+descriptor                    = "dev"
+location                      = "uksouth"
+product                       = "MAIS Pilot 3"
+service_offering              = "MAIS Pilot 3"
+app_service_plan_sku          = "B1"
+app_service_plan_os_type      = "Linux"
+app_service_plan_worker_count = 1
 
 tags = {
   # Additional tags can be added here
