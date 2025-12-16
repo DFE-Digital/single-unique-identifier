@@ -10,7 +10,9 @@ public class UnconsolidatedDataTests
         var sut = new UnconsolidatedData("")
         {
             PersonalDetailsRecords = new ProviderRecord<PersonalDetailsRecordV1>[2],
-            ChildrensServicesDetailsRecords = new ProviderRecord<ChildSocialCareDetailsRecordV1>[3],
+            ChildrensServicesDetailsRecords = new ProviderRecord<ChildrensServicesDetailsRecordV1>[
+                3
+            ],
             EducationDetailsRecords = new ProviderRecord<EducationDetailsRecordV1>[4],
             HealthDataRecords = new ProviderRecord<HealthDataRecordV1>[5],
             CrimeDataRecords = new ProviderRecord<CrimeDataRecordV1>[6],

@@ -4,7 +4,7 @@ namespace SUI.Transfer.Domain;
 
 public record EducationAttendanceSummaries
 {
-    public required EducationAttendanceV1? CurrentAcademicYear { get; init; }
+    public required YearlyEducationAttendanceV1? CurrentAcademicYear { get; init; }
 
-    public required EducationAttendanceV1? LastAcademicYear { get; init; }
+    public required YearlyEducationAttendanceV1? LastAcademicYear { get; init; }
 }

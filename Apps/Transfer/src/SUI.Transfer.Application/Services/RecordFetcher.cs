@@ -16,8 +16,8 @@ public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger)
     )
     {
         var failedFetches = new ConcurrentBag<FailedFetch>();
-        var childSocialCareDetailsRecords =
-            new ConcurrentBag<ProviderRecord<ChildSocialCareDetailsRecordV1>>();
+        var chilrensServicesDetailsRecords =
+            new ConcurrentBag<ProviderRecord<ChildrensServicesDetailsRecordV1>>();
         var educationRecords = new ConcurrentBag<ProviderRecord<EducationDetailsRecordV1>>();
         var personalDetailsRecords = new ConcurrentBag<ProviderRecord<PersonalDetailsRecordV1>>();
         var crimeDataRecords = new ConcurrentBag<ProviderRecord<CrimeDataRecordV1>>();
@@ -32,7 +32,7 @@ public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger)
                         await BuildRecords(
                             recordPointer,
                             educationRecords,
-                            childSocialCareDetailsRecords,
+                            chilrensServicesDetailsRecords,
                             personalDetailsRecords,
                             crimeDataRecords,
                             healthDataRecords,
@@ -55,7 +55,7 @@ public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger)
             new UnconsolidatedData(sui)
             {
                 PersonalDetailsRecords = personalDetailsRecords.ToArray(),
-                ChildrensServicesDetailsRecords = childSocialCareDetailsRecords.ToArray(),
+                ChildrensServicesDetailsRecords = chilrensServicesDetailsRecords.ToArray(),
                 EducationDetailsRecords = educationRecords.ToArray(),
                 HealthDataRecords = healthDataRecords.ToArray(),
                 CrimeDataRecords = crimeDataRecords.ToArray(),
@@ -67,7 +67,9 @@ public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger)
     private async Task BuildRecords(
         RecordPointer recordPointer,
         ConcurrentBag<ProviderRecord<EducationDetailsRecordV1>> educationRecords,
-        ConcurrentBag<ProviderRecord<ChildSocialCareDetailsRecordV1>> childSocialCareDetailsRecords,
+        ConcurrentBag<
+            ProviderRecord<ChildrensServicesDetailsRecordV1>
+        > chilrensServicesDetailsRecords,
         ConcurrentBag<ProviderRecord<PersonalDetailsRecordV1>> personalDetailsRecords,
         ConcurrentBag<ProviderRecord<CrimeDataRecordV1>> crimeDataRecords,
         ConcurrentBag<ProviderRecord<HealthDataRecordV1>> healthDataRecords,
@@ -94,15 +96,15 @@ public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger)
 
                 break;
             }
-            case "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1.json":
+            case "https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json":
             {
-                var parsedResult = ParsePayload<ChildSocialCareDetailsRecordV1>(
+                var parsedResult = ParsePayload<ChildrensServicesDetailsRecordV1>(
                     result,
                     recordPointer.ProviderSystemId
                 );
                 if (parsedResult != null)
                 {
-                    childSocialCareDetailsRecords.Add(parsedResult);
+                    chilrensServicesDetailsRecords.Add(parsedResult);
                 }
 
                 break;
