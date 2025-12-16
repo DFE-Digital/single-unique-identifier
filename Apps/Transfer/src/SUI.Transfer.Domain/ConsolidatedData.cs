@@ -6,7 +6,7 @@ public record ConsolidatedData(string Sui)
 {
     public required PersonalDetailsRecordV1Consolidated? PersonalDetailsRecord { get; init; }
 
-    public required ChildSocialCareDetailsRecordV1Consolidated? ChildrensServicesDetailsRecord { get; init; }
+    public required ChildrensServicesDetailsRecordV1Consolidated? ChildrensServicesDetailsRecord { get; init; }
 
     public required EducationDetailsRecordV1Consolidated? EducationDetailsRecord { get; init; }
 

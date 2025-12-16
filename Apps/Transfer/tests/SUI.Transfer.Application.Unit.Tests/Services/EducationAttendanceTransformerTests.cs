@@ -55,7 +55,7 @@ public class EducationAttendanceTransformerTests
                 ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = new EducationDetailsRecordV1Consolidated
                 {
-                    EducationAttendances = (List<EducationAttendanceV1>?)null,
+                    YearlyEducationAttendances = (List<YearlyEducationAttendanceV1>?)null,
                 },
                 HealthDataRecord = null,
                 CrimeDataRecord = null,
@@ -75,7 +75,7 @@ public class EducationAttendanceTransformerTests
         var fakeTimeProvider = new FakeTimeProvider();
         fakeTimeProvider.SetUtcNow(_octoberDateTimeOffset);
 
-        var attendanceRecord = new EducationAttendanceV1
+        var attendanceRecord = new YearlyEducationAttendanceV1()
         {
             AcademicTermYearStart = 2020,
             AcademicTermYearEnd = 2021,
@@ -92,7 +92,10 @@ public class EducationAttendanceTransformerTests
                 ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = new EducationDetailsRecordV1Consolidated
                 {
-                    EducationAttendances = new List<EducationAttendanceV1> { attendanceRecord },
+                    YearlyEducationAttendances = new List<YearlyEducationAttendanceV1>
+                    {
+                        attendanceRecord,
+                    },
                 },
                 HealthDataRecord = null,
                 CrimeDataRecord = null,
@@ -114,7 +117,7 @@ public class EducationAttendanceTransformerTests
         var fakeTimeProvider = new FakeTimeProvider();
         fakeTimeProvider.SetUtcNow(_octoberDateTimeOffset);
 
-        var currentAttendanceRecord = new EducationAttendanceV1
+        var currentAttendanceRecord = new YearlyEducationAttendanceV1()
         {
             AcademicTermYearStart = 2025,
             AcademicTermYearEnd = 2026,
@@ -123,7 +126,7 @@ public class EducationAttendanceTransformerTests
             UnauthorisedAbsencePercentage = 0.05f,
         };
 
-        var previousAttendanceRecord = new EducationAttendanceV1
+        var previousAttendanceRecord = new YearlyEducationAttendanceV1()
         {
             AcademicTermYearStart = 2024,
             AcademicTermYearEnd = 2025,
@@ -142,7 +145,7 @@ public class EducationAttendanceTransformerTests
                 ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = new EducationDetailsRecordV1Consolidated
                 {
-                    EducationAttendances = new List<EducationAttendanceV1>
+                    YearlyEducationAttendances = new List<YearlyEducationAttendanceV1>
                     {
                         currentAttendanceRecord,
                         previousAttendanceRecord,
@@ -170,7 +173,7 @@ public class EducationAttendanceTransformerTests
         var fakeTimeProvider = new FakeTimeProvider();
         fakeTimeProvider.SetUtcNow(_aprilDateTimeOffset);
 
-        var currentAttendanceRecord = new EducationAttendanceV1
+        var currentAttendanceRecord = new YearlyEducationAttendanceV1()
         {
             AcademicTermYearStart = 2024,
             AcademicTermYearEnd = 2025,
@@ -179,7 +182,7 @@ public class EducationAttendanceTransformerTests
             UnauthorisedAbsencePercentage = 0.05f,
         };
 
-        var previousAttendanceRecord = new EducationAttendanceV1
+        var previousAttendanceRecord = new YearlyEducationAttendanceV1()
         {
             AcademicTermYearStart = 2023,
             AcademicTermYearEnd = 2024,
@@ -198,7 +201,7 @@ public class EducationAttendanceTransformerTests
                 ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = new EducationDetailsRecordV1Consolidated
                 {
-                    EducationAttendances = new List<EducationAttendanceV1>
+                    YearlyEducationAttendances = new List<YearlyEducationAttendanceV1>
                     {
                         currentAttendanceRecord,
                         previousAttendanceRecord,
