@@ -1,8 +1,8 @@
-using SUI.Find.Domain.Models;
+using SUI.Find.Domain.Events.Audit;
 
 namespace SUI.Find.Application.Interfaces;
 
 public interface IAuditService
 {
-    Task WriteAccessAuditLogAsync(AuditAccessMessage accessMessage);
+    Task WriteAccessAuditLogAsync(AuditEvent auditEvent, CancellationToken token);
 }

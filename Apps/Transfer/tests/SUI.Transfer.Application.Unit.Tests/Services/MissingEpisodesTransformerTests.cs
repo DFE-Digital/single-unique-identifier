@@ -2,6 +2,7 @@
 using SUI.Custodians.API.Client;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
+using SUI.Transfer.Domain.Services;
 
 namespace SUI.Transfer.Application.Unit.Tests.Services;
 
@@ -45,7 +46,10 @@ public class MissingEpisodesTransformerTests
                 ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = null,
                 HealthDataRecord = null,
-                CrimeDataRecord = new CrimeDataRecordV1 { MissingEpisodes = null },
+                CrimeDataRecord = new CrimeDataRecordV1Consolidated
+                {
+                    MissingEpisodes = (List<CrimeMissingEpisodeV1>?)null,
+                },
                 CountOfRecordsSuccessfullyFetched = 0,
                 FailedFetches = [],
             }
@@ -68,7 +72,7 @@ public class MissingEpisodesTransformerTests
                 ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = null,
                 HealthDataRecord = null,
-                CrimeDataRecord = new CrimeDataRecordV1
+                CrimeDataRecord = new CrimeDataRecordV1Consolidated
                 {
                     MissingEpisodes = new List<CrimeMissingEpisodeV1>(),
                 },
@@ -94,7 +98,7 @@ public class MissingEpisodesTransformerTests
                 ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = null,
                 HealthDataRecord = null,
-                CrimeDataRecord = new CrimeDataRecordV1
+                CrimeDataRecord = new CrimeDataRecordV1Consolidated
                 {
                     MissingEpisodes = new List<CrimeMissingEpisodeV1>
                     {
@@ -126,7 +130,7 @@ public class MissingEpisodesTransformerTests
                 ChildrensServicesDetailsRecord = null,
                 EducationDetailsRecord = null,
                 HealthDataRecord = null,
-                CrimeDataRecord = new CrimeDataRecordV1
+                CrimeDataRecord = new CrimeDataRecordV1Consolidated
                 {
                     MissingEpisodes = new List<CrimeMissingEpisodeV1>
                     {

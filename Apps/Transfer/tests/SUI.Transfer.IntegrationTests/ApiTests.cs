@@ -9,8 +9,9 @@ using NSubstitute;
 using SUI.Custodians.API.Client;
 using SUI.Transfer.Application.Services;
 using SUI.Transfer.Domain;
+using SUI.Transfer.Domain.Services;
 
-namespace SUI.Transfer.API.Unit.Tests.Endpoint;
+namespace SUI.Transfer.IntegrationTests;
 
 public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
 {
@@ -326,9 +327,9 @@ public class ApiTests : IClassFixture<WebApplicationFactory<Program>>
             jobId,
             new ConsolidatedData(sui)
             {
-                PersonalDetailsRecord = new PersonalDetailsRecordV1(),
-                ChildrensServicesDetailsRecord = new ChildSocialCareDetailsRecordV1(),
-                EducationDetailsRecord = new EducationDetailsRecordV1(),
+                PersonalDetailsRecord = new PersonalDetailsRecordV1Consolidated(),
+                ChildrensServicesDetailsRecord = new ChildSocialCareDetailsRecordV1Consolidated(),
+                EducationDetailsRecord = new EducationDetailsRecordV1Consolidated(),
                 HealthDataRecord = null,
                 CrimeDataRecord = null,
                 CountOfRecordsSuccessfullyFetched = 0,

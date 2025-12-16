@@ -7,4 +7,6 @@ public record ExampleRecord1
     public string? LastName { get; set; }
 
     public DateTimeOffset? DateOfBirth { get; set; }
+
+    public IDictionary<string, object>? AdditionalProperties { get; set; }
 }

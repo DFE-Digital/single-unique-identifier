@@ -52,14 +52,14 @@ namespace SUI.StubCustodians.API.Controllers
             return result.ToActionResult();
         }
 
-        [HttpGet("{providerSystemId}/ChildSocialCareDetailsRecordV1/{sui}")]
+        [HttpGet("{providerSystemId}/ChildrensServicesDetailsRecordV1/{sui}")]
         [ProducesResponseType(
-            typeof(RecordEnvelope<ChildSocialCareDetailsRecordV1>),
+            typeof(RecordEnvelope<ChildrensServicesDetailsRecordV1>),
             StatusCodes.Status200OK
         )]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(FailureInfo), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetChildSocialCareDetailsRecord(
+        public async Task<IActionResult> GetChildrensServicesDetailsRecord(
             [FromRoute] string sui,
             [FromRoute] string providerSystemId
         )
@@ -67,7 +67,7 @@ namespace SUI.StubCustodians.API.Controllers
             _logger.LogInformation(LogStartMessage, sui);
 
             var result = await _mediator.Send(
-                new GetChildSocialCareDetailsRecordQuery()
+                new GetChildrensServicesDetailsRecordQuery()
                 {
                     Sui = sui,
                     ProviderSystemId = providerSystemId,

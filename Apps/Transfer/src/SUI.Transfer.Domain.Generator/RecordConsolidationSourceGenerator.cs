@@ -35,20 +35,24 @@ public class RecordConsolidationSourceGenerator : IIncrementalGenerator
 
         public interface IProviderRecord<TRecord>
         {
-        	string ProviderSystemId { get; }
-        	TRecord Record { get; }
+            string ProviderSystemId { get; }
+            TRecord Record { get; }
         }
 
         public delegate int FieldRanker(string ProviderSystemId, string RecordName, string PropertyName, string RecordAndPropertyName);
 
         {{ExcludeFromCodeCoverageAttributeSource}}
-        public record ConsolidatedField<TValue>(IReadOnlyCollection<ConsolidatedFieldValue<TValue>> Values)
+        public record ConsolidatedField<TValue>(IReadOnlyCollection<ConsolidatedFieldValue<TValue?>> Values)
         {
-        	[JsonIgnore]
-        	public TValue? Value { get; set; } = Values.Count > 0 ? Values.First().Value : default;
+            [JsonIgnore]
+            public TValue? Value { get; set; } = Values.Count > 0 ? Values.First().Value : default;
+
+            public static implicit operator ConsolidatedField<TValue?>(TValue? value) => new(new[] { new ConsolidatedFieldValue<TValue?>(value, "unknown_from-implicit-conversion") });
+
+            public static ConsolidatedField<TValue?> Empty { get; } = new(Array.Empty<ConsolidatedFieldValue<TValue?>>());
         }
 
-        public record ConsolidatedFieldValue<TValue>(TValue Value, string ProviderSystemId);
+        public record ConsolidatedFieldValue<TValue>(TValue? Value, string ProviderSystemId);
         """;
 
     public void Initialize(IncrementalGeneratorInitializationContext context)

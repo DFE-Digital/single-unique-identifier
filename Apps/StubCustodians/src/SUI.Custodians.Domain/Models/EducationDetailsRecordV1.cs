@@ -24,7 +24,7 @@ public record EducationDetailsRecordV1 : SuiRecord
     public string? EducationSettingTelephone { get; init; }
 
     /// <summary>
-    /// Education Attendances
+    /// Yearly Education Attendances
     /// </summary>
-    public IReadOnlyCollection<EducationAttendanceV1>? EducationAttendances { get; init; }
+    public IReadOnlyCollection<YearlyEducationAttendanceV1>? YearlyEducationAttendances { get; init; }
 }

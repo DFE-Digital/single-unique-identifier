@@ -67,9 +67,9 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
 
             var record = new HealthDataRecordV1()
             {
-                RegisteredGP = "Whitby Surgery",
+                RegisteredGPSurgery = "Whitby Surgery",
                 GPTelephone = "07512399988",
-                CAMHSContactTelephone = "07512399989",
+                CAMHSContactDetails = ["07512399989"],
             };
 
             string filePath = Path.Combine(providerFolder, $"{sui}_HealthDataRecordV1.json");
@@ -80,9 +80,10 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             var result = provider.GetRecordForSui(sui, providerId);
 
             Assert.NotNull(result);
-            Assert.Equal("Whitby Surgery", result.Payload.RegisteredGP);
+            Assert.Equal("Whitby Surgery", result.Payload.RegisteredGPSurgery);
             Assert.Equal("07512399988", result.Payload.GPTelephone);
-            Assert.Equal("07512399989", result.Payload.CAMHSContactTelephone);
+            Assert.NotNull(result.Payload.CAMHSContactDetails);
+            Assert.Contains("07512399989", result.Payload.CAMHSContactDetails);
             Assert.Equal(
                 new Uri("https://schemas.example.gov.uk/sui/HealthDataRecordV1.json"),
                 result.SchemaUri

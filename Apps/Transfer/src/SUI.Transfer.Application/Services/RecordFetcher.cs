@@ -151,6 +151,10 @@ public class RecordFetcher(
 
                 break;
             }
+            default:
+            {
+                throw new ArgumentException($"Invalid SchemaUri: {schemaUri}");
+            }
         }
     }
 
