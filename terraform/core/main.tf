@@ -13,7 +13,7 @@ module "resource_group" {
 }
 
 resource "azurerm_service_plan" "shared" {
-  name                = format("%s%sasp-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, var.descriptor)
+  name                = format("%s%sasp-%s-services01", var.subscription_prefix, var.environment_id, var.region_short)
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
   os_type             = var.app_service_plan_os_type
