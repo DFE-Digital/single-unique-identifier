@@ -2,6 +2,19 @@ name: Build and Test "SingleView" Solution
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for deployment
+        required: false
+        default: d01
+        type: choice
+        options:
+          - d01
+      deploy:
+        description: Deploy to Azure Web App
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - main
@@ -26,3 +39,16 @@ jobs:
       packages: read
     with:
       directory_name: Apps/SingleView
+
+  deploy-singleview:
+    name: SingleView - Deploy Web App
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true'
+    needs: build-and-test-SingleView
+    uses: ./.github/workflows/deploy-dotnet-webapp.yml
+    secrets: inherit
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      service_prefix: sv
+      project_path: Apps/SingleView/src/SUI.SingleView.Web/SUI.SingleView.Web.csproj
+      package_path: publish
+      dotnet_version: "9.0.x"
