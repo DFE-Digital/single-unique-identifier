@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SUI.Custodians.API.Client;
 using SUI.Transfer.Domain;
+using SUI.Transfer.Domain.SourceGenerated;
 using JsonElement = System.Text.Json.JsonElement;
 
 namespace SUI.Transfer.Application.Services;
@@ -14,7 +15,7 @@ public class RecordFetcher(
     ILogger<RecordFetcher> logger
 ) : IRecordFetcher
 {
-    public async Task<UnconsolidatedData> FetchRecordsAsync(
+    public Task<UnconsolidatedData> FetchRecordsAsync(
         string sui,
         RecordPointer[] recordPointers,
         CancellationToken cancellationToken
@@ -22,11 +23,11 @@ public class RecordFetcher(
     {
         var failedFetches = new ConcurrentBag<FailedFetch>();
         var chilrensServicesDetailsRecords =
-            new ConcurrentBag<ProviderRecord<ChildrensServicesDetailsRecordV1>>();
-        var educationRecords = new ConcurrentBag<ProviderRecord<EducationDetailsRecordV1>>();
-        var personalDetailsRecords = new ConcurrentBag<ProviderRecord<PersonalDetailsRecordV1>>();
-        var crimeDataRecords = new ConcurrentBag<ProviderRecord<CrimeDataRecordV1>>();
-        var healthDataRecords = new ConcurrentBag<ProviderRecord<HealthDataRecordV1>>();
+            new ConcurrentBag<IProviderRecord<ChildrensServicesDetailsRecordV1>>();
+        var educationRecords = new ConcurrentBag<IProviderRecord<EducationDetailsRecordV1>>();
+        var personalDetailsRecords = new ConcurrentBag<IProviderRecord<PersonalDetailsRecordV1>>();
+        var crimeDataRecords = new ConcurrentBag<IProviderRecord<CrimeDataRecordV1>>();
+        var healthDataRecords = new ConcurrentBag<IProviderRecord<HealthDataRecordV1>>();
         recordPointers
             .AsParallel()
             .ForAll(
@@ -36,7 +37,6 @@ public class RecordFetcher(
                     {
                         await BuildRecords(
                             recordPointer,
-                            sui,
                             educationRecords,
                             chilrensServicesDetailsRecords,
                             personalDetailsRecords,
@@ -57,27 +57,29 @@ public class RecordFetcher(
                     }
                 }
             );
-        return new UnconsolidatedData(sui)
-        {
-            PersonalDetailsRecords = personalDetailsRecords.ToArray(),
-            ChildrensServicesDetailsRecords = chilrensServicesDetailsRecords.ToArray(),
-            EducationDetailsRecords = educationRecords.ToArray(),
-            HealthDataRecords = healthDataRecords.ToArray(),
-            CrimeDataRecords = crimeDataRecords.ToArray(),
-            FailedFetches = failedFetches.ToArray(),
-        };
+        
+        return Task.FromResult(
+            new UnconsolidatedData(sui)
+            {
+                PersonalDetailsRecords = personalDetailsRecords.ToArray(),
+                ChildrensServicesDetailsRecords = chilrensServicesDetailsRecords.ToArray(),
+                EducationDetailsRecords = educationRecords.ToArray(),
+                HealthDataRecords = healthDataRecords.ToArray(),
+                CrimeDataRecords = crimeDataRecords.ToArray(),
+                FailedFetches = failedFetches.ToArray(),
+            }
+        );
     }
 
     private async Task BuildRecords(
         RecordPointer recordPointer,
-        string sui,
-        ConcurrentBag<ProviderRecord<EducationDetailsRecordV1>> educationRecords,
+        ConcurrentBag<IProviderRecord<EducationDetailsRecordV1>> educationRecords,
         ConcurrentBag<
-            ProviderRecord<ChildrensServicesDetailsRecordV1>
+            IProviderRecord<ChildrensServicesDetailsRecordV1>
         > chilrensServicesDetailsRecords,
-        ConcurrentBag<ProviderRecord<PersonalDetailsRecordV1>> personalDetailsRecords,
-        ConcurrentBag<ProviderRecord<CrimeDataRecordV1>> crimeDataRecords,
-        ConcurrentBag<ProviderRecord<HealthDataRecordV1>> healthDataRecords,
+        ConcurrentBag<IProviderRecord<PersonalDetailsRecordV1>> personalDetailsRecords,
+        ConcurrentBag<IProviderRecord<CrimeDataRecordV1>> crimeDataRecords,
+        ConcurrentBag<IProviderRecord<HealthDataRecordV1>> healthDataRecords,
         CancellationToken cancellationToken
     )
     {
@@ -101,7 +103,7 @@ public class RecordFetcher(
 
                 break;
             }
-            case Custodians.API.Client.Models.V1.SchemaUris.ChildSocialCareDetailsRecord:
+            case Custodians.API.Client.Models.V1.SchemaUris.ChildrensServicesDetailsRecord:
             {
                 var parsedResult = ParsePayload<ChildrensServicesDetailsRecordV1>(
                     result,

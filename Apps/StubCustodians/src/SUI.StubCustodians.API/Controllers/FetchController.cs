@@ -41,7 +41,7 @@ public class FetchController(ILogger<RecordsController> logger, IMediator mediat
                 logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result.ToActionResult();
 
-            case "ChildSocialCareDetailsRecordV1":
+            case "ChildrensServicesDetailsRecordV1":
                 var result2 = await mediator.Send(
                     new GetChildrensServicesDetailsRecordQuery
                     {

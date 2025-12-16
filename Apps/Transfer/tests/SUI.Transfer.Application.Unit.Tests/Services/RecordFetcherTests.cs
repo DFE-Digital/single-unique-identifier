@@ -32,7 +32,7 @@ public class RecordFetcherTests
             new("0002", "UnknownSchemaProvider", "http://localhost:5432/unrecognisedSchema"),
         ];
         var educationRecord = new EducationDetailsRecordV1 { EducationSettingName = "Test School" };
-        var socialCareRecord = new ChildrensServicesDetailsRecordV1()
+        var socialCareRecord = new ChildrensServicesDetailsRecordV1
         {
             KeyWorker = "Test Keyworker",
         };
