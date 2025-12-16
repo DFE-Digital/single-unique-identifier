@@ -7,9 +7,15 @@ on:
         description: Target environment (tfvars name, e.g. d01)
         required: true
         type: string
-      service_prefix:
-        description: Short service prefix for web app name (e.g. sv)
-        required: true
+      web_app_name:
+        description: Optional full Azure Web App name override (when set, no name is computed).
+        required: false
+        default: ""
+        type: string
+      component_descriptor:
+        description: Component descriptor (optionally including instance) used in the computed name (e.g. singleview01).
+        required: false
+        default: ""
         type: string
       project_path:
         description: Path to the web project (*.csproj)
@@ -72,7 +78,14 @@ jobs:
       - name: Compute web app name
         id: app_name
         run: |
-          webapp_name="${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}${{ inputs.service_prefix }}web-${{ steps.env_config.outputs.region_short }}-${{ steps.env_config.outputs.descriptor }}"
+          if [ -n "${{ inputs.web_app_name }}" ]; then
+            webapp_name="${{ inputs.web_app_name }}"
+          elif [ -n "${{ inputs.component_descriptor }}" ]; then
+            webapp_name="${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-${{ inputs.component_descriptor }}"
+          else
+            echo "Either inputs.web_app_name or inputs.component_descriptor must be set."
+            exit 1
+          fi
           echo "webapp_name=$webapp_name" >> "$GITHUB_OUTPUT"
 
       - name: Setup .NET
