@@ -22,7 +22,7 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
         symbol
             .GetMembers()
             .OfType<IPropertySymbol>()
-            .Where(p => p.Name != "EqualityContract")
+            .Where(p => p.Name != "EqualityContract" && p.Name != "AdditionalProperties")
             .ToArray();
 
     public string GenerateInterfaceMethodSource() =>
