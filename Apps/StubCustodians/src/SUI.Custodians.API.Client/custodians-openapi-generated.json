@@ -626,6 +626,12 @@
             "format": "date",
             "nullable": true,
             "example": "2025-06-12"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Health - Emergency department attendance - Reason",
+            "nullable": true,
+            "example": "Minor road accident"
           }
         }
       },
@@ -661,11 +667,17 @@
       "HealthDataRecordV1": {
         "type": "object",
         "properties": {
-          "registeredGP": {
+          "registeredGPName": {
             "type": "string",
-            "description": "Registered GP",
+            "description": "Registered GP Name",
             "nullable": true,
             "example": "Dr E Green"
+          },
+          "registeredGPSurgery": {
+            "type": "string",
+            "description": "Registered GP Surgery",
+            "nullable": true,
+            "example": "Duke Medical Centre"
           },
           "gpAddress": {
             "$ref": "#/components/schemas/AddressV1"
@@ -676,14 +688,23 @@
             "nullable": true,
             "example": "0114 272 2100"
           },
-          "camhsContactAddress": {
-            "$ref": "#/components/schemas/AddressV1"
-          },
-          "camhsContactTelephone": {
-            "type": "string",
-            "description": "Child and Adolescent Mental Health Services - Contact telephone",
+          "camhsContactDetails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Child and Adolescent Mental Health Services - Contact Details",
             "nullable": true,
-            "example": "01422 345926"
+            "example": "01422 345926, camhs.dukemc@gmail.com"
+          },
+          "camhsTeamInvolvement": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Child and Adolescent Mental Health Services - Team Involvement",
+            "nullable": true,
+            "example": "Minds Matter Clinic, Duke Mental Aid Clinic"
           },
           "missedAppointments": {
             "type": "array",
@@ -716,6 +737,12 @@
           },
           "setting": {
             "$ref": "#/components/schemas/NullableOfHealthSettingV1"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Health - Missed appointments history - Reason",
+            "nullable": true,
+            "example": "School Examination"
           }
         }
       },
