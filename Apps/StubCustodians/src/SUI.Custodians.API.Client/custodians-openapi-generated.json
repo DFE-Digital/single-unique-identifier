@@ -92,7 +92,7 @@
         }
       }
     },
-    "/api/v1/Records/{providerSystemId}/ChildSocialCareDetailsRecordV1/{sui}": {
+    "/api/v1/Records/{providerSystemId}/ChildrensServicesDetailsRecordV1/{sui}": {
       "get": {
         "tags": [
           "Records"
@@ -121,17 +121,17 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfChildSocialCareDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecordV1"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfChildSocialCareDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecordV1"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfChildSocialCareDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecordV1"
                 }
               }
             }
@@ -479,12 +479,12 @@
         },
         "nullable": true
       },
-      "ChildSocialCareDetailsRecordV1": {
+      "ChildrensServicesDetailsRecordV1": {
         "type": "object",
         "properties": {
           "keyWorker": {
             "type": "string",
-            "description": "CSC - Key worker",
+            "description": "CS - Key worker",
             "nullable": true,
             "example": "Alex Patel"
           },
@@ -493,7 +493,7 @@
             "items": {
               "type": "string"
             },
-            "description": "CSC - Duty contact details",
+            "description": "CS - Duty contact details",
             "nullable": true,
             "example": "csc@bromley.gov.uk, 08792675387"
           },
@@ -502,34 +502,34 @@
             "items": {
               "type": "string"
             },
-            "description": "CSC - Team involvement",
+            "description": "CS - Team involvement",
             "nullable": true,
             "example": "Disabled Childrens Team, Neighbourhood Team"
           },
-          "cscReferrals": {
+          "childrensServicesReferrals": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ChildSocialCareReferralV1"
+              "$ref": "#/components/schemas/ChildrensServicesReferralV1"
             },
-            "description": "Child Social Care Referrals",
+            "description": "CS - Referrals",
             "nullable": true
           }
         },
-        "description": "Details related to the Children's Social Care and other Children's Services for a specific child."
+        "description": "Details related to the Children's Services for a specific child."
       },
-      "ChildSocialCareReferralV1": {
+      "ChildrensServicesReferralV1": {
         "type": "object",
         "properties": {
           "date": {
             "type": "string",
-            "description": "CSC - Referral history - Date",
+            "description": "CS - Referral history - Date",
             "format": "date",
             "nullable": true,
             "example": "2025-08-16"
           },
           "type": {
             "type": "string",
-            "description": "CSC - Referral history - Type",
+            "description": "CS - Referral history - Type",
             "nullable": true,
             "example": "Early Help"
           }
@@ -584,61 +584,14 @@
             "type": "string",
             "description": "Missing episode date",
             "format": "date",
-            "nullable": true
-          }
-        }
-      },
-      "EducationAttendanceV1": {
-        "type": "object",
-        "properties": {
-          "academicTermYearStart": {
-            "type": "integer",
-            "description": "Education attendance history - Academic Term Year Start",
-            "format": "int32",
             "nullable": true,
-            "example": "2024"
+            "example": "2025-06-12"
           },
-          "academicTermYearEnd": {
-            "type": "integer",
-            "description": "Education attendance history - Academic Term Year End",
-            "format": "int32",
+          "returnedHomeInterviewAttended": {
+            "type": "boolean",
+            "description": "Missing episode returned home interview attended",
             "nullable": true,
-            "example": "2025"
-          },
-          "attendancePercentage": {
-            "type": "number",
-            "description": "Education attendance history - Attendance Percentage",
-            "format": "float",
-            "nullable": true,
-            "example": "70"
-          },
-          "unauthorisedAbsencePercentage": {
-            "type": "number",
-            "description": "Education attendance history - Unauthorised Absence Percentage",
-            "format": "float",
-            "nullable": true,
-            "example": "2"
-          },
-          "suspensions": {
-            "type": "integer",
-            "description": "Education attendance history - Suspensions",
-            "format": "int32",
-            "nullable": true,
-            "example": "1"
-          },
-          "exclusions": {
-            "type": "integer",
-            "description": "Education attendance history - Exclusions",
-            "format": "int32",
-            "nullable": true,
-            "example": "0"
-          },
-          "schoolMovesNonTransitional": {
-            "type": "integer",
-            "description": "Education attendance history - School moves non transitional",
-            "format": "int32",
-            "nullable": true,
-            "example": "0"
+            "example": "true"
           }
         }
       },
@@ -660,12 +613,12 @@
             "nullable": true,
             "example": "0123456789"
           },
-          "educationAttendances": {
+          "yearlyEducationAttendances": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EducationAttendanceV1"
+              "$ref": "#/components/schemas/YearlyEducationAttendanceV1"
             },
-            "description": "Education Attendances",
+            "description": "Yearly Education Attendances",
             "nullable": true
           }
         },
@@ -680,6 +633,12 @@
             "format": "date",
             "nullable": true,
             "example": "2025-06-12"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Health - Emergency department attendance - Reason",
+            "nullable": true,
+            "example": "Minor road accident"
           }
         }
       },
@@ -715,11 +674,17 @@
       "HealthDataRecordV1": {
         "type": "object",
         "properties": {
-          "registeredGP": {
+          "registeredGPName": {
             "type": "string",
-            "description": "Registered GP",
+            "description": "Registered GP Name",
             "nullable": true,
             "example": "Dr E Green"
+          },
+          "registeredGPSurgery": {
+            "type": "string",
+            "description": "Registered GP Surgery",
+            "nullable": true,
+            "example": "Duke Medical Centre"
           },
           "gpAddress": {
             "$ref": "#/components/schemas/AddressV1"
@@ -730,14 +695,23 @@
             "nullable": true,
             "example": "0114 272 2100"
           },
-          "camhsContactAddress": {
-            "$ref": "#/components/schemas/AddressV1"
-          },
-          "camhsContactTelephone": {
-            "type": "string",
-            "description": "Child and Adolescent Mental Health Services - Contact telephone",
+          "camhsContactDetails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Child and Adolescent Mental Health Services - Contact Details",
             "nullable": true,
-            "example": "01422 345926"
+            "example": "01422 345926, camhs.dukemc@gmail.com"
+          },
+          "camhsTeamInvolvement": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Child and Adolescent Mental Health Services - Team Involvement",
+            "nullable": true,
+            "example": "Minds Matter Clinic, Duke Mental Aid Clinic"
           },
           "missedAppointments": {
             "type": "array",
@@ -770,6 +744,12 @@
           },
           "setting": {
             "$ref": "#/components/schemas/NullableOfHealthSettingV1"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Health - Missed appointments history - Reason",
+            "nullable": true,
+            "example": "School Examination"
           }
         }
       },
@@ -939,7 +919,7 @@
           }
         }
       },
-      "RecordEnvelopeOfChildSocialCareDetailsRecordV1": {
+      "RecordEnvelopeOfChildrensServicesDetailsRecordV1": {
         "required": [
           "schemaUri",
           "payload"
@@ -948,12 +928,12 @@
         "properties": {
           "schemaUri": {
             "type": "string",
-            "description": "URI of the ChildSocialCareDetailsRecordV1 payload schema",
+            "description": "URI of the ChildrensServicesDetailsRecordV1 payload schema",
             "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1"
           },
           "payload": {
-            "$ref": "#/components/schemas/ChildSocialCareDetailsRecordV1"
+            "$ref": "#/components/schemas/ChildrensServicesDetailsRecordV1"
           }
         }
       },
@@ -1062,6 +1042,67 @@
           }
         },
         "description": "Represents a person related to a specific child."
+      },
+      "YearlyEducationAttendanceV1": {
+        "type": "object",
+        "properties": {
+          "academicTermYearStart": {
+            "type": "integer",
+            "description": "Education attendance history - Academic Term Year Start",
+            "format": "int32",
+            "nullable": true,
+            "example": "2024"
+          },
+          "academicTermYearEnd": {
+            "type": "integer",
+            "description": "Education attendance history - Academic Term Year End",
+            "format": "int32",
+            "nullable": true,
+            "example": "2025"
+          },
+          "attendancePercentage": {
+            "type": "number",
+            "description": "Education attendance history - Attendance Percentage",
+            "format": "float",
+            "nullable": true,
+            "example": "70"
+          },
+          "unauthorisedAbsencePercentage": {
+            "type": "number",
+            "description": "Education attendance history - Unauthorised Absence Percentage",
+            "format": "float",
+            "nullable": true,
+            "example": "2"
+          },
+          "suspensions": {
+            "type": "integer",
+            "description": "Education attendance history - Suspensions",
+            "format": "int32",
+            "nullable": true,
+            "example": "1"
+          },
+          "exclusions": {
+            "type": "integer",
+            "description": "Education attendance history - Exclusions",
+            "format": "int32",
+            "nullable": true,
+            "example": "0"
+          },
+          "schoolMovesNonTransitional": {
+            "type": "integer",
+            "description": "Education attendance history - School moves non transitional",
+            "format": "int32",
+            "nullable": true,
+            "example": "0"
+          },
+          "schoolsAverageAttendance": {
+            "type": "number",
+            "description": "Education attendance history - School's average attendance",
+            "format": "float",
+            "nullable": true,
+            "example": "97.5"
+          }
+        }
       }
     }
   },

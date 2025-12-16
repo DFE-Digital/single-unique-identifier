@@ -93,8 +93,8 @@ namespace SUI.StubCustodians.API
             >();
 
             services.AddScoped<
-                IRecordProvider<ChildSocialCareDetailsRecordV1>,
-                ChildSocialCareDetailsRecordProvider
+                IRecordProvider<ChildrensServicesDetailsRecordV1>,
+                ChildrensServicesDetailsRecordProvider
             >();
 
             services.AddScoped<IRecordProvider<CrimeDataRecordV1>, CrimeDataRecordProvider>();

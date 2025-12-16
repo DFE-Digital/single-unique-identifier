@@ -1,5 +1,6 @@
 {
-  "registeredGP": "Dr E Green",
+  "registeredGPName": "Dr E Green",
+  "RegisteredGPSurgery": "Duke Medical Centre",
   "gpAddress": {
     "line1": "Duke Medical Centre",
     "line2": "28 Talbot Road",
@@ -8,8 +9,8 @@
     "postcode": "S2 2TD"
   },
   "gpTelephone": "0114 272 2100",
-  "camhsContactAddress": null,
-  "camhsContactTelephone": "01422 345926",
+  "camhsContactDetails": ["01422 345926"],
+  "camhsTeamInvolvement": ["Minds Matter Clinic"],
   "healthActiveStatusesAndPlans": [
     {
       "status": "Open to CAMHS",
@@ -19,19 +20,23 @@
   "missedAppointments": [
     {
       "date": "2025-10-29",
-      "setting": "GP"
+      "setting": "GP",
+      "reason": "Example missed appointment reason"
     },
     {
       "date": "2025-10-30",
-      "setting": "Hospital"
+      "setting": "Hospital",
+      "reason": null
     }
   ],
   "emergencyDepartmentAttendances": [
     {
-      "date": "2025-11-29"
+      "date": "2025-11-29",
+      "reason": "Example A&E attendance reason"
     },
     {
-      "date": "2025-11-30"
+      "date": "2025-11-30",
+      "reason": null
     }
   ]
 }
