@@ -20,7 +20,7 @@ public class RecordFinder : IRecordFinder
                 new[]
                 {
                     (providerId, $"/api/v1/fetch/{providerId}/PersonalDetailsRecordV1"),
-                    (providerId, $"/api/v1/fetch/{providerId}/ChildSocialCareDetailsRecordV1"),
+                    (providerId, $"/api/v1/fetch/{providerId}/ChildrensServicesDetailsRecordV1"),
                     (providerId, $"/api/v1/fetch/{providerId}/EducationDetailsRecordV1"),
                     (providerId, $"/api/v1/fetch/{providerId}/HealthDataRecordV1"),
                     (providerId, $"/api/v1/fetch/{providerId}/CrimeDataRecordV1"),

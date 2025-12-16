@@ -4,7 +4,7 @@ namespace SUI.Custodians.Domain.Models;
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(
-    typeof(ChildSocialCareDetailsRecordV1),
+    typeof(ChildrensServicesDetailsRecordV1),
     typeDiscriminator: "ChildSocialCareDetailsRecordV1"
 )]
 [JsonDerivedType(typeof(CrimeDataRecordV1), typeDiscriminator: "CrimeDataRecordV1")]

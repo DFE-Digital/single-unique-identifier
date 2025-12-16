@@ -4,8 +4,8 @@ public static class SchemaUris
 {
     public const string EducationDetailsRecord =
         "https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json";
-    public const string ChildSocialCareDetailsRecord =
-        "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1.json";
+    public const string ChildrensServicesDetailsRecord =
+        "https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json";
     public const string PersonalDetailsRecord =
         "https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json";
     public const string CrimeDataRecord =

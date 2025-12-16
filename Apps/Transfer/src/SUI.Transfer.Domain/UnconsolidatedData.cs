@@ -7,7 +7,7 @@ public record UnconsolidatedData(string Sui)
 {
     public required IProviderRecord<PersonalDetailsRecordV1>[] PersonalDetailsRecords { get; init; }
 
-    public required IProviderRecord<ChildSocialCareDetailsRecordV1>[] ChildrensServicesDetailsRecords { get; init; }
+    public required IProviderRecord<ChildrensServicesDetailsRecordV1>[] ChildrensServicesDetailsRecords { get; init; }
 
     public required IProviderRecord<EducationDetailsRecordV1>[] EducationDetailsRecords { get; init; }
 
