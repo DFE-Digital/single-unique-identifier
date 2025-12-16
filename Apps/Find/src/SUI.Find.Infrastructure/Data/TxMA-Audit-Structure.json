@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema#",
+  "title": "Audit Event",
+  "description": "Canonical audit event schema interactions",
+  "type": "object",
+  "required": [
+    "eventId",
+    "timestamp",
+    "eventName",
+    "correlationId",
+    "serviceName",
+    "actor",
+    "outcome",
+    "payload"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this specific audit record"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of when the event occurred"
+    },
+    "eventName": {
+      "type": "string",
+      "description": "The domain event name (e.g., PEP_DATA_FILTER)"
+    },
+    "correlationId": {
+      "type": "string",
+      "description": "Trace ID linking the HTTP request to the audit log"
+    },
+    "serviceName": {
+      "type": "string",
+      "description": "Name of the service which the audit is coming rom (e.g. PepService)"
+    },
+    "actor": {
+      "$ref": "#/$defs/actor"
+    },
+    "outcome": {
+      "$ref": "#/$defs/outcome"
+    },
+    "payload": {
+      "$ref": "#/$defs/pepPayload"
+    }
+  },
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "required": ["actorId", "actorRole"],
+      "properties": {
+        "actorId": {
+          "type": "string",
+          "description": "Identity of the caller"
+        },
+        "actorRole": {
+          "type": "string",
+          "description": "Role or System Type (e.g., PartnerSystem)"
+        }
+      }
+    },
+    "pepPayload": {
+      "type": "object",
+      "required": [
+        "endpointType",
+        "jobLink",
+        "requestedUrlCount",
+        "returnedUrlCount",
+        "acceptedUrls",
+        "deniedUrls"
+      ],
+      "properties": {
+        "endpointType": {
+          "type": "string",
+          "enum": ["FIND", "FETCH"],
+          "description": "The operation type being performed"
+        },
+        "jobLink": {
+          "type": "string",
+          "description": "Relative path or ID of the job context"
+        },
+        "requestedUrlCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "returnedUrlCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "acceptedUrls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "deniedUrls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    }
+  }
+}
