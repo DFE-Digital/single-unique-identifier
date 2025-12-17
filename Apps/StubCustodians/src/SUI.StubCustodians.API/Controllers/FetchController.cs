@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +29,7 @@ public class FetchController(ILogger<RecordsController> logger, IMediator mediat
 
         switch (recordType)
         {
-            case "PersonalDetailsRecordV1":
+            case nameof(PersonalDetailsRecordV1):
                 var result = await mediator.Send(
                     new GetPersonalDetailsRecordQuery
                     {
@@ -41,7 +40,7 @@ public class FetchController(ILogger<RecordsController> logger, IMediator mediat
                 logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result.ToActionResult();
 
-            case "ChildrensServicesDetailsRecordV1":
+            case nameof(ChildrensServicesDetailsRecordV1):
                 var result2 = await mediator.Send(
                     new GetChildrensServicesDetailsRecordQuery
                     {
@@ -52,21 +51,21 @@ public class FetchController(ILogger<RecordsController> logger, IMediator mediat
                 logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result2.ToActionResult();
 
-            case "HealthDataRecordV1":
+            case nameof(HealthDataRecordV1):
                 var result3 = await mediator.Send(
                     new GetHealthDataRecordQuery { Sui = sui, ProviderSystemId = providerSystemId }
                 );
                 logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result3.ToActionResult();
 
-            case "CrimeDataRecordV1":
+            case nameof(CrimeDataRecordV1):
                 var result4 = await mediator.Send(
                     new GetCrimeDataRecordQuery { Sui = sui, ProviderSystemId = providerSystemId }
                 );
                 logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result4.ToActionResult();
 
-            case "EducationDetailsRecordV1":
+            case nameof(EducationDetailsRecordV1):
                 var result5 = await mediator.Send(
                     new GetEducationDetailsRecordQuery
                     {
