@@ -148,5 +148,12 @@ public static class HardCodedSearchResults
                 Country = "England",
             },
         },
+        new SearchResult
+        {
+            NhsNumber = NhsNumber.Parse("9449303223"),
+            Name = "Sarah Smith",
+            DateOfBirth = new DateTime(2011, 9, 25),
+            Address = new Address { AddressLine1 = "" },
+        },
     }.ToList().AsReadOnly();
 }

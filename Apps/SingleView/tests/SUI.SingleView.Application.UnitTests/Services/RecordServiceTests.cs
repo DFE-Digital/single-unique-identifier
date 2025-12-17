@@ -303,4 +303,44 @@ public sealed class RecordServiceTests
             "It should delay between polling"
         );
     }
+
+    [Fact]
+    public async Task GetRecordAsync_WhenCompletedJob_ReturnsNoData_RecordException_IsThrown()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+
+        _mockTransferApi
+            .TransferPOSTAsync(_nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new QueuedTransferJobState { JobId = jobId });
+
+        _mockTransferApi
+            .TransferGETAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(new TransferJobState { JobId = jobId, Status = TransferJobStatus.Completed });
+
+        _mockTransferApi
+            .ResultsAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(
+                new CompletedTransferJobState
+                {
+                    JobId = jobId,
+                    Status = TransferJobStatus.Completed,
+                    Data = null,
+                }
+            );
+
+        // Act
+        var actualException = await Assert.ThrowsAsync<RecordException>(async () =>
+            await _sut.GetRecordAsync(_nhsNumber, TestContext.Current.CancellationToken)
+        );
+
+        // Assert
+        actualException.Message.ShouldBe(
+            $"An error occurred when trying to get the record for {_nhsNumber}"
+        );
+        actualException.InnerException.ShouldNotBeNull();
+        actualException.InnerException.Message.ShouldBe(
+            $"Completed transfer job {jobId} returned no data"
+        );
+    }
 }

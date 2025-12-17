@@ -116,4 +116,17 @@ public class NhsNumberTests
         // Assert
         nhsNumber.Value.ShouldBe("1111111111");
     }
+
+    [Theory]
+    [InlineData("9449303223")]
+    [InlineData("9990548609")]
+    public void TryParse_DoesAllowTestNumbers(string input)
+    {
+        // Act
+        var sut = NhsNumber.TryParse(input, out var result);
+
+        // Assert
+        sut.ShouldBeTrue();
+        result.ShouldBeEquivalentTo(NhsNumber.Parse(input));
+    }
 }

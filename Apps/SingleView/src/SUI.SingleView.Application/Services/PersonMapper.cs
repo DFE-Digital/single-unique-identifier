@@ -1,4 +1,5 @@
-﻿using SUI.SingleView.Application.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+using SUI.SingleView.Application.Models;
 using SUI.SingleView.Domain.Models;
 using SUI.Transfer.API.Client;
 
@@ -6,6 +7,9 @@ namespace SUI.SingleView.Application.Services;
 
 public class PersonMapper : IPersonMapper
 {
+    [ExcludeFromCodeCoverage(
+        Justification = "Only stub data currently. Will be implemented very shortly in next PR."
+    )]
     public PersonModel Map(string nhsNumber, ConformedData conformedData)
     {
         // TODO: SUI-1058 - map across from ConformedData to PersonModel
