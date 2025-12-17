@@ -30,8 +30,16 @@ jobs:
         with:
           func-version: "4"
 
-      - name: Start Azurite
-        uses: Azure/start-azurite@v1
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+
+      - name: Install Azurite
+        uses: npm install -g azurite
+
+      - name: run azurite
+        run: azurite --silent
 
       - name: Build Solution
         run: dotnet build Apps/Find/SUI.Find.sln
