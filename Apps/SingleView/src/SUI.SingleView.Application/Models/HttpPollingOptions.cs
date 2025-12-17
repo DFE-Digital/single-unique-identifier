@@ -2,7 +2,7 @@
 
 public class HttpPollingOptions
 {
-    public static string SectionName => "HttpPolling";
+    public const string SectionName = "HttpPolling";
 
     public TimeSpan PollInterval { get; init; } = TimeSpan.FromSeconds(30);
 

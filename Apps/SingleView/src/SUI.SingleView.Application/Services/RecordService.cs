@@ -55,12 +55,15 @@ public class RecordService(
 
             if (jobState.Status is TransferJobStatus.Completed)
             {
-                return (await transferApi.ResultsAsync(jobId, cancellationToken)).Data;
+                return (await transferApi.ResultsAsync(jobId, cancellationToken)).Data
+                    ?? throw new TransferException(
+                        $"Completed transfer job {jobId} returned no data"
+                    );
             }
 
             if (jobState.Status is not (TransferJobStatus.Queued or TransferJobStatus.Running))
             {
-                throw new Exception(
+                throw new TransferException(
                     $"Transfer job {jobId} did not complete as expected. Status was: {jobState.Status}"
                 );
             }
@@ -72,7 +75,7 @@ public class RecordService(
             );
         }
 
-        throw new Exception(
+        throw new TransferException(
             $"Transfer job {jobId} did not finish within allotted time: {httpPollingOptions.Value.PollTimeout}"
         );
     }
