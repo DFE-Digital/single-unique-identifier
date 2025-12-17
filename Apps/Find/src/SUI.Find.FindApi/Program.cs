@@ -12,6 +12,7 @@ using Polly;
 using Polly.Extensions.Http;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Middleware;
@@ -45,6 +46,7 @@ builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
 builder.Services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
 builder.Services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
 builder.Services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
+builder.Services.AddSingleton<IPolicyEnforcementPoint, PolicyEnforcementPoint>();
 builder.Services.AddAzureTableServices();
 
 // Use mock services for all environments for now while in prototype
