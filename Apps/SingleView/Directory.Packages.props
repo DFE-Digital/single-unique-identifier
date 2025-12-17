@@ -14,7 +14,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="SUI.Transfer.API.Client" Version="0.0.2" />
+    <PackageVersion Include="SUI.Transfer.API.Client" Version="0.0.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="xunit.v3" Version="3.2.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
