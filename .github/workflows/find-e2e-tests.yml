@@ -1,0 +1,72 @@
+name: Find E2E Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "Apps/Find/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Apps/Find/**"
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Install Azure Functions Core Tools
+        uses: Azure/functions-action@v1
+        with:
+          func-version: "4"
+
+      - name: Start Azurite
+        uses: Azure/start-azurite@v1
+
+      - name: Build Solution
+        run: dotnet build Apps/Find/SUI.Find.sln
+
+      - name: Start Custodian Simulator
+        run: func start --project Apps/Find/src/SUI.Find.CustodianSimulation/SUI.Find.CustodianSimulation.csproj --port 7082 &
+        working-directory: ${{ github.workspace }}
+
+      - name: Start Find API
+        run: func start --project Apps/Find/src/SUI.Find.FindApi/SUI.Find.FindApi.csproj --port 7182 &
+        working-directory: ${{ github.workspace }}
+
+      - name: Wait for Find API to start
+        run: |
+          for i in {1..30}; do
+           if curl -sf http://localhost:7182/api/health; then
+              echo "Find API is ready"
+              exit 0
+           fi
+            sleep 2
+          done
+          echo "Find API failed to start"
+          exit 1
+
+      - name: Wait for Custodian Simulator to start
+        run: |
+          for i in {1..30}; do
+           if curl -sf http://localhost:7082/status; then
+              echo "Custodian API is ready"
+              exit 0
+           fi
+            sleep 2
+          done
+          echo "Custodian API failed to start"
+          exit 1
+
+      - name: Run E2E Tests
+        run: dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj
