@@ -3,18 +3,12 @@ using Asp.Versioning.ApiExplorer;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi.Models;
 
-namespace SUI.StubCustodians.API
+namespace SUI.StubCustodians.API.OpenApiTransformers
 {
     [ExcludeFromCodeCoverage]
-    public class CustodiansOpenApiDocumentTransformer : IOpenApiDocumentTransformer
+    public class CustodiansOpenApiDocumentTransformer(IApiVersionDescriptionProvider provider)
+        : IOpenApiDocumentTransformer
     {
-        private readonly IApiVersionDescriptionProvider _provider;
-
-        public CustodiansOpenApiDocumentTransformer(IApiVersionDescriptionProvider provider)
-        {
-            _provider = provider;
-        }
-
         public Task TransformAsync(
             OpenApiDocument document,
             OpenApiDocumentTransformerContext context,
@@ -22,7 +16,7 @@ namespace SUI.StubCustodians.API
         )
         {
             // Find matching API version description
-            var apiVersionDescription = _provider.ApiVersionDescriptions.FirstOrDefault(d =>
+            var apiVersionDescription = provider.ApiVersionDescriptions.FirstOrDefault(d =>
                 d.GroupName.Equals(context.DocumentName, StringComparison.OrdinalIgnoreCase)
             );
 
