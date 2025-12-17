@@ -15,9 +15,11 @@ namespace SUI.Find.E2ETests;
 /// </summary>
 [Collection("E2E")]
 [Trait("Category", "E2E")]
-public class StartANewSearchTests : E2ETestBase, IClassFixture<FunctionTestFixture>
+public class StartANewSearchTests(FunctionTestFixture fixture)
+    : E2ETestBase(fixture),
+        IClassFixture<FunctionTestFixture>
 {
-    private readonly FunctionTestFixture _fixture;
+    private readonly FunctionTestFixture _fixture = fixture;
 
     private const string TestClientId = "LOCAL-AUTHORITY-01";
     private const string TestClientSecret = "SUIProject";
@@ -29,12 +31,6 @@ public class StartANewSearchTests : E2ETestBase, IClassFixture<FunctionTestFixtu
         "fetch-record.read",
     ];
     private const string ValidEncryptedSuid = "Cy13hyZL-4LSIwVy50p-Hg"; // Test id that exists in mock data
-
-    public StartANewSearchTests(FunctionTestFixture fixture)
-        : base(fixture)
-    {
-        _fixture = fixture;
-    }
 
     [Fact]
     public async Task Should_PersistSearchData_When_OrchestrationCompletes()
