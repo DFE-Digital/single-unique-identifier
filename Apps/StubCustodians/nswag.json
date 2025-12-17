@@ -94,6 +94,7 @@
       "generateDtoTypes": true,
       "generateOptionalPropertiesAsNullable": false,
       "generateNullableReferenceTypes": true,
+      "generateJsonExtensionData": false,
       "templateDirectory": null,
       "serviceHost": null,
       "serviceSchemes": null,

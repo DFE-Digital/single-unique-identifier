@@ -1,19 +1,20 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SUI.Custodians.API.Client;
 using SUI.Transfer.Domain;
+using JsonElement = System.Text.Json.JsonElement;
 
 namespace SUI.Transfer.Application.Services;
 
 public class RecordFetcher(
-    HttpClient httpClient,
-    ILogger<RecordFetcher> logger,
-    ICustodiansApi custodiansApi
+    [FromKeyedServices(nameof(RecordFetcher))] HttpClient httpClient,
+    ILogger<RecordFetcher> logger
 ) : IRecordFetcher
 {
-    public Task<UnconsolidatedData> FetchRecordsAsync(
+    public async Task<UnconsolidatedData> FetchRecordsAsync(
         string sui,
         RecordPointer[] recordPointers,
         CancellationToken cancellationToken
@@ -56,17 +57,15 @@ public class RecordFetcher(
                     }
                 }
             );
-        return Task.FromResult(
-            new UnconsolidatedData(sui)
-            {
-                PersonalDetailsRecords = personalDetailsRecords.ToArray(),
-                ChildrensServicesDetailsRecords = chilrensServicesDetailsRecords.ToArray(),
-                EducationDetailsRecords = educationRecords.ToArray(),
-                HealthDataRecords = healthDataRecords.ToArray(),
-                CrimeDataRecords = crimeDataRecords.ToArray(),
-                FailedFetches = failedFetches.ToArray(),
-            }
-        );
+        return new UnconsolidatedData(sui)
+        {
+            PersonalDetailsRecords = personalDetailsRecords.ToArray(),
+            ChildrensServicesDetailsRecords = chilrensServicesDetailsRecords.ToArray(),
+            EducationDetailsRecords = educationRecords.ToArray(),
+            HealthDataRecords = healthDataRecords.ToArray(),
+            CrimeDataRecords = crimeDataRecords.ToArray(),
+            FailedFetches = failedFetches.ToArray(),
+        };
     }
 
     private async Task BuildRecords(
@@ -82,19 +81,14 @@ public class RecordFetcher(
         CancellationToken cancellationToken
     )
     {
-        var test = await custodiansApi.RecordsAsync(
-            sui,
-            recordPointer.ProviderSystemId,
-            cancellationToken
-        );
         var result = await httpClient.GetFromJsonAsync<JsonElement>(
             recordPointer.RecordUrl,
             cancellationToken
         );
-        var schemaUri = result.GetProperty("SchemaUri").GetString();
+        var schemaUri = result.GetProperty("schemaUri").GetString();
         switch (schemaUri)
         {
-            case "https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json":
+            case Custodians.API.Client.Models.V1.SchemaUris.EducationDetailsRecord:
             {
                 var parsedResult = ParsePayload<EducationDetailsRecordV1>(
                     result,
@@ -107,7 +101,7 @@ public class RecordFetcher(
 
                 break;
             }
-            case "https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json":
+            case Custodians.API.Client.Models.V1.SchemaUris.ChildSocialCareDetailsRecord:
             {
                 var parsedResult = ParsePayload<ChildrensServicesDetailsRecordV1>(
                     result,
@@ -120,7 +114,7 @@ public class RecordFetcher(
 
                 break;
             }
-            case "https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json":
+            case Custodians.API.Client.Models.V1.SchemaUris.PersonalDetailsRecord:
             {
                 var parsedResult = ParsePayload<PersonalDetailsRecordV1>(
                     result,
@@ -133,7 +127,7 @@ public class RecordFetcher(
 
                 break;
             }
-            case "https://schemas.example.gov.uk/sui/CrimeDataRecordV1.json":
+            case Custodians.API.Client.Models.V1.SchemaUris.CrimeDataRecord:
             {
                 var parsedResult = ParsePayload<CrimeDataRecordV1>(
                     result,
@@ -146,7 +140,7 @@ public class RecordFetcher(
 
                 break;
             }
-            case "https://schemas.example.gov.uk/sui/HealthDataRecordV1.json":
+            case Custodians.API.Client.Models.V1.SchemaUris.HealthDataRecord:
             {
                 var parsedResult = ParsePayload<HealthDataRecordV1>(
                     result,
@@ -169,7 +163,7 @@ public class RecordFetcher(
     private static ProviderRecord<T>? ParsePayload<T>(JsonElement result, string providerSystemId)
         where T : class
     {
-        var payload = JsonSerializer.Deserialize<T>(result.GetProperty("Payload").GetRawText());
+        var payload = JsonSerializer.Deserialize<T>(result.GetProperty("payload").GetRawText());
         return payload != null ? new ProviderRecord<T>(providerSystemId, payload) : null;
     }
 }

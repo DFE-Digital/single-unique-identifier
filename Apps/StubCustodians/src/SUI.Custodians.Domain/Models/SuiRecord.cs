@@ -11,7 +11,4 @@ namespace SUI.Custodians.Domain.Models;
 [JsonDerivedType(typeof(EducationDetailsRecordV1), typeDiscriminator: "EducationDetailsRecordV1")]
 [JsonDerivedType(typeof(HealthDataRecordV1), typeDiscriminator: "HealthDataRecordV1")]
 [JsonDerivedType(typeof(PersonalDetailsRecordV1), typeDiscriminator: "PersonalDetailsRecordV1")]
-public record SuiRecord
-{
-    public string Test { get; set; }
-}
+public record SuiRecord;
