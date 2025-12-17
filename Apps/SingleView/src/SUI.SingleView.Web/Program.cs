@@ -1,6 +1,7 @@
 using System.Reflection;
 using FluentValidation;
 using GovUk.Frontend.AspNetCore;
+using SUI.SingleView.Application.Models;
 using SUI.SingleView.Application.Services;
 using SUI.Transfer.API.Client;
 
@@ -13,13 +14,18 @@ builder.Services.AddGovUkFrontend(options => options.Rebrand = true);
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 builder.Services.AddSingleton<IDelay, SystemDelay>();
+builder.Services.AddSingleton(TimeProvider.System);
+
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IRecordService, RecordService>();
+builder.Services.AddScoped<IPersonMapper, PersonMapper>();
 
 builder.Services.AddTransferClient(
     builder.Configuration["TransferClient:BaseUrl"] ?? string.Empty,
     builder.Configuration["TransferClient:ApiKey"] ?? string.Empty
 );
+
+builder.Services.AddOptions<HttpPollingOptions>().BindConfiguration(HttpPollingOptions.SectionName);
 
 var app = builder.Build();
 
