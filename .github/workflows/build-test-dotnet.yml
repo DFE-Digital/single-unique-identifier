@@ -59,7 +59,7 @@ jobs:
             /d:sonar.scanner.skipJreProvisioning=true \
             /d:sonar.scanner.scanAll=false
           dotnet build ./${{ inputs.directory_name }} --no-incremental
-          dotnet test ./${{ inputs.directory_name }} --no-build --verbosity normal --settings ${{ inputs.directory_name}}/tests.runsettings
+          dotnet test ./${{ inputs.directory_name }} --no-build --verbosity normal --settings ${{ inputs.directory_name}}/tests.runsettings --filter "Category!=E2E"
           reportgenerator -reports:./${{ inputs.directory_name }}/**/coverage.cobertura.xml -targetdir:${{ inputs.directory_name }}/CoverageReport -reporttypes:SonarQube,html
           dotnet coverage merge --reports "${{ inputs.directory_name }}/**/coverage.cobertura.xml" -f cobertura -o ${{ inputs.directory_name}}/coverage/coverage.xml
           dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"

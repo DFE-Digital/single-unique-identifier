@@ -112,7 +112,7 @@ public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searc
         CancellationToken cancellationToken
     )
     {
-        var response = req.CreateResponse(HttpStatusCode.OK);
+        var response = req.CreateResponse(HttpStatusCode.Accepted);
         var searchResults = SearchJob.FromDto(result);
         await response.WriteAsJsonAsync(searchResults, cancellationToken);
         return response;

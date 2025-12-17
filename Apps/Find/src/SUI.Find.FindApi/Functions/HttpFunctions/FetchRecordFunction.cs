@@ -51,6 +51,7 @@ public class FetchRecordFunction(
             || authObj is not AuthContext authContext
         )
         {
+            logger.LogDebug("FAILED AUTH CONTEXT CHECK");
             return await HttpResponseUtility.UnauthorizedResponse(
                 req,
                 context.InvocationId,
@@ -84,11 +85,14 @@ public class FetchRecordFunction(
                     cancellationToken
                 ),
             async unauthorized =>
-                await HttpResponseUtility.UnauthorizedResponse(
+            {
+                logger.LogDebug("FAILED ON FETCH RECORD AUTHORIZATION");
+                return await HttpResponseUtility.UnauthorizedResponse(
                     req,
                     context.InvocationId,
                     cancellationToken
-                ),
+                );
+            },
             async error =>
                 await HttpResponseUtility.InternalServerErrorResponse(
                     req,
