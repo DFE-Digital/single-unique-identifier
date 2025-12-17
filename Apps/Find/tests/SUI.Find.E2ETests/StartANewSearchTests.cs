@@ -9,51 +9,74 @@ using SUI.Find.FindApi.Models;
 
 namespace SUI.Find.E2ETests;
 
-public class StartANewSearchTests(FunctionTestFixture fixture) : IClassFixture<FunctionTestFixture>
+/// <summary>
+/// These tests are designed around the mock data files we use in dev/test environments.
+/// <para>See SUI.Find.Infrastructure/Data/auth-clients.json for details</para>
+/// </summary>
+public class StartANewSearchTests : E2ETestBase, IClassFixture<FunctionTestFixture>
 {
-    public const string TestClientId = "LOCAL-AUTHORITY-01";
-    public const string TestClientSecret = "SUIProject";
-    public static readonly string[] TetScopes =
+    private readonly FunctionTestFixture _fixture;
+
+    private const string TestClientId = "LOCAL-AUTHORITY-01";
+    private const string TestClientSecret = "SUIProject";
+    private static readonly string[] TetScopes =
     [
         "find-record.write",
         "find-record.read",
         "fetch-record.write",
         "fetch-record.read",
     ];
-    private const string ValidEncryptedSuid = "Cy13hyZL-4LSIwVy50p-Hg";
+    private const string ValidEncryptedSuid = "Cy13hyZL-4LSIwVy50p-Hg"; // Test id that exists in mock data
+
+    public StartANewSearchTests(FunctionTestFixture fixture)
+        : base(fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public async Task Should_PersistSearchData_When_OrchestrationCompletes()
     {
-        var authToken = await GetAuthTokenAsync();
-        var body = new StartSearchRequest(ValidEncryptedSuid);
-        var stringContent = new StringContent(JsonSerializer.Serialize(body));
-        fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+        var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, TetScopes);
+        _fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
             authToken
         );
-        var newSearchJobResult = await fixture.Client.PostAsync("v1/searches", stringContent);
 
-        // We then want to assert the returned body and status code
-        Assert.Equal(HttpStatusCode.Accepted, newSearchJobResult.StatusCode);
-        var searchJobContent = await newSearchJobResult.Content.ReadAsStringAsync();
-        var typedContent = JsonSerializer.Deserialize<SearchJob>(searchJobContent);
-        Assert.False(string.IsNullOrEmpty(typedContent!.JobId));
+        // Step 1, start a new search
+        var newSearchJob = await RunAndAssertNewSearchEndpoint();
 
         // Step 2, check the status
-        var statusResult = await WaitForCompletionAsync(typedContent.JobId);
+        var statusUrl = newSearchJob.Links.TryGetValue("status", out var statusLink);
+        Assert.True(statusUrl);
+        var statusResult = await RunAndAwaitAndAssertSearchStatusCompletion(statusLink!.Href);
 
-        //TODO:  Step 3, Get the results and assert
-        await RunAndAssertFetchEndpoint(
-            statusResult.Links.FirstOrDefault(x => x.Key == "results").Value.Href[1..]
-        );
+        // Step 3, Get the results from fetch and assert
+        var resultsUrl = statusResult.Links.TryGetValue("results", out var resultsLink);
+        Assert.True(resultsUrl);
+        await RunAndAssertFetchEndpoint(resultsLink!.Href);
 
         // Fin
     }
 
+    private async Task<SearchJob> RunAndAssertNewSearchEndpoint()
+    {
+        var body = new StartSearchRequest(ValidEncryptedSuid);
+        var stringContent = new StringContent(JsonSerializer.Serialize(body));
+        var newSearchJobResult = await _fixture.Client.PostAsync("v1/searches", stringContent);
+
+        // We then want to assert the returned body and status code
+        Assert.Equal(HttpStatusCode.Accepted, newSearchJobResult.StatusCode);
+        var searchJobContent = await newSearchJobResult.Content.ReadAsStringAsync();
+        var searchJob = JsonSerializer.Deserialize<SearchJob>(searchJobContent);
+        Assert.False(string.IsNullOrEmpty(searchJob!.JobId));
+
+        return searchJob;
+    }
+
     private async Task RunAndAssertFetchEndpoint(string url)
     {
-        var searchResults = await fixture.Client.GetAsync(url);
+        var searchResults = await _fixture.Client.GetAsync(RemoveLeadingSlashFromUrl(url));
         // Look for URL link and save as variable
         var searchResultContent = await searchResults.Content.ReadAsStringAsync();
         var searchResultTypedContent = JsonSerializer.Deserialize<SearchResults>(
@@ -64,11 +87,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture) : IClassFixture<F
         Assert.False(string.IsNullOrEmpty(searchResultItem.RecordUrl));
 
         // TODO: Step 4, Get data from fetch and assert
-        Assert.Equal(
-            $"v1/records/{searchResultItem.RecordUrl.Split("/").Last()}",
-            searchResultItem.RecordUrl[1..]
+        var fetchResult = await _fixture.Client.GetAsync(
+            RemoveLeadingSlashFromUrl(searchResultItem.RecordUrl)
         );
-        var fetchResult = await fixture.Client.GetAsync(searchResultItem.RecordUrl[1..]);
         Assert.Equal(HttpStatusCode.OK, fetchResult.StatusCode);
         var fetchResultContent = await fetchResult.Content.ReadAsStringAsync();
         var fetchResultTypedContent = JsonSerializer.Deserialize<CustodianRecord>(
@@ -80,43 +101,12 @@ public class StartANewSearchTests(FunctionTestFixture fixture) : IClassFixture<F
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.SchemaUri));
     }
 
-    private async Task<string?> GetAuthTokenAsync()
-    {
-        var formData = new Dictionary<string, string>
-        {
-            { "grant_type", "client_credentials" },
-            { "scope", string.Join(" ", TetScopes) },
-        };
-
-        var content = new FormUrlEncodedContent(formData);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, "v1/auth/token")
-        {
-            Content = content,
-        };
-
-        const string authString = $"{TestClientId}:{TestClientSecret}";
-        var base64Auth = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(authString));
-
-        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64Auth);
-
-        var response = await fixture.Client.SendAsync(request);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException($"Auth Failed: {response.StatusCode} - {error}");
-        }
-
-        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
-        return result.GetProperty("access_token").GetString();
-    }
-
     /// <summary>
     /// Uses Poly to keep polling for a Completed message
     /// </summary>
     /// <param name="orchestrationId"></param>
-    private async Task<SearchJob> WaitForCompletionAsync(string orchestrationId)
+    /// <param name="url"></param>
+    private async Task<SearchJob> RunAndAwaitAndAssertSearchStatusCompletion(string url)
     {
         var isCompleted = false;
 
@@ -141,14 +131,23 @@ public class StartANewSearchTests(FunctionTestFixture fixture) : IClassFixture<F
             );
 
         await retryPolicy.ExecuteAsync(() =>
-            fixture.Client.GetAsync($"v1/searches/{orchestrationId}")
+            _fixture.Client.GetAsync(RemoveLeadingSlashFromUrl(url))
         );
 
         Assert.True(isCompleted);
 
-        var typedResult = await fixture.Client.GetFromJsonAsync<SearchJob>(
-            $"v1/searches/{orchestrationId}"
+        var typedResult = await _fixture.Client.GetFromJsonAsync<SearchJob>(
+            RemoveLeadingSlashFromUrl(url)
         );
         return typedResult!;
+    }
+
+    private string RemoveLeadingSlashFromUrl(string url)
+    {
+        if (url.StartsWith("/"))
+        {
+            return url[1..];
+        }
+        return url;
     }
 }
