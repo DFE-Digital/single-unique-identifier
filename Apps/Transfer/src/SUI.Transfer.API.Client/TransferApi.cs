@@ -31,24 +31,81 @@ namespace SUI.Transfer.API.Client
         /// Transfer custodian data for a given child
         /// </summary>
         /// <remarks>
-        /// This endpoint requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form.
+        /// This endpoint begins a job that requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form.
         /// </remarks>
-        /// <param name="id">The single unique identifier for the data which is being requested.</param>
+        /// <param name="body">The single unique identifier for the data which is being requested.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<TransferResult> TransferAsync(string id);
+        System.Threading.Tasks.Task<QueuedTransferJobState> TransferPOSTAsync(string body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
         /// Transfer custodian data for a given child
         /// </summary>
         /// <remarks>
-        /// This endpoint requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form.
+        /// This endpoint begins a job that requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form.
         /// </remarks>
-        /// <param name="id">The single unique identifier for the data which is being requested.</param>
+        /// <param name="body">The single unique identifier for the data which is being requested.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<TransferResult> TransferAsync(string id, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<QueuedTransferJobState> TransferPOSTAsync(string body, System.Threading.CancellationToken cancellationToken);
+
+        /// <param name="jobId">The guid id of the job being cancelled.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<CancelledTransferJobState> TransferDELETEAsync(System.Guid jobId);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <param name="jobId">The guid id of the job being cancelled.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<CancelledTransferJobState> TransferDELETEAsync(System.Guid jobId, System.Threading.CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Get Status of Transfer job
+        /// </summary>
+        /// <remarks>
+        /// This endpoint returns the status of a given transfer job.
+        /// </remarks>
+        /// <param name="jobId">The guid id of the job whose status is being requested.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<TransferJobState> TransferGETAsync(System.Guid jobId);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get Status of Transfer job
+        /// </summary>
+        /// <remarks>
+        /// This endpoint returns the status of a given transfer job.
+        /// </remarks>
+        /// <param name="jobId">The guid id of the job whose status is being requested.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<TransferJobState> TransferGETAsync(System.Guid jobId, System.Threading.CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Get Result of Transfer Job
+        /// </summary>
+        /// <remarks>
+        /// This endpoint returns the results of a transfer job, if completed.
+        /// </remarks>
+        /// <param name="jobId">The guid id of the job whose results are being requested.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<CompletedTransferJobState> ResultsAsync(System.Guid jobId);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get Result of Transfer Job
+        /// </summary>
+        /// <remarks>
+        /// This endpoint returns the results of a transfer job, if completed.
+        /// </remarks>
+        /// <param name="jobId">The guid id of the job whose results are being requested.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<CompletedTransferJobState> ResultsAsync(System.Guid jobId, System.Threading.CancellationToken cancellationToken);
 
     }
 
@@ -88,14 +145,14 @@ namespace SUI.Transfer.API.Client
         /// Transfer custodian data for a given child
         /// </summary>
         /// <remarks>
-        /// This endpoint requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form.
+        /// This endpoint begins a job that requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form.
         /// </remarks>
-        /// <param name="id">The single unique identifier for the data which is being requested.</param>
+        /// <param name="body">The single unique identifier for the data which is being requested.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<TransferResult> TransferAsync(string id)
+        public virtual System.Threading.Tasks.Task<QueuedTransferJobState> TransferPOSTAsync(string body)
         {
-            return TransferAsync(id, System.Threading.CancellationToken.None);
+            return TransferPOSTAsync(body, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
@@ -103,15 +160,15 @@ namespace SUI.Transfer.API.Client
         /// Transfer custodian data for a given child
         /// </summary>
         /// <remarks>
-        /// This endpoint requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form.
+        /// This endpoint begins a job that requests external custodian systems for their data on a specific child, aggregates the data where necessary, and returns the data in a consolidated form.
         /// </remarks>
-        /// <param name="id">The single unique identifier for the data which is being requested.</param>
+        /// <param name="body">The single unique identifier for the data which is being requested.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<TransferResult> TransferAsync(string id, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<QueuedTransferJobState> TransferPOSTAsync(string body, System.Threading.CancellationToken cancellationToken)
         {
-            if (id == null)
-                throw new System.ArgumentNullException("id");
+            if (body == null)
+                throw new System.ArgumentNullException("body");
 
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -119,14 +176,17 @@ namespace SUI.Transfer.API.Client
             {
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
-                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
                     request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                 
-                    // Operation Path: "api/v1/transfer/{id}"
-                    urlBuilder_.Append("api/v1/transfer/");
-                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    // Operation Path: "api/v1/transfer"
+                    urlBuilder_.Append("api/v1/transfer");
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
@@ -153,12 +213,305 @@ namespace SUI.Transfer.API.Client
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<TransferResult>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<QueuedTransferJobState>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
                             return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="jobId">The guid id of the job being cancelled.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<CancelledTransferJobState> TransferDELETEAsync(System.Guid jobId)
+        {
+            return TransferDELETEAsync(jobId, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <param name="jobId">The guid id of the job being cancelled.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<CancelledTransferJobState> TransferDELETEAsync(System.Guid jobId, System.Threading.CancellationToken cancellationToken)
+        {
+            if (jobId == null)
+                throw new System.ArgumentNullException("jobId");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("DELETE");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                
+                    // Operation Path: "api/v1/transfer/{jobId}"
+                    urlBuilder_.Append("api/v1/transfer/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(jobId, System.Globalization.CultureInfo.InvariantCulture)));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<CancelledTransferJobState>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Get Status of Transfer job
+        /// </summary>
+        /// <remarks>
+        /// This endpoint returns the status of a given transfer job.
+        /// </remarks>
+        /// <param name="jobId">The guid id of the job whose status is being requested.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<TransferJobState> TransferGETAsync(System.Guid jobId)
+        {
+            return TransferGETAsync(jobId, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get Status of Transfer job
+        /// </summary>
+        /// <remarks>
+        /// This endpoint returns the status of a given transfer job.
+        /// </remarks>
+        /// <param name="jobId">The guid id of the job whose status is being requested.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<TransferJobState> TransferGETAsync(System.Guid jobId, System.Threading.CancellationToken cancellationToken)
+        {
+            if (jobId == null)
+                throw new System.ArgumentNullException("jobId");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                
+                    // Operation Path: "api/v1/transfer/{jobId}"
+                    urlBuilder_.Append("api/v1/transfer/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(jobId, System.Globalization.CultureInfo.InvariantCulture)));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<TransferJobState>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            string responseText_ = ( response_.Content == null ) ? string.Empty : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("Not Found", status_, responseText_, headers_, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Get Result of Transfer Job
+        /// </summary>
+        /// <remarks>
+        /// This endpoint returns the results of a transfer job, if completed.
+        /// </remarks>
+        /// <param name="jobId">The guid id of the job whose results are being requested.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<CompletedTransferJobState> ResultsAsync(System.Guid jobId)
+        {
+            return ResultsAsync(jobId, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Get Result of Transfer Job
+        /// </summary>
+        /// <remarks>
+        /// This endpoint returns the results of a transfer job, if completed.
+        /// </remarks>
+        /// <param name="jobId">The guid id of the job whose results are being requested.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<CompletedTransferJobState> ResultsAsync(System.Guid jobId, System.Threading.CancellationToken cancellationToken)
+        {
+            if (jobId == null)
+                throw new System.ArgumentNullException("jobId");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                
+                    // Operation Path: "api/v1/transfer/{jobId}/results"
+                    urlBuilder_.Append("api/v1/transfer/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(jobId, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/results");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<CompletedTransferJobState>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<TransferJobState>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<TransferJobState>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 404)
@@ -316,12 +669,1487 @@ namespace SUI.Transfer.API.Client
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class TransferResult
+    public partial class AddressV1
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        [System.Text.Json.Serialization.JsonPropertyName("line1")]
+        public string Line1 { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("line2")]
+        public string Line2 { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("townOrCity")]
+        public string TownOrCity { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("county")]
+        public string County { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("postcode")]
+        public string Postcode { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CancelledTransferJobState
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("cancellationReason")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Id { get; set; }
+        public string CancellationReason { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("jobId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Guid JobId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("sui")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Sui { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        public TransferJobStatus Status { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.DateTimeOffset CreatedAt { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("lastUpdatedAt")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.DateTimeOffset LastUpdatedAt { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
+        public ConformedData Data { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("_links")]
+        public System.Collections.Generic.IDictionary<string, HalLink> _links { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ChildrensServicesDetailsRecordV1Consolidated
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("keyWorker")]
+        public ConsolidatedFieldOfstring KeyWorker { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("dutyContactDetails")]
+        public ConsolidatedFieldOfICollectionOfstring DutyContactDetails { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("teamInvolvement")]
+        public ConsolidatedFieldOfICollectionOfstring TeamInvolvement { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("childrensServicesReferrals")]
+        public ConsolidatedFieldOfICollectionOfChildrensServicesReferralV1 ChildrensServicesReferrals { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ChildrensServicesReferralV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        public System.DateTimeOffset? Date { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string Type { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ChildServicesReferralSummaries
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("past6Months")]
+        public System.Collections.Generic.ICollection<ChildServicesReferralSummary> Past6Months { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("past12Months")]
+        public System.Collections.Generic.ICollection<object> Past12Months { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("past5Years")]
+        public System.Collections.Generic.ICollection<object> Past5Years { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ChildServicesReferralSummary
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("referralType")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ReferralType { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("count")]
+        public int Count { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CompletedTransferJobState
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("jobId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Guid JobId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("sui")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Sui { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        public TransferJobStatus Status { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.DateTimeOffset CreatedAt { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("lastUpdatedAt")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.DateTimeOffset LastUpdatedAt { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
+        public ConformedData Data { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("_links")]
+        public System.Collections.Generic.IDictionary<string, HalLink> _links { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConformedData
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("jobId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Guid JobId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("createdDate")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.DateTimeOffset CreatedDate { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("sui")]
+        public string Sui { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("consolidatedData")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public ConsolidatedData ConsolidatedData { get; set; } = new ConsolidatedData();
+
+        [System.Text.Json.Serialization.JsonPropertyName("educationAttendanceSummaries")]
+        public EducationAttendanceSummaries EducationAttendanceSummaries { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("healthAttendanceSummaries")]
+        public HealthAttendanceSummaries HealthAttendanceSummaries { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("childServicesReferralSummaries")]
+        public ChildServicesReferralSummaries ChildServicesReferralSummaries { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("crimeMissingEpisodesSummaries")]
+        public CrimeMissingEpisodesSummaries CrimeMissingEpisodesSummaries { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("statusFlags")]
+        public System.Collections.Generic.ICollection<StatusFlag> StatusFlags { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedData
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("sui")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Sui { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("personalDetailsRecord")]
+        public PersonalDetailsRecordV1Consolidated PersonalDetailsRecord { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("childrensServicesDetailsRecord")]
+        public ChildrensServicesDetailsRecordV1Consolidated ChildrensServicesDetailsRecord { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("educationDetailsRecord")]
+        public EducationDetailsRecordV1Consolidated EducationDetailsRecord { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("healthDataRecord")]
+        public HealthDataRecordV1Consolidated HealthDataRecord { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("crimeDataRecord")]
+        public CrimeDataRecordV1Consolidated CrimeDataRecord { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("countOfRecordsSuccessfullyFetched")]
+        public int CountOfRecordsSuccessfullyFetched { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("failedFetches")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<FailedFetch> FailedFetches { get; set; } = new System.Collections.ObjectModel.Collection<FailedFetch>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfAddressV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfAddressV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfAddressV1>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfICollectionOfChildrensServicesReferralV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfChildrensServicesReferralV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfChildrensServicesReferralV1>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfICollectionOfCrimeMissingEpisodeV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfCrimeMissingEpisodeV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfCrimeMissingEpisodeV1>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfICollectionOfEmergencyDepartmentAttendanceV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfEmergencyDepartmentAttendanceV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfEmergencyDepartmentAttendanceV1>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfICollectionOfHealthMissedAppointmentV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfHealthMissedAppointmentV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfHealthMissedAppointmentV1>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfICollectionOfLinkedCrimeRiskV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfLinkedCrimeRiskV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfLinkedCrimeRiskV1>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfICollectionOfRelatedPersonV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfRelatedPersonV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfRelatedPersonV1>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfICollectionOfstring
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfstring> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfstring>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfICollectionOfYearlyEducationAttendanceV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfYearlyEducationAttendanceV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfYearlyEducationAttendanceV1>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfNullableOfboolean
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfNullableOfboolean> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfNullableOfboolean>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfNullableOfDateTimeOffset
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfNullableOfDateTimeOffset> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfNullableOfDateTimeOffset>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldOfstring
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("values")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfstring> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfstring>();
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfAddressV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public AddressV1 Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfICollectionOfChildrensServicesReferralV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public System.Collections.Generic.ICollection<ChildrensServicesReferralV1> Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfICollectionOfCrimeMissingEpisodeV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public System.Collections.Generic.ICollection<CrimeMissingEpisodeV1> Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfICollectionOfEmergencyDepartmentAttendanceV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public System.Collections.Generic.ICollection<EmergencyDepartmentAttendanceV1> Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfICollectionOfHealthMissedAppointmentV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public System.Collections.Generic.ICollection<HealthMissedAppointmentV1> Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfICollectionOfLinkedCrimeRiskV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public System.Collections.Generic.ICollection<LinkedCrimeRiskV1> Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfICollectionOfRelatedPersonV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public System.Collections.Generic.ICollection<RelatedPersonV1> Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfICollectionOfstring
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public System.Collections.Generic.ICollection<string> Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfICollectionOfYearlyEducationAttendanceV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public System.Collections.Generic.ICollection<YearlyEducationAttendanceV1> Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfNullableOfboolean
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public bool? Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfNullableOfDateTimeOffset
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public System.DateTimeOffset? Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ConsolidatedFieldValueOfstring
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public string Value { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CrimeDataRecordV1Consolidated
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("policeMarkerDetails")]
+        public ConsolidatedFieldOfstring PoliceMarkerDetails { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("servicesKnownTo")]
+        public ConsolidatedFieldOfICollectionOfstring ServicesKnownTo { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("lastPoliceProtectionPowerEvent")]
+        public ConsolidatedFieldOfstring LastPoliceProtectionPowerEvent { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("missingEpisodes")]
+        public ConsolidatedFieldOfICollectionOfCrimeMissingEpisodeV1 MissingEpisodes { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("linkedCrimeRisks")]
+        public ConsolidatedFieldOfICollectionOfLinkedCrimeRiskV1 LinkedCrimeRisks { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CrimeMissingEpisodesSummaries
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("last6Months")]
+        public System.Collections.Generic.ICollection<object> Last6Months { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CrimeMissingEpisodeV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        public System.DateTimeOffset? Date { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("returnedHomeInterviewAttended")]
+        public bool? ReturnedHomeInterviewAttended { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class EducationAttendanceSummaries
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("currentAcademicYear")]
+        public YearlyEducationAttendanceV12 CurrentAcademicYear { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("lastAcademicYear")]
+        public YearlyEducationAttendanceV12 LastAcademicYear { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class EducationDetailsRecordV1Consolidated
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("educationSettingName")]
+        public ConsolidatedFieldOfstring EducationSettingName { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("educationSettingAddress")]
+        public ConsolidatedFieldOfAddressV1 EducationSettingAddress { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("educationSettingTelephone")]
+        public ConsolidatedFieldOfstring EducationSettingTelephone { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("yearlyEducationAttendances")]
+        public ConsolidatedFieldOfICollectionOfYearlyEducationAttendanceV1 YearlyEducationAttendances { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class EmergencyDepartmentAttendanceV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        public System.DateTimeOffset? Date { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("reason")]
+        public string Reason { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class FailedFetch
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("recordPointer")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public RecordPointer RecordPointer { get; set; } = new RecordPointer();
+
+        [System.Text.Json.Serialization.JsonPropertyName("errorMessage")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ErrorMessage { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class HalLink
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("href")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Href { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("method")]
+        public string Method { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class HealthAttendanceSummaries
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("last12Months")]
+        public HealthAttendanceSummary Last12Months { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("last5Years")]
+        public HealthAttendanceSummary Last5Years { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class HealthAttendanceSummary
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("countOfMissedGPAppointments")]
+        public int CountOfMissedGPAppointments { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("countOfMissedHospitalAppointments")]
+        public int CountOfMissedHospitalAppointments { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("countOfMissedCommunityHealthAppointments")]
+        public int CountOfMissedCommunityHealthAppointments { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("countOfEmergencyDepartmentAttendances")]
+        public int CountOfEmergencyDepartmentAttendances { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class HealthDataRecordV1Consolidated
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("registeredGPName")]
+        public ConsolidatedFieldOfstring RegisteredGPName { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("registeredGPSurgery")]
+        public ConsolidatedFieldOfstring RegisteredGPSurgery { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("gpAddress")]
+        public ConsolidatedFieldOfAddressV1 GpAddress { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("gpTelephone")]
+        public ConsolidatedFieldOfstring GpTelephone { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("camhsContactDetails")]
+        public ConsolidatedFieldOfICollectionOfstring CamhsContactDetails { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("camhsTeamInvolvement")]
+        public ConsolidatedFieldOfICollectionOfstring CamhsTeamInvolvement { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("missedAppointments")]
+        public ConsolidatedFieldOfICollectionOfHealthMissedAppointmentV1 MissedAppointments { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("emergencyDepartmentAttendances")]
+        public ConsolidatedFieldOfICollectionOfEmergencyDepartmentAttendanceV1 EmergencyDepartmentAttendances { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class HealthMissedAppointmentV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        public System.DateTimeOffset? Date { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("setting")]
+        public NullableOfNullableOfHealthSettingV1? Setting { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("reason")]
+        public string Reason { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class LinkedCrimeRiskV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("date")]
+        public System.DateTimeOffset? Date { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("riskType")]
+        public NullableOfNullableOfCrimeRiskTypeV1? RiskType { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum NullableOfNullableOfCrimeRiskTypeV1
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"sexualExploitation")]
+        SexualExploitation = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"criminalExploitation")]
+        CriminalExploitation = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"radicalisation")]
+        Radicalisation = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"modernSlaveryAndTrafficking")]
+        ModernSlaveryAndTrafficking = 3,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"gangsAndYouthViolence")]
+        GangsAndYouthViolence = 4,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum NullableOfNullableOfHealthSettingV1
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"other")]
+        Other = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"hospital")]
+        Hospital = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"gp")]
+        Gp = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"community")]
+        Community = 3,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class PersonalDetailsRecordV1Consolidated
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("firstName")]
+        public ConsolidatedFieldOfstring FirstName { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("lastName")]
+        public ConsolidatedFieldOfstring LastName { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("dateOfBirth")]
+        public ConsolidatedFieldOfNullableOfDateTimeOffset DateOfBirth { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("address")]
+        public ConsolidatedFieldOfAddressV1 Address { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("namesOfIndividualsResidingAtMainAddress")]
+        public ConsolidatedFieldOfICollectionOfstring NamesOfIndividualsResidingAtMainAddress { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("birthAssignedSex")]
+        public ConsolidatedFieldOfstring BirthAssignedSex { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("pronouns")]
+        public ConsolidatedFieldOfstring Pronouns { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ethnicity")]
+        public ConsolidatedFieldOfstring Ethnicity { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("firstLanguage")]
+        public ConsolidatedFieldOfstring FirstLanguage { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("designatedLocalAuthority")]
+        public ConsolidatedFieldOfstring DesignatedLocalAuthority { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("englishAsAdditionalLanguage")]
+        public ConsolidatedFieldOfNullableOfboolean EnglishAsAdditionalLanguage { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("braille")]
+        public ConsolidatedFieldOfNullableOfboolean Braille { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("signLanguage")]
+        public ConsolidatedFieldOfNullableOfboolean SignLanguage { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("makaton")]
+        public ConsolidatedFieldOfNullableOfboolean Makaton { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("interpreter")]
+        public ConsolidatedFieldOfNullableOfboolean Interpreter { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("relatedPeople")]
+        public ConsolidatedFieldOfICollectionOfRelatedPersonV1 RelatedPeople { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class QueuedTransferJobState
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("jobId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.Guid JobId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("sui")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Sui { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        public TransferJobStatus Status { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public System.DateTimeOffset CreatedAt { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("lastUpdatedAt")]
+        public System.DateTimeOffset LastUpdatedAt { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
+        public ConformedData Data { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("_links")]
+        public System.Collections.Generic.IDictionary<string, HalLink> _links { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordPointer
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderSystemId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("providerName")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string ProviderName { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("recordUrl")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string RecordUrl { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RelatedPersonV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("relationshipToTheChild")]
+        public string RelationshipToTheChild { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("dob")]
+        public System.DateTimeOffset? Dob { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("risk")]
+        public System.Collections.Generic.ICollection<string> Risk { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum StatusFlag
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"isEnglishAsAdditionalLanguage")]
+        IsEnglishAsAdditionalLanguage = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"isChildrensSocialCareStatusOpen")]
+        IsChildrensSocialCareStatusOpen = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"isChildInNeed")]
+        IsChildInNeed = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"isChildLookedAfter")]
+        IsChildLookedAfter = 3,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"isChildProtection")]
+        IsChildProtection = 4,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"isNotInEducationEmploymentOrTraining")]
+        IsNotInEducationEmploymentOrTraining = 5,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"hasPupilPremium")]
+        HasPupilPremium = 6,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"hasFreeSchoolMeals")]
+        HasFreeSchoolMeals = 7,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"isElectivelyHomeEducated")]
+        IsElectivelyHomeEducated = 8,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"hasSpecialEducationalNeedsAndDisabilities")]
+        HasSpecialEducationalNeedsAndDisabilities = 9,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"isOpenToCAMHS")]
+        IsOpenToCAMHS = 10,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"isOpenToYouthJusticeService")]
+        IsOpenToYouthJusticeService = 11,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"riskOfExploitationSexual")]
+        RiskOfExploitationSexual = 12,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"riskOfExploitationCriminal")]
+        RiskOfExploitationCriminal = 13,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"riskOfRadicalisation")]
+        RiskOfRadicalisation = 14,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"riskOfModernSlaveryAndTrafficking")]
+        RiskOfModernSlaveryAndTrafficking = 15,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"riskOfGangsAndYouthViolence")]
+        RiskOfGangsAndYouthViolence = 16,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"riskOfFGM")]
+        RiskOfFGM = 17,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"hasPolicePowersOfProtection")]
+        HasPolicePowersOfProtection = 18,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class TransferJobState
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("jobId")]
+        public System.Guid JobId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("sui")]
+        public string Sui { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        public TransferJobStatus Status { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
+        public System.DateTimeOffset CreatedAt { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("lastUpdatedAt")]
+        public System.DateTimeOffset LastUpdatedAt { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
+        public ConformedData Data { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("_links")]
+        public System.Collections.Generic.IDictionary<string, HalLink> _links { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum TransferJobStatus
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"queued")]
+        Queued = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"running")]
+        Running = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"completed")]
+        Completed = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"failed")]
+        Failed = 3,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"canceled")]
+        Canceled = 4,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class YearlyEducationAttendanceV1
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("academicTermYearStart")]
+        public int? AcademicTermYearStart { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("academicTermYearEnd")]
+        public int? AcademicTermYearEnd { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("attendancePercentage")]
+        public float? AttendancePercentage { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("unauthorisedAbsencePercentage")]
+        public float? UnauthorisedAbsencePercentage { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("suspensions")]
+        public int? Suspensions { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("exclusions")]
+        public int? Exclusions { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("schoolMovesNonTransitional")]
+        public int? SchoolMovesNonTransitional { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("schoolsAverageAttendance")]
+        public float? SchoolsAverageAttendance { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class YearlyEducationAttendanceV12
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("academicTermYearStart")]
+        public int? AcademicTermYearStart { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("academicTermYearEnd")]
+        public int? AcademicTermYearEnd { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("attendancePercentage")]
+        public float? AttendancePercentage { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("unauthorisedAbsencePercentage")]
+        public float? UnauthorisedAbsencePercentage { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("suspensions")]
+        public int? Suspensions { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("exclusions")]
+        public int? Exclusions { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("schoolMovesNonTransitional")]
+        public int? SchoolMovesNonTransitional { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("schoolsAverageAttendance")]
+        public float? SchoolsAverageAttendance { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
