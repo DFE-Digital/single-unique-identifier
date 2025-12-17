@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Custodians.Domain.Models;
 using SUI.StubCustodians.Application.Common;
@@ -11,11 +12,13 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Queries
     {
         private readonly IRecordProvider<PersonalDetailsRecordV1> _recordProvider;
         private readonly GetPersonalDetailsRecordQueryHandler _handler;
+        private readonly ILogger<GetPersonalDetailsRecordQueryHandler> _logger;
 
         public GetPersonalDetailsRecordQueryHandlerTests()
         {
+            _logger = Substitute.For<ILogger<GetPersonalDetailsRecordQueryHandler>>();
             _recordProvider = Substitute.For<IRecordProvider<PersonalDetailsRecordV1>>();
-            _handler = new GetPersonalDetailsRecordQueryHandler(_recordProvider);
+            _handler = new GetPersonalDetailsRecordQueryHandler(_recordProvider, _logger);
         }
 
         [Fact]

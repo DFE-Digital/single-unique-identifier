@@ -22,7 +22,7 @@ public class RecordFetcher(
     )
     {
         var failedFetches = new ConcurrentBag<FailedFetch>();
-        var chilrensServicesDetailsRecords =
+        var childrensServicesDetailsRecords =
             new ConcurrentBag<IProviderRecord<ChildrensServicesDetailsRecordV1>>();
         var educationRecords = new ConcurrentBag<IProviderRecord<EducationDetailsRecordV1>>();
         var personalDetailsRecords = new ConcurrentBag<IProviderRecord<PersonalDetailsRecordV1>>();
@@ -31,19 +31,20 @@ public class RecordFetcher(
         recordPointers
             .AsParallel()
             .ForAll(
-                async void (recordPointer) =>
+                void (recordPointer) =>
                 {
                     try
                     {
-                        await BuildRecords(
-                            recordPointer,
-                            educationRecords,
-                            chilrensServicesDetailsRecords,
-                            personalDetailsRecords,
-                            crimeDataRecords,
-                            healthDataRecords,
-                            cancellationToken
-                        );
+                        BuildRecords(
+                                recordPointer,
+                                educationRecords,
+                                childrensServicesDetailsRecords,
+                                personalDetailsRecords,
+                                crimeDataRecords,
+                                healthDataRecords,
+                                cancellationToken
+                            )
+                            .Wait(cancellationToken);
                     }
                     catch (Exception e)
                     {
@@ -57,12 +58,12 @@ public class RecordFetcher(
                     }
                 }
             );
-        
+
         return Task.FromResult(
             new UnconsolidatedData(sui)
             {
                 PersonalDetailsRecords = personalDetailsRecords.ToArray(),
-                ChildrensServicesDetailsRecords = chilrensServicesDetailsRecords.ToArray(),
+                ChildrensServicesDetailsRecords = childrensServicesDetailsRecords.ToArray(),
                 EducationDetailsRecords = educationRecords.ToArray(),
                 HealthDataRecords = healthDataRecords.ToArray(),
                 CrimeDataRecords = crimeDataRecords.ToArray(),
@@ -76,7 +77,7 @@ public class RecordFetcher(
         ConcurrentBag<IProviderRecord<EducationDetailsRecordV1>> educationRecords,
         ConcurrentBag<
             IProviderRecord<ChildrensServicesDetailsRecordV1>
-        > chilrensServicesDetailsRecords,
+        > childrensServicesDetailsRecords,
         ConcurrentBag<IProviderRecord<PersonalDetailsRecordV1>> personalDetailsRecords,
         ConcurrentBag<IProviderRecord<CrimeDataRecordV1>> crimeDataRecords,
         ConcurrentBag<IProviderRecord<HealthDataRecordV1>> healthDataRecords,
@@ -111,7 +112,7 @@ public class RecordFetcher(
                 );
                 if (parsedResult != null)
                 {
-                    chilrensServicesDetailsRecords.Add(parsedResult);
+                    childrensServicesDetailsRecords.Add(parsedResult);
                 }
 
                 break;
