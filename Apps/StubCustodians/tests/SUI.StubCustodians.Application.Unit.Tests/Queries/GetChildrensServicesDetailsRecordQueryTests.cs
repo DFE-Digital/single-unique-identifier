@@ -7,21 +7,21 @@ using SUI.StubCustodians.Application.Queries;
 
 namespace SUI.StubCustodians.Application.Unit.Tests.Queries
 {
-    public class GetChildSocialCareDetailsRecordQueryTests
+    public class GetChildrensServicesDetailsRecordQueryTests
     {
-        private readonly IRecordProvider<ChildSocialCareDetailsRecordV1> _recordProvider;
-        private readonly GetChildSocialCareDetailsRecordQueryHandler _handler;
+        private readonly IRecordProvider<ChildrensServicesDetailsRecordV1> _recordProvider;
+        private readonly GetChildrensServicesDetailsRecordQueryHandler _handler;
 
-        public GetChildSocialCareDetailsRecordQueryTests()
+        public GetChildrensServicesDetailsRecordQueryTests()
         {
-            _recordProvider = Substitute.For<IRecordProvider<ChildSocialCareDetailsRecordV1>>();
-            _handler = new GetChildSocialCareDetailsRecordQueryHandler(_recordProvider);
+            _recordProvider = Substitute.For<IRecordProvider<ChildrensServicesDetailsRecordV1>>();
+            _handler = new GetChildrensServicesDetailsRecordQueryHandler(_recordProvider);
         }
 
         [Fact]
         public async Task Handle_InvalidSuiOrProvider_ReturnsValidationFailure()
         {
-            var query = new GetChildSocialCareDetailsRecordQuery()
+            var query = new GetChildrensServicesDetailsRecordQuery()
             {
                 Sui = "abc123", // invalid (not digits)
                 ProviderSystemId = "Unknown", // invalid provider
@@ -40,7 +40,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Queries
             var sui = "1234567890";
             var provider = "MockEducationProvider";
 
-            var query = new GetChildSocialCareDetailsRecordQuery
+            var query = new GetChildrensServicesDetailsRecordQuery
             {
                 Sui = sui,
                 ProviderSystemId = provider,
@@ -48,7 +48,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Queries
 
             _recordProvider
                 .GetRecordForSui(sui, provider)
-                .Returns((RecordEnvelope<ChildSocialCareDetailsRecordV1>?)null);
+                .Returns((RecordEnvelope<ChildrensServicesDetailsRecordV1>?)null);
 
             var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -64,15 +64,15 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Queries
             var sui = "1234567890";
             var provider = "MockSocialCareProvider";
 
-            var envelope = new RecordEnvelope<ChildSocialCareDetailsRecordV1>
+            var envelope = new RecordEnvelope<ChildrensServicesDetailsRecordV1>
             {
                 SchemaUri = new Uri("https://example.com"),
-                Payload = new ChildSocialCareDetailsRecordV1(),
+                Payload = new ChildrensServicesDetailsRecordV1(),
             };
 
             _recordProvider.GetRecordForSui(sui, provider).Returns(envelope);
 
-            var query = new GetChildSocialCareDetailsRecordQuery()
+            var query = new GetChildrensServicesDetailsRecordQuery()
             {
                 Sui = sui,
                 ProviderSystemId = provider,

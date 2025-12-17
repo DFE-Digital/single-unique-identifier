@@ -12,7 +12,7 @@ namespace SUI.Transfer.Application.Unit.Tests.Services;
 
 public class RecordFetcherTests
 {
-    private ILogger<RecordFetcher> _logger = Substitute.For<ILogger<RecordFetcher>>();
+    private readonly ILogger<RecordFetcher> _logger = Substitute.For<ILogger<RecordFetcher>>();
 
     [Fact]
     public async Task FetchRecordsAsync_Does_Fetch_AsExpected()
@@ -29,15 +29,19 @@ public class RecordFetcherTests
             new("3276", "HealthData", "http://localhost:5432/api/getHealthDataRecord/23456"),
             new("4276", "CrimeData", "http://localhost:5432/api/getCrimeDataRecord/23456"),
             new("0001", "BrokenProvider", "http://localhost:5432/wrongUrl"),
+            new("0002", "UnknownSchemaProvider", "http://localhost:5432/unrecognisedSchema"),
         ];
         var educationRecord = new EducationDetailsRecordV1 { EducationSettingName = "Test School" };
-        var socialCareRecord = new ChildSocialCareDetailsRecordV1 { KeyWorker = "Test Keyworker" };
+        var socialCareRecord = new ChildrensServicesDetailsRecordV1
+        {
+            KeyWorker = "Test Keyworker",
+        };
         var personalDetailsRecord = new PersonalDetailsRecordV1
         {
             FirstName = "John",
             LastName = "Doe",
         };
-        var healthDataRecord = new HealthDataRecordV1 { RegisteredGP = "Test GP" };
+        var healthDataRecord = new HealthDataRecordV1 { RegisteredGPName = "Test GP" };
         var crimeDataRecord = new CrimeDataRecordV1 { PoliceMarkerDetails = "Test PoliceMarker" };
         var mappings = new List<MockResponse>
         {
@@ -58,10 +62,10 @@ public class RecordFetcherTests
             {
                 UrlPart = "/api/getSocialCareRecord/23456",
                 ReturnValue = System.Text.Json.JsonSerializer.Serialize(
-                    new RecordEnvelope<ChildSocialCareDetailsRecordV1>
+                    new RecordEnvelope<ChildrensServicesDetailsRecordV1>
                     {
                         SchemaUri = new Uri(
-                            "https://schemas.example.gov.uk/sui/ChildSocialCareDetailsRecordV1.json"
+                            "https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json"
                         ),
                         Payload = socialCareRecord,
                     }
@@ -119,6 +123,19 @@ public class RecordFetcherTests
                     }
                 ),
             },
+            new()
+            {
+                UrlPart = "/unrecognisedSchema",
+                ReturnValue = System.Text.Json.JsonSerializer.Serialize(
+                    new RecordEnvelope<CrimeDataRecordV1>
+                    {
+                        SchemaUri = new Uri(
+                            "https://schemas.example.gov.uk/sui/unrecognisedSchema.json"
+                        ),
+                        Payload = null!,
+                    }
+                ),
+            },
         };
 
         var client = GetClient(mappings);
@@ -139,7 +156,7 @@ public class RecordFetcherTests
                     ],
                     ChildrensServicesDetailsRecords =
                     [
-                        new ProviderRecord<ChildSocialCareDetailsRecordV1>(
+                        new ProviderRecord<ChildrensServicesDetailsRecordV1>(
                             "1256",
                             socialCareRecord
                         ),
@@ -162,7 +179,17 @@ public class RecordFetcherTests
                             records.First(x =>
                                 x is { ProviderName: "BrokenProvider", ProviderSystemId: "0001" }
                             ),
-                            "Response status code does not indicate success: 404 (Not Found)."
+                            "One or more errors occurred. (Response status code does not indicate success: 404 (Not Found).)"
+                        ),
+                        new FailedFetch(
+                            records.First(x =>
+                                x
+                                    is {
+                                        ProviderName: "UnknownSchemaProvider",
+                                        ProviderSystemId: "0002"
+                                    }
+                            ),
+                            "One or more errors occurred. (Invalid SchemaUri: https://schemas.example.gov.uk/sui/unrecognisedSchema.json)"
                         ),
                     ],
                 }

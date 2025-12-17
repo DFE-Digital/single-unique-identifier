@@ -105,7 +105,7 @@ public class SearchEndpointTests
             CancellationToken.None
         );
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
         response.Body.Position = 0;
         var returnedJob = await JsonSerializer.DeserializeAsync<SearchJob>(
             response.Body,

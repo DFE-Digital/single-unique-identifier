@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using SUI.Custodians.Domain.Models;
+using SUI.StubCustodians.API.OpenApiTransformers;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Queries;
 using SUI.StubCustodians.Application.Services;
@@ -93,8 +94,8 @@ namespace SUI.StubCustodians.API
             >();
 
             services.AddScoped<
-                IRecordProvider<ChildSocialCareDetailsRecordV1>,
-                ChildSocialCareDetailsRecordProvider
+                IRecordProvider<ChildrensServicesDetailsRecordV1>,
+                ChildrensServicesDetailsRecordProvider
             >();
 
             services.AddScoped<IRecordProvider<CrimeDataRecordV1>, CrimeDataRecordProvider>();

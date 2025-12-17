@@ -7,6 +7,7 @@
     <Title>SUI.Custodians.API.Client</Title>
     <Authors>Department for Education</Authors>
     <RepositoryUrl>https://github.com/DFE-Digital/single-unique-identifier/</RepositoryUrl>
+    <Version>1.0.5</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,10 +1,13 @@
 locals {
-  state_rg       = format("%s%srg-%s-tfstate", var.subscription_prefix, var.environment_id, var.region_short)
-  state_storage  = format("%s%ssttfstate01", var.subscription_prefix, var.environment_id)
+  state_rg        = format("%s%srg-%s-tfstate", var.subscription_prefix, var.environment_id, var.region_short)
+  state_storage   = format("%s%ssttfstate01", var.subscription_prefix, var.environment_id)
   state_container = "tfstate"
 
   core_state_key    = format("%s/terraform.tfstate", var.environment_id)
   service_state_key = format("%s/service-example.tfstate", var.environment_id)
+
+  web_app_descriptor = "example01"
+  web_app_name       = format("%s%sapp-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.web_app_descriptor)
 }
 
 data "terraform_remote_state" "core" {
@@ -18,26 +21,19 @@ data "terraform_remote_state" "core" {
   }
 }
 
-# Example service module call would go here, consuming outputs from core.
-# module "example_service" {
-#   source              = "../modules/example_service"
-#   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
-#   location            = data.terraform_remote_state.core.outputs.resource_group_location
-#   tags                = var.tags
-#   feature_enabled     = var.example_feature_enabled
-# }
+module "web_app" {
+  source = "../modules/linux_web_app"
 
-output "core_resource_group_name" {
-  value       = data.terraform_remote_state.core.outputs.resource_group_name
-  description = "Resource group name from the core state."
-}
+  name                = local.web_app_name
+  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
+  location            = data.terraform_remote_state.core.outputs.resource_group_location
+  service_plan_id     = data.terraform_remote_state.core.outputs.app_service_plan_id
 
-output "core_resource_group_location" {
-  value       = data.terraform_remote_state.core.outputs.resource_group_location
-  description = "Resource group location from the core state."
-}
+  environment_tag  = var.environment_tag
+  product          = var.product
+  service_offering = var.service_offering
 
-output "service_state_key" {
-  value       = local.service_state_key
-  description = "Example state key for this service root."
+  dotnet_version = var.webapp_dotnet_version
+  app_settings   = var.app_settings
+  tags           = var.tags
 }

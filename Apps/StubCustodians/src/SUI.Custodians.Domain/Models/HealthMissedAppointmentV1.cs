@@ -13,4 +13,10 @@ public record HealthMissedAppointmentV1
     /// </summary>
     /// <example>GP</example>
     public HealthSettingV1? Setting { get; init; }
+
+    /// <summary>
+    /// Health - Missed appointments history - Reason
+    /// </summary>
+    /// <example>School Examination</example>
+    public string? Reason { get; init; }
 }

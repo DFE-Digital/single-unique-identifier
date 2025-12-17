@@ -6,7 +6,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using SUI.StubCustodians.Application.Models;
 
-namespace SUI.StubCustodians.API
+namespace SUI.StubCustodians.API.OpenApiTransformers
 {
     [ExcludeFromCodeCoverage]
     public class CustodiansOpenApiSchemaTransformer : IOpenApiSchemaTransformer
@@ -91,6 +91,7 @@ namespace SUI.StubCustodians.API
                 }
             }
 
+            schema.AdditionalPropertiesAllowed = false;
             return Task.CompletedTask;
         }
 

@@ -5,7 +5,7 @@ namespace SUI.Transfer.Domain.Services;
 
 [GenerateRecordConsolidation(
     typeof(PersonalDetailsRecordV1),
-    typeof(ChildSocialCareDetailsRecordV1),
+    typeof(ChildrensServicesDetailsRecordV1),
     typeof(EducationDetailsRecordV1),
     typeof(HealthDataRecordV1),
     typeof(CrimeDataRecordV1)

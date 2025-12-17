@@ -6,10 +6,16 @@ namespace SUI.Custodians.Domain.Models;
 public record HealthDataRecordV1 : SuiRecord
 {
     /// <summary>
-    /// Registered GP
+    /// Registered GP Name
     /// </summary>
     /// <example>Dr E Green</example>
-    public string? RegisteredGP { get; init; }
+    public string? RegisteredGPName { get; init; }
+
+    /// <summary>
+    /// Registered GP Surgery
+    /// </summary>
+    /// <example>Duke Medical Centre</example>
+    public string? RegisteredGPSurgery { get; init; }
 
     /// <summary>
     /// GP Address
@@ -24,15 +30,16 @@ public record HealthDataRecordV1 : SuiRecord
     public string? GPTelephone { get; init; }
 
     /// <summary>
-    /// Child and Adolescent Mental Health Services - Contact address
+    /// Child and Adolescent Mental Health Services - Contact Details
     /// </summary>
-    public AddressV1? CAMHSContactAddress { get; init; }
+    /// <example>01422 345926, camhs.dukemc@gmail.com</example>
+    public IReadOnlyCollection<string>? CAMHSContactDetails { get; init; }
 
     /// <summary>
-    /// Child and Adolescent Mental Health Services - Contact telephone
+    /// Child and Adolescent Mental Health Services - Team Involvement
     /// </summary>
-    /// <example>01422 345926</example>
-    public string? CAMHSContactTelephone { get; init; }
+    /// <example>Minds Matter Clinic, Duke Mental Aid Clinic</example>
+    public IReadOnlyCollection<string>? CAMHSTeamInvolvement { get; init; }
 
     /// <summary>
     /// Missed Healthcare Appointments

@@ -14,7 +14,7 @@
       "plan": "Education, Health and Care (EHC) plan"
     }
   ],
-  "educationAttendances": [
+  "yearlyEducationAttendances": [
     {
       "academicTermYearStart": 2024,
       "academicTermYearEnd": 2025,
@@ -22,7 +22,8 @@
       "unauthorisedAbsencePercentage": 2,
       "suspensions": 1,
       "exclusions": 0,
-      "schoolMovesNonTransitional": 0
+      "schoolMovesNonTransitional": 0,
+      "schoolsAverageAttendance": 97.5
     },
     {
       "academicTermYearStart": 2023,
@@ -31,7 +32,8 @@
       "unauthorisedAbsencePercentage": 9,
       "suspensions": 3,
       "exclusions": 1,
-      "schoolMovesNonTransitional": 1
+      "schoolMovesNonTransitional": 1,
+      "schoolsAverageAttendance": 95.5
     }
   ]
 }

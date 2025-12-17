@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using FluentAssertions.Execution;
+using NSubstitute;
 using SUI.Transfer.Domain.Generator.Tests.ExampleModels;
 using SUI.Transfer.Domain.Generator.Tests.MoreExampleModels;
 using SUI.Transfer.Domain.SourceGenerated;
@@ -567,5 +568,18 @@ public class RecordConsolidationSourceGeneratorTests
                 },
                 options => options.WithStrictOrdering()
             );
+    }
+
+    [Fact]
+    public void GeneratedCode_DoesExclude_NoneDomainProperties()
+    {
+        var generatedProps = typeof(ExampleRecord1Consolidated).GetProperties();
+
+        // ASSERT
+        using var _ = new AssertionScope();
+        generatedProps.Should().NotContain(p => p.Name == "EqualityContract");
+        generatedProps
+            .Should()
+            .NotContain(p => p.Name == nameof(ExampleRecord1.AdditionalProperties));
     }
 }

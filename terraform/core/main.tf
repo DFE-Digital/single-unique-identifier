@@ -12,12 +12,21 @@ module "resource_group" {
   tags                = var.tags
 }
 
-output "resource_group_name" {
-  value       = module.resource_group.name
-  description = "Name of the resource group created for this environment."
-}
+resource "azurerm_service_plan" "shared" {
+  name                = format("%s%sasp-%s-services01", var.subscription_prefix, var.environment_id, var.region_short)
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  os_type             = var.app_service_plan_os_type
+  sku_name            = var.app_service_plan_sku
+  worker_count        = var.app_service_plan_worker_count
 
-output "resource_group_location" {
-  value       = module.resource_group.location
-  description = "Location of the resource group created for this environment."
+  tags = merge(
+    {
+      Environment      = var.environment_tag
+      Product          = var.product
+      Service_Offering = var.service_offering
+      ManagedBy        = "terraform"
+    },
+    var.tags,
+  )
 }
