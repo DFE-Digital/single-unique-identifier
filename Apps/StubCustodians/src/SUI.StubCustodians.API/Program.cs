@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using SUI.Custodians.Domain.Models;
+using SUI.StubCustodians.API.OpenApiTransformers;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Queries;
 using SUI.StubCustodians.Application.Services;

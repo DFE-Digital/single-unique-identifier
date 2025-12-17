@@ -32,7 +32,7 @@ public class RecordFetcherTests
             new("0002", "UnknownSchemaProvider", "http://localhost:5432/unrecognisedSchema"),
         ];
         var educationRecord = new EducationDetailsRecordV1 { EducationSettingName = "Test School" };
-        var socialCareRecord = new ChildrensServicesDetailsRecordV1()
+        var socialCareRecord = new ChildrensServicesDetailsRecordV1
         {
             KeyWorker = "Test Keyworker",
         };
@@ -179,7 +179,7 @@ public class RecordFetcherTests
                             records.First(x =>
                                 x is { ProviderName: "BrokenProvider", ProviderSystemId: "0001" }
                             ),
-                            "Response status code does not indicate success: 404 (Not Found)."
+                            "One or more errors occurred. (Response status code does not indicate success: 404 (Not Found).)"
                         ),
                         new FailedFetch(
                             records.First(x =>
@@ -189,7 +189,7 @@ public class RecordFetcherTests
                                         ProviderSystemId: "0002"
                                     }
                             ),
-                            "Invalid SchemaUri: https://schemas.example.gov.uk/sui/unrecognisedSchema.json"
+                            "One or more errors occurred. (Invalid SchemaUri: https://schemas.example.gov.uk/sui/unrecognisedSchema.json)"
                         ),
                     ],
                 }

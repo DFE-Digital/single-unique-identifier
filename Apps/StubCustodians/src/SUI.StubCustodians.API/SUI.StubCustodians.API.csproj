@@ -21,9 +21,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />
     <ProjectReference Include="..\SUI.Custodians.Domain\SUI.Custodians.Domain.csproj" />
     <ProjectReference Include="..\SUI.StubCustodians.Infrastructure\SUI.StubCustodians.Infrastructure.csproj" />
