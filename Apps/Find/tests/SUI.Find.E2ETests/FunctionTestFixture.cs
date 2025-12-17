@@ -2,7 +2,10 @@ namespace SUI.Find.E2ETests;
 
 public class FunctionTestFixture : IDisposable
 {
-    public readonly HttpClient Client = new() { BaseAddress = new Uri("http://localhost:7182") };
+    public readonly HttpClient Client = new()
+    {
+        BaseAddress = new Uri("http://localhost:7182/api/"),
+    };
 
     public void Dispose()
     {
