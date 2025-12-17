@@ -7,7 +7,11 @@ using SUI.Transfer.Domain;
 
 namespace SUI.Transfer.Application.Services;
 
-public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger) : IRecordFetcher
+public class RecordFetcher(
+    HttpClient httpClient,
+    ILogger<RecordFetcher> logger,
+    ICustodiansApi custodiansApi
+) : IRecordFetcher
 {
     public Task<UnconsolidatedData> FetchRecordsAsync(
         string sui,
@@ -31,6 +35,7 @@ public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger)
                     {
                         await BuildRecords(
                             recordPointer,
+                            sui,
                             educationRecords,
                             chilrensServicesDetailsRecords,
                             personalDetailsRecords,
@@ -66,6 +71,7 @@ public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger)
 
     private async Task BuildRecords(
         RecordPointer recordPointer,
+        string sui,
         ConcurrentBag<ProviderRecord<EducationDetailsRecordV1>> educationRecords,
         ConcurrentBag<
             ProviderRecord<ChildrensServicesDetailsRecordV1>
@@ -76,6 +82,11 @@ public class RecordFetcher(HttpClient httpClient, ILogger<RecordFetcher> logger)
         CancellationToken cancellationToken
     )
     {
+        var test = await custodiansApi.RecordsAsync(
+            sui,
+            recordPointer.ProviderSystemId,
+            cancellationToken
+        );
         var result = await httpClient.GetFromJsonAsync<JsonElement>(
             recordPointer.RecordUrl,
             cancellationToken

@@ -1,3 +1,6 @@
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+
 namespace SUI.StubCustodians.Application.Models;
 
 public class RecordEnvelope<T>
