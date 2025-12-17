@@ -13,6 +13,8 @@ namespace SUI.Find.E2ETests;
 /// These tests are designed around the mock data files we use in dev/test environments.
 /// <para>See SUI.Find.Infrastructure/Data/auth-clients.json for details</para>
 /// </summary>
+[Collection("E2E")]
+[Trait("Category", "E2E")]
 public class StartANewSearchTests : E2ETestBase, IClassFixture<FunctionTestFixture>
 {
     private readonly FunctionTestFixture _fixture;
