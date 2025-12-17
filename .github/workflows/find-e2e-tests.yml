@@ -36,7 +36,7 @@ jobs:
           node-version: lts/*
 
       - name: Install Azurite
-        uses: npm install -g azurite
+        run: npm install -g azurite
 
       - name: run azurite
         run: azurite --silent
