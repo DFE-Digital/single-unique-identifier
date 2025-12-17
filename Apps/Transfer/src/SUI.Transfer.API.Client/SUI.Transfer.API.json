@@ -1067,21 +1067,21 @@
       },
       "NullableOfNullableOfCrimeRiskTypeV1": {
         "enum": [
-          "sexualExploitation",
-          "criminalExploitation",
-          "radicalisation",
-          "modernSlaveryAndTrafficking",
-          "gangsAndYouthViolence",
+          "SexualExploitation",
+          "CriminalExploitation",
+          "Radicalisation",
+          "ModernSlaveryAndTrafficking",
+          "GangsAndYouthViolence",
           null
         ],
         "nullable": true
       },
       "NullableOfNullableOfHealthSettingV1": {
         "enum": [
-          "other",
-          "hospital",
-          "gp",
-          "community",
+          "Other",
+          "Hospital",
+          "GP",
+          "Community",
           null
         ],
         "nullable": true
@@ -1224,25 +1224,25 @@
       },
       "StatusFlag": {
         "enum": [
-          "isEnglishAsAdditionalLanguage",
-          "isChildrensSocialCareStatusOpen",
-          "isChildInNeed",
-          "isChildLookedAfter",
-          "isChildProtection",
-          "isNotInEducationEmploymentOrTraining",
-          "hasPupilPremium",
-          "hasFreeSchoolMeals",
-          "isElectivelyHomeEducated",
-          "hasSpecialEducationalNeedsAndDisabilities",
-          "isOpenToCAMHS",
-          "isOpenToYouthJusticeService",
-          "riskOfExploitationSexual",
-          "riskOfExploitationCriminal",
-          "riskOfRadicalisation",
-          "riskOfModernSlaveryAndTrafficking",
-          "riskOfGangsAndYouthViolence",
-          "riskOfFGM",
-          "hasPolicePowersOfProtection"
+          "IsEnglishAsAdditionalLanguage",
+          "IsChildrensSocialCareStatusOpen",
+          "IsChildInNeed",
+          "IsChildLookedAfter",
+          "IsChildProtection",
+          "IsNotInEducationEmploymentOrTraining",
+          "HasPupilPremium",
+          "HasFreeSchoolMeals",
+          "IsElectivelyHomeEducated",
+          "HasSpecialEducationalNeedsAndDisabilities",
+          "IsOpenToCAMHS",
+          "IsOpenToYouthJusticeService",
+          "RiskOfExploitationSexual",
+          "RiskOfExploitationCriminal",
+          "RiskOfRadicalisation",
+          "RiskOfModernSlaveryAndTrafficking",
+          "RiskOfGangsAndYouthViolence",
+          "RiskOfFGM",
+          "HasPolicePowersOfProtection"
         ]
       },
       "TransferJobState": {
@@ -1280,11 +1280,11 @@
       },
       "TransferJobStatus": {
         "enum": [
-          "queued",
-          "running",
-          "completed",
-          "failed",
-          "canceled"
+          "Queued",
+          "Running",
+          "Completed",
+          "Failed",
+          "Canceled"
         ]
       },
       "YearlyEducationAttendanceV1": {

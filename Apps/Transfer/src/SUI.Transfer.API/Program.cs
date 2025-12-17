@@ -57,9 +57,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.Configure<JsonOptions>(options =>
 {
-    options.SerializerOptions.Converters.Add(
-        new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-    );
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 // builder.Services.AddCustodiansClient(
