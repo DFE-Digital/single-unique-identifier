@@ -12,90 +12,22 @@ public class PersonMapper : IPersonMapper
     )]
     public PersonModel Map(string nhsNumber, ConformedData conformedData)
     {
-        // TODO: SUI-1058 - map across from ConformedData to PersonModel
+        var personalDetails = conformedData.ConsolidatedData.PersonalDetailsRecord;
+        var crimeData = conformedData.ConsolidatedData.CrimeDataRecord;
+
+        var personName = $"{personalDetails?.FirstName?.Value} {personalDetails?.LastName?.Value}";
+        personName = string.IsNullOrWhiteSpace(personName) ? "Unknown name" : personName;
+
         return new PersonModel
         {
-            Name = "Test Person",
+            Name = personName,
             NhsNumber = nhsNumber,
-            Tags =
-            [
-                "CHILD PROTECTION",
-                "SPECIAL EDUCATIONAL NEEDS AND DISABILITIES",
-                "OPEN TO CSC",
-                "CHILD CRIMINAL EXPLOITATION",
-            ],
-            ImportantMessages =
-            [
-                "Risk of home visits - dangerous dog reported",
-                "Domestic abuse victim in household",
-            ],
-            SocialCareLastUpdated = "11 July 2025",
-            EducationLastUpdated = "10 November 2025",
-            HealthLastUpdated = "12 September 2024",
-            CrimeLastUpdated = "1 July 2025",
-            HousingLastUpdated = "1 April 2024",
-            DateOfBirth = "10 October 2011 (14 years old)",
-            MainAddress = new Address
-            {
-                AddressLine1 = "72 Guild street",
-                Town = "London",
-                Postcode = "SE23 6FH",
-            },
-            PoliceMarker = true,
-            PoliceMarkerDetails = "Individuals at the address may resort to violent behaviour",
-            IndividualsAtMainAddress =
-            [
-                "Jeff Middleton",
-                "Peter Middleton",
-                "James Middleton",
-                "Jason Archer",
-                "Sarah Flint-Smith",
-            ],
-            BirthAssignedSex = "Female",
-            Pronouns = "She/Her",
-            Ethnicity = "Irish Traveller",
-            FirstLanguage = "English",
-            DesignatedLocalAuthority = "Bromley",
-            EnglishAsAdditionalLanguage = "No",
-            Braille = "No",
-            SignLanguage = "No",
-            Makaton = "No",
-            Interpreter = "No",
-            Relationships =
-            [
-                new Relationship
-                {
-                    Name = "Jeff Middleton",
-                    DateOfBirth = "1 November 1988 (37 years old)",
-                    Risk = "Individual may possess firearms",
-                    Type = "Father",
-                    ServicesKnownTo = ["Police", "Probation", "Mental health"],
-                },
-                new Relationship
-                {
-                    Name = "Julie Middleton",
-                    DateOfBirth = "29 February 1962 (59 years old)",
-                    Risk = "Individual may resort to violent behaviour",
-                    Type = "Birth mother",
-                    ServicesKnownTo = ["Mental health", "Adult Social Care"],
-                },
-                new Relationship
-                {
-                    Name = "James Middleton",
-                    DateOfBirth = "5 June 2012 (13 years old)",
-                    Risk = "None",
-                    Type = "Sibling",
-                    ServicesKnownTo = ["Police", "Childrens Social Care"],
-                },
-                new Relationship
-                {
-                    Name = "Peter Middleton",
-                    DateOfBirth = "20 July 2017 (8 years old)",
-                    Risk = "None",
-                    Type = "Sibling",
-                    ServicesKnownTo = ["Childrens Social Care"],
-                },
-            ],
+            PersonalDetails = personalDetails,
+            CrimeData = crimeData,
+            Tags = (conformedData.StatusFlags?.Select(x => x.ToString()) ?? []).ToList(),
+            ImportantMessages = [],
+            PoliceMarker = !string.IsNullOrEmpty(crimeData?.PoliceMarkerDetails?.Value),
+            PoliceMarkerDetails = crimeData?.PoliceMarkerDetails?.Value ?? "",
             KeyWorker = "Alex Patel",
             DutyContactEmail = "csc@bromley.gov.uk",
             DutyContactPhone = "08792675387",

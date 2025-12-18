@@ -1,4 +1,5 @@
 using SUI.SingleView.Domain.Models;
+using SUI.Transfer.API.Client;
 
 namespace SUI.SingleView.Application.Models;
 
@@ -8,6 +9,10 @@ public record PersonModel
     //  once we know more about the API response structure
 
     public string Name { get; init; } = string.Empty;
+
+    public PersonalDetailsRecordV1Consolidated? PersonalDetails { get; init; }
+
+    public CrimeDataRecordV1Consolidated? CrimeData { get; init; }
 
     public string NhsNumber { get; init; } = string.Empty;
 
@@ -25,37 +30,9 @@ public record PersonModel
 
     public string HousingLastUpdated { get; init; } = string.Empty;
 
-    public string DateOfBirth { get; init; } = string.Empty;
-
-    public Address MainAddress { get; init; } = new() { AddressLine1 = "No known address" };
-
     public bool PoliceMarker { get; init; }
 
     public string PoliceMarkerDetails { get; init; } = string.Empty;
-
-    public List<string> IndividualsAtMainAddress { get; init; } = [];
-
-    public string BirthAssignedSex { get; init; } = string.Empty;
-
-    public string Pronouns { get; init; } = string.Empty;
-
-    public string Ethnicity { get; init; } = string.Empty;
-
-    public string FirstLanguage { get; init; } = string.Empty;
-
-    public string DesignatedLocalAuthority { get; init; } = string.Empty;
-
-    public string EnglishAsAdditionalLanguage { get; init; } = string.Empty;
-
-    public string Braille { get; init; } = string.Empty;
-
-    public string SignLanguage { get; init; } = string.Empty;
-
-    public string Makaton { get; init; } = string.Empty;
-
-    public string Interpreter { get; init; } = string.Empty;
-
-    public List<Relationship> Relationships { get; init; } = [];
 
     public string KeyWorker { get; init; } = string.Empty;
 
