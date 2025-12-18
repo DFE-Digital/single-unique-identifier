@@ -44,7 +44,6 @@ public class RecordConsolidationSourceGenerator : IIncrementalGenerator
         {{ExcludeFromCodeCoverageAttributeSource}}
         public record ConsolidatedField<TValue>(IReadOnlyCollection<ConsolidatedFieldValue<TValue?>> Values)
         {
-            [JsonIgnore]
             public TValue? Value { get; set; } = Values.Count > 0 ? Values.First().Value : default;
 
             public static implicit operator ConsolidatedField<TValue?>(TValue? value) => new(new[] { new ConsolidatedFieldValue<TValue?>(value, "unknown_from-implicit-conversion") });
