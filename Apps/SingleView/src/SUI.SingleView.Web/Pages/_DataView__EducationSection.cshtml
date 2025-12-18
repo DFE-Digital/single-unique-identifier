@@ -1,3 +1,4 @@
+@using SUI.SingleView.Web.Extensions
 @model DataView
 
 <h2 class="govuk-heading-l">Education</h2>
@@ -7,15 +8,19 @@
     <tbody class="govuk-table__body">
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Education setting</th>
-        <td class="govuk-table__cell">@Model.PersonModel!.EducationSetting</td>
+        <td class="govuk-table__cell">@Model.PersonModel!.EducationDetails?.EducationSettingName?.Value</td>
     </tr>
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Contact details</th>
         <td class="govuk-table__cell">
-            @Html.DisplayFor(x => x.PersonModel!.EducationContactAddress)
+            @if (Model.PersonModel.EducationDetails?.EducationSettingAddress?.Value != null)
+            {
+                var address = Model.PersonModel.EducationDetails.EducationSettingAddress.Value.ToAddress();
+                @Html.DisplayFor(_ => address)
+            }
             <br/>
             <br/>
-            @Model.PersonModel.EducationContactPhone
+            @Model.PersonModel.EducationDetails?.EducationSettingTelephone?.Value
         </td>
     </tr>
     </tbody>
@@ -42,6 +47,11 @@
 
 <h3 class="govuk-heading-m">Education attendance history</h3>
 
+@{
+    var currentAcademicYear = Model.PersonModel?.EducationAttendanceSummaries?.CurrentAcademicYear;
+    var lastAcademicYear = Model.PersonModel?.EducationAttendanceSummaries?.LastAcademicYear;
+}
+
 <govuk-tabs>
     <govuk-tabs-item id="current-academic-term" label="Current academic term">
         <a href="#" class="govuk-link">National average attendance</a>
@@ -49,23 +59,23 @@
             <tbody class="govuk-table__body">
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">Attendance %</th>
-                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermAttendance</td>
+                <td class="govuk-table__cell">@currentAcademicYear?.AttendancePercentage</td>
             </tr>
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">Unauthorised Absence %</th>
-                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermUnauthorisedAbsence</td>
+                <td class="govuk-table__cell">@currentAcademicYear?.UnauthorisedAbsencePercentage</td>
             </tr>
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">Suspensions</th>
-                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermSuspensions</td>
+                <td class="govuk-table__cell">@currentAcademicYear?.Suspensions</td>
             </tr>
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">Exclusions</th>
-                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermExclusions</td>
+                <td class="govuk-table__cell">@currentAcademicYear?.Exclusions</td>
             </tr>
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">School moves (non transitional)</th>
-                <td class="govuk-table__cell">@Model.PersonModel.CurrentAcademicTermSchoolMoves</td>
+                <td class="govuk-table__cell">@currentAcademicYear?.SchoolMovesNonTransitional</td>
             </tr>
             </tbody>
         </table>
@@ -76,23 +86,23 @@
             <tbody class="govuk-table__body">
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">Attendance %</th>
-                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearAttendance</td>
+                <td class="govuk-table__cell">@lastAcademicYear?.AttendancePercentage</td>
             </tr>
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">Unauthorised Absence %</th>
-                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearUnauthorisedAbsence</td>
+                <td class="govuk-table__cell">@lastAcademicYear?.UnauthorisedAbsencePercentage</td>
             </tr>
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">Suspensions</th>
-                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearSuspensions</td>
+                <td class="govuk-table__cell">@lastAcademicYear?.Suspensions</td>
             </tr>
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">Exclusions</th>
-                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearExclusions</td>
+                <td class="govuk-table__cell">@lastAcademicYear?.Exclusions</td>
             </tr>
             <tr class="govuk-table__row">
                 <th class="govuk-table__header">School moves (non transitional)</th>
-                <td class="govuk-table__cell">@Model.PersonModel.LastAcademicYearSchoolMoves</td>
+                <td class="govuk-table__cell">@lastAcademicYear?.SchoolMovesNonTransitional</td>
             </tr>
             </tbody>
         </table>
