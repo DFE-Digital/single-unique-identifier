@@ -57,7 +57,7 @@ variable "webapp_dotnet_version" {
 }
 
 variable "app_service_plan_sku" {
-  description = "SKU name for the shared App Service plan (present to support shared tfvars files; unused by service-example)."
+  description = "SKU name for the shared App Service plan (present to support shared tfvars files; unused by Custodians app)."
   type        = string
   default     = null
 }
