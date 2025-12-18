@@ -1,3 +1,4 @@
+@using SUI.SingleView.Web.Extensions
 @model DataView
 
 <h2 class="govuk-heading-l">Health</h2>
@@ -6,19 +7,37 @@
     <govuk-summary-list>
         <govuk-summary-list-row>
             <govuk-summary-list-row-key>Registered GP</govuk-summary-list-row-key>
-            <govuk-summary-list-row-value>@Model.PersonModel!.RegisteredGpName</govuk-summary-list-row-value>
+            <govuk-summary-list-row-value>@Model.PersonModel!.HealthData?.RegisteredGPSurgery?.Value</govuk-summary-list-row-value>
         </govuk-summary-list-row>
         <govuk-summary-list-row>
             <govuk-summary-list-row-key>Contact details</govuk-summary-list-row-key>
             <govuk-summary-list-row-value>
-                @Html.DisplayFor(x => x.PersonModel!.RegisteredGpContactAddress)
+                @if (Model.PersonModel?.HealthData?.GpAddress?.Value != null)
+                {
+                    var address = Model.PersonModel.HealthData.GpAddress.Value.ToAddress();
+                    @Html.DisplayFor(_ => address)
+                }
                 <br/><br/>
-                @Model.PersonModel!.RegisteredGpContactPhone
+                @Model.PersonModel!.HealthData?.GpTelephone?.Value
             </govuk-summary-list-row-value>
         </govuk-summary-list-row>
         <govuk-summary-list-row>
             <govuk-summary-list-row-key>CAMHS contact details</govuk-summary-list-row-key>
-            <govuk-summary-list-row-value>@Model.PersonModel!.CamhsContactPhone</govuk-summary-list-row-value>
+            <govuk-summary-list-row-value>
+                @if (Model.PersonModel?.HealthData?.CamhsContactDetails?.Value != null)
+                {
+                    @Html.DisplayFor(x => x.PersonModel!.HealthData!.CamhsContactDetails!.Value, "StringList")
+                }
+            </govuk-summary-list-row-value>
+        </govuk-summary-list-row>
+        <govuk-summary-list-row>
+            <govuk-summary-list-row-key>CAMHS team involvement</govuk-summary-list-row-key>
+            <govuk-summary-list-row-value>
+                @if (Model.PersonModel?.HealthData?.CamhsTeamInvolvement?.Value != null)
+                {
+                    @Html.DisplayFor(x => x.PersonModel!.HealthData!.CamhsTeamInvolvement!.Value, "StringList")
+                }
+            </govuk-summary-list-row-value>
         </govuk-summary-list-row>
     </govuk-summary-list>
 </govuk-summary-card>
@@ -41,6 +60,11 @@
     </tbody>
 </table>
 
+@{
+    var healthAttendanceSummary12Month = Model.PersonModel?.HealthAttendanceSummaries?.Last12Months;
+    var healthAttendanceSummary5Year = Model.PersonModel?.HealthAttendanceSummaries?.Last5Years;
+}
+
 <table class="govuk-table">
     <caption class="govuk-table__caption govuk-table__caption--m">
         Attendance summary <br/>
@@ -62,17 +86,17 @@
     <tbody class="govuk-table__body">
     <tr class="govuk-table__row">
         <td class="govuk-table__header">Last 12 months</td>
-        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary12Month.Item1</td>
-        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary12Month.Item2</td>
-        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary12Month.Item3</td>
-        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary12Month.Item4</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@healthAttendanceSummary12Month?.CountOfMissedGPAppointments</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@healthAttendanceSummary12Month?.CountOfMissedHospitalAppointments</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@healthAttendanceSummary12Month?.CountOfMissedCommunityHealthAppointments</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@healthAttendanceSummary12Month?.CountOfEmergencyDepartmentAttendances</td>
     </tr>
     <tr class="govuk-table__row">
         <td class="govuk-table__header">Last 5 years</td>
-        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary5Year.Item1</td>
-        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary5Year.Item2</td>
-        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary5Year.Item3</td>
-        <td class="govuk-table__cell govuk-table__cell--numeric">@Model.PersonModel.HealthAttendanceSummary5Year.Item4</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@healthAttendanceSummary5Year?.CountOfMissedGPAppointments</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@healthAttendanceSummary5Year?.CountOfMissedHospitalAppointments</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@healthAttendanceSummary5Year?.CountOfMissedCommunityHealthAppointments</td>
+        <td class="govuk-table__cell govuk-table__cell--numeric">@healthAttendanceSummary5Year?.CountOfEmergencyDepartmentAttendances</td>
     </tr>
     </tbody>
 </table>

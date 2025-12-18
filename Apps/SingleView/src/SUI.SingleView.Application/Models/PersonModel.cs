@@ -45,21 +45,11 @@ public record PersonModel
 
     #region HealthProperties
 
-    public string RegisteredGpName { get; init; } = string.Empty;
-
-    public Address RegisteredGpContactAddress { get; init; } =
-        new() { AddressLine1 = "No known address" };
-
-    public string RegisteredGpContactPhone { get; init; } = string.Empty;
-
-    public string CamhsContactPhone { get; init; } = string.Empty;
+    public HealthDataRecordV1Consolidated? HealthData { get; init; }
 
     public List<ActivePlan> ActiveHealthPlans { get; init; } = [];
 
-    public Tuple<int, int, int, int> HealthAttendanceSummary12Month { get; init; } =
-        new(0, 0, 0, 0);
-
-    public Tuple<int, int, int, int> HealthAttendanceSummary5Year { get; init; } = new(0, 0, 0, 0);
+    public HealthAttendanceSummaries? HealthAttendanceSummaries { get; init; }
 
     #endregion
 
