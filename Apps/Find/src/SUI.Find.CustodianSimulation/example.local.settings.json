@@ -2,7 +2,6 @@
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "Functions:Worker:HostEndpoint": "http://localhost:7082"
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
   }
 }

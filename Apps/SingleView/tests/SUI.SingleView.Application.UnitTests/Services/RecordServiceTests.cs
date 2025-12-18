@@ -1,8 +1,11 @@
 using Bogus;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Shouldly;
+using SUI.SingleView.Application.Exceptions;
 using SUI.SingleView.Application.Models;
 using SUI.SingleView.Application.Services;
 using SUI.SingleView.Domain.UnitTests.Extensions;
@@ -10,112 +13,334 @@ using SUI.Transfer.API.Client;
 
 namespace SUI.SingleView.Application.UnitTests.Services;
 
-public class RecordServiceTests
+public sealed class RecordServiceTests
 {
+    private readonly ITransferApi _mockTransferApi = Substitute.For<ITransferApi>();
+    private readonly IPersonMapper _mockPersonMapper = Substitute.For<IPersonMapper>();
+    private readonly IOptions<HttpPollingOptions> _mockHttpPollingOptions = Substitute.For<
+        IOptions<HttpPollingOptions>
+    >();
     private readonly ILogger<RecordService> _mockLogger = Substitute.For<ILogger<RecordService>>();
-    private readonly ITransferApi _mockTransferClient = Substitute.For<ITransferApi>();
-    private readonly Faker _faker = new("en_GB");
-    private readonly IDelay _delay = Substitute.For<IDelay>();
 
-    [Fact]
-    public async Task GetRecordAsync_WithNhsNumber_ReturnsResults()
+    private class IntervalFakeTimeProvider(Func<TimeSpan> getInterval) : FakeTimeProvider
     {
-        // Arrange
-        var nhsNumber = _faker.GenerateNhsNumber().Value;
-        _mockTransferClient
-            .TransferAsync(nhsNumber, TestContext.Current.CancellationToken)
-            .Returns(new TransferResult { Id = nhsNumber });
-        var recordService = new RecordService(
-            _mockTransferClient,
-            _mockLogger,
-            _delay,
-            artificialDelay: TimeSpan.Zero
+        public int CountOfTimersCreated { get; private set; }
+
+        public override ITimer CreateTimer(
+            TimerCallback callback,
+            object? state,
+            TimeSpan dueTime,
+            TimeSpan period
+        )
+        {
+            var timer = base.CreateTimer(callback, state, dueTime, period);
+            CountOfTimersCreated++;
+            Advance(getInterval());
+            return timer;
+        }
+    }
+
+    private readonly IntervalFakeTimeProvider _fakeTimeProvider;
+    private readonly Faker _faker = new("en_GB");
+    private readonly string _nhsNumber;
+
+    private readonly RecordService _sut;
+
+    public RecordServiceTests()
+    {
+        _fakeTimeProvider = new IntervalFakeTimeProvider(() =>
+            _mockHttpPollingOptions.Value.PollInterval
         );
 
-        // Act
-        var result = await recordService.GetRecordAsync(
-            nhsNumber,
-            TestContext.Current.CancellationToken
+        _sut = new RecordService(
+            _mockTransferApi,
+            _mockPersonMapper,
+            _mockHttpPollingOptions,
+            _fakeTimeProvider,
+            _mockLogger
         );
 
-        // Assert
-        result.ShouldNotBeNull();
-        result.ShouldBeOfType<PersonModel>();
+        _nhsNumber = _faker.GenerateNhsNumber().Value;
+
+        _mockHttpPollingOptions.Value.Returns(_ => new HttpPollingOptions
+        {
+            PollInterval = TimeSpan.FromSeconds(15),
+            PollTimeout = TimeSpan.FromMinutes(2),
+        });
     }
 
     [Fact]
-    public async Task GetRecordAsync_WhenTransferExceptionThrown_LogsError()
+    public async Task GetRecordAsync_DoesPoll_And_WhenJobBecomes_Completed_DoesReturnResult()
     {
         // Arrange
-        var nhsNumber = _faker.GenerateNhsNumber().Value;
-        var expectedException = new InvalidOperationException();
-        _mockTransferClient
-            .TransferAsync(nhsNumber, TestContext.Current.CancellationToken)
-            .Throws(expectedException);
-        var recordService = new RecordService(
-            _mockTransferClient,
-            _mockLogger,
-            _delay,
-            artificialDelay: TimeSpan.Zero
-        );
+        var jobId = Guid.NewGuid();
+
+        _mockTransferApi
+            .TransferPOSTAsync(_nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new QueuedTransferJobState { JobId = jobId });
+
+        _mockTransferApi
+            .TransferGETAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(
+                new TransferJobState { JobId = jobId, Status = TransferJobStatus.Queued },
+                new TransferJobState { JobId = jobId, Status = TransferJobStatus.Running },
+                new TransferJobState { JobId = jobId, Status = TransferJobStatus.Running },
+                new TransferJobState { JobId = jobId, Status = TransferJobStatus.Completed }
+            );
+
+        var conformedData = new ConformedData();
+        _mockTransferApi
+            .ResultsAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(
+                new CompletedTransferJobState
+                {
+                    JobId = jobId,
+                    Status = TransferJobStatus.Completed,
+                    Data = conformedData,
+                }
+            );
+
+        var personModel = new PersonModel();
+        _mockPersonMapper.Map(_nhsNumber, conformedData).Returns(personModel);
 
         // Act
-        _ = await recordService.GetRecordAsync(nhsNumber, TestContext.Current.CancellationToken);
+        var result = await _sut.GetRecordAsync(_nhsNumber, TestContext.Current.CancellationToken);
 
         // Assert
+        _mockPersonMapper.Received().Map(_nhsNumber, conformedData);
+
+        result.ShouldNotBeNull();
+        result.ShouldBeOfType<PersonModel>();
+        result.ShouldBe(personModel);
+
+        await _mockTransferApi
+            .Received()
+            .TransferPOSTAsync(_nhsNumber, TestContext.Current.CancellationToken);
+        await _mockTransferApi
+            .Received()
+            .TransferGETAsync(jobId, TestContext.Current.CancellationToken);
+        await _mockTransferApi
+            .Received()
+            .ResultsAsync(jobId, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GetRecordAsync_WhenErrorOccurs_Logs_And_Throws_RecordException()
+    {
+        // Arrange
+        var exampleException = new InvalidOperationException("example error");
+        _mockTransferApi
+            .TransferPOSTAsync(_nhsNumber, TestContext.Current.CancellationToken)
+            .Throws(exampleException);
+
+        // Act
+        var actualException = await Assert.ThrowsAsync<RecordException>(async () =>
+            await _sut.GetRecordAsync(_nhsNumber, TestContext.Current.CancellationToken)
+        );
+
+        // Assert
+        actualException.Message.ShouldBe(
+            $"An error occurred when trying to get the record for {_nhsNumber}"
+        );
+        actualException.InnerException.ShouldBe(exampleException);
+
         var call = _mockLogger
             .ReceivedCalls()
             .FirstOrDefault(c =>
-                c.GetMethodInfo().Name == "Log" && (LogLevel)c.GetArguments()[0]! == LogLevel.Error
+                c.GetMethodInfo().Name == "Log"
+                && (LogLevel)c.GetArguments()[0]! == LogLevel.Warning
             );
 
         call.ShouldNotBeNull();
         call.GetArguments()[2]!
             .ToString()
-            .ShouldBe($"An error occurred when trying to get the record for {nhsNumber}");
+            .ShouldBe($"An error occurred when trying to get the record for {_nhsNumber}");
         call.GetArguments()[3].ShouldBeOfType<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task GetRecordAsync_UsesConfiguredDelay()
+    public async Task GetRecordAsync_WhenCancellationRequested_DoesThrowAsExpected()
     {
         // Arrange
-        var nhsNumber = _faker.GenerateNhsNumber().Value;
-        _mockTransferClient
-            .TransferAsync(nhsNumber, TestContext.Current.CancellationToken)
-            .Returns(new TransferResult { Id = nhsNumber });
-        var configuredDelay = TimeSpan.FromMilliseconds(10);
-        var recordService = new RecordService(
-            _mockTransferClient,
-            _mockLogger,
-            _delay,
-            configuredDelay
-        );
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        _mockTransferApi
+            .TransferPOSTAsync(_nhsNumber, cts.Token)
+            .Returns(new QueuedTransferJobState());
 
         // Act
-        await recordService.GetRecordAsync(nhsNumber, TestContext.Current.CancellationToken);
+        var actualException = await Assert.ThrowsAsync<RecordException>(async () =>
+            await _sut.GetRecordAsync(_nhsNumber, cts.Token)
+        );
 
         // Assert
-        await _delay.Received(1).DelayAsync(configuredDelay, TestContext.Current.CancellationToken);
+        actualException.Message.ShouldBe(
+            $"An error occurred when trying to get the record for {_nhsNumber}"
+        );
+        actualException.InnerException.ShouldBeOfType<OperationCanceledException>();
+    }
+
+    [Theory]
+    [InlineData(TransferJobStatus.Canceled)]
+    [InlineData(TransferJobStatus.Failed)]
+    public async Task GetRecordAsync_WhenJobDoesNotCompleteOk_RecordException_IsThrown(
+        TransferJobStatus finalStatus
+    )
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+
+        _mockTransferApi
+            .TransferPOSTAsync(_nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new QueuedTransferJobState { JobId = jobId });
+
+        _mockTransferApi
+            .TransferGETAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(
+                new TransferJobState { JobId = jobId, Status = TransferJobStatus.Queued },
+                new TransferJobState { JobId = jobId, Status = TransferJobStatus.Running },
+                new TransferJobState { JobId = jobId, Status = finalStatus }
+            );
+
+        // Act
+        var actualException = await Assert.ThrowsAsync<RecordException>(async () =>
+            await _sut.GetRecordAsync(_nhsNumber, TestContext.Current.CancellationToken)
+        );
+
+        // Assert
+        actualException.Message.ShouldBe(
+            $"An error occurred when trying to get the record for {_nhsNumber}"
+        );
+        actualException.InnerException.ShouldNotBeNull();
+        actualException.InnerException.Message.ShouldBe(
+            $"Transfer job {jobId} did not complete as expected. Status was: {finalStatus}"
+        );
     }
 
     [Fact]
-    public async Task GetRecordAsync_WhenDelayArgumentsNull_UsesDefaults()
+    public async Task GetRecordAsync_WhenJobDoesNotFinishWithinAllottedTime_RecordException_IsThrown()
     {
-        var nhsNumber = _faker.GenerateNhsNumber().Value;
-        _mockTransferClient
-            .TransferAsync(nhsNumber, TestContext.Current.CancellationToken)
-            .Returns(new TransferResult { Id = nhsNumber });
+        // Arrange
+        var jobId = Guid.NewGuid();
 
-        // Pass null for delay and artificialDelay to hit defaults
-        var recordService = new RecordService(_mockTransferClient, _mockLogger, null, null);
+        _mockTransferApi
+            .TransferPOSTAsync(_nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new QueuedTransferJobState { JobId = jobId });
 
-        var result = await recordService.GetRecordAsync(
-            nhsNumber,
-            TestContext.Current.CancellationToken
+        _mockTransferApi
+            .TransferGETAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(_ =>
+            {
+                _fakeTimeProvider.Advance(TimeSpan.FromHours(1));
+                return new TransferJobState { JobId = jobId, Status = TransferJobStatus.Running };
+            });
+
+        // Act
+        var actualException = await Assert.ThrowsAsync<RecordException>(async () =>
+            await _sut.GetRecordAsync(_nhsNumber, TestContext.Current.CancellationToken)
         );
 
-        result.ShouldNotBeNull();
-        result.ShouldBeOfType<PersonModel>();
+        // Assert
+        actualException.Message.ShouldBe(
+            $"An error occurred when trying to get the record for {_nhsNumber}"
+        );
+        actualException.InnerException.ShouldNotBeNull();
+        actualException.InnerException.Message.ShouldStartWith(
+            $"Transfer job {jobId} did not finish within allotted time"
+        );
+    }
+
+    [Fact]
+    public async Task GetRecordAsync_Does_Delay_BetweenPolling()
+    {
+        // Arrange
+        var expectedMaxPollCount = (int)(
+            _mockHttpPollingOptions.Value.PollTimeout / _mockHttpPollingOptions.Value.PollInterval
+        );
+
+        var jobId = Guid.NewGuid();
+
+        _mockTransferApi
+            .TransferPOSTAsync(_nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new QueuedTransferJobState { JobId = jobId });
+
+        _mockTransferApi
+            .TransferGETAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(
+                new TransferJobState { JobId = jobId, Status = TransferJobStatus.Queued },
+                [
+                    .. Enumerable.Repeat(
+                        new TransferJobState { JobId = jobId, Status = TransferJobStatus.Running },
+                        expectedMaxPollCount - 2
+                    ),
+                    new TransferJobState { JobId = jobId, Status = TransferJobStatus.Completed },
+                ]
+            );
+
+        var conformedData = new ConformedData();
+        _mockTransferApi
+            .ResultsAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(
+                new CompletedTransferJobState
+                {
+                    JobId = jobId,
+                    Status = TransferJobStatus.Completed,
+                    Data = conformedData,
+                }
+            );
+
+        var personModel = new PersonModel();
+        _mockPersonMapper.Map(_nhsNumber, conformedData).Returns(personModel);
+
+        // Act
+        await _sut.GetRecordAsync(_nhsNumber, TestContext.Current.CancellationToken);
+
+        // Assert
+        _fakeTimeProvider.CountOfTimersCreated.ShouldBeInRange(
+            2,
+            expectedMaxPollCount,
+            "It should delay between polling"
+        );
+    }
+
+    [Fact]
+    public async Task GetRecordAsync_WhenCompletedJob_ReturnsNoData_RecordException_IsThrown()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+
+        _mockTransferApi
+            .TransferPOSTAsync(_nhsNumber, TestContext.Current.CancellationToken)
+            .Returns(new QueuedTransferJobState { JobId = jobId });
+
+        _mockTransferApi
+            .TransferGETAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(new TransferJobState { JobId = jobId, Status = TransferJobStatus.Completed });
+
+        _mockTransferApi
+            .ResultsAsync(jobId, TestContext.Current.CancellationToken)
+            .Returns(
+                new CompletedTransferJobState
+                {
+                    JobId = jobId,
+                    Status = TransferJobStatus.Completed,
+                    Data = null,
+                }
+            );
+
+        // Act
+        var actualException = await Assert.ThrowsAsync<RecordException>(async () =>
+            await _sut.GetRecordAsync(_nhsNumber, TestContext.Current.CancellationToken)
+        );
+
+        // Assert
+        actualException.Message.ShouldBe(
+            $"An error occurred when trying to get the record for {_nhsNumber}"
+        );
+        actualException.InnerException.ShouldNotBeNull();
+        actualException.InnerException.Message.ShouldBe(
+            $"Completed transfer job {jobId} returned no data"
+        );
     }
 }

@@ -4,6 +4,8 @@
 // </auto-generated>
 //----------------------
 
+#nullable enable
+
 #pragma warning disable 108 // Disable "CS0108 '{derivedDto}.ToJson()' hides inherited member '{dtoBase}.ToJson()'. Use the new keyword if hiding was intended."
 #pragma warning disable 114 // Disable "CS0114 '{derivedDto}.RaisePropertyChanged(String)' hides inherited member 'dtoBase.RaisePropertyChanged(String)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword."
 #pragma warning disable 472 // Disable "CS0472 The result of the expression is always 'false' since a value of type 'Int32' is never equal to 'null' of type 'Int32?'
@@ -578,7 +580,7 @@ namespace SUI.Transfer.API.Client
         {
             if (response == null || response.Content == null)
             {
-                return new ObjectResponseResult<T>(default(T), string.Empty);
+                return new ObjectResponseResult<T>(default(T)!, string.Empty);
             }
 
             if (ReadResponseAsString)
@@ -587,7 +589,7 @@ namespace SUI.Transfer.API.Client
                 try
                 {
                     var typedBody = System.Text.Json.JsonSerializer.Deserialize<T>(responseText, JsonSerializerSettings);
-                    return new ObjectResponseResult<T>(typedBody, responseText);
+                    return new ObjectResponseResult<T>(typedBody!, responseText);
                 }
                 catch (System.Text.Json.JsonException exception)
                 {
@@ -602,7 +604,7 @@ namespace SUI.Transfer.API.Client
                     using (var responseStream = await ReadAsStreamAsync(response.Content, cancellationToken).ConfigureAwait(false))
                     {
                         var typedBody = await System.Text.Json.JsonSerializer.DeserializeAsync<T>(responseStream, JsonSerializerSettings, cancellationToken).ConfigureAwait(false);
-                        return new ObjectResponseResult<T>(typedBody, string.Empty);
+                        return new ObjectResponseResult<T>(typedBody!, string.Empty);
                     }
                 }
                 catch (System.Text.Json.JsonException exception)
@@ -613,7 +615,7 @@ namespace SUI.Transfer.API.Client
             }
         }
 
-        private string ConvertToString(object value, System.Globalization.CultureInfo cultureInfo)
+        private string ConvertToString(object? value, System.Globalization.CultureInfo cultureInfo)
         {
             if (value == null)
             {
@@ -673,21 +675,21 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("line1")]
-        public string Line1 { get; set; }
+        public string? Line1 { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("line2")]
-        public string Line2 { get; set; }
+        public string? Line2 { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("townOrCity")]
-        public string TownOrCity { get; set; }
+        public string? TownOrCity { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("county")]
-        public string County { get; set; }
+        public string? County { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("postcode")]
-        public string Postcode { get; set; }
+        public string? Postcode { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -704,34 +706,34 @@ namespace SUI.Transfer.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("cancellationReason")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string CancellationReason { get; set; }
+        public string CancellationReason { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("jobId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.Guid JobId { get; set; }
+        public System.Guid JobId { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("sui")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Sui { get; set; }
+        public string Sui { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public TransferJobStatus Status { get; set; }
+        public TransferJobStatus Status { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.DateTimeOffset CreatedAt { get; set; }
+        public System.DateTimeOffset CreatedAt { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("lastUpdatedAt")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.DateTimeOffset LastUpdatedAt { get; set; }
+        public System.DateTimeOffset LastUpdatedAt { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        public ConformedData Data { get; set; }
+        public ConformedData? Data { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("_links")]
-        public System.Collections.Generic.IDictionary<string, HalLink> _links { get; set; }
+        public System.Collections.Generic.IDictionary<string, HalLink>? _links { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -747,18 +749,18 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("keyWorker")]
-        public ConsolidatedFieldOfstring KeyWorker { get; set; }
+        public ConsolidatedFieldOfstring KeyWorker { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("dutyContactDetails")]
-        public ConsolidatedFieldOfICollectionOfstring DutyContactDetails { get; set; }
+        public ConsolidatedFieldOfICollectionOfstring DutyContactDetails { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("teamInvolvement")]
-        public ConsolidatedFieldOfICollectionOfstring TeamInvolvement { get; set; }
+        public ConsolidatedFieldOfICollectionOfstring TeamInvolvement { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("childrensServicesReferrals")]
-        public ConsolidatedFieldOfICollectionOfChildrensServicesReferralV1 ChildrensServicesReferrals { get; set; }
+        public ConsolidatedFieldOfICollectionOfChildrensServicesReferralV1 ChildrensServicesReferrals { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -774,12 +776,12 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("date")]
-        public System.DateTimeOffset? Date { get; set; }
+        public System.DateTimeOffset? Date { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public string Type { get; set; }
+        public string? Type { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -795,15 +797,15 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("past6Months")]
-        public System.Collections.Generic.ICollection<ChildServicesReferralSummary> Past6Months { get; set; }
+        public System.Collections.Generic.ICollection<ChildServicesReferralSummary>? Past6Months { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("past12Months")]
-        public System.Collections.Generic.ICollection<object> Past12Months { get; set; }
+        public System.Collections.Generic.ICollection<object>? Past12Months { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("past5Years")]
-        public System.Collections.Generic.ICollection<object> Past5Years { get; set; }
+        public System.Collections.Generic.ICollection<object>? Past5Years { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -820,12 +822,12 @@ namespace SUI.Transfer.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("referralType")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ReferralType { get; set; }
+        public string ReferralType { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("count")]
-        public int Count { get; set; }
+        public int Count { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -842,30 +844,30 @@ namespace SUI.Transfer.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("jobId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.Guid JobId { get; set; }
+        public System.Guid JobId { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("sui")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Sui { get; set; }
+        public string Sui { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public TransferJobStatus Status { get; set; }
+        public TransferJobStatus Status { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.DateTimeOffset CreatedAt { get; set; }
+        public System.DateTimeOffset CreatedAt { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("lastUpdatedAt")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.DateTimeOffset LastUpdatedAt { get; set; }
+        public System.DateTimeOffset LastUpdatedAt { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        public ConformedData Data { get; set; }
+        public ConformedData? Data { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("_links")]
-        public System.Collections.Generic.IDictionary<string, HalLink> _links { get; set; }
+        public System.Collections.Generic.IDictionary<string, HalLink>? _links { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -882,35 +884,35 @@ namespace SUI.Transfer.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("jobId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.Guid JobId { get; set; }
+        public System.Guid JobId { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("createdDate")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.DateTimeOffset CreatedDate { get; set; }
+        public System.DateTimeOffset CreatedDate { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("sui")]
-        public string Sui { get; set; }
+        public string? Sui { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("consolidatedData")]
         [System.ComponentModel.DataAnnotations.Required]
         public ConsolidatedData ConsolidatedData { get; set; } = new ConsolidatedData();
 
         [System.Text.Json.Serialization.JsonPropertyName("educationAttendanceSummaries")]
-        public EducationAttendanceSummaries EducationAttendanceSummaries { get; set; }
+        public EducationAttendanceSummaries? EducationAttendanceSummaries { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("healthAttendanceSummaries")]
-        public HealthAttendanceSummaries HealthAttendanceSummaries { get; set; }
+        public HealthAttendanceSummaries? HealthAttendanceSummaries { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("childServicesReferralSummaries")]
-        public ChildServicesReferralSummaries ChildServicesReferralSummaries { get; set; }
+        public ChildServicesReferralSummaries? ChildServicesReferralSummaries { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("crimeMissingEpisodesSummaries")]
-        public CrimeMissingEpisodesSummaries CrimeMissingEpisodesSummaries { get; set; }
+        public CrimeMissingEpisodesSummaries? CrimeMissingEpisodesSummaries { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("statusFlags")]
-        public System.Collections.Generic.ICollection<StatusFlag> StatusFlags { get; set; }
+        public System.Collections.Generic.ICollection<StatusFlag>? StatusFlags { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -927,31 +929,31 @@ namespace SUI.Transfer.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("sui")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Sui { get; set; }
+        public string Sui { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("personalDetailsRecord")]
-        public PersonalDetailsRecordV1Consolidated PersonalDetailsRecord { get; set; }
+        public PersonalDetailsRecordV1Consolidated? PersonalDetailsRecord { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("childrensServicesDetailsRecord")]
-        public ChildrensServicesDetailsRecordV1Consolidated ChildrensServicesDetailsRecord { get; set; }
+        public ChildrensServicesDetailsRecordV1Consolidated? ChildrensServicesDetailsRecord { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("educationDetailsRecord")]
-        public EducationDetailsRecordV1Consolidated EducationDetailsRecord { get; set; }
+        public EducationDetailsRecordV1Consolidated? EducationDetailsRecord { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("healthDataRecord")]
-        public HealthDataRecordV1Consolidated HealthDataRecord { get; set; }
+        public HealthDataRecordV1Consolidated? HealthDataRecord { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("crimeDataRecord")]
-        public CrimeDataRecordV1Consolidated CrimeDataRecord { get; set; }
+        public CrimeDataRecordV1Consolidated? CrimeDataRecord { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("countOfRecordsSuccessfullyFetched")]
-        public int CountOfRecordsSuccessfullyFetched { get; set; }
+        public int CountOfRecordsSuccessfullyFetched { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("failedFetches")]
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<FailedFetch> FailedFetches { get; set; } = new System.Collections.ObjectModel.Collection<FailedFetch>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -970,7 +972,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfAddressV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfAddressV1>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -989,7 +991,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfChildrensServicesReferralV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfChildrensServicesReferralV1>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1008,7 +1010,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfCrimeMissingEpisodeV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfCrimeMissingEpisodeV1>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1027,7 +1029,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfEmergencyDepartmentAttendanceV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfEmergencyDepartmentAttendanceV1>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1046,7 +1048,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfHealthMissedAppointmentV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfHealthMissedAppointmentV1>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1065,7 +1067,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfLinkedCrimeRiskV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfLinkedCrimeRiskV1>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1084,7 +1086,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfRelatedPersonV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfRelatedPersonV1>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1103,7 +1105,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfstring> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfstring>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1122,7 +1124,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfICollectionOfYearlyEducationAttendanceV1> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfICollectionOfYearlyEducationAttendanceV1>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1141,7 +1143,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfNullableOfboolean> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfNullableOfboolean>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1160,7 +1162,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfNullableOfDateTimeOffset> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfNullableOfDateTimeOffset>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1179,7 +1181,7 @@ namespace SUI.Transfer.API.Client
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.ICollection<ConsolidatedFieldValueOfstring> Values { get; set; } = new System.Collections.ObjectModel.Collection<ConsolidatedFieldValueOfstring>();
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1195,13 +1197,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public AddressV1 Value { get; set; }
+        public AddressV1? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1217,13 +1219,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public System.Collections.Generic.ICollection<ChildrensServicesReferralV1> Value { get; set; }
+        public System.Collections.Generic.ICollection<ChildrensServicesReferralV1>? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1239,13 +1241,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public System.Collections.Generic.ICollection<CrimeMissingEpisodeV1> Value { get; set; }
+        public System.Collections.Generic.ICollection<CrimeMissingEpisodeV1>? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1261,13 +1263,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public System.Collections.Generic.ICollection<EmergencyDepartmentAttendanceV1> Value { get; set; }
+        public System.Collections.Generic.ICollection<EmergencyDepartmentAttendanceV1>? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1283,13 +1285,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public System.Collections.Generic.ICollection<HealthMissedAppointmentV1> Value { get; set; }
+        public System.Collections.Generic.ICollection<HealthMissedAppointmentV1>? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1305,13 +1307,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public System.Collections.Generic.ICollection<LinkedCrimeRiskV1> Value { get; set; }
+        public System.Collections.Generic.ICollection<LinkedCrimeRiskV1>? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1327,13 +1329,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public System.Collections.Generic.ICollection<RelatedPersonV1> Value { get; set; }
+        public System.Collections.Generic.ICollection<RelatedPersonV1>? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1349,13 +1351,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public System.Collections.Generic.ICollection<string> Value { get; set; }
+        public System.Collections.Generic.ICollection<string>? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1371,13 +1373,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public System.Collections.Generic.ICollection<YearlyEducationAttendanceV1> Value { get; set; }
+        public System.Collections.Generic.ICollection<YearlyEducationAttendanceV1>? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1393,13 +1395,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public bool? Value { get; set; }
+        public bool? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1415,13 +1417,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public System.DateTimeOffset? Value { get; set; }
+        public System.DateTimeOffset? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1437,13 +1439,13 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("value")]
-        public string Value { get; set; }
+        public string? Value { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1459,21 +1461,21 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("policeMarkerDetails")]
-        public ConsolidatedFieldOfstring PoliceMarkerDetails { get; set; }
+        public ConsolidatedFieldOfstring PoliceMarkerDetails { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("servicesKnownTo")]
-        public ConsolidatedFieldOfICollectionOfstring ServicesKnownTo { get; set; }
+        public ConsolidatedFieldOfICollectionOfstring ServicesKnownTo { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("lastPoliceProtectionPowerEvent")]
-        public ConsolidatedFieldOfstring LastPoliceProtectionPowerEvent { get; set; }
+        public ConsolidatedFieldOfstring LastPoliceProtectionPowerEvent { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("missingEpisodes")]
-        public ConsolidatedFieldOfICollectionOfCrimeMissingEpisodeV1 MissingEpisodes { get; set; }
+        public ConsolidatedFieldOfICollectionOfCrimeMissingEpisodeV1 MissingEpisodes { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("linkedCrimeRisks")]
-        public ConsolidatedFieldOfICollectionOfLinkedCrimeRiskV1 LinkedCrimeRisks { get; set; }
+        public ConsolidatedFieldOfICollectionOfLinkedCrimeRiskV1 LinkedCrimeRisks { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1489,9 +1491,9 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("last6Months")]
-        public System.Collections.Generic.ICollection<object> Last6Months { get; set; }
+        public System.Collections.Generic.ICollection<object>? Last6Months { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1507,12 +1509,12 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("date")]
-        public System.DateTimeOffset? Date { get; set; }
+        public System.DateTimeOffset? Date { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("returnedHomeInterviewAttended")]
-        public bool? ReturnedHomeInterviewAttended { get; set; }
+        public bool? ReturnedHomeInterviewAttended { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1528,12 +1530,12 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("currentAcademicYear")]
-        public YearlyEducationAttendanceV12 CurrentAcademicYear { get; set; }
+        public YearlyEducationAttendanceV12? CurrentAcademicYear { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("lastAcademicYear")]
-        public YearlyEducationAttendanceV12 LastAcademicYear { get; set; }
+        public YearlyEducationAttendanceV12? LastAcademicYear { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1549,18 +1551,18 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("educationSettingName")]
-        public ConsolidatedFieldOfstring EducationSettingName { get; set; }
+        public ConsolidatedFieldOfstring EducationSettingName { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("educationSettingAddress")]
-        public ConsolidatedFieldOfAddressV1 EducationSettingAddress { get; set; }
+        public ConsolidatedFieldOfAddressV1 EducationSettingAddress { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("educationSettingTelephone")]
-        public ConsolidatedFieldOfstring EducationSettingTelephone { get; set; }
+        public ConsolidatedFieldOfstring EducationSettingTelephone { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("yearlyEducationAttendances")]
-        public ConsolidatedFieldOfICollectionOfYearlyEducationAttendanceV1 YearlyEducationAttendances { get; set; }
+        public ConsolidatedFieldOfICollectionOfYearlyEducationAttendanceV1 YearlyEducationAttendances { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1576,12 +1578,12 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("date")]
-        public System.DateTimeOffset? Date { get; set; }
+        public System.DateTimeOffset? Date { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("reason")]
-        public string Reason { get; set; }
+        public string? Reason { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1602,9 +1604,9 @@ namespace SUI.Transfer.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("errorMessage")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1621,12 +1623,12 @@ namespace SUI.Transfer.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("href")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Href { get; set; }
+        public string Href { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("method")]
-        public string Method { get; set; }
+        public string? Method { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1642,12 +1644,12 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("last12Months")]
-        public HealthAttendanceSummary Last12Months { get; set; }
+        public HealthAttendanceSummary? Last12Months { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("last5Years")]
-        public HealthAttendanceSummary Last5Years { get; set; }
+        public HealthAttendanceSummary? Last5Years { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1663,18 +1665,18 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("countOfMissedGPAppointments")]
-        public int CountOfMissedGPAppointments { get; set; }
+        public int CountOfMissedGPAppointments { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("countOfMissedHospitalAppointments")]
-        public int CountOfMissedHospitalAppointments { get; set; }
+        public int CountOfMissedHospitalAppointments { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("countOfMissedCommunityHealthAppointments")]
-        public int CountOfMissedCommunityHealthAppointments { get; set; }
+        public int CountOfMissedCommunityHealthAppointments { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("countOfEmergencyDepartmentAttendances")]
-        public int CountOfEmergencyDepartmentAttendances { get; set; }
+        public int CountOfEmergencyDepartmentAttendances { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1690,30 +1692,30 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("registeredGPName")]
-        public ConsolidatedFieldOfstring RegisteredGPName { get; set; }
+        public ConsolidatedFieldOfstring RegisteredGPName { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("registeredGPSurgery")]
-        public ConsolidatedFieldOfstring RegisteredGPSurgery { get; set; }
+        public ConsolidatedFieldOfstring RegisteredGPSurgery { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("gpAddress")]
-        public ConsolidatedFieldOfAddressV1 GpAddress { get; set; }
+        public ConsolidatedFieldOfAddressV1 GpAddress { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("gpTelephone")]
-        public ConsolidatedFieldOfstring GpTelephone { get; set; }
+        public ConsolidatedFieldOfstring GpTelephone { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("camhsContactDetails")]
-        public ConsolidatedFieldOfICollectionOfstring CamhsContactDetails { get; set; }
+        public ConsolidatedFieldOfICollectionOfstring CamhsContactDetails { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("camhsTeamInvolvement")]
-        public ConsolidatedFieldOfICollectionOfstring CamhsTeamInvolvement { get; set; }
+        public ConsolidatedFieldOfICollectionOfstring CamhsTeamInvolvement { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("missedAppointments")]
-        public ConsolidatedFieldOfICollectionOfHealthMissedAppointmentV1 MissedAppointments { get; set; }
+        public ConsolidatedFieldOfICollectionOfHealthMissedAppointmentV1 MissedAppointments { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("emergencyDepartmentAttendances")]
-        public ConsolidatedFieldOfICollectionOfEmergencyDepartmentAttendanceV1 EmergencyDepartmentAttendances { get; set; }
+        public ConsolidatedFieldOfICollectionOfEmergencyDepartmentAttendanceV1 EmergencyDepartmentAttendances { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1729,15 +1731,15 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("date")]
-        public System.DateTimeOffset? Date { get; set; }
+        public System.DateTimeOffset? Date { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("setting")]
-        public NullableOfNullableOfHealthSettingV1? Setting { get; set; }
+        public NullableOfNullableOfHealthSettingV1? Setting { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("reason")]
-        public string Reason { get; set; }
+        public string? Reason { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1753,12 +1755,12 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("date")]
-        public System.DateTimeOffset? Date { get; set; }
+        public System.DateTimeOffset? Date { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("riskType")]
-        public NullableOfNullableOfCrimeRiskTypeV1? RiskType { get; set; }
+        public NullableOfNullableOfCrimeRiskTypeV1? RiskType { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1773,19 +1775,19 @@ namespace SUI.Transfer.API.Client
     public enum NullableOfNullableOfCrimeRiskTypeV1
     {
 
-        [System.Runtime.Serialization.EnumMember(Value = @"sexualExploitation")]
+        [System.Runtime.Serialization.EnumMember(Value = @"SexualExploitation")]
         SexualExploitation = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"criminalExploitation")]
+        [System.Runtime.Serialization.EnumMember(Value = @"CriminalExploitation")]
         CriminalExploitation = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"radicalisation")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Radicalisation")]
         Radicalisation = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"modernSlaveryAndTrafficking")]
+        [System.Runtime.Serialization.EnumMember(Value = @"ModernSlaveryAndTrafficking")]
         ModernSlaveryAndTrafficking = 3,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"gangsAndYouthViolence")]
+        [System.Runtime.Serialization.EnumMember(Value = @"GangsAndYouthViolence")]
         GangsAndYouthViolence = 4,
 
     }
@@ -1794,16 +1796,16 @@ namespace SUI.Transfer.API.Client
     public enum NullableOfNullableOfHealthSettingV1
     {
 
-        [System.Runtime.Serialization.EnumMember(Value = @"other")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Other")]
         Other = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hospital")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Hospital")]
         Hospital = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"gp")]
-        Gp = 2,
+        [System.Runtime.Serialization.EnumMember(Value = @"GP")]
+        GP = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"community")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Community")]
         Community = 3,
 
     }
@@ -1813,54 +1815,54 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("firstName")]
-        public ConsolidatedFieldOfstring FirstName { get; set; }
+        public ConsolidatedFieldOfstring FirstName { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("lastName")]
-        public ConsolidatedFieldOfstring LastName { get; set; }
+        public ConsolidatedFieldOfstring LastName { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("dateOfBirth")]
-        public ConsolidatedFieldOfNullableOfDateTimeOffset DateOfBirth { get; set; }
+        public ConsolidatedFieldOfNullableOfDateTimeOffset DateOfBirth { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("address")]
-        public ConsolidatedFieldOfAddressV1 Address { get; set; }
+        public ConsolidatedFieldOfAddressV1 Address { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("namesOfIndividualsResidingAtMainAddress")]
-        public ConsolidatedFieldOfICollectionOfstring NamesOfIndividualsResidingAtMainAddress { get; set; }
+        public ConsolidatedFieldOfICollectionOfstring NamesOfIndividualsResidingAtMainAddress { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("birthAssignedSex")]
-        public ConsolidatedFieldOfstring BirthAssignedSex { get; set; }
+        public ConsolidatedFieldOfstring BirthAssignedSex { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("pronouns")]
-        public ConsolidatedFieldOfstring Pronouns { get; set; }
+        public ConsolidatedFieldOfstring Pronouns { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("ethnicity")]
-        public ConsolidatedFieldOfstring Ethnicity { get; set; }
+        public ConsolidatedFieldOfstring Ethnicity { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("firstLanguage")]
-        public ConsolidatedFieldOfstring FirstLanguage { get; set; }
+        public ConsolidatedFieldOfstring FirstLanguage { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("designatedLocalAuthority")]
-        public ConsolidatedFieldOfstring DesignatedLocalAuthority { get; set; }
+        public ConsolidatedFieldOfstring DesignatedLocalAuthority { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("englishAsAdditionalLanguage")]
-        public ConsolidatedFieldOfNullableOfboolean EnglishAsAdditionalLanguage { get; set; }
+        public ConsolidatedFieldOfNullableOfboolean EnglishAsAdditionalLanguage { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("braille")]
-        public ConsolidatedFieldOfNullableOfboolean Braille { get; set; }
+        public ConsolidatedFieldOfNullableOfboolean Braille { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("signLanguage")]
-        public ConsolidatedFieldOfNullableOfboolean SignLanguage { get; set; }
+        public ConsolidatedFieldOfNullableOfboolean SignLanguage { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("makaton")]
-        public ConsolidatedFieldOfNullableOfboolean Makaton { get; set; }
+        public ConsolidatedFieldOfNullableOfboolean Makaton { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("interpreter")]
-        public ConsolidatedFieldOfNullableOfboolean Interpreter { get; set; }
+        public ConsolidatedFieldOfNullableOfboolean Interpreter { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("relatedPeople")]
-        public ConsolidatedFieldOfICollectionOfRelatedPersonV1 RelatedPeople { get; set; }
+        public ConsolidatedFieldOfICollectionOfRelatedPersonV1 RelatedPeople { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1877,29 +1879,29 @@ namespace SUI.Transfer.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("jobId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.Guid JobId { get; set; }
+        public System.Guid JobId { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("sui")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string Sui { get; set; }
+        public string Sui { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public TransferJobStatus Status { get; set; }
+        public TransferJobStatus Status { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public System.DateTimeOffset CreatedAt { get; set; }
+        public System.DateTimeOffset CreatedAt { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("lastUpdatedAt")]
-        public System.DateTimeOffset LastUpdatedAt { get; set; }
+        public System.DateTimeOffset LastUpdatedAt { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        public ConformedData Data { get; set; }
+        public ConformedData? Data { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("_links")]
-        public System.Collections.Generic.IDictionary<string, HalLink> _links { get; set; }
+        public System.Collections.Generic.IDictionary<string, HalLink>? _links { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1916,17 +1918,17 @@ namespace SUI.Transfer.API.Client
 
         [System.Text.Json.Serialization.JsonPropertyName("providerSystemId")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderSystemId { get; set; }
+        public string ProviderSystemId { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("providerName")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string ProviderName { get; set; }
+        public string ProviderName { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("recordUrl")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        public string RecordUrl { get; set; }
+        public string RecordUrl { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1942,18 +1944,18 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("relationshipToTheChild")]
-        public string RelationshipToTheChild { get; set; }
+        public string? RelationshipToTheChild { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("dob")]
-        public System.DateTimeOffset? Dob { get; set; }
+        public System.DateTimeOffset? Dob { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("risk")]
-        public System.Collections.Generic.ICollection<string> Risk { get; set; }
+        public System.Collections.Generic.ICollection<string>? Risk { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -1968,61 +1970,61 @@ namespace SUI.Transfer.API.Client
     public enum StatusFlag
     {
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isEnglishAsAdditionalLanguage")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsEnglishAsAdditionalLanguage")]
         IsEnglishAsAdditionalLanguage = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isChildrensSocialCareStatusOpen")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsChildrensSocialCareStatusOpen")]
         IsChildrensSocialCareStatusOpen = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isChildInNeed")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsChildInNeed")]
         IsChildInNeed = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isChildLookedAfter")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsChildLookedAfter")]
         IsChildLookedAfter = 3,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isChildProtection")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsChildProtection")]
         IsChildProtection = 4,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isNotInEducationEmploymentOrTraining")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsNotInEducationEmploymentOrTraining")]
         IsNotInEducationEmploymentOrTraining = 5,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hasPupilPremium")]
+        [System.Runtime.Serialization.EnumMember(Value = @"HasPupilPremium")]
         HasPupilPremium = 6,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hasFreeSchoolMeals")]
+        [System.Runtime.Serialization.EnumMember(Value = @"HasFreeSchoolMeals")]
         HasFreeSchoolMeals = 7,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isElectivelyHomeEducated")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsElectivelyHomeEducated")]
         IsElectivelyHomeEducated = 8,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hasSpecialEducationalNeedsAndDisabilities")]
+        [System.Runtime.Serialization.EnumMember(Value = @"HasSpecialEducationalNeedsAndDisabilities")]
         HasSpecialEducationalNeedsAndDisabilities = 9,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isOpenToCAMHS")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsOpenToCAMHS")]
         IsOpenToCAMHS = 10,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isOpenToYouthJusticeService")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsOpenToYouthJusticeService")]
         IsOpenToYouthJusticeService = 11,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfExploitationSexual")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfExploitationSexual")]
         RiskOfExploitationSexual = 12,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfExploitationCriminal")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfExploitationCriminal")]
         RiskOfExploitationCriminal = 13,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfRadicalisation")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfRadicalisation")]
         RiskOfRadicalisation = 14,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfModernSlaveryAndTrafficking")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfModernSlaveryAndTrafficking")]
         RiskOfModernSlaveryAndTrafficking = 15,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfGangsAndYouthViolence")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfGangsAndYouthViolence")]
         RiskOfGangsAndYouthViolence = 16,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfFGM")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfFGM")]
         RiskOfFGM = 17,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hasPolicePowersOfProtection")]
+        [System.Runtime.Serialization.EnumMember(Value = @"HasPolicePowersOfProtection")]
         HasPolicePowersOfProtection = 18,
 
     }
@@ -2032,27 +2034,27 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("jobId")]
-        public System.Guid JobId { get; set; }
+        public System.Guid JobId { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("sui")]
-        public string Sui { get; set; }
+        public string Sui { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public TransferJobStatus Status { get; set; }
+        public TransferJobStatus Status { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
-        public System.DateTimeOffset CreatedAt { get; set; }
+        public System.DateTimeOffset CreatedAt { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("lastUpdatedAt")]
-        public System.DateTimeOffset LastUpdatedAt { get; set; }
+        public System.DateTimeOffset LastUpdatedAt { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        public ConformedData Data { get; set; }
+        public ConformedData? Data { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("_links")]
-        public System.Collections.Generic.IDictionary<string, HalLink> _links { get; set; }
+        public System.Collections.Generic.IDictionary<string, HalLink>? _links { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -2067,19 +2069,19 @@ namespace SUI.Transfer.API.Client
     public enum TransferJobStatus
     {
 
-        [System.Runtime.Serialization.EnumMember(Value = @"queued")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Queued")]
         Queued = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"running")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Running")]
         Running = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"completed")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Completed")]
         Completed = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"failed")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Failed")]
         Failed = 3,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"canceled")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Canceled")]
         Canceled = 4,
 
     }
@@ -2089,30 +2091,30 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("academicTermYearStart")]
-        public int? AcademicTermYearStart { get; set; }
+        public int? AcademicTermYearStart { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("academicTermYearEnd")]
-        public int? AcademicTermYearEnd { get; set; }
+        public int? AcademicTermYearEnd { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("attendancePercentage")]
-        public float? AttendancePercentage { get; set; }
+        public float? AttendancePercentage { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("unauthorisedAbsencePercentage")]
-        public float? UnauthorisedAbsencePercentage { get; set; }
+        public float? UnauthorisedAbsencePercentage { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("suspensions")]
-        public int? Suspensions { get; set; }
+        public int? Suspensions { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("exclusions")]
-        public int? Exclusions { get; set; }
+        public int? Exclusions { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("schoolMovesNonTransitional")]
-        public int? SchoolMovesNonTransitional { get; set; }
+        public int? SchoolMovesNonTransitional { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("schoolsAverageAttendance")]
-        public float? SchoolsAverageAttendance { get; set; }
+        public float? SchoolsAverageAttendance { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -2128,30 +2130,30 @@ namespace SUI.Transfer.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("academicTermYearStart")]
-        public int? AcademicTermYearStart { get; set; }
+        public int? AcademicTermYearStart { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("academicTermYearEnd")]
-        public int? AcademicTermYearEnd { get; set; }
+        public int? AcademicTermYearEnd { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("attendancePercentage")]
-        public float? AttendancePercentage { get; set; }
+        public float? AttendancePercentage { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("unauthorisedAbsencePercentage")]
-        public float? UnauthorisedAbsencePercentage { get; set; }
+        public float? UnauthorisedAbsencePercentage { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("suspensions")]
-        public int? Suspensions { get; set; }
+        public int? Suspensions { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("exclusions")]
-        public int? Exclusions { get; set; }
+        public int? Exclusions { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("schoolMovesNonTransitional")]
-        public int? SchoolMovesNonTransitional { get; set; }
+        public int? SchoolMovesNonTransitional { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("schoolsAverageAttendance")]
-        public float? SchoolsAverageAttendance { get; set; }
+        public float? SchoolsAverageAttendance { get; set; } = default!;
 
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+        private System.Collections.Generic.IDictionary<string, object>? _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
@@ -2169,11 +2171,11 @@ namespace SUI.Transfer.API.Client
     {
         public int StatusCode { get; private set; }
 
-        public string Response { get; private set; }
+        public string? Response { get; private set; }
 
         public System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> Headers { get; private set; }
 
-        public ApiException(string message, int statusCode, string response, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, System.Exception innerException)
+        public ApiException(string message, int statusCode, string? response, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, System.Exception? innerException)
             : base(message + "\n\nStatus: " + statusCode + "\nResponse: \n" + ((response == null) ? "(null)" : response.Substring(0, response.Length >= 512 ? 512 : response.Length)), innerException)
         {
             StatusCode = statusCode;
@@ -2192,7 +2194,7 @@ namespace SUI.Transfer.API.Client
     {
         public TResult Result { get; private set; }
 
-        public ApiException(string message, int statusCode, string response, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, TResult result, System.Exception innerException)
+        public ApiException(string message, int statusCode, string? response, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, TResult result, System.Exception? innerException)
             : base(message, statusCode, response, headers, innerException)
         {
             Result = result;
