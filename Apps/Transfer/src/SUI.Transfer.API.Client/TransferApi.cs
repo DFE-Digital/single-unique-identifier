@@ -1775,19 +1775,19 @@ namespace SUI.Transfer.API.Client
     public enum NullableOfNullableOfCrimeRiskTypeV1
     {
 
-        [System.Runtime.Serialization.EnumMember(Value = @"sexualExploitation")]
+        [System.Runtime.Serialization.EnumMember(Value = @"SexualExploitation")]
         SexualExploitation = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"criminalExploitation")]
+        [System.Runtime.Serialization.EnumMember(Value = @"CriminalExploitation")]
         CriminalExploitation = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"radicalisation")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Radicalisation")]
         Radicalisation = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"modernSlaveryAndTrafficking")]
+        [System.Runtime.Serialization.EnumMember(Value = @"ModernSlaveryAndTrafficking")]
         ModernSlaveryAndTrafficking = 3,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"gangsAndYouthViolence")]
+        [System.Runtime.Serialization.EnumMember(Value = @"GangsAndYouthViolence")]
         GangsAndYouthViolence = 4,
 
     }
@@ -1796,16 +1796,16 @@ namespace SUI.Transfer.API.Client
     public enum NullableOfNullableOfHealthSettingV1
     {
 
-        [System.Runtime.Serialization.EnumMember(Value = @"other")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Other")]
         Other = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hospital")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Hospital")]
         Hospital = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"gp")]
-        Gp = 2,
+        [System.Runtime.Serialization.EnumMember(Value = @"GP")]
+        GP = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"community")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Community")]
         Community = 3,
 
     }
@@ -1970,61 +1970,61 @@ namespace SUI.Transfer.API.Client
     public enum StatusFlag
     {
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isEnglishAsAdditionalLanguage")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsEnglishAsAdditionalLanguage")]
         IsEnglishAsAdditionalLanguage = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isChildrensSocialCareStatusOpen")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsChildrensSocialCareStatusOpen")]
         IsChildrensSocialCareStatusOpen = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isChildInNeed")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsChildInNeed")]
         IsChildInNeed = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isChildLookedAfter")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsChildLookedAfter")]
         IsChildLookedAfter = 3,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isChildProtection")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsChildProtection")]
         IsChildProtection = 4,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isNotInEducationEmploymentOrTraining")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsNotInEducationEmploymentOrTraining")]
         IsNotInEducationEmploymentOrTraining = 5,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hasPupilPremium")]
+        [System.Runtime.Serialization.EnumMember(Value = @"HasPupilPremium")]
         HasPupilPremium = 6,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hasFreeSchoolMeals")]
+        [System.Runtime.Serialization.EnumMember(Value = @"HasFreeSchoolMeals")]
         HasFreeSchoolMeals = 7,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isElectivelyHomeEducated")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsElectivelyHomeEducated")]
         IsElectivelyHomeEducated = 8,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hasSpecialEducationalNeedsAndDisabilities")]
+        [System.Runtime.Serialization.EnumMember(Value = @"HasSpecialEducationalNeedsAndDisabilities")]
         HasSpecialEducationalNeedsAndDisabilities = 9,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isOpenToCAMHS")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsOpenToCAMHS")]
         IsOpenToCAMHS = 10,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"isOpenToYouthJusticeService")]
+        [System.Runtime.Serialization.EnumMember(Value = @"IsOpenToYouthJusticeService")]
         IsOpenToYouthJusticeService = 11,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfExploitationSexual")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfExploitationSexual")]
         RiskOfExploitationSexual = 12,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfExploitationCriminal")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfExploitationCriminal")]
         RiskOfExploitationCriminal = 13,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfRadicalisation")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfRadicalisation")]
         RiskOfRadicalisation = 14,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfModernSlaveryAndTrafficking")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfModernSlaveryAndTrafficking")]
         RiskOfModernSlaveryAndTrafficking = 15,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfGangsAndYouthViolence")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfGangsAndYouthViolence")]
         RiskOfGangsAndYouthViolence = 16,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"riskOfFGM")]
+        [System.Runtime.Serialization.EnumMember(Value = @"RiskOfFGM")]
         RiskOfFGM = 17,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"hasPolicePowersOfProtection")]
+        [System.Runtime.Serialization.EnumMember(Value = @"HasPolicePowersOfProtection")]
         HasPolicePowersOfProtection = 18,
 
     }
@@ -2069,19 +2069,19 @@ namespace SUI.Transfer.API.Client
     public enum TransferJobStatus
     {
 
-        [System.Runtime.Serialization.EnumMember(Value = @"queued")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Queued")]
         Queued = 0,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"running")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Running")]
         Running = 1,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"completed")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Completed")]
         Completed = 2,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"failed")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Failed")]
         Failed = 3,
 
-        [System.Runtime.Serialization.EnumMember(Value = @"canceled")]
+        [System.Runtime.Serialization.EnumMember(Value = @"Canceled")]
         Canceled = 4,
 
     }

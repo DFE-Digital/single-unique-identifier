@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SUI.Custodians.API.Client;
@@ -15,6 +16,13 @@ public class RecordFetcher(
     ILogger<RecordFetcher> logger
 ) : IRecordFetcher
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new();
+
+    static RecordFetcher()
+    {
+        JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    }
+
     public Task<UnconsolidatedData> FetchRecordsAsync(
         string sui,
         RecordPointer[] recordPointers,
@@ -86,6 +94,7 @@ public class RecordFetcher(
     {
         var result = await httpClient.GetFromJsonAsync<JsonElement>(
             recordPointer.RecordUrl,
+            JsonSerializerOptions,
             cancellationToken
         );
         var schemaUri = result.GetProperty("schemaUri").GetString();
@@ -166,7 +175,10 @@ public class RecordFetcher(
     private static ProviderRecord<T>? ParsePayload<T>(JsonElement result, string providerSystemId)
         where T : class
     {
-        var payload = JsonSerializer.Deserialize<T>(result.GetProperty("payload").GetRawText());
+        var payload = JsonSerializer.Deserialize<T>(
+            result.GetProperty("payload").GetRawText(),
+            JsonSerializerOptions
+        );
         return payload != null ? new ProviderRecord<T>(providerSystemId, payload) : null;
     }
 }
