@@ -1,5 +1,4 @@
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Utility;
 
@@ -50,7 +49,7 @@ public class PolicyCompilerTests
     }
 
     [Fact]
-    public void PolicyCompiler_ShouldCreateKeys_WhenRuleIsExplicitlyAllowed()
+    public void ShouldCreateKeys_WhenRuleIsExplicitlyAllowed()
     {
         // Arrange
         var provider = CreateProvider("ORG-A", "GP");
@@ -70,7 +69,7 @@ public class PolicyCompilerTests
     }
 
     [Fact]
-    public void PolicyCompilerShouldCreateKeys_WhenDestOrgTypeMatches()
+    public void CreateKeys_WhenDestOrgTypeMatches()
     {
         // Arrange
         var sourceProvider = CreateProvider("ORG-A", "GP");
@@ -91,7 +90,7 @@ public class PolicyCompilerTests
     }
 
     [Fact]
-    public void PolicyCompiler_ShouldNotCreateKey_WhenEffectIsDeny()
+    public void ShouldNotCreateKey_WhenEffectIsDeny()
     {
         // Arrange
         var provider = CreateProvider("ORG-A", "GP");
@@ -109,7 +108,7 @@ public class PolicyCompilerTests
     }
 
     [Fact]
-    public void PolicyCompiler_ShouldNotCreateKey_WhenRuleIsExpired()
+    public void ShouldNotCreateKey_WhenRuleIsExpired()
     {
         // Arrange
         var provider = CreateProvider("ORG-A", "GP");
@@ -128,7 +127,7 @@ public class PolicyCompilerTests
     }
 
     [Fact]
-    public void Compile_ShouldNotCreateKeys_WhenRuleIsFuture()
+    public void ShouldNotCreateKeys_WhenRuleIsFuture()
     {
         // Arrange
         var provider = CreateProvider("ORG-A", "GP");

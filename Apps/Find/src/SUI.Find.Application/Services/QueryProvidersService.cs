@@ -3,6 +3,7 @@ using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
+using SUI.Find.Domain.Models.Policy;
 
 namespace SUI.Find.Application.Services;
 
@@ -10,7 +11,7 @@ public class QueryProvidersService(
     IBuildCustodianRequestService buildCustodianRequestService,
     ILogger<QueryProvidersService> logger,
     IMaskUrlService maskUrlService,
-    IPolicyEnforcementPoint pepService
+    IPolicyEnforcementService pepService
 ) : IQueryProvidersService
 {
     public async Task<Result<IReadOnlyList<SearchResultItem>>> QueryProvidersAsync(
@@ -42,7 +43,8 @@ public class QueryProvidersService(
                 SourceOrgId: data.Provider.OrgId,
                 DestOrgId: data.RequestingOrg,
                 DataType: item.RecordType,
-                Purpose: "SAFEGUARDING", // im not sure where this would come from - will the search request include the purpose of the search?   
+                // TODO remove hardcoding of purpose
+                Purpose: "SAFEGUARDING", // As discussed with Simon - leaving this with a to do once its decided how purpose will be passed through
                 Mode: "EXISTENCE"
             );
 

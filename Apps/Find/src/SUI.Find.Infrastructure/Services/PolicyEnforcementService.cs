@@ -1,20 +1,21 @@
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Interfaces;
-using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
+using SUI.Find.Domain.Models.Policy;
+using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Utility;
 
 namespace SUI.Find.Infrastructure.Services;
 
 // TODO store policies and use cached versions
-public class PolicyEnforcementPoint(ILogger<PolicyEnforcementPoint> logger, ICustodianService custodianService) : IPolicyEnforcementPoint
+public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger, ICustodianService custodianService, IPolicyCompilerService policyService) : IPolicyEnforcementService
 {
     private async Task<CompiledPolicyArtefact> GetPolicyArtefacts()
     {
 
         var providers = await custodianService.GetCustodiansAsync();
 
-        CompiledPolicyArtefact policyArtefact = new PolicyCompiler().Compile(providers);
+        CompiledPolicyArtefact policyArtefact = policyService.Compile(providers);
 
         logger.LogInformation("PEP Compiler started. Active DSA Agreements: {Count}", policyArtefact.AllowedRequests.Count);
 

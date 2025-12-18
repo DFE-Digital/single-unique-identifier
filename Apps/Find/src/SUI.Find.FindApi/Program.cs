@@ -46,7 +46,8 @@ builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
 builder.Services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
 builder.Services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
 builder.Services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
-builder.Services.AddSingleton<IPolicyEnforcementPoint, PolicyEnforcementPoint>();
+builder.Services.AddSingleton<IPolicyEnforcementService, PolicyEnforcementService>();
+builder.Services.AddSingleton<IPolicyCompilerService, PolicyCompiler>();
 builder.Services.AddAzureTableServices();
 
 // Use mock services for all environments for now while in prototype

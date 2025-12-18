@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Dtos;
@@ -6,6 +5,7 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.Domain.Models;
+using SUI.Find.Domain.Models.Policy;
 
 
 namespace SUI.Find.ApplicationTests.Services.QueryProvidersServiceTests;
@@ -15,7 +15,7 @@ public class QueryProvidersAsyncTests
     private readonly IBuildCustodianRequestService _mockBuildRequest = Substitute.For<IBuildCustodianRequestService>();
     private readonly ILogger<QueryProvidersService> _mockLogger = Substitute.For<ILogger<QueryProvidersService>>();
     private readonly IMaskUrlService _mockMaskUrlService = Substitute.For<IMaskUrlService>();
-    private readonly IPolicyEnforcementPoint _mockPep = Substitute.For<IPolicyEnforcementPoint>();
+    private readonly IPolicyEnforcementService _mockPep = Substitute.For<IPolicyEnforcementService>();
     private readonly QueryProvidersService _sut;
 
     public QueryProvidersAsyncTests()

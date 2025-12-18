@@ -1,12 +1,11 @@
-using System.Collections;
 using System.Collections.Frozen;
-using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
+using SUI.Find.Domain.Models.Policy;
+using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Utility;
 
 namespace SUI.Find.Infrastructure.Services;
-public class PolicyCompiler()
+public class PolicyCompiler() : IPolicyCompilerService
 {
     public CompiledPolicyArtefact Compile(IEnumerable<ProviderDefinition> providers)
     {
@@ -17,7 +16,6 @@ public class PolicyCompiler()
 
         foreach (var sourceProvider in providerList)
         {
-            // 
             var activeDsaAgreements = sourceProvider.DsaPolicy.Defaults
                 .Concat(sourceProvider.DsaPolicy.Exceptions)
                 .Where(dsa => IsActive(dsa, now));

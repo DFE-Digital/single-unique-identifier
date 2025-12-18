@@ -1,7 +1,6 @@
-using System.Collections;
 using System.Collections.Frozen;
 
-namespace SUI.Find.Domain.Models;
+namespace SUI.Find.Domain.Models.Policy;
 
 public class CompiledPolicyArtefact
 {
@@ -13,17 +12,3 @@ public class CompiledPolicyArtefact
     // https://medium.com/c-sharp-programming/frozen-collections-in-net-8-055b007587d0
     public FrozenSet<string> AllowedRequests { get; init; } = FrozenSet<string>.Empty;
 }
-
-public record PolicyCheckRequest(
-    string SourceOrgId,
-    string DestOrgId,
-    string DataType,
-    string Purpose,
-    string Mode
-);
-
-public record PolicyDecision(
-    bool IsAllowed,
-    string Reason,
-    string PolicyVersionId
-);
