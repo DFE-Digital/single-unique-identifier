@@ -42,6 +42,16 @@ jobs:
       - name: Build Solution
         run: dotnet build Apps/Find/SUI.Find.slnx
 
+      - name: Create local.settings.json for Custodian Simulator
+        run: |
+          cp Apps/Find/src/SUI.Find.CustodianSimulation/example.local.settings.json \
+             Apps/Find/src/SUI.Find.CustodianSimulation/local.settings.json
+
+      - name: Create local.settings.json for Find API
+        run: |
+          cp Apps/Find/src/SUI.Find.FindApi/example.local.settings.json \
+             Apps/Find/src/SUI.Find.FindApi/local.settings.json
+
       - name: Start Custodian Simulator
         run: func start --project Apps/Find/src/SUI.Find.CustodianSimulation/SUI.Find.CustodianSimulation.csproj --port 7082 &
         working-directory: ${{ github.workspace }}
