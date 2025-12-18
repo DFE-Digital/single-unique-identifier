@@ -32,11 +32,12 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             return;
         }
 
-        // allow swagger / openapi to work without auth
+        // allow swagger / openapi / health to work without auth
         if (
             req.Url.AbsolutePath.StartsWith("/api/swagger")
             || req.Url.AbsolutePath.StartsWith("/api/openapi")
             || req.Url.AbsolutePath.StartsWith("/api/v1/auth/token")
+            || req.Url.AbsolutePath.StartsWith("/api/health")
         )
         {
             await next(context);
