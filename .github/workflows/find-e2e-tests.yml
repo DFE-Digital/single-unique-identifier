@@ -25,15 +25,13 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
-      - name: Install Azure Functions Core Tools
-        uses: Azure/functions-action@v1
-        with:
-          func-version: "4"
-
       - name: Install node
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
+
+      - name: Install Azure Functions Core Tools
+        run: npm i -g azure-functions-core-tools@4
 
       - name: Install Azurite
         run: npm install -g azurite
