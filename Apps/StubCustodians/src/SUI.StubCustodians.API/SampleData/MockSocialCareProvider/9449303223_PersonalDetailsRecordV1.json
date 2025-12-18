@@ -14,5 +14,22 @@
   "signLanguage": null,
   "makaton": false,
   "interpreter": null,
-  "relatedPeople": null
+  "relatedPeople": [
+    {
+      "relationshipToTheChild": "Father",
+      "name": "Jeff Smith",
+      "dob": "1988-11-01",
+      "risk": [
+        "Individual may possess firearms"
+      ]
+    },
+    {
+      "relationshipToTheChild": "Birth mother",
+      "name": "Julie Smith",
+      "dob": "1962-02-25",
+      "risk": [
+        "Individual may resort to violent behaviour"
+      ]
+    }
+  ]
 }
