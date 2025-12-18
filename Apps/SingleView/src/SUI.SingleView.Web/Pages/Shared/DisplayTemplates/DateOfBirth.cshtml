@@ -1,0 +1,9 @@
+@using SUI.SingleView.Domain.Extensions
+@model DateTimeOffset?
+
+@Model?.ToString("dd MMM yyyy")
+            
+@if (Model.HasValue)
+{
+    <span> (@Model.Value.Date.ToAgeInYearsString())</span>
+}
