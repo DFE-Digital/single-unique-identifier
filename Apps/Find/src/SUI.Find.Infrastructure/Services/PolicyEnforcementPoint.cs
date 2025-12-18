@@ -6,18 +6,19 @@ using SUI.Find.Infrastructure.Utility;
 
 namespace SUI.Find.Infrastructure.Services;
 
+// TODO store policies and use cached versions
 public class PolicyEnforcementPoint(ILogger<PolicyEnforcementPoint> logger, ICustodianService custodianService) : IPolicyEnforcementPoint
 {
-    private async Task<CompiledPolicyArtifact> GetPolicyArtifacts()
+    private async Task<CompiledPolicyArtefact> GetPolicyArtefacts()
     {
 
         var providers = await custodianService.GetCustodiansAsync();
 
-        CompiledPolicyArtifact policyArtifact = new PolicyCompiler().Compile(providers);
+        CompiledPolicyArtefact policyArtefact = new PolicyCompiler().Compile(providers);
 
-        logger.LogInformation("PEP Compiler started. Active DSA Agreements: {Count}", policyArtifact.AllowedRequests.Count);
+        logger.LogInformation("PEP Compiler started. Active DSA Agreements: {Count}", policyArtefact.AllowedRequests.Count);
 
-        return policyArtifact;
+        return policyArtefact;
     }
 
 
@@ -25,7 +26,7 @@ public class PolicyEnforcementPoint(ILogger<PolicyEnforcementPoint> logger, ICus
     {
         logger.LogInformation("Evaluating DSA for Requesting Org - {OrgId}", request.DestOrgId);
 
-        var policyArtifacts = await GetPolicyArtifacts();
+        var policyArtefacts = await GetPolicyArtefacts();
 
         var key = PolicyKeyFactory.CreateKey(
             request.SourceOrgId,
@@ -37,15 +38,15 @@ public class PolicyEnforcementPoint(ILogger<PolicyEnforcementPoint> logger, ICus
 
         // just checking if key exists in Allowed Requests
         // Key would have been crated in the pep Compile method
-        bool isAllowed = policyArtifacts.AllowedRequests.Contains(key);
+        bool isAllowed = policyArtefacts.AllowedRequests.Contains(key);
 
         if (isAllowed)
         {
-            logger.LogInformation("Request for Record Allowed: {VersionId}", policyArtifacts.PolicyVersionId);
-            return new PolicyDecision(true, "Allowed", policyArtifacts.PolicyVersionId);
+            logger.LogInformation("Request for Record Allowed: {VersionId}", policyArtefacts.PolicyVersionId);
+            return new PolicyDecision(true, "Allowed", policyArtefacts.PolicyVersionId);
         }
-        logger.LogInformation("Request for Record Denied: {VersionId}", policyArtifacts.PolicyVersionId);
-        return new PolicyDecision(false, "Denied", policyArtifacts.PolicyVersionId);
+        logger.LogInformation("Request for Record Denied: {VersionId}", policyArtefacts.PolicyVersionId);
+        return new PolicyDecision(false, "Denied", policyArtefacts.PolicyVersionId);
     }
 
 }

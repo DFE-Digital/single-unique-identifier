@@ -3,7 +3,7 @@ using System.Collections.Frozen;
 
 namespace SUI.Find.Domain.Models;
 
-public class CompiledPolicyArtifact
+public class CompiledPolicyArtefact
 {
     public string PolicyVersionId { get; init; } = string.Empty;
     public DateTimeOffset CompiledAtUtc { get; init; }

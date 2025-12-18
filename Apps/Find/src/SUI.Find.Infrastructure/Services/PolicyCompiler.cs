@@ -8,7 +8,7 @@ using SUI.Find.Infrastructure.Utility;
 namespace SUI.Find.Infrastructure.Services;
 public class PolicyCompiler()
 {
-    public CompiledPolicyArtifact Compile(IEnumerable<ProviderDefinition> providers)
+    public CompiledPolicyArtefact Compile(IEnumerable<ProviderDefinition> providers)
     {
         var allowedKeys = new HashSet<string>();
         var now = DateTimeOffset.UtcNow;
@@ -50,7 +50,7 @@ public class PolicyCompiler()
             }
         }
 
-        return new CompiledPolicyArtifact
+        return new CompiledPolicyArtefact
         {
             CompiledAtUtc = DateTime.UtcNow,
             PolicyVersionId = Guid.NewGuid().ToString(),
