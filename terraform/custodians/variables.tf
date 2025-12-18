@@ -63,13 +63,13 @@ variable "app_service_plan_sku" {
 }
 
 variable "app_service_plan_os_type" {
-  description = "OS type for the App Service plan (present to support shared tfvars files; unused by service-example)."
+  description = "OS type for the App Service plan (present to support shared tfvars files; unused by Custodians app)."
   type        = string
   default     = null
 }
 
 variable "app_service_plan_worker_count" {
-  description = "Number of workers for the App Service plan (present to support shared tfvars files; unused by service-example)."
+  description = "Number of workers for the App Service plan (present to support shared tfvars files; unused by Custodians app)."
   type        = number
   default     = null
 }
