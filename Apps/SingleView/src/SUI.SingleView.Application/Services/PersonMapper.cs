@@ -1,16 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using SUI.SingleView.Application.Models;
-using SUI.SingleView.Domain.Models;
+﻿using SUI.SingleView.Application.Models;
 using SUI.Transfer.API.Client;
 
 namespace SUI.SingleView.Application.Services;
 
 public class PersonMapper : IPersonMapper
 {
-    [ExcludeFromCodeCoverage(
-        Justification = "Only stub data currently. Will be implemented very shortly in next PR."
-    )]
-    public PersonModel Map(string nhsNumber, ConformedData conformedData)
+    public PersonModel Map(string nhsNumber, ConformedData conformedData) // rs-todo: tests
     {
         var personalDetails = conformedData.ConsolidatedData.PersonalDetailsRecord;
         var childrensServicesDetails = conformedData
@@ -27,31 +22,38 @@ public class PersonMapper : IPersonMapper
         {
             Name = personName,
             NhsNumber = nhsNumber,
+
             PersonalDetails = personalDetails,
             ChildrensServicesDetails = childrensServicesDetails,
+            EducationDetails = educationDetails,
+            HealthData = healthData,
             CrimeData = crimeData,
+
             Tags = (conformedData.StatusFlags?.Select(x => x.ToString()) ?? []).ToList(),
-            ImportantMessages = [], // TODO: SUI-1282
             PoliceMarker = !string.IsNullOrEmpty(crimeData?.PoliceMarkerDetails?.Value),
             PoliceMarkerDetails = crimeData?.PoliceMarkerDetails?.Value ?? "",
-            ActiveChildrensServicesPlans = [], // TODO: SUI-1284
+
             ChildServicesReferralSummaries = conformedData.ChildServicesReferralSummaries,
-            EducationDetails = educationDetails,
             EducationAttendanceSummaries = conformedData.EducationAttendanceSummaries,
-            ActiveEducationPlans = [], // TODO: SUI-1284
-            HealthData = healthData,
-            ActiveHealthPlans = [], // TODO: SUI-1284
             HealthAttendanceSummaries = conformedData.HealthAttendanceSummaries,
-            ServicesKnownTo = ["Youth justice service (YJS)", "Police"],
-            LastPoliceProtectionPowerEvent = "none",
-            MissingEpisodesLast6Months = 5,
-            SummaryOfRiskLast5Years =
-            [
-                "Criminal exploitation",
-                "Radicalisation",
-                "Gangs and Youth violence",
-            ],
-            ActiveCrimePlans = [], // TODO: SUI-1284
+
+            MissingEpisodesLast6Months = conformedData
+                .CrimeMissingEpisodesSummaries
+                ?.Last6Months
+                ?.Count,
+
+            // TODO: SUI-1282:
+            ImportantMessages = [],
+
+            // TODO: SUI-1284:
+            ActiveChildrensServicesPlans = [],
+            ActiveEducationPlans = [],
+            ActiveHealthPlans = [],
+            ActiveCrimePlans = [],
+
+            // TODO: Crime aggregations:
+            ServicesKnownTo = [],
+            SummaryOfRiskLast5Years = [],
         };
     }
 }
