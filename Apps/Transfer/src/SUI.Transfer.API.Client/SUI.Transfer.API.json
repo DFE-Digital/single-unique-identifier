@@ -460,8 +460,12 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfAddressV1"
             }
+          },
+          "value": {
+            "$ref": "#/components/schemas/AddressV1"
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfICollectionOfChildrensServicesReferralV1": {
         "required": [
@@ -474,8 +478,14 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfICollectionOfChildrensServicesReferralV1"
             }
+          },
+          "value": {
+            "type": "array",
+            "items": { },
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfICollectionOfCrimeMissingEpisodeV1": {
         "required": [
@@ -488,8 +498,14 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfICollectionOfCrimeMissingEpisodeV1"
             }
+          },
+          "value": {
+            "type": "array",
+            "items": { },
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfICollectionOfEmergencyDepartmentAttendanceV1": {
         "required": [
@@ -502,8 +518,14 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfICollectionOfEmergencyDepartmentAttendanceV1"
             }
+          },
+          "value": {
+            "type": "array",
+            "items": { },
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfICollectionOfHealthMissedAppointmentV1": {
         "required": [
@@ -516,8 +538,14 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfICollectionOfHealthMissedAppointmentV1"
             }
+          },
+          "value": {
+            "type": "array",
+            "items": { },
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfICollectionOfLinkedCrimeRiskV1": {
         "required": [
@@ -530,8 +558,14 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfICollectionOfLinkedCrimeRiskV1"
             }
+          },
+          "value": {
+            "type": "array",
+            "items": { },
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfICollectionOfRelatedPersonV1": {
         "required": [
@@ -544,8 +578,14 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfICollectionOfRelatedPersonV1"
             }
+          },
+          "value": {
+            "type": "array",
+            "items": { },
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfICollectionOfstring": {
         "required": [
@@ -558,8 +598,16 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfICollectionOfstring"
             }
+          },
+          "value": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfICollectionOfYearlyEducationAttendanceV1": {
         "required": [
@@ -572,8 +620,14 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfICollectionOfYearlyEducationAttendanceV1"
             }
+          },
+          "value": {
+            "type": "array",
+            "items": { },
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfNullableOfboolean": {
         "required": [
@@ -586,8 +640,13 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfNullableOfboolean"
             }
+          },
+          "value": {
+            "type": "boolean",
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfNullableOfDateTimeOffset": {
         "required": [
@@ -600,8 +659,14 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfNullableOfDateTimeOffset"
             }
+          },
+          "value": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldOfstring": {
         "required": [
@@ -614,8 +679,13 @@
             "items": {
               "$ref": "#/components/schemas/ConsolidatedFieldValueOfstring"
             }
+          },
+          "value": {
+            "type": "string",
+            "nullable": true
           }
-        }
+        },
+        "nullable": true
       },
       "ConsolidatedFieldValueOfAddressV1": {
         "required": [

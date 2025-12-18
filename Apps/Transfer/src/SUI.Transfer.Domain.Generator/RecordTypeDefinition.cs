@@ -36,7 +36,7 @@ public class RecordTypeDefinition(INamedTypeSymbol symbol)
         var props = string.Join(
             TwoNewLines,
             Properties.Select(p =>
-                $"    public ConsolidatedField<{Type(p)}> {p.Name} {{ get; set; }} = ConsolidatedField<{Type(p)}>.Empty;"
+                $"    public ConsolidatedField<{Type(p)}>? {p.Name} {{ get; set; }} = ConsolidatedField<{Type(p)}>.Empty;"
             )
         );
 

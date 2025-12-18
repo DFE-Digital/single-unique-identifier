@@ -4,7 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.7</Version>
+    <Version>0.0.8</Version>
     <Title>SUI.Transfer.API.Client</Title>
     <Authors>Department for Education</Authors>
     <RepositoryUrl>https://github.com/DFE-Digital/single-unique-identifier/</RepositoryUrl>

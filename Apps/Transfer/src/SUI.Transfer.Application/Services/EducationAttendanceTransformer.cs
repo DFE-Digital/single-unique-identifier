@@ -10,7 +10,7 @@ public class EducationAttendanceTransformer(TimeProvider timeProvider)
     public EducationAttendanceSummaries? ApplyTransformation(ConsolidatedData consolidatedData)
     {
         if (
-            consolidatedData.EducationDetailsRecord?.YearlyEducationAttendances.Value is null
+            consolidatedData.EducationDetailsRecord?.YearlyEducationAttendances?.Value is null
             || consolidatedData.EducationDetailsRecord.YearlyEducationAttendances.Value.Count.Equals(
                 0
             )
@@ -37,7 +37,7 @@ public class EducationAttendanceTransformer(TimeProvider timeProvider)
         int academicYearStart
     )
     {
-        return educationDetailsRecord.YearlyEducationAttendances.Value?.FirstOrDefault(x =>
+        return educationDetailsRecord.YearlyEducationAttendances?.Value?.FirstOrDefault(x =>
             x.AcademicTermYearStart == academicYearStart
             && x.AcademicTermYearEnd == academicYearStart + 1
         );

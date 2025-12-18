@@ -8,7 +8,7 @@ public class MissingEpisodesTransformer(TimeProvider timeProvider) : IMissingEpi
     public CrimeMissingEpisodesSummaries? ApplyTransformation(ConsolidatedData consolidatedData)
     {
         if (
-            consolidatedData.CrimeDataRecord?.MissingEpisodes.Value is null
+            consolidatedData.CrimeDataRecord?.MissingEpisodes?.Value is null
             || consolidatedData.CrimeDataRecord.MissingEpisodes.Value.Count.Equals(0)
         )
             return null;
@@ -25,7 +25,7 @@ public class MissingEpisodesTransformer(TimeProvider timeProvider) : IMissingEpi
     {
         var sixMonthsAgo = timeProvider.GetUtcNow().AddMonths(-6);
 
-        return (consolidatedData.CrimeDataRecord?.MissingEpisodes.Value ?? [])
+        return (consolidatedData.CrimeDataRecord?.MissingEpisodes?.Value ?? [])
             .Where(x => x.Date.HasValue && x.Date.Value >= sixMonthsAgo)
             .ToList();
     }

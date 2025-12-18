@@ -23,12 +23,15 @@ public class RecordConsolidationSourceGeneratorTests
         );
 
         // ASSERT
+        result.FirstName.Should().NotBeNull();
         result.FirstName.Value.Should().BeNull();
         result.FirstName.Values.Should().HaveCount(0);
 
+        result.LastName.Should().NotBeNull();
         result.LastName.Value.Should().BeNull();
         result.LastName.Values.Should().HaveCount(0);
 
+        result.DateOfBirth.Should().NotBeNull();
         result.DateOfBirth.Value.Should().BeNull();
         result.DateOfBirth.Values.Should().HaveCount(0);
     }
@@ -53,12 +56,15 @@ public class RecordConsolidationSourceGeneratorTests
         );
 
         // ASSERT
+        result.FirstName.Should().NotBeNull();
         result.FirstName.Value.Should().Be("ExampleFirstName");
         result.FirstName.Values.Should().HaveCount(1);
 
+        result.LastName.Should().NotBeNull();
         result.LastName.Value.Should().Be("ExampleLastName");
         result.LastName.Values.Should().HaveCount(1);
 
+        result.DateOfBirth.Should().NotBeNull();
         result
             .DateOfBirth.Value.Should()
             .Be(new DateTimeOffset(2020, 6, 20, 0, 0, 0, TimeSpan.Zero));
@@ -75,12 +81,15 @@ public class RecordConsolidationSourceGeneratorTests
         );
 
         // ASSERT
+        result.FirstName.Should().NotBeNull();
         result.FirstName.Value.Should().BeNull();
         result.FirstName.Values.Should().HaveCount(1);
 
+        result.LastName.Should().NotBeNull();
         result.LastName.Value.Should().BeNull();
         result.LastName.Values.Should().HaveCount(1);
 
+        result.DateOfBirth.Should().NotBeNull();
         result.DateOfBirth.Value.Should().BeNull();
         result.DateOfBirth.Values.Should().HaveCount(1);
     }
