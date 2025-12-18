@@ -5,12 +5,11 @@ namespace SUI.SingleView.Application.Models;
 
 public record PersonModel
 {
-    // TODO: Group and break out these properties into their own structs/records
-    //  once we know more about the API response structure
-
     public string Name { get; init; } = string.Empty;
 
     public PersonalDetailsRecordV1Consolidated? PersonalDetails { get; init; }
+
+    public ChildrensServicesDetailsRecordV1Consolidated? ChildrensServicesDetails { get; set; }
 
     public CrimeDataRecordV1Consolidated? CrimeData { get; init; }
 
@@ -34,50 +33,15 @@ public record PersonModel
 
     public string PoliceMarkerDetails { get; init; } = string.Empty;
 
-    public string KeyWorker { get; init; } = string.Empty;
-
-    public string DutyContactEmail { get; init; } = string.Empty;
-
-    public string DutyContactPhone { get; init; } = string.Empty;
-
-    public List<string> TeamInvolvement { get; init; } = [];
-
     public List<ActivePlan> ActiveChildrensServicesPlans { get; init; } = [];
 
-    public List<Tuple<string, int>> Referrals6Months { get; init; } = [];
+    public ChildServicesReferralSummaries? ChildServicesReferralSummaries { get; init; }
 
-    public List<Tuple<string, int>> Referrals12Months { get; init; } = [];
+    public EducationDetailsRecordV1Consolidated? EducationDetails { get; init; }
 
-    public List<Tuple<string, int>> Referrals5Years { get; init; } = [];
-
-    public string EducationSetting { get; init; } = string.Empty;
-
-    public Address EducationContactAddress { get; init; } =
-        new() { AddressLine1 = "No known address" };
-
-    public string EducationContactPhone { get; init; } = string.Empty;
+    public EducationAttendanceSummaries? EducationAttendanceSummaries { get; init; }
 
     public List<ActivePlan> ActiveEducationPlans { get; init; } = [];
-
-    public string CurrentAcademicTermAttendance { get; init; } = string.Empty;
-
-    public string CurrentAcademicTermUnauthorisedAbsence { get; init; } = string.Empty;
-
-    public string CurrentAcademicTermSuspensions { get; init; } = string.Empty;
-
-    public string CurrentAcademicTermExclusions { get; init; } = string.Empty;
-
-    public string CurrentAcademicTermSchoolMoves { get; init; } = string.Empty;
-
-    public string LastAcademicYearAttendance { get; init; } = string.Empty;
-
-    public string LastAcademicYearUnauthorisedAbsence { get; init; } = string.Empty;
-
-    public string LastAcademicYearSuspensions { get; init; } = string.Empty;
-
-    public string LastAcademicYearExclusions { get; init; } = string.Empty;
-
-    public string LastAcademicYearSchoolMoves { get; init; } = string.Empty;
 
     #region HealthProperties
 

@@ -1,3 +1,4 @@
+@using SUI.Transfer.API.Client
 @model DataView
 
 <h2 class="govuk-heading-l">Children's Social Care</h2>
@@ -7,19 +8,31 @@
     <tbody class="govuk-table__body">
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Key worker</th>
-        <td class="govuk-table__cell">@Model.PersonModel!.KeyWorker</td>
+        <td class="govuk-table__cell">@Model.PersonModel!.ChildrensServicesDetails?.KeyWorker?.Value</td>
     </tr>
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Duty contact details</th>
         <td class="govuk-table__cell">
-            @Model.PersonModel.DutyContactEmail
-            <br/>
-            @Model.PersonModel.DutyContactPhone
+            @{
+                var dutyContactDetails = Model.PersonModel.ChildrensServicesDetails?.DutyContactDetails?.Value;
+                if (dutyContactDetails != null)
+                {
+                    @Html.DisplayFor(_ => dutyContactDetails, "StringList")
+                }
+            }
         </td>
     </tr>
     <tr class="govuk-table__row">
         <th scope="row" class="govuk-table__header">Team involvement</th>
-        <td class="govuk-table__cell">@Html.DisplayFor(x => x.PersonModel!.TeamInvolvement, "StringList")</td>
+        <td class="govuk-table__cell">
+            @{
+                var teamInvolvement = Model.PersonModel.ChildrensServicesDetails?.TeamInvolvement?.Value;
+                if (teamInvolvement != null)
+                {
+                    @Html.DisplayFor(_ => teamInvolvement, "StringList")
+                }
+            }
+        </td>
     </tr>
     </tbody>
 </table>
@@ -49,11 +62,11 @@
     <govuk-tabs-item id="past-six-months" label="Past 6 months">
         <table class="govuk-table">
             <tbody class="govuk-table__body">
-            @foreach (var relationship in Model.PersonModel.Referrals6Months)
+            @foreach (var relationship in Model.PersonModel.ChildServicesReferralSummaries?.Past6Months?.OfType<ChildServicesReferralSummary>() ?? [])
             {
                 <tr class="govuk-table__row">
-                    <th class="govuk-table__header">@relationship.Item1</th>
-                    <td class="govuk-table__cell">@relationship.Item2</td>
+                    <th class="govuk-table__header">@relationship.ReferralType</th>
+                    <td class="govuk-table__cell">@relationship.Count</td>
                 </tr>
             }
             </tbody>
@@ -62,11 +75,11 @@
     <govuk-tabs-item id="past-twelve-months" label="Past 12 months">
         <table class="govuk-table">
             <tbody class="govuk-table__body">
-            @foreach (var relationship in Model.PersonModel.Referrals12Months)
+            @foreach (var relationship in Model.PersonModel.ChildServicesReferralSummaries?.Past12Months?.OfType<ChildServicesReferralSummary>() ?? [])
             {
                 <tr class="govuk-table__row">
-                    <th class="govuk-table__header">@relationship.Item1</th>
-                    <td class="govuk-table__cell">@relationship.Item2</td>
+                    <th class="govuk-table__header">@relationship.ReferralType</th>
+                    <td class="govuk-table__cell">@relationship.Count</td>
                 </tr>
             }
             </tbody>
@@ -75,11 +88,11 @@
     <govuk-tabs-item id="past-five-years" label="Past 5 years">
         <table class="govuk-table">
             <tbody class="govuk-table__body">
-            @foreach (var relationship in Model.PersonModel.Referrals5Years)
+            @foreach (var relationship in Model.PersonModel.ChildServicesReferralSummaries?.Past5Years?.OfType<ChildServicesReferralSummary>() ?? [])
             {
                 <tr class="govuk-table__row">
-                    <th class="govuk-table__header">@relationship.Item1</th>
-                    <td class="govuk-table__cell">@relationship.Item2</td>
+                    <th class="govuk-table__header">@relationship.ReferralType</th>
+                    <td class="govuk-table__cell">@relationship.Count</td>
                 </tr>
             }
             </tbody>
