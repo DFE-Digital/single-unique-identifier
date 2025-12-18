@@ -10,7 +10,7 @@ public class QueryProvidersService(
     IBuildCustodianRequestService buildCustodianRequestService,
     ILogger<QueryProvidersService> logger,
     IMaskUrlService maskUrlService,
-    IPolicyEnforcementPoint pep
+    IPolicyEnforcementPoint pepService
 ) : IQueryProvidersService
 {
     public async Task<Result<IReadOnlyList<SearchResultItem>>> QueryProvidersAsync(
@@ -46,7 +46,7 @@ public class QueryProvidersService(
                 Mode: "EXISTENCE"
             );
 
-            var decision = await pep.EvaluateDsaAsync(request);
+            var decision = await pepService.EvaluateDsaAsync(request);
 
             if (decision.IsAllowed)
             {
