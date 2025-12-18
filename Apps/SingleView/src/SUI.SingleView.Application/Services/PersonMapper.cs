@@ -17,6 +17,7 @@ public class PersonMapper : IPersonMapper
             .ConsolidatedData
             .ChildrensServicesDetailsRecord;
         var educationDetails = conformedData.ConsolidatedData.EducationDetailsRecord;
+        var healthData = conformedData.ConsolidatedData.HealthDataRecord;
         var crimeData = conformedData.ConsolidatedData.CrimeDataRecord;
 
         var personName = $"{personalDetails?.FirstName?.Value} {personalDetails?.LastName?.Value}";
@@ -38,19 +39,9 @@ public class PersonMapper : IPersonMapper
             EducationDetails = educationDetails,
             EducationAttendanceSummaries = conformedData.EducationAttendanceSummaries,
             ActiveEducationPlans = [], // TODO: SUI-1284
-            RegisteredGpName = "Dr E Smith",
-            RegisteredGpContactAddress = new Address()
-            {
-                AddressLine1 = "Duke Medical Centre",
-                AddressLine2 = "28 Talbot Road",
-                Town = "Sheffield",
-                Postcode = "S2 2TD",
-            },
-            RegisteredGpContactPhone = "0114 272 2100",
-            CamhsContactPhone = "01422 345926",
+            HealthData = healthData,
             ActiveHealthPlans = [], // TODO: SUI-1284
-            HealthAttendanceSummary12Month = new Tuple<int, int, int, int>(3, 0, 0, 1),
-            HealthAttendanceSummary5Year = new Tuple<int, int, int, int>(8, 0, 0, 3),
+            HealthAttendanceSummaries = conformedData.HealthAttendanceSummaries,
             ServicesKnownTo = ["Youth justice service (YJS)", "Police"],
             LastPoliceProtectionPowerEvent = "none",
             MissingEpisodesLast6Months = 5,
