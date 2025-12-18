@@ -57,9 +57,7 @@ public record PersonModel
 
     public List<string> ServicesKnownTo { get; init; } = [];
 
-    public string LastPoliceProtectionPowerEvent { get; init; } = string.Empty;
-
-    public int MissingEpisodesLast6Months { get; init; } = 0;
+    public int? MissingEpisodesLast6Months { get; init; } = 0;
 
     public List<string> SummaryOfRiskLast5Years { get; init; } = [];
 
