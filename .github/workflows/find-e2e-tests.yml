@@ -40,7 +40,7 @@ jobs:
         run: azurite --silent &
 
       - name: Build Solution
-        run: dotnet build Apps/Find/SUI.Find.sln
+        run: dotnet build Apps/Find/SUI.Find.slnx
 
       - name: Start Custodian Simulator
         run: func start --project Apps/Find/src/SUI.Find.CustodianSimulation/SUI.Find.CustodianSimulation.csproj --port 7082 &
