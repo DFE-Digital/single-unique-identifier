@@ -53,12 +53,12 @@ jobs:
              Apps/Find/src/SUI.Find.FindApi/local.settings.json
 
       - name: Start Custodian Simulator
-        run: func start --project Apps/Find/src/SUI.Find.CustodianSimulation/SUI.Find.CustodianSimulation.csproj --port 7082 &
-        working-directory: ${{ github.workspace }}
+        run: func start --port 7082 &
+        working-directory: Apps/Find/src/SUI.Find.CustodianSimulation
 
       - name: Start Find API
-        run: func start --project Apps/Find/src/SUI.Find.FindApi/SUI.Find.FindApi.csproj --port 7182 &
-        working-directory: ${{ github.workspace }}
+        run: func start --port 7182 &
+        working-directory: Apps/Find/src/SUI.Find.FindApi
 
       - name: Wait for Find API to start
         run: |
