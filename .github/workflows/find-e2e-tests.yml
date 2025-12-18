@@ -37,7 +37,7 @@ jobs:
         run: npm install -g azurite
 
       - name: run azurite
-        run: azurite --silent
+        run: azurite --silent &
 
       - name: Build Solution
         run: dotnet build Apps/Find/SUI.Find.sln
