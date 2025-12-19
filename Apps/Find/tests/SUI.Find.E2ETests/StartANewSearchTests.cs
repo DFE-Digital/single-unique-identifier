@@ -2,9 +2,10 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Azure;
+using Azure.Data.Tables;
 using Polly;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Models;
 
 namespace SUI.Find.E2ETests;
@@ -17,7 +18,8 @@ namespace SUI.Find.E2ETests;
 [Trait("Category", "E2E")]
 public class StartANewSearchTests(FunctionTestFixture fixture)
     : E2ETestBase(fixture),
-        IClassFixture<FunctionTestFixture>
+        IClassFixture<FunctionTestFixture>,
+        IAsyncLifetime
 {
     private readonly FunctionTestFixture _fixture = fixture;
 
@@ -31,6 +33,36 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
         "fetch-record.read",
     ];
     private const string ValidEncryptedSuid = "Cy13hyZL-4LSIwVy50p-Hg"; // Test id that exists in mock data
+
+    public async Task InitializeAsync()
+    {
+        await ResetAzureTablesAsync([
+            "ResultsUrlMappings",
+            "TestHubNameHistory",
+            "TestHubNameInstances",
+        ]);
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    private static async Task ResetAzureTablesAsync(string[] tableNames)
+    {
+        var service = new TableServiceClient("UseDevelopmentStorage=true");
+
+        foreach (var table in tableNames)
+        {
+            try
+            {
+                await service.DeleteTableAsync(table);
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                // Table didn't exist; ignore
+            }
+
+            await service.CreateTableIfNotExistsAsync(table);
+        }
+    }
 
     [Fact]
     public async Task Should_PersistSearchData_When_OrchestrationCompletes()
