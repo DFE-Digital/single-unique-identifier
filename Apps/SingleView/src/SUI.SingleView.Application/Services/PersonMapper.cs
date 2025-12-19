@@ -6,7 +6,7 @@ namespace SUI.SingleView.Application.Services;
 
 public class PersonMapper : IPersonMapper
 {
-    public PersonModel Map(string nhsNumber, ConformedData conformedData) // rs-todo: tests
+    public PersonModel Map(string nhsNumber, ConformedData conformedData)
     {
         var personalDetails = conformedData.ConsolidatedData.PersonalDetailsRecord;
         var childrensServicesDetails = conformedData
@@ -16,8 +16,9 @@ public class PersonMapper : IPersonMapper
         var healthData = conformedData.ConsolidatedData.HealthDataRecord;
         var crimeData = conformedData.ConsolidatedData.CrimeDataRecord;
 
-        var personName = $"{personalDetails?.FirstName?.Value} {personalDetails?.LastName?.Value}";
-        personName = string.IsNullOrWhiteSpace(personName) ? "Unknown name" : personName;
+        var personName =
+            $"{personalDetails?.FirstName?.Value} {personalDetails?.LastName?.Value}".Trim();
+        personName = string.IsNullOrEmpty(personName) ? "Unknown name" : personName;
 
         return new PersonModel
         {
@@ -33,8 +34,8 @@ public class PersonMapper : IPersonMapper
             Tags = (
                 conformedData.StatusFlags?.Select(flag => flag.ToFriendlyEnumString()) ?? []
             ).ToList(),
-            PoliceMarker = !string.IsNullOrEmpty(crimeData?.PoliceMarkerDetails?.Value),
-            PoliceMarkerDetails = crimeData?.PoliceMarkerDetails?.Value ?? "",
+            PoliceMarker = !string.IsNullOrWhiteSpace(crimeData?.PoliceMarkerDetails?.Value),
+            PoliceMarkerDetails = crimeData?.PoliceMarkerDetails?.Value?.Trim() ?? "",
 
             ChildServicesReferralSummaries = conformedData.ChildServicesReferralSummaries,
             EducationAttendanceSummaries = conformedData.EducationAttendanceSummaries,

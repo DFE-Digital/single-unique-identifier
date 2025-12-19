@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Bogus" />
+    <PackageReference Include="FluentAssertions" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
