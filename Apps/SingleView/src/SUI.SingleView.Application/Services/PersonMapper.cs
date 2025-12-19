@@ -1,4 +1,5 @@
 ﻿using SUI.SingleView.Application.Models;
+using SUI.SingleView.Domain.Extensions;
 using SUI.Transfer.API.Client;
 
 namespace SUI.SingleView.Application.Services;
@@ -29,7 +30,9 @@ public class PersonMapper : IPersonMapper
             HealthData = healthData,
             CrimeData = crimeData,
 
-            Tags = (conformedData.StatusFlags?.Select(x => x.ToString()) ?? []).ToList(),
+            Tags = (
+                conformedData.StatusFlags?.Select(flag => flag.ToFriendlyEnumString()) ?? []
+            ).ToList(),
             PoliceMarker = !string.IsNullOrEmpty(crimeData?.PoliceMarkerDetails?.Value),
             PoliceMarkerDetails = crimeData?.PoliceMarkerDetails?.Value ?? "",
 
