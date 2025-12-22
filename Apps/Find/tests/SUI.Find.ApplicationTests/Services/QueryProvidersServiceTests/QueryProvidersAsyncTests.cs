@@ -5,8 +5,8 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.Domain.Models;
-using SUI.Find.Domain.Models.Policy;
 
+// TODO Implement tests with PEP service
 
 namespace SUI.Find.ApplicationTests.Services.QueryProvidersServiceTests;
 
@@ -15,7 +15,7 @@ public class QueryProvidersAsyncTests
     private readonly IBuildCustodianRequestService _mockBuildRequest = Substitute.For<IBuildCustodianRequestService>();
     private readonly ILogger<QueryProvidersService> _mockLogger = Substitute.For<ILogger<QueryProvidersService>>();
     private readonly IMaskUrlService _mockMaskUrlService = Substitute.For<IMaskUrlService>();
-    private readonly IPolicyEnforcementService _mockPep = Substitute.For<IPolicyEnforcementService>();
+    // private readonly IPolicyEnforcementService _mockPep = Substitute.For<IPolicyEnforcementService>();
     private readonly QueryProvidersService _sut;
 
     public QueryProvidersAsyncTests()
@@ -23,8 +23,8 @@ public class QueryProvidersAsyncTests
         _sut = new QueryProvidersService(
             _mockBuildRequest,
             _mockLogger,
-            _mockMaskUrlService,
-            _mockPep
+            _mockMaskUrlService
+            // _mockPep
         );
     }
 
@@ -122,8 +122,8 @@ public class QueryProvidersAsyncTests
         _mockBuildRequest.GetSearchResultItemsFromCustodianAsync(Arg.Any<BuildCustodianRequestDto>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<SearchResultItem>>.Ok(searchItems));
 
-        _mockPep.EvaluateDsaAsync(Arg.Any<PolicyCheckRequest>())
-            .Returns(new PolicyDecision(true, "Allowed", "v1"));
+        // _mockPep.EvaluateDsaAsync(Arg.Any<PolicyCheckRequest>())
+        //     .Returns(new PolicyDecision(true, "Allowed", "v1"));
 
         var maskedItems = new List<SearchResultItem> { new("SystemA", "Provider A", "Type1", "/v1/records/masked-id") };
 
@@ -155,11 +155,11 @@ public class QueryProvidersAsyncTests
         _mockBuildRequest.GetSearchResultItemsFromCustodianAsync(Arg.Any<BuildCustodianRequestDto>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<SearchResultItem>>.Ok(items));
 
-        _mockPep.EvaluateDsaAsync(Arg.Is<PolicyCheckRequest>(r => r.DataType == "ALLOWED_TYPE"))
-            .Returns(new PolicyDecision(true, "Allowed", "v1"));
-
-        _mockPep.EvaluateDsaAsync(Arg.Is<PolicyCheckRequest>(r => r.DataType == "DENIED_TYPE"))
-            .Returns(new PolicyDecision(false, "Denied", "v1"));
+        // _mockPep.EvaluateDsaAsync(Arg.Is<PolicyCheckRequest>(r => r.DataType == "ALLOWED_TYPE"))
+        //     .Returns(new PolicyDecision(true, "Allowed", "v1"));
+        //
+        // _mockPep.EvaluateDsaAsync(Arg.Is<PolicyCheckRequest>(r => r.DataType == "DENIED_TYPE"))
+        //     .Returns(new PolicyDecision(false, "Denied", "v1"));
 
         _mockMaskUrlService.CreateAsync(Arg.Any<List<SearchResultItem>>(), input, Arg.Any<CancellationToken>())
             .Returns(callInfo => callInfo.Arg<IEnumerable<SearchResultItem>>().ToList());
@@ -182,37 +182,37 @@ public class QueryProvidersAsyncTests
             Arg.Any<CancellationToken>()
         );
     }
-
-    [Fact]
-    public async Task QueryProvidersAsync_ReturnsEmpty_WhenAllRecordsDenied()
-    {
-        // Arrange
-        var input = new QueryProviderInput("client-id-1", "job-id-1", "invocation-id", "suid-123", MockProvider());
-        var deniedItem = new SearchResultItem("SysA", "ProvA", "DENIED_TYPE", "url2");
-
-        var items = new List<SearchResultItem> { deniedItem };
-
-        _mockBuildRequest.GetSearchResultItemsFromCustodianAsync(Arg.Any<BuildCustodianRequestDto>(), Arg.Any<CancellationToken>())
-            .Returns(Result<List<SearchResultItem>>.Ok(items));
-
-        _mockPep.EvaluateDsaAsync(Arg.Any<PolicyCheckRequest>())
-            .Returns(new PolicyDecision(false, "Denied", "v1"));
-
-        _mockMaskUrlService.CreateAsync(Arg.Any<List<SearchResultItem>>(), input, Arg.Any<CancellationToken>())
-            .Returns(new List<SearchResultItem>([]));
-
-        // Act
-        var result = await _sut.QueryProvidersAsync(input, CancellationToken.None);
-
-        // Assert
-        Assert.True(result.Success);
-        Assert.Empty(result.Value);
-
-        await _mockMaskUrlService.Received(1).CreateAsync(
-            Arg.Is<List<SearchResultItem>>(list => !list.Any()),
-            input,
-            Arg.Any<CancellationToken>()
-        );
-    }
+    // TODO will be implemented when fetch a record uses the PEP service
+    // [Fact]
+    // public async Task QueryProvidersAsync_ReturnsEmpty_WhenAllRecordsDenied()
+    // {
+    //     // Arrange
+    //     var input = new QueryProviderInput("client-id-1", "job-id-1", "invocation-id", "suid-123", MockProvider());
+    //     var deniedItem = new SearchResultItem("SysA", "ProvA", "DENIED_TYPE", "url2");
+    //
+    //     var items = new List<SearchResultItem> { deniedItem };
+    //
+    //     _mockBuildRequest.GetSearchResultItemsFromCustodianAsync(Arg.Any<BuildCustodianRequestDto>(), Arg.Any<CancellationToken>())
+    //         .Returns(Result<List<SearchResultItem>>.Ok(items));
+    //
+    //     _mockPep.EvaluateDsaAsync(Arg.Any<PolicyCheckRequest>())
+    //         .Returns(new PolicyDecision(false, "Denied", "v1"));
+    //
+    //     _mockMaskUrlService.CreateAsync(Arg.Any<List<SearchResultItem>>(), input, Arg.Any<CancellationToken>())
+    //         .Returns(new List<SearchResultItem>([]));
+    //
+    //     // Act
+    //     var result = await _sut.QueryProvidersAsync(input, CancellationToken.None);
+    //
+    //     // Assert
+    //     Assert.True(result.Success);
+    //     Assert.Empty(result.Value);
+    //
+    //     await _mockMaskUrlService.Received(1).CreateAsync(
+    //         Arg.Is<List<SearchResultItem>>(list => !list.Any()),
+    //         input,
+    //         Arg.Any<CancellationToken>()
+    //     );
+    // }
 }
 
