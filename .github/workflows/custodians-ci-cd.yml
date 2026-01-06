@@ -40,7 +40,7 @@ jobs:
     with:
       directory_name: Apps/StubCustodians
       
-  deploy-singleview:
+  deploy-StubCustodians:
     name: Custodians - Deploy Web App
     if: |
       (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
