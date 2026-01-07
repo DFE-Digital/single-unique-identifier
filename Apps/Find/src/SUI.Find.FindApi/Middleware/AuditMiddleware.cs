@@ -122,7 +122,7 @@ public class AuditMiddleware(
         }
     }
 
-    private async Task<string> GetRequestSuid(HttpRequestData httpReq)
+    private static async Task<string> GetRequestSuid(HttpRequestData httpReq)
     {
         var requestBody = await httpReq.ReadAsStringAsync();
         var request = JsonSerializer.Deserialize<StartSearchRequest>(
