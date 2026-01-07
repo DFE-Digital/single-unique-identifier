@@ -23,18 +23,18 @@ public class CrossOrganizationPolicyTests
         // Arrange - HEALTH-01's policy allows LOCAL_AUTHORITY to see health records
         var policy = new DsaPolicyDefinition
         {
-            Defaults = new List<DsaRuleDefinition>
-            {
-                new()
+            Defaults =
+            [
+                new DsaRuleDefinition
                 {
                     Effect = "allow",
-                    Modes = new List<string> { "EXISTENCE" },
-                    DataTypes = new List<string> { "mental_health_ptr" },
-                    DestOrgTypes = new List<string> { "LOCAL_AUTHORITY", "HEALTH", "POLICE" },
-                    Purposes = new List<string> { "SAFEGUARDING", "CHILD_PROTECTION" },
+                    Modes = ["EXISTENCE"],
+                    DataTypes = ["mental_health_ptr"],
+                    DestOrgTypes = ["LOCAL_AUTHORITY", "HEALTH", "POLICE"],
+                    Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
                     ValidFrom = DateTimeOffset.Parse("2025-01-01T00:00:00Z"),
                 },
-            },
+            ],
         };
 
         var request = new PolicyDecisionRequest(
@@ -59,24 +59,18 @@ public class CrossOrganizationPolicyTests
         // Arrange - LOCAL-AUTHORITY-01's policy allows HEALTH to see CSC records
         var policy = new DsaPolicyDefinition
         {
-            Defaults = new List<DsaRuleDefinition>
-            {
-                new()
+            Defaults =
+            [
+                new DsaRuleDefinition
                 {
                     Effect = "allow",
-                    Modes = new List<string> { "EXISTENCE" },
-                    DataTypes = new List<string> { "children_social_care_ptr" },
-                    DestOrgTypes = new List<string>
-                    {
-                        "LOCAL_AUTHORITY",
-                        "EDUCATION",
-                        "HEALTH",
-                        "POLICE",
-                    },
-                    Purposes = new List<string> { "SAFEGUARDING", "CHILD_PROTECTION" },
+                    Modes = ["EXISTENCE"],
+                    DataTypes = ["children_social_care_ptr"],
+                    DestOrgTypes = ["LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE"],
+                    Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
                     ValidFrom = DateTimeOffset.Parse("2025-01-01T00:00:00Z"),
                 },
-            },
+            ],
         };
 
         var request = new PolicyDecisionRequest(
@@ -101,18 +95,18 @@ public class CrossOrganizationPolicyTests
         // Arrange - POLICE-01's policy does NOT allow EDUCATION to see police records
         var policy = new DsaPolicyDefinition
         {
-            Defaults = new List<DsaRuleDefinition>
-            {
-                new()
+            Defaults =
+            [
+                new DsaRuleDefinition
                 {
                     Effect = "allow",
-                    Modes = new List<string> { "EXISTENCE" },
-                    DataTypes = new List<string> { "police_ptr" },
-                    DestOrgTypes = new List<string> { "POLICE" }, // Only POLICE orgs
-                    Purposes = new List<string> { "SAFEGUARDING", "CRIME_PREVENTION" },
+                    Modes = ["EXISTENCE"],
+                    DataTypes = ["police_ptr"],
+                    DestOrgTypes = ["POLICE"], // Only POLICE orgs
+                    Purposes = ["SAFEGUARDING", "CRIME_PREVENTION"],
                     ValidFrom = DateTimeOffset.Parse("2025-01-01T00:00:00Z"),
                 },
-            },
+            ],
         };
 
         var request = new PolicyDecisionRequest(
@@ -137,32 +131,32 @@ public class CrossOrganizationPolicyTests
         // Arrange - Police has exception allowing LOCAL-AUTHORITY-01 access
         var policy = new DsaPolicyDefinition
         {
-            Defaults = new List<DsaRuleDefinition>
-            {
-                new()
+            Defaults =
+            [
+                new DsaRuleDefinition
                 {
                     Effect = "allow",
-                    Modes = new List<string> { "EXISTENCE" },
-                    DataTypes = new List<string> { "crime_justice_ptr" },
-                    DestOrgTypes = new List<string> { "POLICE" }, // Only POLICE by default
-                    Purposes = new List<string> { "SAFEGUARDING" },
+                    Modes = ["EXISTENCE"],
+                    DataTypes = ["crime_justice_ptr"],
+                    DestOrgTypes = ["POLICE"], // Only POLICE by default
+                    Purposes = ["SAFEGUARDING"],
                 },
-            },
-            Exceptions = new List<DsaRuleDefinition>
-            {
-                new()
+            ],
+            Exceptions =
+            [
+                new DsaRuleDefinition
                 {
                     Effect = "allow",
-                    Modes = new List<string> { "EXISTENCE", "CONTENT" },
-                    DataTypes = new List<string> { "crime_justice_ptr", "crime_justice_record" },
-                    DestOrgIds = new List<string> { "LOCAL-AUTHORITY-01" }, // Specific org exception
-                    DestOrgTypes = new List<string>(), // Empty is fine when using destOrgIds
-                    Purposes = new List<string> { "SAFEGUARDING", "CHILD_PROTECTION" },
+                    Modes = ["EXISTENCE", "CONTENT"],
+                    DataTypes = ["crime_justice_ptr", "crime_justice_record"],
+                    DestOrgIds = ["LOCAL-AUTHORITY-01"], // Specific org exception
+                    DestOrgTypes = [], // Empty is fine when using destOrgIds
+                    Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
                     ValidFrom = DateTimeOffset.Parse("2025-12-01T00:00:00Z"),
                     ValidUntil = DateTimeOffset.Parse("2026-03-01T00:00:00Z"),
                     Reason = "Timeboxed multi-agency safeguarding operation.",
                 },
-            },
+            ],
         };
 
         var request = new PolicyDecisionRequest(
