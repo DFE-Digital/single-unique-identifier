@@ -42,7 +42,12 @@ public class GetSearchStatusAsyncTests : BaseSearchServiceTests
         _client.GetInstanceAsync("unauth-job", true, Arg.Any<CancellationToken>()).Returns(meta);
         // Mock the ReadOrchestratorInput to return a different clientId
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
-        var policyData = new PolicyContext("different-client-id", []);
+        var policyData = new PolicyContext(
+            "different-client-id",
+            [],
+            "SAFEGUARDING",
+            "LOCAL_AUTHORITY"
+        );
         Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
@@ -65,7 +70,7 @@ public class GetSearchStatusAsyncTests : BaseSearchServiceTests
         };
         _client.GetInstanceAsync("auth-job", true, Arg.Any<CancellationToken>()).Returns(meta);
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
-        var policyData = new PolicyContext(ClientId, []);
+        var policyData = new PolicyContext(ClientId, [], "SAFEGUARDING", "LOCAL_AUTHORITY");
         Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 

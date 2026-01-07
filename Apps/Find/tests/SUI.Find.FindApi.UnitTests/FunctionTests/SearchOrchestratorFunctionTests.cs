@@ -33,7 +33,12 @@ public class SearchOrchestratorFunctionsTests
                 DateTime.UtcNow,
                 "invocation-123"
             ),
-            PolicyContext: new PolicyContext(ClientId: "test-client-1", ["scope1", "scope2"])
+            PolicyContext: new PolicyContext(
+                ClientId: "test-client-1",
+                ["scope1", "scope2"],
+                "SAFEGUARDING",
+                "LOCAL_AUTHORITY"
+            )
         );
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
         _mockContext.InstanceId.Returns("instance-123");
@@ -47,6 +52,8 @@ public class SearchOrchestratorFunctionsTests
                 OrgType = "Type A",
                 ProviderSystem = "System A",
                 ProviderName = "Provider Name 1",
+                RecordType = "RecordA",
+                DsaPolicy = new DsaPolicyDefinition(),
             },
             new()
             {
@@ -55,6 +62,8 @@ public class SearchOrchestratorFunctionsTests
                 OrgType = "Type B",
                 ProviderSystem = "System B",
                 ProviderName = "Provider Name 2",
+                RecordType = "RecordB",
+                DsaPolicy = new DsaPolicyDefinition(),
             },
         };
 
@@ -68,11 +77,11 @@ public class SearchOrchestratorFunctionsTests
 
         var result1 = new List<SearchResultItem>
         {
-            new("System A", "Provider Name 1", "Record", "http://url1"),
+            new("System A", "Provider Name 1", "RecordA", "http://url1"),
         };
         var result2 = new List<SearchResultItem>
         {
-            new("System B", "Provider Name 2", "Record", "http://url2"),
+            new("System B", "Provider Name 2", "RecordB", "http://url2"),
         };
 
         _mockContext
@@ -88,6 +97,20 @@ public class SearchOrchestratorFunctionsTests
                 "QueryProvidersFunction",
                 Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org2"),
                 Arg.Any<TaskOptions>()
+            )
+            .Returns(result2);
+
+        _mockContext
+            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                "FilterResultsByPolicyFunction",
+                Arg.Is<FilterResultsInput>(i => i.SourceOrgId == "org1" && i.Items.Count == 1)
+            )
+            .Returns(result1);
+
+        _mockContext
+            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                "FilterResultsByPolicyFunction",
+                Arg.Is<FilterResultsInput>(i => i.SourceOrgId == "org2" && i.Items.Count == 1)
             )
             .Returns(result2);
 
@@ -126,7 +149,12 @@ public class SearchOrchestratorFunctionsTests
                 DateTime.UtcNow,
                 "invocation-123"
             ),
-            PolicyContext: new PolicyContext(ClientId: "test-client-1", ["scope1", "scope2"])
+            PolicyContext: new PolicyContext(
+                ClientId: "test-client-1",
+                ["scope1", "scope2"],
+                "SAFEGUARDING",
+                "LOCAL_AUTHORITY"
+            )
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
@@ -165,7 +193,12 @@ public class SearchOrchestratorFunctionsTests
                 DateTime.UtcNow,
                 "invocation-123"
             ),
-            PolicyContext: new PolicyContext(ClientId: "test-client-1", ["scope1", "scope2"])
+            PolicyContext: new PolicyContext(
+                ClientId: "test-client-1",
+                ["scope1", "scope2"],
+                "SAFEGUARDING",
+                "LOCAL_AUTHORITY"
+            )
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);

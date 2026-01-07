@@ -79,6 +79,50 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
 
         var aggregatedResults = taskResultsList.SelectMany(r => r).ToList();
 
-        return aggregatedResults;
+        logger.LogInformation(
+            "Aggregated {Count} results before PEP filtering",
+            aggregatedResults.Count
+        );
+
+        var pepFilterTasks = new List<Task<IReadOnlyList<SearchResultItem>>>();
+
+        foreach (var provider in availableProviders)
+        {
+            var providerResults = aggregatedResults
+                .Where(r =>
+                    r.ProviderSystem == provider.ProviderSystem
+                    && r.RecordType == provider.RecordType
+                )
+                .ToList();
+
+            if (providerResults.Count == 0)
+                continue;
+
+            var filterInput = new FilterResultsInput(
+                provider.OrgId,
+                data.PolicyContext.ClientId,
+                data.PolicyContext.OrgType,
+                providerResults,
+                provider.DsaPolicy,
+                data.PolicyContext.Purpose
+            );
+
+            pepFilterTasks.Add(
+                context.CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                    "FilterResultsByPolicyFunction",
+                    filterInput
+                )
+            );
+        }
+
+        var filteredResultsList = await Task.WhenAll(pepFilterTasks);
+        var filteredResults = filteredResultsList.SelectMany(r => r).ToList();
+
+        logger.LogInformation(
+            "Filtered to {Count} results after PEP enforcement",
+            filteredResults.Count
+        );
+
+        return filteredResults;
     }
 }

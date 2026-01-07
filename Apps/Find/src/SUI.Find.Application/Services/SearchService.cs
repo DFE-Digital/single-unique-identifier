@@ -139,7 +139,12 @@ public class SearchService(
             correlationId
         );
 
-        var policyContext = new PolicyContext(clientId, scopes);
+        var policyContext = new PolicyContext(
+            clientId,
+            scopes,
+            "SAFEGUARDING", // TODO: Hard coded for now. Review later. Potentially pull it through the endpoint as part of the query.
+            encryptDefinition.Value.OrgType
+        );
 
         var orchestratorInput = new SearchOrchestratorInput(
             unencryptedPersonId.Value,
