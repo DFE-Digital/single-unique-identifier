@@ -19,32 +19,15 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
         var modeString = request.Mode == ShareMode.Existence ? "EXISTENCE" : "CONTENT";
         var dataType = MapRecordTypeToDataType(request.RecordType, request.Mode);
 
-        DsaRuleDefinition? matchedRule = null;
-        var isException = false;
+        var matchedRule = dsaPolicy.Exceptions.FirstOrDefault(exception =>
+            RuleMatches(exception, request, destOrgType, modeString, dataType, now)
+        );
 
-        foreach (
-            var exception in dsaPolicy.Exceptions.Where(exception =>
-                RuleMatches(exception, request, destOrgType, modeString, dataType, now)
-            )
-        )
-        {
-            matchedRule = exception;
-            isException = true;
-            break;
-        }
+        var isException = matchedRule is not null;
 
-        if (matchedRule == null)
-        {
-            foreach (
-                var defaultRule in dsaPolicy.Defaults.Where(defaultRule =>
-                    RuleMatches(defaultRule, request, destOrgType, modeString, dataType, now)
-                )
-            )
-            {
-                matchedRule = defaultRule;
-                break;
-            }
-        }
+        matchedRule ??= dsaPolicy.Defaults.FirstOrDefault(defaultRule =>
+            RuleMatches(defaultRule, request, destOrgType, modeString, dataType, now)
+        );
 
         if (matchedRule == null)
         {
@@ -70,6 +53,7 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
         var ruleType = isException ? "exception" : "default";
         var reason = $"Matched {ruleType} rule: effect={matchedRule.Effect}, dataType={dataType}";
 
+        // [Change to audit log entry]
         logger.LogInformation(
             "Policy decision for {SourceOrg} -> {DestOrg}: {Decision}. Reason: {Reason}",
             request.SourceOrgId,
