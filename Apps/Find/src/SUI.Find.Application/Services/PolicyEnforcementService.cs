@@ -20,27 +20,29 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
         var dataType = MapRecordTypeToDataType(request.RecordType, request.Mode);
 
         DsaRuleDefinition? matchedRule = null;
-        bool isException = false;
+        var isException = false;
 
-        foreach (var exception in dsaPolicy.Exceptions)
+        foreach (
+            var exception in dsaPolicy.Exceptions.Where(exception =>
+                RuleMatches(exception, request, destOrgType, modeString, dataType, now)
+            )
+        )
         {
-            if (RuleMatches(exception, request, destOrgType, modeString, dataType, now))
-            {
-                matchedRule = exception;
-                isException = true;
-                break;
-            }
+            matchedRule = exception;
+            isException = true;
+            break;
         }
 
         if (matchedRule == null)
         {
-            foreach (var defaultRule in dsaPolicy.Defaults)
+            foreach (
+                var defaultRule in dsaPolicy.Defaults.Where(defaultRule =>
+                    RuleMatches(defaultRule, request, destOrgType, modeString, dataType, now)
+                )
+            )
             {
-                if (RuleMatches(defaultRule, request, destOrgType, modeString, dataType, now))
-                {
-                    matchedRule = defaultRule;
-                    break;
-                }
+                matchedRule = defaultRule;
+                break;
             }
         }
 
@@ -119,7 +121,7 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
         return filtered;
     }
 
-    private bool RuleMatches(
+    private static bool RuleMatches(
         DsaRuleDefinition rule,
         PolicyDecisionRequest request,
         string destOrgType,
@@ -180,7 +182,7 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
         return true;
     }
 
-    private string MapRecordTypeToDataType(string recordType, ShareMode mode)
+    private static string MapRecordTypeToDataType(string recordType, ShareMode mode)
     {
         // Extract the specific record type (part after the first dot if present)
         // e.g., "local-authority.children-social-care" → "children-social-care"
