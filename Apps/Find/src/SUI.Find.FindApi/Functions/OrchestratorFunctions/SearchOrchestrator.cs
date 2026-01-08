@@ -56,11 +56,13 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             return new List<SearchResultItem>();
         }
 
-        var tasks = new List<Task<IReadOnlyList<SearchResultItem>>>(availableProviders.Count);
+        var queryProviderTasks = new List<Task<IReadOnlyList<SearchResultItem>>>(
+            availableProviders.Count
+        );
 
         foreach (var provider in availableProviders)
         {
-            tasks.Add(
+            queryProviderTasks.Add(
                 context.CallActivityAsync<IReadOnlyList<SearchResultItem>>(
                     "QueryProvidersFunction",
                     new QueryProviderInput(
@@ -75,20 +77,22 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             );
         }
 
-        var taskResultsList = await Task.WhenAll(tasks);
+        var queryProviderTaskResultsList = await Task.WhenAll(queryProviderTasks);
 
-        var aggregatedResults = taskResultsList.SelectMany(r => r).ToList();
+        var aggregatedQueryProviderResults = queryProviderTaskResultsList
+            .SelectMany(r => r)
+            .ToList();
 
         logger.LogInformation(
             "Aggregated {Count} results before PEP filtering",
-            aggregatedResults.Count
+            aggregatedQueryProviderResults.Count
         );
 
         var pepFilterTasks = new List<Task<IReadOnlyList<SearchResultItem>>>();
 
         foreach (var provider in availableProviders)
         {
-            var providerResults = aggregatedResults
+            var providerResults = aggregatedQueryProviderResults
                 .Where(r =>
                     r.ProviderSystem == provider.ProviderSystem
                     && r.RecordType == provider.RecordType
