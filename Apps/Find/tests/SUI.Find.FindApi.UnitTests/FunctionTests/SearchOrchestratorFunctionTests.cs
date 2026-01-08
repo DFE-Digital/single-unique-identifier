@@ -103,14 +103,16 @@ public class SearchOrchestratorFunctionsTests
         _mockContext
             .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Is<FilterResultsInput>(i => i.SourceOrgId == "org1" && i.Items.Count == 1)
+                Arg.Is<FilterResultsInput>(i => i.SourceOrgId == "org1" && i.Items.Count == 1),
+                Arg.Any<TaskOptions>()
             )
             .Returns(result1);
 
         _mockContext
             .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Is<FilterResultsInput>(i => i.SourceOrgId == "org2" && i.Items.Count == 1)
+                Arg.Is<FilterResultsInput>(i => i.SourceOrgId == "org2" && i.Items.Count == 1),
+                Arg.Any<TaskOptions>()
             )
             .Returns(result2);
 
