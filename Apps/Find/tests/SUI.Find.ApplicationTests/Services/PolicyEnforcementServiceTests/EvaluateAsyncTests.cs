@@ -1,17 +1,17 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUI.Find.Application.Abstractions;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
-using Xunit;
 
 namespace SUI.Find.ApplicationTests.Services.PolicyEnforcementServiceTests;
 
-public class CrossOrganizationPolicyTests
+public class EvaluateAsyncTests
 {
     private readonly PolicyEnforcementService _sut;
 
-    public CrossOrganizationPolicyTests()
+    public EvaluateAsyncTests()
     {
         var logger = Substitute.For<ILogger<PolicyEnforcementService>>();
         _sut = new PolicyEnforcementService(logger);
@@ -51,6 +51,7 @@ public class CrossOrganizationPolicyTests
         // Assert
         Assert.True(result.IsAllowed);
         Assert.Contains("allow", result.Reason);
+        Assert.Contains("default", result.Reason);
     }
 
     [Fact]
@@ -172,6 +173,7 @@ public class CrossOrganizationPolicyTests
 
         // Assert
         Assert.True(result.IsAllowed);
+        Assert.Contains("allow", result.Reason);
         Assert.Contains("exception", result.Reason);
     }
 }
