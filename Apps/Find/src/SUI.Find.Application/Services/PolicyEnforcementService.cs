@@ -5,8 +5,10 @@ using SUI.Find.Application.Models;
 
 namespace SUI.Find.Application.Services;
 
-public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
-    : IPolicyEnforcementService
+public class PolicyEnforcementService(
+    ILogger<PolicyEnforcementService> logger,
+    TimeProvider timeProvider
+) : IPolicyEnforcementService
 {
     public Task<PolicyDecisionResult> EvaluateAsync(
         PolicyDecisionRequest request,
@@ -15,7 +17,7 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
         CancellationToken cancellationToken = default
     )
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = timeProvider.GetUtcNow();
         var modeString = request.Mode == ShareMode.Existence ? "EXISTENCE" : "CONTENT";
         var dataType = MapRecordTypeToDataType(request.RecordType, request.Mode);
 

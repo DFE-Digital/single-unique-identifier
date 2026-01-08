@@ -26,6 +26,9 @@ builder
     .Services.AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
+// .NET services
+builder.Services.AddSingleton(TimeProvider.System);
+
 // Third-party and framework services
 builder.Services.AddHealthChecks();
 builder.Services.AddLogging();
