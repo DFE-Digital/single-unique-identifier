@@ -166,14 +166,18 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
         return true;
     }
 
+    // This is the only mapping logic between record types and data types where it is not purely configuration checking.
+    // It is based on the naming conventions we have for mock data types we have created.
+    // Very likely this will need to be revisited in the future if we have a more formal mapping or different naming conventions.
     private static string MapRecordTypeToDataType(string recordType, ShareMode mode)
     {
         // Extract the specific record type (part after the first dot if present)
         // e.g., "local-authority.children-social-care" → "children-social-care"
         //       "health.mental-health" → "mental-health"
         //       "crime-justice" → "crime-justice" (no change if no dot)
+        // This is because of the mock data type naming convention we have. Liable to change in the future.
         var specificType = recordType.Contains('.')
-            ? recordType.Substring(recordType.IndexOf('.') + 1)
+            ? recordType[(recordType.IndexOf('.') + 1)..]
             : recordType;
 
         // Normalize: replace dots and dashes with underscores
