@@ -84,7 +84,7 @@ public class AuditMiddleware(
                 Timestamp = DateTime.UtcNow,
                 CorrelationId = context.InvocationId,
                 ServiceName = "AuditMiddleware",
-                EventName = "HTTP_REQUEST",
+                EventName = ApplicationConstants.Audit.HttpRequest.EventName,
                 Actor = new AuditActor { ActorId = clientId, ActorRole = "Organisation" },
                 Payload = JsonSerializer.SerializeToElement(payload),
             };
