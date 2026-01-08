@@ -19,12 +19,14 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
         var modeString = request.Mode == ShareMode.Existence ? "EXISTENCE" : "CONTENT";
         var dataType = MapRecordTypeToDataType(request.RecordType, request.Mode);
 
+        // First look for exceptions as these take precedence
         var matchedRule = dsaPolicy.Exceptions.FirstOrDefault(exception =>
             RuleMatches(exception, request, destOrgType, modeString, dataType, now)
         );
 
         var isException = matchedRule is not null;
 
+        // If no exception matched, look for default rules
         matchedRule ??= dsaPolicy.Defaults.FirstOrDefault(defaultRule =>
             RuleMatches(defaultRule, request, destOrgType, modeString, dataType, now)
         );
