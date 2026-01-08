@@ -2,6 +2,9 @@ name: Find E2E Tests
 
 on:
   workflow_dispatch:
+  deployment_status:
+    environment: dev
+    state: success
   push:
     branches:
       - main
