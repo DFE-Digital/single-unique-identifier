@@ -69,7 +69,7 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
         string sourceOrgId,
         string destOrgId,
         string destOrgType,
-        IReadOnlyList<SearchResultItem> items,
+        IReadOnlyList<SearchResultItem> searchResultItems,
         DsaPolicyDefinition dsaPolicy,
         string purpose,
         CancellationToken cancellationToken = default
@@ -77,12 +77,12 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
     {
         var filtered = new List<SearchResultItem>();
 
-        foreach (var item in items)
+        foreach (var searchResultItem in searchResultItems)
         {
             var request = new PolicyDecisionRequest(
                 sourceOrgId,
                 destOrgId,
-                item.RecordType,
+                searchResultItem.RecordType,
                 ShareMode.Existence,
                 purpose
             );
@@ -91,13 +91,13 @@ public class PolicyEnforcementService(ILogger<PolicyEnforcementService> logger)
 
             if (decision.IsAllowed)
             {
-                filtered.Add(item);
+                filtered.Add(searchResultItem);
             }
         }
 
         logger.LogInformation(
             "Filtered {TotalCount} results to {AllowedCount} allowed results for {DestOrg}",
-            items.Count,
+            searchResultItems.Count,
             filtered.Count,
             destOrgId
         );

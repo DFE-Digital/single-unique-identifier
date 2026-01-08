@@ -15,7 +15,7 @@ public interface IPolicyEnforcementService
         string sourceOrgId,
         string destOrgId,
         string destOrgType,
-        IReadOnlyList<SearchResultItem> items,
+        IReadOnlyList<SearchResultItem> searchResultItems,
         DsaPolicyDefinition dsaPolicy,
         string purpose,
         CancellationToken cancellationToken = default
