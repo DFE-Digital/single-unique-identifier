@@ -110,7 +110,8 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             pepFilterTasks.Add(
                 context.CallActivityAsync<IReadOnlyList<SearchResultItem>>(
                     "FilterResultsByPolicyFunction",
-                    filterInput
+                    filterInput,
+                    options
                 )
             );
         }
