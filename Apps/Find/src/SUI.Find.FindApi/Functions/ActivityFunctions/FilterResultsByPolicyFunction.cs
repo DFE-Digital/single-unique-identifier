@@ -2,7 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
-using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
 
 namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 
@@ -12,7 +12,7 @@ public class FilterResultsByPolicyFunction(
 )
 {
     [Function(nameof(FilterResultsByPolicyFunction))]
-    public async Task<IReadOnlyList<SearchResultItem>> FilterResults(
+    public async Task<IReadOnlyList<SearchResultWithDecision>> FilterResults(
         [ActivityTrigger] FilterResultsInput input,
         CancellationToken cancellationToken
     )
@@ -24,7 +24,7 @@ public class FilterResultsByPolicyFunction(
             input.DestOrgId
         );
 
-        var filtered = await policyEnforcementService.FilterResultsAsync(
+        var decisionResults = await policyEnforcementService.FilterResultsAsync(
             input.SourceOrgId,
             input.DestOrgId,
             input.DestOrgType,
@@ -34,6 +34,6 @@ public class FilterResultsByPolicyFunction(
             cancellationToken
         );
 
-        return filtered;
+        return decisionResults;
     }
 }

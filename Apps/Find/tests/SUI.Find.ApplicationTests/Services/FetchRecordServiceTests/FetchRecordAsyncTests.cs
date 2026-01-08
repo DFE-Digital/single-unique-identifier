@@ -4,6 +4,7 @@ using NSubstitute;
 using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
 using SUI.Find.Application.Services;
 
 namespace SUI.Find.ApplicationTests.Services.FetchRecordServiceTests;
@@ -53,7 +54,11 @@ public class FetchRecordAsyncTests
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(Task.FromResult(new PolicyDecisionResult(true, "Allowed by test")));
+            .Returns(
+                Task.FromResult(
+                    new PolicyDecisionResult { IsAllowed = true, Reason = "Allowed by test setup" }
+                )
+            );
     }
 
     [Fact]
