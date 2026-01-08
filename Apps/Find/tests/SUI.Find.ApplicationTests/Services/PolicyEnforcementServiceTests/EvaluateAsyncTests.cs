@@ -178,4 +178,37 @@ public class EvaluateAsyncTests
         Assert.Contains("allow", result.Reason);
         Assert.Contains("exception", result.Reason);
     }
+
+    [Fact]
+    public async Task Denies_WhenNoDestinationTargetingSpecified()
+    {
+        var policy = new DsaPolicyDefinition
+        {
+            Defaults =
+            [
+                new DsaRuleDefinition
+                {
+                    Effect = "allow",
+                    Modes = ["EXISTENCE"],
+                    DataTypes = ["mental_health_ptr"],
+                    DestOrgIds = [], // explicitly none
+                    DestOrgTypes = [], // explicitly none
+                    Purposes = ["SAFEGUARDING"],
+                    ValidFrom = DateTimeOffset.Parse("2025-01-01T00:00:00Z"),
+                },
+            ],
+        };
+
+        var request = new PolicyDecisionRequest(
+            SourceOrgId: "HEALTH-01",
+            DestinationOrgId: "LOCAL-AUTHORITY-01",
+            RecordType: "health.mental-health",
+            Mode: ShareMode.Existence,
+            Purpose: "SAFEGUARDING"
+        );
+
+        var result = await _sut.EvaluateAsync(request, policy, "LOCAL_AUTHORITY");
+        Assert.False(result.IsAllowed);
+        Assert.Contains("No matching rule", result.Reason);
+    }
 }
