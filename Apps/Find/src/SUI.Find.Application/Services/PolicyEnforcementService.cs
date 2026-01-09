@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
 
 namespace SUI.Find.Application.Services;
 
@@ -44,7 +45,15 @@ public class PolicyEnforcementService(
                 request.Purpose
             );
             return Task.FromResult(
-                new PolicyDecisionResult(false, "No matching rule found - denied by default")
+                new PolicyDecisionResult
+                {
+                    IsAllowed = false,
+                    Reason = "No matching rule found - denied by default",
+                    RuleType = null,
+                    RuleEffect = "deny",
+                    ValidFrom = null,
+                    ValidUntil = null,
+                }
             );
         }
 
@@ -57,7 +66,6 @@ public class PolicyEnforcementService(
         var ruleType = isException ? "exception" : "default";
         var reason = $"Matched {ruleType} rule: effect={matchedRule.Effect}, dataType={dataType}";
 
-        // [Change to audit log entry]
         logger.LogInformation(
             "Policy decision for {SourceOrg} -> {DestOrg}: {Decision}. Reason: {Reason}",
             request.SourceOrgId,
@@ -66,10 +74,20 @@ public class PolicyEnforcementService(
             reason
         );
 
-        return Task.FromResult(new PolicyDecisionResult(isAllowed, reason));
+        return Task.FromResult(
+            new PolicyDecisionResult
+            {
+                IsAllowed = isAllowed,
+                Reason = reason,
+                RuleType = ruleType,
+                RuleEffect = matchedRule.Effect,
+                ValidFrom = matchedRule.ValidFrom,
+                ValidUntil = matchedRule.ValidUntil,
+            }
+        );
     }
 
-    public async Task<IReadOnlyList<SearchResultItem>> FilterResultsAsync(
+    public async Task<IReadOnlyList<SearchResultWithDecision>> FilterResultsAsync(
         string sourceOrgId,
         string destOrgId,
         string destOrgType,
@@ -79,7 +97,7 @@ public class PolicyEnforcementService(
         CancellationToken cancellationToken = default
     )
     {
-        var filtered = new List<SearchResultItem>();
+        var results = new List<SearchResultWithDecision>();
 
         foreach (var searchResultItem in searchResultItems)
         {
@@ -93,20 +111,10 @@ public class PolicyEnforcementService(
 
             var decision = await EvaluateAsync(request, dsaPolicy, destOrgType, cancellationToken);
 
-            if (decision.IsAllowed)
-            {
-                filtered.Add(searchResultItem);
-            }
+            results.Add(new SearchResultWithDecision(searchResultItem, sourceOrgId, decision));
         }
 
-        logger.LogInformation(
-            "Filtered {TotalCount} results to {AllowedCount} allowed results for {DestOrg}",
-            searchResultItems.Count,
-            filtered.Count,
-            destOrgId
-        );
-
-        return filtered;
+        return results;
     }
 
     private static bool RuleMatches(

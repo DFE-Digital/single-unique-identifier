@@ -1,4 +1,5 @@
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
 
 namespace SUI.Find.Application.Interfaces;
 
@@ -11,7 +12,7 @@ public interface IPolicyEnforcementService
         CancellationToken cancellationToken = default
     );
 
-    Task<IReadOnlyList<SearchResultItem>> FilterResultsAsync(
+    Task<IReadOnlyList<SearchResultWithDecision>> FilterResultsAsync(
         string sourceOrgId,
         string destOrgId,
         string destOrgType,

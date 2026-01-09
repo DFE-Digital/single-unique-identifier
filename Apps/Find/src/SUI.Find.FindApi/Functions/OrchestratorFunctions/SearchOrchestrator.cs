@@ -1,15 +1,13 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
+using SUI.Find.FindApi.Functions.ActivityFunctions;
 
 namespace SUI.Find.FindApi.Functions.OrchestratorFunctions;
 
-[ExcludeFromCodeCoverage(
-    Justification = "Not Implemented - to be completed as part of future work."
-)]
 public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
 {
     [Function("SearchOrchestrator")]
@@ -88,7 +86,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             aggregatedQueryProviderResults.Count
         );
 
-        var pepFilterTasks = new List<Task<IReadOnlyList<SearchResultItem>>>();
+        var pepFilterTasks = new List<Task<IReadOnlyList<SearchResultWithDecision>>>();
 
         foreach (var provider in availableProviders)
         {
@@ -112,7 +110,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             );
 
             pepFilterTasks.Add(
-                context.CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                context.CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
                     "FilterResultsByPolicyFunction",
                     filterInput,
                     options
@@ -120,14 +118,21 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             );
         }
 
-        var filteredResultsList = await Task.WhenAll(pepFilterTasks);
-        var filteredResults = filteredResultsList.SelectMany(r => r).ToList();
+        var pepResultsTaskList = await Task.WhenAll(pepFilterTasks);
+        var pepResults = pepResultsTaskList.SelectMany(r => r).ToList();
 
         logger.LogInformation(
             "Filtered to {Count} results after PEP enforcement",
-            filteredResults.Count
+            pepResults.Count
         );
 
-        return filteredResults;
+        // Audit PEP decisions
+        await context.CallActivityAsync(
+            nameof(AuditPepFindActivity),
+            new AuditPepFindInput(data.PolicyContext, data.Metadata, pepResults),
+            options
+        );
+
+        return pepResults.Where(x => x.Decision.IsAllowed).Select(x => x.Item).ToList();
     }
 }
