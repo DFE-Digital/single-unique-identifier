@@ -56,11 +56,13 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             return new List<SearchResultItem>();
         }
 
-        var tasks = new List<Task<IReadOnlyList<SearchResultItem>>>(availableProviders.Count);
+        var queryProviderTasks = new List<Task<IReadOnlyList<SearchResultItem>>>(
+            availableProviders.Count
+        );
 
         foreach (var provider in availableProviders)
         {
-            tasks.Add(
+            queryProviderTasks.Add(
                 context.CallActivityAsync<IReadOnlyList<SearchResultItem>>(
                     "QueryProvidersFunction",
                     new QueryProviderInput(
@@ -75,10 +77,57 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             );
         }
 
-        var taskResultsList = await Task.WhenAll(tasks);
+        var queryProviderTaskResultsList = await Task.WhenAll(queryProviderTasks);
 
-        var aggregatedResults = taskResultsList.SelectMany(r => r).ToList();
+        var aggregatedQueryProviderResults = queryProviderTaskResultsList
+            .SelectMany(r => r)
+            .ToList();
 
-        return aggregatedResults;
+        logger.LogInformation(
+            "Aggregated {Count} results before PEP filtering",
+            aggregatedQueryProviderResults.Count
+        );
+
+        var pepFilterTasks = new List<Task<IReadOnlyList<SearchResultItem>>>();
+
+        foreach (var provider in availableProviders)
+        {
+            var providerResults = aggregatedQueryProviderResults
+                .Where(r =>
+                    r.ProviderSystem == provider.ProviderSystem
+                    && r.RecordType == provider.RecordType
+                )
+                .ToList();
+
+            if (providerResults.Count == 0)
+                continue;
+
+            var filterInput = new FilterResultsInput(
+                provider.OrgId,
+                data.PolicyContext.ClientId,
+                data.PolicyContext.OrgType,
+                providerResults,
+                provider.DsaPolicy,
+                data.PolicyContext.Purpose
+            );
+
+            pepFilterTasks.Add(
+                context.CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                    "FilterResultsByPolicyFunction",
+                    filterInput,
+                    options
+                )
+            );
+        }
+
+        var filteredResultsList = await Task.WhenAll(pepFilterTasks);
+        var filteredResults = filteredResultsList.SelectMany(r => r).ToList();
+
+        logger.LogInformation(
+            "Filtered to {Count} results after PEP enforcement",
+            filteredResults.Count
+        );
+
+        return filteredResults;
     }
 }

@@ -79,6 +79,7 @@ public class UrlStorageTableService(
             return new ResolvedFetchMapping(
                 TargetUrl: res.Value.TargetUrl,
                 TargetOrgId: res.Value.TargetOrgId,
+                RequestingOrgId: res.Value.RequestingOrgId,
                 RecordType: res.Value.RecordType
             );
         }

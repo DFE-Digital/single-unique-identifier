@@ -50,7 +50,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "children_social_care_file" ],
+            "dataTypes": [ "children_social_care_record" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"

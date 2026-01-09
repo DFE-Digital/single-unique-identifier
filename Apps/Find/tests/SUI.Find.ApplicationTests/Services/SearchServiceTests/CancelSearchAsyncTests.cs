@@ -18,7 +18,7 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
     public CancelSearchAsyncTests()
     {
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
-        var policyData = new PolicyContext("test-client-id", []);
+        var policyData = new PolicyContext("test-client-id", [], "SAFEGUARDING", "LOCAL_AUTHORITY");
         Sut.ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
     }
@@ -130,7 +130,12 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
 
         // Mock the ReadOrchestratorInput to return a different clientId
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
-        var policyData = new PolicyContext("different-client-id", []);
+        var policyData = new PolicyContext(
+            "different-client-id",
+            [],
+            "SAFEGUARDING",
+            "LOCAL_AUTHORITY"
+        );
         Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 

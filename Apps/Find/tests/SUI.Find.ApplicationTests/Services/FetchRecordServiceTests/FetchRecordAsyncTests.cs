@@ -19,6 +19,8 @@ public class FetchRecordAsyncTests
         Substitute.For<IProviderHttpClient>();
     private readonly IOutboundAuthService _mockOutboundAuthService =
         Substitute.For<IOutboundAuthService>();
+    private readonly IPolicyEnforcementService _mockPolicyEnforcementService =
+        Substitute.For<IPolicyEnforcementService>();
     private readonly FetchRecordService _sut;
 
     public FetchRecordAsyncTests()
@@ -28,8 +30,30 @@ public class FetchRecordAsyncTests
             _mockMaskUrlService,
             _mockCustodianService,
             _mockProviderClient,
-            _mockOutboundAuthService
+            _mockOutboundAuthService,
+            _mockPolicyEnforcementService
         );
+
+        //  Mock custodian lookup to return a valid org for PEP checks
+        _mockCustodianService
+            .GetCustodianAsync(Arg.Any<string>())
+            .Returns(callInfo =>
+            {
+                var orgId = callInfo.Arg<string>();
+                return Domain.Models.Result<ProviderDefinition>.Ok(
+                    new ProviderDefinition { OrgId = orgId, OrgType = "LOCAL_AUTHORITY" }
+                );
+            });
+
+        // Default: PEP allows access
+        _mockPolicyEnforcementService
+            .EvaluateAsync(
+                Arg.Any<PolicyDecisionRequest>(),
+                Arg.Any<DsaPolicyDefinition>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(Task.FromResult(new PolicyDecisionResult(true, "Allowed by test")));
     }
 
     [Fact]
@@ -39,6 +63,7 @@ public class FetchRecordAsyncTests
         var resolvedMapping = new ResolvedFetchMapping(
             "http://target.url",
             "TargetOrg",
+            "requesting-org",
             "record-type"
         );
         _mockMaskUrlService
@@ -104,6 +129,7 @@ public class FetchRecordAsyncTests
         var resolvedMapping = new ResolvedFetchMapping(
             "http://target.url",
             "TargetOrg",
+            "requesting-org",
             "record-type"
         );
         _mockMaskUrlService
@@ -128,6 +154,7 @@ public class FetchRecordAsyncTests
         var resolvedMapping = new ResolvedFetchMapping(
             "http://target.url",
             "TargetOrg",
+            "requesting-org",
             "record-type"
         );
         _mockMaskUrlService
@@ -164,6 +191,7 @@ public class FetchRecordAsyncTests
         var resolvedMapping = new ResolvedFetchMapping(
             "http://target.url",
             "TargetOrg",
+            "requesting-org",
             "record-type"
         );
         _mockMaskUrlService
@@ -193,6 +221,7 @@ public class FetchRecordAsyncTests
         var resolvedMapping = new ResolvedFetchMapping(
             "http://target.url",
             "TargetOrg",
+            "requesting-org",
             "record-type"
         );
         _mockMaskUrlService
@@ -226,6 +255,7 @@ public class FetchRecordAsyncTests
         var resolvedMapping = new ResolvedFetchMapping(
             "http://target.url",
             "TargetOrg",
+            "requesting-org",
             "record-type"
         );
         _mockMaskUrlService

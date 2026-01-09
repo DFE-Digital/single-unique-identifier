@@ -28,5 +28,3 @@ public class QueueAuditAccessTrigger(
         await auditService.WriteAccessAuditLogAsync(auditMessage, token);
     }
 }
-
-public class AuditTableMapper { }

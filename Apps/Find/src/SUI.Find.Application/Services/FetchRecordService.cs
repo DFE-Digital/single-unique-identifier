@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using OneOf;
 using OneOf.Types;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 
@@ -12,7 +13,8 @@ public class FetchRecordService(
     IMaskUrlService maskUrlService,
     ICustodianService custodianService,
     IProviderHttpClient providerClient,
-    IOutboundAuthService outboundAuthService
+    IOutboundAuthService outboundAuthService,
+    IPolicyEnforcementService policyEnforcementService
 ) : IFetchRecordService
 {
     public async Task<OneOf<CustodianRecord, NotFound, Unauthorized, Error>> FetchRecordAsync(
@@ -55,6 +57,53 @@ public class FetchRecordService(
             );
             return new Error();
         }
+
+        var requestingOrg = await custodianService.GetCustodianAsync(
+            resolvedMapping.RequestingOrgId
+        );
+
+        if (!requestingOrg.Success || requestingOrg.Value is null)
+        {
+            logger.LogError(
+                "Failed to retrieve requesting organisation for Org ID {OrgId}",
+                resolvedMapping.RequestingOrgId
+            );
+            return new Error();
+        }
+
+        // PEP check for CONTENT mode access
+        var pepDecision = await policyEnforcementService.EvaluateAsync(
+            new PolicyDecisionRequest(
+                SourceOrgId: resolvedMapping.TargetOrgId,
+                DestinationOrgId: resolvedMapping.RequestingOrgId,
+                RecordType: resolvedMapping.RecordType,
+                Mode: ShareMode.Content,
+                Purpose: "SAFEGUARDING" // TODO: Default for now for purpose of Fetch operations
+            ),
+            provider.Value.DsaPolicy,
+            requestingOrg.Value.OrgType,
+            cancellationToken
+        );
+
+        if (!pepDecision.IsAllowed)
+        {
+            logger.LogWarning(
+                "PEP denied CONTENT access for {RequestingOrg} to {TargetOrg} record type {RecordType}. Reason: {Reason}",
+                resolvedMapping.RequestingOrgId,
+                resolvedMapping.TargetOrgId,
+                resolvedMapping.RecordType,
+                pepDecision.Reason
+            );
+            return new Unauthorized();
+        }
+
+        // TODO: Replace with Audit logger
+        logger.LogInformation(
+            "PEP allowed CONTENT access for {RequestingOrg} to {TargetOrg} record type {RecordType}",
+            resolvedMapping.RequestingOrgId,
+            resolvedMapping.TargetOrgId,
+            resolvedMapping.RecordType
+        );
 
         var tokenResult = await outboundAuthService.GetAccessTokenAsync(
             provider.Value,
