@@ -18,7 +18,7 @@ public record PepFetchPayload
     public required DateTimeOffset RequestTimestamp { get; init; } // When the request was made
     public DateTimeOffset? ResponseTimestamp { get; init; } // When the response was received
 
-    [Newtonsoft.Json.JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required FetchOutcome FetchOutcome { get; init; }
     public required PepFindRecordDetail? Record { get; init; }
 }
