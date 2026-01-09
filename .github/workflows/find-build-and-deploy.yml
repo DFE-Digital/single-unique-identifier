@@ -1,0 +1,56 @@
+name: Build and Test, and optionally Deploy, the "Find" Solution
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for deployment
+        required: false
+        default: d01
+        type: choice
+        options:
+          - d01
+      deploy:
+        description: Deploy to Azure Function App
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - main
+    paths:
+      - "Apps/Find/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Apps/Find/**"
+
+jobs:
+  build-and-test-Find:
+    name: Find - Build Test Dotnet
+    uses: ./.github/workflows/build-test-dotnet.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      checks: write
+      packages: read
+    with:
+      directory_name: Apps/Find
+
+  deploy-Find:
+    name: Find - Deploy Function App
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: build-and-test-Find
+    uses: ./.github/workflows/deploy-dotnet-functionapp.yml
+    secrets: inherit
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      component_descriptor: find01
+      project_path: Apps/Find/src/SUI.Find.FindApi/SUI.Find.FindApi.csproj
+      package_path: publish
+      dotnet_version: "9.0.x"

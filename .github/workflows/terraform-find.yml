@@ -1,0 +1,33 @@
+name: Terraform Find
+run-name: Terraform Find - ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: d01
+        type: choice
+        options:
+          - d01
+      apply:
+        description: Apply changes (otherwise plan only)
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform Find for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
+    uses: ./.github/workflows/terraform-plan-and-apply.yml
+    secrets: inherit
+    with:
+      environment: ${{ inputs.environment }}
+      apply: ${{ inputs.apply }}
+      root: terraform/find
+      state_key: ${{ format('{0}/find.tfstate', inputs.environment) }}
