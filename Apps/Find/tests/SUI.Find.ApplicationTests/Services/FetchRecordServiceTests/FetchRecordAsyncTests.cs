@@ -664,48 +664,7 @@ public class FetchRecordAsyncTests
 
     private static bool ValidateTimestamps(AuditEvent auditEvent)
     {
-        var payload = JsonSerializer.Deserialize<PepFetchPayload>(auditEvent.Payload.GetRawText());
-
-        if (payload is null)
-            return false;
-
-        // Verify timestamps are set
-        if (payload.RequestTimestamp == default)
-            return false;
-
-        if (payload.ResponseTimestamp == null || payload.ResponseTimestamp == default)
-            return false;
-
-        // Response should be after request
-        if (payload.ResponseTimestamp < payload.RequestTimestamp)
-            return false;
-
-        return true;
-    }
-
-    private static bool ValidateAuditEventInput(
-        AuditEvent auditEvent,
-        string requestingOrgId,
-        string recordUrl
-    )
-    {
-        var payload = JsonSerializer.Deserialize<PepFetchPayload>(auditEvent.Payload.GetRawText())!;
-
-        if (payload.Record is null)
-        {
-            return false;
-        }
-
-        if (auditEvent.Actor.ActorId != requestingOrgId)
-        {
-            return false;
-        }
-
-        if (payload.Record.RecordUrl != recordUrl)
-        {
-            return false;
-        }
-
-        return true;
+        // Verify timestamp is set in AuditEvent
+        return auditEvent.Timestamp != default;
     }
 }

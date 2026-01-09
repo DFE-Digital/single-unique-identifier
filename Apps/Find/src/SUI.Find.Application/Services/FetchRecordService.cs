@@ -29,7 +29,6 @@ public class FetchRecordService(
         CancellationToken cancellationToken
     )
     {
-        var requestTimestamp = timeProvider.GetUtcNow();
         ResolvedFetchMapping? mapping = null;
         CustodianRecord? record = null;
         var outcome = FetchOutcome.NetworkError;
@@ -74,13 +73,10 @@ public class FetchRecordService(
         }
         finally
         {
-            var responseTimestamp = timeProvider.GetUtcNow();
             var auditPayload = BuildAuditPayload(
                 requestingOrgId,
                 mapping,
                 record,
-                requestTimestamp.DateTime,
-                responseTimestamp.DateTime,
                 outcome,
                 pepDecision
             );
@@ -259,8 +255,6 @@ public class FetchRecordService(
         string requestingOrgId,
         ResolvedFetchMapping? mapping,
         CustodianRecord? record,
-        DateTime requestTimestamp,
-        DateTime responseTimestamp,
         FetchOutcome fetchOutcome,
         PolicyDecisionResult? pepDecision
     )
@@ -269,8 +263,6 @@ public class FetchRecordService(
         {
             DestinationOrgId = requestingOrgId,
             Purpose = "SAFEGUARDING", // Hard coded for now for Fetch operations
-            RequestTimestamp = requestTimestamp,
-            ResponseTimestamp = responseTimestamp,
             FetchOutcome = fetchOutcome,
             Record =
                 mapping is null || pepDecision is null
