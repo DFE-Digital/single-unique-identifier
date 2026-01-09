@@ -20,7 +20,6 @@ public static class ApplicationConstants
         {
             public const string FindEventName = "PEP_FIND";
             public const string FetchRequestEventName = "PEP_FETCH_REQUEST";
-            public const string FetchResponseEventName = "PEP_FETCH_RESPONSE";
         }
     }
 
