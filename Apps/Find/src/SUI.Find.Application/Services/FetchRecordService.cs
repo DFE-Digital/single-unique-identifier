@@ -2,9 +2,13 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using OneOf;
 using OneOf.Types;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.AuditPayloads;
+using SUI.Find.Application.Models.Pep;
+using SUI.Find.Domain.Events.Audit;
 
 namespace SUI.Find.Application.Services;
 
@@ -14,7 +18,9 @@ public class FetchRecordService(
     ICustodianService custodianService,
     IProviderHttpClient providerClient,
     IOutboundAuthService outboundAuthService,
-    IPolicyEnforcementService policyEnforcementService
+    IPolicyEnforcementService policyEnforcementService,
+    IAuditService auditService,
+    TimeProvider timeProvider
 ) : IFetchRecordService
 {
     public async Task<OneOf<CustodianRecord, NotFound, Unauthorized, Error>> FetchRecordAsync(
@@ -23,26 +29,82 @@ public class FetchRecordService(
         CancellationToken cancellationToken
     )
     {
-        var resolvedMapping = await maskUrlService.ResolveAsync(
-            requestingOrgId,
-            fetchId,
-            cancellationToken
-        );
+        var requestTimestamp = timeProvider.GetUtcNow();
+        ResolvedFetchMapping? mapping = null;
+        CustodianRecord? record = null;
+        var outcome = FetchOutcome.NetworkError;
+        PolicyDecisionResult? pepDecision = null;
+        OneOf<CustodianRecord, NotFound, Unauthorized, Error> result;
 
-        return resolvedMapping.Value switch
+        try
         {
-            ResolvedFetchMapping successDto => await GetCustodianDataAsync(
-                successDto,
+            var resolvedMapping = await maskUrlService.ResolveAsync(
+                requestingOrgId,
+                fetchId,
                 cancellationToken
-            ),
-            NotFound notFound => notFound,
-            Unauthorized unauthorized => unauthorized,
-            Error error => error,
-            _ => new Error(),
-        };
+            );
+
+            if (resolvedMapping.Value is ResolvedFetchMapping successDto)
+            {
+                var fetchResult = await GetCustodianDataAsync(successDto, cancellationToken);
+                mapping = fetchResult.Mapping;
+                record = fetchResult.Record;
+                outcome = fetchResult.Outcome;
+                pepDecision = fetchResult.PepDecision;
+                result = fetchResult.Result;
+            }
+            else
+            {
+                result = resolvedMapping.Value switch
+                {
+                    NotFound notFound => SetOutcome(
+                        out outcome,
+                        FetchOutcome.JobNotFound,
+                        notFound
+                    ),
+                    Unauthorized unauthorized => SetOutcome(
+                        out outcome,
+                        FetchOutcome.AuthorizationFailure,
+                        unauthorized
+                    ),
+                    Error error => SetOutcome(out outcome, FetchOutcome.NetworkError, error),
+                    _ => SetOutcome(out outcome, FetchOutcome.NetworkError, new Error()),
+                };
+            }
+        }
+        finally
+        {
+            var responseTimestamp = timeProvider.GetUtcNow();
+            var auditPayload = BuildAuditPayload(
+                requestingOrgId,
+                mapping,
+                record,
+                requestTimestamp.DateTime,
+                responseTimestamp.DateTime,
+                outcome,
+                pepDecision
+            );
+            await auditService.WriteAccessAuditLogAsync(auditPayload, cancellationToken);
+        }
+
+        return result;
     }
 
-    private async Task<OneOf<CustodianRecord, NotFound, Unauthorized, Error>> GetCustodianDataAsync(
+    private static T SetOutcome<T>(out FetchOutcome outcome, FetchOutcome value, T result)
+    {
+        outcome = value;
+        return result;
+    }
+
+    private record FetchResult(
+        ResolvedFetchMapping? Mapping,
+        CustodianRecord? Record,
+        FetchOutcome Outcome,
+        PolicyDecisionResult? PepDecision,
+        OneOf<CustodianRecord, NotFound, Unauthorized, Error> Result
+    );
+
+    private async Task<FetchResult> GetCustodianDataAsync(
         ResolvedFetchMapping resolvedMapping,
         CancellationToken cancellationToken
     )
@@ -55,7 +117,13 @@ public class FetchRecordService(
                 "Failed to retrieve custodian organisation for Org ID {OrgId}",
                 resolvedMapping.TargetOrgId
             );
-            return new Error();
+            return new FetchResult(
+                resolvedMapping,
+                null,
+                FetchOutcome.NetworkError,
+                null,
+                new Error()
+            );
         }
 
         var requestingOrg = await custodianService.GetCustodianAsync(
@@ -68,7 +136,13 @@ public class FetchRecordService(
                 "Failed to retrieve requesting organisation for Org ID {OrgId}",
                 resolvedMapping.RequestingOrgId
             );
-            return new Error();
+            return new FetchResult(
+                resolvedMapping,
+                null,
+                FetchOutcome.NetworkError,
+                null,
+                new Error()
+            );
         }
 
         // PEP check for CONTENT mode access
@@ -94,7 +168,13 @@ public class FetchRecordService(
                 resolvedMapping.RecordType,
                 pepDecision.Reason
             );
-            return new Unauthorized();
+            return new FetchResult(
+                resolvedMapping,
+                null,
+                FetchOutcome.PolicyDenial,
+                pepDecision,
+                new Unauthorized()
+            );
         }
 
         // TODO: Replace with Audit logger
@@ -112,7 +192,13 @@ public class FetchRecordService(
 
         if (!tokenResult.Success || string.IsNullOrWhiteSpace(tokenResult.Value))
         {
-            return new Error();
+            return new FetchResult(
+                resolvedMapping,
+                null,
+                FetchOutcome.NetworkError,
+                pepDecision,
+                new Error()
+            );
         }
 
         var response = await providerClient.GetAsync(
@@ -123,13 +209,25 @@ public class FetchRecordService(
 
         if (!response.Success)
         {
-            return new Error();
+            return new FetchResult(
+                resolvedMapping,
+                null,
+                FetchOutcome.RecordNotFound,
+                pepDecision,
+                new Error()
+            );
         }
 
         if (string.IsNullOrWhiteSpace(response.Value))
         {
             logger.LogInformation("Fetch Record returned empty response");
-            return new Error();
+            return new FetchResult(
+                resolvedMapping,
+                null,
+                FetchOutcome.RecordNotFound,
+                pepDecision,
+                new Error()
+            );
         }
 
         var recordContent = JsonSerializer.Deserialize<CustodianRecord>(
@@ -137,6 +235,70 @@ public class FetchRecordService(
             JsonSerializerOptions.Web
         );
 
-        return recordContent is not null ? recordContent : new Error();
+        if (recordContent is not null)
+        {
+            return new FetchResult(
+                resolvedMapping,
+                recordContent,
+                FetchOutcome.Success,
+                pepDecision,
+                recordContent
+            );
+        }
+
+        return new FetchResult(
+            resolvedMapping,
+            null,
+            FetchOutcome.NetworkError,
+            pepDecision,
+            new Error()
+        );
+    }
+
+    private AuditEvent BuildAuditPayload(
+        string requestingOrgId,
+        ResolvedFetchMapping? mapping,
+        CustodianRecord? record,
+        DateTime requestTimestamp,
+        DateTime responseTimestamp,
+        FetchOutcome fetchOutcome,
+        PolicyDecisionResult? pepDecision
+    )
+    {
+        var payload = new PepFetchPayload
+        {
+            DestinationOrgId = requestingOrgId,
+            Purpose = "SAFEGUARDING", // Hard coded for now for Fetch operations
+            RequestTimestamp = requestTimestamp,
+            ResponseTimestamp = responseTimestamp,
+            FetchOutcome = fetchOutcome,
+            Record =
+                mapping is null || pepDecision is null
+                    ? null
+                    : new PepFindRecordDetail
+                    {
+                        SourceOrgId = mapping.TargetOrgId,
+                        RecordUrl = mapping.TargetUrl,
+                        RecordType = mapping.RecordType,
+                        DataType = mapping.RecordType,
+                        IsSharedAllowed = pepDecision.IsAllowed,
+                        RuleType = pepDecision.RuleType ?? "unknown",
+                        RuleEffect = pepDecision.RuleEffect ?? "unknown",
+                        RuleValidFrom = pepDecision.ValidFrom,
+                        RuleValidUntil = pepDecision.ValidUntil,
+                        DecisionReason = pepDecision.Reason,
+                    },
+        };
+
+        return new AuditEvent
+        {
+            EventId = Guid.NewGuid().ToString(),
+            EventName = ApplicationConstants.Audit.PolicyEnforcementPoint.FetchRequestEventName,
+            ServiceName = "PolicyEnforcementPoint",
+            Actor = new AuditActor { ActorId = requestingOrgId, ActorRole = "Organisation" },
+            Payload = JsonSerializer.SerializeToElement(payload),
+            Timestamp = timeProvider.GetUtcNow().DateTime,
+            CorrelationId = Guid.NewGuid().ToString(),
+        };
     }
 }

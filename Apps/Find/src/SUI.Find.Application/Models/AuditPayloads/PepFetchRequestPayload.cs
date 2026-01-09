@@ -1,3 +1,5 @@
+using SUI.Find.Application.Enums;
+
 namespace SUI.Find.Application.Models.AuditPayloads;
 
 // Questions used to determine what we need to capture:
@@ -16,14 +18,4 @@ public record PepFetchPayload
     public DateTimeOffset? ResponseTimestamp { get; init; } // When the response was received
     public required FetchOutcome FetchOutcome { get; init; }
     public required PepFindRecordDetail? Record { get; init; }
-}
-
-public enum FetchOutcome
-{
-    Success,
-    AuthorizationFailure, // The requester is not authorized to access this search job
-    PolicyDenial, // The policy enforcement point denied access to the record
-    NetworkError,
-    JobNotFound, // The specified search job does not exist
-    RecordNotFound, // The url requested returned 404
 }
