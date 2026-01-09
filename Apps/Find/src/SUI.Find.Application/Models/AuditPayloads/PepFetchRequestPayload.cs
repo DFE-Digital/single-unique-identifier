@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using SUI.Find.Application.Enums;
 
 namespace SUI.Find.Application.Models.AuditPayloads;
@@ -16,6 +17,8 @@ public record PepFetchPayload
     public required string Purpose { get; init; } // Why the records were requested
     public required DateTimeOffset RequestTimestamp { get; init; } // When the request was made
     public DateTimeOffset? ResponseTimestamp { get; init; } // When the response was received
+
+    [Newtonsoft.Json.JsonConverter(typeof(JsonStringEnumConverter))]
     public required FetchOutcome FetchOutcome { get; init; }
     public required PepFindRecordDetail? Record { get; init; }
 }
