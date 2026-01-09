@@ -28,7 +28,12 @@ public class AuditPepFindActivityTests
                 new(
                     new SearchResultItem("System A", "Provider Name 1", "RecordA", "http://url1"),
                     "org1",
-                    new PolicyDecisionResult { IsAllowed = true }
+                    new PolicyDecisionResult
+                    {
+                        IsAllowed = true,
+                        RuleEffect = "allow",
+                        Reason = "Matched policy rule",
+                    }
                 ),
             ]
         );
@@ -41,18 +46,47 @@ public class AuditPepFindActivityTests
         await mockAuditService
             .Received(1)
             .WriteAccessAuditLogAsync(
-                Arg.Is<AuditEvent>(p =>
-                    p.Actor.ActorId == input.PolicyContext.ClientId
-                    && p.EventName == "PEP_FIND"
-                    && p.ServiceName == "PolicyEnforcementPoint"
-                    && ReadAuditPayloadFromEvent(p).TotalRecordsFound == 1
-                    && ReadAuditPayloadFromEvent(p).TotalRecordsShared == 1
-                    && ReadAuditPayloadFromEvent(p).Records.Length == 1
-                    && ReadAuditPayloadFromEvent(p).Records[0].SourceOrgId == expected.SourceOrgId
-                    && ReadAuditPayloadFromEvent(p).Records[0].RecordUrl == expected.Item.RecordUrl
-                ),
+                Arg.Is<AuditEvent>(ae => ValidateAuditEventInputs(ae, input, expected)),
                 Arg.Any<CancellationToken>()
             );
+    }
+
+    private static bool ValidateAuditEventInputs(
+        AuditEvent auditEvent,
+        AuditPepFindInput input,
+        SearchResultWithDecision expected
+    )
+    {
+        var payload = ReadAuditPayloadFromEvent(auditEvent);
+        if (payload.TotalRecordsFound != 1)
+            return false;
+        if (payload.TotalRecordsShared != 1)
+            return false;
+        if (payload.Records.Length != 1)
+            return false;
+        //
+        var record = payload.Records[0];
+        if (record.SourceOrgId != expected.SourceOrgId)
+            return false;
+        if (record.RecordUrl != expected.Item.RecordUrl)
+            return false;
+        if (record.RecordType != expected.Item.RecordType)
+            return false;
+        if (string.IsNullOrWhiteSpace(record.DataType))
+            return false;
+        //
+        // Policy decision snapshot checks
+        if (!record.IsSharedAllowed)
+            return false;
+        if (string.IsNullOrWhiteSpace(record.RuleType))
+            return false;
+        if (!string.Equals(record.RuleEffect, "allow", StringComparison.OrdinalIgnoreCase))
+            return false;
+        if (string.IsNullOrWhiteSpace(record.DecisionReason))
+            return false;
+
+        return auditEvent.Actor.ActorId == input.PolicyContext.ClientId
+            && auditEvent is { EventName: "PEP_FIND", ServiceName: "PolicyEnforcementPoint" };
     }
 
     private static PepFindPayload ReadAuditPayloadFromEvent(AuditEvent auditEvent)
