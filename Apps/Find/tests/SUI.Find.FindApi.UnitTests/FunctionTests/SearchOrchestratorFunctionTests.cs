@@ -217,11 +217,19 @@ public class SearchOrchestratorFunctionsTests
         // Filtered results with decisions
         var filteredResultOrg1 = new List<SearchResultWithDecision>
         {
-            new(queryResultOrg1[0], "org1", new PolicyDecisionResult() { IsAllowed = true }),
+            new(
+                queryResultOrg1[0],
+                "org1",
+                new PolicyDecisionResult() { IsAllowed = true, Reason = "Allowed" }
+            ),
         };
         var filteredResultOrg2 = new List<SearchResultWithDecision>
         {
-            new(queryResultOrg2[0], "org2", new PolicyDecisionResult() { IsAllowed = true }),
+            new(
+                queryResultOrg2[0],
+                "org2",
+                new PolicyDecisionResult() { IsAllowed = true, Reason = "Allowed" }
+            ),
         };
 
         _mockContext

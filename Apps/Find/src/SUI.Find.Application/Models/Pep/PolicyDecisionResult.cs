@@ -3,7 +3,7 @@ namespace SUI.Find.Application.Models.Pep;
 public record PolicyDecisionResult
 {
     public bool IsAllowed { get; init; }
-    public string Reason { get; init; }
+    public required string Reason { get; init; }
 
     // ADD these for audit trail
     public string? RuleType { get; init; } // "exception" or "default"
