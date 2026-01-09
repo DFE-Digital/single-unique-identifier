@@ -19,7 +19,8 @@ public static class ApplicationConstants
         public static class PolicyEnforcementPoint
         {
             public const string FindEventName = "PEP_FIND";
-            public const string FetchEventName = "PEP_FETCH";
+            public const string FetchRequestEventName = "PEP_FETCH_REQUEST";
+            public const string FetchResponseEventName = "PEP_FETCH_RESPONSE";
         }
     }
 

@@ -85,14 +85,11 @@ public class FetchRecordFunction(
                     cancellationToken
                 ),
             async unauthorized =>
-            {
-                logger.LogDebug("FAILED ON FETCH RECORD AUTHORIZATION");
-                return await HttpResponseUtility.UnauthorizedResponse(
+                await HttpResponseUtility.UnauthorizedResponse(
                     req,
                     context.InvocationId,
                     cancellationToken
-                );
-            },
+                ),
             async error =>
                 await HttpResponseUtility.InternalServerErrorResponse(
                     req,
