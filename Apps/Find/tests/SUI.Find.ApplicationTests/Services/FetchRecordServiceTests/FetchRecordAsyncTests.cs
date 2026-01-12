@@ -365,10 +365,7 @@ public class FetchRecordAsyncTests
         // Arrange
         ArrangeResolvedMapping();
 
-        var providerDef = ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
-        _mockCustodianService
-            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
-            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
+        ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
 
         _mockPolicyEnforcementService
             .EvaluateAsync(
@@ -503,13 +500,7 @@ public class FetchRecordAsyncTests
         // Arrange
         ArrangeResolvedMapping();
 
-        var providerDef = ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
-        _mockCustodianService
-            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
-            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
-        _mockOutboundAuthService
-            .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
-            .Returns(Domain.Models.Result<string>.Ok("access-token"));
+        ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
 
         _mockProviderClient
             .GetAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
