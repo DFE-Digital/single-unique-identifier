@@ -15,9 +15,20 @@ namespace SUI.Find.Application.Models.AuditPayloads;
 public record PepFetchPayload
 {
     public required string DestinationOrgId { get; init; } // Who requested the records
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public required RequestStatus RequestStatus { get; init; }
+    public required string RequestStatusMessage { get; init; }
     public required string Purpose { get; init; } // Why the records were requested
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required FetchOutcome FetchOutcome { get; init; }
+    // Keeping a top level for easy querying of policy outcome
+    public PolicyDecision PolicyOutcome =>
+        Record is null ? PolicyDecision.Indeterminate
+        : Record.IsSharedAllowed ? PolicyDecision.Allowed
+        : PolicyDecision.Denied;
     public required PepFindRecordDetail? Record { get; init; }
+
+    public DateTimeOffset RequestStartedAt { get; init; }
+    public DateTimeOffset RequestFinishedAt { get; init; }
 }

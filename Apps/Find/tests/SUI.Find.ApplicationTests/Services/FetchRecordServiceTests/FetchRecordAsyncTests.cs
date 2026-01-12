@@ -386,7 +386,7 @@ public class FetchRecordAsyncTests
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(ae, requestingOrgId, FetchOutcome.Success, true, recordUrl)
+                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Success, true, recordUrl)
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -439,13 +439,7 @@ public class FetchRecordAsyncTests
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(
-                        ae,
-                        requestingOrgId,
-                        FetchOutcome.PolicyDenial,
-                        true,
-                        recordUrl
-                    )
+                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, true, recordUrl)
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -469,7 +463,7 @@ public class FetchRecordAsyncTests
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(ae, requestingOrgId, FetchOutcome.JobNotFound, false, null)
+                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, false, null)
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -493,13 +487,7 @@ public class FetchRecordAsyncTests
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(
-                        ae,
-                        requestingOrgId,
-                        FetchOutcome.AuthorizationFailure,
-                        false,
-                        null
-                    )
+                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, false, null)
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -523,7 +511,7 @@ public class FetchRecordAsyncTests
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(ae, requestingOrgId, FetchOutcome.NetworkError, false, null)
+                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, false, null)
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -570,13 +558,7 @@ public class FetchRecordAsyncTests
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(
-                        ae,
-                        requestingOrgId,
-                        FetchOutcome.RecordNotFound,
-                        true,
-                        recordUrl
-                    )
+                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, true, recordUrl)
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -623,10 +605,52 @@ public class FetchRecordAsyncTests
             );
     }
 
+    [Fact]
+    public async Task ShouldLogAuditWithUndeterministic_WhenCustodianCannotBeRead()
+    {
+        // Arrange
+        var resolvedMapping = new ResolvedFetchMapping(
+            "http://target.url",
+            "TargetOrg",
+            "requesting-org",
+            "record-type"
+        );
+        _mockMaskUrlService
+            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(resolvedMapping);
+
+        // Simulate custodian read failure
+        _mockCustodianService
+            .GetCustodianAsync("TargetOrg")
+            .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Custodian read error"));
+
+        var requestingOrgId = "org-id";
+
+        // Act
+        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+
+        // Assert
+        await _mockAuditService
+            .Received(1)
+            .WriteAccessAuditLogAsync(
+                Arg.Is<AuditEvent>(ae => ValidateUndeterministic(ae, requestingOrgId)),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    private static bool ValidateUndeterministic(AuditEvent ae, string requestingOrgId)
+    {
+        var payload = JsonSerializer.Deserialize<PepFetchPayload>(ae.Payload.GetRawText());
+        return payload is not null
+            && ae.Actor.ActorId == requestingOrgId
+            && payload.RequestStatus == RequestStatus.Failure
+            && !string.IsNullOrEmpty(payload.RequestStatusMessage);
+    }
+
     private static bool ValidateAuditEvent(
         AuditEvent auditEvent,
         string expectedRequestingOrgId,
-        FetchOutcome expectedOutcome,
+        RequestStatus expectedOutcome,
         bool hasRecordDetail,
         string? expectedRecordUrl = null
     )
@@ -645,7 +669,10 @@ public class FetchRecordAsyncTests
             return false;
 
         // Verify fetch outcome
-        if (payload.FetchOutcome != expectedOutcome)
+        if (payload.RequestStatus != expectedOutcome)
+            return false;
+
+        if (string.IsNullOrEmpty(payload.RequestStatusMessage))
             return false;
 
         // Verify record detail presence

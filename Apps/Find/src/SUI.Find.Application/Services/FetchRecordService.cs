@@ -30,7 +30,6 @@ public class FetchRecordService(
     )
     {
         ResolvedFetchMapping? mapping = null;
-        CustodianRecord? record = null;
         var outcome = FetchOutcome.NetworkError;
         PolicyDecisionResult? pepDecision = null;
         OneOf<CustodianRecord, NotFound, Unauthorized, Error> result;
@@ -47,7 +46,6 @@ public class FetchRecordService(
             {
                 var fetchResult = await GetCustodianDataAsync(successDto, cancellationToken);
                 mapping = fetchResult.Mapping;
-                record = fetchResult.Record;
                 outcome = fetchResult.Outcome;
                 pepDecision = fetchResult.PepDecision;
                 result = fetchResult.Result;
@@ -73,11 +71,23 @@ public class FetchRecordService(
         }
         finally
         {
+            var status =
+                outcome == FetchOutcome.Success ? RequestStatus.Success : RequestStatus.Failure;
+            var statusMessage = outcome switch
+            {
+                FetchOutcome.Success => "Record fetched successfully.",
+                FetchOutcome.RecordNotFound => "Record not found.",
+                FetchOutcome.PolicyDenial => "Access denied by policy enforcement point.",
+                FetchOutcome.JobNotFound => "Fetch job not found.",
+                FetchOutcome.AuthorizationFailure => "Authorization failure.",
+                FetchOutcome.NetworkError => "Network or service error occurred.",
+                _ => "Unknown outcome.",
+            };
             var auditPayload = BuildAuditPayload(
                 requestingOrgId,
                 mapping,
-                record,
-                outcome,
+                status,
+                statusMessage,
                 pepDecision
             );
             await auditService.WriteAccessAuditLogAsync(auditPayload, cancellationToken);
@@ -254,8 +264,8 @@ public class FetchRecordService(
     private AuditEvent BuildAuditPayload(
         string requestingOrgId,
         ResolvedFetchMapping? mapping,
-        CustodianRecord? record,
-        FetchOutcome fetchOutcome,
+        RequestStatus requestStatus,
+        string requestStatusMessage,
         PolicyDecisionResult? pepDecision
     )
     {
@@ -263,7 +273,8 @@ public class FetchRecordService(
         {
             DestinationOrgId = requestingOrgId,
             Purpose = "SAFEGUARDING", // Hard coded for now for Fetch operations
-            FetchOutcome = fetchOutcome,
+            RequestStatus = requestStatus,
+            RequestStatusMessage = requestStatusMessage,
             Record =
                 mapping is null || pepDecision is null
                     ? null
