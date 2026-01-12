@@ -30,7 +30,7 @@ public class FetchRecordAsyncTests
     private readonly FetchRecordService _sut;
     private AuditEvent? _capturedAuditEvent;
 
-    private ResolvedFetchMapping _mockResolvedMapping = new(
+    private readonly ResolvedFetchMapping _mockResolvedMapping = new(
         "http://target.url",
         "TargetOrg",
         "requesting-org",
@@ -84,11 +84,11 @@ public class FetchRecordAsyncTests
 
         var providerDef = new ProviderDefinition
         {
-            OrgId = "TargetOrg",
+            OrgId = _mockResolvedMapping.TargetOrgId,
             Connection = new ConnectionDefinition { Auth = new AuthDefinition() },
         };
         _mockCustodianService
-            .GetCustodianAsync("TargetOrg")
+            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
         _mockOutboundAuthService
             .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
@@ -143,11 +143,15 @@ public class FetchRecordAsyncTests
         ArrangeResolvedMapping();
 
         _mockCustodianService
-            .GetCustodianAsync("TargetOrg")
+            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Custodian not found"));
 
         // Act
-        var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
+        var result = await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<Error>(result.Value);
@@ -161,11 +165,11 @@ public class FetchRecordAsyncTests
 
         var providerDef = new ProviderDefinition
         {
-            OrgId = "TargetOrg",
+            OrgId = _mockResolvedMapping.TargetOrgId,
             Connection = new ConnectionDefinition { Auth = new AuthDefinition() },
         };
         _mockCustodianService
-            .GetCustodianAsync("TargetOrg")
+            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
         _mockOutboundAuthService
             .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
@@ -188,9 +192,9 @@ public class FetchRecordAsyncTests
         // Arrange
         ArrangeResolvedMapping();
 
-        var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
+        var providerDef = new ProviderDefinition { OrgId = _mockResolvedMapping.TargetOrgId };
         _mockCustodianService
-            .GetCustodianAsync("TargetOrg")
+            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
 
         _mockOutboundAuthService
@@ -210,9 +214,9 @@ public class FetchRecordAsyncTests
         // Arrange
         ArrangeResolvedMapping();
 
-        var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
+        var providerDef = new ProviderDefinition { OrgId = _mockResolvedMapping.TargetOrgId };
         _mockCustodianService
-            .GetCustodianAsync("TargetOrg")
+            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
 
         _mockOutboundAuthService
@@ -236,9 +240,9 @@ public class FetchRecordAsyncTests
         // Arrange
         ArrangeResolvedMapping();
 
-        var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
+        var providerDef = new ProviderDefinition { OrgId = _mockResolvedMapping.TargetOrgId };
         _mockCustodianService
-            .GetCustodianAsync("TargetOrg")
+            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
 
         _mockOutboundAuthService
@@ -302,7 +306,6 @@ public class FetchRecordAsyncTests
     public async Task ShouldLogSuccessfulAudit_WhenRecordIsFound()
     {
         // Arrange
-        var recordUrl = "http://target.url";
         ArrangeResolvedMapping();
 
         var providerDef = new ProviderDefinition
@@ -325,20 +328,32 @@ public class FetchRecordAsyncTests
         var jsonResponse = JsonSerializer.Serialize(expectedResult);
 
         _mockProviderClient
-            .GetAsync(recordUrl, Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .GetAsync(
+                _mockResolvedMapping.TargetUrl,
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(Domain.Models.Result<string>.Ok(jsonResponse));
 
-        var requestingOrgId = "org-id";
-
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         await _mockAuditService
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Success, true, recordUrl)
+                    ValidateAuditEvent(
+                        ae,
+                        _mockResolvedMapping.RequestingOrgId,
+                        RequestStatus.Success,
+                        true,
+                        _mockResolvedMapping.TargetUrl
+                    )
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -348,16 +363,11 @@ public class FetchRecordAsyncTests
     public async Task ShouldLogAuditWithPolicyDenial_WhenPEPDeniesAccess()
     {
         // Arrange
-        var recordUrl = "http://target.url";
         ArrangeResolvedMapping();
 
-        var providerDef = new ProviderDefinition
-        {
-            OrgId = "TargetOrg",
-            Connection = new ConnectionDefinition { Auth = new AuthDefinition() },
-        };
+        var providerDef = ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
         _mockCustodianService
-            .GetCustodianAsync("TargetOrg")
+            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
 
         _mockPolicyEnforcementService
@@ -373,17 +383,25 @@ public class FetchRecordAsyncTests
                 )
             );
 
-        var requestingOrgId = "org-id";
-
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         await _mockAuditService
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, true, recordUrl)
+                    ValidateAuditEvent(
+                        ae,
+                        _mockResolvedMapping.RequestingOrgId,
+                        RequestStatus.Failure,
+                        true,
+                        _mockResolvedMapping.TargetUrl
+                    )
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -395,17 +413,25 @@ public class FetchRecordAsyncTests
         // Arrange
         ArrangeResolvedMapping(returnValue: new NotFound());
 
-        var requestingOrgId = "org-id";
-
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         await _mockAuditService
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, false, null)
+                    ValidateAuditEvent(
+                        ae,
+                        _mockResolvedMapping.RequestingOrgId,
+                        RequestStatus.Failure,
+                        false,
+                        null
+                    )
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -417,17 +443,25 @@ public class FetchRecordAsyncTests
         // Arrange
         ArrangeResolvedMapping(returnValue: new Unauthorized());
 
-        var requestingOrgId = "org-id";
-
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         await _mockAuditService
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, false, null)
+                    ValidateAuditEvent(
+                        ae,
+                        _mockResolvedMapping.RequestingOrgId,
+                        RequestStatus.Failure,
+                        false,
+                        null
+                    )
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -439,17 +473,25 @@ public class FetchRecordAsyncTests
         // Arrange
         ArrangeResolvedMapping(returnValue: new Error());
 
-        var requestingOrgId = "org-id";
-
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         await _mockAuditService
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, false, null)
+                    ValidateAuditEvent(
+                        ae,
+                        _mockResolvedMapping.RequestingOrgId,
+                        RequestStatus.Failure,
+                        false,
+                        null
+                    )
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -459,16 +501,11 @@ public class FetchRecordAsyncTests
     public async Task ShouldLogAuditWithRecordNotFound_WhenProviderReturnsFailure()
     {
         // Arrange
-        var recordUrl = "http://target.url";
         ArrangeResolvedMapping();
 
-        var providerDef = new ProviderDefinition
-        {
-            OrgId = "TargetOrg",
-            Connection = new ConnectionDefinition { Auth = new AuthDefinition() },
-        };
+        var providerDef = ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
         _mockCustodianService
-            .GetCustodianAsync("TargetOrg")
+            .GetCustodianAsync(_mockResolvedMapping.TargetOrgId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
         _mockOutboundAuthService
             .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
@@ -478,17 +515,25 @@ public class FetchRecordAsyncTests
             .GetAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Domain.Models.Result<string>.Fail("Provider failure"));
 
-        var requestingOrgId = "org-id";
-
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         await _mockAuditService
             .Received(1)
             .WriteAccessAuditLogAsync(
                 Arg.Is<AuditEvent>(ae =>
-                    ValidateAuditEvent(ae, requestingOrgId, RequestStatus.Failure, true, recordUrl)
+                    ValidateAuditEvent(
+                        ae,
+                        _mockResolvedMapping.RequestingOrgId,
+                        RequestStatus.Failure,
+                        true,
+                        _mockResolvedMapping.TargetUrl
+                    )
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -500,10 +545,12 @@ public class FetchRecordAsyncTests
         // Arrange - setup for a network error scenario
         ArrangeResolvedMapping(returnValue: new Error());
 
-        var requestingOrgId = "org-id";
-
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert - verify audit was called exactly once
         await _mockAuditService
@@ -518,8 +565,6 @@ public class FetchRecordAsyncTests
         ArrangeResolvedMapping();
         ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
         ArrangeProviderResponse(_mockResolvedMapping.TargetUrl, "{}");
-
-        var requestingOrgId = "org-id";
 
         // Act
         await _sut.FetchRecordAsync(
@@ -548,16 +593,20 @@ public class FetchRecordAsyncTests
             .GetCustodianAsync("TargetOrg")
             .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Custodian read error"));
 
-        var requestingOrgId = "org-id";
-
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         await _mockAuditService
             .Received(1)
             .WriteAccessAuditLogAsync(
-                Arg.Is<AuditEvent>(ae => ValidateUndeterministic(ae, requestingOrgId)),
+                Arg.Is<AuditEvent>(ae =>
+                    ValidateUndeterministic(ae, _mockResolvedMapping.RequestingOrgId)
+                ),
                 Arg.Any<CancellationToken>()
             );
     }
@@ -607,19 +656,20 @@ public class FetchRecordAsyncTests
     public async Task ShouldLogAudit_WithZeroReceivedByteCount_WhenResponseIsEmpty()
     {
         // Arrange
-        var recordUrl = "http://target.url";
-        var targetOrgId = "TargetOrg";
-        var requestingOrgId = "org-id";
-        ArrangeResolvedMapping(recordUrl, targetOrgId, "requesting-org", "record-type");
-        ArrangeProviderWithAuth(targetOrgId);
+        ArrangeResolvedMapping();
+        ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
 
         // Provider returns empty body leading to RecordNotFound path
-        ArrangeProviderResponse(recordUrl, string.Empty);
+        ArrangeProviderResponse(_mockResolvedMapping.TargetUrl, string.Empty);
 
         StartCapturingAuditEvent();
 
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         await _mockAuditService
