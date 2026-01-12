@@ -23,13 +23,20 @@ public record PepFetchPayload
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     // Keeping a top level for easy querying of policy outcome
-    public PolicyDecision PolicyOutcome =>
-        PolicySnapshot is null ? PolicyDecision.Indeterminate
-        : PolicySnapshot.IsSharedAllowed ? PolicyDecision.Allowed
-        : PolicyDecision.Denied;
+    public PolicyDecision PolicyOutcome => DeterminePolicyOutcome();
     public required PepFindRecordDetail? PolicySnapshot { get; init; }
 
     public required DateTimeOffset RequestStartedAt { get; init; }
     public required DateTimeOffset RequestFinishedAt { get; init; }
     public required int ReceivedByteCount { get; init; } // Size of data received in response from third party
+
+    private PolicyDecision DeterminePolicyOutcome()
+    {
+        if (PolicySnapshot is null)
+        {
+            return PolicyDecision.Indeterminate;
+        }
+
+        return PolicySnapshot.IsSharedAllowed ? PolicyDecision.Allowed : PolicyDecision.Denied;
+    }
 }
