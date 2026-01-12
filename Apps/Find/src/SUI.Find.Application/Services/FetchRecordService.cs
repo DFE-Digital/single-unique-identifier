@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using OneOf;
@@ -34,6 +35,7 @@ public class FetchRecordService(
         PolicyDecisionResult? pepDecision = null;
         OneOf<CustodianRecord, NotFound, Unauthorized, Error> result;
         var starTime = timeProvider.GetUtcNow();
+        var receivedByteCount = 0;
 
         try
         {
@@ -50,6 +52,17 @@ public class FetchRecordService(
                 outcome = fetchResult.Outcome;
                 pepDecision = fetchResult.PepDecision;
                 result = fetchResult.Result;
+
+                // If we received a record, compute the byte count from the body we fetched
+                if (result.IsT0 && fetchResult.Record is not null)
+                {
+                    // Serialize back to JSON to measure the exact payload size that was fetched from the provider
+                    var json = JsonSerializer.Serialize(
+                        fetchResult.Record,
+                        JsonSerializerOptions.Web
+                    );
+                    receivedByteCount = Encoding.UTF8.GetByteCount(json);
+                }
             }
             else
             {
@@ -92,7 +105,8 @@ public class FetchRecordService(
                 statusMessage,
                 pepDecision,
                 starTime,
-                endTime
+                endTime,
+                receivedByteCount
             );
             await auditService.WriteAccessAuditLogAsync(auditPayload, cancellationToken);
         }
@@ -272,7 +286,8 @@ public class FetchRecordService(
         string requestStatusMessage,
         PolicyDecisionResult? pepDecision,
         DateTimeOffset startTime,
-        DateTimeOffset endTime
+        DateTimeOffset endTime,
+        int receivedByteCount
     )
     {
         var payload = new PepFetchPayload
@@ -283,6 +298,7 @@ public class FetchRecordService(
             RequestStatusMessage = requestStatusMessage,
             RequestStartedAt = startTime,
             RequestFinishedAt = endTime,
+            ReceivedByteCount = receivedByteCount,
             PolicySnapshot =
                 mapping is null || pepDecision is null
                     ? null

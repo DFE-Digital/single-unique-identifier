@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using OneOf;
 using OneOf.Types;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
@@ -27,6 +28,14 @@ public class FetchRecordAsyncTests
         Substitute.For<IPolicyEnforcementService>();
     private readonly IAuditService _mockAuditService = Substitute.For<IAuditService>();
     private readonly FetchRecordService _sut;
+    private AuditEvent? _capturedAuditEvent;
+
+    private ResolvedFetchMapping _mockResolvedMapping = new(
+        "http://target.url",
+        "TargetOrg",
+        "requesting-org",
+        "record-type"
+    );
 
     public FetchRecordAsyncTests()
     {
@@ -71,15 +80,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnOk_WhenSuccessful()
     {
         // Arrange
-        var resolvedMapping = new ResolvedFetchMapping(
-            "http://target.url",
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         var providerDef = new ProviderDefinition
         {
@@ -106,7 +107,11 @@ public class FetchRecordAsyncTests
         var jsonResponse = JsonSerializer.Serialize(expectedResult);
 
         _mockProviderClient
-            .GetAsync("http://target.url", Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .GetAsync(
+                _mockResolvedMapping.TargetUrl,
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(Domain.Models.Result<string>.Ok(jsonResponse));
 
         // Act
@@ -122,9 +127,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnError_WhenUrlServiceFails()
     {
         // Arrange
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new Error());
+        ArrangeResolvedMapping(returnValue: new Error());
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
@@ -137,15 +140,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnError_WhenCustodianNotFound()
     {
         // Arrange
-        var resolvedMapping = new ResolvedFetchMapping(
-            "http://target.url",
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         _mockCustodianService
             .GetCustodianAsync("TargetOrg")
@@ -162,15 +157,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnError_WhenProviderClientFails()
     {
         // Arrange
-        var resolvedMapping = new ResolvedFetchMapping(
-            "http://target.url",
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         var providerDef = new ProviderDefinition
         {
@@ -199,15 +186,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnError_WhenNoAccessToken()
     {
         // Arrange
-        var resolvedMapping = new ResolvedFetchMapping(
-            "http://target.url",
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
         _mockCustodianService
@@ -229,15 +208,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnError_WhenProviderReturnsEmptyContent()
     {
         // Arrange
-        var resolvedMapping = new ResolvedFetchMapping(
-            "http://target.url",
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
         _mockCustodianService
@@ -263,15 +234,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnError_WhenDeserialisationResultIsNull()
     {
         // Arrange
-        var resolvedMapping = new ResolvedFetchMapping(
-            "http://target.url",
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         var providerDef = new ProviderDefinition { OrgId = "TargetOrg" };
         _mockCustodianService
@@ -297,6 +260,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnUnauthorized_WhenRecordsDoNotBelongToCaller()
     {
         // Arrange
+        ArrangeResolvedMapping();
         _mockMaskUrlService
             .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new Unauthorized());
@@ -312,9 +276,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnNotFound_WhenRecordsAreExpired()
     {
         // Arrange
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new NotFound());
+        ArrangeResolvedMapping(returnValue: new NotFound());
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
@@ -327,9 +289,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldReturnNotFound_WhenRecordIsNotFound()
     {
         // Arrange
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new NotFound());
+        ArrangeResolvedMapping(returnValue: new NotFound());
 
         // Act
         var result = await _sut.FetchRecordAsync("fetch-id", "org-id", CancellationToken.None);
@@ -343,15 +303,7 @@ public class FetchRecordAsyncTests
     {
         // Arrange
         var recordUrl = "http://target.url";
-        var resolvedMapping = new ResolvedFetchMapping(
-            recordUrl,
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         var providerDef = new ProviderDefinition
         {
@@ -397,15 +349,7 @@ public class FetchRecordAsyncTests
     {
         // Arrange
         var recordUrl = "http://target.url";
-        var resolvedMapping = new ResolvedFetchMapping(
-            recordUrl,
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         var providerDef = new ProviderDefinition
         {
@@ -449,9 +393,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldLogAuditWithJobNotFound_WhenMappingResolutionFails()
     {
         // Arrange
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new NotFound());
+        ArrangeResolvedMapping(returnValue: new NotFound());
 
         var requestingOrgId = "org-id";
 
@@ -473,9 +415,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldLogAuditWithAuthorizationFailure_WhenUnauthorized()
     {
         // Arrange
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new Unauthorized());
+        ArrangeResolvedMapping(returnValue: new Unauthorized());
 
         var requestingOrgId = "org-id";
 
@@ -497,9 +437,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldLogAuditWithNetworkError_WhenMaskUrlServiceFails()
     {
         // Arrange
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new Error());
+        ArrangeResolvedMapping(returnValue: new Error());
 
         var requestingOrgId = "org-id";
 
@@ -522,15 +460,7 @@ public class FetchRecordAsyncTests
     {
         // Arrange
         var recordUrl = "http://target.url";
-        var resolvedMapping = new ResolvedFetchMapping(
-            recordUrl,
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         var providerDef = new ProviderDefinition
         {
@@ -568,9 +498,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldAlwaysLogAudit_RegardlessOfOutcome()
     {
         // Arrange - setup for a network error scenario
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new Error());
+        ArrangeResolvedMapping(returnValue: new Error());
 
         var requestingOrgId = "org-id";
 
@@ -587,14 +515,18 @@ public class FetchRecordAsyncTests
     public async Task ShouldIncludeTimestamps_InAuditPayload()
     {
         // Arrange
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new NotFound());
+        ArrangeResolvedMapping();
+        ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
+        ArrangeProviderResponse(_mockResolvedMapping.TargetUrl, "{}");
 
         var requestingOrgId = "org-id";
 
         // Act
-        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
 
         // Assert
         await _mockAuditService
@@ -609,15 +541,7 @@ public class FetchRecordAsyncTests
     public async Task ShouldLogAuditWithUndeterministic_WhenCustodianCannotBeRead()
     {
         // Arrange
-        var resolvedMapping = new ResolvedFetchMapping(
-            "http://target.url",
-            "TargetOrg",
-            "requesting-org",
-            "record-type"
-        );
-        _mockMaskUrlService
-            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(resolvedMapping);
+        ArrangeResolvedMapping();
 
         // Simulate custodian read failure
         _mockCustodianService
@@ -636,6 +560,78 @@ public class FetchRecordAsyncTests
                 Arg.Is<AuditEvent>(ae => ValidateUndeterministic(ae, requestingOrgId)),
                 Arg.Any<CancellationToken>()
             );
+    }
+
+    [Fact]
+    public async Task ShouldLogAudit_WithReceivedByteCount_WhenRecordIsFetched()
+    {
+        // Arrange
+        ArrangeResolvedMapping();
+        ArrangeProviderWithAuth(_mockResolvedMapping.TargetOrgId);
+
+        var expectedResult = new CustodianRecord
+        {
+            RecordId = "record-123",
+            RecordType = "record-type",
+            DataType = "data-type",
+            PersonId = "person-456",
+            SchemaUri = "schema-uri",
+            Payload = JsonSerializer.Deserialize<JsonElement>("{\"foo\":\"bar\"}"),
+        };
+        var jsonResponse = JsonSerializer.Serialize(expectedResult, JsonSerializerOptions.Web);
+        ArrangeProviderResponse(_mockResolvedMapping.TargetUrl, jsonResponse);
+
+        StartCapturingAuditEvent();
+
+        // Act
+        await _sut.FetchRecordAsync(
+            "fetch-id",
+            _mockResolvedMapping.RequestingOrgId,
+            CancellationToken.None
+        );
+
+        // Assert
+        await _mockAuditService
+            .Received(1)
+            .WriteAccessAuditLogAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>());
+
+        Assert.NotNull(_capturedAuditEvent);
+        var payload = JsonSerializer.Deserialize<PepFetchPayload>(
+            _capturedAuditEvent!.Payload.GetRawText()
+        );
+        Assert.NotNull(payload);
+        Assert.True(payload!.ReceivedByteCount > 0);
+    }
+
+    [Fact]
+    public async Task ShouldLogAudit_WithZeroReceivedByteCount_WhenResponseIsEmpty()
+    {
+        // Arrange
+        var recordUrl = "http://target.url";
+        var targetOrgId = "TargetOrg";
+        var requestingOrgId = "org-id";
+        ArrangeResolvedMapping(recordUrl, targetOrgId, "requesting-org", "record-type");
+        ArrangeProviderWithAuth(targetOrgId);
+
+        // Provider returns empty body leading to RecordNotFound path
+        ArrangeProviderResponse(recordUrl, string.Empty);
+
+        StartCapturingAuditEvent();
+
+        // Act
+        await _sut.FetchRecordAsync("fetch-id", requestingOrgId, CancellationToken.None);
+
+        // Assert
+        await _mockAuditService
+            .Received(1)
+            .WriteAccessAuditLogAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>());
+
+        Assert.NotNull(_capturedAuditEvent);
+        var payload = JsonSerializer.Deserialize<PepFetchPayload>(
+            _capturedAuditEvent!.Payload.GetRawText()
+        );
+        Assert.NotNull(payload);
+        Assert.Equal(0, payload!.ReceivedByteCount);
     }
 
     private static bool ValidateUndeterministic(AuditEvent ae, string requestingOrgId)
@@ -693,5 +689,58 @@ public class FetchRecordAsyncTests
     {
         // Verify timestamp is set in AuditEvent
         return auditEvent.Timestamp != default;
+    }
+
+    // Test helpers to reduce duplication in Arrange sections
+    private void ArrangeResolvedMapping(
+        string? recordUrl = null,
+        string? targetOrgId = null,
+        string? requestingOrgId = null,
+        string? recordType = null,
+        OneOf<ResolvedFetchMapping, NotFound, Unauthorized, Error>? returnValue = null
+    )
+    {
+        var resolvedMapping = new ResolvedFetchMapping(
+            recordUrl ?? _mockResolvedMapping.TargetUrl,
+            targetOrgId ?? _mockResolvedMapping.TargetOrgId,
+            requestingOrgId ?? _mockResolvedMapping.RequestingOrgId,
+            recordType ?? _mockResolvedMapping.RecordType
+        );
+        _mockMaskUrlService
+            .ResolveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(returnValue ?? resolvedMapping);
+    }
+
+    private ProviderDefinition ArrangeProviderWithAuth(string targetOrgId)
+    {
+        var providerDef = new ProviderDefinition
+        {
+            OrgId = targetOrgId,
+            Connection = new ConnectionDefinition { Auth = new AuthDefinition() },
+        };
+        _mockCustodianService
+            .GetCustodianAsync(targetOrgId)
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(providerDef));
+        _mockOutboundAuthService
+            .GetAccessTokenAsync(providerDef, Arg.Any<CancellationToken>())
+            .Returns(Domain.Models.Result<string>.Ok("access-token"));
+        return providerDef;
+    }
+
+    private void ArrangeProviderResponse(string recordUrl, string jsonResponse)
+    {
+        _mockProviderClient
+            .GetAsync(recordUrl, Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(Domain.Models.Result<string>.Ok(jsonResponse));
+    }
+
+    private void StartCapturingAuditEvent()
+    {
+        _capturedAuditEvent = null;
+        _mockAuditService
+            .When(x =>
+                x.WriteAccessAuditLogAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>())
+            )
+            .Do(ci => _capturedAuditEvent = ci.Arg<AuditEvent>());
     }
 }

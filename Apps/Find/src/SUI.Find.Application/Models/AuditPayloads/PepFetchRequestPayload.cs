@@ -31,4 +31,5 @@ public record PepFetchPayload
 
     public required DateTimeOffset RequestStartedAt { get; init; }
     public required DateTimeOffset RequestFinishedAt { get; init; }
+    public required int ReceivedByteCount { get; init; } // Size of data received in response from third party
 }
