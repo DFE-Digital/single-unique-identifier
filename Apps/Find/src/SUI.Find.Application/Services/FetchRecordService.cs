@@ -33,6 +33,7 @@ public class FetchRecordService(
         var outcome = FetchOutcome.NetworkError;
         PolicyDecisionResult? pepDecision = null;
         OneOf<CustodianRecord, NotFound, Unauthorized, Error> result;
+        var starTime = timeProvider.GetUtcNow();
 
         try
         {
@@ -71,6 +72,7 @@ public class FetchRecordService(
         }
         finally
         {
+            var endTime = timeProvider.GetUtcNow();
             var status =
                 outcome == FetchOutcome.Success ? RequestStatus.Success : RequestStatus.Failure;
             var statusMessage = outcome switch
@@ -88,7 +90,9 @@ public class FetchRecordService(
                 mapping,
                 status,
                 statusMessage,
-                pepDecision
+                pepDecision,
+                starTime,
+                endTime
             );
             await auditService.WriteAccessAuditLogAsync(auditPayload, cancellationToken);
         }
@@ -266,7 +270,9 @@ public class FetchRecordService(
         ResolvedFetchMapping? mapping,
         RequestStatus requestStatus,
         string requestStatusMessage,
-        PolicyDecisionResult? pepDecision
+        PolicyDecisionResult? pepDecision,
+        DateTimeOffset startTime,
+        DateTimeOffset endTime
     )
     {
         var payload = new PepFetchPayload
@@ -275,7 +281,9 @@ public class FetchRecordService(
             Purpose = "SAFEGUARDING", // Hard coded for now for Fetch operations
             RequestStatus = requestStatus,
             RequestStatusMessage = requestStatusMessage,
-            Record =
+            RequestStartedAt = startTime,
+            RequestFinishedAt = endTime,
+            PolicySnapshot =
                 mapping is null || pepDecision is null
                     ? null
                     : new PepFindRecordDetail

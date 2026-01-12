@@ -676,14 +676,14 @@ public class FetchRecordAsyncTests
             return false;
 
         // Verify record detail presence
-        if (hasRecordDetail && payload.Record is null)
+        if (hasRecordDetail && payload.PolicySnapshot is null)
             return false;
 
-        if (!hasRecordDetail && payload.Record is not null)
+        if (!hasRecordDetail && payload.PolicySnapshot is not null)
             return false;
 
         // If record URL is specified, verify it
-        if (expectedRecordUrl is not null && payload.Record?.RecordUrl != expectedRecordUrl)
+        if (expectedRecordUrl is not null && payload.PolicySnapshot?.RecordUrl != expectedRecordUrl)
             return false;
 
         return true;

@@ -24,11 +24,11 @@ public record PepFetchPayload
     [JsonConverter(typeof(JsonStringEnumConverter))]
     // Keeping a top level for easy querying of policy outcome
     public PolicyDecision PolicyOutcome =>
-        Record is null ? PolicyDecision.Indeterminate
-        : Record.IsSharedAllowed ? PolicyDecision.Allowed
+        PolicySnapshot is null ? PolicyDecision.Indeterminate
+        : PolicySnapshot.IsSharedAllowed ? PolicyDecision.Allowed
         : PolicyDecision.Denied;
-    public required PepFindRecordDetail? Record { get; init; }
+    public required PepFindRecordDetail? PolicySnapshot { get; init; }
 
-    public DateTimeOffset RequestStartedAt { get; init; }
-    public DateTimeOffset RequestFinishedAt { get; init; }
+    public required DateTimeOffset RequestStartedAt { get; init; }
+    public required DateTimeOffset RequestFinishedAt { get; init; }
 }
