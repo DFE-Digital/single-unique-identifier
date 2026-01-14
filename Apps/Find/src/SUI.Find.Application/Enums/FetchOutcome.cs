@@ -13,6 +13,7 @@ public enum FetchOutcome
     /// The policy enforcement point denied access to the record
     /// </summary>
     PolicyDenial,
+
     NetworkError,
 
     /// <summary>
