@@ -1,3 +1,4 @@
+using System.Security;
 using System.Text.Json;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
@@ -15,7 +16,9 @@ public abstract class BaseRecordProvider<T> : IRecordProvider<T>
 
     protected BaseRecordProvider(string? basePath = null)
     {
-        _basePath = basePath ?? Path.Combine(Directory.GetCurrentDirectory(), "SampleData");
+        _basePath = Path.GetFullPath(
+            basePath ?? Path.Combine(Directory.GetCurrentDirectory(), "SampleData")
+        );
     }
 
     public virtual RecordEnvelope<T>? GetRecordForSui(string sui, string providerSystemId)
@@ -23,14 +26,23 @@ public abstract class BaseRecordProvider<T> : IRecordProvider<T>
         ArgumentException.ThrowIfNullOrWhiteSpace(sui);
         ArgumentException.ThrowIfNullOrWhiteSpace(providerSystemId);
 
-        string filePath = Path.Combine(_basePath, providerSystemId, GetFileName(sui));
+        var fileName = GetFileName(sui);
 
-        if (!File.Exists(filePath))
+        var fullPath = Path.GetFullPath(Path.Combine(_basePath, providerSystemId, fileName));
+
+        // Prevent path traversal
+        if (!fullPath.StartsWith(_basePath, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new SecurityException("Invalid file path.");
+        }
+
+        if (!File.Exists(fullPath))
         {
             return null;
         }
 
-        var record = JsonSerializer.Deserialize<T>(File.ReadAllText(filePath), _jsonOptions);
+        var json = File.ReadAllText(fullPath);
+        var record = JsonSerializer.Deserialize<T>(json, _jsonOptions);
 
         if (record == null)
         {
