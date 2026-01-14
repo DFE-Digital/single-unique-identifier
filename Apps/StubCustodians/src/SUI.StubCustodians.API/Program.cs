@@ -3,7 +3,6 @@ using Asp.Versioning.ApiExplorer;
 using SUI.Custodians.Domain.Models;
 using SUI.StubCustodians.API.OpenApiTransformers;
 using SUI.StubCustodians.Application.Interfaces;
-using SUI.StubCustodians.Application.Queries;
 using SUI.StubCustodians.Application.Services;
 
 namespace SUI.StubCustodians.API
@@ -78,10 +77,7 @@ namespace SUI.StubCustodians.API
             IConfiguration configuration
         )
         {
-            services.AddMediatR(config =>
-            {
-                config.RegisterServicesFromAssemblyContaining<GetRecordQueryBase>();
-            });
+            services.AddScoped(typeof(IRecordServiceHandler<>), typeof(RecordServiceHandler<>));
 
             services.AddScoped<
                 IRecordProvider<PersonalDetailsRecordV1>,

@@ -1,10 +1,9 @@
 using Asp.Versioning;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SUI.Custodians.Domain.Models;
 using SUI.StubCustodians.Application.Common;
+using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
-using SUI.StubCustodians.Application.Queries;
 
 namespace SUI.StubCustodians.API.Controllers
 {
@@ -14,15 +13,30 @@ namespace SUI.StubCustodians.API.Controllers
     public class RecordsController : ControllerBase
     {
         private readonly ILogger<RecordsController> _logger;
-        private readonly IMediator _mediator;
+        private readonly IRecordServiceHandler<PersonalDetailsRecordV1> _personalDetailsRecordHandler;
+        private readonly IRecordServiceHandler<ChildrensServicesDetailsRecordV1> _childrensServicesDetailsRecordHandler;
+        private readonly IRecordServiceHandler<HealthDataRecordV1> _healthDataRecordHandler;
+        private readonly IRecordServiceHandler<EducationDetailsRecordV1> _educationDetailsRecordHandler;
+        private readonly IRecordServiceHandler<CrimeDataRecordV1> _crimeDataRecordHandler;
 
         private const string LogStartMessage = "Getting record starting, for sui:'{Sui}'";
         private const string LogEndMessage = "Getting record ended, for sui:'{Sui}'";
 
-        public RecordsController(ILogger<RecordsController> logger, IMediator mediator)
+        public RecordsController(
+            ILogger<RecordsController> logger,
+            IRecordServiceHandler<PersonalDetailsRecordV1> personalDetailsRecordHandler,
+            IRecordServiceHandler<ChildrensServicesDetailsRecordV1> childrensServicesDetailsRecordHandler,
+            IRecordServiceHandler<HealthDataRecordV1> healthDataRecordHandler,
+            IRecordServiceHandler<EducationDetailsRecordV1> educationDetailsRecordHandler,
+            IRecordServiceHandler<CrimeDataRecordV1> crimeDataRecordHandler
+        )
         {
             _logger = logger;
-            _mediator = mediator;
+            _personalDetailsRecordHandler = personalDetailsRecordHandler;
+            _childrensServicesDetailsRecordHandler = childrensServicesDetailsRecordHandler;
+            _healthDataRecordHandler = healthDataRecordHandler;
+            _educationDetailsRecordHandler = educationDetailsRecordHandler;
+            _crimeDataRecordHandler = crimeDataRecordHandler;
         }
 
         [HttpGet("{providerSystemId}/PersonalDetailsRecordV1/{sui}")]
@@ -39,13 +53,7 @@ namespace SUI.StubCustodians.API.Controllers
         {
             _logger.LogInformation(LogStartMessage, sui);
 
-            var result = await _mediator.Send(
-                new GetPersonalDetailsRecordQuery()
-                {
-                    Sui = sui,
-                    ProviderSystemId = providerSystemId,
-                }
-            );
+            var result = await _personalDetailsRecordHandler.GetRecord(sui, providerSystemId);
 
             _logger.LogInformation(LogEndMessage, sui);
 
@@ -66,12 +74,9 @@ namespace SUI.StubCustodians.API.Controllers
         {
             _logger.LogInformation(LogStartMessage, sui);
 
-            var result = await _mediator.Send(
-                new GetChildrensServicesDetailsRecordQuery()
-                {
-                    Sui = sui,
-                    ProviderSystemId = providerSystemId,
-                }
+            var result = await _childrensServicesDetailsRecordHandler.GetRecord(
+                sui,
+                providerSystemId
             );
 
             _logger.LogInformation(LogEndMessage, sui);
@@ -93,13 +98,7 @@ namespace SUI.StubCustodians.API.Controllers
         {
             _logger.LogInformation(LogStartMessage, sui);
 
-            var result = await _mediator.Send(
-                new GetEducationDetailsRecordQuery()
-                {
-                    Sui = sui,
-                    ProviderSystemId = providerSystemId,
-                }
-            );
+            var result = await _educationDetailsRecordHandler.GetRecord(sui, providerSystemId);
 
             _logger.LogInformation(LogEndMessage, sui);
 
@@ -117,9 +116,7 @@ namespace SUI.StubCustodians.API.Controllers
         {
             _logger.LogInformation(LogStartMessage, sui);
 
-            var result = await _mediator.Send(
-                new GetHealthDataRecordQuery() { Sui = sui, ProviderSystemId = providerSystemId }
-            );
+            var result = await _healthDataRecordHandler.GetRecord(sui, providerSystemId);
 
             _logger.LogInformation(LogEndMessage, sui);
 
@@ -137,9 +134,7 @@ namespace SUI.StubCustodians.API.Controllers
         {
             _logger.LogInformation(LogStartMessage, sui);
 
-            var result = await _mediator.Send(
-                new GetCrimeDataRecordQuery() { Sui = sui, ProviderSystemId = providerSystemId }
-            );
+            var result = await _crimeDataRecordHandler.GetRecord(sui, providerSystemId);
 
             _logger.LogInformation(LogEndMessage, sui);
 
