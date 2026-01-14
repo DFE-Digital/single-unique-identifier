@@ -1,4 +1,4 @@
-name: Build and Test, and optionally Deploy, the "Custodians" Solution
+name: 'Build, Test, Deploy: "Custodians" Solution'
 
 on:
   workflow_dispatch:

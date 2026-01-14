@@ -1,4 +1,4 @@
-name: Build and Test, and optionally Deploy, the "Find" Solution
+name: 'Build, Test, Deploy: "Find" Solution'
 
 on:
   workflow_dispatch:

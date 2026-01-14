@@ -1,4 +1,4 @@
-name: Build and Test, and optionally Deploy, the "Transfer" Solution
+name: 'Build, Test, Deploy: "Transfer" Solution'
 
 on:
   workflow_dispatch:

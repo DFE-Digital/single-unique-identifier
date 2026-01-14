@@ -1,4 +1,4 @@
-name: Build and Test, and optionally Deploy, the "SingleView" Solution
+name: 'Build, Test, Deploy: "SingleView" Solution'
 
 on:
   workflow_dispatch:
