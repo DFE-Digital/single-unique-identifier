@@ -32,8 +32,6 @@ on:
         default: publish
         type: string
     secrets:
-      AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D:
-        required: true
       AZURE_CLIENT_ID:
         required: true
       AZURE_TENANT_ID:
@@ -54,21 +52,18 @@ jobs:
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
       AZURE_WEBAPP_PACKAGE_PATH: ${{ inputs.package_path }}
+      ARM_USE_OIDC: true
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Azure login with client secret for ${{ inputs.environment }}
+      - name: Azure login with OIDC for ${{ inputs.environment }}
         uses: azure/login@v2
         with:
-          creds: |
-            {
-              "clientSecret": "${{ secrets.AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D }}",
-              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
-              "tenantId": "${{ secrets.AZURE_TENANT_ID }}",
-              "clientId": "${{ secrets.AZURE_CLIENT_ID }}"
-            }
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
         id: env_config

@@ -28,29 +28,18 @@ jobs:
     environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
-      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D }}
-      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Azure login with client secret for ${{ inputs.environment }}
+      - name: Azure login with OIDC for ${{ inputs.environment }}
         uses: azure/login@v2
         with:
-          # To use OIDC, remove `creds` and uncomment these lines.
-          # client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          # tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          # subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          creds: |
-            {
-              "clientSecret": "${{ secrets.AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D }}",
-              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
-              "tenantId": "${{ secrets.AZURE_TENANT_ID }}",
-              "clientId": "${{ secrets.AZURE_CLIENT_ID }}"
-            }
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
       - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
