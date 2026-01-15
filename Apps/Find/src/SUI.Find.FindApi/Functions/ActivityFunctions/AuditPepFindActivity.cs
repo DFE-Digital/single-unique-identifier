@@ -44,7 +44,7 @@ public class AuditPepFindActivity(
             Mode = "EXISTENCE", // Currently hardcoded - all Find requests use Existence mode
 
             Records = input
-                .SearchResultsWithDecisions.Select(r => new PepFindPayload.PepFindRecordDetail
+                .SearchResultsWithDecisions.Select(r => new PepFindRecordDetail
                 {
                     SourceOrgId = r.SourceOrgId,
                     RecordUrl = r.Item.RecordUrl,
