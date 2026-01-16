@@ -14,7 +14,7 @@ namespace SUI.StubCustodians.API.Controllers;
 [ApiVersion("1.0")]
 public class FetchController : ControllerBase
 {
-    private readonly ILogger<RecordsController> _logger;
+    private readonly ILogger<FetchController> _logger;
     private readonly IRecordServiceHandler<PersonalDetailsRecordV1> _personalDetailsRecordHandler;
     private readonly IRecordServiceHandler<ChildrensServicesDetailsRecordV1> _childrensServicesDetailsRecordHandler;
     private readonly IRecordServiceHandler<HealthDataRecordV1> _healthDataRecordHandler;
@@ -22,7 +22,7 @@ public class FetchController : ControllerBase
     private readonly IRecordServiceHandler<CrimeDataRecordV1> _crimeDataRecordHandler;
 
     public FetchController(
-        ILogger<RecordsController> logger,
+        ILogger<FetchController> logger,
         IRecordServiceHandler<PersonalDetailsRecordV1> personalDetailsRecordHandler,
         IRecordServiceHandler<ChildrensServicesDetailsRecordV1> childrensServicesDetailsRecordHandler,
         IRecordServiceHandler<HealthDataRecordV1> healthDataRecordHandler,
