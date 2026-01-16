@@ -1,3 +1,5 @@
+#nullable disable
+
 using SUI.StubCustodians.Application.Common;
 
 namespace SUI.StubCustodians.Application.Unit.Tests.Common
@@ -22,7 +24,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Common
         [InlineData("   ")]
         public void Validate_SuiNullOrWhitespace_ReturnsError(string sui)
         {
-            var provider = "MockCrimeDataProvider";
+            const string provider = "MockCrimeDataProvider";
 
             var errors = RecordRequestValidator.Validate(sui, provider);
 
@@ -36,7 +38,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Common
         [InlineData("12#4567890")]
         public void Validate_SuiContainsNonDigits_ReturnsError(string sui)
         {
-            var provider = "MockCrimeDataProvider";
+            const string provider = "MockCrimeDataProvider";
 
             var errors = RecordRequestValidator.Validate(sui, provider);
 
@@ -51,7 +53,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Common
         [InlineData("12345678901")] // 11 digits
         public void Validate_SuiIncorrectLength_ReturnsError(string sui)
         {
-            var provider = "MockCrimeDataProvider";
+            const string provider = "MockCrimeDataProvider";
 
             var errors = RecordRequestValidator.Validate(sui, provider);
 
@@ -69,7 +71,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Common
         [InlineData("   ")]
         public void Validate_ProviderSystemIdNullOrWhitespace_ReturnsError(string provider)
         {
-            var sui = "1234567890";
+            const string sui = "1234567890";
 
             var errors = RecordRequestValidator.Validate(sui, provider);
 
@@ -81,8 +83,8 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Common
         [Fact]
         public void Validate_ProviderSystemIdInvalid_ReturnsError()
         {
-            var sui = "1234567890";
-            var provider = "InvalidProvider";
+            const string sui = "1234567890";
+            const string provider = "InvalidProvider";
 
             var errors = RecordRequestValidator.Validate(sui, provider);
 
@@ -94,8 +96,8 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Common
         [Fact]
         public void Validate_MultipleErrors_ReturnsAllErrors()
         {
-            var sui = "abc"; // invalid sui
-            var provider = "Wrong"; // invalid provider
+            const string sui = "abc"; // invalid sui
+            const string provider = "Wrong"; // invalid provider
 
             var errors = RecordRequestValidator.Validate(sui, provider);
 

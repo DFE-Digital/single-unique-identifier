@@ -1,3 +1,5 @@
+#nullable disable
+
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Custodians.Domain.Models;
@@ -26,8 +28,8 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
         [Fact]
         public async Task GetRecord_ValidSuiAndProvider_ReturnsSuccess()
         {
-            var sui = "1234567890";
-            var provider = "MockCrimeDataProvider";
+            const string sui = "1234567890";
+            const string provider = "MockCrimeDataProvider";
 
             var record = new PersonalDetailsRecordV1();
             var envelope = new RecordEnvelope<PersonalDetailsRecordV1>
@@ -50,7 +52,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
         [InlineData("   ")]
         public async Task GetRecord_InvalidSui_ReturnsValidationFailure(string sui)
         {
-            var provider = "MockCrimeDataProvider";
+            const string provider = "MockCrimeDataProvider";
 
             var result = await _service.GetRecord(sui, provider);
 
@@ -66,7 +68,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
         [InlineData("InvalidProvider")]
         public async Task GetRecord_InvalidProvider_ReturnsValidationFailure(string provider)
         {
-            var sui = "1234567890";
+            const string sui = "1234567890";
 
             var result = await _service.GetRecord(sui, provider);
 
@@ -78,12 +80,12 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
         [Fact]
         public async Task GetRecord_RecordNotFound_ReturnsNotFound()
         {
-            var sui = "1234567890";
-            var provider = "MockCrimeDataProvider";
+            const string sui = "1234567890";
+            const string provider = "MockCrimeDataProvider";
 
             _mockProvider
                 .GetRecordForSui(sui, provider)
-                .Returns((RecordEnvelope<PersonalDetailsRecordV1>?)null);
+                .Returns((RecordEnvelope<PersonalDetailsRecordV1>)null);
 
             var result = await _service.GetRecord(sui, provider);
 
