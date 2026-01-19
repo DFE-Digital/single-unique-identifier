@@ -937,25 +937,25 @@ namespace SUI.Custodians.API.Client
     {
 
         /// <summary>
-        /// CS - Key worker
+        /// Children's Services - Key worker
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("keyWorker")]
         public string? KeyWorker { get; set; } = default!;
 
         /// <summary>
-        /// CS - Duty contact details
+        /// Children's Services - Duty contact details
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("dutyContactDetails")]
         public System.Collections.Generic.ICollection<string>? DutyContactDetails { get; set; } = default!;
 
         /// <summary>
-        /// CS - Team involvement
+        /// Children's Services - Team involvement
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("teamInvolvement")]
         public System.Collections.Generic.ICollection<string>? TeamInvolvement { get; set; } = default!;
 
         /// <summary>
-        /// CS - Referrals
+        /// Children's Services - Referrals
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("childrensServicesReferrals")]
         public System.Collections.Generic.ICollection<ChildrensServicesReferralV1>? ChildrensServicesReferrals { get; set; } = default!;
@@ -967,14 +967,14 @@ namespace SUI.Custodians.API.Client
     {
 
         /// <summary>
-        /// CS - Referral history - Date
+        /// Children's Services - Referral history - Date
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("date")]
         [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
         public System.DateTimeOffset? Date { get; set; } = default!;
 
         /// <summary>
-        /// CS - Referral history - Type
+        /// Children's Services - Referral history - Type
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string? Type { get; set; } = default!;
@@ -1004,7 +1004,8 @@ namespace SUI.Custodians.API.Client
         /// Last Police Protection Power event
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("lastPoliceProtectionPowerEvent")]
-        public string? LastPoliceProtectionPowerEvent { get; set; } = default!;
+        [System.Text.Json.Serialization.JsonConverter(typeof(DateFormatConverter))]
+        public System.DateTimeOffset? LastPoliceProtectionPowerEvent { get; set; } = default!;
 
         /// <summary>
         /// Police - Missing Episodes

@@ -67,7 +67,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
 
             var record = new CrimeDataRecordV1()
             {
-                LastPoliceProtectionPowerEvent = "None",
+                LastPoliceProtectionPowerEvent = DateOnly.FromDateTime(DateTime.Now),
                 ServicesKnownTo = ["Police"],
                 PoliceMarkerDetails = "Individual is prone to violence",
             };
@@ -80,7 +80,10 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             var result = provider.GetRecordForSui(sui, providerId);
 
             Assert.NotNull(result);
-            Assert.Equal("None", result.Payload.LastPoliceProtectionPowerEvent);
+            Assert.Equal(
+                DateOnly.FromDateTime(DateTime.Now),
+                result.Payload.LastPoliceProtectionPowerEvent
+            );
             Assert.NotNull(result.Payload.ServicesKnownTo);
             Assert.Single(result.Payload.ServicesKnownTo);
             Assert.Equal("Individual is prone to violence", result.Payload.PoliceMarkerDetails);
