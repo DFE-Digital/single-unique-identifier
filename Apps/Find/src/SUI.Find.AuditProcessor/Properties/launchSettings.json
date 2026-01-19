@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "SUI.Find.AuditProcessor": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7151",
+      "launchBrowser": false
+    }
+  }
+}
