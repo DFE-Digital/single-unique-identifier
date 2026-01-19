@@ -16,6 +16,7 @@ using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
+using SUI.Find.Infrastructure;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Utility;

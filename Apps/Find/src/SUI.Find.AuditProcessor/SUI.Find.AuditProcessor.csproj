@@ -18,5 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SUI.Find.Application\SUI.Find.Application.csproj" />
+    <ProjectReference Include="..\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
