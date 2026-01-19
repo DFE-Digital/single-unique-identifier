@@ -20,7 +20,7 @@ public record CrimeDataRecordV1 : SuiRecord
     /// <summary>
     /// Last Police Protection Power event
     /// </summary>
-    public string? LastPoliceProtectionPowerEvent { get; init; }
+    public DateOnly? LastPoliceProtectionPowerEvent { get; init; }
 
     /// <summary>
     /// Police - Missing Episodes

@@ -599,7 +599,7 @@
           "keyWorker": {
             "type": "string",
             "additionalProperties": false,
-            "description": "CS - Key worker",
+            "description": "Children's Services - Key worker",
             "nullable": true,
             "example": "Alex Patel"
           },
@@ -610,7 +610,7 @@
               "additionalProperties": false
             },
             "additionalProperties": false,
-            "description": "CS - Duty contact details",
+            "description": "Children's Services - Duty contact details",
             "nullable": true,
             "example": "csc@bromley.gov.uk, 08792675387"
           },
@@ -621,7 +621,7 @@
               "additionalProperties": false
             },
             "additionalProperties": false,
-            "description": "CS - Team involvement",
+            "description": "Children's Services - Team involvement",
             "nullable": true,
             "example": "Disabled Childrens Team, Neighbourhood Team"
           },
@@ -631,7 +631,7 @@
               "$ref": "#/components/schemas/ChildrensServicesReferralV1"
             },
             "additionalProperties": false,
-            "description": "CS - Referrals",
+            "description": "Children's Services - Referrals",
             "nullable": true
           }
         },
@@ -644,7 +644,7 @@
           "date": {
             "type": "string",
             "additionalProperties": false,
-            "description": "CS - Referral history - Date",
+            "description": "Children's Services - Referral history - Date",
             "format": "date",
             "nullable": true,
             "example": "2025-08-16"
@@ -652,7 +652,7 @@
           "type": {
             "type": "string",
             "additionalProperties": false,
-            "description": "CS - Referral history - Type",
+            "description": "Children's Services - Referral history - Type",
             "nullable": true,
             "example": "Early Help"
           }
@@ -684,6 +684,7 @@
             "type": "string",
             "additionalProperties": false,
             "description": "Last Police Protection Power event",
+            "format": "date",
             "nullable": true
           },
           "missingEpisodes": {
