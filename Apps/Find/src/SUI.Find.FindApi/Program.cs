@@ -61,7 +61,6 @@ builder.Services.AddSingleton<IOutboundAuthService, OutboundAuthService>();
 
 // Add this after other service registrations
 builder.Services.AddHostedService<AzureStorageTableStartup>();
-builder.Services.AddHostedService<AzureStorageQueueStartup>();
 
 builder.UseMiddleware<JwtAuthMiddleware>();
 builder.UseMiddleware<AuditMiddleware>();
