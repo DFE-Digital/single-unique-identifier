@@ -6,7 +6,7 @@ locals {
   core_state_key      = format("%s/terraform.tfstate", var.environment_id)
   service_state_key   = format("%s/find.tfstate", var.environment_id)
   function_descriptor = "find01"
-  function_app_name   = format(
+  function_app_name = format(
     "%s%sfunc-%s-%s",
     var.subscription_prefix,
     var.environment_id,
@@ -17,6 +17,21 @@ locals {
   # Storage account name for Function App (must be globally unique, 3-24 lowercase letters/numbers)
   function_storage_account_name = lower(
     format("%s%sstfunc%s", var.subscription_prefix, var.environment_id, local.function_descriptor)
+  )
+
+  # AuditProcessor configuration
+  audit_processor_descriptor = "findaudit01"
+  audit_processor_function_app_name = format(
+    "%s%sfunc-%s-%s",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+    local.audit_processor_descriptor
+  )
+
+  # Storage account name for AuditProcessor (used for both function internals and audit data)
+  audit_processor_storage_account_name = lower(
+    format("%s%sst%s", var.subscription_prefix, var.environment_id, local.audit_processor_descriptor)
   )
 }
 
@@ -49,6 +64,49 @@ module "function_app" {
 
   app_settings = merge(
     {
+      FUNCTIONS_WORKER_RUNTIME       = "dotnet-isolated"
+      FUNCTIONS_EXTENSION_VERSION    = "~4"
+      WEBSITE_RUN_FROM_PACKAGE       = "1"
+      AuditProcessorConnectionString = module.audit_processor_storage.primary_connection_string
+    },
+    var.app_settings
+  )
+
+  tags = var.tags
+}
+
+module "audit_processor_storage" {
+  source = "../modules/storage_account"
+
+  storage_account_name = local.audit_processor_storage_account_name
+  resource_group_name  = data.terraform_remote_state.core.outputs.resource_group_name
+  location             = data.terraform_remote_state.core.outputs.resource_group_location
+
+  environment_tag  = var.environment_tag
+  product          = var.product
+  service_offering = var.service_offering
+
+  tags = var.tags
+}
+
+module "audit_processor_function_app" {
+  source = "../modules/linux_function_app"
+
+  name                = local.audit_processor_function_app_name
+  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
+  location            = data.terraform_remote_state.core.outputs.resource_group_location
+  service_plan_id     = data.terraform_remote_state.core.outputs.app_service_plan_id
+
+  storage_account_name = local.audit_processor_storage_account_name
+
+  environment_tag  = var.environment_tag
+  product          = var.product
+  service_offering = var.service_offering
+
+  dotnet_version = var.function_dotnet_version
+
+  app_settings = merge(
+    {
       FUNCTIONS_WORKER_RUNTIME    = "dotnet-isolated"
       FUNCTIONS_EXTENSION_VERSION = "~4"
       WEBSITE_RUN_FROM_PACKAGE    = "1"
@@ -57,4 +115,6 @@ module "function_app" {
   )
 
   tags = var.tags
+
+  depends_on = [module.audit_processor_storage]
 }
