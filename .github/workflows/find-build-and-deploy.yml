@@ -54,3 +54,18 @@ jobs:
       project_path: Apps/Find/src/SUI.Find.FindApi/SUI.Find.FindApi.csproj
       package_path: publish
       dotnet_version: "9.0.x"
+
+  deploy-find-audit:
+    name: Audit processor - Deploy Function App
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: build-and-test-Find
+    uses: ./.github/workflows/deploy-dotnet-functionapp.yml
+    secrets: inherit
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      component_descriptor: findaudit01
+      project_path: Apps/Find/src/SUI.Find.AuditProcessor/SUI.Find.AuditProcessor.csproj
+      package_path: publish
+      dotnet_version: "9.0.x"
