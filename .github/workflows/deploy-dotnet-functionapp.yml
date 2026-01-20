@@ -90,18 +90,13 @@ jobs:
           dotnet-version: ${{ inputs.dotnet_version }}
 
       - name: Publish function app
-        run: |
-          dotnet publish ${{ inputs.project_path }} \
+          run: |
+            dotnet publish ${{ inputs.project_path }} \
             -c Release \
             -o $AZURE_FUNCTIONAPP_PACKAGE_PATH
 
-      - name: Archive package
-        run: |
-          cd $AZURE_FUNCTIONAPP_PACKAGE_PATH
-          zip -r ../functionapp.zip .
-
       - name: Deploy to Azure Function App
-        uses: azure/functions-action@v1
-        with:
-          app-name: ${{ steps.app_name.outputs.functionapp_name }}
-          package: functionapp.zip
+          uses: azure/functions-action@v1
+          with:
+            app-name: ${{ steps.app_name.outputs.functionapp_name }}
+            package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }
