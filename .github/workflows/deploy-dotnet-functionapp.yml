@@ -94,13 +94,20 @@ jobs:
           dotnet publish ${{ inputs.project_path }} \
             -c Release \
             -o $AZURE_FUNCTIONAPP_PACKAGE_PATH
-            
+
       - name: Verify publish output
         run: |
           echo "Publish output dir: $AZURE_FUNCTIONAPP_PACKAGE_PATH"
+          ls -la $AZURE_FUNCTIONAPP_PACKAGE_PATH
+
+      - name: Create deployment package
+        run: |
+          cd $AZURE_FUNCTIONAPP_PACKAGE_PATH
+          zip -r ../functionapp.zip .
 
       - name: Deploy to Azure Function App
-        uses: azure/functions-action@v1
+        uses: Azure/functions-action@v1
         with:
           app-name: ${{ steps.app_name.outputs.functionapp_name }}
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          package: functionapp.zip
+      
