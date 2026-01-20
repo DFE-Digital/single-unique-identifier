@@ -23,6 +23,7 @@ primarily the .NET SDK and `dotnet tool restore` from the repo root.
 3. Create the `local.settings.json` file:
     * `cp ./Apps/Find/src/SUI.Find.FindApi/example.local.settings.json ./Apps/Find/src/SUI.Find.FindApi/local.settings.json`
     * `cp ./Apps/Find/src/SUI.Find.CustodianSimulation/example.local.settings.json ./Apps/Find/src/SUI.Find.CustodianSimulation/local.settings.json`
+    * `cp ./Apps/Find/src/SUI.Find.AuditProcessor/example.local.settings.json ./Apps/Find/src/SUI.Find.AuditProcessor/local.settings.json`
 4. To run Azurite locally in a container, install Rancher Desktop selecting the **Docker Engine** option during install:
     * Download from <https://rancherdesktop.io>
     * Rancher Desktop is a free, open-source application for running Docker images and does not require a license to use for commercial purposes.
@@ -48,3 +49,4 @@ Or, using the command line (from the repo root):
 
 * `cd ./Apps/Find/src/SUI.Find.FindApi/; func start --port 7182`
 * `cd ./Apps/Find/src/SUI.Find.CustodianSimulation/; func start --port 7082`
+* `cd ./Apps/Find//src/SUI.Find.AuditProcessor/ func start --port 7151` <- Optional to have the audit processor running
