@@ -17,7 +17,7 @@ The recommended approach to running the 'Find' app locally is:
 
 ### One-off prerequisite steps
 
-1. Ensure the prerequisites defined in the [Repo's root README](../../README.md) have been installed,
+1. Ensure the prerequisites defined in the [Repo root README](../../README.md) have been installed,
 primarily the .NET SDK and `dotnet tool restore` from the repo root.
 2. Install [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools/blob/v4.x/README.md#installing)
 3. Create the `local.settings.json` file:
