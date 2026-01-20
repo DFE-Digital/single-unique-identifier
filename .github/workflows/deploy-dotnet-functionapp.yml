@@ -92,8 +92,8 @@ jobs:
       - name: Publish function app
         run: |
           dotnet publish ${{ inputs.project_path }} \
-          -c Release \
-          -o $AZURE_FUNCTIONAPP_PACKAGE_PATH
+            -c Release \
+            -o $AZURE_FUNCTIONAPP_PACKAGE_PATH
             
       - name: Verify publish output
         run: |
