@@ -1,0 +1,141 @@
+{
+  "orgId": "LOCAL-AUTHORITY-01",
+  "orgName": "Example Local Authority",
+  "orgType": "LOCAL_AUTHORITY",
+  "records": [
+    {
+      "recordId": "CSC-5919-A",
+      "personId": "Cy13hyZL-4LSIwVy50p-Hg",
+      "recordType": "childrens-services.details",
+      "dataType": "childrens-services.details.v1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
+      "payload": {
+        "keyWorker": "Alex Patel",
+        "dutyContactDetails": [
+          "csc@bromley.gov.uk",
+          "08792675387"
+        ],
+        "teamInvolvement": [
+          "Disabled Children Team",
+          "Neighbourhood Team"
+        ],
+        "cscActiveStatusesAndPlans": [
+          {
+            "status": "Child In Need",
+            "plan": "Child in need plan"
+          }
+        ],
+        "childrensServicesReferrals": [
+          {
+            "date": "2025-12-18",
+            "type": "Early Help"
+          },
+          {
+            "date": "2025-12-02",
+            "type": "Early Help"
+          },
+          {
+            "date": "2025-12-18",
+            "type": "Social Care"
+          },
+          {
+            "date": "2022-10-01",
+            "type": "Early Help"
+          },
+          {
+            "date": "2022-10-02",
+            "type": "Social Care"
+          }
+        ]
+      }
+    },
+    {
+      "recordId": "CSC-1234-A",
+      "personId": "9D8EHKuYWQVYGYVbSb0JZg",
+      "recordType": "childrens-services.details",
+      "dataType": "childrens-services.details.v1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
+      "payload": {
+        "keyWorker": "Alex Patel",
+        "dutyContactDetails": [
+          "csc@bromley.gov.uk",
+          "08792675387"
+        ],
+        "teamInvolvement": [
+          "Disabled Children Team",
+          "Neighbourhood Team"
+        ],
+        "cscActiveStatusesAndPlans": [
+          {
+            "status": "Child In Need",
+            "plan": "Child in need plan"
+          }
+        ],
+        "childrensServicesReferrals": [
+          {
+            "date": "2025-12-18",
+            "type": "Early Help"
+          },
+          {
+            "date": "2025-12-02",
+            "type": "Early Help"
+          },
+          {
+            "date": "2025-12-18",
+            "type": "Social Care"
+          },
+          {
+            "date": "2022-10-01",
+            "type": "Early Help"
+          },
+          {
+            "date": "2022-10-02",
+            "type": "Social Care"
+          }
+        ]
+      }
+    },
+    {
+      "recordId": "CSC-5919-A",
+      "personId": "Cy13hyZL-4LSIwVy50p-Hg",
+      "recordType": "personal.details",
+      "dataType": "personal.details.v1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.v1.json",
+      "payload": {
+        "firstName": "Sarah",
+        "lastName": "Smith",
+        "dateOfBirth": "2011-09-25",
+        "address": null,
+        "namesOfIndividualsResidingAtMainAddress": null,
+        "birthAssignedSex": "Female",
+        "pronouns": "She/her",
+        "ethnicity": "Irish Traveller",
+        "firstLanguage": "English",
+        "designatedLocalAuthority": "Bromley",
+        "englishAsAdditionalLanguage": false,
+        "braille": true,
+        "signLanguage": null,
+        "makaton": false,
+        "interpreter": null,
+        "relatedPeople": [
+          {
+            "relationshipToTheChild": "Father",
+            "name": "Jeff Smith",
+            "dob": "1988-11-01",
+            "risk": [
+              "Individual may possess firearms"
+            ]
+          },
+          {
+            "relationshipToTheChild": "Birth mother",
+            "name": "Julie Smith",
+            "dob": "1962-02-25",
+            "risk": [
+              "Individual may resort to violent behaviour"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

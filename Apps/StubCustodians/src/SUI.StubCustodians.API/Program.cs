@@ -4,6 +4,7 @@ using SUI.Custodians.Domain.Models;
 using SUI.StubCustodians.API.OpenApiTransformers;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Services;
+using SUI.StubCustodians.Infrastructure.Services;
 
 namespace SUI.StubCustodians.API
 {
@@ -97,6 +98,11 @@ namespace SUI.StubCustodians.API
             services.AddScoped<IRecordProvider<CrimeDataRecord>, CrimeDataRecordProvider>();
 
             services.AddScoped<IRecordProvider<HealthDataRecord>, HealthDataRecordProvider>();
+
+            services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(3, 10));
+            services.AddSingleton<IDataProvider, FileDataProvider>();
+            services.AddScoped<IManifestService, ManifestService>();
+            services.AddScoped<IRecordService, RecordService>();
         }
     }
 }

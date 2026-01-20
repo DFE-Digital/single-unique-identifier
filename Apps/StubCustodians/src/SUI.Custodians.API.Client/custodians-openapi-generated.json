@@ -5,6 +5,104 @@
     "version": "1.0"
   },
   "paths": {
+    "/api/v1/Auth/token": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "TokenForm",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "client_id": {
+                    "type": "string",
+                    "additionalProperties": false
+                  },
+                  "client_secret": {
+                    "type": "string",
+                    "additionalProperties": false
+                  },
+                  "scope": {
+                    "type": "string",
+                    "additionalProperties": false
+                  },
+                  "grant_type": {
+                    "type": "string",
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/Fetch/{providerSystemId}/{recordType}/{sui}": {
       "get": {
         "tags": [
@@ -103,10 +201,10 @@
         }
       }
     },
-    "/api/v1/Find/{providerSystemId}/{sui}": {
+    "/api/v1/Fetch/{providerSystemId}/{sui}": {
       "get": {
         "tags": [
-          "Find"
+          "Fetch"
         ],
         "parameters": [
           {
@@ -126,8 +224,214 @@
               "type": "string",
               "additionalProperties": false
             }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
+            }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordEnvelopeOfSuiRecord"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordEnvelopeOfSuiRecord"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordEnvelopeOfSuiRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Find/{orgId}/{personId}": {
+      "get": {
+        "tags": [
+          "Find"
+        ],
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
+            }
+          },
+          {
+            "name": "personId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
+            }
+          },
+          {
+            "name": "recordType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResultItem"
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResultItem"
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResultItem"
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/Find/manifest": {
+      "post": {
+        "tags": [
+          "Find"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json; x-api-version=1.0": {
+              "schema": {
+                "$ref": "#/components/schemas/ManifestRequest"
+              }
+            },
+            "text/json; x-api-version=1.0": {
+              "schema": {
+                "$ref": "#/components/schemas/ManifestRequest"
+              }
+            },
+            "application/*+json; x-api-version=1.0": {
+              "schema": {
+                "$ref": "#/components/schemas/ManifestRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -694,6 +998,52 @@
         "additionalProperties": false,
         "nullable": true
       },
+      "AuthTokenRequest": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "client_secret": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "scope": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "additionalProperties": false
+            },
+            "additionalProperties": false,
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AuthTokenResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "token_type": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "expires_in": {
+            "type": "integer",
+            "additionalProperties": false,
+            "format": "int32"
+          },
+          "scope": {
+            "type": "string",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
       "ChildrensServicesDetailsRecord": {
         "type": "object",
         "properties": {
@@ -1028,6 +1378,30 @@
           },
           "riskType": {
             "$ref": "#/components/schemas/NullableOfCrimeRiskType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManifestRequest": {
+        "required": [
+          "orgId",
+          "personId",
+          "recordType"
+        ],
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "personId": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "recordType": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1473,6 +1847,9 @@
     }
   },
   "tags": [
+    {
+      "name": "Auth"
+    },
     {
       "name": "Fetch"
     },

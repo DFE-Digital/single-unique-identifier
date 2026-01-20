@@ -16,9 +16,7 @@ public abstract class BaseRecordProvider<T> : IRecordProvider<T>
 
     protected BaseRecordProvider(string? basePath = null)
     {
-        _basePath = Path.GetFullPath(
-            basePath ?? Path.Combine(Directory.GetCurrentDirectory(), "SampleData")
-        );
+        _basePath = basePath ?? Path.Combine(Directory.GetCurrentDirectory(), "Data");
     }
 
     public virtual RecordEnvelope<T>? GetRecordForSui(string sui, string providerSystemId)
@@ -26,9 +24,7 @@ public abstract class BaseRecordProvider<T> : IRecordProvider<T>
         ArgumentException.ThrowIfNullOrWhiteSpace(sui);
         ArgumentException.ThrowIfNullOrWhiteSpace(providerSystemId);
 
-        var fileName = GetFileName(sui);
-
-        var fullPath = Path.GetFullPath(Path.Combine(_basePath, providerSystemId, fileName));
+        string filePath = Path.Combine(_basePath, providerSystemId, GetFileName(providerSystemId));
 
         // Prevent path traversal
         if (!fullPath.StartsWith(_basePath, StringComparison.OrdinalIgnoreCase))
@@ -57,8 +53,8 @@ public abstract class BaseRecordProvider<T> : IRecordProvider<T>
         return $"https://schemas.example.gov.uk/sui/{typeof(T).Name}.json";
     }
 
-    private static string GetFileName(string sui, string version = "V1")
+    private static string GetFileName(string providerSystemId, string version = "V1")
     {
-        return $"{sui}_{typeof(T).Name}{version}.json";
+        return $"{providerSystemId}_custodian.json";
     }
 }

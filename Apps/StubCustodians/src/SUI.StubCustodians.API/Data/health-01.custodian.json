@@ -1,0 +1,56 @@
+{
+  "orgId": "HEALTH-01",
+  "orgName": "Example Health Custodian",
+  "orgType": "HEALTH",
+  "records": [
+    {
+      "recordId": "MHR-1234-X",
+      "personId": "QFT--Qs2Wh1mVRz_69tvUQ",
+      "recordType": "health.details",
+      "dataType": "health.details.v1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/health.details.v1.json",
+      "payload": {
+        "registeredGPName": "Dr E Green",
+        "RegisteredGPSurgery": "Duke Medical Centre",
+        "gpAddress": {
+          "line1": "Duke Medical Centre",
+          "line2": "28 Talbot Road",
+          "townOrCity": "Sheffield",
+          "county": null,
+          "postcode": "S2 2TD"
+        },
+        "gpTelephone": "0114 272 2100",
+        "camhsContactDetails": ["01422 345926"],
+        "camhsTeamInvolvement": ["Minds Matter Clinic"],
+        "healthActiveStatusesAndPlans": [
+          {
+            "status": "Open to CAMHS",
+            "plan": "CAMHS plan"
+          }
+        ],
+        "missedAppointments": [
+          {
+            "date": "2025-10-29",
+            "setting": "GP",
+            "reason": "Example missed appointment reason"
+          },
+          {
+            "date": "2025-10-30",
+            "setting": "Hospital",
+            "reason": null
+          }
+        ],
+        "emergencyDepartmentAttendances": [
+          {
+            "date": "2025-11-29",
+            "reason": "Example A&E attendance reason"
+          },
+          {
+            "date": "2025-11-30",
+            "reason": null
+          }
+        ]
+      }
+    }
+  ]
+}
