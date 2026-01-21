@@ -97,13 +97,12 @@ jobs:
 
       - name: Verify publish output
         run: |
-          echo "Publish output dir: $AZURE_FUNCTIONAPP_PACKAGE_PATH"
+          echo "Publish directory:"
           ls -la $AZURE_FUNCTIONAPP_PACKAGE_PATH
-
-      - name: Create deployment package
-        run: |
-          cd $AZURE_FUNCTIONAPP_PACKAGE_PATH
-          zip -r ../functionapp.zip .
+          echo
+          echo "Required files:"
+          test -f $AZURE_FUNCTIONAPP_PACKAGE_PATH/host.json
+          test -f $AZURE_FUNCTIONAPP_PACKAGE_PATH/functions.metadata
 
       - name: Deploy to Azure Function App
         uses: Azure/functions-action@v1
