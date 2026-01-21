@@ -35,24 +35,26 @@ builder.Services.AddHealthChecks();
 builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
-// Custom application services
+// Infrastructure services
 builder.Services.AddSingleton<IAuditService, AuditStorageTableService>();
-builder.Services.AddSingleton<IAuditQueueSender, AzureQueueSender>();
-builder.Services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>();
-builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
+builder.Services.AddSingleton<IAuditQueueClient, AuditQueueClient>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
-builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
-builder.Services.AddSingleton<ISearchService, SearchService>();
-builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
 builder.Services.AddSingleton<IHashService, HashService>();
-builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
 builder.Services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
+builder.Services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>();
+builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
 builder.Services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
-builder.Services.AddSingleton<IPolicyEnforcementService, PolicyEnforcementService>();
-builder.Services.AddSingleton<IAuditQueueClient, AuditQueueClient>();
 builder.Services.AddAzureTableServices();
+
+// Application services
+
+builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
+builder.Services.AddSingleton<ISearchService, SearchService>();
+builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
+builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
+builder.Services.AddSingleton<IPolicyEnforcementService, PolicyEnforcementService>();
 
 // Use mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
