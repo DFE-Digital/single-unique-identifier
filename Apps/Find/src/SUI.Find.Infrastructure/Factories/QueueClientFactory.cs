@@ -3,7 +3,6 @@ using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
 using SUI.Find.Application.Constants;
 using SUI.Find.Infrastructure.Clients;
-using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Factories;
 
