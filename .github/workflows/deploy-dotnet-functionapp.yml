@@ -95,13 +95,19 @@ jobs:
             -c Release \
             -o $AZURE_FUNCTIONAPP_PACKAGE_PATH
 
-      - name: Archive package
+      - name: Verify publish output
         run: |
-          cd $AZURE_FUNCTIONAPP_PACKAGE_PATH
-          zip -r ../functionapp.zip .
+          echo "Publish directory:"
+          ls -la $AZURE_FUNCTIONAPP_PACKAGE_PATH
+          echo
+          echo "Required files:"
+          test -f $AZURE_FUNCTIONAPP_PACKAGE_PATH/host.json
+          test -f $AZURE_FUNCTIONAPP_PACKAGE_PATH/functions.metadata
 
       - name: Deploy to Azure Function App
-        uses: azure/functions-action@v1
+        uses: Azure/functions-action@v1
         with:
           app-name: ${{ steps.app_name.outputs.functionapp_name }}
-          package: functionapp.zip
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+      
+      
