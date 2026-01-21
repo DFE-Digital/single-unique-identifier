@@ -9,11 +9,11 @@
           "recordType": "childrens-services.details",
           "connection": {
             "method": "GET",
-            "url": "http://localhost:7256/api/v1/find/local-authority-01/{personId}?recordType=childrens-services.details",
+            "url": "https://localhost:7256/api/v1/find/local-authority-01/{personId}?recordType=childrens-services.details",
             "personIdPosition": "path",
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7256/api/v1/auth/token",
+              "tokenUrl": "https://localhost:7256/api/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
@@ -59,7 +59,7 @@
           "recordType": "education.details",
           "connection": {
             "method": "POST",
-            "url": "http://localhost:7256/api/v1/find/manifest",
+            "url": "https://localhost:7256/api/v1/find/manifest",
             "personIdPosition": "body",
             "bodyTemplate": {
               "recordType": "education.details",
@@ -68,8 +68,10 @@
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7256/api/v1/auth/token",
-              "scopes": [ "find-record.read fetch-record.read" ]
+              "tokenUrl": "https://localhost:7256/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
             }
           }
         }
@@ -120,11 +122,11 @@
           "recordType": "health.details",
           "connection": {
             "method": "GET",
-            "url": "http://localhost:7256/api/v1/find/health-01/{personId}?type=health.details",
+            "url": "https://localhost:7256/api/v1/find/health-01/{personId}?type=health.details",
             "personIdPosition": "path",
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7256/api/v1/auth/token",
+              "tokenUrl": "https://localhost:7256/api/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
@@ -170,7 +172,7 @@
           "recordType": "crime-justice.details",
           "connection": {
             "method": "POST",
-            "url": "http://localhost:7256/api/v1/find/manifest",
+            "url": "https://localhost:7256/api/v1/find/manifest",
             "personIdPosition": "body",
             "bodyTemplate": {
               "recordType": "crime-justice.details",
@@ -179,7 +181,7 @@
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7256/api/v1/auth/token",
+              "tokenUrl": "https://localhost:7256/api/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"

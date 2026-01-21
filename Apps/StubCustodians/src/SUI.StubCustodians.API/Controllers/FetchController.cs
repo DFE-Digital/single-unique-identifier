@@ -37,10 +37,10 @@ public class FetchController(ILogger<RecordsController> logger, IRecordService r
     public async Task<IActionResult> GetRecord2(
         [FromRoute] string sui,
         [FromRoute] string providerSystemId,
-        [FromQuery] string? type
+        [FromQuery] string? recordType
     )
     {
-        return await ActionResult(sui, type, providerSystemId);
+        return await ActionResult(sui, recordType, providerSystemId);
     }
 
     private async Task<IActionResult> ActionResult(

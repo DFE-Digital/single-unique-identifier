@@ -226,7 +226,7 @@
             }
           },
           {
-            "name": "type",
+            "name": "recordType",
             "in": "query",
             "schema": {
               "type": "string",

@@ -66,7 +66,7 @@ namespace SUI.StubCustodians.API
                     }
                 });
             }
-
+            app.UseMiddleware<ScopeEnforcementMiddleware>();
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();

@@ -42,7 +42,7 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
     /// Issue a sandbox bearer token using client credentials (Form)
     /// </summary>
     [HttpPost("token", Name = "TokenForm")]
-    [Consumes("application/x-www-form-urlencoded")]
+    [Consumes("application/x-www-form-urlencoded", "multipart/form-data")]
     [ProducesResponseType(typeof(AuthTokenResponse), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(ProblemDetails), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), (int)HttpStatusCode.Unauthorized)]
@@ -64,7 +64,7 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
         IEnumerable<string>? scopes
     )
     {
-        logger.LogInformation(
+        logger.LogDebug(
             "Getting auth token: {clientId}, {clientSecret}, {scopes}",
             clientId,
             clientSecret,
@@ -137,7 +137,7 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
 
         var token = CreateJwt(store, client.ClientId, grantedScopes);
 
-        logger.LogInformation("Returning token: {token}", token);
+        logger.LogDebug("Returning token: {token}", token);
         return TypedResults.Ok(
             new AuthTokenResponse
             {
