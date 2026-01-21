@@ -4,14 +4,14 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Events.Audit;
 using SUI.Find.Infrastructure.Factories;
 
-namespace SUI.Find.Infrastructure;
+namespace SUI.Find.Infrastructure.Clients;
 
 public class AuditQueueClient(
     ILogger<AuditQueueClient> logger,
     IQueueClientFactory queueClientFactory
 ) : IAuditQueueClient
 {
-    public async Task SendMessageAsync(AuditEvent auditMessage, CancellationToken cancellationToken)
+    public async Task SendAuditEventAsync(AuditEvent auditMessage, CancellationToken cancellationToken)
     {
         var queueClient = queueClientFactory.GetAuditClient();
         var messageJson = JsonSerializer.Serialize(auditMessage, JsonSerializerOptions.Web);

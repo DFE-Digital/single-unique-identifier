@@ -87,7 +87,7 @@ public class AuditMiddleware(ILogger<AuditMiddleware> logger, IAuditQueueClient 
                 Payload = JsonSerializer.SerializeToElement(payload),
             };
 
-            await auditClient.SendMessageAsync(auditEvent, CancellationToken.None);
+            await auditClient.SendAuditEventAsync(auditEvent, CancellationToken.None);
         }
         else
         {

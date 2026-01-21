@@ -1,12 +1,14 @@
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Configuration;
 using SUI.Find.Application.Constants;
+using SUI.Find.Infrastructure.Clients;
+using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Factories;
 
 public interface IQueueClientFactory
 {
-    QueueClient GetAuditClient();
+    IAuditQueueSender GetAuditClient();
 }
 
 public class QueueClientFactory(IConfiguration config) : IQueueClientFactory
@@ -14,6 +16,10 @@ public class QueueClientFactory(IConfiguration config) : IQueueClientFactory
     private readonly string _connectionString =
         config["AuditProcessorConnectionString"] ?? throw new InvalidOperationException();
 
-    public QueueClient GetAuditClient() =>
-        new(_connectionString, ApplicationConstants.Audit.AccessQueueName);
+    public IAuditQueueSender GetAuditClient()
+    {
+        return new AzureQueueSender(
+            new QueueClient(_connectionString, ApplicationConstants.Audit.AccessQueueName)
+        );
+    }
 }

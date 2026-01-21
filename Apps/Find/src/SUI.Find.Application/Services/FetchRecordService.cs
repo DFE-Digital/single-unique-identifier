@@ -108,7 +108,7 @@ public class FetchRecordService(
                 endTime,
                 receivedByteCount
             );
-            await auditService.SendMessageAsync(auditPayload, cancellationToken);
+            await auditService.SendAuditEventAsync(auditPayload, cancellationToken);
         }
 
         return result;

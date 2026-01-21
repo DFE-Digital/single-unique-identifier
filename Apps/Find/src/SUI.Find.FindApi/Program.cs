@@ -15,6 +15,7 @@ using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
 using SUI.Find.Infrastructure;
+using SUI.Find.Infrastructure.Clients;
 using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Services;
@@ -36,6 +37,7 @@ builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
 // Custom application services
 builder.Services.AddSingleton<IAuditService, AuditStorageTableService>();
+builder.Services.AddSingleton<IAuditQueueSender, AzureQueueSender>();
 builder.Services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>();
 builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
