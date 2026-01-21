@@ -3,7 +3,7 @@ namespace SUI.Custodians.Domain.Models;
 /// <summary>
 /// Education related data about a specific child.
 /// </summary>
-public record EducationDetailsRecordV1 : SuiRecord
+public record EducationDetailsRecord : SuiRecord
 {
     /// <summary>
     /// Education setting - Name
@@ -15,7 +15,7 @@ public record EducationDetailsRecordV1 : SuiRecord
     /// Education setting - Address
     /// </summary>
     /// <example>Redrood Drive, Maltby, London, SE6 8DL</example>
-    public AddressV1? EducationSettingAddress { get; init; }
+    public Address? EducationSettingAddress { get; init; }
 
     /// <summary>
     /// Education setting - Telephone
@@ -26,5 +26,5 @@ public record EducationDetailsRecordV1 : SuiRecord
     /// <summary>
     /// Yearly Education Attendances
     /// </summary>
-    public IReadOnlyCollection<YearlyEducationAttendanceV1>? YearlyEducationAttendances { get; init; }
+    public IReadOnlyCollection<YearlyEducationAttendance>? YearlyEducationAttendances { get; init; }
 }

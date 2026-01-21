@@ -14,11 +14,11 @@ namespace SUI.StubCustodians.API.Unit.Tests
     {
         private readonly HttpClient _client;
 
-        private readonly IRecordServiceHandler<PersonalDetailsRecordV1> _mockPersonalHandler;
-        private readonly IRecordServiceHandler<ChildrensServicesDetailsRecordV1> _mockChildrensHandler;
-        private readonly IRecordServiceHandler<HealthDataRecordV1> _mockHealthHandler;
-        private readonly IRecordServiceHandler<EducationDetailsRecordV1> _mockEducationHandler;
-        private readonly IRecordServiceHandler<CrimeDataRecordV1> _mockCrimeHandler;
+        private readonly IRecordServiceHandler<PersonalDetailsRecord> _mockPersonalHandler;
+        private readonly IRecordServiceHandler<ChildrensServicesDetailsRecord> _mockChildrensHandler;
+        private readonly IRecordServiceHandler<HealthDataRecord> _mockHealthHandler;
+        private readonly IRecordServiceHandler<EducationDetailsRecord> _mockEducationHandler;
+        private readonly IRecordServiceHandler<CrimeDataRecord> _mockCrimeHandler;
 
         public RecordsControllerTests(WebApplicationFactory<Program> factory)
         {
@@ -56,22 +56,22 @@ namespace SUI.StubCustodians.API.Unit.Tests
             var sui = "1234567890";
             var provider = "MockEducationProvider";
 
-            var envelope = new RecordEnvelope<PersonalDetailsRecordV1>
+            var envelope = new RecordEnvelope<PersonalDetailsRecord>
             {
-                Payload = new PersonalDetailsRecordV1(),
+                Payload = new PersonalDetailsRecord(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
 
             _mockPersonalHandler
                 .GetRecord(sui, provider)
-                .Returns(HandlerResult<RecordEnvelope<PersonalDetailsRecordV1>>.Success(envelope));
+                .Returns(HandlerResult<RecordEnvelope<PersonalDetailsRecord>>.Success(envelope));
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/PersonalDetailsRecordV1/{sui}"
+                $"/api/v1/records/{provider}/PersonalDetailsRecord/{sui}"
             );
 
             var body = await response.Content.ReadFromJsonAsync<
-                RecordEnvelope<PersonalDetailsRecordV1>
+                RecordEnvelope<PersonalDetailsRecord>
             >();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -86,12 +86,10 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             _mockPersonalHandler
                 .GetRecord(sui, provider)
-                .Returns(
-                    HandlerResult<RecordEnvelope<PersonalDetailsRecordV1>>.NotFound("missing")
-                );
+                .Returns(HandlerResult<RecordEnvelope<PersonalDetailsRecord>>.NotFound("missing"));
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/PersonalDetailsRecordV1/{sui}"
+                $"/api/v1/records/{provider}/PersonalDetailsRecord/{sui}"
             );
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -107,26 +105,24 @@ namespace SUI.StubCustodians.API.Unit.Tests
             var sui = "2345678901";
             var provider = "MockSocialCareProvider";
 
-            var envelope = new RecordEnvelope<ChildrensServicesDetailsRecordV1>
+            var envelope = new RecordEnvelope<ChildrensServicesDetailsRecord>
             {
-                Payload = new ChildrensServicesDetailsRecordV1(),
+                Payload = new ChildrensServicesDetailsRecord(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
 
             _mockChildrensHandler
                 .GetRecord(sui, provider)
                 .Returns(
-                    HandlerResult<RecordEnvelope<ChildrensServicesDetailsRecordV1>>.Success(
-                        envelope
-                    )
+                    HandlerResult<RecordEnvelope<ChildrensServicesDetailsRecord>>.Success(envelope)
                 );
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/ChildrensServicesDetailsRecordV1/{sui}"
+                $"/api/v1/records/{provider}/ChildrensServicesDetailsRecord/{sui}"
             );
 
             var body = await response.Content.ReadFromJsonAsync<
-                RecordEnvelope<ChildrensServicesDetailsRecordV1>
+                RecordEnvelope<ChildrensServicesDetailsRecord>
             >();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -142,13 +138,13 @@ namespace SUI.StubCustodians.API.Unit.Tests
             _mockChildrensHandler
                 .GetRecord(sui, provider)
                 .Returns(
-                    HandlerResult<RecordEnvelope<ChildrensServicesDetailsRecordV1>>.NotFound(
+                    HandlerResult<RecordEnvelope<ChildrensServicesDetailsRecord>>.NotFound(
                         "missing"
                     )
                 );
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/ChildrensServicesDetailsRecordV1/{sui}"
+                $"/api/v1/records/{provider}/ChildrensServicesDetailsRecord/{sui}"
             );
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -172,14 +168,14 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             _mockEducationHandler
                 .GetRecord(sui, provider)
-                .Returns(HandlerResult<RecordEnvelope<EducationDetailsRecordV1>>.Success(envelope));
+                .Returns(HandlerResult<RecordEnvelope<EducationDetailsRecord>>.Success(envelope));
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/EducationDetailsRecordV1/{sui}"
+                $"/api/v1/records/{provider}/EducationDetailsRecord/{sui}"
             );
 
             var body = await response.Content.ReadFromJsonAsync<
-                RecordEnvelope<EducationDetailsRecordV1>
+                RecordEnvelope<EducationDetailsRecord>
             >();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -194,12 +190,10 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             _mockEducationHandler
                 .GetRecord(sui, provider)
-                .Returns(
-                    HandlerResult<RecordEnvelope<EducationDetailsRecordV1>>.NotFound("missing")
-                );
+                .Returns(HandlerResult<RecordEnvelope<EducationDetailsRecord>>.NotFound("missing"));
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/EducationDetailsRecordV1/{sui}"
+                $"/api/v1/records/{provider}/EducationDetailsRecord/{sui}"
             );
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -215,23 +209,21 @@ namespace SUI.StubCustodians.API.Unit.Tests
             var sui = "4567890123";
             var provider = "MockHealthcareProvider";
 
-            var envelope = new RecordEnvelope<HealthDataRecordV1>
+            var envelope = new RecordEnvelope<HealthDataRecord>
             {
-                Payload = new HealthDataRecordV1(),
+                Payload = new HealthDataRecord(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
 
             _mockHealthHandler
                 .GetRecord(sui, provider)
-                .Returns(HandlerResult<RecordEnvelope<HealthDataRecordV1>>.Success(envelope));
+                .Returns(HandlerResult<RecordEnvelope<HealthDataRecord>>.Success(envelope));
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/HealthDataRecordV1/{sui}"
+                $"/api/v1/records/{provider}/HealthDataRecord/{sui}"
             );
 
-            var body = await response.Content.ReadFromJsonAsync<
-                RecordEnvelope<HealthDataRecordV1>
-            >();
+            var body = await response.Content.ReadFromJsonAsync<RecordEnvelope<HealthDataRecord>>();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(body);
@@ -245,10 +237,10 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             _mockHealthHandler
                 .GetRecord(sui, provider)
-                .Returns(HandlerResult<RecordEnvelope<HealthDataRecordV1>>.NotFound("missing"));
+                .Returns(HandlerResult<RecordEnvelope<HealthDataRecord>>.NotFound("missing"));
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/HealthDataRecordV1/{sui}"
+                $"/api/v1/records/{provider}/HealthDataRecord/{sui}"
             );
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -264,23 +256,21 @@ namespace SUI.StubCustodians.API.Unit.Tests
             var sui = "5678901234";
             var provider = "MockCrimeDataProvider";
 
-            var envelope = new RecordEnvelope<CrimeDataRecordV1>
+            var envelope = new RecordEnvelope<CrimeDataRecord>
             {
-                Payload = new CrimeDataRecordV1(),
+                Payload = new CrimeDataRecord(),
                 SchemaUri = new Uri("https://example.com/schema"),
             };
 
             _mockCrimeHandler
                 .GetRecord(sui, provider)
-                .Returns(HandlerResult<RecordEnvelope<CrimeDataRecordV1>>.Success(envelope));
+                .Returns(HandlerResult<RecordEnvelope<CrimeDataRecord>>.Success(envelope));
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/CrimeDataRecordV1/{sui}"
+                $"/api/v1/records/{provider}/CrimeDataRecord/{sui}"
             );
 
-            var body = await response.Content.ReadFromJsonAsync<
-                RecordEnvelope<CrimeDataRecordV1>
-            >();
+            var body = await response.Content.ReadFromJsonAsync<RecordEnvelope<CrimeDataRecord>>();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(body);
@@ -294,10 +284,10 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             _mockCrimeHandler
                 .GetRecord(sui, provider)
-                .Returns(HandlerResult<RecordEnvelope<CrimeDataRecordV1>>.NotFound("missing"));
+                .Returns(HandlerResult<RecordEnvelope<CrimeDataRecord>>.NotFound("missing"));
 
             var response = await _client.GetAsync(
-                $"/api/v1/records/{provider}/CrimeDataRecordV1/{sui}"
+                $"/api/v1/records/{provider}/CrimeDataRecord/{sui}"
             );
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

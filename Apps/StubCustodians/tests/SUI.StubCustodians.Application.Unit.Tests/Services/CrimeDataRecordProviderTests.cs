@@ -65,7 +65,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             string providerFolder = Path.Combine(_tempDir, providerId);
             Directory.CreateDirectory(providerFolder);
 
-            var record = new CrimeDataRecordV1()
+            var record = new CrimeDataRecord()
             {
                 LastPoliceProtectionPowerEvent = DateOnly.FromDateTime(DateTime.Now),
                 ServicesKnownTo = ["Police"],

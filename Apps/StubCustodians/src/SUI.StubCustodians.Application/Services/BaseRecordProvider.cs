@@ -57,8 +57,8 @@ public abstract class BaseRecordProvider<T> : IRecordProvider<T>
         return $"https://schemas.example.gov.uk/sui/{typeof(T).Name}.json";
     }
 
-    private static string GetFileName(string sui)
+    private static string GetFileName(string sui, string version = "V1")
     {
-        return $"{sui}_{typeof(T).Name}.json";
+        return $"{sui}_{typeof(T).Name}{version}.json";
     }
 }

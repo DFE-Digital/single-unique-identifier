@@ -65,7 +65,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             string providerFolder = Path.Combine(_tempDir, providerId);
             Directory.CreateDirectory(providerFolder);
 
-            var record = new PersonalDetailsRecordV1 { FirstName = "Alice", LastName = "Smith" };
+            var record = new PersonalDetailsRecord { FirstName = "Alice", LastName = "Smith" };
 
             string filePath = Path.Combine(providerFolder, $"{sui}_PersonalDetailsRecordV1.json");
             File.WriteAllText(filePath, JsonSerializer.Serialize(record));

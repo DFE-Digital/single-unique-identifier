@@ -3,7 +3,7 @@ namespace SUI.Custodians.Domain.Models;
 /// <summary>
 /// General personal details about a specific child.
 /// </summary>
-public record PersonalDetailsRecordV1 : SuiRecord
+public record PersonalDetailsRecord : SuiRecord
 {
     /// <summary>
     /// The child's first name.
@@ -27,7 +27,7 @@ public record PersonalDetailsRecordV1 : SuiRecord
     /// The latest known address of the child's main residence.
     /// </summary>
     /// <example>12 Burton Street, London, SW1A 0AA</example>
-    public AddressV1? Address { get; init; }
+    public Address? Address { get; init; }
 
     /// <summary>
     /// The full names of the other people known to be residing at the child's main address.
@@ -93,5 +93,5 @@ public record PersonalDetailsRecordV1 : SuiRecord
     /// <summary>
     /// The people known to be related to the child.
     /// </summary>
-    public IReadOnlyCollection<RelatedPersonV1>? RelatedPeople { get; init; }
+    public IReadOnlyCollection<RelatedPerson>? RelatedPeople { get; init; }
 }

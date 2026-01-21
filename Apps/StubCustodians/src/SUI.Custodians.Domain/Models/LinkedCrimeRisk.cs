@@ -1,6 +1,6 @@
 namespace SUI.Custodians.Domain.Models;
 
-public record LinkedCrimeRiskV1
+public record LinkedCrimeRisk
 {
     /// <summary>
     /// Crime - Risk - Date
@@ -12,5 +12,5 @@ public record LinkedCrimeRiskV1
     /// Crime - Risk - Type
     /// </summary>
     /// <example>CriminalExploitation</example>
-    public CrimeRiskTypeV1? RiskType { get; init; }
+    public CrimeRiskType? RiskType { get; init; }
 }

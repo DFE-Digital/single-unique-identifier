@@ -1,6 +1,6 @@
 namespace SUI.Custodians.Domain.Models;
 
-public record CrimeMissingEpisodeV1
+public record CrimeMissingEpisode
 {
     /// <summary>
     /// Missing episode date

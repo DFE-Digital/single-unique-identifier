@@ -3,7 +3,7 @@ namespace SUI.Custodians.Domain.Models;
 /// <summary>
 /// Crime-linked data about a specific child.
 /// </summary>
-public record CrimeDataRecordV1 : SuiRecord
+public record CrimeDataRecord : SuiRecord
 {
     /// <summary>
     /// Police marker details
@@ -25,10 +25,10 @@ public record CrimeDataRecordV1 : SuiRecord
     /// <summary>
     /// Police - Missing Episodes
     /// </summary>
-    public IReadOnlyCollection<CrimeMissingEpisodeV1>? MissingEpisodes { get; init; }
+    public IReadOnlyCollection<CrimeMissingEpisode>? MissingEpisodes { get; init; }
 
     /// <summary>
     /// Linked crime risks
     /// </summary>
-    public IReadOnlyCollection<LinkedCrimeRiskV1>? LinkedCrimeRisks { get; init; }
+    public IReadOnlyCollection<LinkedCrimeRisk>? LinkedCrimeRisks { get; init; }
 }

@@ -3,7 +3,7 @@ namespace SUI.Custodians.Domain.Models;
 /// <summary>
 /// Details related to Healthcare about a specific child.
 /// </summary>
-public record HealthDataRecordV1 : SuiRecord
+public record HealthDataRecord : SuiRecord
 {
     /// <summary>
     /// Registered GP Name
@@ -21,7 +21,7 @@ public record HealthDataRecordV1 : SuiRecord
     /// GP Address
     /// </summary>
     /// <example>Duke Medical Centre, 28 Talbot Road, Sheffield, S2 2TD</example>
-    public AddressV1? GPAddress { get; init; }
+    public Address? GPAddress { get; init; }
 
     /// <summary>
     /// GP Telephone
@@ -44,10 +44,10 @@ public record HealthDataRecordV1 : SuiRecord
     /// <summary>
     /// Missed Healthcare Appointments
     /// </summary>
-    public IReadOnlyCollection<HealthMissedAppointmentV1>? MissedAppointments { get; init; }
+    public IReadOnlyCollection<HealthMissedAppointment>? MissedAppointments { get; init; }
 
     /// <summary>
     /// Emergency (A&amp;E) Department Attendances
     /// </summary>
-    public IReadOnlyCollection<EmergencyDepartmentAttendanceV1>? EmergencyDepartmentAttendances { get; init; }
+    public IReadOnlyCollection<EmergencyDepartmentAttendance>? EmergencyDepartmentAttendances { get; init; }
 }

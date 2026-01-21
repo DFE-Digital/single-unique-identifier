@@ -1,6 +1,6 @@
 namespace SUI.Custodians.Domain.Models;
 
-public record EmergencyDepartmentAttendanceV1
+public record EmergencyDepartmentAttendance
 {
     /// <summary>
     /// Health - Emergency department attendance - Date

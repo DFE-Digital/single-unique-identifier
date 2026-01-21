@@ -52,12 +52,12 @@ public class FetchController : ControllerBase
 
         switch (recordType)
         {
-            case nameof(PersonalDetailsRecordV1):
+            case nameof(PersonalDetailsRecord):
                 var result = await _personalDetailsRecordHandler.GetRecord(sui, providerSystemId);
                 _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result.ToActionResult();
 
-            case nameof(ChildrensServicesDetailsRecordV1):
+            case nameof(ChildrensServicesDetailsRecord):
                 var result2 = await _childrensServicesDetailsRecordHandler.GetRecord(
                     sui,
                     providerSystemId
@@ -65,17 +65,17 @@ public class FetchController : ControllerBase
                 _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result2.ToActionResult();
 
-            case nameof(HealthDataRecordV1):
+            case nameof(HealthDataRecord):
                 var result3 = await _healthDataRecordHandler.GetRecord(sui, providerSystemId);
                 _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result3.ToActionResult();
 
-            case nameof(CrimeDataRecordV1):
+            case nameof(CrimeDataRecord):
                 var result4 = await _crimeDataRecordHandler.GetRecord(sui, providerSystemId);
                 _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result4.ToActionResult();
 
-            case nameof(EducationDetailsRecordV1):
+            case nameof(EducationDetailsRecord):
                 var result5 = await _educationDetailsRecordHandler.GetRecord(sui, providerSystemId);
                 _logger.LogInformation("Getting record ended, for sui:'{Sui}'", sui);
                 return result5.ToActionResult();

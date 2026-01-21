@@ -65,7 +65,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             string providerFolder = Path.Combine(_tempDir, providerId);
             Directory.CreateDirectory(providerFolder);
 
-            var record = new HealthDataRecordV1()
+            var record = new HealthDataRecord()
             {
                 RegisteredGPSurgery = "Whitby Surgery",
                 GPTelephone = "07512399988",

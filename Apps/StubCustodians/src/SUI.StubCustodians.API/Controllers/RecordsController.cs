@@ -41,7 +41,7 @@ namespace SUI.StubCustodians.API.Controllers
 
         [HttpGet("{providerSystemId}/PersonalDetailsRecordV1/{sui}")]
         [ProducesResponseType(
-            typeof(RecordEnvelope<PersonalDetailsRecordV1>),
+            typeof(RecordEnvelope<PersonalDetailsRecord>),
             StatusCodes.Status200OK
         )]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -62,7 +62,7 @@ namespace SUI.StubCustodians.API.Controllers
 
         [HttpGet("{providerSystemId}/ChildrensServicesDetailsRecordV1/{sui}")]
         [ProducesResponseType(
-            typeof(RecordEnvelope<ChildrensServicesDetailsRecordV1>),
+            typeof(RecordEnvelope<ChildrensServicesDetailsRecord>),
             StatusCodes.Status200OK
         )]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -86,7 +86,7 @@ namespace SUI.StubCustodians.API.Controllers
 
         [HttpGet("{providerSystemId}/EducationDetailsRecordV1/{sui}")]
         [ProducesResponseType(
-            typeof(RecordEnvelope<EducationDetailsRecordV1>),
+            typeof(RecordEnvelope<EducationDetailsRecord>),
             StatusCodes.Status200OK
         )]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -106,7 +106,7 @@ namespace SUI.StubCustodians.API.Controllers
         }
 
         [HttpGet("{providerSystemId}/HealthDataRecordV1/{sui}")]
-        [ProducesResponseType(typeof(RecordEnvelope<HealthDataRecordV1>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RecordEnvelope<HealthDataRecord>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(FailureInfo), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetHealthDataRecord(
@@ -124,7 +124,7 @@ namespace SUI.StubCustodians.API.Controllers
         }
 
         [HttpGet("{providerSystemId}/CrimeDataRecordV1/{sui}")]
-        [ProducesResponseType(typeof(RecordEnvelope<CrimeDataRecordV1>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RecordEnvelope<CrimeDataRecord>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(FailureInfo), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetCrimeDataRecord(

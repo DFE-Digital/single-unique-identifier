@@ -3,7 +3,7 @@ namespace SUI.Custodians.Domain.Models;
 /// <summary>
 /// Details related to the Children's Services for a specific child.
 /// </summary>
-public record ChildrensServicesDetailsRecordV1 : SuiRecord
+public record ChildrensServicesDetailsRecord : SuiRecord
 {
     /// <summary>
     /// Children's Services - Key worker
@@ -26,5 +26,5 @@ public record ChildrensServicesDetailsRecordV1 : SuiRecord
     /// <summary>
     /// Children's Services - Referrals
     /// </summary>
-    public IReadOnlyCollection<ChildrensServicesReferralV1>? ChildrensServicesReferrals { get; init; }
+    public IReadOnlyCollection<ChildrensServicesReferral>? ChildrensServicesReferrals { get; init; }
 }

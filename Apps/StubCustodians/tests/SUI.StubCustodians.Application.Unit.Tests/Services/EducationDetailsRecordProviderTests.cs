@@ -65,7 +65,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             string providerFolder = Path.Combine(_tempDir, providerId);
             Directory.CreateDirectory(providerFolder);
 
-            var record = new EducationDetailsRecordV1()
+            var record = new EducationDetailsRecord()
             {
                 EducationSettingName = "TestAcademy",
                 EducationSettingTelephone = "01234567890",

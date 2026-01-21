@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SUI.Custodians.Domain.Models;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum HealthSettingV1
+public enum HealthSetting
 {
     Other,
     Hospital,

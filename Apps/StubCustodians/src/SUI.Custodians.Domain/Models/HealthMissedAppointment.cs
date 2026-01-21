@@ -1,6 +1,6 @@
 namespace SUI.Custodians.Domain.Models;
 
-public record HealthMissedAppointmentV1
+public record HealthMissedAppointment
 {
     /// <summary>
     /// Health - Missed appointments history - Date
@@ -12,7 +12,7 @@ public record HealthMissedAppointmentV1
     /// Health - Missed appointments history - Setting
     /// </summary>
     /// <example>GP</example>
-    public HealthSettingV1? Setting { get; init; }
+    public HealthSetting? Setting { get; init; }
 
     /// <summary>
     /// Health - Missed appointments history - Reason

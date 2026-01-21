@@ -1,6 +1,6 @@
 namespace SUI.Custodians.Domain.Models;
 
-public record AddressV1
+public record Address
 {
     /// <summary>
     /// Line 1 of the address

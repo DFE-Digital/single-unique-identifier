@@ -103,6 +103,107 @@
         }
       }
     },
+    "/api/v1/Find/{providerSystemId}/{sui}": {
+      "get": {
+        "tags": [
+          "Find"
+        ],
+        "parameters": [
+          {
+            "name": "sui",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
+            }
+          },
+          {
+            "name": "providerSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResultItem"
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResultItem"
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResultItem"
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "application/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              },
+              "text/json; x-api-version=1.0": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/Records/{providerSystemId}/PersonalDetailsRecordV1/{sui}": {
       "get": {
         "tags": [
@@ -134,17 +235,17 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfPersonalDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfPersonalDetailsRecord"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfPersonalDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfPersonalDetailsRecord"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfPersonalDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfPersonalDetailsRecord"
                 }
               }
             }
@@ -223,17 +324,17 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecord"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecord"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecord"
                 }
               }
             }
@@ -312,17 +413,17 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfEducationDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfEducationDetailsRecord"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfEducationDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfEducationDetailsRecord"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfEducationDetailsRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfEducationDetailsRecord"
                 }
               }
             }
@@ -401,17 +502,17 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfHealthDataRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfHealthDataRecord"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfHealthDataRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfHealthDataRecord"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfHealthDataRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfHealthDataRecord"
                 }
               }
             }
@@ -490,17 +591,17 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecord"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecord"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecordV1"
+                  "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecord"
                 }
               }
             }
@@ -551,7 +652,7 @@
   },
   "components": {
     "schemas": {
-      "AddressV1": {
+      "Address": {
         "type": "object",
         "properties": {
           "line1": {
@@ -593,7 +694,7 @@
         "additionalProperties": false,
         "nullable": true
       },
-      "ChildrensServicesDetailsRecordV1": {
+      "ChildrensServicesDetailsRecord": {
         "type": "object",
         "properties": {
           "keyWorker": {
@@ -628,7 +729,7 @@
           "childrensServicesReferrals": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ChildrensServicesReferralV1"
+              "$ref": "#/components/schemas/ChildrensServicesReferral"
             },
             "additionalProperties": false,
             "description": "Children's Services - Referrals",
@@ -638,7 +739,7 @@
         "additionalProperties": false,
         "description": "Details related to the Children's Services for a specific child."
       },
-      "ChildrensServicesReferralV1": {
+      "ChildrensServicesReferral": {
         "type": "object",
         "properties": {
           "date": {
@@ -659,7 +760,7 @@
         },
         "additionalProperties": false
       },
-      "CrimeDataRecordV1": {
+      "CrimeDataRecord": {
         "type": "object",
         "properties": {
           "policeMarkerDetails": {
@@ -690,7 +791,7 @@
           "missingEpisodes": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CrimeMissingEpisodeV1"
+              "$ref": "#/components/schemas/CrimeMissingEpisode"
             },
             "additionalProperties": false,
             "description": "Police - Missing Episodes",
@@ -699,7 +800,7 @@
           "linkedCrimeRisks": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/LinkedCrimeRiskV1"
+              "$ref": "#/components/schemas/LinkedCrimeRisk"
             },
             "additionalProperties": false,
             "description": "Linked crime risks",
@@ -709,7 +810,7 @@
         "additionalProperties": false,
         "description": "Crime-linked data about a specific child."
       },
-      "CrimeMissingEpisodeV1": {
+      "CrimeMissingEpisode": {
         "type": "object",
         "properties": {
           "date": {
@@ -730,7 +831,7 @@
         },
         "additionalProperties": false
       },
-      "EducationDetailsRecordV1": {
+      "EducationDetailsRecord": {
         "type": "object",
         "properties": {
           "educationSettingName": {
@@ -741,7 +842,7 @@
             "example": "Redwood Academy"
           },
           "educationSettingAddress": {
-            "$ref": "#/components/schemas/AddressV1"
+            "$ref": "#/components/schemas/Address"
           },
           "educationSettingTelephone": {
             "type": "string",
@@ -753,7 +854,7 @@
           "yearlyEducationAttendances": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/YearlyEducationAttendanceV1"
+              "$ref": "#/components/schemas/YearlyEducationAttendance"
             },
             "additionalProperties": false,
             "description": "Yearly Education Attendances",
@@ -763,7 +864,7 @@
         "additionalProperties": false,
         "description": "Education related data about a specific child."
       },
-      "EmergencyDepartmentAttendanceV1": {
+      "EmergencyDepartmentAttendance": {
         "type": "object",
         "properties": {
           "date": {
@@ -819,7 +920,7 @@
         "type": "integer",
         "additionalProperties": false
       },
-      "HealthDataRecordV1": {
+      "HealthDataRecord": {
         "type": "object",
         "properties": {
           "registeredGPName": {
@@ -837,7 +938,7 @@
             "example": "Duke Medical Centre"
           },
           "gpAddress": {
-            "$ref": "#/components/schemas/AddressV1"
+            "$ref": "#/components/schemas/Address"
           },
           "gpTelephone": {
             "type": "string",
@@ -871,7 +972,7 @@
           "missedAppointments": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/HealthMissedAppointmentV1"
+              "$ref": "#/components/schemas/HealthMissedAppointment"
             },
             "additionalProperties": false,
             "description": "Missed Healthcare Appointments",
@@ -880,7 +981,7 @@
           "emergencyDepartmentAttendances": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EmergencyDepartmentAttendanceV1"
+              "$ref": "#/components/schemas/EmergencyDepartmentAttendance"
             },
             "additionalProperties": false,
             "description": "Emergency (A&E) Department Attendances",
@@ -890,7 +991,7 @@
         "additionalProperties": false,
         "description": "Details related to Healthcare about a specific child."
       },
-      "HealthMissedAppointmentV1": {
+      "HealthMissedAppointment": {
         "type": "object",
         "properties": {
           "date": {
@@ -902,7 +1003,7 @@
             "example": "2025-07-24"
           },
           "setting": {
-            "$ref": "#/components/schemas/NullableOfHealthSettingV1"
+            "$ref": "#/components/schemas/NullableOfHealthSetting"
           },
           "reason": {
             "type": "string",
@@ -914,7 +1015,7 @@
         },
         "additionalProperties": false
       },
-      "LinkedCrimeRiskV1": {
+      "LinkedCrimeRisk": {
         "type": "object",
         "properties": {
           "date": {
@@ -926,12 +1027,12 @@
             "example": "2025-10-22"
           },
           "riskType": {
-            "$ref": "#/components/schemas/NullableOfCrimeRiskTypeV1"
+            "$ref": "#/components/schemas/NullableOfCrimeRiskType"
           }
         },
         "additionalProperties": false
       },
-      "NullableOfCrimeRiskTypeV1": {
+      "NullableOfCrimeRiskType": {
         "enum": [
           "SexualExploitation",
           "CriminalExploitation",
@@ -945,7 +1046,7 @@
         "nullable": true,
         "example": "CriminalExploitation"
       },
-      "NullableOfHealthSettingV1": {
+      "NullableOfHealthSetting": {
         "enum": [
           "Other",
           "Hospital",
@@ -958,7 +1059,7 @@
         "nullable": true,
         "example": "GP"
       },
-      "PersonalDetailsRecordV1": {
+      "PersonalDetailsRecord": {
         "type": "object",
         "properties": {
           "firstName": {
@@ -984,7 +1085,7 @@
             "example": "2011-09-25"
           },
           "address": {
-            "$ref": "#/components/schemas/AddressV1"
+            "$ref": "#/components/schemas/Address"
           },
           "namesOfIndividualsResidingAtMainAddress": {
             "type": "array",
@@ -1065,7 +1166,7 @@
           "relatedPeople": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/RelatedPersonV1"
+              "$ref": "#/components/schemas/RelatedPerson"
             },
             "additionalProperties": false,
             "description": "The people known to be related to the child.",
@@ -1107,7 +1208,7 @@
         },
         "additionalProperties": false
       },
-      "RecordEnvelopeOfChildrensServicesDetailsRecordV1": {
+      "RecordEnvelopeOfChildrensServicesDetailsRecord": {
         "required": [
           "schemaUri",
           "payload"
@@ -1117,17 +1218,17 @@
           "schemaUri": {
             "type": "string",
             "additionalProperties": false,
-            "description": "URI of the ChildrensServicesDetailsRecordV1 payload schema",
+            "description": "URI of the ChildrensServicesDetailsRecord payload schema",
             "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecord"
           },
           "payload": {
-            "$ref": "#/components/schemas/ChildrensServicesDetailsRecordV1"
+            "$ref": "#/components/schemas/ChildrensServicesDetailsRecord"
           }
         },
         "additionalProperties": false
       },
-      "RecordEnvelopeOfCrimeDataRecordV1": {
+      "RecordEnvelopeOfCrimeDataRecord": {
         "required": [
           "schemaUri",
           "payload"
@@ -1137,17 +1238,17 @@
           "schemaUri": {
             "type": "string",
             "additionalProperties": false,
-            "description": "URI of the CrimeDataRecordV1 payload schema",
+            "description": "URI of the CrimeDataRecord payload schema",
             "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/CrimeDataRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/CrimeDataRecord"
           },
           "payload": {
-            "$ref": "#/components/schemas/CrimeDataRecordV1"
+            "$ref": "#/components/schemas/CrimeDataRecord"
           }
         },
         "additionalProperties": false
       },
-      "RecordEnvelopeOfEducationDetailsRecordV1": {
+      "RecordEnvelopeOfEducationDetailsRecord": {
         "required": [
           "schemaUri",
           "payload"
@@ -1157,17 +1258,17 @@
           "schemaUri": {
             "type": "string",
             "additionalProperties": false,
-            "description": "URI of the EducationDetailsRecordV1 payload schema",
+            "description": "URI of the EducationDetailsRecord payload schema",
             "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/EducationDetailsRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/EducationDetailsRecord"
           },
           "payload": {
-            "$ref": "#/components/schemas/EducationDetailsRecordV1"
+            "$ref": "#/components/schemas/EducationDetailsRecord"
           }
         },
         "additionalProperties": false
       },
-      "RecordEnvelopeOfHealthDataRecordV1": {
+      "RecordEnvelopeOfHealthDataRecord": {
         "required": [
           "schemaUri",
           "payload"
@@ -1177,17 +1278,17 @@
           "schemaUri": {
             "type": "string",
             "additionalProperties": false,
-            "description": "URI of the HealthDataRecordV1 payload schema",
+            "description": "URI of the HealthDataRecord payload schema",
             "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/HealthDataRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/HealthDataRecord"
           },
           "payload": {
-            "$ref": "#/components/schemas/HealthDataRecordV1"
+            "$ref": "#/components/schemas/HealthDataRecord"
           }
         },
         "additionalProperties": false
       },
-      "RecordEnvelopeOfPersonalDetailsRecordV1": {
+      "RecordEnvelopeOfPersonalDetailsRecord": {
         "required": [
           "schemaUri",
           "payload"
@@ -1197,12 +1298,12 @@
           "schemaUri": {
             "type": "string",
             "additionalProperties": false,
-            "description": "URI of the PersonalDetailsRecordV1 payload schema",
+            "description": "URI of the PersonalDetailsRecord payload schema",
             "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1"
+            "example": "https://schemas.example.gov.uk/sui/PersonalDetailsRecord"
           },
           "payload": {
-            "$ref": "#/components/schemas/PersonalDetailsRecordV1"
+            "$ref": "#/components/schemas/PersonalDetailsRecord"
           }
         },
         "additionalProperties": false
@@ -1227,7 +1328,7 @@
         },
         "additionalProperties": false
       },
-      "RelatedPersonV1": {
+      "RelatedPerson": {
         "type": "object",
         "properties": {
           "relationshipToTheChild": {
@@ -1267,11 +1368,39 @@
         "additionalProperties": false,
         "description": "Represents a person related to a specific child."
       },
+      "SearchResultItem": {
+        "required": [
+          "providerSystem",
+          "providerName",
+          "recordType",
+          "recordUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "providerSystem": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "providerName": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "recordType": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "recordUrl": {
+            "type": "string",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
       "SuiRecord": {
         "type": "object",
         "additionalProperties": false
       },
-      "YearlyEducationAttendanceV1": {
+      "YearlyEducationAttendance": {
         "type": "object",
         "properties": {
           "academicTermYearStart": {
@@ -1346,6 +1475,9 @@
   "tags": [
     {
       "name": "Fetch"
+    },
+    {
+      "name": "Find"
     },
     {
       "name": "Records"

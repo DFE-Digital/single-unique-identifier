@@ -1,6 +1,6 @@
 namespace SUI.Custodians.Domain.Models;
 
-public record ChildrensServicesReferralV1
+public record ChildrensServicesReferral
 {
     /// <summary>
     /// Children's Services - Referral history - Date

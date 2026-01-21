@@ -3,7 +3,7 @@ namespace SUI.Custodians.Domain.Models;
 /// <summary>
 /// Represents a person related to a specific child.
 /// </summary>
-public record RelatedPersonV1
+public record RelatedPerson
 {
     /// <summary>
     /// Related Person - Relationship to the child

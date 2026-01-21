@@ -68,7 +68,7 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             string providerFolder = Path.Combine(_tempDir, providerId);
             Directory.CreateDirectory(providerFolder);
 
-            var record = new ChildrensServicesDetailsRecordV1
+            var record = new ChildrensServicesDetailsRecord
             {
                 KeyWorker = "Alex McDonald",
                 TeamInvolvement = ["Disabled Kids Team", "SEND Kids Team"],

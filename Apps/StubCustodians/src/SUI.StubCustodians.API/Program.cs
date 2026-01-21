@@ -80,23 +80,23 @@ namespace SUI.StubCustodians.API
             services.AddScoped(typeof(IRecordServiceHandler<>), typeof(RecordServiceHandler<>));
 
             services.AddScoped<
-                IRecordProvider<PersonalDetailsRecordV1>,
+                IRecordProvider<PersonalDetailsRecord>,
                 PersonalDetailsRecordProvider
             >();
 
             services.AddScoped<
-                IRecordProvider<EducationDetailsRecordV1>,
+                IRecordProvider<EducationDetailsRecord>,
                 EducationDetailsRecordProvider
             >();
 
             services.AddScoped<
-                IRecordProvider<ChildrensServicesDetailsRecordV1>,
+                IRecordProvider<ChildrensServicesDetailsRecord>,
                 ChildrensServicesDetailsRecordProvider
             >();
 
-            services.AddScoped<IRecordProvider<CrimeDataRecordV1>, CrimeDataRecordProvider>();
+            services.AddScoped<IRecordProvider<CrimeDataRecord>, CrimeDataRecordProvider>();
 
-            services.AddScoped<IRecordProvider<HealthDataRecordV1>, HealthDataRecordProvider>();
+            services.AddScoped<IRecordProvider<HealthDataRecord>, HealthDataRecordProvider>();
         }
     }
 }
