@@ -16,10 +16,10 @@ public class AuditPepFindActivityTests
     public async Task ShouldCallAuditService_WhenResultsArePresent()
     {
         // Arrange
-        var mockAuditService = Substitute.For<IAuditService>();
+        var mockAuditClient = Substitute.For<IAuditQueueClient>();
         var mockTimeProvider = TimeProvider.System;
         var logger = Substitute.For<ILogger<AuditPepFindActivity>>();
-        var auditActivity = new AuditPepFindActivity(logger, mockAuditService, mockTimeProvider);
+        var auditActivity = new AuditPepFindActivity(logger, mockAuditClient, mockTimeProvider);
 
         var input = new AuditPepFindInput(
             new PolicyContext("client-1", ["scope1"], "SAFEGUARDING", "LOCAL_AUTHORITY"),
@@ -43,9 +43,9 @@ public class AuditPepFindActivityTests
         await auditActivity.AuditPepFindAsync(input, CancellationToken.None);
 
         // Assert
-        await mockAuditService
+        await mockAuditClient
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae => ValidateAuditEventInputs(ae, input, expected)),
                 Arg.Any<CancellationToken>()
             );
