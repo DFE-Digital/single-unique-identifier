@@ -109,5 +109,6 @@ jobs:
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ steps.app_name.outputs.functionapp_name }}
-          package: functionapp.zip
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+      
       
