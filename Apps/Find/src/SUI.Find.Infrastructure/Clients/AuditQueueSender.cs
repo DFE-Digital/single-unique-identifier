@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Azure.Storage.Queues;
 
 namespace SUI.Find.Infrastructure.Clients;
@@ -14,6 +15,7 @@ public interface IAuditQueueSender
 /// <inheritdoc/>
 /// </summary>
 /// <param name="queueClient"></param>
+[ExcludeFromCodeCoverage(Justification = "Simple wrapper class")]
 public class AzureQueueSender(QueueClient queueClient) : IAuditQueueSender
 {
     public Task SendMessageAsync(string message, CancellationToken cancellationToken) =>
