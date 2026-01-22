@@ -101,6 +101,4 @@ module "audit_processor_function_app" {
   )
 
   tags = var.tags
-
-  depends_on = [module.audit_processor_storage]
 }
