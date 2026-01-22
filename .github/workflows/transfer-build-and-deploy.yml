@@ -37,9 +37,11 @@ jobs:
       pull-requests: write
       checks: write
       packages: read
+      actions: write
     with:
       directory_name: Apps/Transfer
-      
+      project_names: '["SUI.Transfer.API"]'
+
   deploy-Transfer:
     name: Transfer - Deploy Web App
     if: |
@@ -50,7 +52,8 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      directory_name: Apps/Transfer
+      artifact_name: ${{ fromJson(needs.build-and-test-Transfer.outputs.artifact_names)['SUI.Transfer.API'] }}
       component_descriptor: transfer01
-      project_path: Apps/Transfer/src/SUI.Transfer.API/SUI.Transfer.API.csproj
       package_path: publish
       dotnet_version: "9.0.x"

@@ -37,8 +37,10 @@ jobs:
       pull-requests: write
       checks: write
       packages: read
+      actions: write
     with:
       directory_name: Apps/Find
+      project_names: '["SUI.Find.FindApi","SUI.Find.AuditProcessor"]'
 
   deploy-Find:
     name: Find - Deploy Function App
@@ -50,8 +52,9 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      directory_name: Apps/Find
+      artifact_name: ${{ fromJson(needs.build-and-test-Find.outputs.artifact_names)['SUI.Find.FindApi'] }}
       component_descriptor: find01
-      project_path: Apps/Find/src/SUI.Find.FindApi/SUI.Find.FindApi.csproj
       package_path: publish
       dotnet_version: "9.0.x"
 
@@ -60,12 +63,14 @@ jobs:
     if: |
       (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    needs: build-and-test-Find
+    needs:
+      - build-and-test-Find
     uses: ./.github/workflows/deploy-dotnet-functionapp.yml
     secrets: inherit
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      directory_name: Apps/Find
+      artifact_name: ${{ fromJson(needs.build-and-test-Find.outputs.artifact_names)['SUI.Find.AuditProcessor'] }}
       component_descriptor: findaudit01
-      project_path: Apps/Find/src/SUI.Find.AuditProcessor/SUI.Find.AuditProcessor.csproj
       package_path: publish
       dotnet_version: "9.0.x"
