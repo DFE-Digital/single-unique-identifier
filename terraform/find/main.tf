@@ -67,7 +67,7 @@ module "function_app" {
       FUNCTIONS_WORKER_RUNTIME       = "dotnet-isolated"
       FUNCTIONS_EXTENSION_VERSION    = "~4"
       WEBSITE_RUN_FROM_PACKAGE       = "1"
-      AuditProcessorConnectionString = module.audit_processor_storage.primary_connection_string
+      AuditProcessorConnectionString = module.audit_processor_function_app.storage_connection_string
     },
     var.app_settings
   )

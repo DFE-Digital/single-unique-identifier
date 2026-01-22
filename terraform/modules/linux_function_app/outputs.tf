@@ -17,3 +17,9 @@ output "principal_id" {
   value       = try(azurerm_linux_function_app.this.identity[0].principal_id, null)
   description = "Principal ID of the system-assigned managed identity, if enabled."
 }
+
+output "storage_connection_string" {
+  value       = azurerm_storage_account.this.primary_connection_string
+  description = "Primary connection string of the storage account."
+  sensitive   = true
+}
