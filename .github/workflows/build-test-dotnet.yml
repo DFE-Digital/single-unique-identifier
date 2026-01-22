@@ -33,10 +33,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Create NuGet packages directory
+        run: mkdir -p ${{ github.workspace }}/.nuget/packages
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "9.0.x"
+          cache: true
+          cache-dependency-path: ${{ inputs.directory_name }}/Directory.Packages.props
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
