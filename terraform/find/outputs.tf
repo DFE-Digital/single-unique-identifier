@@ -28,13 +28,3 @@ output "audit_processor_function_app_id" {
   description = "ID of the AuditProcessor function app."
 }
 
-output "audit_processor_storage_account_name" {
-  value       = module.audit_processor_storage.name
-  description = "Name of the AuditProcessor storage account."
-}
-
-output "audit_processor_storage_connection_string" {
-  value       = module.audit_processor_storage.primary_connection_string
-  description = "Primary connection string of the AuditProcessor storage account."
-  sensitive   = true
-}
