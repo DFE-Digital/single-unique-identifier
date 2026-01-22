@@ -4,5 +4,5 @@ namespace SUI.Find.Application.Interfaces;
 
 public interface IAuditQueueClient
 {
-    Task SendAuditEventAsync(AuditEvent auditEvent, CancellationToken cancellationToken);
+    Task SendAuditEventAsync(AuditEvent auditMessage, CancellationToken cancellationToken);
 }
