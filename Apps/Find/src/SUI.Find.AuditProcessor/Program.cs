@@ -30,4 +30,4 @@ builder.Services.AddSingleton(sp =>
     return new TableServiceClient(connection);
 });
 
-builder.Build().Run();
+await builder.Build().RunAsync();
