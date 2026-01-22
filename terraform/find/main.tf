@@ -75,20 +75,6 @@ module "function_app" {
   tags = var.tags
 }
 
-module "audit_processor_storage" {
-  source = "../modules/storage_account"
-
-  storage_account_name = local.audit_processor_storage_account_name
-  resource_group_name  = data.terraform_remote_state.core.outputs.resource_group_name
-  location             = data.terraform_remote_state.core.outputs.resource_group_location
-
-  environment_tag  = var.environment_tag
-  product          = var.product
-  service_offering = var.service_offering
-
-  tags = var.tags
-}
-
 module "audit_processor_function_app" {
   source = "../modules/linux_function_app"
 
