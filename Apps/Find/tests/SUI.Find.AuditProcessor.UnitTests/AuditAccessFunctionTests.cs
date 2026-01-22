@@ -2,10 +2,10 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.AuditProcessor.Functions;
 using SUI.Find.Domain.Events.Audit;
-using SUI.Find.FindApi.Functions.QueueFunctions;
 
-namespace SUI.Find.FindApi.UnitTests.FunctionTests;
+namespace SUI.Find.AuditProcessor.UnitTests;
 
 public class AuditAccessFunctionTests
 {

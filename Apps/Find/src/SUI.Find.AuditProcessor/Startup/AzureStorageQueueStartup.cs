@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using SUI.Find.Application.Constants;
 
-namespace SUI.Find.FindApi.Startup;
+namespace SUI.Find.AuditProcessor.Startup;
 
 [ExcludeFromCodeCoverage(Justification = "Hosted service startup code.")]
 public class AzureStorageQueueStartup : IHostedService

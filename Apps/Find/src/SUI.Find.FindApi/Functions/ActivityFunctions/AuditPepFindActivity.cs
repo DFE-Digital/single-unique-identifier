@@ -18,7 +18,7 @@ public record AuditPepFindInput(
 
 public class AuditPepFindActivity(
     ILogger<AuditPepFindActivity> logger,
-    IAuditService auditService,
+    IAuditQueueClient auditQueueClient,
     TimeProvider timeProvider
 )
 {
@@ -81,6 +81,6 @@ public class AuditPepFindActivity(
         };
 
         // Write to audit service
-        await auditService.WriteAccessAuditLogAsync(auditEvent, cancellationToken);
+        await auditQueueClient.SendAuditEventAsync(auditEvent, cancellationToken);
     }
 }

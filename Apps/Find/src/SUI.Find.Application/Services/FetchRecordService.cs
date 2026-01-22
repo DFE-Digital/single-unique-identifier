@@ -20,7 +20,7 @@ public class FetchRecordService(
     IProviderHttpClient providerClient,
     IOutboundAuthService outboundAuthService,
     IPolicyEnforcementService policyEnforcementService,
-    IAuditService auditService,
+    IAuditQueueClient auditService,
     TimeProvider timeProvider
 ) : IFetchRecordService
 {
@@ -108,7 +108,7 @@ public class FetchRecordService(
                 endTime,
                 receivedByteCount
             );
-            await auditService.WriteAccessAuditLogAsync(auditPayload, cancellationToken);
+            await auditService.SendAuditEventAsync(auditPayload, cancellationToken);
         }
 
         return result;

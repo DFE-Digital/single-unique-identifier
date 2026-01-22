@@ -26,7 +26,7 @@ public class FetchRecordAsyncTests
         Substitute.For<IOutboundAuthService>();
     private readonly IPolicyEnforcementService _mockPolicyEnforcementService =
         Substitute.For<IPolicyEnforcementService>();
-    private readonly IAuditService _mockAuditService = Substitute.For<IAuditService>();
+    private readonly IAuditQueueClient _mockAuditService = Substitute.For<IAuditQueueClient>();
     private readonly FetchRecordService _sut;
     private AuditEvent? _capturedAuditEvent;
 
@@ -296,7 +296,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae =>
                     ValidateAuditEvent(
                         ae,
@@ -341,7 +341,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae =>
                     ValidateAuditEvent(
                         ae,
@@ -371,7 +371,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae =>
                     ValidateAuditEvent(
                         ae,
@@ -401,7 +401,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae =>
                     ValidateAuditEvent(
                         ae,
@@ -431,7 +431,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae =>
                     ValidateAuditEvent(
                         ae,
@@ -467,7 +467,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae =>
                     ValidateAuditEvent(
                         ae,
@@ -497,7 +497,7 @@ public class FetchRecordAsyncTests
         // Assert - verify audit was called exactly once
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>());
+            .SendAuditEventAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -518,7 +518,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae => ValidateTimestamps(ae)),
                 Arg.Any<CancellationToken>()
             );
@@ -545,7 +545,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae =>
                     ValidateUndeterministic(ae, _mockResolvedMapping.RequestingOrgId)
                 ),
@@ -584,7 +584,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>());
+            .SendAuditEventAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>());
 
         Assert.NotNull(_capturedAuditEvent);
         var payload = JsonSerializer.Deserialize<PepFetchPayload>(
@@ -616,7 +616,7 @@ public class FetchRecordAsyncTests
         // Assert
         await _mockAuditService
             .Received(1)
-            .WriteAccessAuditLogAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>());
+            .SendAuditEventAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>());
 
         Assert.NotNull(_capturedAuditEvent);
         var payload = JsonSerializer.Deserialize<PepFetchPayload>(
@@ -729,9 +729,7 @@ public class FetchRecordAsyncTests
     {
         _capturedAuditEvent = null;
         _mockAuditService
-            .When(x =>
-                x.WriteAccessAuditLogAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>())
-            )
+            .When(x => x.SendAuditEventAsync(Arg.Any<AuditEvent>(), Arg.Any<CancellationToken>()))
             .Do(ci => _capturedAuditEvent = ci.Arg<AuditEvent>());
     }
 }

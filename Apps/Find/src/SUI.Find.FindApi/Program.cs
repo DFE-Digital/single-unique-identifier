@@ -1,7 +1,6 @@
 using System.IO.Abstractions;
 using System.Net;
 using Azure.Data.Tables;
-using Azure.Storage.Queues;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
@@ -13,9 +12,11 @@ using Polly.Extensions.Http;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Services;
-using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
+using SUI.Find.Infrastructure;
+using SUI.Find.Infrastructure.Clients;
+using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Utility;
@@ -34,22 +35,26 @@ builder.Services.AddHealthChecks();
 builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
-// Custom application services
+// Infrastructure services
 builder.Services.AddSingleton<IAuditService, AuditStorageTableService>();
-builder.Services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>();
-builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
+builder.Services.AddSingleton<IAuditQueueClient, AuditQueueClient>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
-builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
-builder.Services.AddSingleton<ISearchService, SearchService>();
-builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
 builder.Services.AddSingleton<IHashService, HashService>();
-builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
 builder.Services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
+builder.Services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>();
+builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
 builder.Services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
-builder.Services.AddSingleton<IPolicyEnforcementService, PolicyEnforcementService>();
 builder.Services.AddAzureTableServices();
+
+// Application services
+
+builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
+builder.Services.AddSingleton<ISearchService, SearchService>();
+builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
+builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
+builder.Services.AddSingleton<IPolicyEnforcementService, PolicyEnforcementService>();
 
 // Use mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
@@ -60,19 +65,9 @@ builder.Services.AddSingleton<IOutboundAuthService, OutboundAuthService>();
 
 // Add this after other service registrations
 builder.Services.AddHostedService<AzureStorageTableStartup>();
-builder.Services.AddHostedService<AzureStorageQueueStartup>();
 
 builder.UseMiddleware<JwtAuthMiddleware>();
 builder.UseMiddleware<AuditMiddleware>();
-
-builder.Services.AddSingleton<QueueClient>(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    return new QueueClient(
-        config["AzureWebJobsStorage"],
-        ApplicationConstants.Audit.AccessQueueName
-    );
-});
 
 builder.Services.AddSingleton(sp =>
 {

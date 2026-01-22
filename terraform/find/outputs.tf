@@ -17,3 +17,14 @@ output "function_app_default_hostname" {
   value       = module.function_app.default_hostname
   description = "Default hostname of the Find function app."
 }
+
+output "audit_processor_function_app_name" {
+  value       = module.audit_processor_function_app.name
+  description = "Name of the AuditProcessor function app."
+}
+
+output "audit_processor_function_app_id" {
+  value       = module.audit_processor_function_app.id
+  description = "ID of the AuditProcessor function app."
+}
+
