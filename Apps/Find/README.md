@@ -49,4 +49,4 @@ Or, using the command line (from the repo root):
 
 * `cd ./Apps/Find/src/SUI.Find.FindApi/; func start --port 7182`
 * `cd ./Apps/Find/src/SUI.Find.CustodianSimulation/; func start --port 7082`
-* `cd ./Apps/Find//src/SUI.Find.AuditProcessor/ func start --port 7151` <- Optional to have the audit processor running
+* `cd ./Apps/Find//src/SUI.Find.AuditProcessor/; func start --port 7151` <- Optional to have the audit processor running
