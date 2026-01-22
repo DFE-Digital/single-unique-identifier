@@ -13,6 +13,24 @@ To view our documentation, please visit the [Docs](/Docs/index.md) directory.
 | [LICENCE](/LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
 | [Contributing](/CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
 
+## Glossary of Components
+
+* **`Matching Service`** (a.k.a. *`PDS Adapter`* or *`SUI.Matching.API`*) \
+  Match a PDS record (and NHS Number), given some demographic data.
+
+* **`MatchFunction`** (*"I know of this person, what is their ID"*) \
+  Enables Custodians to tell us that they have a record.
+  Invokes Matching Service (above), and updates the ID register; given some demographic data and some metadata about the data (record) they hold.
+
+* **`SearchFunction`** (a.k.a. *`Find-a-record`*) \
+  Find record pointers for a given SUI.
+
+* **`FetchRecordFunction`** (a.k.a. *`Fetch-a-record`* or *`Fetch`*) \
+  Resolve and return the actual data for a given record pointer.
+
+* **`StubCustodians`** (a.k.a. *`Stubs`*) \
+  Stub API that simulates real Custodians, to provide example data to Find and Fetch for testing purposes.
+
 ## Getting Started
 
 ### Prerequisites
