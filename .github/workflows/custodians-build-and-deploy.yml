@@ -37,9 +37,11 @@ jobs:
       pull-requests: write
       checks: write
       packages: read
+      actions: write
     with:
       directory_name: Apps/StubCustodians
-      
+      project_names: '["SUI.StubCustodians.API"]'
+
   deploy-StubCustodians:
     name: Custodians - Deploy Web App
     if: |
@@ -50,7 +52,8 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      directory_name: Apps/StubCustodians
+      artifact_name: ${{ fromJson(needs.build-and-test-StubCustodians.outputs.artifact_names)['SUI.StubCustodians.API'] }}
       component_descriptor: custodians01
-      project_path: Apps/StubCustodians/src/SUI.StubCustodians.API/SUI.StubCustodians.API.csproj
       package_path: publish
       dotnet_version: "9.0.x"

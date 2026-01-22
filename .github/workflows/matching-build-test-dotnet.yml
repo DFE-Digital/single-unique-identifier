@@ -24,5 +24,7 @@ jobs:
       pull-requests: write
       checks: write
       packages: read
+      actions: write
     with:
       directory_name: Apps/Matching
+      project_names: '["SUI.Matching.API"]'
