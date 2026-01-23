@@ -179,6 +179,15 @@ public class AuthTokenService(
 
     public void Dispose()
     {
-        _renewalLock.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _renewalLock.Dispose();
+        }
     }
 }
