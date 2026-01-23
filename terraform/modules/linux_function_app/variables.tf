@@ -44,7 +44,7 @@ variable "ftps_state" {
 variable "dotnet_version" {
   description = "Dotnet version for the function app stack."
   type        = string
-  default     = "8.0"
+  default     = "9.0"
 }
 
 variable "environment_tag" {
@@ -60,7 +60,7 @@ variable "product" {
 }
 
 variable "service_offering" {
-  description = "Service_Offering tag value."
+  description = "Service Offering tag value."
   type        = string
   default     = null
 }

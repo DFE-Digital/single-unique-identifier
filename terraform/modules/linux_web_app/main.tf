@@ -12,7 +12,7 @@ locals {
     },
     var.environment_tag == null ? {} : { Environment = var.environment_tag },
     var.product == null ? {} : { Product = var.product },
-    var.service_offering == null ? {} : { Service_Offering = var.service_offering },
+    var.service_offering == null ? {} : { "Service Offering" = var.service_offering },
   )
 }
 
@@ -51,4 +51,3 @@ resource "azurerm_linux_web_app" "this" {
     var.tags,
   )
 }
-

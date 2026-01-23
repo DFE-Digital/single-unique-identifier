@@ -24,7 +24,7 @@ resource "azurerm_service_plan" "shared" {
     {
       Environment      = var.environment_tag
       Product          = var.product
-      Service_Offering = var.service_offering
+      "Service Offering" = var.service_offering
       ManagedBy        = "terraform"
     },
     var.tags,
