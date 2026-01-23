@@ -35,7 +35,7 @@ public class AuthTokenService(
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A valid access token.</returns>
-    public async Task<string> GetBearerToken(CancellationToken cancellationToken = default)
+    public async Task<string> GetBearerToken(CancellationToken cancellationToken)
     {
         if (_cachedToken?.IsValid() == true)
         {
