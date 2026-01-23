@@ -3,7 +3,7 @@ using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
-using SUI.Find.Infrastructure.Services.PdsServices;
+using SUI.Find.Infrastructure.Services.Fhir;
 using Task = System.Threading.Tasks.Task;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services.FhirServicesTests;
