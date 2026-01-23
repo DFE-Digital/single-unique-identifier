@@ -38,6 +38,7 @@ jobs:
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
       ARM_USE_OIDC: true
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
       - name: Checkout repository
