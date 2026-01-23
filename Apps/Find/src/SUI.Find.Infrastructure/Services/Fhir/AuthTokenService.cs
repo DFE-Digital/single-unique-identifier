@@ -25,9 +25,9 @@ public class AuthTokenService(
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient("nhs-auth-api");
     private readonly AuthTokenServiceConfig _options = options.Value;
     private volatile CachedToken? _cachedToken;
-    private string? _privateKey;
-    private string? _clientId;
-    private string? _kid;
+    protected string? PrivateKey;
+    protected string? ClientId;
+    protected string? Kid;
 
     /// <summary>
     /// Retrieves a valid bearer token, handling caching and renewal automatically.
@@ -70,7 +70,7 @@ public class AuthTokenService(
 
     protected virtual async Task EnsureInitializedAsync(CancellationToken cancellationToken)
     {
-        if (_privateKey is not null)
+        if (PrivateKey is not null)
             return;
 
         logger.LogInformation("First-time initialization: loading secrets from Azure Key Vault.");
@@ -84,9 +84,9 @@ public class AuthTokenService(
 
         await Task.WhenAll(privateKeyTask, clientIdTask, kidTask);
 
-        _privateKey = await privateKeyTask;
-        _clientId = await clientIdTask;
-        _kid = await kidTask;
+        PrivateKey = await privateKeyTask;
+        ClientId = await clientIdTask;
+        Kid = await kidTask;
     }
 
     private async Task<CachedToken> FetchNewAccessTokenAsync(CancellationToken cancellationToken)
@@ -147,13 +147,13 @@ public class AuthTokenService(
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Audience = audience,
-            Issuer = _clientId!,
+            Issuer = ClientId!,
             Subject = new ClaimsIdentity([
-                new Claim(JwtRegisteredClaimNames.Sub, _clientId!),
+                new Claim(JwtRegisteredClaimNames.Sub, ClientId!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             ]),
             Expires = DateTime.UtcNow.AddMinutes(expInMinutes),
-            SigningCredentials = CreateSigningCredentials(_privateKey!, _kid!),
+            SigningCredentials = CreateSigningCredentials(PrivateKey!, Kid!),
         };
         return TokenHandler.CreateToken(tokenDescriptor);
     }
