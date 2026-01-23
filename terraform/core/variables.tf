@@ -34,7 +34,7 @@ variable "product" {
 }
 
 variable "service_offering" {
-  description = "Service_Offering tag value."
+  description = "Service Offering tag value."
   type        = string
 }
 

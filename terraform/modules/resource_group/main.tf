@@ -17,7 +17,7 @@ resource "azurerm_resource_group" "this" {
       Environment      = var.environment_tag
       ManagedBy        = "terraform"
       Product          = var.product
-      Service_Offering = var.service_offering
+      "Service Offering" = var.service_offering
     },
     var.tags,
   )
