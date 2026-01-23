@@ -13,7 +13,10 @@ public class FhirClientFactory(IOptions<AuthTokenServiceConfig> nhsAuthConfig) :
     {
         // Throwing here to fail fast if the config is missing
         var baseUri =
-            nhsAuthConfig.Value.NHS_DIGITAL_FHIR_ENDPOINT ?? throw new ArgumentNullException();
+            nhsAuthConfig.Value.NHS_DIGITAL_FHIR_ENDPOINT
+            ?? throw new ArgumentNullException(
+                nameof(nhsAuthConfig.Value.NHS_DIGITAL_FHIR_ENDPOINT)
+            );
 
         // TODO: Add auth headers in next phase of work
         return new FhirClient(new Uri(baseUri));
