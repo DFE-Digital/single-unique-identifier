@@ -39,7 +39,7 @@ public class AuditStorageTableService(TableServiceClient client)
         );
     }
 
-    public async Task EnsureAuditTableExistsAsync(CancellationToken cancellationToken)
+    public async Task EnsureTableExistsAsync(CancellationToken cancellationToken)
     {
         await client.CreateTableIfNotExistsAsync(
             InfrastructureConstants.StorageTableAudit.TableName,
