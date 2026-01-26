@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
+[ExcludeFromCodeCoverage(Justification = "Used only in infrastructure services.")]
 public static class RegisterKeys
 {
     public static string PartitionKey(string sui) => $"SUI#{Normalise(sui)}";
