@@ -101,8 +101,8 @@ public class PersonSpecificationValidationTests
     }
 
     [Theory]
-    [InlineData("+1234567890")]
-    [InlineData("1234567890")]
+    [InlineData("+441234567890")]
+    [InlineData("01234567890")]
     [InlineData(null)]
     [InlineData("")]
     public void Should_Pass_When_Phone_IsValidOrEmpty(string? phone)
