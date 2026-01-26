@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -12,7 +11,6 @@ using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.API.Controllers;
 
-[ExcludeFromCodeCoverage]
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
@@ -70,7 +68,12 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
             clientSecret,
             scopes
         );
-
+        var authHeaderResult = TryReadBasicClientCredentials(ControllerContext.HttpContext.Request);
+        if (authHeaderResult is { ClientId: not null, ClientSecret: not null })
+        {
+            clientId = authHeaderResult.ClientId;
+            clientSecret = authHeaderResult.ClientSecret;
+        }
         if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
         {
             logger.LogInformation("Missing clientId or clientSecret");
@@ -240,5 +243,47 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
         store.Clients ??= [];
 
         return store;
+    }
+
+    private static (string? ClientId, string? ClientSecret) TryReadBasicClientCredentials(
+        HttpRequest req
+    )
+    {
+        if (!req.Headers.TryGetValue("Authorization", out var authValues))
+        {
+            return (null, null);
+        }
+
+        var authHeader = authValues.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(authHeader))
+        {
+            return (null, null);
+        }
+
+        if (!authHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
+        {
+            return (null, null);
+        }
+
+        var encoded = authHeader.Substring("Basic ".Length).Trim();
+
+        try
+        {
+            var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+            var sep = decoded.IndexOf(':');
+            if (sep <= 0)
+            {
+                return (null, null);
+            }
+
+            var clientId = decoded.Substring(0, sep);
+            var clientSecret = decoded.Substring(sep + 1);
+
+            return (clientId, clientSecret);
+        }
+        catch
+        {
+            return (null, null);
+        }
     }
 }

@@ -1,6 +1,6 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
-using SUI.Custodians.Domain.Models;
+using SUI.StubCustodians.API.OpenApi;
 using SUI.StubCustodians.API.OpenApiTransformers;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Services;
@@ -20,6 +20,7 @@ namespace SUI.StubCustodians.API
             {
                 options.AddSchemaTransformer<CustodiansOpenApiSchemaTransformer>();
                 options.AddDocumentTransformer<CustodiansOpenApiDocumentTransformer>();
+                options.AddDocumentTransformer<FindDocumentFilter>();
             });
 
             builder.Services.AddEndpointsApiExplorer();
@@ -78,27 +79,6 @@ namespace SUI.StubCustodians.API
             IConfiguration configuration
         )
         {
-            services.AddScoped(typeof(IRecordServiceHandler<>), typeof(RecordServiceHandler<>));
-
-            services.AddScoped<
-                IRecordProvider<PersonalDetailsRecord>,
-                PersonalDetailsRecordProvider
-            >();
-
-            services.AddScoped<
-                IRecordProvider<EducationDetailsRecord>,
-                EducationDetailsRecordProvider
-            >();
-
-            services.AddScoped<
-                IRecordProvider<ChildrensServicesDetailsRecord>,
-                ChildrensServicesDetailsRecordProvider
-            >();
-
-            services.AddScoped<IRecordProvider<CrimeDataRecord>, CrimeDataRecordProvider>();
-
-            services.AddScoped<IRecordProvider<HealthDataRecord>, HealthDataRecordProvider>();
-
             services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(3, 10));
             services.AddSingleton<IDataProvider, FileDataProvider>();
             services.AddScoped<IManifestService, ManifestService>();

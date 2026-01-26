@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using SUI.StubCustodians.Application.Models;
 
@@ -24,8 +25,6 @@ public class ScopeEnforcementMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var req = context.Request;
-
         var requiredScopes = GetRequiredScopes(context);
 
         if (requiredScopes.Count == 0)
@@ -200,6 +199,5 @@ public class ScopeEnforcementMiddleware
         await context.Response.WriteAsJsonAsync(
             TypedResults.Problem(detail, null, (int)code, title)
         );
-        return;
     }
 }

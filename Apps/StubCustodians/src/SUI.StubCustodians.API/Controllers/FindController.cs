@@ -1,14 +1,12 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using SUI.StubCustodians.Application.Common;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.API.Controllers;
 
-[ExcludeFromCodeCoverage]
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
@@ -19,12 +17,12 @@ public class FindController(ILogger<FindController> logger, IManifestService man
     [RequiredScopes("find-record.read")]
     [ProducesResponseType(typeof(IList<SearchResultItem>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(FailureInfo), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemHttpResult), StatusCodes.Status400BadRequest)]
     public async Task<Results<Ok<IList<SearchResultItem>>, ProblemHttpResult>> GetManifest(
         [FromRoute] string orgId,
         [FromRoute] string personId,
-        [FromQuery] string? recordType,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        [FromQuery] string? recordType
     )
     {
         logger.LogInformation("Getting manifest starting, for personId:'{personId}'", personId);
@@ -35,7 +33,7 @@ public class FindController(ILogger<FindController> logger, IManifestService man
     [RequiredScopes("find-record.read")]
     [ProducesResponseType(typeof(IEnumerable<SearchResultItem>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(FailureInfo), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemHttpResult), StatusCodes.Status400BadRequest)]
     public async Task<Results<Ok<IList<SearchResultItem>>, ProblemHttpResult>> PostManifest(
         [FromBody] ManifestRequest request,
         CancellationToken cancellationToken
@@ -70,6 +68,12 @@ public class FindController(ILogger<FindController> logger, IManifestService man
                 GetBaseUrl(HttpContext.Request),
                 cancellationToken,
                 recordType
+            );
+            logger.LogInformation(
+                "Got manifest for personId:'{personId}', OrgId: '{orgId}'. Returned: {result}",
+                personId,
+                orgId,
+                JsonSerializer.Serialize(result)
             );
             return TypedResults.Ok(result);
         }

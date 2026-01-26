@@ -27,7 +27,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "local_authority_ptr", "children_social_care_ptr" ],
+            "dataTypes": [ "childrens_services_details_ptr" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -35,7 +35,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "children_social_care_record" ],
+            "dataTypes": [ "childrens_services_details_record" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -82,7 +82,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "education_ptr", "attendance_ptr", "exclusion_ptr" ],
+            "dataTypes": [ "education_details_ptr" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -90,7 +90,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "attendance_record", "exclusion_record" ],
+            "dataTypes": [ "education_details_record" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION" ],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -100,7 +100,7 @@
           {
             "effect": "deny",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "attendance_record", "exclusion_record" ],
+            "dataTypes": [ "education_details_record" ],
             "destOrgTypes": [ "VOLUNTARY" ],
             "purposes": [ "GENERAL_ENQUIRY" ]
           }
@@ -140,7 +140,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "health_ptr", "mental_health_ptr" ],
+            "dataTypes": [ "health_details_ptr" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -148,7 +148,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "health_record", "mental_health_record" ],
+            "dataTypes": [ "health_details_record" ],
             "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -195,7 +195,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "police_ptr" ],
+            "dataTypes": [ "crime-justice_ptr" ],
             "destOrgTypes": [ "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -203,7 +203,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "police_record" ],
+            "dataTypes": [ "crime_justice_record" ],
             "destOrgTypes": [ "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -213,7 +213,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE", "CONTENT" ],
-            "dataTypes": [ "police_ptr", "police_record" ],
+            "dataTypes": [ "crime_justice_ptr", "crime_justice_record" ],
             "destOrgIds": [ "LOCAL-AUTHORITY-01" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-12-01T00:00:00Z",

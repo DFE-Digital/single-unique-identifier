@@ -6,7 +6,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using SUI.StubCustodians.Application.Models;
 
-namespace SUI.StubCustodians.API.OpenApiTransformers
+namespace SUI.StubCustodians.API.OpenApi
 {
     [ExcludeFromCodeCoverage]
     public class CustodiansOpenApiSchemaTransformer : IOpenApiSchemaTransformer

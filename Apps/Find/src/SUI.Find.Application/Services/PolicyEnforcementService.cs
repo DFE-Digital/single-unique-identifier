@@ -188,12 +188,12 @@ public class PolicyEnforcementService(
         //       "health.mental-health" → "mental-health"
         //       "crime-justice" → "crime-justice" (no change if no dot)
         // This is because of the mock data type naming convention we have. Liable to change in the future.
-        var specificType = recordType.Contains('.')
-            ? recordType[(recordType.IndexOf('.') + 1)..]
-            : recordType;
+        // var specificType = recordType.Contains('.')
+        //     ? recordType[(recordType.IndexOf('.') + 1)..]
+        //     : recordType;
 
         // Normalize: replace dots and dashes with underscores
-        var normalized = specificType.Replace(".", "_").Replace("-", "_");
+        var normalized = recordType.Replace(".", "_").Replace("-", "_");
 
         return mode == ShareMode.Existence ? $"{normalized}_ptr" : $"{normalized}_record";
     }

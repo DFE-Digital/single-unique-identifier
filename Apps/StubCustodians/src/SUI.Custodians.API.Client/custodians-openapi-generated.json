@@ -103,14 +103,14 @@
         }
       }
     },
-    "/api/v1/Fetch/{providerSystemId}/{recordType}/{sui}": {
+    "/api/v1/Fetch/{orgId}/{recordType}/{recordId}": {
       "get": {
         "tags": [
           "Fetch"
         ],
         "parameters": [
           {
-            "name": "sui",
+            "name": "orgId",
             "in": "path",
             "required": true,
             "schema": {
@@ -128,7 +128,7 @@
             }
           },
           {
-            "name": "providerSystemId",
+            "name": "recordId",
             "in": "path",
             "required": true,
             "schema": {
@@ -183,32 +183,37 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2_clientCredentials": [ ]
+          }
+        ]
       }
     },
-    "/api/v1/Fetch/{providerSystemId}/{sui}": {
+    "/api/v1/Fetch/{orgId}/{recordId}": {
       "get": {
         "tags": [
           "Fetch"
         ],
         "parameters": [
           {
-            "name": "sui",
+            "name": "orgId",
             "in": "path",
             "required": true,
             "schema": {
@@ -217,7 +222,7 @@
             }
           },
           {
-            "name": "providerSystemId",
+            "name": "recordId",
             "in": "path",
             "required": true,
             "schema": {
@@ -280,22 +285,27 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2_clientCredentials": [ ]
+          }
+        ]
       }
     },
     "/api/v1/Find/{orgId}/{personId}": {
@@ -389,22 +399,27 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2_clientCredentials": [ ]
+          }
+        ]
       }
     },
     "/api/v1/Find/manifest": {
@@ -490,514 +505,32 @@
             "content": {
               "text/plain; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               },
               "application/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               },
               "text/json; x-api-version=1.0": {
                 "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
+                  "$ref": "#/components/schemas/ProblemHttpResult"
                 }
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/Records/{providerSystemId}/PersonalDetailsRecordV1/{sui}": {
-      "get": {
-        "tags": [
-          "Records"
-        ],
-        "parameters": [
+        },
+        "security": [
           {
-            "name": "sui",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
-          },
-          {
-            "name": "providerSystemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
+            "oauth2_clientCredentials": [ ]
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfPersonalDetailsRecord"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfPersonalDetailsRecord"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfPersonalDetailsRecord"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/Records/{providerSystemId}/ChildrensServicesDetailsRecordV1/{sui}": {
-      "get": {
-        "tags": [
-          "Records"
-        ],
-        "parameters": [
-          {
-            "name": "sui",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
-          },
-          {
-            "name": "providerSystemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecord"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecord"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfChildrensServicesDetailsRecord"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/Records/{providerSystemId}/EducationDetailsRecordV1/{sui}": {
-      "get": {
-        "tags": [
-          "Records"
-        ],
-        "parameters": [
-          {
-            "name": "sui",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
-          },
-          {
-            "name": "providerSystemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfEducationDetailsRecord"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfEducationDetailsRecord"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfEducationDetailsRecord"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/Records/{providerSystemId}/HealthDataRecordV1/{sui}": {
-      "get": {
-        "tags": [
-          "Records"
-        ],
-        "parameters": [
-          {
-            "name": "sui",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
-          },
-          {
-            "name": "providerSystemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfHealthDataRecord"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfHealthDataRecord"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfHealthDataRecord"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/Records/{providerSystemId}/CrimeDataRecordV1/{sui}": {
-      "get": {
-        "tags": [
-          "Records"
-        ],
-        "parameters": [
-          {
-            "name": "sui",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
-          },
-          {
-            "name": "providerSystemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "additionalProperties": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecord"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecord"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/RecordEnvelopeOfCrimeDataRecord"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "application/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              },
-              "text/json; x-api-version=1.0": {
-                "schema": {
-                  "$ref": "#/components/schemas/FailureInfo"
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     }
   },
   "components": {
     "schemas": {
-      "Address": {
-        "type": "object",
-        "properties": {
-          "line1": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Line 1 of the address",
-            "nullable": true,
-            "example": "123 Kew Gardens"
-          },
-          "line2": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Line 2 of the address",
-            "nullable": true,
-            "example": "Bakers Lane"
-          },
-          "townOrCity": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Town or city",
-            "nullable": true,
-            "example": "Bath"
-          },
-          "county": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "County",
-            "nullable": true,
-            "example": "Somerset"
-          },
-          "postcode": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Postcode",
-            "nullable": true,
-            "example": "BA1 2AB"
-          }
-        },
-        "additionalProperties": false,
-        "nullable": true
-      },
       "AuthTokenRequest": {
         "type": "object",
         "properties": {
@@ -1044,344 +577,6 @@
         },
         "additionalProperties": false
       },
-      "ChildrensServicesDetailsRecord": {
-        "type": "object",
-        "properties": {
-          "keyWorker": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Children's Services - Key worker",
-            "nullable": true,
-            "example": "Alex Patel"
-          },
-          "dutyContactDetails": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "additionalProperties": false
-            },
-            "additionalProperties": false,
-            "description": "Children's Services - Duty contact details",
-            "nullable": true,
-            "example": "csc@bromley.gov.uk, 08792675387"
-          },
-          "teamInvolvement": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "additionalProperties": false
-            },
-            "additionalProperties": false,
-            "description": "Children's Services - Team involvement",
-            "nullable": true,
-            "example": "Disabled Childrens Team, Neighbourhood Team"
-          },
-          "childrensServicesReferrals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ChildrensServicesReferral"
-            },
-            "additionalProperties": false,
-            "description": "Children's Services - Referrals",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Details related to the Children's Services for a specific child."
-      },
-      "ChildrensServicesReferral": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Children's Services - Referral history - Date",
-            "format": "date",
-            "nullable": true,
-            "example": "2025-08-16"
-          },
-          "type": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Children's Services - Referral history - Type",
-            "nullable": true,
-            "example": "Early Help"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CrimeDataRecord": {
-        "type": "object",
-        "properties": {
-          "policeMarkerDetails": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Police marker details",
-            "nullable": true,
-            "example": "Individuals at the address may resort to violent behaviour"
-          },
-          "servicesKnownTo": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "additionalProperties": false
-            },
-            "additionalProperties": false,
-            "description": "Crime - Services known to",
-            "nullable": true,
-            "example": "Youth justice service (YJS), Police"
-          },
-          "lastPoliceProtectionPowerEvent": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Last Police Protection Power event",
-            "format": "date",
-            "nullable": true
-          },
-          "missingEpisodes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CrimeMissingEpisode"
-            },
-            "additionalProperties": false,
-            "description": "Police - Missing Episodes",
-            "nullable": true
-          },
-          "linkedCrimeRisks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LinkedCrimeRisk"
-            },
-            "additionalProperties": false,
-            "description": "Linked crime risks",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Crime-linked data about a specific child."
-      },
-      "CrimeMissingEpisode": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Missing episode date",
-            "format": "date",
-            "nullable": true,
-            "example": "2025-06-12"
-          },
-          "returnedHomeInterviewAttended": {
-            "type": "boolean",
-            "additionalProperties": false,
-            "description": "Missing episode returned home interview attended",
-            "nullable": true,
-            "example": "true"
-          }
-        },
-        "additionalProperties": false
-      },
-      "EducationDetailsRecord": {
-        "type": "object",
-        "properties": {
-          "educationSettingName": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Education setting - Name",
-            "nullable": true,
-            "example": "Redwood Academy"
-          },
-          "educationSettingAddress": {
-            "$ref": "#/components/schemas/Address"
-          },
-          "educationSettingTelephone": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Education setting - Telephone",
-            "nullable": true,
-            "example": "0123456789"
-          },
-          "yearlyEducationAttendances": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/YearlyEducationAttendance"
-            },
-            "additionalProperties": false,
-            "description": "Yearly Education Attendances",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Education related data about a specific child."
-      },
-      "EmergencyDepartmentAttendance": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Health - Emergency department attendance - Date",
-            "format": "date",
-            "nullable": true,
-            "example": "2025-06-12"
-          },
-          "reason": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Health - Emergency department attendance - Reason",
-            "nullable": true,
-            "example": "Minor road accident"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ErrorInfo": {
-        "type": "object",
-        "properties": {
-          "scope": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
-          },
-          "message": {
-            "type": "string",
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      "FailureInfo": {
-        "type": "object",
-        "properties": {
-          "kind": {
-            "$ref": "#/components/schemas/FailureKind"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ErrorInfo"
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      "FailureKind": {
-        "type": "integer",
-        "additionalProperties": false
-      },
-      "HealthDataRecord": {
-        "type": "object",
-        "properties": {
-          "registeredGPName": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Registered GP Name",
-            "nullable": true,
-            "example": "Dr E Green"
-          },
-          "registeredGPSurgery": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Registered GP Surgery",
-            "nullable": true,
-            "example": "Duke Medical Centre"
-          },
-          "gpAddress": {
-            "$ref": "#/components/schemas/Address"
-          },
-          "gpTelephone": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "GP Telephone",
-            "nullable": true,
-            "example": "0114 272 2100"
-          },
-          "camhsContactDetails": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "additionalProperties": false
-            },
-            "additionalProperties": false,
-            "description": "Child and Adolescent Mental Health Services - Contact Details",
-            "nullable": true,
-            "example": "01422 345926, camhs.dukemc@gmail.com"
-          },
-          "camhsTeamInvolvement": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "additionalProperties": false
-            },
-            "additionalProperties": false,
-            "description": "Child and Adolescent Mental Health Services - Team Involvement",
-            "nullable": true,
-            "example": "Minds Matter Clinic, Duke Mental Aid Clinic"
-          },
-          "missedAppointments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/HealthMissedAppointment"
-            },
-            "additionalProperties": false,
-            "description": "Missed Healthcare Appointments",
-            "nullable": true
-          },
-          "emergencyDepartmentAttendances": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EmergencyDepartmentAttendance"
-            },
-            "additionalProperties": false,
-            "description": "Emergency (A&E) Department Attendances",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "Details related to Healthcare about a specific child."
-      },
-      "HealthMissedAppointment": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Health - Missed appointments history - Date",
-            "format": "date",
-            "nullable": true,
-            "example": "2025-07-24"
-          },
-          "setting": {
-            "$ref": "#/components/schemas/NullableOfHealthSetting"
-          },
-          "reason": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Health - Missed appointments history - Reason",
-            "nullable": true,
-            "example": "School Examination"
-          }
-        },
-        "additionalProperties": false
-      },
-      "LinkedCrimeRisk": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Crime - Risk - Date",
-            "format": "date",
-            "nullable": true,
-            "example": "2025-10-22"
-          },
-          "riskType": {
-            "$ref": "#/components/schemas/NullableOfCrimeRiskType"
-          }
-        },
-        "additionalProperties": false
-      },
       "ManifestRequest": {
         "required": [
           "orgId",
@@ -1405,150 +600,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "NullableOfCrimeRiskType": {
-        "enum": [
-          "SexualExploitation",
-          "CriminalExploitation",
-          "Radicalisation",
-          "ModernSlaveryAndTrafficking",
-          "GangsAndYouthViolence",
-          null
-        ],
-        "additionalProperties": false,
-        "description": "Crime - Risk - Type",
-        "nullable": true,
-        "example": "CriminalExploitation"
-      },
-      "NullableOfHealthSetting": {
-        "enum": [
-          "Other",
-          "Hospital",
-          "GP",
-          "Community",
-          null
-        ],
-        "additionalProperties": false,
-        "description": "Health - Missed appointments history - Setting",
-        "nullable": true,
-        "example": "GP"
-      },
-      "PersonalDetailsRecord": {
-        "type": "object",
-        "properties": {
-          "firstName": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "The child's first name.",
-            "nullable": true,
-            "example": "Sarah"
-          },
-          "lastName": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "The child's last name.",
-            "nullable": true,
-            "example": "Smith"
-          },
-          "dateOfBirth": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "The child's date of birth.",
-            "format": "date",
-            "nullable": true,
-            "example": "2011-09-25"
-          },
-          "address": {
-            "$ref": "#/components/schemas/Address"
-          },
-          "namesOfIndividualsResidingAtMainAddress": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "additionalProperties": false
-            },
-            "additionalProperties": false,
-            "description": "The full names of the other people known to be residing at the child's main address.",
-            "nullable": true,
-            "example": "James Smith, Henry Smith, Thomas Smith, Jason Archer, Sarah Flint-Smith"
-          },
-          "birthAssignedSex": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Birth assigned sex",
-            "nullable": true,
-            "example": "Female"
-          },
-          "pronouns": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Pronouns",
-            "nullable": true,
-            "example": "She/her"
-          },
-          "ethnicity": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Ethnicity",
-            "nullable": true,
-            "example": "Irish Traveller"
-          },
-          "firstLanguage": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "First language",
-            "nullable": true,
-            "example": "English"
-          },
-          "designatedLocalAuthority": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Designated Local Authority",
-            "nullable": true,
-            "example": "Bromley"
-          },
-          "englishAsAdditionalLanguage": {
-            "type": "boolean",
-            "additionalProperties": false,
-            "description": "Communication need: English as additional language (EAL)",
-            "nullable": true
-          },
-          "braille": {
-            "type": "boolean",
-            "additionalProperties": false,
-            "description": "Communication need: Braille needed",
-            "nullable": true
-          },
-          "signLanguage": {
-            "type": "boolean",
-            "additionalProperties": false,
-            "description": "Communication need: Sign language",
-            "nullable": true
-          },
-          "makaton": {
-            "type": "boolean",
-            "additionalProperties": false,
-            "description": "Communication need: Makaton needed",
-            "nullable": true
-          },
-          "interpreter": {
-            "type": "boolean",
-            "additionalProperties": false,
-            "description": "Communication need: Interpreter needed",
-            "nullable": true
-          },
-          "relatedPeople": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RelatedPerson"
-            },
-            "additionalProperties": false,
-            "description": "The people known to be related to the child.",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "description": "General personal details about a specific child."
       },
       "ProblemDetails": {
         "type": "object",
@@ -1582,102 +633,54 @@
         },
         "additionalProperties": false
       },
-      "RecordEnvelopeOfChildrensServicesDetailsRecord": {
-        "required": [
-          "schemaUri",
-          "payload"
-        ],
+      "ProblemDetails2": {
         "type": "object",
         "properties": {
-          "schemaUri": {
+          "type": {
             "type": "string",
             "additionalProperties": false,
-            "description": "URI of the ChildrensServicesDetailsRecord payload schema",
-            "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecord"
+            "nullable": true
           },
-          "payload": {
-            "$ref": "#/components/schemas/ChildrensServicesDetailsRecord"
+          "title": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "additionalProperties": false,
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "nullable": true
       },
-      "RecordEnvelopeOfCrimeDataRecord": {
-        "required": [
-          "schemaUri",
-          "payload"
-        ],
+      "ProblemHttpResult": {
         "type": "object",
         "properties": {
-          "schemaUri": {
+          "problemDetails": {
+            "$ref": "#/components/schemas/ProblemDetails2"
+          },
+          "contentType": {
             "type": "string",
             "additionalProperties": false,
-            "description": "URI of the CrimeDataRecord payload schema",
-            "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/CrimeDataRecord"
+            "nullable": true
           },
-          "payload": {
-            "$ref": "#/components/schemas/CrimeDataRecord"
-          }
-        },
-        "additionalProperties": false
-      },
-      "RecordEnvelopeOfEducationDetailsRecord": {
-        "required": [
-          "schemaUri",
-          "payload"
-        ],
-        "type": "object",
-        "properties": {
-          "schemaUri": {
-            "type": "string",
+          "statusCode": {
+            "type": "integer",
             "additionalProperties": false,
-            "description": "URI of the EducationDetailsRecord payload schema",
-            "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/EducationDetailsRecord"
-          },
-          "payload": {
-            "$ref": "#/components/schemas/EducationDetailsRecord"
-          }
-        },
-        "additionalProperties": false
-      },
-      "RecordEnvelopeOfHealthDataRecord": {
-        "required": [
-          "schemaUri",
-          "payload"
-        ],
-        "type": "object",
-        "properties": {
-          "schemaUri": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "URI of the HealthDataRecord payload schema",
-            "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/HealthDataRecord"
-          },
-          "payload": {
-            "$ref": "#/components/schemas/HealthDataRecord"
-          }
-        },
-        "additionalProperties": false
-      },
-      "RecordEnvelopeOfPersonalDetailsRecord": {
-        "required": [
-          "schemaUri",
-          "payload"
-        ],
-        "type": "object",
-        "properties": {
-          "schemaUri": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "URI of the PersonalDetailsRecord payload schema",
-            "format": "uri",
-            "example": "https://schemas.example.gov.uk/sui/PersonalDetailsRecord"
-          },
-          "payload": {
-            "$ref": "#/components/schemas/PersonalDetailsRecord"
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -1702,50 +705,10 @@
         },
         "additionalProperties": false
       },
-      "RelatedPerson": {
-        "type": "object",
-        "properties": {
-          "relationshipToTheChild": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Related Person - Relationship to the child",
-            "nullable": true,
-            "example": "Father"
-          },
-          "name": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Related Person - Full Name",
-            "nullable": true,
-            "example": "James Smith"
-          },
-          "dob": {
-            "type": "string",
-            "additionalProperties": false,
-            "description": "Related Person - Date of birth",
-            "format": "date",
-            "nullable": true,
-            "example": "1978-11-01"
-          },
-          "risk": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "additionalProperties": false
-            },
-            "additionalProperties": false,
-            "description": "Risks posed by the Related Person",
-            "nullable": true,
-            "example": "Individual may possess firearms"
-          }
-        },
-        "additionalProperties": false,
-        "description": "Represents a person related to a specific child."
-      },
       "SearchResultItem": {
         "required": [
           "providerSystem",
-          "providerName",
+          "providerId",
           "recordType",
           "recordUrl"
         ],
@@ -1755,7 +718,7 @@
             "type": "string",
             "additionalProperties": false
           },
-          "providerName": {
+          "providerId": {
             "type": "string",
             "additionalProperties": false
           },
@@ -1773,91 +736,43 @@
       "SuiRecord": {
         "type": "object",
         "additionalProperties": false
-      },
-      "YearlyEducationAttendance": {
-        "type": "object",
-        "properties": {
-          "academicTermYearStart": {
-            "type": "integer",
-            "additionalProperties": false,
-            "description": "Education attendance history - Academic Term Year Start",
-            "format": "int32",
-            "nullable": true,
-            "example": "2024"
-          },
-          "academicTermYearEnd": {
-            "type": "integer",
-            "additionalProperties": false,
-            "description": "Education attendance history - Academic Term Year End",
-            "format": "int32",
-            "nullable": true,
-            "example": "2025"
-          },
-          "attendancePercentage": {
-            "type": "number",
-            "additionalProperties": false,
-            "description": "Education attendance history - Attendance Percentage",
-            "format": "float",
-            "nullable": true,
-            "example": "70"
-          },
-          "unauthorisedAbsencePercentage": {
-            "type": "number",
-            "additionalProperties": false,
-            "description": "Education attendance history - Unauthorised Absence Percentage",
-            "format": "float",
-            "nullable": true,
-            "example": "2"
-          },
-          "suspensions": {
-            "type": "integer",
-            "additionalProperties": false,
-            "description": "Education attendance history - Suspensions",
-            "format": "int32",
-            "nullable": true,
-            "example": "1"
-          },
-          "exclusions": {
-            "type": "integer",
-            "additionalProperties": false,
-            "description": "Education attendance history - Exclusions",
-            "format": "int32",
-            "nullable": true,
-            "example": "0"
-          },
-          "schoolMovesNonTransitional": {
-            "type": "integer",
-            "additionalProperties": false,
-            "description": "Education attendance history - School moves non transitional",
-            "format": "int32",
-            "nullable": true,
-            "example": "0"
-          },
-          "schoolsAverageAttendance": {
-            "type": "number",
-            "additionalProperties": false,
-            "description": "Education attendance history - School's average attendance",
-            "format": "float",
-            "nullable": true,
-            "example": "97.5"
+      }
+    },
+    "securitySchemes": {
+      "oauth2_clientCredentials": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "/api/v1/auth/token",
+            "scopes": {
+              "find-record.read": "Read search status and results.",
+              "fetch-record.read": "Retrieve records."
+            }
           }
-        },
-        "additionalProperties": false
+        }
       }
     }
   },
   "tags": [
     {
-      "name": "Auth"
+      "name": "Status",
+      "description": "Service health check",
+      "x-tag-order": 1
     },
     {
-      "name": "Fetch"
+      "name": "Auth",
+      "description": "Simulate an OAuth provider",
+      "x-tag-order": 2
     },
     {
-      "name": "Find"
+      "name": "Find",
+      "description": "Query a custodian about records they might hold on a SUI",
+      "x-tag-order": 10
     },
     {
-      "name": "Records"
+      "name": "Fetch",
+      "description": "Get record details from a custodian",
+      "x-tag-order": 11
     }
   ]
 }
