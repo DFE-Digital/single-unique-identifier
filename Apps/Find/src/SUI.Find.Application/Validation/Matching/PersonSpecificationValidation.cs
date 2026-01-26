@@ -69,10 +69,7 @@ public partial class PersonSpecificationValidation : AbstractValidator<PersonSpe
 
     private static bool BeValidPhone(string? phone)
     {
-        if (string.IsNullOrWhiteSpace(phone))
-            return false;
-
-        var cleaned = CommonPhoneSeparatorRegex().Replace(phone, "");
+        var cleaned = CommonPhoneSeparatorRegex().Replace(phone!, "");
 
         // UK phone validation: supports local (10-11 digits) and international format
         var regex = new Regex(
