@@ -18,6 +18,7 @@ using SUI.Find.Infrastructure;
 using SUI.Find.Infrastructure.Clients;
 using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Interfaces;
+using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Utility;
 
@@ -46,6 +47,7 @@ builder.Services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>()
 builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
 builder.Services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
 builder.Services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
+builder.Services.AddSingleton<IIdRegisterRepository, SuiCustodianRegisterRepository>();
 builder.Services.AddAzureTableServices();
 
 // Application services
