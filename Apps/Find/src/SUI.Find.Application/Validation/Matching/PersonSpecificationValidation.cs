@@ -5,7 +5,7 @@ using SUI.Find.Application.Models.Matching;
 
 namespace SUI.Find.Application.Validation.Matching;
 
-public class PersonSpecificationValidation : AbstractValidator<PersonSpecification>
+public partial class PersonSpecificationValidation : AbstractValidator<PersonSpecification>
 {
     public PersonSpecificationValidation()
     {
@@ -40,13 +40,19 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
 
     private static bool BeAValidPostcode(string? postcode)
     {
+        if (string.IsNullOrWhiteSpace(postcode))
+            return false;
+
+        var cleaned = FindWhiteSpaceRegex().Replace(postcode, "");
+
+        // UK postcode regex (handles all valid formats)
         var regex = new Regex(
-            "^(([A-Z][0-9]{1,2})|(([A-Z][A-HJ-Y][0-9]{1,2})|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) [0-9][A-Z]{2}$",
+            @"^[A-Z]{1,2}\d{1,2}[A-Z]?\d[A-Z]{2}$",
             RegexOptions.IgnoreCase,
             TimeSpan.FromMilliseconds(250)
         );
 
-        return regex.IsMatch(postcode!);
+        return regex.IsMatch(cleaned);
     }
 
     private static bool BeAValidGender(string? gender)
@@ -66,8 +72,7 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
         if (string.IsNullOrWhiteSpace(phone))
             return false;
 
-        // Remove common separators
-        var cleaned = Regex.Replace(phone, @"[\s\-\(\)]", "");
+        var cleaned = CommonPhoneSeparatorRegex().Replace(phone, "");
 
         // UK phone validation: supports local (10-11 digits) and international format
         var regex = new Regex(
@@ -78,4 +83,10 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
 
         return regex.IsMatch(cleaned);
     }
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex FindWhiteSpaceRegex();
+
+    [GeneratedRegex(@"[\s\-\(\)]")]
+    private static partial Regex CommonPhoneSeparatorRegex();
 }

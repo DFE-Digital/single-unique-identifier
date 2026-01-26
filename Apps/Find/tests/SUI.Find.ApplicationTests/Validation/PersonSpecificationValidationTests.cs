@@ -175,6 +175,7 @@ public class PersonSpecificationValidationTests
     [Theory]
     [InlineData("SW1A 1AA")]
     [InlineData("EC1A 1BB")]
+    [InlineData("YO16GA")]
     [InlineData(null)]
     [InlineData("")]
     public void Should_Pass_When_Postcode_IsValidOrEmpty(string? postcode)
@@ -192,7 +193,6 @@ public class PersonSpecificationValidationTests
     }
 
     [Theory]
-    [InlineData("SW1A1AA")]
     [InlineData("12345")]
     [InlineData("AAAA AAA")]
     public void Should_Fail_When_Postcode_IsInvalid(string postcode)
