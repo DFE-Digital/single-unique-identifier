@@ -51,17 +51,31 @@ public class PersonSpecificationValidation : AbstractValidator<PersonSpecificati
 
     private static bool BeAValidGender(string? gender)
     {
-        var validGenders = new[] { "male", "female", "unknown", "other" };
+        var validGenders = new[]
+        {
+            PdsConstants.Gender.Male,
+            PdsConstants.Gender.Female,
+            PdsConstants.Gender.Unknown,
+            PdsConstants.Gender.Other,
+        };
         return validGenders.Contains(gender);
     }
 
     private static bool BeValidPhone(string? phone)
     {
+        if (string.IsNullOrWhiteSpace(phone))
+            return false;
+
+        // Remove common separators
+        var cleaned = Regex.Replace(phone, @"[\s\-\(\)]", "");
+
+        // UK phone validation: supports local (10-11 digits) and international format
         var regex = new Regex(
-            @"^\+?[1-9]\d{1,14}$",
+            @"^(\+44\d{10}|0\d{9,10})$",
             RegexOptions.None,
             matchTimeout: TimeSpan.FromMilliseconds(250)
         );
-        return regex.IsMatch(phone!);
+
+        return regex.IsMatch(cleaned);
     }
 }
