@@ -145,7 +145,7 @@ public class AuthTokenFunction(
         }
 
         var hasAuthHeader = requestData.Headers.TryGetValues("Authorization", out var authValues);
-        if (!hasAuthHeader || authValues is null)
+        if (authValues is null || !hasAuthHeader)
         {
             logger.LogWarning("Missing Authorization header.");
             return (false, string.Empty);
