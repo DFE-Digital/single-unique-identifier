@@ -1,8 +1,13 @@
 {
   "version": "2.0",
+  "telemetryMode": "OpenTelemetry",
   "extensions": {
     "durableTask": {
-      "historyRetentionInDays": 1
+      "historyRetentionInDays": 1,
+      "tracing": {
+        "distributedTracingEnabled": true,
+        "version": "V2"
+      }
     }
   },
   "logging": {
