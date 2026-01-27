@@ -1,3 +1,4 @@
+using SUI.Find.Application.Models.Matching;
 using SUI.Find.Domain.Models;
 using SUI.Find.Domain.ValueObjects;
 
