@@ -15,8 +15,8 @@ public class IdRegisterEntry
 
 public enum Provenance
 {
+    Unknown,
     IssuedByService,
     AlreadyHeldByCustodian,
     DiscoveredViaFanout,
-    Unknown,
 }
