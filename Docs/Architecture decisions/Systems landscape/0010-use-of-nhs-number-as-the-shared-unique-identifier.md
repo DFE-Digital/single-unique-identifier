@@ -19,7 +19,7 @@ At the time of writing there are two design patterns being considered which are
 
 2) **Managed ID Register** where a central table is maintained of who knows what about which people.
 
-At the time of writing the **Distributed Id** design pattern is out preferred option for reasons that will be discussed below.
+At the time of writing the **Distributed Id** design pattern is our preferred option for reasons that will be discussed below.
 
 Within the **Distributed Id** architectural pattern, two alternative approaches are being considered for the format of the SUI:
 
