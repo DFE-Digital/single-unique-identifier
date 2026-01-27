@@ -1,5 +1,6 @@
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Interfaces.Matching;
 using SUI.Find.Application.Models.Fhir;
 using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Factories.Fhir;

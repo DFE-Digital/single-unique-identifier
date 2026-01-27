@@ -9,6 +9,7 @@ public interface IMatchingNhsNumberService
 {
     Task<OneOf<NhsPersonId, NotFound, Error>> MatchPersonAsync(
         PersonSpecification request,
-        string clientId
+        string clientId,
+        CancellationToken ct
     );
 }

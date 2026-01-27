@@ -1,7 +1,7 @@
 using SUI.Find.Application.Models.Fhir;
 using SUI.Find.Domain.Models;
 
-namespace SUI.Find.Infrastructure.Interfaces.Fhir;
+namespace SUI.Find.Application.Interfaces.Matching;
 
 public interface IFhirService
 {
