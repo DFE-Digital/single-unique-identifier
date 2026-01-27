@@ -21,9 +21,10 @@ namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 public class MatchFunctionTests
 {
     private readonly ILogger<MatchFunction> _logger = Substitute.For<ILogger<MatchFunction>>();
-    private readonly IMatchingService _service = Substitute.For<IMatchingService>();
+    private readonly IMatchingEncryptionService _encryptionService =
+        Substitute.For<IMatchingEncryptionService>();
 
-    private MatchFunction CreateFunction() => new(_logger, _service);
+    private MatchFunction CreateFunction() => new(_logger, _encryptionService);
 
     private static FunctionContext CreateContextWithAuth(string clientId = "test-client-id")
     {
@@ -49,7 +50,7 @@ public class MatchFunctionTests
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
         var encryptedPersonId = EncryptedPersonId.Create("Cy13hyZL-4LSIwVy50p-Hg");
-        _service
+        _encryptionService
             .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
             .Returns(encryptedPersonId.Value!);
 
@@ -77,7 +78,7 @@ public class MatchFunctionTests
             BirthDate = DateOnly.Parse("1990-01-01"),
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
-        _service
+        _encryptionService
             .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
             .Returns(new NotFound());
 
@@ -101,7 +102,7 @@ public class MatchFunctionTests
             BirthDate = DateOnly.Parse("1990-01-01"),
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
-        _service
+        _encryptionService
             .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
             .Returns(new Error());
 
@@ -139,7 +140,7 @@ public class MatchFunctionTests
     public async Task ShouldReturnBadRequest_WhenRequestModelIsInvalid()
     {
         // Arrange
-        var service = Substitute.For<IMatchingService>();
+        var service = Substitute.For<IMatchingEncryptionService>();
         var logger = Substitute.For<ILogger<MatchFunction>>();
         var function = new MatchFunction(logger, service);
 

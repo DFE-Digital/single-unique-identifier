@@ -7,7 +7,7 @@ using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.Services;
 
-public interface IMatchingService
+public interface IMatchingEncryptionService
 {
     Task<OneOf<EncryptedPersonId, NotFound, Error>> MatchPersonAsync(
         MatchPersonRequest request,
@@ -15,12 +15,12 @@ public interface IMatchingService
     );
 }
 
-public class MatchingService(
-    ILogger<MatchingService> logger,
+public class MatchingEncryptionService(
+    ILogger<MatchingEncryptionService> logger,
     IMatchRepository repository,
     ICustodianService custodianService,
     IPersonIdEncryptionService encryptionService
-) : IMatchingService
+) : IMatchingEncryptionService
 {
     public async Task<OneOf<EncryptedPersonId, NotFound, Error>> MatchPersonAsync(
         MatchPersonRequest request,

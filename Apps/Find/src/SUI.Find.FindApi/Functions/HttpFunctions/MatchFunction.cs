@@ -15,7 +15,10 @@ using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
-public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService service)
+public class MatchFunction(
+    ILogger<MatchFunction> logger,
+    IMatchingEncryptionService encryptionService
+)
 {
     [Function(nameof(MatchPerson))]
     [RequiredScopes("match-record.read")]
@@ -78,7 +81,7 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
             );
         }
 
-        var personMatch = await service.MatchPersonAsync(request, authContext.ClientId);
+        var personMatch = await encryptionService.MatchPersonAsync(request, authContext.ClientId);
         return await personMatch.Match(
             encryptedPersonId => CreateOkResponse(req, encryptedPersonId),
             async notFound =>
