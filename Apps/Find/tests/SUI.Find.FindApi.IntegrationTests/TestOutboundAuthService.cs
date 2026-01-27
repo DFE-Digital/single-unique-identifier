@@ -12,6 +12,8 @@ using SUI.Find.Infrastructure.Utility;
 
 namespace SUI.Find.FindApi.IntegrationTests;
 
+[Collection("E2E")]
+[Trait("Category", "E2E")]
 public class TestOutboundAuthService
 {
     [Fact]
