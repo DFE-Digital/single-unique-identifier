@@ -6,7 +6,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Models;
-using SUI.Find.Application.Services;
+using SUI.Find.Application.Services.Matching;
 using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;

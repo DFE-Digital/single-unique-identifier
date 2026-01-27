@@ -5,7 +5,7 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.ValueObjects;
 
-namespace SUI.Find.Application.Services;
+namespace SUI.Find.Application.Services.Matching;
 
 public interface IMatchingEncryptionService
 {

@@ -4,7 +4,7 @@ using NSubstitute.ExceptionExtensions;
 using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Application.Services;
+using SUI.Find.Application.Services.Matching;
 using SUI.Find.Domain.Models;
 using SUI.Find.Domain.ValueObjects;
 

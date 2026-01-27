@@ -1,20 +1,15 @@
 using System.Net;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using OneOf.Types;
 using SUI.Find.Application.Models;
-using SUI.Find.Application.Services;
+using SUI.Find.Application.Services.Matching;
 using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Functions.HttpFunctions;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.UnitTests.Mocks;
-using SUI.Find.Infrastructure.Models;
-using Xunit;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
