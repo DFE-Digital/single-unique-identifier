@@ -5,7 +5,7 @@ using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Factories.Fhir;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
 
-namespace SUI.Find.Infrastructure.Services.PdsServices;
+namespace SUI.Find.Infrastructure.Services.Fhir;
 
 public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirClientFactory)
     : IFhirService
@@ -14,7 +14,7 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
     {
         try
         {
-            var client = fhirClientFactory.CreateFhirClient();
+            var client = await fhirClientFactory.CreateFhirClientAsync();
             var searchParams = SearchParamsFactory.Create(searchQuery);
 
             logger.LogInformation("Searching for NHS patient record...");
