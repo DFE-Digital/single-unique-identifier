@@ -687,17 +687,38 @@
       },
       "RecordEnvelopeOfSuiRecord": {
         "required": [
+          "recordId",
+          "personId",
           "schemaUri",
+          "recordType",
+          "version",
           "payload"
         ],
         "type": "object",
         "properties": {
+          "recordId": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "personId": {
+            "type": "string",
+            "additionalProperties": false
+          },
           "schemaUri": {
             "type": "string",
             "additionalProperties": false,
             "description": "URI of the SuiRecord payload schema",
             "format": "uri",
             "example": "https://schemas.example.gov.uk/sui/SuiRecord"
+          },
+          "recordType": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "version": {
+            "type": "integer",
+            "additionalProperties": false,
+            "format": "int32"
           },
           "payload": {
             "$ref": "#/components/schemas/SuiRecord"

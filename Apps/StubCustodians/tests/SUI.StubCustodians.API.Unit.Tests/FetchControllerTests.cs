@@ -1,9 +1,4 @@
-using System.Text;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Custodians.Domain.Models;
@@ -15,8 +10,6 @@ namespace SUI.StubCustodians.API.Unit.Tests
 {
     public class FetchControllerTests
     {
-        // private readonly HttpClient _client;
-
         private readonly FetchController _fetchController;
         private readonly IRecordService _recordService;
 
@@ -30,11 +23,17 @@ namespace SUI.StubCustodians.API.Unit.Tests
         [Fact]
         public async Task GetRecord_ShouldReturnChildrensServicesRecord_WhenInputsAreCorrect()
         {
-            var orgId = "local-authority-01";
-            var recordType = "childrens-services.details";
-            var recordId = "CSC-5919-A";
+            const string orgId = "local-authority-01";
+            const string recordType = "childrens-services.details";
+            const string recordId = "CSC-5919-A";
+            const string personId = "Cy13hyZL-4LSIwVy50p-Hg";
+            const int version = 1;
             var record = new RecordEnvelope<ChildrensServicesDetailsRecord>
             {
+                RecordId = recordId,
+                PersonId = personId,
+                RecordType = recordType,
+                Version = version,
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -66,11 +65,17 @@ namespace SUI.StubCustodians.API.Unit.Tests
         [Fact]
         public async Task GetRecord_ShouldReturnEducationDetailsRecord_WhenInputsAreCorrect()
         {
-            var orgId = "education-01";
-            var recordType = "education.details";
-            var recordId = "ATT-5919-1";
+            const string orgId = "education-01";
+            const string recordType = "education.details";
+            const string recordId = "ATT-5919-1";
+            const string personId = "Cy13hyZL-4LSIwVy50p-Hg";
+            const int version = 1;
             var record = new RecordEnvelope<EducationDetailsRecord>
             {
+                PersonId = personId,
+                RecordId = recordId,
+                RecordType = recordType,
+                Version = version,
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -102,11 +107,17 @@ namespace SUI.StubCustodians.API.Unit.Tests
         [Fact]
         public async Task GetRecord_ShouldReturnCrimeRecord_WhenInputsAreCorrect()
         {
-            var orgId = "police-01";
-            var recordType = "crime-justice.details";
-            var recordId = "ATT-5919-1";
+            const string orgId = "police-01";
+            const string recordType = "crime-justice.details";
+            const string recordId = "ATT-5919-1";
+            const string personId = "Cy13hyZL-4LSIwVy50p-Hg";
+            const int version = 1;
             var record = new RecordEnvelope<CrimeDataRecord>
             {
+                PersonId = personId,
+                RecordId = recordId,
+                RecordType = recordType,
+                Version = version,
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -142,11 +153,17 @@ namespace SUI.StubCustodians.API.Unit.Tests
         [Fact]
         public async Task GetRecord_ShouldReturnHealthRecord_WhenInputsAreCorrect()
         {
-            var orgId = "health-01";
-            var recordType = "health.details";
-            var recordId = "ATT-5919-1";
+            const string orgId = "health-01";
+            const string recordType = "health.details";
+            const string recordId = "ATT-5919-1";
+            const string personId = "Cy13hyZL-4LSIwVy50p-Hg";
+            const int version = 1;
             var record = new RecordEnvelope<HealthDataRecord>
             {
+                PersonId = personId,
+                RecordId = recordId,
+                RecordType = recordType,
+                Version = version,
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -178,11 +195,17 @@ namespace SUI.StubCustodians.API.Unit.Tests
         [Fact]
         public async Task GetRecord_ShouldReturnPersonalDetailsRecord_WhenInputsAreCorrect()
         {
-            var orgId = "local-authority-01";
-            var recordType = "personal.details";
-            var recordId = "ATT-5919-1";
+            const string orgId = "local-authority-01";
+            const string recordType = "personal.details";
+            const string recordId = "ATT-5919-1";
+            const string personId = "Cy13hyZL-4LSIwVy50p-Hg";
+            const int version = 1;
             var record = new RecordEnvelope<PersonalDetailsRecord>
             {
+                PersonId = personId,
+                RecordId = recordId,
+                RecordType = recordType,
+                Version = version,
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -204,6 +227,8 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             var personalDetailsRecord = result.Value as RecordEnvelope<PersonalDetailsRecord>;
             Assert.NotNull(personalDetailsRecord);
+            Assert.Equal(record.RecordType, personalDetailsRecord.RecordType);
+            Assert.Equal(record.Version, personalDetailsRecord.Version);
             Assert.Equal(record.SchemaUri, personalDetailsRecord.SchemaUri);
             Assert.Equal(record.Payload.FirstName, personalDetailsRecord.Payload.FirstName);
         }
@@ -211,11 +236,17 @@ namespace SUI.StubCustodians.API.Unit.Tests
         [Fact]
         public async Task GetRecord_ShouldReturnNotFound_WhenInputsAreIncorrect()
         {
-            var orgId = "local-authority-01";
-            var recordType = "childrens-services.details";
-            var recordId = "CSC-5919-A";
+            const string orgId = "local-authority-01";
+            const string recordType = "childrens-services.details";
+            const string recordId = "CSC-5919-A";
+            const string personId = "Cy13hyZL-4LSIwVy50p-Hg";
+            const int version = 1;
             var record = new RecordEnvelope<ChildrensServicesDetailsRecord>
             {
+                PersonId = personId,
+                RecordId = recordId,
+                RecordType = recordType,
+                Version = version,
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),

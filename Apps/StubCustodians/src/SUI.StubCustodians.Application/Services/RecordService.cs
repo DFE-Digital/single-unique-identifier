@@ -26,6 +26,10 @@ public class RecordService(IDataProvider dataProvider) : IRecordService
 
         var result = new RecordEnvelope<T>
         {
+            PersonId = orgRecord.PersonId,
+            RecordId = orgRecord.RecordId,
+            RecordType = orgRecord.RecordType,
+            Version = orgRecord.Version,
             SchemaUri = new Uri(orgRecord.SchemaUri),
             Payload = personRecord,
         };

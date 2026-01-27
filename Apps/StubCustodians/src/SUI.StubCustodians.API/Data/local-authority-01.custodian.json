@@ -7,7 +7,7 @@
       "recordId": "CSC-5919-A",
       "personId": "Cy13hyZL-4LSIwVy50p-Hg",
       "recordType": "childrens-services.details",
-      "dataType": "childrens-services.details.v1",
+      "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
       "payload": {
         "keyWorker": "Alex Patel",
@@ -53,7 +53,7 @@
       "recordId": "CSC-1234-A",
       "personId": "9D8EHKuYWQVYGYVbSb0JZg",
       "recordType": "childrens-services.details",
-      "dataType": "childrens-services.details.v1",
+      "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
       "payload": {
         "keyWorker": "Alex Patel",
@@ -99,7 +99,7 @@
       "recordId": "CSC-5919-A",
       "personId": "Cy13hyZL-4LSIwVy50p-Hg",
       "recordType": "personal.details",
-      "dataType": "personal.details.v1",
+      "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.v1.json",
       "payload": {
         "firstName": "Sarah",

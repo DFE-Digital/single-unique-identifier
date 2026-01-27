@@ -41,9 +41,7 @@ public class ManifestService(IDataProvider store) : IManifestService
             "LOCAL-AUTHORITY-01" =>
                 $"{baseUrl}/api/v1/fetch/{Uri.EscapeDataString(orgId.ToLowerInvariant())}/{Uri.EscapeDataString(recordId)}?recordType={Uri.EscapeDataString(recordType)}",
             "HEALTH-01" =>
-                $"{baseUrl}/api/v1/fetch/{Uri.EscapeDataString(orgId.ToLowerInvariant())}/{Uri.EscapeDataString(recordId)}?type={Uri.EscapeDataString(recordType)}",
-            "POLICE-01" =>
-                $"{baseUrl}/api/v1/fetch/{Uri.EscapeDataString(orgId.ToLowerInvariant())}/{Uri.EscapeDataString(recordId)}",
+                $"{baseUrl}/api/v1/fetch/{Uri.EscapeDataString(orgId.ToLowerInvariant())}/{Uri.EscapeDataString(recordId)}?recordType={Uri.EscapeDataString(recordType)}",
             _ =>
                 $"{baseUrl}/api/v1/fetch/{Uri.EscapeDataString(orgId.ToLowerInvariant())}/{Uri.EscapeDataString(recordType)}/{Uri.EscapeDataString(recordId)}",
         };

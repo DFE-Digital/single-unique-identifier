@@ -1,9 +1,7 @@
-using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.StubCustodians.API.Controllers;
@@ -11,26 +9,14 @@ using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.API.Unit.Tests
 {
-    public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
+    public class AuthControllerTests
     {
-        // private readonly HttpClient _client;
-
         private readonly AuthController _authController;
 
-        public AuthControllerTests(WebApplicationFactory<Program> factory)
+        public AuthControllerTests()
         {
             var logger = Substitute.For<ILogger<AuthController>>();
             _authController = new AuthController(logger);
-            // var appFactory = factory.WithWebHostBuilder(builder =>
-            // {
-            //     builder.ConfigureServices(services =>
-            //     {
-            //         // Replace real services with mocks
-            //        // services.AddSingleton(_mockPersonalHandler);
-            //     });
-            // });
-            //
-            // _client = appFactory.CreateClient();
         }
 
         [Fact]
@@ -119,7 +105,7 @@ namespace SUI.StubCustodians.API.Unit.Tests
             {
                 { "Authorization", $"Basic {clientCredentials}" },
             };
-            var requestFeature = new HttpRequestFeature() { Headers = headers };
+            var requestFeature = new HttpRequestFeature { Headers = headers };
             features.Set<IHeaderDictionary>(headers);
             features.Set<IHttpRequestFeature>(requestFeature);
             _authController.ControllerContext = new ControllerContext
@@ -143,6 +129,107 @@ namespace SUI.StubCustodians.API.Unit.Tests
             Assert.False(string.IsNullOrEmpty(okHttpResult.Value.AccessToken));
             Assert.Equal("find-record.read fetch-record.read", okHttpResult.Value.Scope);
             Assert.Equal("Bearer", okHttpResult.Value.TokenType);
+        }
+
+        [Fact]
+        public void AuthToken_ShouldReturnProblem_WhenAuthHeaderDoesNotStartWithBasic()
+        {
+            var features = new FeatureCollection();
+            var clientCredentials = Convert.ToBase64String("SUI-SERVICE:SUIProject"u8.ToArray());
+            var headers = new HeaderDictionary { { "Authorization", $"Test {clientCredentials}" } };
+            var requestFeature = new HttpRequestFeature { Headers = headers };
+            features.Set<IHeaderDictionary>(headers);
+            features.Set<IHttpRequestFeature>(requestFeature);
+            _authController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext(features),
+            };
+            var request = new AuthTokenFormRequest
+            {
+                client_id = "",
+                client_secret = "",
+                grant_type = "client_credentials",
+                scope = "find-record.read fetch-record.read",
+            };
+
+            var result = _authController.AuthTokenForm(request);
+            Assert.NotNull(result.Result);
+            Assert.IsType<ProblemHttpResult>(result.Result);
+            var problemHttpResult = (ProblemHttpResult)result.Result;
+            Assert.Equal(400, problemHttpResult.StatusCode);
+            Assert.Equal("Invalid request", problemHttpResult.ProblemDetails.Title);
+            Assert.Equal(
+                "Missing client_id or client_secret.",
+                problemHttpResult.ProblemDetails.Detail
+            );
+        }
+
+        [Fact]
+        public void AuthToken_ShouldReturnProblem_WhenAuthHeaderCredentialsAreWrong()
+        {
+            var features = new FeatureCollection();
+            var clientCredentials = Convert.ToBase64String("SUI-SERVICESUIProject"u8.ToArray());
+            var headers = new HeaderDictionary
+            {
+                { "Authorization", $"Basic {clientCredentials}" },
+            };
+            var requestFeature = new HttpRequestFeature { Headers = headers };
+            features.Set<IHeaderDictionary>(headers);
+            features.Set<IHttpRequestFeature>(requestFeature);
+            _authController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext(features),
+            };
+            var request = new AuthTokenFormRequest
+            {
+                client_id = "",
+                client_secret = "",
+                grant_type = "client_credentials",
+                scope = "find-record.read fetch-record.read",
+            };
+
+            var result = _authController.AuthTokenForm(request);
+            Assert.NotNull(result.Result);
+            Assert.IsType<ProblemHttpResult>(result.Result);
+            var problemHttpResult = (ProblemHttpResult)result.Result;
+            Assert.Equal(400, problemHttpResult.StatusCode);
+            Assert.Equal("Invalid request", problemHttpResult.ProblemDetails.Title);
+            Assert.Equal(
+                "Missing client_id or client_secret.",
+                problemHttpResult.ProblemDetails.Detail
+            );
+        }
+
+        [Fact]
+        public void AuthToken_ShouldReturnProblem_WhenAuthHeaderIsWhiteSpace()
+        {
+            var features = new FeatureCollection();
+            var headers = new HeaderDictionary { { "Authorization", $" " } };
+            var requestFeature = new HttpRequestFeature { Headers = headers };
+            features.Set<IHeaderDictionary>(headers);
+            features.Set<IHttpRequestFeature>(requestFeature);
+            _authController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext(features),
+            };
+            var request = new AuthTokenFormRequest
+            {
+                client_id = "",
+                client_secret = "",
+                grant_type = "client_credentials",
+                scope = "find-record.read fetch-record.read",
+            };
+
+            var result = _authController.AuthTokenForm(request);
+            Assert.NotNull(result.Result);
+            Assert.IsType<ProblemHttpResult>(result.Result);
+            var problemHttpResult = (ProblemHttpResult)result.Result;
+            Assert.Equal(400, problemHttpResult.StatusCode);
+            Assert.Equal("Invalid request", problemHttpResult.ProblemDetails.Title);
+            Assert.Equal(
+                "Missing client_id or client_secret.",
+                problemHttpResult.ProblemDetails.Detail
+            );
         }
     }
 }

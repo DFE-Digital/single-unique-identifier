@@ -255,12 +255,10 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
         }
 
         var authHeader = authValues.FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(authHeader))
-        {
-            return (null, null);
-        }
-
-        if (!authHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.IsNullOrWhiteSpace(authHeader)
+            || !authHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return (null, null);
         }
