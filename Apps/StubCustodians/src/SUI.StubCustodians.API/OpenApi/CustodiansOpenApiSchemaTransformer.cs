@@ -48,19 +48,15 @@ namespace SUI.StubCustodians.API.OpenApi
             if (
                 declaringType is { IsGenericType: true }
                 && declaringType.GetGenericTypeDefinition() == typeof(RecordEnvelope<>)
+                && context.JsonPropertyInfo?.Name
+                    == ToCamelCase(nameof(RecordEnvelope<object>.SchemaUri))
             )
             {
-                if (
-                    context.JsonPropertyInfo?.Name
-                    == ToCamelCase(nameof(RecordEnvelope<object>.SchemaUri))
-                )
-                {
-                    var payloadType = declaringType.GetGenericArguments()[0];
-                    schema.Description ??= $"URI of the {payloadType.Name} payload schema";
-                    schema.Example = new OpenApiString(
-                        $"https://schemas.example.gov.uk/sui/{payloadType.Name}"
-                    );
-                }
+                var payloadType = declaringType.GetGenericArguments()[0];
+                schema.Description ??= $"URI of the {payloadType.Name} payload schema";
+                schema.Example = new OpenApiString(
+                    $"https://schemas.example.gov.uk/sui/{payloadType.Name}"
+                );
             }
 
             // Pull in descriptions and examples from XML documentation comments

@@ -27,7 +27,7 @@ public class ScopeEnforcementMiddleware
     {
         var requiredScopes = GetRequiredScopes(context);
 
-        if (requiredScopes.Count == 0)
+        if (requiredScopes.Length == 0)
         {
             await _next(context);
             return;
@@ -133,7 +133,7 @@ public class ScopeEnforcementMiddleware
         );
     }
 
-    private static IReadOnlyList<string> GetRequiredScopes(HttpContext context)
+    private static string[] GetRequiredScopes(HttpContext context)
     {
         var endpoint = context.GetEndpoint();
 
@@ -151,8 +151,7 @@ public class ScopeEnforcementMiddleware
 
         var methodInfo = actionDescriptor.MethodInfo;
 
-        var myAttribute = methodInfo.GetCustomAttribute(typeof(RequiredScopesAttribute), false);
-        var requiredScopesAttribute = myAttribute as RequiredScopesAttribute;
+        var requiredScopesAttribute = methodInfo.GetCustomAttribute<RequiredScopesAttribute>(false);
 
         return requiredScopesAttribute?.Scopes.ToArray() ?? [];
     }

@@ -42,12 +42,12 @@ namespace SUI.StubCustodians.API.Unit.Tests
                     orgId,
                     personId,
                     Arg.Any<string>(),
-                    Arg.Any<CancellationToken>(),
-                    recordType
+                    recordType,
+                    Arg.Any<CancellationToken>()
                 )
                 .Throws(new OperationCanceledException());
             await cts.CancelAsync();
-            var result = await _findController.GetManifest(orgId, personId, ct, recordType);
+            var result = await _findController.GetManifest(orgId, personId, recordType, ct);
 
             Assert.NotNull(result.Result);
             Assert.IsType<ProblemHttpResult>(result.Result);
@@ -74,8 +74,8 @@ namespace SUI.StubCustodians.API.Unit.Tests
                     orgId,
                     personId,
                     Arg.Any<string>(),
-                    Arg.Any<CancellationToken>(),
-                    recordType
+                    recordType,
+                    Arg.Any<CancellationToken>()
                 )
                 .Throws(new Exception());
 
@@ -111,16 +111,16 @@ namespace SUI.StubCustodians.API.Unit.Tests
                     orgId,
                     personId,
                     Arg.Any<string>(),
-                    Arg.Any<CancellationToken>(),
-                    recordType
+                    recordType,
+                    Arg.Any<CancellationToken>()
                 )
                 .Returns(new List<SearchResultItem> { new(orgId, orgId, recordType, recordUrl) });
 
             var result = await _findController.GetManifest(
                 orgId,
                 personId,
-                CancellationToken.None,
-                recordType
+                recordType,
+                CancellationToken.None
             );
 
             Assert.NotNull(result.Result);

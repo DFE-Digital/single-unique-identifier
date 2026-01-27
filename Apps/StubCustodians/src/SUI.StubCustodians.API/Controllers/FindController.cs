@@ -21,11 +21,11 @@ public class FindController(ILogger<FindController> logger, IManifestService man
     public async Task<Results<Ok<IList<SearchResultItem>>, ProblemHttpResult>> GetManifest(
         [FromRoute] string orgId,
         [FromRoute] string personId,
-        CancellationToken cancellationToken,
-        [FromQuery] string? recordType
+        [FromQuery] string? recordType,
+        CancellationToken cancellationToken
     )
     {
-        logger.LogInformation("Getting manifest starting, for personId:'{personId}'", personId);
+        logger.LogInformation("Getting manifest starting, for personId:'{PersonId}'", personId);
         return await Manifest(orgId, personId, recordType, cancellationToken);
     }
 
@@ -40,7 +40,7 @@ public class FindController(ILogger<FindController> logger, IManifestService man
     )
     {
         logger.LogInformation(
-            "Getting manifest starting, for personId:'{personId}'",
+            "Getting manifest starting, for personId:'{PersonId}'",
             request.PersonId
         );
         return await Manifest(
@@ -66,11 +66,11 @@ public class FindController(ILogger<FindController> logger, IManifestService man
                 orgId,
                 personId,
                 GetBaseUrl(HttpContext.Request),
-                cancellationToken,
-                recordType
+                recordType,
+                cancellationToken
             );
             logger.LogInformation(
-                "Got manifest for personId:'{personId}', OrgId: '{orgId}'. Returned: {result}",
+                "Got manifest for personId:'{PersonId}', OrgId: '{OrgId}'. Returned: {Result}",
                 personId,
                 orgId,
                 JsonSerializer.Serialize(result)

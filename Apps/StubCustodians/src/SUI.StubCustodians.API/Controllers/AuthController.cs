@@ -63,7 +63,7 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
     )
     {
         logger.LogDebug(
-            "Getting auth token: {clientId}, {clientSecret}, {scopes}",
+            "Getting auth token: {ClientId}, {ClientSecret}, {Scopes}",
             clientId,
             clientSecret,
             scopes
@@ -125,7 +125,8 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
             if (notAllowed.Length > 0)
             {
                 logger.LogInformation(
-                    $"Client is not permitted to request scope(s): {string.Join(", ", notAllowed)}."
+                    "Client is not permitted to request scope(s): {Scopes}.",
+                    string.Join(", ", notAllowed)
                 );
                 return TypedResults.Problem(
                     $"Client is not permitted to request scope(s): {string.Join(", ", notAllowed)}.",
@@ -140,7 +141,7 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
 
         var token = CreateJwt(store, client.ClientId, grantedScopes);
 
-        logger.LogDebug("Returning token: {token}", token);
+        logger.LogDebug("Returning token: {Token}", token);
         return TypedResults.Ok(
             new AuthTokenResponse
             {

@@ -8,7 +8,7 @@ public interface IManifestService
         string orgId,
         string personId,
         string baseUrl,
-        CancellationToken cancellationToken,
-        string? recordType
+        string? recordType,
+        CancellationToken cancellationToken
     );
 }
