@@ -9,13 +9,14 @@ public partial class PersonSpecificationValidation : AbstractValidator<PersonSpe
 {
     public PersonSpecificationValidation()
     {
+        // PDS patient: https://digital.nhs.uk/developer/api-catalogue/personal-demographics-service-fhir#get-/Patient
         RuleFor(x => x.Given)
             .NotEmpty()
-            .MaximumLength(30) // Matches PDS Fhir max length
+            .MaximumLength(35) // Matches PDS Fhir max length
             .WithMessage(PersonValidationConstants.GivenNameInvalid);
         RuleFor(x => x.Family)
             .NotEmpty()
-            .MaximumLength(30) // Matches PDS Fhir max length
+            .MaximumLength(35) // Matches PDS Fhir max length
             .WithMessage(PersonValidationConstants.FamilyNameInvalid);
         RuleFor(x => x.BirthDate)
             .NotEmpty()
