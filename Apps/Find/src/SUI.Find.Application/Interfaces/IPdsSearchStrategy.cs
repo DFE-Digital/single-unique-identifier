@@ -6,5 +6,5 @@ namespace SUI.Find.Application.Interfaces;
 public interface IPdsSearchStrategy
 {
     int Version { get; }
-    OrderedDictionary<string, SearchQuery> BuildQuery(SearchSpecification model);
+    OrderedDictionary<string, SearchQuery> BuildQuery(PersonSpecification model);
 }

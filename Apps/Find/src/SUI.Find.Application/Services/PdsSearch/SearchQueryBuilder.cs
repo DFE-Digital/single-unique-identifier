@@ -8,12 +8,12 @@ namespace SUI.Find.Application.Services.PdsSearch;
 public class SearchQueryBuilder
 {
     private readonly OrderedDictionary<string, SearchQuery> _queries = new();
-    private readonly SearchSpecification _model;
+    private readonly PersonSpecification _model;
     private readonly int _dobRange;
     private readonly bool _preprocessNames;
 
     public SearchQueryBuilder(
-        SearchSpecification model,
+        PersonSpecification model,
         int dobRange = 6,
         bool preprocessNames = false
     )

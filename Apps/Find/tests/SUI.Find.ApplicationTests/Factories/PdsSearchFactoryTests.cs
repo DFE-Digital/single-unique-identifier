@@ -11,7 +11,7 @@ public class PdsSearchFactoryTests
     {
         public int Version { get; }
 
-        public OrderedDictionary<string, SearchQuery> BuildQuery(SearchSpecification model)
+        public OrderedDictionary<string, SearchQuery> BuildQuery(PersonSpecification model)
         {
             return new OrderedDictionary<string, SearchQuery>();
         }

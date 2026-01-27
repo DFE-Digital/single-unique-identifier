@@ -11,7 +11,7 @@ public class SearchQueryBuilderTests
     public void AddsPostcodeWildcardCorrectly(string postcode, string expected)
     {
         var builder = new SearchQueryBuilder(
-            new SearchSpecification
+            new PersonSpecification
             {
                 BirthDate = DateOnly.FromDateTime(DateTime.Now),
                 AddressPostalCode = postcode,
@@ -31,7 +31,7 @@ public class SearchQueryBuilderTests
     public void ShouldIncludeHistoryOnNonFuzzyQueries()
     {
         var builder = new SearchQueryBuilder(
-            new SearchSpecification
+            new PersonSpecification
             {
                 Given = "John",
                 Family = "Doe",
@@ -63,7 +63,7 @@ public class SearchQueryBuilderTests
     )
     {
         var builder = new SearchQueryBuilder(
-            new SearchSpecification
+            new PersonSpecification
             {
                 Given = given,
                 Family = family,

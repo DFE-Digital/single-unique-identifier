@@ -12,7 +12,7 @@ public class PdsSearchV1 : IPdsSearchStrategy
 {
     public int Version => 1;
 
-    public OrderedDictionary<string, SearchQuery> BuildQuery(SearchSpecification model)
+    public OrderedDictionary<string, SearchQuery> BuildQuery(PersonSpecification model)
     {
         var queryBuilder = new SearchQueryBuilder(model, dobRange: 6, preprocessNames: true);
 
