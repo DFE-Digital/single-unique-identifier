@@ -214,7 +214,7 @@ public class PersonSpecificationValidationTests
     {
         var model = new PersonSpecification
         {
-            Given = new string('a', 31),
+            Given = new string('a', 39),
             Family = "Doe",
             BirthDate = new DateOnly(1990, 1, 1),
         };
@@ -229,7 +229,7 @@ public class PersonSpecificationValidationTests
         var model = new PersonSpecification
         {
             Given = "John",
-            Family = new string('a', 31),
+            Family = new string('a', 36),
             BirthDate = new DateOnly(1990, 1, 1),
         };
 
