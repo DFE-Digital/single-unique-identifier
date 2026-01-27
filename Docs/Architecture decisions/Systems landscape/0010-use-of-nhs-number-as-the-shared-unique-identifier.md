@@ -1,4 +1,4 @@
-# ADR-SUI-0010: Use of NHS Number as the Shared Unique Identifier (SUI)
+# ADR-SUI-0010: Use of NHS Number as the Single Unique Identifier (SUI)
 
 Date: 26 January 2026  
 Author: Simon Parsons  
@@ -12,14 +12,14 @@ Proposed
 
 ## Context
 
-The SUI service requires a **shared unique identifier (SUI)** to support cross-organisational discovery and matching of records relating to the same individual.
+The SUI service requires a **Single Unique Identifier (SUI)** to support cross-organisational discovery and matching of records relating to the same individual.
 
 At the time of writing there are two design patterns being considered which are
 1) **Distributed Id** where a SUI is provided to custodians who are expected to store them in their data, which they can then use for their own local matching strategy and for responding to requests issued by the central service when establishing which records exist for a given person
 
 2) **Managed ID Register** where a central table is maintained of who knows what about which people.
 
-At the time of writing the **Distributed Id** design pattern is out preferred option for reasons that will be discussed below.
+At the time of writing the **Distributed Id** design pattern is our preferred option for reasons that will be discussed below.
 
 Within the **Distributed Id** architectural pattern, two alternative approaches are being considered for the format of the SUI:
 
