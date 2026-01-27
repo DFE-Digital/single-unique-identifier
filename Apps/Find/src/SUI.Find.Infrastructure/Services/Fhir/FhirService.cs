@@ -11,7 +11,10 @@ namespace SUI.Find.Infrastructure.Services.Fhir;
 public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirClientFactory)
     : IFhirService
 {
-    public async Task<Result<SearchResult>> PerformSearchAsync(SearchQuery searchQuery)
+    public async Task<Result<SearchResult>> PerformSearchAsync(
+        SearchQuery searchQuery,
+        CancellationToken ct
+    )
     {
         try
         {
@@ -20,7 +23,7 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
 
             logger.LogInformation("Searching for NHS patient record...");
 
-            var bundle = await client.SearchAsync<Patient>(searchParams);
+            var bundle = await client.SearchAsync<Patient>(searchParams, ct);
 
             if (bundle is null)
             {

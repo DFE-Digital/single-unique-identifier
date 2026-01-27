@@ -22,7 +22,7 @@ public class FhirServiceTests : BaseFhirClientTests
         // Act
         var testFhirClient = new TestFhirClientError();
         FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
-        var result = await _fhirService.PerformSearchAsync(searchQuery);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
 
         // Assert
         Assert.False(result.Success);
@@ -38,7 +38,7 @@ public class FhirServiceTests : BaseFhirClientTests
         FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
 
         // Act
-        var result = await _fhirService.PerformSearchAsync(searchQuery);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
 
         // Assert
         Assert.True(result.Success);
@@ -54,7 +54,7 @@ public class FhirServiceTests : BaseFhirClientTests
         FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
 
         // Act
-        var result = await _fhirService.PerformSearchAsync(searchQuery);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
 
         // Assert
         Assert.True(result.Success);
@@ -72,7 +72,7 @@ public class FhirServiceTests : BaseFhirClientTests
         FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
 
         // Act
-        var result = await _fhirService.PerformSearchAsync(searchQuery);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
 
         // Assert
         Assert.True(result.Success);

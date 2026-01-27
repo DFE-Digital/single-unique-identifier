@@ -5,5 +5,5 @@ namespace SUI.Find.Application.Interfaces.Matching;
 
 public interface IFhirService
 {
-    Task<Result<SearchResult>> PerformSearchAsync(SearchQuery searchQuery);
+    Task<Result<SearchResult>> PerformSearchAsync(SearchQuery searchQuery, CancellationToken ct);
 }
