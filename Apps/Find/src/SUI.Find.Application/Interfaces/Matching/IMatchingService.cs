@@ -5,7 +5,7 @@ using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.Interfaces.Matching;
 
-public interface IMatchingNhsNumberService
+public interface IMatchingService
 {
     Task<OneOf<NhsPersonId, DataQualityResult, NotFound, Error>> MatchPersonAsync(
         PersonSpecification request,

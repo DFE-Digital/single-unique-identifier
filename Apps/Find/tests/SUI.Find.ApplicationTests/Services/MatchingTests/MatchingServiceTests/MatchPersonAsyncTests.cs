@@ -10,19 +10,19 @@ using SUI.Find.Application.Services.Matching;
 using SUI.Find.Application.Services.PdsSearch;
 using SUI.Find.Domain.ValueObjects;
 
-namespace SUI.Find.ApplicationTests.Services.MatchingTests.MatchingNhsNumberServiceTests;
+namespace SUI.Find.ApplicationTests.Services.MatchingTests.MatchingServiceTests;
 
 public class MatchPersonAsyncTests
 {
-    private readonly MatchingNhsNumberService _sut;
+    private readonly MatchingService _sut;
     private readonly IPdsSearchFactory _pdsSearchFactory = Substitute.For<IPdsSearchFactory>();
     private readonly IFhirService _fhirService = Substitute.For<IFhirService>();
 
     public MatchPersonAsyncTests()
     {
-        var logger = Substitute.For<ILogger<MatchingNhsNumberService>>();
+        var logger = Substitute.For<ILogger<MatchingService>>();
 
-        _sut = new MatchingNhsNumberService(logger, _pdsSearchFactory, _fhirService);
+        _sut = new MatchingService(logger, _pdsSearchFactory, _fhirService);
     }
 
     [Fact]

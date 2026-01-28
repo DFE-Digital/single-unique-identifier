@@ -15,11 +15,11 @@ namespace SUI.Find.Application.Services.Matching;
 // Assumption: We only want to give NHS Id if we have a confident match
 // Pilot 1 returned even if there was a potential match, for this MVP we are tightening that
 // requirement to only return on confident match. Simple change if we want to adjust this later.
-public class MatchingNhsNumberService(
-    ILogger<MatchingNhsNumberService> logger,
+public class MatchingService(
+    ILogger<MatchingService> logger,
     IPdsSearchFactory searchFactory,
     IFhirService fhirService
-) : IMatchingNhsNumberService
+) : IMatchingService
 {
     public async Task<OneOf<NhsPersonId, DataQualityResult, NotFound, Error>> MatchPersonAsync(
         PersonSpecification request,
@@ -105,6 +105,7 @@ public class MatchingNhsNumberService(
             }
         }
 
+        // Could be an audit log?
         logger.LogInformation("Match result: {MatchResult}", currentMatchResult);
 
         return currentMatchResult;
