@@ -4,6 +4,7 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "AuditProcessorConnectionString": "UseDevelopmentStorage=true",
+    "StubCustodiansBaseUrl": "https://localhost:7256",
     "NHS_DIGITAL_TOKEN_URL": "https,://int.api.service.nhs.uk/oauth2/token",
     "NHS_DIGITAL_CLIENT_ID": "",
     "NHS_DIGITAL_KID": "",
