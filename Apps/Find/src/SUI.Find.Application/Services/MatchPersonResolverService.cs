@@ -47,7 +47,7 @@ public class MatchPersonOrchestrationService(
         string clientId
     )
     {
-        var encrypt = encryptionConfig.Value.EnableGlobalPersonIdEncryption;
+        var encrypt = encryptionConfig.Value.EnablePersonIdEncryption;
 
         var client = await custodianService.GetCustodianAsync(clientId);
         if (!client.Success || client.Value is null)

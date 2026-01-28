@@ -15,6 +15,8 @@
     "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
     "OTEL_LOGS_EXPORTER": "otlp",
     "OTEL_TRACES_SAMPLER": "always_on",
-    "OTEL_SERVICE_NAME": "SUI.Find.FindApi"
+    "OTEL_SERVICE_NAME": "SUI.Find.FindApi",
+    "KeyVault:KeyVaultUri": "getTheRealUrl",
+    "IdEncryption:EnablePersonIdEncryption": false
   }
 }

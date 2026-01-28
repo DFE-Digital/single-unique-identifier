@@ -47,7 +47,7 @@ public class FindPersonIdAsyncTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
         _encryptionConfiguration.Value.Returns(
-            new EncryptionConfiguration() { EnableGlobalPersonIdEncryption = false }
+            new EncryptionConfiguration() { EnablePersonIdEncryption = false }
         );
         _custodianService
             .GetCustodianAsync("test-client-id")
@@ -84,7 +84,7 @@ public class FindPersonIdAsyncTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
         _encryptionConfiguration.Value.Returns(
-            new EncryptionConfiguration() { EnableGlobalPersonIdEncryption = false }
+            new EncryptionConfiguration() { EnablePersonIdEncryption = false }
         );
         _custodianService
             .GetCustodianAsync("test-client-id")
@@ -121,7 +121,7 @@ public class FindPersonIdAsyncTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
         _encryptionConfiguration.Value.Returns(
-            new EncryptionConfiguration() { EnableGlobalPersonIdEncryption = true }
+            new EncryptionConfiguration() { EnablePersonIdEncryption = true }
         );
         _custodianService
             .GetCustodianAsync("test-client-id")
@@ -158,7 +158,7 @@ public class FindPersonIdAsyncTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
         _encryptionConfiguration.Value.Returns(
-            new EncryptionConfiguration() { EnableGlobalPersonIdEncryption = true }
+            new EncryptionConfiguration() { EnablePersonIdEncryption = true }
         );
         _custodianService
             .GetCustodianAsync("test-client-id")

@@ -8,24 +8,39 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Extensions.Http;
+using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Services;
 using SUI.Find.Application.Services.Matching;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
-using SUI.Find.Infrastructure;
-using SUI.Find.Infrastructure.Clients;
 using SUI.Find.Infrastructure.Extensions;
-using SUI.Find.Infrastructure.Factories;
-using SUI.Find.Infrastructure.Interfaces;
-using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Services;
-using SUI.Find.Infrastructure.Utility;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
 builder.UseOpenTelemetry();
+
+// Options
+var encryptionConfigExists = builder.Configuration.GetSection(EncryptionConfiguration.SectionName);
+if (
+    !encryptionConfigExists.Exists()
+    || !bool.TryParse(
+        encryptionConfigExists[nameof(EncryptionConfiguration.EnablePersonIdEncryption)],
+        out _
+    )
+)
+{
+    throw new InvalidOperationException(
+        $"Missing required configuration section: {EncryptionConfiguration.SectionName}"
+    );
+}
+
+builder
+    .Services.AddOptions<EncryptionConfiguration>()
+    .BindConfiguration(EncryptionConfiguration.SectionName)
+    .ValidateDataAnnotations();
 
 // .NET services
 builder.Services.AddSingleton(TimeProvider.System);
@@ -36,21 +51,9 @@ builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
 // Infrastructure services
-builder.Services.AddSingleton<IAuditService, AuditStorageTableService>();
-builder.Services.AddSingleton<IAuditQueueClient, AuditQueueClient>();
-builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
-builder.Services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
-builder.Services.AddSingleton<IHashService, HashService>();
-builder.Services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
-builder.Services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>();
-builder.Services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
-builder.Services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
-builder.Services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
-builder.Services.AddSingleton<IIdRegisterRepository, SuiCustodianRegisterRepository>();
-builder.Services.AddAzureTableServices();
+builder.Services.AddInfrastructureServices().AddSecretClientServices();
 
 // Application services
-
 builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
 builder.Services.AddSingleton<ISearchService, SearchService>();
 builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
