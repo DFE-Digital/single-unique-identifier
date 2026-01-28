@@ -22,7 +22,6 @@ primarily the .NET SDK and `dotnet tool restore` from the repo root.
 2. Install [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools/blob/v4.x/README.md#installing)
 3. Create the `local.settings.json` file:
     * `cp ./Apps/Find/src/SUI.Find.FindApi/example.local.settings.json ./Apps/Find/src/SUI.Find.FindApi/local.settings.json`
-    * `cp ./Apps/Find/src/SUI.Find.CustodianSimulation/example.local.settings.json ./Apps/Find/src/SUI.Find.CustodianSimulation/local.settings.json`
     * `cp ./Apps/Find/src/SUI.Find.AuditProcessor/example.local.settings.json ./Apps/Find/src/SUI.Find.AuditProcessor/local.settings.json`
 4. To run Azurite locally in a container, install Rancher Desktop selecting the **Docker Engine** option during install:
     * Download from <https://rancherdesktop.io>
@@ -38,15 +37,15 @@ primarily the .NET SDK and `dotnet tool restore` from the repo root.
 docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite
 ```
 
-#### Run 'Find' and the 'Custodian Simulation'
+#### Run 'Find' and the 'Stub Custodians'
 
 Using Rider:
 
-* Run the `Launch Find` profile
+* Run the `Launch Find and Stub Custodians` profile
 * Note that [Azure Toolkit for Rider](https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider) needs to be installed
 
 Or, using the command line (from the repo root):
 
 * `cd ./Apps/Find/src/SUI.Find.FindApi/; func start --port 7182`
-* `cd ./Apps/Find/src/SUI.Find.CustodianSimulation/; func start --port 7082`
-* `cd ./Apps/Find//src/SUI.Find.AuditProcessor/; func start --port 7151` <- Optional to have the audit processor running
+* `cd ./Apps/StubCustodians/src/SUI.StubCustodians.API/; dotnet run`
+* `cd ./Apps/Find/src/SUI.Find.AuditProcessor/; func start --port 7151` <- Optional to have the audit processor running
