@@ -39,7 +39,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.0.x"
+          global-json-file: global.json
           cache: true
           cache-dependency-path: ${{ inputs.directory_name }}/Directory.Packages.props
         env:
