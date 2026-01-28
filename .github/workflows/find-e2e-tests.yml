@@ -39,22 +39,20 @@ jobs:
       - name: run azurite
         run: azurite --silent &
 
-      - name: Build Solution
+      - name: Build Find Solution
         run: dotnet build Apps/Find/SUI.Find.slnx
 
-      - name: Create local.settings.json for Custodian Simulator
-        run: |
-          cp Apps/Find/src/SUI.Find.CustodianSimulation/example.local.settings.json \
-             Apps/Find/src/SUI.Find.CustodianSimulation/local.settings.json
+      - name: Build StubCustodians Solution
+        run: dotnet build Apps/StubCustodians/SUI.StubCustodians.slnx
 
       - name: Create local.settings.json for Find API
         run: |
           cp Apps/Find/src/SUI.Find.FindApi/example.local.settings.json \
              Apps/Find/src/SUI.Find.FindApi/local.settings.json
 
-      - name: Start Custodian Simulator
-        run: func start --port 7082 &
-        working-directory: Apps/Find/src/SUI.Find.CustodianSimulation
+      - name: Start StubCustodians API
+        run: dotnet run --launch-profile http &
+        working-directory: Apps/StubCustodians/src/SUI.StubCustodians.API
 
       - name: Start Find API
         run: func start --port 7182 &
@@ -72,16 +70,16 @@ jobs:
           echo "Find API failed to start"
           exit 1
 
-      - name: Wait for Custodian Simulator to start
+      - name: Wait for StubCustodians API to start
         run: |
           for i in {1..30}; do
-           if curl -sf http://localhost:7082/status; then
-              echo "Custodian API is ready"
+           if curl -sf http://localhost:5193/api/health; then
+              echo "StubCustodians API is ready"
               exit 0
            fi
             sleep 2
           done
-          echo "Custodian API failed to start"
+          echo "StubCustodians API failed to start"
           exit 1
 
       - name: Run E2E Tests
