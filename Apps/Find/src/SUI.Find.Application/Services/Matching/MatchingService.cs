@@ -105,8 +105,11 @@ public class MatchingService(
             }
         }
 
-        // Could be an audit log?
-        logger.LogInformation("Match result: {MatchResult}", currentMatchResult);
+        logger.LogInformation(
+            "Match result status and score: {Status} : {Score}",
+            currentMatchResult.MatchStatus.ToString(),
+            currentMatchResult.Score
+        );
 
         return currentMatchResult;
     }
