@@ -19,7 +19,7 @@ public class PersonIdRepresentationService(
     IPersonIdEncryptionService encryptionService,
     IOptions<EncryptionConfiguration> encryptionConfig,
     CancellationToken ct
-)
+) : IPersonIdRepresentationService
 {
     public async Task<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,
