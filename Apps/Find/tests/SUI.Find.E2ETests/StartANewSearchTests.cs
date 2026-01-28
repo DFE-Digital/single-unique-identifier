@@ -172,12 +172,6 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
         return typedResult!;
     }
 
-    private string RemoveLeadingSlashFromUrl(string url)
-    {
-        if (url.StartsWith("/"))
-        {
-            return url[1..];
-        }
-        return url;
-    }
+    private static string RemoveLeadingSlashFromUrl(string url) =>
+        url.StartsWith('/') ? url[1..] : url;
 }
