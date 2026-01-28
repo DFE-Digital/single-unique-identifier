@@ -7,6 +7,7 @@ using Azure.Data.Tables;
 using Polly;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Models;
+using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
@@ -16,7 +17,7 @@ namespace SUI.Find.E2ETests;
 /// </summary>
 [Collection("E2E")]
 [Trait("Category", "E2E")]
-public class StartANewSearchTests(FunctionTestFixture fixture)
+public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
     : E2ETestBase(fixture),
         IClassFixture<FunctionTestFixture>,
         IAsyncLifetime
@@ -33,6 +34,8 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
         "fetch-record.read",
     ];
     private const string ValidEncryptedSuid = "Cy13hyZL-4LSIwVy50p-Hg"; // Test id that exists in mock data
+
+    private record SearchStatusResponse(string? Status);
 
     public async Task InitializeAsync()
     {
@@ -135,27 +138,35 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
     /// <summary>
     /// Uses Poly to keep polling for a Completed message
     /// </summary>
-    /// <param name="url"></param>
+    /// <param name="url">URL of the Search Status endpoint</param>
     private async Task<SearchJob> RunAndAwaitAndAssertSearchStatusCompletion(string url)
     {
+        const int retryCount = 15;
+
         var isCompleted = false;
+        var status = "unknown";
+
+        testOutputHelper.WriteLine("Polling for Search status completion: {0}", url);
 
         var retryPolicy = Policy
             .HandleResult<HttpResponseMessage>(r =>
             {
                 // Read response, if status is NOT "Completed", keep retrying
-                var content = r.Content.ReadAsStringAsync().Result;
-                if (content.Contains("Completed"))
+                var content = r.Content.ReadFromJsonAsync<SearchStatusResponse>().Result;
+                status = content?.Status;
+                if (status == "Completed")
                 {
                     isCompleted = true;
                 }
-                return !content.Contains("Completed");
+                return status != "Completed";
             })
             .WaitAndRetryAsync(
-                15,
+                retryCount,
                 retryAttempt =>
                 {
-                    Console.WriteLine($"Attempt {retryAttempt}");
+                    testOutputHelper.WriteLine(
+                        $"Still polling, status was {status}, retry {retryAttempt} / {retryCount}..."
+                    );
                     return TimeSpan.FromSeconds(2);
                 }
             );
@@ -163,6 +174,8 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
         await retryPolicy.ExecuteAsync(() =>
             _fixture.Client.GetAsync(RemoveLeadingSlashFromUrl(url))
         );
+
+        testOutputHelper.WriteLine($"Finished polling, final status was {status}");
 
         Assert.True(isCompleted);
 
