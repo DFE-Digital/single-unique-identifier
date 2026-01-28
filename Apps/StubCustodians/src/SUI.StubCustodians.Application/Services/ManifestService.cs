@@ -38,9 +38,7 @@ public class ManifestService(IDataProvider store) : IManifestService
     {
         return orgId.ToUpperInvariant() switch
         {
-            "LOCAL-AUTHORITY-01" =>
-                $"{baseUrl}/api/v1/fetch/{Uri.EscapeDataString(orgId.ToLowerInvariant())}/{Uri.EscapeDataString(recordId)}?recordType={Uri.EscapeDataString(recordType)}",
-            "HEALTH-01" =>
+            "LOCAL-AUTHORITY-01" or "HEALTH-01" =>
                 $"{baseUrl}/api/v1/fetch/{Uri.EscapeDataString(orgId.ToLowerInvariant())}/{Uri.EscapeDataString(recordId)}?recordType={Uri.EscapeDataString(recordType)}",
             _ =>
                 $"{baseUrl}/api/v1/fetch/{Uri.EscapeDataString(orgId.ToLowerInvariant())}/{Uri.EscapeDataString(recordType)}/{Uri.EscapeDataString(recordId)}",

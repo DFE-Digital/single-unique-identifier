@@ -183,15 +183,6 @@ public class PolicyEnforcementService(
     // Very likely this will need to be revisited in the future if we have a more formal mapping or different naming conventions.
     private static string MapRecordTypeToDataType(string recordType, ShareMode mode)
     {
-        // Extract the specific record type (part after the first dot if present)
-        // e.g., "local-authority.children-social-care" → "children-social-care"
-        //       "health.mental-health" → "mental-health"
-        //       "crime-justice" → "crime-justice" (no change if no dot)
-        // This is because of the mock data type naming convention we have. Liable to change in the future.
-        // var specificType = recordType.Contains('.')
-        //     ? recordType[(recordType.IndexOf('.') + 1)..]
-        //     : recordType;
-
         // Normalize: replace dots and dashes with underscores
         var normalized = recordType.Replace(".", "_").Replace("-", "_");
 

@@ -125,9 +125,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
         var fetchResultTypedContent = JsonSerializer.Deserialize<CustodianRecord>(
             fetchResultContent
         );
-        // Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
-        // Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
-        // Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
+        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
+        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
+        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.SchemaUri));
         Assert.NotNull(fetchResultTypedContent.Payload);
     }
