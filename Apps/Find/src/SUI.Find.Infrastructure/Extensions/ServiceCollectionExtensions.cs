@@ -1,6 +1,7 @@
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Interfaces.Matching;
@@ -19,7 +20,10 @@ namespace SUI.Find.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructureServices(
+        this IServiceCollection services,
+        IHostEnvironment env
+    )
     {
         services.AddSingleton<IAuditService, AuditStorageTableService>();
         services.AddSingleton<IAuditQueueClient, AuditQueueClient>();
@@ -35,8 +39,17 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
         services.AddSingleton<IFhirService, FhirService>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
-        services.AddSingleton<IAuthTokenService, AuthTokenService>();
         services.AddSingleton<ISecretService, AzureKeyVaultSecretService>();
+
+        // If development
+        if (env.IsDevelopment())
+        {
+            services.AddSingleton<IAuthTokenService, StubAuthTokenService>();
+        }
+        else
+        {
+            services.AddSingleton<IAuthTokenService, AuthTokenService>();
+        }
 
         services.AddAzureTableServices();
 

@@ -51,7 +51,7 @@ builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
 // Infrastructure services
-builder.Services.AddInfrastructureServices().AddSecretClientServices();
+builder.Services.AddInfrastructureServices(builder.Environment).AddSecretClientServices();
 
 // Application services
 builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
