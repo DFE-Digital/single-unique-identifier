@@ -7,7 +7,6 @@ namespace SUI.Find.Application.Interfaces;
 
 public interface IPersonIdRepresentationService
 {
-    // FindPersonIdAsync
     Task<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,
         string clientId
