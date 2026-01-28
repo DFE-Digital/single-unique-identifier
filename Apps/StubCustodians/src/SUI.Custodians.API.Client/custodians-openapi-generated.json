@@ -527,6 +527,28 @@
           }
         ]
       }
+    },
+    "/api/Health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "parameters": [
+          {
+            "name": "x-api-version",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "additionalProperties": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -776,7 +798,7 @@
   },
   "tags": [
     {
-      "name": "Status",
+      "name": "Health",
       "description": "Service health check",
       "x-tag-order": 1
     },

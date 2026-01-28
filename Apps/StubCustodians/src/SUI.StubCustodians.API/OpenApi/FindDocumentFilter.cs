@@ -66,6 +66,7 @@ public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
 
             bool isPublic =
                 route.EndsWith("status")
+                || route.EndsWith("health")
                 || route.EndsWith("token")
                 || route.StartsWith("openapi")
                 || route.StartsWith("swagger");
@@ -84,7 +85,7 @@ public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
 
         document.Tags = new List<OpenApiTag>
         {
-            Tag("Status", "Service health check", 1),
+            Tag("Health", "Service health check", 1),
             Tag("Auth", "Simulate an OAuth provider", 2),
             Tag("Find", "Query a custodian about records they might hold on a SUI", 10),
             Tag("Fetch", "Get record details from a custodian", 11),
