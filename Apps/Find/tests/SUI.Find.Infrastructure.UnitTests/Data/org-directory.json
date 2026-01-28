@@ -74,7 +74,7 @@
           "recordType": "education",
           "connection": {
             "method": "POST",
-            "url": "http://localhost:7082/v1/education/manifest",
+            "url": "{StubCustodiansBaseUrl}/v1/education/manifest",
             "personIdPosition": "body",
             "bodyTemplate": {
               "recordType": "education",
@@ -82,7 +82,7 @@
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
+              "tokenUrl": "{StubCustodiansBaseUrl}/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ]
             }
           }
@@ -91,7 +91,7 @@
           "recordType": "education.attendance",
           "connection": {
             "method": "POST",
-            "url": "http://localhost:7082/v1/education/manifest",
+            "url": "{StubCustodiansBaseUrl}/v1/education/manifest",
             "personIdPosition": "body",
             "bodyTemplate": {
               "recordType": "education.attendance",
@@ -99,7 +99,7 @@
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
+              "tokenUrl": "{StubCustodiansBaseUrl}/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ]
             }
           }
@@ -108,7 +108,7 @@
           "recordType": "education.exclusion",
           "connection": {
             "method": "POST",
-            "url": "http://localhost:7082/v1/education/manifest",
+            "url": "{StubCustodiansBaseUrl}/v1/education/manifest",
             "personIdPosition": "body",
             "bodyTemplate": {
               "recordType": "education.exclusion",
@@ -116,7 +116,7 @@
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
+              "tokenUrl": "{StubCustodiansBaseUrl}/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ]
             }
           }

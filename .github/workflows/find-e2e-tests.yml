@@ -56,6 +56,8 @@ jobs:
 
       - name: Start Find API
         run: func start --port 7182 &
+        env:
+          StubCustodiansBaseUrl: http://localhost:5193
         working-directory: Apps/Find/src/SUI.Find.FindApi
 
       - name: Wait for Find API to start

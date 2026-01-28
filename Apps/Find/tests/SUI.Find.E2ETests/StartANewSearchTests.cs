@@ -175,7 +175,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             _fixture.Client.GetAsync(RemoveLeadingSlashFromUrl(url))
         );
 
-        testOutputHelper.WriteLine($"Finished polling, final status was {status}");
+        testOutputHelper.WriteLine(
+            $"Finished polling, final status was {status}, is completed: {isCompleted}"
+        );
 
         Assert.True(isCompleted);
 
