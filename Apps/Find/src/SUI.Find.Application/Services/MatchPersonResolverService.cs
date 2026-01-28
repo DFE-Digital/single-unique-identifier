@@ -10,9 +10,9 @@ using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.Services;
 
-// Responsible for orchestrating whether to Encrypt the PersonId or not that comes from MatchService
-public class PersonIdRepresentationService(
-    ILogger<PersonIdRepresentationService> logger,
+/// <inheritdoc />
+public class MatchPersonOrchestrationService(
+    ILogger<MatchPersonOrchestrationService> logger,
     IMatchingService matchService,
     ICustodianService custodianService,
     IPersonIdEncryptionService encryptionService,

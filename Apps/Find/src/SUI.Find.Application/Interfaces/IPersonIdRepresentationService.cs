@@ -5,6 +5,10 @@ using SUI.Find.Application.Services;
 
 namespace SUI.Find.Application.Interfaces;
 
+/// <summary>
+///  Orchestrates the process of matching a person and returning their Person ID representation,
+///  either encrypted or plain based on client configuration and global settings.
+/// </summary>
 public interface IPersonIdRepresentationService
 {
     Task<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
