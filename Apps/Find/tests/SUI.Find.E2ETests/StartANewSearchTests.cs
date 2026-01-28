@@ -6,7 +6,6 @@ using Azure;
 using Azure.Data.Tables;
 using Polly;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Models;
 
 namespace SUI.Find.E2ETests;
@@ -129,13 +128,13 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.SchemaUri));
+        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.SchemaUri));
+        Assert.NotNull(fetchResultTypedContent.Payload);
     }
 
     /// <summary>
     /// Uses Poly to keep polling for a Completed message
     /// </summary>
-    /// <param name="orchestrationId"></param>
     /// <param name="url"></param>
     private async Task<SearchJob> RunAndAwaitAndAssertSearchStatusCompletion(string url)
     {

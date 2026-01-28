@@ -1,9 +1,10 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
-using SUI.Custodians.Domain.Models;
+using SUI.StubCustodians.API.OpenApi;
 using SUI.StubCustodians.API.OpenApiTransformers;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Services;
+using SUI.StubCustodians.Infrastructure.Services;
 
 namespace SUI.StubCustodians.API
 {
@@ -19,6 +20,7 @@ namespace SUI.StubCustodians.API
             {
                 options.AddSchemaTransformer<CustodiansOpenApiSchemaTransformer>();
                 options.AddDocumentTransformer<CustodiansOpenApiDocumentTransformer>();
+                options.AddDocumentTransformer<FindDocumentFilter>();
             });
 
             builder.Services.AddEndpointsApiExplorer();
@@ -65,7 +67,7 @@ namespace SUI.StubCustodians.API
                     }
                 });
             }
-
+            app.UseMiddleware<ScopeEnforcementMiddleware>();
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
@@ -77,26 +79,10 @@ namespace SUI.StubCustodians.API
             IConfiguration configuration
         )
         {
-            services.AddScoped(typeof(IRecordServiceHandler<>), typeof(RecordServiceHandler<>));
-
-            services.AddScoped<
-                IRecordProvider<PersonalDetailsRecordV1>,
-                PersonalDetailsRecordProvider
-            >();
-
-            services.AddScoped<
-                IRecordProvider<EducationDetailsRecordV1>,
-                EducationDetailsRecordProvider
-            >();
-
-            services.AddScoped<
-                IRecordProvider<ChildrensServicesDetailsRecordV1>,
-                ChildrensServicesDetailsRecordProvider
-            >();
-
-            services.AddScoped<IRecordProvider<CrimeDataRecordV1>, CrimeDataRecordProvider>();
-
-            services.AddScoped<IRecordProvider<HealthDataRecordV1>, HealthDataRecordProvider>();
+            services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(3, 10));
+            services.AddSingleton<IDataProvider, FileDataProvider>();
+            services.AddScoped<IManifestService, ManifestService>();
+            services.AddScoped<IRecordService, RecordService>();
         }
     }
 }

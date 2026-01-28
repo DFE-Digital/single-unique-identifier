@@ -92,8 +92,16 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         {
             var providerResults = aggregatedQueryProviderResults
                 .Where(r =>
-                    r.ProviderSystem == provider.ProviderSystem
-                    && r.RecordType == provider.RecordType
+                    string.Equals(
+                        r.ProviderSystem,
+                        provider.ProviderSystem,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                    && string.Equals(
+                        r.RecordType,
+                        provider.RecordType,
+                        StringComparison.OrdinalIgnoreCase
+                    )
                 )
                 .ToList();
 

@@ -1,6 +1,11 @@
-@HostAddress = http://localhost:5193
+@HostAddress = https://localhost:7256
 
-GET {{HostAddress}}/api/Events
+POST {{HostAddress}}/api/v1/auth/token
 Accept: application/json
+Content-Type: application/x-www-form-urlencoded
 
+client_id = SUI-SERVICE &
+client_secret = SUIProject &
+scope = find-record.read fetch-record.read &
+grant_type = client_credentials
 ###
