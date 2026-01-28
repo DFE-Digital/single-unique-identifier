@@ -10,7 +10,6 @@ using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.Services;
 
-// Might want a better name
 // Responsible for orchestrating whether to Encrypt the PersonId or not that comes from MatchService
 public class PersonIdRepresentationService(
     ILogger<PersonIdRepresentationService> logger,
