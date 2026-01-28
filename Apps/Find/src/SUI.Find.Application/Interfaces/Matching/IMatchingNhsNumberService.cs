@@ -7,9 +7,8 @@ namespace SUI.Find.Application.Interfaces.Matching;
 
 public interface IMatchingNhsNumberService
 {
-    Task<OneOf<NhsPersonId, NotFound, Error>> MatchPersonAsync(
+    Task<OneOf<NhsPersonId, DataQualityResult, NotFound, Error>> MatchPersonAsync(
         PersonSpecification request,
-        string clientId,
         CancellationToken ct
     );
 }
