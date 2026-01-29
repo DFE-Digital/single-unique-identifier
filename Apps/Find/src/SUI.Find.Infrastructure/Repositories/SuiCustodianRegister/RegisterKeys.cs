@@ -5,14 +5,14 @@ namespace SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 [ExcludeFromCodeCoverage(Justification = "Used only in infrastructure services.")]
 public static class RegisterKeys
 {
-    public static string PartitionKey(string sui) => $"SUI#{Normalise(sui)}";
+    public static string PartitionKey(string sui) => $"SUI_{Normalise(sui)}";
 
     public static string RowKey(string custodianId, string recordType, string systemId) =>
         string.Join(
             "|",
-            $"C#{Normalise(custodianId)}",
-            $"RT#{Normalise(recordType)}",
-            $"SYS#{Normalise(systemId)}"
+            $"C_{Normalise(custodianId)}",
+            $"RT_{Normalise(recordType)}",
+            $"SYS_{Normalise(systemId)}"
         );
 
     private static string Normalise(string value)
