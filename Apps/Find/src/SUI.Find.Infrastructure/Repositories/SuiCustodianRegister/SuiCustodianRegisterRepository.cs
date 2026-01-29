@@ -148,5 +148,6 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
     public async Task EnsureTableExistsAsync(CancellationToken cancellationToken)
     {
         await _client.CreateTableIfNotExistsAsync(TableName, cancellationToken);
+        _logger.LogInformation("Ensured Azure Table exists: {TableName}", TableName);
     }
 }
