@@ -17,7 +17,7 @@ namespace SUI.Find.ApplicationTests.Services.PersonIdRepresentationServiceTests;
 
 public class FindPersonIdAsyncTests
 {
-    private readonly MatchPersonOrchestrationService _sut;
+    private readonly MatchMatchPersonOrchestrationService _sut;
     private readonly IMatchingService _matchingService = Substitute.For<IMatchingService>();
     private readonly ICustodianService _custodianService = Substitute.For<ICustodianService>();
     private readonly IPersonIdEncryptionService _encryptionService =
@@ -28,10 +28,10 @@ public class FindPersonIdAsyncTests
 
     public FindPersonIdAsyncTests()
     {
-        var logger = Substitute.For<ILogger<MatchPersonOrchestrationService>>();
+        var logger = Substitute.For<ILogger<MatchMatchPersonOrchestrationService>>();
         var ct = CancellationToken.None;
 
-        _sut = new MatchPersonOrchestrationService(
+        _sut = new MatchMatchPersonOrchestrationService(
             logger,
             _matchingService,
             _custodianService,

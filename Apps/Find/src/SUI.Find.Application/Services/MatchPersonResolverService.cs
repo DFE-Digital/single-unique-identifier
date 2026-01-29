@@ -11,14 +11,14 @@ using SUI.Find.Domain.ValueObjects;
 namespace SUI.Find.Application.Services;
 
 /// <inheritdoc />
-public class MatchPersonOrchestrationService(
-    ILogger<MatchPersonOrchestrationService> logger,
+public class MatchMatchPersonOrchestrationService(
+    ILogger<MatchMatchPersonOrchestrationService> logger,
     IMatchingService matchService,
     ICustodianService custodianService,
     IPersonIdEncryptionService encryptionService,
     IOptions<EncryptionConfiguration> encryptionConfig,
     CancellationToken ct
-) : IPersonIdRepresentationService
+) : IMatchPersonOrchestrationService
 {
     public async Task<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,

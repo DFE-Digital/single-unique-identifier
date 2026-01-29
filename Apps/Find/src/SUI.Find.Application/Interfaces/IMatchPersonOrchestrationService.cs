@@ -9,7 +9,7 @@ namespace SUI.Find.Application.Interfaces;
 ///  Orchestrates the process of matching a person and returning their Person ID representation,
 ///  either encrypted or plain based on client configuration and global settings.
 /// </summary>
-public interface IPersonIdRepresentationService
+public interface IMatchPersonOrchestrationService
 {
     Task<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,
