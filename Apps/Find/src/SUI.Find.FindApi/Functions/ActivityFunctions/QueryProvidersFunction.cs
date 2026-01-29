@@ -3,14 +3,12 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
 namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 
 public class QueryProvidersFunction(
     ILogger<QueryProvidersFunction> logger,
-    IQueryProvidersService queryProvidersService,
-    IIdRegisterRepository idRegisterRepository
+    IQueryProvidersService queryProvidersService
 )
 {
     [Function(nameof(QueryProvidersFunction))]
@@ -23,33 +21,10 @@ public class QueryProvidersFunction(
         using var logScope = logger.BeginScope("CorrelationId: {CorrelationId}", data.InvocationId);
         logger.LogInformation("Query Provider triggered");
 
-        var result = await queryProvidersService.QueryProvidersAsync(data, cancellationToken);
-
-        if (!result.Success || result.Value == null)
-        {
-            logger.LogInformation("No provider results returned");
-            return [];
-        }
-
-        foreach (var searchResultItem in result.Value)
-        {
-            await idRegisterRepository.UpsertAsync(
-                new IdRegisterEntry()
-                {
-                    Sui = data.Suid,
-                    CustodianId = searchResultItem.ProviderId,
-                    SystemId = searchResultItem.ProviderSystem,
-                    RecordType = searchResultItem.RecordType,
-                    CustodianSubjectId = data.Suid, // TODO: confirm correct subject id
-                    Provenance = Provenance.DiscoveredViaFanout,
-                    LastIdDeliveredAtUtc = null,
-                },
-                cancellationToken
-            );
-        }
+        var results = await queryProvidersService.QueryProvidersAsync(data, cancellationToken);
 
         logger.LogInformation("Query Provider request completed");
 
-        return result.Value;
+        return results is { Success: true, Value: not null } ? results.Value : [];
     }
 }

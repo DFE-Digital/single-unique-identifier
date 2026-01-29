@@ -40,7 +40,7 @@ public sealed class LocalAuthorityRecordFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(
-            AuthorizationLevel.Function,
+            AuthorizationLevel.Anonymous,
             "get",
             Route = "v1/local-authority/records/{recordId}"
         )]
@@ -97,7 +97,11 @@ public sealed class EducationRecordFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/education/records/{recordId}")]
+        [HttpTrigger(
+            AuthorizationLevel.Anonymous,
+            "get",
+            Route = "v1/education/records/{recordId}"
+        )]
             HttpRequestData req,
         string recordId,
         FunctionContext context
@@ -150,7 +154,7 @@ public sealed class HealthRecordFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(
-            AuthorizationLevel.Function,
+            AuthorizationLevel.Anonymous,
             "get",
             Route = "v1/health/children/records/{recordId}"
         )]
@@ -207,7 +211,7 @@ public sealed class PoliceRecordFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/police/records/{recordId}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/police/records/{recordId}")]
             HttpRequestData req,
         string recordId,
         FunctionContext context
@@ -260,7 +264,7 @@ public sealed class HousingRecordFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(
-            AuthorizationLevel.Function,
+            AuthorizationLevel.Anonymous,
             "get",
             Route = "v1/housing/records/{recordType?}/{recordId}"
         )]

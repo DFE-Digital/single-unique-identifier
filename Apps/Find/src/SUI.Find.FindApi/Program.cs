@@ -1,7 +1,6 @@
 using System.IO.Abstractions;
 using System.Net;
 using Azure.Data.Tables;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +15,7 @@ using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
 using SUI.Find.Infrastructure;
 using SUI.Find.Infrastructure.Clients;
+using SUI.Find.Infrastructure.Extensions;
 using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
@@ -24,9 +24,7 @@ using SUI.Find.Infrastructure.Utility;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
-builder
-    .Services.AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights();
+builder.UseOpenTelemetry();
 
 // .NET services
 builder.Services.AddSingleton(TimeProvider.System);

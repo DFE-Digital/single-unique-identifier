@@ -4,17 +4,11 @@ namespace SUI.Custodians.Domain.Models;
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(
-    typeof(ChildrensServicesDetailsRecordV1),
-    typeDiscriminator: nameof(ChildrensServicesDetailsRecordV1)
+    typeof(ChildrensServicesDetailsRecord),
+    typeDiscriminator: nameof(ChildrensServicesDetailsRecord)
 )]
-[JsonDerivedType(typeof(CrimeDataRecordV1), typeDiscriminator: nameof(CrimeDataRecordV1))]
-[JsonDerivedType(
-    typeof(EducationDetailsRecordV1),
-    typeDiscriminator: nameof(EducationDetailsRecordV1)
-)]
-[JsonDerivedType(typeof(HealthDataRecordV1), typeDiscriminator: nameof(HealthDataRecordV1))]
-[JsonDerivedType(
-    typeof(PersonalDetailsRecordV1),
-    typeDiscriminator: nameof(PersonalDetailsRecordV1)
-)]
+[JsonDerivedType(typeof(CrimeDataRecord), typeDiscriminator: nameof(CrimeDataRecord))]
+[JsonDerivedType(typeof(EducationDetailsRecord), typeDiscriminator: nameof(EducationDetailsRecord))]
+[JsonDerivedType(typeof(HealthDataRecord), typeDiscriminator: nameof(HealthDataRecord))]
+[JsonDerivedType(typeof(PersonalDetailsRecord), typeDiscriminator: nameof(PersonalDetailsRecord))]
 public record SuiRecord;

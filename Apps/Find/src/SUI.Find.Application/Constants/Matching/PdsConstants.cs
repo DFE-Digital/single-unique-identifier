@@ -9,4 +9,9 @@ public static class PdsConstants
         public const string Other = "other";
         public const string Unknown = "unknown";
     }
+
+    public static class SearchQuery
+    {
+        public const string DateFormat = "yyyy-MM-dd";
+    }
 }

@@ -2,8 +2,8 @@ namespace SUI.Find.Application.Constants.Matching;
 
 public static class PersonValidationConstants
 {
-    public const string GivenNameInvalid = "Given name cannot be greater than 20 characters";
-    public const string FamilyNameInvalid = "Family name cannot be greater than 20 characters";
+    public const string GivenNameInvalid = "Given name cannot be greater than 35 characters";
+    public const string FamilyNameInvalid = "Family name cannot be greater than 35 characters";
     public const string BirthDateInvalid = "Invalid date of birth";
     public const string GenderInvalid = "Gender has to match FHIR standards";
     public const string PhoneInvalid = "Invalid phone number.";
