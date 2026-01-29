@@ -48,6 +48,26 @@ dotnet husky install
 
 This will install the tools specified in `.config/dotnet-tools.json`, including CSharpier for code formatting and Husky.Net for pre-commit hooks to ensure consistent code style.
 
+### Local OpenTelemetry (Grafana otel-lgtm)
+
+To view local traces and logs from any app, run the Grafana otel-lgtm stack:
+
+```bash
+docker run --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 -ti grafana/otel-lgtm
+```
+
+Point your app at the local collector by specifying the values in the `local.settings.json` file:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_LOGS_EXPORTER=otlp
+OTEL_TRACES_SAMPLER=always_on
+OTEL_SERVICE_NAME=Your.App.Name
+```
+
+Open `http://localhost:3000` (admin/admin) and use Explore to view logs and traces.
+
 ## Repository structure
 
 Each solution is self-contained and follows a consistant structure:
