@@ -18,4 +18,12 @@ requires you to test against running applications.
      - For SUI.Find.CustodianSimulator, go into project directory and run `func start --port 7082`
      - Run these in different terminal windows so they can run simultaneously and view the logs.
 3. Run the E2E tests in CLI or an IDE of your choice.
-4. Stop the SUI.Find.FindApi and SUI.Find.CustodianSimulator. 
+4. Stop the SUI.Find.FindApi and SUI.Find.CustodianSimulator.
+
+## How to run it against the dev environment
+
+To run the E2E tests against the dev environment, from your local machine:
+
+```
+dotnet test -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ -e E2E__SkipResetAzureTables=True
+```

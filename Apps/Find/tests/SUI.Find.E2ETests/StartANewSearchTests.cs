@@ -18,12 +18,10 @@ namespace SUI.Find.E2ETests;
 [Collection("E2E")]
 [Trait("Category", "E2E")]
 public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
-    : E2ETestBase(fixture),
+    : E2ETestBase(fixture, testOutputHelper),
         IClassFixture<FunctionTestFixture>,
         IAsyncLifetime
 {
-    private readonly FunctionTestFixture _fixture = fixture;
-
     private const string TestClientId = "LOCAL-AUTHORITY-01";
     private const string TestClientSecret = "SUIProject";
     private static readonly string[] TetScopes =
@@ -35,15 +33,20 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     ];
     private const string ValidEncryptedSuid = "Cy13hyZL-4LSIwVy50p-Hg"; // Test id that exists in mock data
 
+    private record HealthCheckResponse(string? Value);
+
     private record SearchStatusResponse(string? Status);
 
     public async Task InitializeAsync()
     {
-        await ResetAzureTablesAsync([
-            "ResultsUrlMappings",
-            "TestHubNameHistory",
-            "TestHubNameInstances",
-        ]);
+        if (!Fixture.Config.SkipResetAzureTables)
+        {
+            await ResetAzureTablesAsync([
+                "ResultsUrlMappings",
+                "TestHubNameHistory",
+                "TestHubNameInstances",
+            ]);
+        }
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -70,8 +73,10 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     [Fact]
     public async Task Should_PersistSearchData_When_OrchestrationCompletes()
     {
+        await EnsureApiIsUpAsync();
+
         var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, TetScopes);
-        _fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+        Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
             authToken
         );
@@ -92,11 +97,59 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         // Fin
     }
 
+    private async Task EnsureApiIsUpAsync()
+    {
+        const string url = "health";
+        var waitInterval = TimeSpan.FromSeconds(10);
+
+        TestOutputHelper.WriteLine($"Checking Find API is up: {Fixture.Client.BaseAddress}{url}");
+
+        // If health check does not indicate healthy, wait and then retry
+        const int retryCount = 3;
+        var retryPolicy = Policy
+            .HandleResult<bool>(healthy => !healthy)
+            .WaitAndRetryAsync(
+                retryCount,
+                retryAttempt =>
+                {
+                    TestOutputHelper.WriteLine(
+                        $"Find API does not indicate healthy, waiting for {waitInterval.Seconds} seconds, then retrying, retry {retryAttempt} / {retryCount}..."
+                    );
+                    return TimeSpan.FromSeconds(10);
+                }
+            );
+
+        var healthy = await retryPolicy.ExecuteAsync(async () =>
+        {
+            try
+            {
+                using var response = await Fixture.Client.GetAsync(url);
+                var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
+                return content?.Value == "Healthy";
+            }
+            catch (Exception ex)
+            {
+                TestOutputHelper.WriteLine($"Warning: health check exception: {ex.Message}");
+                return false;
+            }
+        });
+
+        Assert.True(healthy, "The Find API does not appear to be up and healthy");
+
+        TestOutputHelper.WriteLine("Find API is up 👍");
+    }
+
     private async Task<SearchJob> RunAndAssertNewSearchEndpoint()
     {
+        const string startSearchUrl = "v1/searches";
+
+        TestOutputHelper.WriteLine(
+            $"Starting new search to find records for SUI: {ValidEncryptedSuid} ({Fixture.Client.BaseAddress}{startSearchUrl})"
+        );
+
         var body = new StartSearchRequest(ValidEncryptedSuid);
         var stringContent = new StringContent(JsonSerializer.Serialize(body));
-        var newSearchJobResult = await _fixture.Client.PostAsync("v1/searches", stringContent);
+        var newSearchJobResult = await Fixture.Client.PostAsync(startSearchUrl, stringContent);
 
         // We then want to assert the returned body and status code
         Assert.Equal(HttpStatusCode.Accepted, newSearchJobResult.StatusCode);
@@ -109,7 +162,13 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
     private async Task RunAndAssertFetchEndpoint(string url)
     {
-        var searchResults = await _fixture.Client.GetAsync(RemoveLeadingSlashFromUrl(url));
+        url = RemoveLeadingSlashFromUrl(url);
+
+        TestOutputHelper.WriteLine(
+            $"Getting search results from: {Fixture.Client.BaseAddress}{url}"
+        );
+
+        var searchResults = await Fixture.Client.GetAsync(url);
         // Look for URL link and save as variable
         var searchResultContent = await searchResults.Content.ReadAsStringAsync();
         var searchResultTypedContent = JsonSerializer.Deserialize<SearchResults>(
@@ -120,9 +179,12 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         Assert.False(string.IsNullOrEmpty(searchResultItem.RecordUrl));
 
         // TODO: Step 4, Get data from fetch and assert
-        var fetchResult = await _fixture.Client.GetAsync(
-            RemoveLeadingSlashFromUrl(searchResultItem.RecordUrl)
+        var recordUrl = RemoveLeadingSlashFromUrl(searchResultItem.RecordUrl);
+        TestOutputHelper.WriteLine(
+            $"Getting data from fetch: {Fixture.Client.BaseAddress}{recordUrl}"
         );
+
+        var fetchResult = await Fixture.Client.GetAsync(recordUrl);
         Assert.Equal(HttpStatusCode.OK, fetchResult.StatusCode);
         var fetchResultContent = await fetchResult.Content.ReadAsStringAsync();
         var fetchResultTypedContent = JsonSerializer.Deserialize<CustodianRecord>(
@@ -131,8 +193,10 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.SchemaUri));
+        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.SchemaUri));
         Assert.NotNull(fetchResultTypedContent.Payload);
+
+        TestOutputHelper.WriteLine("Fetch verified ok");
     }
 
     /// <summary>
@@ -146,7 +210,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         var isCompleted = false;
         var status = "unknown";
 
-        testOutputHelper.WriteLine("Polling for Search status completion: {0}", url);
+        TestOutputHelper.WriteLine(
+            $"Checking for search completion: {Fixture.Client.BaseAddress}{url}"
+        );
 
         var retryPolicy = Policy
             .HandleResult<HttpResponseMessage>(r =>
@@ -164,24 +230,24 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 retryCount,
                 retryAttempt =>
                 {
-                    testOutputHelper.WriteLine(
-                        $"Still polling, status was {status}, retry {retryAttempt} / {retryCount}..."
+                    TestOutputHelper.WriteLine(
+                        $"Still checking for search completion, status was {status}, retry {retryAttempt} / {retryCount}..."
                     );
                     return TimeSpan.FromSeconds(2);
                 }
             );
 
         await retryPolicy.ExecuteAsync(() =>
-            _fixture.Client.GetAsync(RemoveLeadingSlashFromUrl(url))
+            Fixture.Client.GetAsync(RemoveLeadingSlashFromUrl(url))
         );
 
-        testOutputHelper.WriteLine(
-            $"Finished polling, final status was {status}, is completed: {isCompleted}"
+        TestOutputHelper.WriteLine(
+            $"Finished checking for search completion, final status was {status}, is completed: {isCompleted}"
         );
 
         Assert.True(isCompleted);
 
-        var typedResult = await _fixture.Client.GetFromJsonAsync<SearchJob>(
+        var typedResult = await Fixture.Client.GetFromJsonAsync<SearchJob>(
             RemoveLeadingSlashFromUrl(url)
         );
         return typedResult!;

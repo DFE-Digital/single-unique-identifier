@@ -1,11 +1,24 @@
+using Microsoft.Extensions.Configuration;
+
 namespace SUI.Find.E2ETests;
 
 public class FunctionTestFixture : IDisposable
 {
-    public readonly HttpClient Client = new()
+    public Config Config { get; }
+
+    public HttpClient Client { get; }
+
+    public FunctionTestFixture()
     {
-        BaseAddress = new Uri("http://localhost:7182/api/"),
-    };
+        var configurationRoot = new ConfigurationBuilder()
+            .AddEnvironmentVariables()
+            .AddUserSecrets("SUI.E2E.Tests")
+            .Build();
+
+        Config = configurationRoot.GetSection("E2E").Get<Config>() ?? new Config();
+
+        Client = new HttpClient { BaseAddress = new Uri(Config.BaseUrl) };
+    }
 
     public void Dispose()
     {
