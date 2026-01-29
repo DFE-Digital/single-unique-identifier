@@ -33,17 +33,29 @@ public class QueryProvidersFunction(
 
         foreach (var searchResultItem in result.Value)
         {
-            await idRegisterRepository.UpsertAsync(
-                new IdRegisterEntry()
-                {
-                    Sui = data.Suid,
-                    CustodianId = searchResultItem.ProviderId,
-                    RecordType = searchResultItem.RecordType,
-                    Provenance = Provenance.DiscoveredViaFanout,
-                    LastIdDeliveredAtUtc = null,
-                },
-                cancellationToken
-            );
+            try
+            {
+                await idRegisterRepository.UpsertAsync(
+                    new IdRegisterEntry()
+                    {
+                        Sui = data.Suid,
+                        CustodianId = searchResultItem.ProviderId,
+                        RecordType = searchResultItem.RecordType,
+                        Provenance = Provenance.DiscoveredViaFanout,
+                        LastIdDeliveredAtUtc = null,
+                    },
+                    cancellationToken
+                );
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(
+                    ex,
+                    "Failed to upsert ID Register for Custodian {CustodianId}, RecordType {RecordType}",
+                    searchResultItem.ProviderId,
+                    searchResultItem.RecordType
+                );
+            }
         }
 
         logger.LogInformation("Query Provider request completed");
