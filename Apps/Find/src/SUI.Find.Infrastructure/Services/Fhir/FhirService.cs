@@ -43,12 +43,11 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
                 "Handling bundle with {EntryCount} entries from FHIR API",
                 bundle.Entry.Count
             );
+
             return bundle.Entry.Count switch
             {
                 0 => Result<SearchResult>.Ok(SearchResult.Unmatched()),
-                1 => Result<SearchResult>.Ok(
-                    SearchResult.Match(bundle.Entry[0].Resource.Id, bundle.Entry[0].Search.Score)
-                ),
+                1 => HandleSingleEntry(bundle.Entry[0]),
                 _ => Result<SearchResult>.Fail("Unexpected multiple entries"),
             };
         }
@@ -57,5 +56,22 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
             logger.LogError(ex, "Error occurred while performing FHIR search");
             return Result<SearchResult>.Fail(ex.Message);
         }
+    }
+
+    private static Result<SearchResult> HandleSingleEntry(Bundle.EntryComponent entry)
+    {
+        if (entry.Resource?.Id is null)
+        {
+            return Result<SearchResult>.Fail("FHIR API returned missing Resource or Id");
+        }
+
+        if (entry.Search is null)
+        {
+            return Result<SearchResult>.Fail(
+                "FHIR API returned missing Search required to get the score"
+            );
+        }
+
+        return Result<SearchResult>.Ok(SearchResult.Match(entry.Resource.Id, entry.Search.Score));
     }
 }
