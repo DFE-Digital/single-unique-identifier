@@ -13,6 +13,11 @@ To view our documentation, please visit the [Docs](/Docs/index.md) directory.
 | [LICENCE](/LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
 | [Contributing](/CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
 
+## What is 'Single Unique Identifier'?
+
+Single Unique Identifier is a proposed set of systems and standards to faciliate information
+sharing between multiple agencies for the improved safeguarding and welfare of children.
+
 ## Glossary of Components
 
 * **`Matching Service`** (a.k.a. *`PDS Adapter`* or *`SUI.Matching.API`*) \
