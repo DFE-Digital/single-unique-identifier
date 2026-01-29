@@ -61,7 +61,7 @@ public class MatchingService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "{Message}", ex.Message);
+            logger.LogError(ex, "Unexpected error occurred when trying to match person: {Message}", ex.Message);
             return new Error();
         }
     }
