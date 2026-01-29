@@ -5,6 +5,9 @@ locals {
 
   core_state_key      = format("%s/terraform.tfstate", var.environment_id)
   service_state_key   = format("%s/find.tfstate", var.environment_id)
+
+  custodians_service_state_key = format("%s/custodians.tfstate", var.environment_id)
+
   function_descriptor = "find01"
   function_app_name = format(
     "%s%sfunc-%s-%s",
@@ -46,6 +49,18 @@ data "terraform_remote_state" "core" {
   }
 }
 
+data "terraform_remote_state" "stub_custodians" {
+  count   = var.use_stub_custodians ? 1 : 0
+  backend = "azurerm"
+
+  config = {
+    resource_group_name  = local.state_rg
+    storage_account_name = local.state_storage
+    container_name       = local.state_container
+    key                  = local.custodians_service_state_key
+  }
+}
+
 module "function_app" {
   source = "../modules/linux_function_app"
 
@@ -69,6 +84,10 @@ module "function_app" {
       WEBSITE_RUN_FROM_PACKAGE       = "1"
       APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       AuditProcessorConnectionString = module.audit_processor_function_app.storage_connection_string
+      StubCustodiansBaseUrl          = try(
+        "https://${data.terraform_remote_state.stub_custodians[0].outputs.web_app_default_hostname}",
+        null
+      )
     },
     var.app_settings
   )
