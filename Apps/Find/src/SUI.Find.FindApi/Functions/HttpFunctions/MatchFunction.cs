@@ -6,7 +6,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Models;
-using SUI.Find.Application.Services;
+using SUI.Find.Application.Services.Matching;
 using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
@@ -15,7 +15,10 @@ using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
-public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService service)
+public class MatchFunction(
+    ILogger<MatchFunction> logger,
+    IMatchingEncryptionService encryptionService
+)
 {
     [Function(nameof(MatchPerson))]
     [RequiredScopes("match-record.read")]
@@ -78,7 +81,7 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
             );
         }
 
-        var personMatch = await service.MatchPersonAsync(request, authContext.ClientId);
+        var personMatch = await encryptionService.MatchPersonAsync(request, authContext.ClientId);
         return await personMatch.Match(
             encryptedPersonId => CreateOkResponse(req, encryptedPersonId),
             async notFound =>

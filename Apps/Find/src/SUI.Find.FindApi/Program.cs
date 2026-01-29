@@ -11,6 +11,7 @@ using Polly.Extensions.Http;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Services;
+using SUI.Find.Application.Services.Matching;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
 using SUI.Find.Infrastructure;
@@ -60,7 +61,7 @@ builder.Services.AddSingleton<IPolicyEnforcementService, PolicyEnforcementServic
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<ICustodianService, MockCustodianService>();
 builder.Services.AddSingleton<IMatchRepository, MockMatchRepository>();
-builder.Services.AddSingleton<IMatchingService, MatchingService>();
+builder.Services.AddSingleton<IMatchingEncryptionService, MatchingEncryptionService>();
 builder.Services.AddSingleton<IOutboundAuthService, OutboundAuthService>();
 
 // Add this after other service registrations
