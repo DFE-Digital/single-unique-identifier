@@ -7,8 +7,8 @@ public class IdRegisterEntry
     public required string SystemId { get; init; }
     public required string RecordType { get; init; }
     public string? CustodianSubjectId { get; init; }
-    public required DateTimeOffset FirstSeenUtc { get; init; }
-    public required DateTimeOffset LastSeenUtc { get; init; }
+    public DateTimeOffset? FirstSeenUtc { get; init; }
+    public DateTimeOffset? LastSeenUtc { get; init; }
     public required Provenance Provenance { get; init; }
     public DateTimeOffset? LastIdDeliveredAtUtc { get; init; }
 }

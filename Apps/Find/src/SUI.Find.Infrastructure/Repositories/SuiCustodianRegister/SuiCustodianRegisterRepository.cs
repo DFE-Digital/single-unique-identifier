@@ -51,15 +51,15 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
             entity = existing.Value;
 
             // Flow A & C: always update LastSeen
-            entity["LastSeenUtc"] = registerEntry.LastSeenUtc;
+            entity["LastSeenUtc"] = DateTimeOffset.UtcNow;
         }
         catch (RequestFailedException ex) when (ex.Status == 404)
         {
             // New row
             entity = new TableEntity(partitionKey, rowKey)
             {
-                { "FirstSeenUtc", registerEntry.FirstSeenUtc },
-                { "LastSeenUtc", registerEntry.LastSeenUtc },
+                { "FirstSeenUtc", DateTimeOffset.UtcNow },
+                { "LastSeenUtc", DateTimeOffset.UtcNow },
             };
         }
 
@@ -113,10 +113,10 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
                 results.Add(
                     new IdRegisterEntry
                     {
-                        Sui = e.GetString("Sui")!,
-                        CustodianId = e.GetString("CustodianId")!,
-                        RecordType = e.GetString("RecordType")!,
-                        SystemId = e.GetString("SystemId")!,
+                        Sui = e.GetString("Sui"),
+                        CustodianId = e.GetString("CustodianId"),
+                        RecordType = e.GetString("RecordType"),
+                        SystemId = e.GetString("SystemId"),
                         CustodianSubjectId = e.GetString("CustodianSubjectId"),
                         FirstSeenUtc = e.GetDateTimeOffset("FirstSeenUtc")!.Value,
                         LastSeenUtc = e.GetDateTimeOffset("LastSeenUtc")!.Value,

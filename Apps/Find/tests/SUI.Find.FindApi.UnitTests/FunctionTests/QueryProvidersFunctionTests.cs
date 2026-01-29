@@ -6,6 +6,7 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
 using SUI.Find.FindApi.Functions.ActivityFunctions;
+using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
@@ -16,12 +17,18 @@ public class QueryProvidersFunctionTests
     >();
     private readonly IQueryProvidersService _mockQueryProvidersService =
         Substitute.For<IQueryProvidersService>();
+    private readonly IIdRegisterRepository _mockIdRegisterRepository =
+        Substitute.For<IIdRegisterRepository>();
     private readonly FunctionContext _mockContext = Substitute.For<FunctionContext>();
     private readonly QueryProvidersFunction _sut;
 
     public QueryProvidersFunctionTests()
     {
-        _sut = new QueryProvidersFunction(_mockLogger, _mockQueryProvidersService);
+        _sut = new QueryProvidersFunction(
+            _mockLogger,
+            _mockQueryProvidersService,
+            _mockIdRegisterRepository
+        );
     }
 
     [Fact]
@@ -53,6 +60,20 @@ public class QueryProvidersFunctionTests
         await _mockQueryProvidersService
             .Received(1)
             .QueryProvidersAsync(input, Arg.Any<CancellationToken>());
+
+        await _mockIdRegisterRepository
+            .Received(expectedItems.Count)
+            .UpsertAsync(
+                Arg.Is<IdRegisterEntry>(e =>
+                    e.Sui == input.Suid
+                    && e.CustodianId == expectedItems[0].ProviderId
+                    && e.SystemId == expectedItems[0].ProviderSystem
+                    && e.RecordType == expectedItems[0].RecordType
+                    && e.Provenance == Provenance.DiscoveredViaFanout
+                ),
+                Arg.Any<CancellationToken>()
+            );
+
         Assert.Single(result);
         Assert.Equal(expectedItems, result);
     }
