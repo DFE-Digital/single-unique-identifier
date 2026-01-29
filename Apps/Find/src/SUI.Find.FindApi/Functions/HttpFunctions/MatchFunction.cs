@@ -28,7 +28,7 @@ public class MatchFunction(
         tags: ["Match"],
         Summary = "Locate a persons unique id"
     )]
-    [OpenApiRequestBody("application/json", typeof(MatchPersonRequest), Required = true)]
+    [OpenApiRequestBody("application/json", typeof(PersonSpecification), Required = true)]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(PersonMatch))]
     [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]

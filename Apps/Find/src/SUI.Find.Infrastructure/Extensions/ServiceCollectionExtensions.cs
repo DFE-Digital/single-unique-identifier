@@ -61,9 +61,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SecretClient>(sp =>
         {
             var config = sp.GetRequiredService<IOptions<AzureSecretConfiguration>>().Value;
-            var vaultUrl = config.KeyVaultUrl;
+            var uriString =
+                config.KeyVaultUrl
+                ?? "https://localdevtotallyrandomaddressbecauseitdoesntrunwiththestubauthtokenservice";
             return new SecretClient(
-                vaultUri: new Uri(vaultUrl),
+                vaultUri: new Uri(uriString),
                 credential: new DefaultAzureCredential()
             );
         });
