@@ -72,7 +72,7 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
         entity["Sui"] = registerEntry.Sui;
         entity["CustodianId"] = registerEntry.CustodianId;
         entity["RecordType"] = registerEntry.RecordType;
-        entity["SystemId"] = registerEntry.SystemId;
+        entity["SystemId"] = systemId;
         entity["CustodianSubjectId"] = registerEntry.CustodianSubjectId;
         entity["Provenance"] = registerEntry.Provenance.ToString();
 
