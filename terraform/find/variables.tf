@@ -73,3 +73,9 @@ variable "app_service_plan_worker_count" {
   type        = number
   default     = null
 }
+
+variable "use_stub_custodians" {
+  description = "Set to true to dynamically add the corresponding `StubCustodiansBaseUrl` configuration to the Find Function App (requires the StubCustodians to be deployed for the corresponding environment)."
+  type        = bool
+  default     = false
+}
