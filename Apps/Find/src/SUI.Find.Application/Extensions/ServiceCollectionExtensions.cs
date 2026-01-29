@@ -13,7 +13,9 @@ public static class ServiceCollectionExtensions
         var strategyType = typeof(IPdsSearchStrategy);
         var strategies = strategyType
             .Assembly.GetTypes()
-            .Where(t => strategyType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            .Where(t =>
+                strategyType.IsAssignableFrom(t) && t is { IsInterface: false, IsAbstract: false }
+            );
 
         foreach (var strategy in strategies)
         {
