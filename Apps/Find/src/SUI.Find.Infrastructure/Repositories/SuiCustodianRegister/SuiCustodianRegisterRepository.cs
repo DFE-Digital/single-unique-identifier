@@ -31,10 +31,15 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
     )
     {
         var partitionKey = RegisterKeys.PartitionKey(registerEntry.Sui);
+
+        var systemId = string.IsNullOrWhiteSpace(registerEntry.SystemId)
+            ? "_unknown"
+            : registerEntry.SystemId;
+
         var rowKey = RegisterKeys.RowKey(
             registerEntry.CustodianId,
             registerEntry.RecordType,
-            registerEntry.SystemId
+            systemId
         );
 
         TableEntity entity;
