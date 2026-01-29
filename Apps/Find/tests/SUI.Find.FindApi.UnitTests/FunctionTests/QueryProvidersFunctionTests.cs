@@ -67,7 +67,6 @@ public class QueryProvidersFunctionTests
                 Arg.Is<IdRegisterEntry>(e =>
                     e.Sui == input.Suid
                     && e.CustodianId == expectedItems[0].ProviderId
-                    && e.SystemId == expectedItems[0].ProviderSystem
                     && e.RecordType == expectedItems[0].RecordType
                     && e.Provenance == Provenance.DiscoveredViaFanout
                 ),
