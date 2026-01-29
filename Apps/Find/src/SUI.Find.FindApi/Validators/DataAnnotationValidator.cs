@@ -1,13 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using SUI.Find.Application.Models;
 
 namespace SUI.Find.FindApi.Validators;
 
 [ExcludeFromCodeCoverage(Justification = "Simple validation wrapper")]
 public static class DataAnnotationValidator
 {
-    public static bool Validate(MatchPersonRequest request, out string? message)
+    public static bool Validate<T>(T request, out string? message)
     {
         var validationResults = new List<ValidationResult>();
         var validationContext = new ValidationContext(request);

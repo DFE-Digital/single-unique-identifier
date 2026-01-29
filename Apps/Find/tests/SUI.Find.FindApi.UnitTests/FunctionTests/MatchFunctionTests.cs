@@ -4,7 +4,10 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using OneOf.Types;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Matching;
+using SUI.Find.Application.Services;
 using SUI.Find.Application.Services.Matching;
 using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Functions.HttpFunctions;
@@ -16,10 +19,10 @@ namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 public class MatchFunctionTests
 {
     private readonly ILogger<MatchFunction> _logger = Substitute.For<ILogger<MatchFunction>>();
-    private readonly IMatchingEncryptionService _encryptionService =
-        Substitute.For<IMatchingEncryptionService>();
+    private readonly IMatchPersonOrchestrationService _matchPersonOrchestrationService =
+        Substitute.For<IMatchPersonOrchestrationService>();
 
-    private MatchFunction CreateFunction() => new(_logger, _encryptionService);
+    private MatchFunction CreateFunction() => new(_logger, _matchPersonOrchestrationService);
 
     private static FunctionContext CreateContextWithAuth(string clientId = "test-client-id")
     {
@@ -44,10 +47,10 @@ public class MatchFunctionTests
             BirthDate = DateOnly.Parse("1990-01-01"),
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
-        var encryptedPersonId = EncryptedPersonId.Create("Cy13hyZL-4LSIwVy50p-Hg");
-        _encryptionService
-            .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
-            .Returns(encryptedPersonId.Value!);
+        var encryptedPersonId = new EncryptedSuidPersonId("some-encrypted-id");
+        _matchPersonOrchestrationService
+            .FindPersonIdAsync(Arg.Any<PersonSpecification>(), Arg.Any<string>())
+            .Returns(encryptedPersonId);
 
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
@@ -57,7 +60,7 @@ public class MatchFunctionTests
         response.Body.Position = 0;
         var responseBody = await JsonSerializer.DeserializeAsync<PersonMatch>(response.Body);
         Assert.NotNull(responseBody);
-        Assert.Equal(encryptedPersonId.Value!.Value, responseBody.PersonId);
+        Assert.Equal(encryptedPersonId.Value, responseBody.PersonId);
     }
 
     [Fact]
@@ -73,8 +76,8 @@ public class MatchFunctionTests
             BirthDate = DateOnly.Parse("1990-01-01"),
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
-        _encryptionService
-            .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
+        _matchPersonOrchestrationService
+            .FindPersonIdAsync(Arg.Any<PersonSpecification>(), Arg.Any<string>())
             .Returns(new NotFound());
 
         // Act
@@ -97,8 +100,8 @@ public class MatchFunctionTests
             BirthDate = DateOnly.Parse("1990-01-01"),
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
-        _encryptionService
-            .MatchPersonAsync(Arg.Any<MatchPersonRequest>(), Arg.Any<string>())
+        _matchPersonOrchestrationService
+            .FindPersonIdAsync(Arg.Any<PersonSpecification>(), Arg.Any<string>())
             .Returns(new Error());
 
         // Act
@@ -135,7 +138,7 @@ public class MatchFunctionTests
     public async Task ShouldReturnBadRequest_WhenRequestModelIsInvalid()
     {
         // Arrange
-        var service = Substitute.For<IMatchingEncryptionService>();
+        var service = Substitute.For<IMatchPersonOrchestrationService>();
         var logger = Substitute.For<ILogger<MatchFunction>>();
         var function = new MatchFunction(logger, service);
 

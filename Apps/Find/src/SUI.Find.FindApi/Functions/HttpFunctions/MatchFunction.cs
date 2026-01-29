@@ -5,9 +5,10 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Application.Services.Matching;
-using SUI.Find.Domain.ValueObjects;
+using SUI.Find.Application.Models.Matching;
+using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
@@ -17,7 +18,7 @@ namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
 public class MatchFunction(
     ILogger<MatchFunction> logger,
-    IMatchingEncryptionService encryptionService
+    IMatchPersonOrchestrationService matchOrchestrationService
 )
 {
     [Function(nameof(MatchPerson))]
@@ -81,9 +82,20 @@ public class MatchFunction(
             );
         }
 
-        var personMatch = await encryptionService.MatchPersonAsync(request, authContext.ClientId);
+        var personMatch = await matchOrchestrationService.FindPersonIdAsync(
+            request,
+            authContext.ClientId
+        );
         return await personMatch.Match(
-            encryptedPersonId => CreateOkResponse(req, encryptedPersonId),
+            id => CreateOkResponse(req, id),
+            async dataValidationResult =>
+                await HttpResponseUtility.BadRequestResponse(
+                    req,
+                    context.InvocationId,
+                    JsonSerializer.Serialize(dataValidationResult),
+                    "Validation error",
+                    cancellationToken
+                ),
             async notFound =>
                 await HttpResponseUtility.NotFoundResponse(
                     req,
@@ -101,10 +113,10 @@ public class MatchFunction(
 
     private static bool TryGetMatchResponseRequestModel(
         HttpRequestData req,
-        out MatchPersonRequest model
+        out PersonSpecification model
     )
     {
-        model = new MatchPersonRequest();
+        model = new PersonSpecification();
         try
         {
             var requestBody = req.ReadAsString();
@@ -113,7 +125,7 @@ public class MatchFunction(
                 return false;
             }
 
-            var request = JsonSerializer.Deserialize<MatchPersonRequest>(
+            var request = JsonSerializer.Deserialize<PersonSpecification>(
                 requestBody,
                 JsonSerializerOptions.Web
             );
@@ -134,7 +146,7 @@ public class MatchFunction(
 
     private static async Task<HttpResponseData> CreateOkResponse(
         HttpRequestData req,
-        EncryptedPersonId encryptedPersonId
+        PersonIdValue encryptedPersonId
     )
     {
         var res = req.CreateResponse(HttpStatusCode.OK);
