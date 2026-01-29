@@ -2,6 +2,8 @@ namespace SUI.Find.Infrastructure.Models.Fhir;
 
 public class AuthTokenServiceConfig
 {
+    public static string SectionName => "NhsAuthConfig";
+
     // public string? NHS_DIGITAL_TOKEN_URL { get; init; }
     public string? NHS_DIGITAL_CLIENT_ID { get; init; }
     public string? NHS_DIGITAL_KID { get; init; }

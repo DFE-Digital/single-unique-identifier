@@ -19,12 +19,13 @@ using SUI.Find.Application.Services.Matching;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
 using SUI.Find.Infrastructure.Extensions;
+using SUI.Find.Infrastructure.Models.Fhir;
 using SUI.Find.Infrastructure.Services;
 
-var builder = FunctionsApplication.CreateBuilder(args);
-
-// builder.Configuration.AddEnvironmentVariables();
+// Important this goes first before loading args. Localhost only concern
 Env.TraversePath().Load();
+
+var builder = FunctionsApplication.CreateBuilder(args);
 
 builder.UseOpenTelemetry();
 
@@ -42,6 +43,9 @@ if (
         $"Missing required configuration section: {EncryptionConfiguration.SectionName}"
     );
 }
+builder.Services.Configure<AuthTokenServiceConfig>(
+    builder.Configuration.GetSection(AuthTokenServiceConfig.SectionName)
+);
 
 builder
     .Services.AddOptions<EncryptionConfiguration>()
@@ -89,6 +93,14 @@ builder.Services.AddSingleton(sp =>
 
     return new TableServiceClient(connection);
 });
+
+builder.Services.AddHttpClient(
+    "nhs-auth-api",
+    client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["NhsAuthConfig:NHS_DIGITAL_TOKEN_URL"]!);
+    }
+);
 
 builder
     .Services.AddHttpClient(ApplicationConstants.Providers.LoggingName)
