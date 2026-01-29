@@ -11,18 +11,18 @@ using SUI.Find.Domain.ValueObjects;
 namespace SUI.Find.Application.Services;
 
 /// <inheritdoc />
-public class MatchMatchPersonOrchestrationService(
-    ILogger<MatchMatchPersonOrchestrationService> logger,
+public class MatchPersonOrchestrationService(
+    ILogger<MatchPersonOrchestrationService> logger,
     IMatchingService matchService,
     ICustodianService custodianService,
     IPersonIdEncryptionService encryptionService,
-    IOptions<EncryptionConfiguration> encryptionConfig,
-    CancellationToken ct
+    IOptions<EncryptionConfiguration> encryptionConfig
 ) : IMatchPersonOrchestrationService
 {
     public async Task<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,
-        string clientId
+        string clientId,
+        CancellationToken ct
     )
     {
         var matchResult = await matchService.MatchPersonAsync(specification, ct);

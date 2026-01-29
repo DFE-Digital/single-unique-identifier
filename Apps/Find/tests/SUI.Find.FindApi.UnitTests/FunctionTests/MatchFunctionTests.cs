@@ -49,7 +49,11 @@ public class MatchFunctionTests
         var req = MockHttpRequestData.CreateJson(validRequest);
         var encryptedPersonId = new EncryptedSuidPersonId("some-encrypted-id");
         _matchPersonOrchestrationService
-            .FindPersonIdAsync(Arg.Any<PersonSpecification>(), Arg.Any<string>())
+            .FindPersonIdAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(encryptedPersonId);
 
         // Act
@@ -77,7 +81,11 @@ public class MatchFunctionTests
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
         _matchPersonOrchestrationService
-            .FindPersonIdAsync(Arg.Any<PersonSpecification>(), Arg.Any<string>())
+            .FindPersonIdAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new NotFound());
 
         // Act
@@ -101,7 +109,11 @@ public class MatchFunctionTests
         };
         var req = MockHttpRequestData.CreateJson(validRequest);
         _matchPersonOrchestrationService
-            .FindPersonIdAsync(Arg.Any<PersonSpecification>(), Arg.Any<string>())
+            .FindPersonIdAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Error());
 
         // Act

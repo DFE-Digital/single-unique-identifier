@@ -1,6 +1,7 @@
 using System.IO.Abstractions;
 using System.Net;
 using Azure.Data.Tables;
+using DotNetEnv;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +11,9 @@ using Polly;
 using Polly.Extensions.Http;
 using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
+using SUI.Find.Application.Factories.PdsSearch;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Interfaces.Matching;
 using SUI.Find.Application.Services;
 using SUI.Find.Application.Services.Matching;
 using SUI.Find.FindApi.Middleware;
@@ -19,6 +22,9 @@ using SUI.Find.Infrastructure.Extensions;
 using SUI.Find.Infrastructure.Services;
 
 var builder = FunctionsApplication.CreateBuilder(args);
+
+// builder.Configuration.AddEnvironmentVariables();
+Env.TraversePath().Load();
 
 builder.UseOpenTelemetry();
 
@@ -59,6 +65,9 @@ builder.Services.AddSingleton<ISearchService, SearchService>();
 builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
 builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
 builder.Services.AddSingleton<IPolicyEnforcementService, PolicyEnforcementService>();
+builder.Services.AddSingleton<IMatchPersonOrchestrationService, MatchPersonOrchestrationService>();
+builder.Services.AddSingleton<IMatchingService, MatchingService>();
+builder.Services.AddSingleton<IPdsSearchFactory, PdsSearchFactory>();
 
 // Use mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();

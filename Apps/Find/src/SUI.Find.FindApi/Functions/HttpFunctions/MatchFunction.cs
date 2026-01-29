@@ -84,7 +84,8 @@ public class MatchFunction(
 
         var personMatch = await matchOrchestrationService.FindPersonIdAsync(
             request,
-            authContext.ClientId
+            authContext.ClientId,
+            cancellationToken
         );
         return await personMatch.Match(
             id => CreateOkResponse(req, id),
