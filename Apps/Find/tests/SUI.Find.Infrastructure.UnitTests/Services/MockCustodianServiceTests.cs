@@ -14,8 +14,6 @@ public class MockCustodianServiceTests
     public MockCustodianServiceTests()
     {
         _sut = new MockCustodianService(_mockFileSystem, _mockConfiguration);
-
-        _mockConfiguration["StubCustodiansBaseUrl"].Returns("https://something.org");
     }
 
     [Fact]
@@ -130,7 +128,7 @@ public class MockCustodianServiceTests
         var fileContent = await File.ReadAllTextAsync(filePath);
         _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
 
-        _mockConfiguration["StubCustodiansBaseUrl"].Returns("https://example.com");
+        _mockConfiguration["StubCustodiansBaseUrl"].Returns("https://example123.com");
 
         // Act
         var providers = await _sut.GetCustodiansAsync();
@@ -140,8 +138,8 @@ public class MockCustodianServiceTests
         Assert.NotNull(provider);
         Assert.Equal("Example Education Custodian", provider.OrgName);
 
-        Assert.Equal("https://example.com/v1/education/manifest", provider.Connection.Url);
+        Assert.Equal("https://example123.com/v1/education/manifest", provider.Connection.Url);
         Assert.NotNull(provider.Connection.Auth);
-        Assert.Equal("https://example.com/v1/auth/token", provider.Connection.Auth.TokenUrl);
+        Assert.Equal("https://example123.com/v1/auth/token", provider.Connection.Auth.TokenUrl);
     }
 }
