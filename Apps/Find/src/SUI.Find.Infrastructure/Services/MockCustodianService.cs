@@ -24,16 +24,14 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
             throw new InvalidOperationException($"File not found at: {filePath}");
         }
 
+        var json = await fileSystem.File.ReadAllTextAsync(filePath);
+
         var stubCustodiansBaseUrl = config["StubCustodiansBaseUrl"];
-        if (string.IsNullOrWhiteSpace(stubCustodiansBaseUrl))
+        if (!string.IsNullOrWhiteSpace(stubCustodiansBaseUrl))
         {
-            throw new InvalidOperationException("`StubCustodiansBaseUrl` config value missing");
+            json = json.Replace("{StubCustodiansBaseUrl}", stubCustodiansBaseUrl);
         }
 
-        var json = (await fileSystem.File.ReadAllTextAsync(filePath)).Replace(
-            "{StubCustodiansBaseUrl}",
-            stubCustodiansBaseUrl
-        );
         var doc =
             JsonSerializer.Deserialize<MockOrgDirectory>(json, JsonSerializerOptions.Web)
             ?? throw new InvalidOperationException($"Failed to deserialize {fileName}");
