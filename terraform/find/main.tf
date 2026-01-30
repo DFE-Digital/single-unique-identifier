@@ -33,6 +33,16 @@ locals {
   audit_processor_storage_account_name = lower(
     format("%s%sst%s", var.subscription_prefix, var.environment_id, local.audit_processor_descriptor)
   )
+
+  # Key Vault name
+  key_vault_descriptor = "kv"
+  key_vault_name = format(
+    "%s%skv-%s-find",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+    local.key_vault_descriptor
+  )
 }
 
 data "terraform_remote_state" "core" {
@@ -68,7 +78,8 @@ module "function_app" {
       FUNCTIONS_EXTENSION_VERSION    = "~4"
       WEBSITE_RUN_FROM_PACKAGE       = "1"
       APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
-      AuditProcessorConnectionString = module.audit_processor_function_app.storage_connection_string
+      AuditProcessorConnectionString = module.audit_processor_function_app.storage_connection_string,
+      KeyVault__KeyVaultUri          = module.key_vault.vault_uri
     },
     var.app_settings
   )
@@ -101,6 +112,20 @@ module "audit_processor_function_app" {
     },
     var.app_settings
   )
+
+  tags = var.tags
+}
+
+module "key_vault" {
+  source = "../modules/key_vault"
+
+  name                = local.key_vault_name
+  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
+  location            = data.terraform_remote_state.core.outputs.resource_group_location
+
+  environment_tag  = var.environment_tag
+  product          = var.product
+  service_offering = var.service_offering
 
   tags = var.tags
 }
