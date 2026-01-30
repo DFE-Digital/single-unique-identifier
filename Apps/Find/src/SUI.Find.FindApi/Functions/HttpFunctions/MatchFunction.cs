@@ -108,13 +108,9 @@ public class MatchFunction(
         try
         {
             var requestBody = req.ReadAsString();
-            if (string.IsNullOrWhiteSpace(requestBody))
-            {
-                return false;
-            }
 
             var request = JsonSerializer.Deserialize<PersonSpecification>(
-                requestBody,
+                requestBody!,
                 JsonSerializerOptions.Web
             );
 

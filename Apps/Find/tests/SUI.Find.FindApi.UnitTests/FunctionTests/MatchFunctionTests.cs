@@ -166,4 +166,26 @@ public class MatchFunctionTests
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task ShouldReturnBadRequest_WhenRequestIsMissingBody()
+    {
+        // Edge case test for null body
+
+        // Arrange
+        var service = Substitute.For<IMatchPersonOrchestrationService>();
+        var logger = Substitute.For<ILogger<MatchFunction>>();
+        var function = new MatchFunction(logger, service);
+
+        var context = CreateContextWithAuth();
+        context.InvocationId.Returns(Guid.NewGuid().ToString());
+
+        // Malformed request (no body)
+        var req = MockHttpRequestData.Create(requestData: null);
+        // Act
+        var response = await function.MatchPerson(req, context, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

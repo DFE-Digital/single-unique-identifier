@@ -13,8 +13,9 @@ public abstract class MockHttpRequestData
 {
     public static HttpRequestData Create(
         Dictionary<string, StringValues>? query = null,
-        HttpHeadersCollection? headers = null
-    ) => CreateJson<string>("", query, headers);
+        HttpHeadersCollection? headers = null,
+        string requestData = ""
+    ) => CreateJson<string>(requestData, query, headers);
 
     public static HttpRequestData CreateFormData(
         Dictionary<string, string> requestData,
