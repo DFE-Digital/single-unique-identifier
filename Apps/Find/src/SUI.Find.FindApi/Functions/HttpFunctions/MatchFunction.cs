@@ -26,7 +26,7 @@ public class MatchFunction(
     [OpenApiOperation(
         operationId: "FindPerson",
         tags: ["Match"],
-        Summary = "Locate a persons unique id"
+        Summary = "I know of this person, what is their unique ID"
     )]
     [OpenApiRequestBody("application/json", typeof(PersonSpecification), Required = true)]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(PersonMatch))]
