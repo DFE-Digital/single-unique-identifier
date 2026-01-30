@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SUI.Find.Infrastructure.Models.Fhir;
 
+[ExcludeFromCodeCoverage]
 public class AuthTokenServiceConfig
 {
     public static string SectionName => "NhsAuthConfig";

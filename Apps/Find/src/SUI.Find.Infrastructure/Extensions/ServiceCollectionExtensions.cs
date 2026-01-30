@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,7 @@ using SUI.Find.Infrastructure.Utility;
 
 namespace SUI.Find.Infrastructure.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructureServices(
