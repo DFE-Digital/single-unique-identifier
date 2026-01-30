@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using OneOf.Types;
+using SUI.Find.Application.Enums.Matching;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Matching;
@@ -147,18 +148,29 @@ public class MatchFunctionTests
     }
 
     [Fact]
-    public async Task ShouldReturnBadRequest_WhenRequestModelIsInvalid()
+    public async Task ShouldReturnBadRequest_WhenServiceReturnsDataQualityResult()
     {
         // Arrange
-        var service = Substitute.For<IMatchPersonOrchestrationService>();
-        var logger = Substitute.For<ILogger<MatchFunction>>();
-        var function = new MatchFunction(logger, service);
-
+        var function = CreateFunction();
         var context = CreateContextWithAuth();
+        var inValidRequest = new PersonSpecification
+        {
+            Given = "John",
+            Family = "Doe but it doesnt matter because were returning an invalid request anyway",
+            BirthDate = DateOnly.Parse("1990-01-01"),
+        };
+        _matchPersonOrchestrationService
+            .FindPersonIdAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new DataQualityResult() { Given = QualityType.Invalid });
+
         context.InvocationId.Returns(Guid.NewGuid().ToString());
 
         // Malformed request (empty body)
-        var req = MockHttpRequestData.CreateJson("");
+        var req = MockHttpRequestData.CreateJson(inValidRequest);
 
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
@@ -182,6 +194,26 @@ public class MatchFunctionTests
 
         // Malformed request (no body)
         var req = MockHttpRequestData.Create(requestData: null);
+        // Act
+        var response = await function.MatchPerson(req, context, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ShouldReturnBadRequest_WhenJsonSerializerThrowsFromUserInput()
+    {
+        // Arrange
+        var service = Substitute.For<IMatchPersonOrchestrationService>();
+        var logger = Substitute.For<ILogger<MatchFunction>>();
+        var function = new MatchFunction(logger, service);
+
+        var context = CreateContextWithAuth();
+        context.InvocationId.Returns(Guid.NewGuid().ToString());
+
+        // Malformed request (no body)
+        var req = MockHttpRequestData.Create(requestData: ""); // empty input that causes JsonSerializer to throw
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
 
