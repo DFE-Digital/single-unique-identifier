@@ -44,7 +44,7 @@ variable "tags" {
   default     = {}
 }
 
-variable "app_settings" {
+variable "find_app_settings" {
   description = "Additional app settings to apply to the function app."
   type        = map(string)
   default     = {}

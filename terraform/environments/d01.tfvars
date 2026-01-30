@@ -12,6 +12,13 @@ app_service_plan_worker_count = 1
 function_dotnet_version       = "9.0"
 webapp_dotnet_version         = "9.0"
 
+find_app_settings = {
+  NhsAuthConfig__NHS_DIGITAL_TOKEN_URL                       = "https://int.api.service.nhs.uk/oauth2/token"
+  NhsAuthConfig__NHS_DIGITAL_FHIR_ENDPOINT                   = "https://int.api.service.nhs.uk/personal-demographics/FHIR/R4/"
+  NhsAuthConfig__NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5
+  IdEncryption__EnablePersonIdEncryption                     = false
+}
+
 tags = {
   # Additional tags can be added here
   # Environment, Product, and Service Offering will be added by default
