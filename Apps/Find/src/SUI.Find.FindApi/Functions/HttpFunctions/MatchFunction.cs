@@ -69,19 +69,6 @@ public class MatchFunction(
             );
         }
 
-        var isValid = DataAnnotationValidator.Validate(request, out var validationResults);
-        if (!isValid)
-        {
-            return await HttpResponseUtility.ProblemResponse(
-                req,
-                HttpStatusCode.BadRequest,
-                "Invalid request",
-                validationResults ?? "The request model is invalid.",
-                context.InvocationId,
-                cancellationToken
-            );
-        }
-
         var personMatch = await matchOrchestrationService.FindPersonIdAsync(
             request,
             authContext.ClientId,
