@@ -31,10 +31,15 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
     )
     {
         var partitionKey = RegisterKeys.PartitionKey(registerEntry.Sui);
+
+        var systemId = string.IsNullOrWhiteSpace(registerEntry.SystemId)
+            ? "Unknown"
+            : registerEntry.SystemId;
+
         var rowKey = RegisterKeys.RowKey(
             registerEntry.CustodianId,
             registerEntry.RecordType,
-            registerEntry.SystemId
+            systemId
         );
 
         TableEntity entity;
@@ -51,15 +56,15 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
             entity = existing.Value;
 
             // Flow A & C: always update LastSeen
-            entity["LastSeenUtc"] = registerEntry.LastSeenUtc;
+            entity["LastSeenUtc"] = DateTimeOffset.UtcNow;
         }
         catch (RequestFailedException ex) when (ex.Status == 404)
         {
             // New row
             entity = new TableEntity(partitionKey, rowKey)
             {
-                { "FirstSeenUtc", registerEntry.FirstSeenUtc },
-                { "LastSeenUtc", registerEntry.LastSeenUtc },
+                { "FirstSeenUtc", DateTimeOffset.UtcNow },
+                { "LastSeenUtc", DateTimeOffset.UtcNow },
             };
         }
 
@@ -67,7 +72,7 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
         entity["Sui"] = registerEntry.Sui;
         entity["CustodianId"] = registerEntry.CustodianId;
         entity["RecordType"] = registerEntry.RecordType;
-        entity["SystemId"] = registerEntry.SystemId;
+        entity["SystemId"] = systemId;
         entity["CustodianSubjectId"] = registerEntry.CustodianSubjectId;
         entity["Provenance"] = registerEntry.Provenance.ToString();
 
@@ -113,10 +118,10 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
                 results.Add(
                     new IdRegisterEntry
                     {
-                        Sui = e.GetString("Sui")!,
-                        CustodianId = e.GetString("CustodianId")!,
-                        RecordType = e.GetString("RecordType")!,
-                        SystemId = e.GetString("SystemId")!,
+                        Sui = e.GetString("Sui"),
+                        CustodianId = e.GetString("CustodianId"),
+                        RecordType = e.GetString("RecordType"),
+                        SystemId = e.GetString("SystemId"),
                         CustodianSubjectId = e.GetString("CustodianSubjectId"),
                         FirstSeenUtc = e.GetDateTimeOffset("FirstSeenUtc")!.Value,
                         LastSeenUtc = e.GetDateTimeOffset("LastSeenUtc")!.Value,

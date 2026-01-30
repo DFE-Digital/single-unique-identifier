@@ -3,12 +3,14 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
 namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 
 public class QueryProvidersFunction(
     ILogger<QueryProvidersFunction> logger,
-    IQueryProvidersService queryProvidersService
+    IQueryProvidersService queryProvidersService,
+    IIdRegisterRepository idRegisterRepository
 )
 {
     [Function(nameof(QueryProvidersFunction))]
@@ -21,10 +23,31 @@ public class QueryProvidersFunction(
         using var logScope = logger.BeginScope("CorrelationId: {CorrelationId}", data.InvocationId);
         logger.LogInformation("Query Provider triggered");
 
-        var results = await queryProvidersService.QueryProvidersAsync(data, cancellationToken);
+        var result = await queryProvidersService.QueryProvidersAsync(data, cancellationToken);
+
+        if (!result.Success || result.Value == null)
+        {
+            logger.LogInformation("No provider results returned");
+            return [];
+        }
+
+        foreach (var searchResultItem in result.Value)
+        {
+            await idRegisterRepository.UpsertAsync(
+                new IdRegisterEntry()
+                {
+                    Sui = data.Suid,
+                    CustodianId = searchResultItem.ProviderId,
+                    RecordType = searchResultItem.RecordType,
+                    Provenance = Provenance.DiscoveredViaFanout,
+                    LastIdDeliveredAtUtc = null,
+                },
+                cancellationToken
+            );
+        }
 
         logger.LogInformation("Query Provider request completed");
 
-        return results is { Success: true, Value: not null } ? results.Value : [];
+        return result.Value;
     }
 }
