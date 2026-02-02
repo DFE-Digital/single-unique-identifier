@@ -56,6 +56,7 @@
   <Folder Name="/Apps/StubCustodians/tests/">
     <Project Path="Apps/StubCustodians/tests/SUI.StubCustodians.API.Unit.Tests/SUI.StubCustodians.API.Unit.Tests.csproj" />
     <Project Path="Apps/StubCustodians/tests/SUI.StubCustodians.Application.Unit.Tests/SUI.StubCustodians.Application.Unit.Tests.csproj" />
+    <Project Path="Apps/StubCustodians/tests/SUI.StubCustodians.Infrastructure.Unit.Tests/SUI.StubCustodians.Infrastructure.Unit.Tests.csproj" />
   </Folder>
   <Folder Name="/Apps/Transfer/" />
   <Folder Name="/Apps/Transfer/src/">
