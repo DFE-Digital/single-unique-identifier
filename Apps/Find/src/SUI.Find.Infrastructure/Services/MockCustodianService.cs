@@ -175,7 +175,7 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
     {
         public string Version { get; set; } = null!;
         public List<MockDsaRule> Defaults { get; set; } = null!;
-        public List<MockDsaException> Exceptions { get; set; } = null!;
+        public List<MockDsaExceptionDto> Exceptions { get; set; } = null!;
     }
 
     private sealed class MockDsaRule
@@ -188,7 +188,7 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
         public DateTimeOffset? ValidFrom { get; set; } = null!;
     }
 
-    private sealed class MockDsaException
+    private sealed class MockDsaExceptionDto
     {
         public string Effect { get; set; } = null!;
         public List<string> Modes { get; set; } = null!;
