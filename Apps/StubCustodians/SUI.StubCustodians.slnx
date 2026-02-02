@@ -9,5 +9,6 @@
   <Folder Name="/tests/">
     <Project Path="tests\SUI.StubCustodians.API.Unit.Tests\SUI.StubCustodians.API.Unit.Tests.csproj" />
     <Project Path="tests\SUI.StubCustodians.Application.Unit.Tests\SUI.StubCustodians.Application.Unit.Tests.csproj" />
+    <Project Path="tests\SUI.StubCustodians.Infrastructure.Unit.Tests\SUI.StubCustodians.Infrastructure.Unit.Tests.csproj" />
   </Folder>
 </Solution>
