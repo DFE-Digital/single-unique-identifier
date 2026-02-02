@@ -82,7 +82,6 @@ module "function_app" {
       FUNCTIONS_WORKER_RUNTIME       = "dotnet-isolated"
       FUNCTIONS_EXTENSION_VERSION    = "~4"
       WEBSITE_RUN_FROM_PACKAGE       = "1"
-      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       AuditProcessorConnectionString = module.audit_processor_function_app.storage_connection_string
       StubCustodiansBaseUrl          = try(
         "https://${data.terraform_remote_state.stub_custodians[0].outputs.web_app_default_hostname}",
@@ -91,6 +90,8 @@ module "function_app" {
     },
     var.app_settings
   )
+
+  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
 
   tags = var.tags
 }
@@ -116,10 +117,11 @@ module "audit_processor_function_app" {
       FUNCTIONS_WORKER_RUNTIME    = "dotnet-isolated"
       FUNCTIONS_EXTENSION_VERSION = "~4"
       WEBSITE_RUN_FROM_PACKAGE    = "1"
-      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
     },
     var.app_settings
   )
+
+  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
 
   tags = var.tags
 }
