@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
 namespace SUI.Find.Infrastructure.Extensions;
@@ -12,8 +13,8 @@ public static class HostApplicationBuilderOpenTelemetryExtensions
 {
     public static IHostApplicationBuilder UseOpenTelemetry(this IHostApplicationBuilder builder)
     {
-        const string AppInsightsConnectionStringKey = "APPLICATIONINSIGHTS_CONNECTION_STRING";
-        const string OtlpEndpointKey = "OTEL_EXPORTER_OTLP_ENDPOINT";
+        const string appInsightsConnectionStringKey = "APPLICATIONINSIGHTS_CONNECTION_STRING";
+        const string otlpEndpointKey = "OTEL_EXPORTER_OTLP_ENDPOINT";
 
         builder.Logging.AddOpenTelemetry(logging =>
         {
@@ -22,12 +23,28 @@ public static class HostApplicationBuilderOpenTelemetryExtensions
             logging.ParseStateValues = true;
         });
 
-        var appInsightsConnectionString = builder.Configuration[AppInsightsConnectionStringKey];
-        var otlpEndpoint = builder.Configuration[OtlpEndpointKey];
+        var appInsightsConnectionString = builder.Configuration[appInsightsConnectionStringKey];
+        var otlpEndpoint = builder.Configuration[otlpEndpointKey];
 
-        var telemetry = builder
+        var openTelemetryBuilder = builder
             .Services.AddOpenTelemetry()
-            .WithTracing(tracing => tracing.AddHttpClientInstrumentation())
+            .WithTracing(tracing =>
+            {
+                tracing
+                    .AddHttpClientInstrumentation(options => options.RecordException = true)
+                    .AddSource("Azure.Data.Tables")
+                    .AddSource("Azure.Security.KeyVault.Secrets")
+                    .AddSource("Azure.Storage.Queues");
+            })
+            .WithMetrics(metrics =>
+                metrics
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddProcessInstrumentation()
+                    .AddMeter("System.Net.NameResolution")
+                    .AddMeter("System.Net.Security")
+                    .AddMeter("System.Net.Sockets")
+            )
             .UseFunctionsWorkerDefaults();
 
         var hasAppInsights = !string.IsNullOrWhiteSpace(appInsightsConnectionString);
@@ -35,12 +52,12 @@ public static class HostApplicationBuilderOpenTelemetryExtensions
 
         if (hasAppInsights)
         {
-            telemetry.UseAzureMonitorExporter();
+            openTelemetryBuilder.UseAzureMonitorExporter();
         }
 
         if (hasOtlpEndpoint)
         {
-            telemetry.UseOtlpExporter();
+            openTelemetryBuilder.UseOtlpExporter();
         }
 
         return builder;
