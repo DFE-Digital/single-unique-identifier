@@ -29,6 +29,12 @@ primarily the .NET SDK and `dotnet tool restore` from the repo root.
     * Docker is only required to run Azurite as a local container. Azurite provides the dependencies to run Azure Functions locally. There are other approaches to [running Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-install-azurite) that do not require Docker.
 5. If using Rider, install [Azure Toolkit for Rider](https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider)
 
+### PDS Fhir setup steps
+
+- Follow the (Fhir readme)[./pds_fhir_local_setup.md] for using the matching service.
+  - !Important - The .env file contains secrets so keep it away from source control and any AI ingestion tools.
+
+
 ### To run locally
 
 #### Run Azurite

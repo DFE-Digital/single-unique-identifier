@@ -16,13 +16,13 @@ public class MatchPersonOrchestrationService(
     IMatchingService matchService,
     ICustodianService custodianService,
     IPersonIdEncryptionService encryptionService,
-    IOptions<EncryptionConfiguration> encryptionConfig,
-    CancellationToken ct
-) : IPersonIdRepresentationService
+    IOptions<EncryptionConfiguration> encryptionConfig
+) : IMatchPersonOrchestrationService
 {
     public async Task<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,
-        string clientId
+        string clientId,
+        CancellationToken ct
     )
     {
         var matchResult = await matchService.MatchPersonAsync(specification, ct);
@@ -47,7 +47,7 @@ public class MatchPersonOrchestrationService(
         string clientId
     )
     {
-        var encrypt = encryptionConfig.Value.EnableGlobalPersonIdEncryption;
+        var encrypt = encryptionConfig.Value.EnablePersonIdEncryption;
 
         var client = await custodianService.GetCustodianAsync(clientId);
         if (!client.Success || client.Value is null)

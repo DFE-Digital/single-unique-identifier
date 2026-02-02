@@ -6,7 +6,7 @@ using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models.Fhir;
 using SUI.Find.Infrastructure.Services.Fhir;
 
-namespace SUI.Find.Infrastructure.UnitTests.Services.FhirServicesTests;
+namespace SUI.Find.Infrastructure.Services;
 
 /// <summary>
 /// Override AuthTokenService to use local keys instead of Key Vault.

@@ -18,7 +18,7 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
     {
         try
         {
-            var client = await fhirClientFactory.CreateFhirClientAsync();
+            var client = await fhirClientFactory.CreateFhirClientAsync(ct);
             var searchParams = SearchParamsFactory.Create(searchQuery);
 
             logger.LogInformation("Searching for NHS patient record...");

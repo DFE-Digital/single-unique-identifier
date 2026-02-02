@@ -29,15 +29,13 @@ public class FindPersonIdAsyncTests
     public FindPersonIdAsyncTests()
     {
         var logger = Substitute.For<ILogger<MatchPersonOrchestrationService>>();
-        var ct = CancellationToken.None;
 
         _sut = new MatchPersonOrchestrationService(
             logger,
             _matchingService,
             _custodianService,
             _encryptionService,
-            _encryptionConfiguration,
-            ct
+            _encryptionConfiguration
         );
     }
 
@@ -47,7 +45,7 @@ public class FindPersonIdAsyncTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
         _encryptionConfiguration.Value.Returns(
-            new EncryptionConfiguration() { EnableGlobalPersonIdEncryption = false }
+            new EncryptionConfiguration() { EnablePersonIdEncryption = false }
         );
         _custodianService
             .GetCustodianAsync("test-client-id")
@@ -71,7 +69,8 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id"
+            clientId: "test-client-id",
+            CancellationToken.None
         );
 
         // Assert
@@ -84,7 +83,7 @@ public class FindPersonIdAsyncTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
         _encryptionConfiguration.Value.Returns(
-            new EncryptionConfiguration() { EnableGlobalPersonIdEncryption = false }
+            new EncryptionConfiguration() { EnablePersonIdEncryption = false }
         );
         _custodianService
             .GetCustodianAsync("test-client-id")
@@ -108,7 +107,8 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id"
+            clientId: "test-client-id",
+            CancellationToken.None
         );
 
         // Assert
@@ -121,7 +121,7 @@ public class FindPersonIdAsyncTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
         _encryptionConfiguration.Value.Returns(
-            new EncryptionConfiguration() { EnableGlobalPersonIdEncryption = true }
+            new EncryptionConfiguration() { EnablePersonIdEncryption = true }
         );
         _custodianService
             .GetCustodianAsync("test-client-id")
@@ -145,7 +145,8 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id"
+            clientId: "test-client-id",
+            CancellationToken.None
         );
 
         // Assert
@@ -158,7 +159,7 @@ public class FindPersonIdAsyncTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
         _encryptionConfiguration.Value.Returns(
-            new EncryptionConfiguration() { EnableGlobalPersonIdEncryption = true }
+            new EncryptionConfiguration() { EnablePersonIdEncryption = true }
         );
         _custodianService
             .GetCustodianAsync("test-client-id")
@@ -186,7 +187,8 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id"
+            clientId: "test-client-id",
+            CancellationToken.None
         );
 
         // Assert
@@ -215,7 +217,8 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id"
+            clientId: "test-client-id",
+            CancellationToken.None
         );
 
         // Assert
@@ -238,7 +241,8 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id"
+            clientId: "test-client-id",
+            CancellationToken.None
         );
 
         // Assert
@@ -259,7 +263,8 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id"
+            clientId: "test-client-id",
+            CancellationToken.None
         );
 
         // Assert

@@ -42,6 +42,15 @@ public class MatchingService(
 
             var result = await PerformSearchAsync(searchQueries, ct);
 
+            if (result.MatchStatus == MatchStatus.Error)
+            {
+                logger.LogWarning(
+                    "Matching service encountered an error: {ErrorMessage}",
+                    result.ErrorMessage
+                );
+                return new Error();
+            }
+
             if (result.MatchStatus is not MatchStatus.Match || result.NhsNumber is null)
             {
                 return new NotFound();
@@ -61,7 +70,11 @@ public class MatchingService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error occurred when trying to match person: {Message}", ex.Message);
+            logger.LogError(
+                ex,
+                "Unexpected error occurred when trying to match person: {Message}",
+                ex.Message
+            );
             return new Error();
         }
     }

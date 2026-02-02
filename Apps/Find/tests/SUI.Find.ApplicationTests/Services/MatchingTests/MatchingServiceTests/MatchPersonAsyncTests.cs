@@ -58,6 +58,8 @@ public class MatchPersonAsyncTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
 
+        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
+
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(Domain.Models.Result<SearchResult>.Fail("Simulated FHIR service error"));
@@ -201,5 +203,99 @@ public class MatchPersonAsyncTests
 
         // Assert
         Assert.IsType<NhsPersonId>(result.Value);
+    }
+
+    [Fact]
+    public async Task ShouldReturnError_WhenNhsNumberFailsToParse()
+    {
+        // Arrange
+        var personSpecification = new PersonSpecification
+        {
+            Given = "John",
+            Family = "Doe",
+            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
+        };
+
+        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
+
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
+            .Returns(
+                Domain.Models.Result<SearchResult>.Ok(
+                    new SearchResult
+                    {
+                        Type = SearchResult.ResultType.Matched,
+                        Score = 0.98m,
+                        NhsNumber = "INVALID-NHS-NUMBER",
+                    }
+                )
+            );
+
+        // Act
+        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+
+        // Assert
+        Assert.IsType<Error>(result.Value);
+    }
+
+    [Fact]
+    public async Task ShouldTryNextQuery_WhenTheFirstFails_ThenPass()
+    {
+        // Arrange
+        var personSpecification = new PersonSpecification
+        {
+            Given = "John",
+            Family = "Doe",
+            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
+        };
+
+        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
+
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
+            .Returns(
+                Domain.Models.Result<SearchResult>.Fail("Simulated FHIR service error"),
+                Domain.Models.Result<SearchResult>.Ok(
+                    new SearchResult
+                    {
+                        Type = SearchResult.ResultType.Matched,
+                        Score = 0.98m,
+                        NhsNumber = "9876543210",
+                    }
+                )
+            );
+
+        // Act
+        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+
+        // Assert
+        Assert.IsType<NhsPersonId>(result.Value);
+    }
+
+    [Fact]
+    public async Task ShouldReturnError_IfExceptionIsThrownInSearch()
+    {
+        // Edge case test
+        // Arrange
+        var personSpecification = new PersonSpecification
+        {
+            Given = "John",
+            Family = "Doe",
+            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
+        };
+
+        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
+
+        _fhirService
+            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
+            .Returns<Task<Domain.Models.Result<SearchResult>>>(_ =>
+                throw new Exception("Simulated exception")
+            );
+
+        // Act
+        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+
+        // Assert
+        Assert.IsType<Error>(result.Value);
     }
 }

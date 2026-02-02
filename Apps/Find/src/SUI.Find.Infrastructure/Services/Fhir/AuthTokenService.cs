@@ -136,8 +136,10 @@ public class AuthTokenService(
             parsedJson?["access_token"]?.ToString()
             ?? throw new InvalidOperationException("Response did not contain an 'access_token'.");
 
-        var expiresIn = parsedJson["expires_in"]?.GetValue<int>() ?? tokenExpiresInMinutes * 60;
-        var expirationTime = DateTimeOffset.UtcNow.AddSeconds(expiresIn);
+        var hasExpiry = int.TryParse(parsedJson["expires_in"]!.ToString(), out var expiresIn);
+        var expirationTime = DateTimeOffset.UtcNow.AddSeconds(
+            hasExpiry ? expiresIn : tokenExpiresInMinutes
+        );
 
         return new CachedToken(accessToken, expirationTime);
     }
