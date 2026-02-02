@@ -34,7 +34,7 @@ output "key_vault_name" {
 }
 
 output "api_key_secret_name" {
-  value       = azurerm_key_vault_secret.find_api_key.name
+  value       = azurerm_key_vault_secret.find_match_api_key.name
   description = "Name of the API key secret in Key Vault."
 }
 
