@@ -193,7 +193,7 @@ public class MatchFunctionTests
         context.InvocationId.Returns(Guid.NewGuid().ToString());
 
         // Malformed request (no body)
-        var req = MockHttpRequestData.Create(requestData: null);
+        var req = MockHttpRequestData.Create(requestData: null!);
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
 
