@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Exporter;
+using Shouldly;
 using SUI.Find.Infrastructure.Extensions;
 
 namespace SUI.Find.Infrastructure.UnitTests.Extensions;
@@ -23,14 +24,11 @@ public class HostApplicationBuilderOpenTelemetryExtensionsTests
 
         builder.UseOpenTelemetry();
 
-        Assert.Contains(
-            builder.Services,
-            descriptor =>
-                descriptor.ServiceType == typeof(IConfigureOptions<AzureMonitorExporterOptions>)
+        builder.Services.ShouldContain(descriptor =>
+            descriptor.ServiceType == typeof(IConfigureOptions<AzureMonitorExporterOptions>)
         );
-        Assert.Contains(
-            builder.Services,
-            descriptor => descriptor.ServiceType == typeof(IOptionsFactory<OtlpExporterOptions>)
+        builder.Services.ShouldContain(descriptor =>
+            descriptor.ServiceType == typeof(IOptionsFactory<OtlpExporterOptions>)
         );
     }
 
@@ -47,14 +45,11 @@ public class HostApplicationBuilderOpenTelemetryExtensionsTests
 
         builder.UseOpenTelemetry();
 
-        Assert.Contains(
-            builder.Services,
-            descriptor =>
-                descriptor.ServiceType == typeof(IConfigureOptions<AzureMonitorExporterOptions>)
+        builder.Services.ShouldContain(descriptor =>
+            descriptor.ServiceType == typeof(IConfigureOptions<AzureMonitorExporterOptions>)
         );
-        Assert.DoesNotContain(
-            builder.Services,
-            descriptor => descriptor.ServiceType == typeof(IOptionsFactory<OtlpExporterOptions>)
+        builder.Services.ShouldNotContain(descriptor =>
+            descriptor.ServiceType == typeof(IOptionsFactory<OtlpExporterOptions>)
         );
     }
 
@@ -70,14 +65,11 @@ public class HostApplicationBuilderOpenTelemetryExtensionsTests
 
         builder.UseOpenTelemetry();
 
-        Assert.DoesNotContain(
-            builder.Services,
-            descriptor =>
-                descriptor.ServiceType == typeof(IConfigureOptions<AzureMonitorExporterOptions>)
+        builder.Services.ShouldNotContain(descriptor =>
+            descriptor.ServiceType == typeof(IConfigureOptions<AzureMonitorExporterOptions>)
         );
-        Assert.Contains(
-            builder.Services,
-            descriptor => descriptor.ServiceType == typeof(IOptionsFactory<OtlpExporterOptions>)
+        builder.Services.ShouldContain(descriptor =>
+            descriptor.ServiceType == typeof(IOptionsFactory<OtlpExporterOptions>)
         );
     }
 
@@ -88,14 +80,11 @@ public class HostApplicationBuilderOpenTelemetryExtensionsTests
 
         builder.UseOpenTelemetry();
 
-        Assert.DoesNotContain(
-            builder.Services,
-            descriptor =>
-                descriptor.ServiceType == typeof(IConfigureOptions<AzureMonitorExporterOptions>)
+        builder.Services.ShouldNotContain(descriptor =>
+            descriptor.ServiceType == typeof(IConfigureOptions<AzureMonitorExporterOptions>)
         );
-        Assert.DoesNotContain(
-            builder.Services,
-            descriptor => descriptor.ServiceType == typeof(IOptionsFactory<OtlpExporterOptions>)
+        builder.Services.ShouldNotContain(descriptor =>
+            descriptor.ServiceType == typeof(IOptionsFactory<OtlpExporterOptions>)
         );
     }
 
