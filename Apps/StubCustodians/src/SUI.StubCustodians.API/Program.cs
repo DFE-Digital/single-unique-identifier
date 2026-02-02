@@ -4,6 +4,7 @@ using SUI.StubCustodians.API.OpenApi;
 using SUI.StubCustodians.API.OpenApiTransformers;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Services;
+using SUI.StubCustodians.Infrastructure.Extensions;
 using SUI.StubCustodians.Infrastructure.Services;
 
 namespace SUI.StubCustodians.API
@@ -15,6 +16,8 @@ namespace SUI.StubCustodians.API
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
+
+            builder.UseOpenTelemetry();
 
             builder.Services.AddOpenApi(options =>
             {
