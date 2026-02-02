@@ -57,35 +57,29 @@ data "terraform_remote_state" "core" {
   }
 }
 
-module "function_app" {
-  source = "../modules/linux_function_app"
+module "key_vault" {
+  source = "../modules/key_vault"
 
-  name                = local.function_app_name
+  name                = local.key_vault_name
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
-  service_plan_id     = data.terraform_remote_state.core.outputs.app_service_plan_id
-
-  storage_account_name = local.function_storage_account_name
 
   environment_tag  = var.environment_tag
   product          = var.product
   service_offering = var.service_offering
 
-  dotnet_version = var.function_dotnet_version
-
-  app_settings = merge(
-    {
-      FUNCTIONS_WORKER_RUNTIME              = "dotnet-isolated"
-      FUNCTIONS_EXTENSION_VERSION           = "~4"
-      WEBSITE_RUN_FROM_PACKAGE              = "1"
-      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
-      AuditProcessorConnectionString        = module.audit_processor_function_app.storage_connection_string,
-      KeyVault__KeyVaultUri                 = module.key_vault.vault_uri
-    },
-    var.find_app_settings
-  )
-
   tags = var.tags
+}
+
+resource "random_password" "find_match_api_key" {
+  length  = 32
+  special = true
+}
+
+resource "azurerm_key_vault_secret" "find_match_api_key" {
+  name         = "find-match-api-key"
+  value        = random_password.find_match_api_key.result
+  key_vault_id = module.key_vault.id
 }
 
 module "audit_processor_function_app" {
@@ -117,16 +111,49 @@ module "audit_processor_function_app" {
   tags = var.tags
 }
 
-module "key_vault" {
-  source = "../modules/key_vault"
+module "function_app" {
+  source = "../modules/linux_function_app"
 
-  name                = local.key_vault_name
+  name                = local.function_app_name
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
+  service_plan_id     = data.terraform_remote_state.core.outputs.app_service_plan_id
+
+  storage_account_name = local.function_storage_account_name
 
   environment_tag  = var.environment_tag
   product          = var.product
   service_offering = var.service_offering
 
+  dotnet_version = var.function_dotnet_version
+
+  app_settings = merge(
+    {
+      FUNCTIONS_WORKER_RUNTIME              = "dotnet-isolated"
+      FUNCTIONS_EXTENSION_VERSION           = "~4"
+      WEBSITE_RUN_FROM_PACKAGE              = "1"
+      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
+      AuditProcessorConnectionString        = module.audit_processor_function_app.storage_connection_string,
+      KeyVault__KeyVaultUri                 = module.key_vault.vault_uri
+      "MatchFunction__XApiKey"              = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.find_match_api_key.name}/)"
+    },
+    var.find_app_settings
+  )
+
   tags = var.tags
+
+  depends_on = [
+    azurerm_key_vault_secret.find_match_api_key
+  ]
+}
+
+# Function App access to Key Vault secrets
+resource "azurerm_key_vault_access_policy" "function_app" {
+  key_vault_id = module.key_vault.id
+  tenant_id    = module.function_app.tenant_id
+  object_id    = module.function_app.principal_id
+
+  secret_permissions = [
+    "Get",
+  ]
 }
