@@ -35,9 +35,10 @@ locals {
   )
 
   # Key Vault name
-  key_vault_descriptor = "kv"
+  # look of name: {subscription}{environment}kv-{region}-find
+  key_vault_descriptor = "findkv01"
   key_vault_name = format(
-    "%s%skv-%s-find",
+    "%s%skv-%s-%s",
     var.subscription_prefix,
     var.environment_id,
     var.region_short,
