@@ -37,6 +37,20 @@ primarily the .NET SDK and `dotnet tool restore` from the repo root.
 
 ### To run locally
 
+#### Configure x-api-key
+
+The MatchPerson function requires an x-api-key header for authentication. Configure it in your `local.settings.json`:
+
+```json
+{
+  "Values": {
+    "MatchFunction__XApiKey": "your-local-dev-key"
+  }
+}
+```
+
+In Dev/Test/Prod environments, the key is automatically retrieved from Azure Key Vault (secret name: `find-api-key`).
+
 #### Run Azurite
 
 ```

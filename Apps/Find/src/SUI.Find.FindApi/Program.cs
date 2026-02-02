@@ -16,6 +16,7 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Interfaces.Matching;
 using SUI.Find.Application.Services;
 using SUI.Find.Application.Services.Matching;
+using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
 using SUI.Find.Infrastructure.Extensions;
@@ -50,6 +51,11 @@ builder.Services.Configure<AuthTokenServiceConfig>(
 builder
     .Services.AddOptions<EncryptionConfiguration>()
     .BindConfiguration(EncryptionConfiguration.SectionName)
+    .ValidateDataAnnotations();
+
+builder
+    .Services.AddOptions<MatchFunctionConfiguration>()
+    .BindConfiguration(MatchFunctionConfiguration.SectionName)
     .ValidateDataAnnotations();
 
 // .NET services

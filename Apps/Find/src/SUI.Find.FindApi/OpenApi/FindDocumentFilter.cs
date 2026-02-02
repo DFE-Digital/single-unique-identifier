@@ -34,6 +34,14 @@ public sealed class FindDocumentFilter : IDocumentFilter
             },
         };
 
+        document.Components.SecuritySchemes["x-api-key"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.ApiKey,
+            In = ParameterLocation.Header,
+            Name = "x-api-key",
+            Description = "API Key for authentication",
+        };
+
         var oauthRequirement = new OpenApiSecurityRequirement
         {
             [
@@ -43,6 +51,20 @@ public sealed class FindDocumentFilter : IDocumentFilter
                     {
                         Type = ReferenceType.SecurityScheme,
                         Id = "oauth2_clientCredentials",
+                    },
+                }
+            ] = Array.Empty<string>(),
+        };
+
+        var apiKeyRequirement = new OpenApiSecurityRequirement
+        {
+            [
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "x-api-key",
                     },
                 }
             ] = Array.Empty<string>(),
@@ -58,6 +80,8 @@ public sealed class FindDocumentFilter : IDocumentFilter
                 || route.StartsWith("openapi")
                 || route.StartsWith("swagger");
 
+            bool isMatchEndpoint = route.Contains("matchperson");
+
             foreach (var op in pathItem.Operations.Values)
             {
                 if (isPublic)
@@ -66,7 +90,18 @@ public sealed class FindDocumentFilter : IDocumentFilter
                     continue;
                 }
 
-                op.Security = new List<OpenApiSecurityRequirement> { oauthRequirement };
+                if (isMatchEndpoint)
+                {
+                    op.Security = new List<OpenApiSecurityRequirement>
+                    {
+                        oauthRequirement,
+                        apiKeyRequirement,
+                    };
+                }
+                else
+                {
+                    op.Security = new List<OpenApiSecurityRequirement> { oauthRequirement };
+                }
             }
         }
 
