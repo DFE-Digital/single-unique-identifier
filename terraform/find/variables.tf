@@ -45,7 +45,13 @@ variable "tags" {
 }
 
 variable "find_app_settings" {
-  description = "Additional app settings to apply to the function app."
+  description = "Additional app settings to apply to the Find function app."
+  type        = map(string)
+  default     = {}
+}
+
+variable "audit_app_settings" {
+  description = "Additional app settings to apply to the Audit function app."
   type        = map(string)
   default     = {}
 }
