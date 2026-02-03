@@ -1,0 +1,63 @@
+name: 'Build, Test, Deploy: "Custodians" Solution'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for deployment
+        required: false
+        default: d01
+        type: choice
+        options:
+          - d01
+      deploy:
+        description: Deploy to Azure Web App
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - main
+    paths:
+      - "Apps/StubCustodians/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Apps/StubCustodians/**"
+
+jobs:
+  build-and-test-StubCustodians:
+    name: StubCustodians - Build Test Dotnet
+    uses: ./.github/workflows/build-test-dotnet.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      checks: write
+      packages: read
+      actions: write
+    with:
+      directory_name: Apps/StubCustodians
+      project_names: '["SUI.StubCustodians.API"]'
+
+  deploy-StubCustodians:
+    name: Custodians - Deploy Web App
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: build-and-test-StubCustodians
+    uses: ./.github/workflows/deploy-dotnet-webapp.yml
+    secrets: inherit
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      directory_name: Apps/StubCustodians
+      artifact_name: ${{ fromJson(needs.build-and-test-StubCustodians.outputs.artifact_names)['SUI.StubCustodians.API'] }}
+      component_descriptor: custodians01
+      package_path: publish
+      dotnet_version: "9.0.x"

@@ -1,5 +1,9 @@
 name: Build and Test "Matching" Solution
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
@@ -24,5 +28,7 @@ jobs:
       pull-requests: write
       checks: write
       packages: read
+      actions: write
     with:
       directory_name: Apps/Matching
+      project_names: '["SUI.Matching.API"]'

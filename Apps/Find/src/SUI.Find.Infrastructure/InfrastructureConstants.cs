@@ -14,4 +14,9 @@ public static class InfrastructureConstants
     {
         public const string TableName = "ResultsUrlMappings";
     }
+
+    public static class StorageTableIdRegister
+    {
+        public const string TableName = "SuiCustodianRegister";
+    }
 }

@@ -5,18 +5,16 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Events.Audit;
-using SUI.Find.FindApi.Factories;
 using SUI.Find.FindApi.Models;
 
 namespace SUI.Find.FindApi.Middleware;
 
 [ExcludeFromCodeCoverage(Justification = "Middleware - covered by integration tests")]
 // ReSharper disable once ClassNeverInstantiated.Global
-public class AuditMiddleware(
-    ILogger<AuditMiddleware> logger,
-    IQueueClientFactory queueClientFactory
-) : IFunctionsWorkerMiddleware
+public class AuditMiddleware(ILogger<AuditMiddleware> logger, IAuditQueueClient auditClient)
+    : IFunctionsWorkerMiddleware
 {
     private const string SwaggerPathSegment = "swagger";
     private const string TokenPathSegment = "auth/token";
@@ -84,12 +82,12 @@ public class AuditMiddleware(
                 Timestamp = DateTime.UtcNow,
                 CorrelationId = context.InvocationId,
                 ServiceName = "AuditMiddleware",
-                EventName = "HTTP_REQUEST",
+                EventName = ApplicationConstants.Audit.HttpRequest.EventName,
                 Actor = new AuditActor { ActorId = clientId, ActorRole = "Organisation" },
                 Payload = JsonSerializer.SerializeToElement(payload),
             };
 
-            await SendAuditMessage(auditEvent);
+            await auditClient.SendAuditEventAsync(auditEvent, CancellationToken.None);
         }
         else
         {
@@ -102,27 +100,7 @@ public class AuditMiddleware(
         await next(context);
     }
 
-    private async Task SendAuditMessage(AuditEvent auditMessage)
-    {
-        var queueClient = queueClientFactory.GetAuditClient();
-        var messageJson = JsonSerializer.Serialize(auditMessage, JsonSerializerOptions.Web);
-        var auditMessageBytes = System.Text.Encoding.UTF8.GetBytes(messageJson);
-        var base64Message = Convert.ToBase64String(auditMessageBytes);
-        try
-        {
-            await queueClient.SendMessageAsync(base64Message);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(
-                ex,
-                "Failed to send audit message for CorrelationId: {CorrelationId}",
-                auditMessage.CorrelationId
-            );
-        }
-    }
-
-    private async Task<string> GetRequestSuid(HttpRequestData httpReq)
+    private static async Task<string> GetRequestSuid(HttpRequestData httpReq)
     {
         var requestBody = await httpReq.ReadAsStringAsync();
         var request = JsonSerializer.Deserialize<StartSearchRequest>(

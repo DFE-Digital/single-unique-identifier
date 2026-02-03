@@ -1,3 +1,8 @@
 namespace SUI.Find.Application.Models;
 
-public sealed record PolicyContext(string ClientId, IReadOnlyList<string> Scopes);
+public sealed record PolicyContext(
+    string ClientId,
+    IReadOnlyList<string> Scopes,
+    string Purpose,
+    string OrgType
+);

@@ -34,7 +34,7 @@ variable "product" {
 }
 
 variable "service_offering" {
-  description = "Service_Offering tag value."
+  description = "Service Offering tag value."
   type        = string
 }
 
@@ -59,4 +59,16 @@ variable "app_service_plan_worker_count" {
   description = "Number of workers for the App Service plan."
   type        = number
   default     = 1
+}
+
+variable "log_analytics_sku" {
+  description = "SKU for the Log Analytics workspace."
+  type        = string
+  default     = "PerGB2018"
+}
+
+variable "log_analytics_retention_in_days" {
+  description = "Retention period for Log Analytics workspace data."
+  type        = number
+  default     = 30
 }

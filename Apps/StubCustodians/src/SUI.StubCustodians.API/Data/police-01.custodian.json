@@ -1,0 +1,39 @@
+{
+  "orgId": "POLICE-01",
+  "orgName": "Example Police Custodian",
+  "orgType": "POLICE",
+  "records": [
+    {
+      "recordId": "POL-3210-P",
+      "personId": "1XbwUS3fCfGcVSwRB0rJLA",
+      "recordType": "crime-justice.details",
+      "version": "1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/crime-justice.details.v1.json",
+      "payload": {
+        "policeMarkerDetails": "Individuals at the address may resort to violent behaviour",
+        "servicesKnownTo": [
+          "Youth justice service (YJS)",
+          "Police"
+        ],
+        "lastPoliceProtectionPowerEvent": "None",
+        "missingEpisodes": [
+          {
+            "date": "2024-10-30",
+            "returnedHomeInterviewAttended": true
+          }
+        ],
+        "riskSexualExploitation": null,
+        "riskCriminalExploitation": true,
+        "riskRadicalisation": true,
+        "riskModernSlaveryAndTrafficking": null,
+        "riskGangsAndYouthViolence": true,
+        "crimeActiveStatusesAndPlans": [
+          {
+            "status": "Open to Youth Justice Service",
+            "plan": null
+          }
+        ]
+      }
+    }
+  ]
+}

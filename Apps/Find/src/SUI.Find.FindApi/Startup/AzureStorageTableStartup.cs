@@ -13,7 +13,7 @@ public class AzureStorageTableStartup(IEnumerable<ITableServiceEnsureCreated> ta
     {
         foreach (var tableService in tableServices)
         {
-            await tableService.EnsureAuditTableExistsAsync(cancellationToken);
+            await tableService.EnsureTableExistsAsync(cancellationToken);
         }
     }
 

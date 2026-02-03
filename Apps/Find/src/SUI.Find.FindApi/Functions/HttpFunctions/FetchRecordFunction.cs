@@ -35,7 +35,7 @@ public class FetchRecordFunction(
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.BadGateway, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> FetchRecord(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/records/{recordId}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/records/{recordId}")]
             HttpRequestData req,
         string recordId,
         FunctionContext context,
@@ -85,14 +85,11 @@ public class FetchRecordFunction(
                     cancellationToken
                 ),
             async unauthorized =>
-            {
-                logger.LogDebug("FAILED ON FETCH RECORD AUTHORIZATION");
-                return await HttpResponseUtility.UnauthorizedResponse(
+                await HttpResponseUtility.UnauthorizedResponse(
                     req,
                     context.InvocationId,
                     cancellationToken
-                );
-            },
+                ),
             async error =>
                 await HttpResponseUtility.InternalServerErrorResponse(
                     req,

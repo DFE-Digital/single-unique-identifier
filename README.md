@@ -13,6 +13,24 @@ To view our documentation, please visit the [Docs](/Docs/index.md) directory.
 | [LICENCE](/LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
 | [Contributing](/CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
 
+## Glossary of Components
+
+* **`Matching Service`** (a.k.a. *`PDS Adapter`* or *`SUI.Matching.API`*) \
+  Match a PDS record (and NHS Number), given some demographic data.
+
+* **`MatchFunction`** (*"I know of this person, what is their ID"*) \
+  Enables Custodians to tell us that they have a record.
+  Invokes Matching Service (above), and updates the ID register; given some demographic data and some metadata about the data (record) they hold.
+
+* **`SearchFunction`** (a.k.a. *`Find-a-record`*) \
+  Find record pointers for a given SUI.
+
+* **`FetchRecordFunction`** (a.k.a. *`Fetch-a-record`* or *`Fetch`*) \
+  Resolve and return the actual data for a given record pointer.
+
+* **`StubCustodians`** (a.k.a. *`Stubs`*) \
+  Stub API that simulates real Custodians, to provide example data to Find and Fetch for testing purposes.
+
 ## Getting Started
 
 ### Prerequisites
@@ -29,6 +47,26 @@ dotnet husky install
 ```
 
 This will install the tools specified in `.config/dotnet-tools.json`, including CSharpier for code formatting and Husky.Net for pre-commit hooks to ensure consistent code style.
+
+### Local OpenTelemetry (Grafana otel-lgtm)
+
+To view local traces and logs from any app, run the Grafana otel-lgtm stack:
+
+```bash
+docker run --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 -ti grafana/otel-lgtm
+```
+
+Point your app at the local collector by specifying the values in the `local.settings.json` file:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_LOGS_EXPORTER=otlp
+OTEL_TRACES_SAMPLER=always_on
+OTEL_SERVICE_NAME=Your.App.Name
+```
+
+Open `http://localhost:3000` (admin/admin) and use Explore to view logs and traces.
 
 ## Repository structure
 

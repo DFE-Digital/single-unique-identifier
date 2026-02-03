@@ -1,1 +1,1 @@
-& "../../test_and_cover.ps1" -SolutionPath "./Apps/StubCustodians/StubCustodians.slnx"
+& "../../test_and_cover.ps1" -SolutionPath "./Apps/StubCustodians/SUI.StubCustodians.slnx"

@@ -8,6 +8,7 @@
     <ProjectReference Include="..\SUI.Find.Domain\SUI.Find.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FluentValidation" />
     <PackageReference Include="Microsoft.DurableTask.Client" />
     <PackageReference Include="OneOf" />
   </ItemGroup>

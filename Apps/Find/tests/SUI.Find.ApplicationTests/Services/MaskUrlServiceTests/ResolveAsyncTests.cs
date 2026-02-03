@@ -30,6 +30,7 @@ public class ResolveAsyncTests
         var mapping = new ResolvedFetchMapping(
             TargetUrl: "https://target.com",
             TargetOrgId: "targetOrg",
+            RequestingOrgId: "org1",
             RecordType: "Health"
         );
         _fetchUrlStorageService

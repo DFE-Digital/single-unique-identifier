@@ -10,6 +10,17 @@ public static class ApplicationConstants
     public static class Audit
     {
         public const string AccessQueueName = "audit-queue";
+
+        public static class HttpRequest
+        {
+            public const string EventName = "HTTP_REQUEST";
+        }
+
+        public static class PolicyEnforcementPoint
+        {
+            public const string FindEventName = "PEP_FIND";
+            public const string FetchRequestEventName = "PEP_FETCH_REQUEST";
+        }
     }
 
     public static class Providers

@@ -1,9 +1,10 @@
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
+using SUI.Find.FindApi.Functions.ActivityFunctions;
 using SUI.Find.FindApi.Functions.OrchestratorFunctions;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
@@ -26,70 +27,7 @@ public class SearchOrchestratorFunctionsTests
     public async Task RunOrchestrator_HasValidInput_Success()
     {
         // Arrange
-        var input = new SearchOrchestratorInput(
-            Suid: "1234567890123456",
-            Metadata: new SearchJobMetadata(
-                PersonId: "person-123",
-                DateTime.UtcNow,
-                "invocation-123"
-            ),
-            PolicyContext: new PolicyContext(ClientId: "test-client-1", ["scope1", "scope2"])
-        );
-        _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
-        _mockContext.InstanceId.Returns("instance-123");
-
-        IReadOnlyList<ProviderDefinition> providers = new List<ProviderDefinition>
-        {
-            new()
-            {
-                OrgId = "org1",
-                OrgName = "Provider 1",
-                OrgType = "Type A",
-                ProviderSystem = "System A",
-                ProviderName = "Provider Name 1",
-            },
-            new()
-            {
-                OrgId = "org2",
-                OrgName = "Provider 2",
-                OrgType = "Type B",
-                ProviderSystem = "System B",
-                ProviderName = "Provider Name 2",
-            },
-        };
-
-        _mockContext
-            .CallActivityAsync<IReadOnlyList<ProviderDefinition>>(
-                "GetProvidersFunction",
-                input.Suid,
-                Arg.Any<TaskOptions>()
-            )
-            .Returns(providers);
-
-        var result1 = new List<SearchResultItem>
-        {
-            new("System A", "Provider Name 1", "Record", "http://url1"),
-        };
-        var result2 = new List<SearchResultItem>
-        {
-            new("System B", "Provider Name 2", "Record", "http://url2"),
-        };
-
-        _mockContext
-            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
-                "QueryProvidersFunction",
-                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org1"),
-                Arg.Any<TaskOptions>()
-            )
-            .Returns(result1);
-
-        _mockContext
-            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
-                "QueryProvidersFunction",
-                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org2"),
-                Arg.Any<TaskOptions>()
-            )
-            .Returns(result2);
+        var input = ArrangeSuccessfulSearchOrchestration();
 
         // Act
         var result = await _orchestrator.RunOrchestrator(_mockContext);
@@ -106,6 +44,7 @@ public class SearchOrchestratorFunctionsTests
                 input.Suid,
                 Arg.Any<TaskOptions>()
             );
+
         await _mockContext
             .Received(2)
             .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
@@ -116,17 +55,41 @@ public class SearchOrchestratorFunctionsTests
     }
 
     [Fact]
+    public async Task ShouldCallPepAuditActivity_WhenResultsArePresent()
+    {
+        // Arrange
+        var input = ArrangeSuccessfulSearchOrchestration();
+
+        // Act
+        await _orchestrator.RunOrchestrator(_mockContext);
+
+        // Assert
+        await _mockContext
+            .Received(1)
+            .CallActivityAsync(
+                nameof(AuditPepFindActivity),
+                Arg.Is<AuditPepFindInput>(i =>
+                    i.PolicyContext == input.PolicyContext
+                    && i.Metadata == input.Metadata
+                    && i.SearchResultsWithDecisions.Count == 2
+                ),
+                Arg.Any<TaskOptions>()
+            );
+    }
+
+    [Fact]
     public async Task RunOrchestrator_NoProvidersFound_ReturnsEmptyListAndLogsWarning()
     {
         // Arrange
         var input = new SearchOrchestratorInput(
             Suid: "1234567890123456",
-            Metadata: new SearchJobMetadata(
-                PersonId: "person-123",
-                DateTime.UtcNow,
-                "invocation-123"
-            ),
-            PolicyContext: new PolicyContext(ClientId: "test-client-1", ["scope1", "scope2"])
+            Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
+            PolicyContext: new PolicyContext(
+                "test-client-1",
+                ["scope1", "scope2"],
+                "SAFEGUARDING",
+                "LOCAL_AUTHORITY"
+            )
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
@@ -160,12 +123,13 @@ public class SearchOrchestratorFunctionsTests
         // Arrange
         var input = new SearchOrchestratorInput(
             Suid: "",
-            Metadata: new SearchJobMetadata(
-                PersonId: "person-123",
-                DateTime.UtcNow,
-                "invocation-123"
-            ),
-            PolicyContext: new PolicyContext(ClientId: "test-client-1", ["scope1", "scope2"])
+            Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
+            PolicyContext: new PolicyContext(
+                "test-client-1",
+                ["scope1", "scope2"],
+                "SAFEGUARDING",
+                "LOCAL_AUTHORITY"
+            )
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
@@ -174,5 +138,116 @@ public class SearchOrchestratorFunctionsTests
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _orchestrator.RunOrchestrator(_mockContext)
         );
+    }
+
+    private SearchOrchestratorInput ArrangeSuccessfulSearchOrchestration()
+    {
+        var input = new SearchOrchestratorInput(
+            Suid: "1234567890123456",
+            Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
+            PolicyContext: new PolicyContext(
+                "test-client-1",
+                ["scope1", "scope2"],
+                "SAFEGUARDING",
+                "LOCAL_AUTHORITY"
+            )
+        );
+
+        _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
+        _mockContext.InstanceId.Returns("instance-123");
+
+        IReadOnlyList<ProviderDefinition> providers = new List<ProviderDefinition>
+        {
+            new()
+            {
+                OrgId = "org1",
+                OrgName = "Provider 1",
+                OrgType = "Type A",
+                ProviderSystem = "System A",
+                ProviderName = "Provider Name 1",
+                RecordType = "RecordA",
+                DsaPolicy = new DsaPolicyDefinition(),
+            },
+            new()
+            {
+                OrgId = "org2",
+                OrgName = "Provider 2",
+                OrgType = "Type B",
+                ProviderSystem = "System B",
+                ProviderName = "Provider Name 2",
+                RecordType = "RecordB",
+                DsaPolicy = new DsaPolicyDefinition(),
+            },
+        };
+
+        _mockContext
+            .CallActivityAsync<IReadOnlyList<ProviderDefinition>>(
+                "GetProvidersFunction",
+                input.Suid,
+                Arg.Any<TaskOptions>()
+            )
+            .Returns(providers);
+
+        // Unfiltered query results per provider
+        var queryResultOrg1 = new List<SearchResultItem>
+        {
+            new("System A", "Provider Name 1", "RecordA", "http://url1"),
+        };
+        var queryResultOrg2 = new List<SearchResultItem>
+        {
+            new("System B", "Provider Name 2", "RecordB", "http://url2"),
+        };
+
+        _mockContext
+            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                "QueryProvidersFunction",
+                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org1"),
+                Arg.Any<TaskOptions>()
+            )
+            .Returns(queryResultOrg1);
+
+        _mockContext
+            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                "QueryProvidersFunction",
+                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org2"),
+                Arg.Any<TaskOptions>()
+            )
+            .Returns(queryResultOrg2);
+
+        // Filtered results with decisions
+        var filteredResultOrg1 = new List<SearchResultWithDecision>
+        {
+            new(
+                queryResultOrg1[0],
+                "org1",
+                new PolicyDecisionResult() { IsAllowed = true, Reason = "Allowed" }
+            ),
+        };
+        var filteredResultOrg2 = new List<SearchResultWithDecision>
+        {
+            new(
+                queryResultOrg2[0],
+                "org2",
+                new PolicyDecisionResult() { IsAllowed = true, Reason = "Allowed" }
+            ),
+        };
+
+        _mockContext
+            .CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+                "FilterResultsByPolicyFunction",
+                Arg.Is<FilterResultsInput>(i => i.SourceOrgId == "org1" && i.Items.Count == 1),
+                Arg.Any<TaskOptions>()
+            )
+            .Returns(filteredResultOrg1);
+
+        _mockContext
+            .CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+                "FilterResultsByPolicyFunction",
+                Arg.Is<FilterResultsInput>(i => i.SourceOrgId == "org2" && i.Items.Count == 1),
+                Arg.Any<TaskOptions>()
+            )
+            .Returns(filteredResultOrg2);
+
+        return input;
     }
 }

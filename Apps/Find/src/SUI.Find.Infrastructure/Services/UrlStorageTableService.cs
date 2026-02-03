@@ -79,6 +79,7 @@ public class UrlStorageTableService(
             return new ResolvedFetchMapping(
                 TargetUrl: res.Value.TargetUrl,
                 TargetOrgId: res.Value.TargetOrgId,
+                RequestingOrgId: res.Value.RequestingOrgId,
                 RecordType: res.Value.RecordType
             );
         }
@@ -93,7 +94,7 @@ public class UrlStorageTableService(
         }
     }
 
-    public async Task EnsureAuditTableExistsAsync(CancellationToken cancellationToken)
+    public async Task EnsureTableExistsAsync(CancellationToken cancellationToken)
     {
         await client.CreateTableIfNotExistsAsync(
             InfrastructureConstants.StorageTableUrlMappings.TableName,

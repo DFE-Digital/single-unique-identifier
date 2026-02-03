@@ -2,10 +2,12 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Azure;
+using Azure.Data.Tables;
 using Polly;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Models;
+using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
@@ -15,9 +17,10 @@ namespace SUI.Find.E2ETests;
 /// </summary>
 [Collection("E2E")]
 [Trait("Category", "E2E")]
-public class StartANewSearchTests(FunctionTestFixture fixture)
+public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
     : E2ETestBase(fixture),
-        IClassFixture<FunctionTestFixture>
+        IClassFixture<FunctionTestFixture>,
+        IAsyncLifetime
 {
     private readonly FunctionTestFixture _fixture = fixture;
 
@@ -31,6 +34,38 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
         "fetch-record.read",
     ];
     private const string ValidEncryptedSuid = "Cy13hyZL-4LSIwVy50p-Hg"; // Test id that exists in mock data
+
+    private record SearchStatusResponse(string? Status);
+
+    public async Task InitializeAsync()
+    {
+        await ResetAzureTablesAsync([
+            "ResultsUrlMappings",
+            "TestHubNameHistory",
+            "TestHubNameInstances",
+        ]);
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    private static async Task ResetAzureTablesAsync(string[] tableNames)
+    {
+        var service = new TableServiceClient("UseDevelopmentStorage=true");
+
+        foreach (var table in tableNames)
+        {
+            try
+            {
+                await service.DeleteTableAsync(table);
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                // Table didn't exist; ignore
+            }
+
+            await service.CreateTableIfNotExistsAsync(table);
+        }
+    }
 
     [Fact]
     public async Task Should_PersistSearchData_When_OrchestrationCompletes()
@@ -96,40 +131,52 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
         Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.SchemaUri));
+        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.SchemaUri));
+        Assert.NotNull(fetchResultTypedContent.Payload);
     }
 
     /// <summary>
     /// Uses Poly to keep polling for a Completed message
     /// </summary>
-    /// <param name="orchestrationId"></param>
-    /// <param name="url"></param>
+    /// <param name="url">URL of the Search Status endpoint</param>
     private async Task<SearchJob> RunAndAwaitAndAssertSearchStatusCompletion(string url)
     {
+        const int retryCount = 15;
+
         var isCompleted = false;
+        var status = "unknown";
+
+        testOutputHelper.WriteLine("Polling for Search status completion: {0}", url);
 
         var retryPolicy = Policy
             .HandleResult<HttpResponseMessage>(r =>
             {
                 // Read response, if status is NOT "Completed", keep retrying
-                var content = r.Content.ReadAsStringAsync().Result;
-                if (content.Contains("Completed"))
+                var content = r.Content.ReadFromJsonAsync<SearchStatusResponse>().Result;
+                status = content?.Status;
+                if (status == "Completed")
                 {
                     isCompleted = true;
                 }
-                return !content.Contains("Completed");
+                return status != "Completed";
             })
             .WaitAndRetryAsync(
-                15,
+                retryCount,
                 retryAttempt =>
                 {
-                    Console.WriteLine($"Attempt {retryAttempt}");
+                    testOutputHelper.WriteLine(
+                        $"Still polling, status was {status}, retry {retryAttempt} / {retryCount}..."
+                    );
                     return TimeSpan.FromSeconds(2);
                 }
             );
 
         await retryPolicy.ExecuteAsync(() =>
             _fixture.Client.GetAsync(RemoveLeadingSlashFromUrl(url))
+        );
+
+        testOutputHelper.WriteLine(
+            $"Finished polling, final status was {status}, is completed: {isCompleted}"
         );
 
         Assert.True(isCompleted);
@@ -140,12 +187,6 @@ public class StartANewSearchTests(FunctionTestFixture fixture)
         return typedResult!;
     }
 
-    private string RemoveLeadingSlashFromUrl(string url)
-    {
-        if (url.StartsWith("/"))
-        {
-            return url[1..];
-        }
-        return url;
-    }
+    private static string RemoveLeadingSlashFromUrl(string url) =>
+        url.StartsWith('/') ? url[1..] : url;
 }

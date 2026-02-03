@@ -1,5 +1,5 @@
 name: Terraform Backend Bootstrap
-run-name: Terraform Backend Bootstrap - ${{ inputs.environment }}
+run-name: Terraform Backend Bootstrap - ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
 
 on:
   workflow_dispatch:
@@ -11,9 +11,9 @@ on:
         type: choice
         options:
           - d01
-      dry_run:
-        description: Show what would be created without making changes
-        required: false
+      apply:
+        description: Apply changes (otherwise plan only)
+        required: true
         default: false
         type: boolean
 
@@ -23,34 +23,23 @@ permissions:
 
 jobs:
   bootstrap:
-    name: Bootstrap backend for ${{ inputs.environment }} (${{ inputs.dry_run && 'dry-run' || 'apply' }})
+    name: Bootstrap backend for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
     runs-on: ubuntu-latest
     environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
-      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D }}
-      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Azure login with client secret for ${{ inputs.environment }}
+      - name: Azure login with OIDC for ${{ inputs.environment }}
         uses: azure/login@v2
         with:
-          # To use OIDC, remove `creds` and uncomment these lines.
-          # client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          # tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          # subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          creds: |
-            {
-              "clientSecret": "${{ secrets.AZURE_CLIENT_CREDENTIALS_SECRET_DEV_S270D }}",
-              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
-              "tenantId": "${{ secrets.AZURE_TENANT_ID }}",
-              "clientId": "${{ secrets.AZURE_CLIENT_ID }}"
-            }
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
       - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
@@ -59,10 +48,10 @@ jobs:
         with:
           environment: ${{ env.TARGET_ENVIRONMENT }}
 
-      - name: "Preview backend state RG/storage (${{ steps.env_config.outputs.state_rg }})"
-        if: inputs.dry_run == true
+      - name: "Plan backend state RG/storage (${{ steps.env_config.outputs.state_rg }})"
+        if: inputs.apply == false
         run: |
-          echo "Dry run: would create resources with:"
+          echo "Plan: would create resources with:"
           echo "  Resource group:   ${{ steps.env_config.outputs.state_rg }}"
           echo "  Storage account:  ${{ steps.env_config.outputs.state_storage }}"
           echo "  Container:        ${{ steps.env_config.outputs.state_container }}"
@@ -70,7 +59,7 @@ jobs:
           echo "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=${{ steps.env_config.outputs.product }}, Service_Offering=${{ steps.env_config.outputs.service_offering }}"
 
       - name: Create backend state RG/storage (${{ steps.env_config.outputs.state_rg }})
-        if: inputs.dry_run != true
+        if: inputs.apply == true
         uses: azure/powershell@v2
         with:
           inlineScript: |
@@ -127,7 +116,7 @@ jobs:
         if: always()
         env:
           INPUT_ENV: ${{ inputs.environment }}
-          DRY_RUN: ${{ inputs.dry_run }}
+          APPLY: ${{ inputs.apply }}
           ENV_TAG: ${{ steps.env_config.outputs.environment_tag }}
           STATE_RG: ${{ steps.env_config.outputs.state_rg }}
           STATE_STORAGE: ${{ steps.env_config.outputs.state_storage }}
@@ -141,13 +130,13 @@ jobs:
           state_storage="${STATE_STORAGE:-unknown}"
           state_container="${STATE_CONTAINER:-unknown}"
           location="${LOCATION:-unknown}"
-          mode=$([ "$DRY_RUN" = "true" ] && echo "dry-run" || echo "apply")
+          mode=$([ "$APPLY" = "true" ] && echo "apply" || echo "plan")
           status_icon=$([ "$JOB_STATUS" = "success" ] && echo "✅" || echo "❌")
 
-          # Best-effort existence checks (management plane) when not a dry run
-          rg_status="⏩ dry-run (not created)"
-          sa_status="⏩ dry-run (not created)"
-          if [ "$mode" != "dry-run" ] && command -v az >/dev/null 2>&1; then
+          # Best-effort existence checks (management plane) when applying
+          rg_status="⏩ plan (not created)"
+          sa_status="⏩ plan (not created)"
+          if [ "$mode" = "apply" ] && command -v az >/dev/null 2>&1; then
             if az group show --name "$state_rg" >/dev/null 2>&1; then
               rg_status="✅ exists"
             else
@@ -158,7 +147,7 @@ jobs:
             else
               sa_status="⚠️ missing"
             fi
-          elif [ "$mode" != "dry-run" ]; then
+          elif [ "$mode" = "apply" ]; then
             rg_status="⚪ not checked (az CLI unavailable)"
             sa_status="⚪ not checked (az CLI unavailable)"
           fi

@@ -1,15 +1,13 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
+using SUI.Find.FindApi.Functions.ActivityFunctions;
 
 namespace SUI.Find.FindApi.Functions.OrchestratorFunctions;
 
-[ExcludeFromCodeCoverage(
-    Justification = "Not Implemented - to be completed as part of future work."
-)]
 public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
 {
     [Function("SearchOrchestrator")]
@@ -56,11 +54,13 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             return new List<SearchResultItem>();
         }
 
-        var tasks = new List<Task<IReadOnlyList<SearchResultItem>>>(availableProviders.Count);
+        var queryProviderTasks = new List<Task<IReadOnlyList<SearchResultItem>>>(
+            availableProviders.Count
+        );
 
         foreach (var provider in availableProviders)
         {
-            tasks.Add(
+            queryProviderTasks.Add(
                 context.CallActivityAsync<IReadOnlyList<SearchResultItem>>(
                     "QueryProvidersFunction",
                     new QueryProviderInput(
@@ -75,10 +75,72 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             );
         }
 
-        var taskResultsList = await Task.WhenAll(tasks);
+        var queryProviderTaskResultsList = await Task.WhenAll(queryProviderTasks);
 
-        var aggregatedResults = taskResultsList.SelectMany(r => r).ToList();
+        var aggregatedQueryProviderResults = queryProviderTaskResultsList
+            .SelectMany(r => r)
+            .ToList();
 
-        return aggregatedResults;
+        logger.LogInformation(
+            "Aggregated {Count} results before PEP filtering",
+            aggregatedQueryProviderResults.Count
+        );
+
+        var pepFilterTasks = new List<Task<IReadOnlyList<SearchResultWithDecision>>>();
+
+        foreach (var provider in availableProviders)
+        {
+            var providerResults = aggregatedQueryProviderResults
+                .Where(r =>
+                    string.Equals(
+                        r.ProviderSystem,
+                        provider.ProviderSystem,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                    && string.Equals(
+                        r.RecordType,
+                        provider.RecordType,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                )
+                .ToList();
+
+            if (providerResults.Count == 0)
+                continue;
+
+            var filterInput = new FilterResultsInput(
+                provider.OrgId,
+                data.PolicyContext.ClientId,
+                data.PolicyContext.OrgType,
+                providerResults,
+                provider.DsaPolicy,
+                data.PolicyContext.Purpose
+            );
+
+            pepFilterTasks.Add(
+                context.CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+                    "FilterResultsByPolicyFunction",
+                    filterInput,
+                    options
+                )
+            );
+        }
+
+        var pepResultsTaskList = await Task.WhenAll(pepFilterTasks);
+        var pepResults = pepResultsTaskList.SelectMany(r => r).ToList();
+
+        logger.LogInformation(
+            "Filtered to {Count} results after PEP enforcement",
+            pepResults.Count
+        );
+
+        // Audit PEP decisions
+        await context.CallActivityAsync(
+            nameof(AuditPepFindActivity),
+            new AuditPepFindInput(data.PolicyContext, data.Metadata, pepResults),
+            options
+        );
+
+        return pepResults.Where(x => x.Decision.IsAllowed).Select(x => x.Item).ToList();
     }
 }

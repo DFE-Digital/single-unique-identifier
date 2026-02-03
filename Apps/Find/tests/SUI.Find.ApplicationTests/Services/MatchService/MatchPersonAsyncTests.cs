@@ -4,7 +4,7 @@ using NSubstitute.ExceptionExtensions;
 using OneOf.Types;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Application.Services;
+using SUI.Find.Application.Services.Matching;
 using SUI.Find.Domain.Models;
 using SUI.Find.Domain.ValueObjects;
 
@@ -16,14 +16,14 @@ public class MatchPersonAsyncTests
     private readonly ICustodianService _custodianService = Substitute.For<ICustodianService>();
     private readonly IPersonIdEncryptionService _personIdEncryptionService =
         Substitute.For<IPersonIdEncryptionService>();
-    private readonly MatchingService _service;
+    private readonly MatchingEncryptionService _encryptionService;
     private readonly MatchPersonRequest _request;
     private const string ClientId = "test-client-id";
 
     public MatchPersonAsyncTests()
     {
-        _service = new MatchingService(
-            Substitute.For<ILogger<MatchingService>>(),
+        _encryptionService = new MatchingEncryptionService(
+            Substitute.For<ILogger<MatchingEncryptionService>>(),
             _matchRepository,
             _custodianService,
             _personIdEncryptionService
@@ -58,7 +58,7 @@ public class MatchPersonAsyncTests
             .EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
             .Returns(Domain.Models.Result<string>.Ok(encryptedPersonId.Value));
 
-        var result = await _service.MatchPersonAsync(_request, ClientId);
+        var result = await _encryptionService.MatchPersonAsync(_request, ClientId);
 
         var val = Assert.IsType<EncryptedPersonId>(result.Value);
         Assert.Equal(encryptedPersonId, val);
@@ -72,7 +72,7 @@ public class MatchPersonAsyncTests
             .GetCustodianAsync(ClientId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Not found"));
 
-        var result = await _service.MatchPersonAsync(_request, ClientId);
+        var result = await _encryptionService.MatchPersonAsync(_request, ClientId);
 
         Assert.IsType<NotFound>(result.Value);
     }
@@ -82,7 +82,7 @@ public class MatchPersonAsyncTests
     {
         _custodianService.GetCustodianAsync(ClientId).Throws(new Exception("error"));
 
-        var result = await _service.MatchPersonAsync(_request, ClientId);
+        var result = await _encryptionService.MatchPersonAsync(_request, ClientId);
 
         Assert.IsType<Error>(result.Value);
     }
@@ -104,7 +104,7 @@ public class MatchPersonAsyncTests
                 )
             );
 
-        var result = await _service.MatchPersonAsync(_request, ClientId);
+        var result = await _encryptionService.MatchPersonAsync(_request, ClientId);
 
         Assert.IsType<Error>(result.Value);
     }
