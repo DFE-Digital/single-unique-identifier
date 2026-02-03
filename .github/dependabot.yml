@@ -6,13 +6,6 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "[gha]-"
-
-  # - package-ecosystem: nuget
-  #   directory: "/Apps/Matching"
-  #   schedule:
-  #     interval: "weekly"
-  #   commit-message:
-  #     prefix: "[nuget][Matching]-"
       
   - package-ecosystem: nuget
     directory: "/Apps/Find"
