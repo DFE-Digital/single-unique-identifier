@@ -48,6 +48,8 @@ locals {
   )
 }
 
+data "azurerm_client_config" "current" {}
+
 data "terraform_remote_state" "core" {
   backend = "azurerm"
 
@@ -65,6 +67,9 @@ module "key_vault" {
   name                = local.key_vault_name
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -134,6 +139,18 @@ module "function_app" {
 
   depends_on = [
     azurerm_key_vault_secret.find_match_api_key
+  ]
+}
+
+# Grant the function app's managed identity access to Key Vault secrets
+resource "azurerm_key_vault_access_policy" "function_app" {
+  key_vault_id = module.key_vault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = module.function_app.principal_id
+
+  secret_permissions = [
+    "Get",
+    "List",
   ]
 }
 

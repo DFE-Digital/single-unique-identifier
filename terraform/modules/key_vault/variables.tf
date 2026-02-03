@@ -36,3 +36,13 @@ variable "service_offering" {
   type        = string
   default     = null
 }
+
+variable "tenant_id" {
+  description = "Azure tenant ID for the Key Vault access policy"
+  type        = string
+}
+
+variable "object_id" {
+  description = "Object ID of the user, service principal, or security group for the Key Vault access policy"
+  type        = string
+}
