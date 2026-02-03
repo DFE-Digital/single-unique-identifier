@@ -37,8 +37,10 @@ public class QueryProvidersFunction(
                 new IdRegisterEntry()
                 {
                     Sui = data.Suid,
-                    CustodianId = searchResultItem.ProviderId,
+                    CustodianId = data.Provider.OrgId,
                     RecordType = searchResultItem.RecordType,
+                    SystemId = searchResultItem.SystemId,
+                    CustodianSubjectId = searchResultItem.RecordId,
                     Provenance = Provenance.DiscoveredViaFanout,
                     LastIdDeliveredAtUtc = null,
                 },

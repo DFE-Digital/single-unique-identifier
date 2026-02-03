@@ -34,8 +34,8 @@ public class SearchOrchestratorFunctionsTests
 
         // Assert
         Assert.Equal(2, result.Count);
-        Assert.Contains(result, r => r.ProviderSystem == "System A");
-        Assert.Contains(result, r => r.ProviderSystem == "System B");
+        Assert.Contains(result, r => r.SystemId == "System A");
+        Assert.Contains(result, r => r.SystemId == "System B");
 
         await _mockContext
             .Received(1)

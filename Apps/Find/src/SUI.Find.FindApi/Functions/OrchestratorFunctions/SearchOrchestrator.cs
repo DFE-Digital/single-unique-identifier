@@ -93,7 +93,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             var providerResults = aggregatedQueryProviderResults
                 .Where(r =>
                     string.Equals(
-                        r.ProviderSystem,
+                        r.SystemId,
                         provider.ProviderSystem,
                         StringComparison.OrdinalIgnoreCase
                     )

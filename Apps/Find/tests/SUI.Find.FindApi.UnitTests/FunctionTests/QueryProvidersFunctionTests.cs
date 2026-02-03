@@ -66,7 +66,9 @@ public class QueryProvidersFunctionTests
             .UpsertAsync(
                 Arg.Is<IdRegisterEntry>(e =>
                     e.Sui == input.Suid
-                    && e.CustodianId == expectedItems[0].ProviderId
+                    && e.CustodianId == input.Provider.OrgId
+                    && e.SystemId == expectedItems[0].SystemId
+                    && e.CustodianSubjectId == expectedItems[0].RecordId
                     && e.RecordType == expectedItems[0].RecordType
                     && e.Provenance == Provenance.DiscoveredViaFanout
                 ),
