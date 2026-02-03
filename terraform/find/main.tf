@@ -83,6 +83,9 @@ module "function_app" {
       FUNCTIONS_EXTENSION_VERSION    = "~4"
       WEBSITE_RUN_FROM_PACKAGE       = "1"
       AuditProcessorConnectionString = module.audit_processor_function_app.storage_connection_string
+
+      IdEncryption__EnablePersonIdEncryption = false
+
       StubCustodiansBaseUrl          = try(
         "https://${data.terraform_remote_state.stub_custodians[0].outputs.web_app_default_hostname}",
         null
