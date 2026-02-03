@@ -1,5 +1,7 @@
 # Matching Service
 
+> **⚠️ DEPRECATED**: This application is no longer in active development. The matching functionality has been integrated into the Find service.
+
 The **Matching** service matches persons to NHS numbers using the NHS FHIR API, with a custom algorithm to determine the
 best match.
 
