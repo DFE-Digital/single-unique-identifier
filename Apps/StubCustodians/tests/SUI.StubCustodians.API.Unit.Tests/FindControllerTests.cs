@@ -114,7 +114,9 @@ namespace SUI.StubCustodians.API.Unit.Tests
                     recordType,
                     Arg.Any<CancellationToken>()
                 )
-                .Returns(new List<SearchResultItem> { new(orgId, orgId, recordType, recordUrl) });
+                .Returns(
+                    new List<SearchResultItem> { new(recordType, recordUrl, recordId, orgId) }
+                );
 
             var result = await _findController.GetManifest(
                 orgId,
@@ -129,7 +131,8 @@ namespace SUI.StubCustodians.API.Unit.Tests
             Assert.NotNull(okObjectResult);
             Assert.Equal(200, okObjectResult.StatusCode);
             Assert.NotNull(okObjectResult.Value);
-            Assert.Equal(orgId, okObjectResult.Value.First().ProviderId);
+            Assert.Equal(orgId, okObjectResult.Value.First().SystemId);
+            Assert.Equal(recordId, okObjectResult.Value.First().RecordId);
         }
     }
 }

@@ -19,10 +19,10 @@ public class ManifestService(IDataProvider store) : IManifestService
 
         var items = records
             .Select(r => new SearchResultItem(
-                orgId,
-                orgId,
                 r.RecordType,
-                RecordUrl: BuildRecordUrl(baseUrl, orgId, r.RecordType, r.RecordId)
+                BuildRecordUrl(baseUrl, orgId, r.RecordType, r.RecordId),
+                r.RecordId,
+                orgId
             ))
             .ToList();
 
