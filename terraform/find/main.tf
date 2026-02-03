@@ -3,8 +3,8 @@ locals {
   state_storage   = format("%s%ssttfstate01", var.subscription_prefix, var.environment_id)
   state_container = "tfstate"
 
-  core_state_key      = format("%s/terraform.tfstate", var.environment_id)
-  service_state_key   = format("%s/find.tfstate", var.environment_id)
+  core_state_key    = format("%s/terraform.tfstate", var.environment_id)
+  service_state_key = format("%s/find.tfstate", var.environment_id)
 
   custodians_service_state_key = format("%s/custodians.tfstate", var.environment_id)
 
@@ -36,6 +36,16 @@ locals {
   audit_processor_storage_account_name = lower(
     format("%s%sst%s", var.subscription_prefix, var.environment_id, local.audit_processor_descriptor)
   )
+
+  # Key Vault name
+  key_vault_descriptor = "findkv01"
+  key_vault_name = format(
+    "%s%skv-%s-%s",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+    local.key_vault_descriptor
+  )
 }
 
 data "terraform_remote_state" "core" {
@@ -47,6 +57,31 @@ data "terraform_remote_state" "core" {
     container_name       = local.state_container
     key                  = local.core_state_key
   }
+}
+
+module "key_vault" {
+  source = "../modules/key_vault"
+
+  name                = local.key_vault_name
+  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
+  location            = data.terraform_remote_state.core.outputs.resource_group_location
+
+  environment_tag  = var.environment_tag
+  product          = var.product
+  service_offering = var.service_offering
+
+  tags = var.tags
+}
+
+resource "random_password" "find_match_api_key" {
+  length  = 32
+  special = true
+}
+
+resource "azurerm_key_vault_secret" "find_match_api_key" {
+  name         = "find-match-api-key"
+  value        = random_password.find_match_api_key.result
+  key_vault_id = module.key_vault.id
 }
 
 data "terraform_remote_state" "stub_custodians" {
@@ -83,17 +118,23 @@ module "function_app" {
       FUNCTIONS_EXTENSION_VERSION    = "~4"
       WEBSITE_RUN_FROM_PACKAGE       = "1"
       AuditProcessorConnectionString = module.audit_processor_function_app.storage_connection_string
-      StubCustodiansBaseUrl          = try(
+      StubCustodiansBaseUrl = try(
         "https://${data.terraform_remote_state.stub_custodians[0].outputs.web_app_default_hostname}",
         null
       )
+      KeyVault__KeyVaultUri    = module.key_vault.vault_uri
+      "MatchFunction__XApiKey" = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.find_match_api_key.name}/)"
     },
-    var.app_settings
+    var.find_app_settings
   )
 
   application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
 
   tags = var.tags
+
+  depends_on = [
+    azurerm_key_vault_secret.find_match_api_key
+  ]
 }
 
 module "audit_processor_function_app" {
@@ -118,7 +159,7 @@ module "audit_processor_function_app" {
       FUNCTIONS_EXTENSION_VERSION = "~4"
       WEBSITE_RUN_FROM_PACKAGE    = "1"
     },
-    var.app_settings
+    var.audit_app_settings
   )
 
   application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
