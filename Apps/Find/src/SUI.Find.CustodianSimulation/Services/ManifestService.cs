@@ -60,9 +60,9 @@ internal static class ManifestService
 
         var items = records
             .Select(r => new SearchResultItem(
-                orgId,
-                orgId,
-                r.RecordType,
+                SystemId: null,
+                RecordId: r.RecordId,
+                RecordType: r.RecordType,
                 RecordUrl: BuildRecordUrl(baseUrl, orgId, r.RecordType, r.RecordId)
             ))
             .ToList();

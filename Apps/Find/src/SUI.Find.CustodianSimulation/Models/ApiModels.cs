@@ -4,8 +4,8 @@ namespace SUI.Find.CustodianSimulation.Models;
 
 [ExcludeFromCodeCoverage(Justification = "Mocked simulator")]
 public sealed record SearchResultItem(
-    string ProviderSystem,
-    string ProviderName,
+    string? SystemId,
+    string? RecordId,
     string RecordType,
     string RecordUrl
 );
