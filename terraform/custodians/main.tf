@@ -8,6 +8,12 @@ locals {
 
   web_app_descriptor = "custodians01"
   web_app_name       = format("%s%sapp-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.web_app_descriptor)
+
+  otel_resource_attributes = join(",", [
+    "deployment.environment=${var.environment_tag}",
+    "service.namespace=${var.product}",
+    "cloud.region=${var.location}",
+  ])
 }
 
 data "terraform_remote_state" "core" {
@@ -37,6 +43,7 @@ module "web_app" {
   app_settings = merge(
     {
       APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
+      OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
     },
     var.app_settings,
   )

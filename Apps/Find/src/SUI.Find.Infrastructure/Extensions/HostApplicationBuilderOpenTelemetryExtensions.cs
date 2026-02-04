@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace SUI.Find.Infrastructure.Extensions;
@@ -15,6 +16,7 @@ public static class HostApplicationBuilderOpenTelemetryExtensions
     {
         const string appInsightsConnectionStringKey = "APPLICATIONINSIGHTS_CONNECTION_STRING";
         const string otlpEndpointKey = "OTEL_EXPORTER_OTLP_ENDPOINT";
+        const string otelServiceNameKey = "OTEL_SERVICE_NAME";
 
         builder.Logging.AddOpenTelemetry(logging =>
         {
@@ -25,9 +27,19 @@ public static class HostApplicationBuilderOpenTelemetryExtensions
 
         var appInsightsConnectionString = builder.Configuration[appInsightsConnectionStringKey];
         var otlpEndpoint = builder.Configuration[otlpEndpointKey];
+        var configuredServiceName = builder.Configuration[otelServiceNameKey];
 
-        var openTelemetryBuilder = builder
-            .Services.AddOpenTelemetry()
+        var openTelemetryBuilder = builder.Services.AddOpenTelemetry();
+
+        var serviceName = string.IsNullOrWhiteSpace(configuredServiceName)
+            ? builder.Environment.ApplicationName
+            : configuredServiceName;
+        if (!string.IsNullOrWhiteSpace(serviceName))
+        {
+            openTelemetryBuilder.ConfigureResource(resource => resource.AddService(serviceName));
+        }
+
+        openTelemetryBuilder
             .WithTracing(tracing =>
             {
                 tracing
