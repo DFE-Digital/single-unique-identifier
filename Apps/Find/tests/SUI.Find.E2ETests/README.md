@@ -12,7 +12,7 @@ requires you to test against running applications.
 
 1. Ideally, clean out your Azurite storage tables for a clean run.
 2. Start the SUI.Find.FindApi and SUI.Find.CustodianSimulator.
-   - Jetbrains Rider can throw up runtime issues with durable functions so it's recommended to use the function app CLI 'func'
+   - JetBrains Rider can throw up runtime issues with durable functions so it's recommended to use the function app CLI 'func'
    - To run in CLI:
      - For SUI.Find.FindApi, go into project directory and run `func start --port 7182`
      - For SUI.Find.CustodianSimulator, go into project directory and run `func start --port 7082`
