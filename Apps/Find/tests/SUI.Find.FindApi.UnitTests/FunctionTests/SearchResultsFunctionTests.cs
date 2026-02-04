@@ -56,8 +56,8 @@ public class SearchResultsFunctionTests
     private static SearchResultItem CreateSearchResultItem()
     {
         return new SearchResultItem(
-            "TestProviderSystem",
-            "TestProviderName",
+            "TestSystem",
+            "TestRecord",
             "Health",
             "http://example.com/record/1"
         );

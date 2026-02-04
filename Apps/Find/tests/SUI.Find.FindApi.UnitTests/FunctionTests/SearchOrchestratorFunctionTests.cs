@@ -110,7 +110,7 @@ public class SearchOrchestratorFunctionsTests
         Assert.Empty(result);
         await _mockContext
             .DidNotReceive()
-            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+            .CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
                 "QueryProvidersFunction",
                 Arg.Any<QueryProviderInput>(),
                 Arg.Any<TaskOptions>()
