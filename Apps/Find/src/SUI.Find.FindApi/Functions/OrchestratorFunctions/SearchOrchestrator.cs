@@ -11,7 +11,7 @@ namespace SUI.Find.FindApi.Functions.OrchestratorFunctions;
 public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
 {
     [Function("SearchOrchestrator")]
-    public async Task<List<SearchResultItem>> RunOrchestrator(
+    public async Task<List<CustodianSearchResultItem>> RunOrchestrator(
         [OrchestrationTrigger] TaskOrchestrationContext context
     )
     {
@@ -51,17 +51,17 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         {
             logger.LogWarning("No available providers found");
 
-            return new List<SearchResultItem>();
+            return new List<CustodianSearchResultItem>();
         }
 
-        var queryProviderTasks = new List<Task<IReadOnlyList<SearchResultItem>>>(
+        var queryProviderTasks = new List<Task<IReadOnlyList<CustodianSearchResultItem>>>(
             availableProviders.Count
         );
 
         foreach (var provider in availableProviders)
         {
             queryProviderTasks.Add(
-                context.CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+                context.CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
                     "QueryProvidersFunction",
                     new QueryProviderInput(
                         data.PolicyContext.ClientId,
@@ -93,7 +93,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             var providerResults = aggregatedQueryProviderResults
                 .Where(r =>
                     string.Equals(
-                        r.SystemId,
+                        r.CustodianId,
                         provider.ProviderSystem,
                         StringComparison.OrdinalIgnoreCase
                     )
