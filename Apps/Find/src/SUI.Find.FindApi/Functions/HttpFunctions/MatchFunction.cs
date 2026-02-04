@@ -4,21 +4,22 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
-using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Matching;
 using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Attributes;
+using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
-using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
 public class MatchFunction(
     ILogger<MatchFunction> logger,
-    IMatchPersonOrchestrationService matchOrchestrationService
+    IMatchPersonOrchestrationService matchOrchestrationService,
+    IOptions<MatchFunctionConfiguration> matchFunctionConfig
 )
 {
     [Function(nameof(MatchPerson))]
@@ -46,6 +47,7 @@ public class MatchFunction(
         if (
             !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
             || authObj is not AuthContext authContext
+            || !VerifyApiKey(req)
         )
         {
             return await HttpResponseUtility.UnauthorizedResponse(
@@ -137,5 +139,29 @@ public class MatchFunction(
         var responseBody = new PersonMatch(encryptedPersonId.Value);
         await res.WriteAsJsonAsync(responseBody);
         return res;
+    }
+
+    private bool VerifyApiKey(HttpRequestData req)
+    {
+        if (!req.Headers.Contains("x-api-key"))
+        {
+            logger.LogInformation("Missing x-api-key header");
+            return false;
+        }
+
+        var apiKey = req.Headers.GetValues("x-api-key").FirstOrDefault();
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            logger.LogInformation("Empty x-api-key header");
+            return false;
+        }
+
+        if (apiKey != matchFunctionConfig.Value.XApiKey)
+        {
+            logger.LogWarning("Invalid x-api-key header value");
+            return false;
+        }
+
+        return true;
     }
 }
