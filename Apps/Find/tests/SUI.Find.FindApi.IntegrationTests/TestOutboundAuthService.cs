@@ -134,7 +134,7 @@ public class TestOutboundAuthService
         Assert.True(results.Success, $"Failed to query providers: {results.Error}");
         Assert.NotNull(results.Value);
         var item = results.Value[0];
-        Assert.Equal("local-authority-01", item.CustodianId);
+        Assert.Equal("local-authority-01", item.SystemId);
         Assert.Equal("childrens-services.details", item.RecordType);
     }
 }
