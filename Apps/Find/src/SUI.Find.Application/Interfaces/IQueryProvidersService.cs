@@ -6,5 +6,8 @@ namespace SUI.Find.Application.Interfaces;
 
 public interface IQueryProvidersService
 {
-    Task<Result<IReadOnlyList<SearchResultItem>>> QueryProvidersAsync(QueryProviderInput data, CancellationToken cancellationToken);
+    Task<Result<IReadOnlyList<CustodianSearchResultItem>>> QueryProvidersAsync(
+        QueryProviderInput data,
+        CancellationToken cancellationToken
+    );
 }

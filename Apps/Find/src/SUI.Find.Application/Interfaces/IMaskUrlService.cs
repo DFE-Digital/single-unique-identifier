@@ -7,8 +7,8 @@ namespace SUI.Find.Application.Interfaces;
 
 public interface IMaskUrlService
 {
-    Task<IReadOnlyList<SearchResultItem>> CreateAsync(
-        List<SearchResultItem> items,
+    Task<IReadOnlyList<CustodianSearchResultItem>> CreateAsync(
+        List<CustodianSearchResultItem> items,
         QueryProviderInput input,
         CancellationToken ct
     );

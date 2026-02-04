@@ -14,7 +14,7 @@ public class QueryProvidersFunction(
 )
 {
     [Function(nameof(QueryProvidersFunction))]
-    public async Task<IReadOnlyList<SearchResultItem>> QueryProvider(
+    public async Task<IReadOnlyList<CustodianSearchResultItem>> QueryProvider(
         [ActivityTrigger] FunctionContext context,
         QueryProviderInput data,
         CancellationToken cancellationToken

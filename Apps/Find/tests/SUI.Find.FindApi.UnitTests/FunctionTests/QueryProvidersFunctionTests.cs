@@ -43,11 +43,11 @@ public class QueryProvidersFunctionTests
             new ProviderDefinition { OrgId = "org1" }
         );
 
-        var expectedItems = new List<SearchResultItem>
+        var expectedItems = new List<CustodianSearchResultItem>
         {
-            new("SystemA", "Provider A", "Type1", "/v1/records/original-id"),
+            new("SystemA", "Provider A", "Type1", "/v1/records/original-id", "test-custodian"),
         };
-        var expectedResult = Result<IReadOnlyList<SearchResultItem>>.Ok(expectedItems);
+        var expectedResult = Result<IReadOnlyList<CustodianSearchResultItem>>.Ok(expectedItems);
 
         _mockQueryProvidersService
             .QueryProvidersAsync(input, Arg.Any<CancellationToken>())
