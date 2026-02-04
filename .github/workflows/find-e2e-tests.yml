@@ -14,7 +14,8 @@ on:
       - "Apps/Find/**"
 
 jobs:
-  e2e-test:
+  e2e-test-ooi:
+    name: E2E Tests - out of infrastructure
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -85,4 +86,4 @@ jobs:
           exit 1
 
       - name: Run E2E Tests
-        run: dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj
+        run: dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj --logger "console;verbosity=detailed"
