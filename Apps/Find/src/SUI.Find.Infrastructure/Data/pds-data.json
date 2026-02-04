@@ -19,6 +19,16 @@
       "phone": null,
       "email": "test@test.co.uk",
       "addressPostalCode": "DN20 8LP"
+    },
+    {
+      "nhsNumber": "9449310424",
+      "given": "SUPERSEDED",
+      "family": "NHSNumber",
+      "birthDate": "2005-06-03",
+      "gender": "male",
+      "phone": null,
+      "email": "test@test.co.uk",
+      "addressPostalCode": "DN20 8LP"
     }
   ]
 }

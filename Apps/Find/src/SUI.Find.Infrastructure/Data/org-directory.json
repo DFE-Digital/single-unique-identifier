@@ -169,7 +169,7 @@
             "effect": "allow",
             "modes": [ "CONTENT" ],
             "dataTypes": [ "health_details_record" ],
-            "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY" ],
+            "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY", "EDUCATION" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
           }
