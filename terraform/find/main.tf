@@ -37,6 +37,12 @@ locals {
     format("%s%sst%s", var.subscription_prefix, var.environment_id, local.audit_processor_descriptor)
   )
 
+  otel_resource_attributes = join(",", [
+    "deployment.environment=${var.environment_tag}",
+    "service.namespace=${var.product}",
+    "cloud.region=${var.location}",
+  ])
+
   # Key Vault name
   key_vault_descriptor = "findkv01"
   key_vault_name = format(
@@ -122,6 +128,8 @@ module "function_app" {
       FUNCTIONS_WORKER_RUNTIME       = "dotnet-isolated"
       FUNCTIONS_EXTENSION_VERSION    = "~4"
       WEBSITE_RUN_FROM_PACKAGE       = "1"
+      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
+      OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
       AuditProcessorConnectionString = module.audit_processor_function_app.storage_connection_string
 
       IdEncryption__EnablePersonIdEncryption = false
@@ -178,6 +186,8 @@ module "audit_processor_function_app" {
       FUNCTIONS_WORKER_RUNTIME    = "dotnet-isolated"
       FUNCTIONS_EXTENSION_VERSION = "~4"
       WEBSITE_RUN_FROM_PACKAGE    = "1"
+      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
+      OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
     },
     var.audit_app_settings
   )
