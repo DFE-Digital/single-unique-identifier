@@ -1,11 +1,11 @@
 namespace SUI.Find.Application.Models;
 
 public sealed record CustodianSearchResultItem(
-    string? SystemId,
-    string? RecordId,
+    string CustodianId,
     string RecordType,
     string RecordUrl,
-    string CustodianId
+    string? SystemId,
+    string? RecordId
 )
 {
     public static CustodianSearchResultItem Create(
@@ -13,10 +13,10 @@ public sealed record CustodianSearchResultItem(
         SearchResultItem searchResultItem
     ) =>
         new(
-            searchResultItem.SystemId,
-            searchResultItem.RecordId,
+            custodianId,
             searchResultItem.RecordType,
             searchResultItem.RecordUrl,
-            custodianId
+            searchResultItem.SystemId,
+            searchResultItem.RecordId
         );
 }

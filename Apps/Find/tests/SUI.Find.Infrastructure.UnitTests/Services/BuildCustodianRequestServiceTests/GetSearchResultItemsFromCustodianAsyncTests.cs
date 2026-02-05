@@ -324,7 +324,7 @@ public class GetSearchResultItemsFromCustodianAsyncTests
 
         var expectedItems = new List<SearchResultItem>
         {
-            new("SystemA", "RecordA", "Type1", "/v1/records/original-id"),
+            new("Type1", "/v1/records/original-id", "SystemA", "TestRecord"),
         };
 
         var jsonResponse = JsonSerializer.Serialize(expectedItems, JsonSerializerOptions.Web);

@@ -130,8 +130,8 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             SerializedOutput = JsonSerializer.Serialize(
                 new SearchResultItem[]
                 {
-                    new("TestSystem", "TestRecord", "Health", "http://example.com/record/1"),
-                    new("TestSystem", "TestRecord", "Education", "http://example.com/record/2"),
+                    new("Health", "http://example.com/record/1", "TestSystem", "TestRecord"),
+                    new("Education", "http://example.com/record/2", "TestSystem", "TestRecord"),
                 }
             ),
         };

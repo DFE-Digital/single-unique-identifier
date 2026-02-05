@@ -191,11 +191,11 @@ public class SearchOrchestratorFunctionsTests
         // Unfiltered query results per provider
         var queryResultOrg1 = new List<CustodianSearchResultItem>
         {
-            new(null, "Provider Name 1", "RecordA", "http://url1", "System A"),
+            new("System A", "RecordA", "http://url1", null, "TestRecord 1"),
         };
         var queryResultOrg2 = new List<CustodianSearchResultItem>
         {
-            new(null, "Provider Name 2", "RecordB", "http://url2", "System B"),
+            new("System B", "RecordB", "http://url2", null, "TestRecord 2"),
         };
 
         _mockContext

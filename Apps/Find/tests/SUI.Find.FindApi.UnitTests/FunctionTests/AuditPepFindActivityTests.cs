@@ -27,11 +27,11 @@ public class AuditPepFindActivityTests
             [
                 new(
                     new CustodianSearchResultItem(
-                        "System A",
-                        "Provider Name 1",
+                        "test-custodian",
                         "RecordA",
                         "http://url1",
-                        "test-custodian"
+                        "System A",
+                        "TestRecord 1"
                     ),
                     "org1",
                     new PolicyDecisionResult
