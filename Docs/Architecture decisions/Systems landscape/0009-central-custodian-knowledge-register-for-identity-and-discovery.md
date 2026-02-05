@@ -1,4 +1,4 @@
-# ADR-SUI-0009: SUI Custodian Knowledge Register
+# ADR-SUI-0009: Central Custodian Knowledge Register for Identity and Discovery
 
 Date: 20 January 2026
 
@@ -9,7 +9,8 @@ Decision owners: SUI Service Team
 Category: Systems landscape
 
 ## Status
-Proposed
+
+Accepted
 
 ---
 

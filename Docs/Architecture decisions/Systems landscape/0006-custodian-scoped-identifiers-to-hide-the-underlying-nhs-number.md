@@ -1,4 +1,4 @@
-# ADR-SUI-0006: Custodian-Scoped Encrypted Identifier for Person-Level Correlation
+# ADR-SUI-0006: Custodian-Scoped Identifiers to Hide the Underlying NHS Number
 
 Date: 2025-12-08
 
@@ -8,7 +8,7 @@ Category: Systems landscape
 
 ## Status
 
-Draft
+Rejected - 2025-12-08 - Superceded by decision to use NHS number in the clear
 
 ## Context
 

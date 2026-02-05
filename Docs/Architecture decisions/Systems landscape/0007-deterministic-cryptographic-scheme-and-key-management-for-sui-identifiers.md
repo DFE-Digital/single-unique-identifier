@@ -1,4 +1,4 @@
-# ADR-SUI-0007: Cryptographic Scheme for Custodian-Scoped Identifiers
+# ADR-SUI-0007: Deterministic Cryptographic Scheme and Key Management for SUI Identifiers
 
 Date: 2025-12-08
 
@@ -8,7 +8,7 @@ Category: Systems landscape
 
 ## Status
 
-Draft
+Rejected - 2025-12-01 - Superceded by decision to use NHS Number in the clear
 
 ## Context
 
