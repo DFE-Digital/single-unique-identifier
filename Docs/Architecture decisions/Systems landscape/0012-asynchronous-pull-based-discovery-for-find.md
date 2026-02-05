@@ -1,6 +1,6 @@
 # ADR-SUI-0012: Asynchronous Pull-Based Discovery for FIND
 
-Date: 29 January 2026  
+Date: 2026-01-29
 Author: Simon Parsons  
 Decision owners: SUI Service Team  
 Category: Distributed discovery architecture
