@@ -29,7 +29,7 @@ Since decisions apply at different scopes, ADRs are structured into categories:
 The ADRs should be read as a **timeline**, not as a flat list.
 
 Several early ADRs explore design options that were later superseded as the programme
-moved through Alpha and assumptions were tested against operational reality. Where this
+moved through Discovery and assumptions were tested against operational reality. Where this
 has happened, those ADRs are intentionally retained and explicitly marked as superseded,
 rather than rewritten or deleted.
 
