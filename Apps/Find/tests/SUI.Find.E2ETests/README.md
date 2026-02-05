@@ -25,5 +25,10 @@ requires you to test against running applications.
 To run the E2E tests against the dev environment, from your local machine:
 
 ```
-dotnet test -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ -e E2E__SkipResetAzureTables=True
+dotnet test -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ -e E2E__FindApiStorageConnectionString=""
 ```
+
+For the `E2E__FindApiStorageConnectionString` value, either:
+* leave it blank if you want to quickly run the tests to verify connections, orchestration and most of the logic; or
+* populate it with the FindAPI's storage connection string for the dev environment, to run the tests from a clean execution state.
+  * Example format: `DefaultEndpointsProtocol=https;AccountName={AccountName};AccountKey={AccountName};EndpointSuffix=core.windows.net`
