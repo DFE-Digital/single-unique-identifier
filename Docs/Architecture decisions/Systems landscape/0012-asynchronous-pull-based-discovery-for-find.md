@@ -1,4 +1,4 @@
-# ADR-SUI-0011: Discovery Interaction Model – Push Fan-Out vs Pull Polling
+# ADR-SUI-0012: Asynchronous Pull-Based Discovery for FIND
 
 Date: 29 January 2026  
 Author: Simon Parsons  
@@ -146,6 +146,25 @@ Custodians respond with:
 
 This distinction is critical for expressing real operational state and avoiding conflation of “no data” with “no response”.
 
+### Provisional results and use of the identity register
+
+In addition to confirmed results returned by custodians, the platform may provide
+**provisional discovery signals** while a job is still in progress.
+
+As described in **ADR-SUI-0009 (Central Custodian Knowledge Register)**, the service
+maintains a register of previously observed relationships between people and custodians.
+This register may be used as a **cache or hinting mechanism** to surface immediate,
+unconfirmed indications of which custodians are likely to hold records for a given SUI.
+
+Where used, such results must be:
+- clearly marked as **unconfirmed**,
+- distinguishable from custodian-confirmed responses,
+- and treated as advisory rather than authoritative.
+
+Confirmed discovery outcomes are always derived from custodian task responses within
+the current discovery job. Provisional signals from the register must not affect the
+correctness of the final result set and must be reconciled as confirmations are received.
+
 ### Encounter Signalling
 
 The platform may maintain an encounter register indicating which custodians have previously responded for a given subject identifier. This can be used to provide “likely custodians” signals and to optimise scheduling, but must not affect correctness.
@@ -169,6 +188,180 @@ This provides a unified coordination model for all identity-related workflows, n
 
 This significantly strengthens the architectural case for polling. The system is no longer optimised only for “find who has data”, but for the full lifecycle of identity management in a distributed custody environment.
 
+## End-to-end discovery flow (illustrative)
+
+The following sequence diagram illustrates the preferred pull-based discovery flow
+within the Distributed ID architecture. It shows attended initiation, unattended
+processing, optional provisional signals, and incremental result availability.
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant Searcher as Searcher System
+    participant User as End User (Searcher)
+    participant CustA as Custodian A Worker
+    participant CustB as Custodian B Worker
+
+    box rgba(240,240,240,0.5) "SUI National Service"
+        participant Match as MATCH service
+        participant Find as FIND service
+        participant Jobs as Discovery Job Store
+        participant Tasks as Task Store or Queue
+        participant Reg as Custodian Knowledge Register
+    end
+
+    participant Auth as Authoritative source (PDS)
+
+    rect rgba(235,245,255,0.6)
+        Note over User,Searcher: Attended initiation (user may leave after submitting)
+        User->>Searcher: Initiate discovery for a person
+
+        alt Searcher already holds SUI
+            Searcher->>Searcher: Read stored SUI from local record
+        else Searcher does not hold SUI
+            Searcher->>Match: Send demographic record
+            Match->>Auth: Lookup SUI via PDS
+            Auth-->>Match: SUI found or not found
+
+            alt SUI found
+                Match-->>Searcher: Return SUI in clear
+                Searcher->>Searcher: Store SUI for future use
+            else No SUI found
+                Match-->>Searcher: No matching person found
+            end
+        end
+
+        Searcher->>Find: Start discovery job (SUI, audit context)
+
+        opt Optional: immediate unconfirmed signals from register (ADR-SUI-0009)
+            Find->>Reg: Lookup prior custodian relationships for SUI
+            Reg-->>Find: Candidate custodians and record types (unconfirmed)
+            Find-->>Searcher: Provisional results (unconfirmed, subject to confirmation)
+        end
+
+        Find->>Jobs: Create discovery job
+        Find->>Tasks: Create one task per custodian (Pending)
+        Find-->>Searcher: Return JobId (and initial status)
+    end
+
+    rect rgba(240,255,240,0.6)
+        Note over Searcher,Find: Searcher polls for status and results (may be unattended)
+        loop Until job complete or timeout
+            Searcher->>Find: Get job status and partial results (JobId)
+            Find->>Jobs: Read job state
+            Find->>Tasks: Read task states and submitted results
+            Find-->>Searcher: Status and partial or complete manifest
+        end
+    end
+
+    rect rgba(255,245,235,0.6)
+        Note over CustA,Find: Custodians poll, claim under lease, and submit results (unattended)
+        par Custodian A polling loop
+            loop Poll for available tasks
+                CustA->>Find: Poll for tasks (CustodianId)
+                Find->>Tasks: Select available task for Custodian A
+
+                alt Task available
+                    Find-->>CustA: Task offered (TaskId, JobId, SUI, lease token)
+                    CustA->>Find: Claim task under lease (TaskId, lease token)
+                    Find->>Tasks: Mark task Leased (lease expiry)
+                    Find-->>CustA: Claim confirmed
+
+                    CustA->>CustA: Lookup local records using SUI
+                    alt Has records
+                        CustA->>Find: Submit result (TaskId, has records and pointers)
+                    else No records
+                        CustA->>Find: Submit result (TaskId, no records)
+                    end
+
+                    Find->>Tasks: Persist result and mark Completed
+                    Find->>Jobs: Update job progress counters
+                else No task available
+                    Find-->>CustA: No work
+                end
+            end
+        and Custodian B polling loop
+            loop Poll for available tasks
+                CustB->>Find: Poll for tasks (CustodianId)
+                Find->>Tasks: Select available task for Custodian B
+
+                alt Task available
+                    Find-->>CustB: Task offered (TaskId, JobId, SUI, lease token)
+                    CustB->>Find: Claim task under lease (TaskId, lease token)
+                    Find->>Tasks: Mark task Leased (lease expiry)
+                    Find-->>CustB: Claim confirmed
+
+                    CustB->>CustB: Lookup local records using SUI
+                    alt Has records
+                        CustB->>Find: Submit result (TaskId, has records and pointers)
+                    else No records
+                        CustB->>Find: Submit result (TaskId, no records)
+                    end
+
+                    Find->>Tasks: Persist result and mark Completed
+                    Find->>Jobs: Update job progress counters
+                else No task available
+                    Find-->>CustB: No work
+                end
+            end
+        end
+    end
+
+    rect rgba(255,235,235,0.6)
+        Note over Find,Tasks: Failure handling via lease expiry (retryable)
+        alt Claimed task not completed before lease expiry
+            Tasks-->>Find: Lease expired (TaskId)
+            Find->>Tasks: Mark task Pending again (or RetryScheduled)
+            Note over Find,Tasks: Task becomes claimable again
+        end
+    end
+
+    rect rgba(235,235,255,0.6)
+        Note over Find,Searcher: FIND aggregates and filters results into a manifest
+        Find->>Find: Apply organisation-level policy (PEP) to manifest results
+        Find->>Jobs: Mark job Complete when all tasks terminal
+        Find-->>Searcher: Final manifest and explicit non-response or error states
+    end
+
+```
+
+### Narrative walkthrough
+
+- A search is initiated by a user through a consuming application. The user may leave
+  after submitting the request.
+
+- The searcher application authenticates to the national discovery service and starts
+  a discovery job using a known SUI, or obtains one via MATCH if required.
+
+- Optionally, the service may consult the custodian knowledge register
+  (ADR-SUI-0009) to return **immediate, unconfirmed discovery signals**. These are
+  explicitly provisional and do not affect the correctness of the final result.
+
+- The discovery service creates a job and generates one task per participating custodian.
+
+- Custodians poll the service for available tasks using unattended,
+  machine-to-machine authentication.
+
+- When a custodian claims a task under a lease, responsibility for processing is
+  explicitly established and observable.
+
+- The custodian performs a local lookup using the SUI and submits one of the defined
+  result types (records found, no records, temporary error, or permanent error).
+
+- Results are persisted as they arrive. Searchers may poll for job status and retrieve
+  **partial results** throughout execution.
+
+- If a custodian fails to complete a task before the lease expires, the task becomes
+  eligible for retry without manual intervention.
+
+- Once all tasks reach a terminal state, the job is marked complete and the final
+  manifest is returned to the searcher, with non-responses and errors made explicit.
+
+This flow reflects the asynchronous and distributed nature of discovery and avoids
+conflating historical knowledge, provisional signals, and confirmed results.
+
+
 ### Optional Webhook Notification
 
 Webhooks may be used to notify custodians that tasks are available. Webhooks are not used to deliver task payloads and do not replace polling.
@@ -184,3 +377,5 @@ The pull-based discovery model provides a simpler, more resilient, and more hone
 By supporting discovery, refresh, invalidation, and expiry through the same task coordination mechanism, this design provides a coherent and future-proof foundation for identity management in a distributed custody environment.
 
 This is the preferred interaction model for SUI National within the Distributed ID architecture.
+
+

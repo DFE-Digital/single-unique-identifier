@@ -1,4 +1,4 @@
-# ADR-SUI-0005: Compiled DSA Policy & Policy Enforcement Point (PEP) for FIND-A-RECORD and FETCH-A-RECORD
+# ADR-SUI-0005: Compiled DSA Policy and Policy Enforcement at FIND and FETCH Boundaries
 
 Date: 2025-11-11
 
