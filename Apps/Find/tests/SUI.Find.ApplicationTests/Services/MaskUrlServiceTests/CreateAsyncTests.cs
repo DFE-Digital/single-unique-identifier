@@ -19,10 +19,10 @@ public class CreateAsyncTests
     {
         // Arrange
         var originalUrl = "https://localhost.example.com/somewhere";
-        List<SearchResultItem> items =
+        List<CustodianSearchResultItem> items =
         [
-            new("bib", "bob", "Health", originalUrl),
-            new("ll", "someProvider", "Education", originalUrl),
+            new("bib", "bob", "Health", originalUrl, "test-custodian"),
+            new("ll", "someProvider", "Education", originalUrl, "test-custodian"),
         ];
         var providerDefinition = new ProviderDefinition();
         var queryProviderInput = new QueryProviderInput(
@@ -35,11 +35,7 @@ public class CreateAsyncTests
 
         // Act
         var service = new MaskUrlService(_logger, _fetchUrlStorageService);
-        var result = await service.CreateAsync(
-            items,
-            queryProviderInput,
-            CancellationToken.None
-        );
+        var result = await service.CreateAsync(items, queryProviderInput, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -71,11 +67,7 @@ public class CreateAsyncTests
         var service = new MaskUrlService(_logger, _fetchUrlStorageService);
 
         // Act
-        var result = await service.CreateAsync(
-            [],
-            queryProviderInput,
-            CancellationToken.None
-        );
+        var result = await service.CreateAsync([], queryProviderInput, CancellationToken.None);
 
         // Assert
         Assert.Empty(result);
@@ -86,10 +78,10 @@ public class CreateAsyncTests
     {
         // Arrange
         var originalUrl = "https://localhost.example.com/somewhere";
-        List<SearchResultItem> items =
+        List<CustodianSearchResultItem> items =
         [
-            new("bib", "bob", "Health", originalUrl),
-            new("ll", "someProvider", "Education", originalUrl),
+            new("bib", "bob", "Health", originalUrl, "test-custodian"),
+            new("ll", "someProvider", "Education", originalUrl, "test-custodian"),
         ];
         var providerDefinition = new ProviderDefinition();
         var queryProviderInput = new QueryProviderInput(
@@ -105,11 +97,7 @@ public class CreateAsyncTests
 
         // Act
         var service = new MaskUrlService(_logger, _fetchUrlStorageService);
-        var result = await service.CreateAsync(
-            items,
-            queryProviderInput,
-            CancellationToken.None
-        );
+        var result = await service.CreateAsync(items, queryProviderInput, CancellationToken.None);
 
         // Assert
         Assert.Single(result);
@@ -129,10 +117,10 @@ public class CreateAsyncTests
     {
         // Arrange
         var originalUrl = "https://localhost.example.com/somewhere";
-        List<SearchResultItem> items =
+        List<CustodianSearchResultItem> items =
         [
-            new("bib", "bob", "Health", originalUrl),
-            new("ll", "someProvider", "Education", originalUrl),
+            new("bib", "bob", "Health", originalUrl, "test-custodian"),
+            new("ll", "someProvider", "Education", originalUrl, "test-custodian"),
         ];
         var providerDefinition = new ProviderDefinition();
         var queryProviderInput = new QueryProviderInput(
@@ -145,11 +133,7 @@ public class CreateAsyncTests
         var service = new MaskUrlService(_logger, _fetchUrlStorageService);
 
         // Act
-        var result = await service.CreateAsync(
-            items,
-            queryProviderInput,
-            CancellationToken.None
-        );
+        var result = await service.CreateAsync(items, queryProviderInput, CancellationToken.None);
 
         // Assert
         Assert.Equal(2, result.Count);

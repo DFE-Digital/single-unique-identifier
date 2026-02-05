@@ -34,8 +34,8 @@ public class SearchOrchestratorFunctionsTests
 
         // Assert
         Assert.Equal(2, result.Count);
-        Assert.Contains(result, r => r.ProviderSystem == "System A");
-        Assert.Contains(result, r => r.ProviderSystem == "System B");
+        Assert.Contains(result, r => r.CustodianId == "System A");
+        Assert.Contains(result, r => r.CustodianId == "System B");
 
         await _mockContext
             .Received(1)
@@ -47,7 +47,7 @@ public class SearchOrchestratorFunctionsTests
 
         await _mockContext
             .Received(2)
-            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+            .CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
                 "QueryProvidersFunction",
                 Arg.Any<QueryProviderInput>(),
                 Arg.Any<TaskOptions>()
@@ -110,7 +110,7 @@ public class SearchOrchestratorFunctionsTests
         Assert.Empty(result);
         await _mockContext
             .DidNotReceive()
-            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+            .CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
                 "QueryProvidersFunction",
                 Arg.Any<QueryProviderInput>(),
                 Arg.Any<TaskOptions>()
@@ -189,17 +189,17 @@ public class SearchOrchestratorFunctionsTests
             .Returns(providers);
 
         // Unfiltered query results per provider
-        var queryResultOrg1 = new List<SearchResultItem>
+        var queryResultOrg1 = new List<CustodianSearchResultItem>
         {
-            new("System A", "Provider Name 1", "RecordA", "http://url1"),
+            new(null, "Provider Name 1", "RecordA", "http://url1", "System A"),
         };
-        var queryResultOrg2 = new List<SearchResultItem>
+        var queryResultOrg2 = new List<CustodianSearchResultItem>
         {
-            new("System B", "Provider Name 2", "RecordB", "http://url2"),
+            new(null, "Provider Name 2", "RecordB", "http://url2", "System B"),
         };
 
         _mockContext
-            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+            .CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
                 "QueryProvidersFunction",
                 Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org1"),
                 Arg.Any<TaskOptions>()
@@ -207,7 +207,7 @@ public class SearchOrchestratorFunctionsTests
             .Returns(queryResultOrg1);
 
         _mockContext
-            .CallActivityAsync<IReadOnlyList<SearchResultItem>>(
+            .CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
                 "QueryProvidersFunction",
                 Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == "org2"),
                 Arg.Any<TaskOptions>()

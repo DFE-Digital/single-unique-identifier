@@ -1,8 +1,8 @@
 namespace SUI.Find.Application.Models;
 
 public sealed record SearchResultItem(
-    string ProviderSystem,
-    string ProviderId,
+    string? SystemId,
+    string? RecordId,
     string RecordType,
     string RecordUrl
 );

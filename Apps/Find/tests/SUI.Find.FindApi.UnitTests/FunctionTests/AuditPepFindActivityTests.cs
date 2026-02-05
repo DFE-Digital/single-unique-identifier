@@ -26,7 +26,13 @@ public class AuditPepFindActivityTests
             new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
             [
                 new(
-                    new SearchResultItem("System A", "Provider Name 1", "RecordA", "http://url1"),
+                    new CustodianSearchResultItem(
+                        "System A",
+                        "Provider Name 1",
+                        "RecordA",
+                        "http://url1",
+                        "test-custodian"
+                    ),
                     "org1",
                     new PolicyDecisionResult
                     {
