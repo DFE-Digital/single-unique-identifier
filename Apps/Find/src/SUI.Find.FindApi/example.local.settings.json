@@ -19,6 +19,7 @@
     "OTEL_SERVICE_NAME": "SUI.Find.FindApi",
     "KeyVault:KeyVaultUri": "getTheRealUrl",
     "IdEncryption:EnablePersonIdEncryption": false,
-    "MatchFunction:XApiKey": "local-dev-key-change-me"
+    "MatchFunction:XApiKey": "local-dev-key-change-me",
+    "UseStubAuthTokenService": true
   }
 }
