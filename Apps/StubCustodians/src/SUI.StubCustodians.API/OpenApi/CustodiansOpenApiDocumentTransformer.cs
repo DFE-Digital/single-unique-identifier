@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using Asp.Versioning.ApiExplorer;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
-namespace SUI.StubCustodians.API.OpenApiTransformers
+namespace SUI.StubCustodians.API.OpenApi
 {
     [ExcludeFromCodeCoverage]
     public class CustodiansOpenApiDocumentTransformer(IApiVersionDescriptionProvider provider)

@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.1",
   "info": {
     "title": "SUI.Transfer.API | v1",
     "version": "1.0.0"
@@ -175,27 +175,36 @@
         "type": "object",
         "properties": {
           "line1": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "line2": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "townOrCity": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "county": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "postcode": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           }
-        },
-        "nullable": true
+        }
       },
       "CancelledTransferJobState": {
         "required": [
@@ -229,14 +238,23 @@
             "format": "date-time"
           },
           "data": {
-            "$ref": "#/components/schemas/ConformedData"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConformedData"
+              }
+            ]
           },
           "_links": {
-            "type": "object",
+            "type": [
+              "null",
+              "object"
+            ],
             "additionalProperties": {
               "$ref": "#/components/schemas/HalLink"
-            },
-            "nullable": true
+            }
           }
         }
       },
@@ -244,31 +262,58 @@
         "type": "object",
         "properties": {
           "keyWorker": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "dutyContactDetails": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+              }
+            ]
           },
           "teamInvolvement": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+              }
+            ]
           },
           "childrensServicesReferrals": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfChildrensServicesReferralV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfChildrensServicesReferralV1"
+              }
+            ]
           }
-        },
-        "nullable": true
+        }
       },
       "ChildrensServicesReferralV1": {
         "type": "object",
         "properties": {
           "date": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "type": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -281,24 +326,33 @@
         "type": "object",
         "properties": {
           "past6Months": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/ChildServicesReferralSummary"
-            },
-            "nullable": true
+            }
           },
           "past12Months": {
-            "type": "array",
-            "items": { },
-            "nullable": true
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ChildServicesReferralSummary"
+            }
           },
           "past5Years": {
-            "type": "array",
-            "items": { },
-            "nullable": true
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ChildServicesReferralSummary"
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "ChildServicesReferralSummary": {
         "required": [
@@ -311,7 +365,11 @@
             "type": "string"
           },
           "count": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           }
         }
@@ -345,14 +403,23 @@
             "format": "date-time"
           },
           "data": {
-            "$ref": "#/components/schemas/ConformedData"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConformedData"
+              }
+            ]
           },
           "_links": {
-            "type": "object",
+            "type": [
+              "null",
+              "object"
+            ],
             "additionalProperties": {
               "$ref": "#/components/schemas/HalLink"
-            },
-            "nullable": true
+            }
           }
         }
       },
@@ -378,33 +445,64 @@
             "format": "date-time"
           },
           "sui": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "consolidatedData": {
             "$ref": "#/components/schemas/ConsolidatedData"
           },
           "educationAttendanceSummaries": {
-            "$ref": "#/components/schemas/EducationAttendanceSummaries"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EducationAttendanceSummaries"
+              }
+            ]
           },
           "healthAttendanceSummaries": {
-            "$ref": "#/components/schemas/HealthAttendanceSummaries"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HealthAttendanceSummaries"
+              }
+            ]
           },
           "childServicesReferralSummaries": {
-            "$ref": "#/components/schemas/ChildServicesReferralSummaries"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChildServicesReferralSummaries"
+              }
+            ]
           },
           "crimeMissingEpisodesSummaries": {
-            "$ref": "#/components/schemas/CrimeMissingEpisodesSummaries"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CrimeMissingEpisodesSummaries"
+              }
+            ]
           },
           "statusFlags": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/StatusFlag"
-            },
-            "nullable": true
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedData": {
         "required": [
@@ -423,22 +521,61 @@
             "type": "string"
           },
           "personalDetailsRecord": {
-            "$ref": "#/components/schemas/PersonalDetailsRecordV1Consolidated"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalDetailsRecordV1Consolidated"
+              }
+            ]
           },
           "childrensServicesDetailsRecord": {
-            "$ref": "#/components/schemas/ChildrensServicesDetailsRecordV1Consolidated"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChildrensServicesDetailsRecordV1Consolidated"
+              }
+            ]
           },
           "educationDetailsRecord": {
-            "$ref": "#/components/schemas/EducationDetailsRecordV1Consolidated"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EducationDetailsRecordV1Consolidated"
+              }
+            ]
           },
           "healthDataRecord": {
-            "$ref": "#/components/schemas/HealthDataRecordV1Consolidated"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HealthDataRecordV1Consolidated"
+              }
+            ]
           },
           "crimeDataRecord": {
-            "$ref": "#/components/schemas/CrimeDataRecordV1Consolidated"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CrimeDataRecordV1Consolidated"
+              }
+            ]
           },
           "countOfRecordsSuccessfullyFetched": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "failedFetches": {
@@ -462,10 +599,57 @@
             }
           },
           "value": {
-            "$ref": "#/components/schemas/AddressV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AddressV1"
+              }
+            ]
           }
-        },
-        "nullable": true
+        }
+      },
+      "ConsolidatedFieldOfboolean": {
+        "required": [
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsolidatedFieldValueOfboolean"
+            }
+          },
+          "value": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        }
+      },
+      "ConsolidatedFieldOfDateTimeOffset": {
+        "required": [
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsolidatedFieldValueOfDateTimeOffset"
+            }
+          },
+          "value": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
       },
       "ConsolidatedFieldOfICollectionOfChildrensServicesReferralV1": {
         "required": [
@@ -480,12 +664,15 @@
             }
           },
           "value": {
-            "type": "array",
-            "items": { },
-            "nullable": true
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ChildrensServicesReferralV1"
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedFieldOfICollectionOfCrimeMissingEpisodeV1": {
         "required": [
@@ -500,12 +687,15 @@
             }
           },
           "value": {
-            "type": "array",
-            "items": { },
-            "nullable": true
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/CrimeMissingEpisodeV1"
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedFieldOfICollectionOfEmergencyDepartmentAttendanceV1": {
         "required": [
@@ -520,12 +710,15 @@
             }
           },
           "value": {
-            "type": "array",
-            "items": { },
-            "nullable": true
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/EmergencyDepartmentAttendanceV1"
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedFieldOfICollectionOfHealthMissedAppointmentV1": {
         "required": [
@@ -540,12 +733,15 @@
             }
           },
           "value": {
-            "type": "array",
-            "items": { },
-            "nullable": true
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/HealthMissedAppointmentV1"
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedFieldOfICollectionOfLinkedCrimeRiskV1": {
         "required": [
@@ -560,12 +756,15 @@
             }
           },
           "value": {
-            "type": "array",
-            "items": { },
-            "nullable": true
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LinkedCrimeRiskV1"
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedFieldOfICollectionOfRelatedPersonV1": {
         "required": [
@@ -580,12 +779,15 @@
             }
           },
           "value": {
-            "type": "array",
-            "items": { },
-            "nullable": true
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RelatedPersonV1"
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedFieldOfICollectionOfstring": {
         "required": [
@@ -600,14 +802,15 @@
             }
           },
           "value": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedFieldOfICollectionOfYearlyEducationAttendanceV1": {
         "required": [
@@ -622,51 +825,15 @@
             }
           },
           "value": {
-            "type": "array",
-            "items": { },
-            "nullable": true
-          }
-        },
-        "nullable": true
-      },
-      "ConsolidatedFieldOfNullableOfboolean": {
-        "required": [
-          "values"
-        ],
-        "type": "object",
-        "properties": {
-          "values": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
-              "$ref": "#/components/schemas/ConsolidatedFieldValueOfNullableOfboolean"
+              "$ref": "#/components/schemas/YearlyEducationAttendanceV1"
             }
-          },
-          "value": {
-            "type": "boolean",
-            "nullable": true
           }
-        },
-        "nullable": true
-      },
-      "ConsolidatedFieldOfNullableOfDateTimeOffset": {
-        "required": [
-          "values"
-        ],
-        "type": "object",
-        "properties": {
-          "values": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ConsolidatedFieldValueOfNullableOfDateTimeOffset"
-            }
-          },
-          "value": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedFieldOfstring": {
         "required": [
@@ -681,11 +848,12 @@
             }
           },
           "value": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           }
-        },
-        "nullable": true
+        }
       },
       "ConsolidatedFieldValueOfAddressV1": {
         "required": [
@@ -695,7 +863,51 @@
         "type": "object",
         "properties": {
           "value": {
-            "$ref": "#/components/schemas/AddressV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AddressV1"
+              }
+            ]
+          },
+          "providerSystemId": {
+            "type": "string"
+          }
+        }
+      },
+      "ConsolidatedFieldValueOfboolean": {
+        "required": [
+          "value",
+          "providerSystemId"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "providerSystemId": {
+            "type": "string"
+          }
+        }
+      },
+      "ConsolidatedFieldValueOfDateTimeOffset": {
+        "required": [
+          "value",
+          "providerSystemId"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           },
           "providerSystemId": {
             "type": "string"
@@ -710,11 +922,13 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/ChildrensServicesReferralV1"
-            },
-            "nullable": true
+            }
           },
           "providerSystemId": {
             "type": "string"
@@ -729,11 +943,13 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/CrimeMissingEpisodeV1"
-            },
-            "nullable": true
+            }
           },
           "providerSystemId": {
             "type": "string"
@@ -748,11 +964,13 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/EmergencyDepartmentAttendanceV1"
-            },
-            "nullable": true
+            }
           },
           "providerSystemId": {
             "type": "string"
@@ -767,11 +985,13 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/HealthMissedAppointmentV1"
-            },
-            "nullable": true
+            }
           },
           "providerSystemId": {
             "type": "string"
@@ -786,11 +1006,13 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/LinkedCrimeRiskV1"
-            },
-            "nullable": true
+            }
           },
           "providerSystemId": {
             "type": "string"
@@ -805,11 +1027,13 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/RelatedPersonV1"
-            },
-            "nullable": true
+            }
           },
           "providerSystemId": {
             "type": "string"
@@ -824,11 +1048,13 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           },
           "providerSystemId": {
             "type": "string"
@@ -843,44 +1069,13 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/YearlyEducationAttendanceV1"
-            },
-            "nullable": true
-          },
-          "providerSystemId": {
-            "type": "string"
-          }
-        }
-      },
-      "ConsolidatedFieldValueOfNullableOfboolean": {
-        "required": [
-          "value",
-          "providerSystemId"
-        ],
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "providerSystemId": {
-            "type": "string"
-          }
-        }
-      },
-      "ConsolidatedFieldValueOfNullableOfDateTimeOffset": {
-        "required": [
-          "value",
-          "providerSystemId"
-        ],
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            }
           },
           "providerSystemId": {
             "type": "string"
@@ -895,8 +1090,10 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "providerSystemId": {
             "type": "string"
@@ -907,22 +1104,56 @@
         "type": "object",
         "properties": {
           "policeMarkerDetails": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "servicesKnownTo": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+              }
+            ]
           },
           "lastPoliceProtectionPowerEvent": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "missingEpisodes": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfCrimeMissingEpisodeV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfCrimeMissingEpisodeV1"
+              }
+            ]
           },
           "linkedCrimeRisks": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfLinkedCrimeRiskV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfLinkedCrimeRiskV1"
+              }
+            ]
           }
-        },
-        "nullable": true
+        }
       },
       "CrimeMissingEpisodesSummaries": {
         "required": [
@@ -931,24 +1162,27 @@
         "type": "object",
         "properties": {
           "last6Months": {
-            "type": "array",
-            "items": { },
-            "nullable": true
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/CrimeMissingEpisodeV1"
+            }
           }
-        },
-        "nullable": true
+        }
       },
       "CrimeMissingEpisodeV1": {
         "type": "object",
         "properties": {
           "date": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "returnedHomeInterviewAttended": {
-            "type": "boolean",
-            "nullable": true
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -960,43 +1194,83 @@
         "type": "object",
         "properties": {
           "currentAcademicYear": {
-            "$ref": "#/components/schemas/YearlyEducationAttendanceV12"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/YearlyEducationAttendanceV1"
+              }
+            ]
           },
           "lastAcademicYear": {
-            "$ref": "#/components/schemas/YearlyEducationAttendanceV12"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/YearlyEducationAttendanceV1"
+              }
+            ]
           }
-        },
-        "nullable": true
+        }
       },
       "EducationDetailsRecordV1Consolidated": {
         "type": "object",
         "properties": {
           "educationSettingName": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "educationSettingAddress": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfAddressV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfAddressV1"
+              }
+            ]
           },
           "educationSettingTelephone": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "yearlyEducationAttendances": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfYearlyEducationAttendanceV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfYearlyEducationAttendanceV1"
+              }
+            ]
           }
-        },
-        "nullable": true
+        }
       },
       "EmergencyDepartmentAttendanceV1": {
         "type": "object",
         "properties": {
           "date": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "reason": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1026,8 +1300,10 @@
             "type": "string"
           },
           "method": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1039,13 +1315,26 @@
         "type": "object",
         "properties": {
           "last12Months": {
-            "$ref": "#/components/schemas/HealthAttendanceSummary"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HealthAttendanceSummary"
+              }
+            ]
           },
           "last5Years": {
-            "$ref": "#/components/schemas/HealthAttendanceSummary"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HealthAttendanceSummary"
+              }
+            ]
           }
-        },
-        "nullable": true
+        }
       },
       "HealthAttendanceSummary": {
         "required": [
@@ -1057,68 +1346,145 @@
         "type": "object",
         "properties": {
           "countOfMissedGPAppointments": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "countOfMissedHospitalAppointments": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "countOfMissedCommunityHealthAppointments": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "countOfEmergencyDepartmentAttendances": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "format": "int32"
           }
-        },
-        "nullable": true
+        }
       },
       "HealthDataRecordV1Consolidated": {
         "type": "object",
         "properties": {
           "registeredGPName": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "registeredGPSurgery": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "gpAddress": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfAddressV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfAddressV1"
+              }
+            ]
           },
           "gpTelephone": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "camhsContactDetails": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+              }
+            ]
           },
           "camhsTeamInvolvement": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+              }
+            ]
           },
           "missedAppointments": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfHealthMissedAppointmentV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfHealthMissedAppointmentV1"
+              }
+            ]
           },
           "emergencyDepartmentAttendances": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfEmergencyDepartmentAttendanceV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfEmergencyDepartmentAttendanceV1"
+              }
+            ]
           }
-        },
-        "nullable": true
+        }
       },
       "HealthMissedAppointmentV1": {
         "type": "object",
         "properties": {
           "date": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "setting": {
-            "$ref": "#/components/schemas/NullableOfNullableOfHealthSettingV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NullableOfHealthSettingV1"
+              }
+            ]
           },
           "reason": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1126,16 +1492,21 @@
         "type": "object",
         "properties": {
           "date": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "riskType": {
-            "$ref": "#/components/schemas/NullableOfNullableOfCrimeRiskTypeV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NullableOfCrimeRiskTypeV1"
+              }
+            ]
           }
         }
       },
-      "NullableOfNullableOfCrimeRiskTypeV1": {
+      "NullableOfCrimeRiskTypeV1": {
         "enum": [
           "SexualExploitation",
           "CriminalExploitation",
@@ -1143,72 +1514,181 @@
           "ModernSlaveryAndTrafficking",
           "GangsAndYouthViolence",
           null
-        ],
-        "nullable": true
+        ]
       },
-      "NullableOfNullableOfHealthSettingV1": {
+      "NullableOfHealthSettingV1": {
         "enum": [
           "Other",
           "Hospital",
           "GP",
           "Community",
           null
-        ],
-        "nullable": true
+        ]
       },
       "PersonalDetailsRecordV1Consolidated": {
         "type": "object",
         "properties": {
           "firstName": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "lastName": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "dateOfBirth": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfNullableOfDateTimeOffset"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfDateTimeOffset"
+              }
+            ]
           },
           "address": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfAddressV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfAddressV1"
+              }
+            ]
           },
           "namesOfIndividualsResidingAtMainAddress": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfstring"
+              }
+            ]
           },
           "birthAssignedSex": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "pronouns": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "ethnicity": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "firstLanguage": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "designatedLocalAuthority": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfstring"
+              }
+            ]
           },
           "englishAsAdditionalLanguage": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfNullableOfboolean"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfboolean"
+              }
+            ]
           },
           "braille": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfNullableOfboolean"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfboolean"
+              }
+            ]
           },
           "signLanguage": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfNullableOfboolean"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfboolean"
+              }
+            ]
           },
           "makaton": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfNullableOfboolean"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfboolean"
+              }
+            ]
           },
           "interpreter": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfNullableOfboolean"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfboolean"
+              }
+            ]
           },
           "relatedPeople": {
-            "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfRelatedPersonV1"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsolidatedFieldOfICollectionOfRelatedPersonV1"
+              }
+            ]
           }
-        },
-        "nullable": true
+        }
       },
       "QueuedTransferJobState": {
         "required": [
@@ -1237,14 +1717,23 @@
             "format": "date-time"
           },
           "data": {
-            "$ref": "#/components/schemas/ConformedData"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConformedData"
+              }
+            ]
           },
           "_links": {
-            "type": "object",
+            "type": [
+              "null",
+              "object"
+            ],
             "additionalProperties": {
               "$ref": "#/components/schemas/HalLink"
-            },
-            "nullable": true
+            }
           }
         }
       },
@@ -1271,24 +1760,28 @@
         "type": "object",
         "properties": {
           "relationshipToTheChild": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "dob": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "risk": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         }
       },
@@ -1337,14 +1830,23 @@
             "format": "date-time"
           },
           "data": {
-            "$ref": "#/components/schemas/ConformedData"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConformedData"
+              }
+            ]
           },
           "_links": {
-            "type": "object",
+            "type": [
+              "null",
+              "object"
+            ],
             "additionalProperties": {
               "$ref": "#/components/schemas/HalLink"
-            },
-            "nullable": true
+            }
           }
         }
       },
@@ -1361,92 +1863,78 @@
         "type": "object",
         "properties": {
           "academicTermYearStart": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           },
           "academicTermYearEnd": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           },
           "attendancePercentage": {
-            "type": "number",
-            "format": "float",
-            "nullable": true
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "float"
           },
           "unauthorisedAbsencePercentage": {
-            "type": "number",
-            "format": "float",
-            "nullable": true
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "float"
           },
           "suspensions": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           },
           "exclusions": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           },
           "schoolMovesNonTransitional": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           },
           "schoolsAverageAttendance": {
-            "type": "number",
-            "format": "float",
-            "nullable": true
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "float"
           }
         }
-      },
-      "YearlyEducationAttendanceV12": {
-        "type": "object",
-        "properties": {
-          "academicTermYearStart": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "academicTermYearEnd": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "attendancePercentage": {
-            "type": "number",
-            "format": "float",
-            "nullable": true
-          },
-          "unauthorisedAbsencePercentage": {
-            "type": "number",
-            "format": "float",
-            "nullable": true
-          },
-          "suspensions": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "exclusions": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "schoolMovesNonTransitional": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "schoolsAverageAttendance": {
-            "type": "number",
-            "format": "float",
-            "nullable": true
-          }
-        },
-        "nullable": true
       }
     },
     "securitySchemes": {

@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using AuthenticationOptions = SUI.Transfer.Infrastructure.Authentication.AuthenticationOptions;
 
 namespace SUI.Transfer.API.OpenApiTransformers;
@@ -27,7 +27,8 @@ internal sealed class AuthenticationTransformer(
         )
         {
             document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+            document.Components.SecuritySchemes ??=
+                new Dictionary<string, IOpenApiSecurityScheme>();
 
             document.Components.SecuritySchemes[_headerName] = new OpenApiSecurityScheme
             {
@@ -38,24 +39,22 @@ internal sealed class AuthenticationTransformer(
                 Name = _headerName,
             };
 
-            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+            var securitySchemeReference = new OpenApiSecuritySchemeReference(_headerName, document);
+
+            foreach (var pathItem in document.Paths.Values)
             {
-                operation.Value.Security ??= [];
-                operation.Value.Security.Add(
-                    new OpenApiSecurityRequirement
-                    {
-                        [
-                            new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = _headerName,
-                                },
-                            }
-                        ] = [],
-                    }
-                );
+                if (pathItem.Operations == null)
+                {
+                    continue;
+                }
+
+                foreach (var operation in pathItem.Operations.Values)
+                {
+                    operation.Security ??= [];
+                    operation.Security.Add(
+                        new OpenApiSecurityRequirement { [securitySchemeReference] = [] }
+                    );
+                }
             }
         }
     }

@@ -53,10 +53,10 @@
 
 ## Pre-requisites
 
-You must install the .net CLI and v9 SDK. For macOS, run:
+You must install the .net CLI and v10 SDK. For macOS, run:
 
 ```bash
-curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --version 9.0.300 --install-dir "$HOME/.dotnet"
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --version 10.0.102 --install-dir "$HOME/.dotnet"
 echo 'export PATH="$HOME/.dotnet:$PATH"' >> ~/.zshrc && source ~/.zshrc && echo $PATH
 ```
 

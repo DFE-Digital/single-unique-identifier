@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Text.Json.Nodes;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.API.OpenApi
@@ -54,7 +54,7 @@ namespace SUI.StubCustodians.API.OpenApi
             {
                 var payloadType = declaringType.GetGenericArguments()[0];
                 schema.Description ??= $"URI of the {payloadType.Name} payload schema";
-                schema.Example = new OpenApiString(
+                schema.Example = JsonValue.Create(
                     $"https://schemas.example.gov.uk/sui/{payloadType.Name}"
                 );
             }
@@ -67,7 +67,7 @@ namespace SUI.StubCustodians.API.OpenApi
             var isRef =
                 context.JsonTypeInfo is { Type.IsValueType: false }
                 && context.JsonTypeInfo.Type != typeof(string)
-                && schema.Type != "array";
+                && schema.Type != JsonSchemaType.Array;
 
             if (isRef)
             {
@@ -133,10 +133,10 @@ namespace SUI.StubCustodians.API.OpenApi
 
         private string? GetXmlSummary(MemberInfo member) => GetXmlDocValue(member, "summary");
 
-        private OpenApiString? GetXmlExample(PropertyInfo prop)
+        private JsonValue? GetXmlExample(PropertyInfo prop)
         {
             var example = GetXmlDocValue(prop, "example");
-            return !string.IsNullOrWhiteSpace(example) ? new OpenApiString(example) : null;
+            return !string.IsNullOrWhiteSpace(example) ? JsonValue.Create(example) : null;
         }
     }
 }
