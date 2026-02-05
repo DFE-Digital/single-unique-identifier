@@ -1,6 +1,6 @@
 # ADR-SUI-0009: Central Custodian Knowledge Register for Identity and Discovery
 
-Date: 20 January 2026
+Date: 2026-01-26
 
 Author: Simon Parsons
 

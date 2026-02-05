@@ -1,6 +1,10 @@
 # ADR-SUI-0011: Authentication and Trust Boundaries for SUI APIs
 
+<<<<<<< HEAD
 Date: January 2026  
+=======
+Date: 2026-01-28
+>>>>>>> main
 Author: Simon Parsons  
 Decision owners: SUI Service Team (with input from DfE / participating custodians)  
 Category: Security architecture
