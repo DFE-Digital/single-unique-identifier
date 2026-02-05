@@ -45,7 +45,7 @@ public class QueryProvidersFunctionTests
 
         var expectedItems = new List<CustodianSearchResultItem>
         {
-            new("SystemA", "Provider A", "Type1", "/v1/records/original-id", "test-custodian"),
+            new("Type1", "/v1/records/original-id", "test-custodian", "SystemA", "TestRecord"),
         };
         var expectedResult = Result<IReadOnlyList<CustodianSearchResultItem>>.Ok(expectedItems);
 

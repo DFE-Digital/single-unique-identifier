@@ -56,10 +56,10 @@ public class SearchResultsFunctionTests
     private static SearchResultItem CreateSearchResultItem()
     {
         return new SearchResultItem(
-            "TestSystem",
-            "TestRecord",
             "Health",
-            "http://example.com/record/1"
+            "http://example.com/record/1",
+            "TestSystem",
+            "TestRecord"
         );
     }
 

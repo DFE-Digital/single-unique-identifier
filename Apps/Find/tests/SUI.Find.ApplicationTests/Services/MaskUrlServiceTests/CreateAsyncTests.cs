@@ -21,8 +21,8 @@ public class CreateAsyncTests
         var originalUrl = "https://localhost.example.com/somewhere";
         List<CustodianSearchResultItem> items =
         [
-            new("bib", "bob", "Health", originalUrl, "test-custodian"),
-            new("ll", "someProvider", "Education", originalUrl, "test-custodian"),
+            new("Health", originalUrl, "test-custodian", "bib", "bob"),
+            new("Education", originalUrl, "test-custodian", "ll", "TestRecord"),
         ];
         var providerDefinition = new ProviderDefinition();
         var queryProviderInput = new QueryProviderInput(
@@ -80,8 +80,8 @@ public class CreateAsyncTests
         var originalUrl = "https://localhost.example.com/somewhere";
         List<CustodianSearchResultItem> items =
         [
-            new("bib", "bob", "Health", originalUrl, "test-custodian"),
-            new("ll", "someProvider", "Education", originalUrl, "test-custodian"),
+            new("Health", originalUrl, "test-custodian", "bib", "bob"),
+            new("Education", originalUrl, "test-custodian", "ll", "TestRecord"),
         ];
         var providerDefinition = new ProviderDefinition();
         var queryProviderInput = new QueryProviderInput(
@@ -119,8 +119,8 @@ public class CreateAsyncTests
         var originalUrl = "https://localhost.example.com/somewhere";
         List<CustodianSearchResultItem> items =
         [
-            new("bib", "bob", "Health", originalUrl, "test-custodian"),
-            new("ll", "someProvider", "Education", originalUrl, "test-custodian"),
+            new("Health", originalUrl, "test-custodian", "bib", "bob"),
+            new("Education", originalUrl, "test-custodian", "ll", "TestRecord"),
         ];
         var providerDefinition = new ProviderDefinition();
         var queryProviderInput = new QueryProviderInput(
