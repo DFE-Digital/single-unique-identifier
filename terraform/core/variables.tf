@@ -60,3 +60,15 @@ variable "app_service_plan_worker_count" {
   type        = number
   default     = 1
 }
+
+variable "log_analytics_sku" {
+  description = "SKU for the Log Analytics workspace."
+  type        = string
+  default     = "PerGB2018"
+}
+
+variable "log_analytics_retention_in_days" {
+  description = "Retention period for Log Analytics workspace data."
+  type        = number
+  default     = 30
+}

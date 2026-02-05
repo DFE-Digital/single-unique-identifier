@@ -6,7 +6,7 @@ faciliate information sharing between child social care (CSC) systems.
 This workspace/repository contains software that demonstrates the viability
 of using the NHS number as the SUI and how data could be transferred between
 data owners nationally, to present this data as a single view of a child for
-the improved safeguarding of children.
+the improved safeguarding and welfare of children.
 
 ## Contributing to the Docs
 

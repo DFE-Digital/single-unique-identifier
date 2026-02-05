@@ -47,7 +47,7 @@ public class FetchRecordFunctionTests
         {
             RecordId = "record-123",
             RecordType = "record-type",
-            DataType = "data-type",
+            Version = 1,
             PersonId = "person-456",
             SchemaUri = "schema-uri",
             Payload = JsonSerializer.Deserialize<JsonElement>("{}"),

@@ -76,3 +76,9 @@ variable "app_settings" {
   type        = map(string)
   default     = {}
 }
+
+variable "application_insights_connection_string" {
+  description = "Optional. Specifies the connection string that the function app should use to connect to Application Insights for telemetry and logging."
+  type        = string
+  default     = null
+}

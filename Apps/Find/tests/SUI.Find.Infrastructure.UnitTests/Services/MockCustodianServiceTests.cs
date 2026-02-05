@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using SUI.Find.Infrastructure.Services;
 
@@ -7,11 +8,12 @@ namespace SUI.Find.Infrastructure.UnitTests.Services;
 public class MockCustodianServiceTests
 {
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
+    private readonly IConfiguration _mockConfiguration = Substitute.For<IConfiguration>();
     private readonly MockCustodianService _sut;
 
     public MockCustodianServiceTests()
     {
-        _sut = new MockCustodianService(_mockFileSystem);
+        _sut = new MockCustodianService(_mockFileSystem, _mockConfiguration);
     }
 
     [Fact]
@@ -110,11 +112,34 @@ public class MockCustodianServiceTests
 
         var targetOrgId = "NON-EXISTENT-ORG-ID";
 
-        // Act 
+        // Act
         var result = await _sut.GetCustodianAsync(targetOrgId);
 
         // Assert
         Assert.False(result.Success);
         Assert.Contains(targetOrgId, result.Error);
+    }
+
+    [Fact]
+    public async Task GetCustodiansAsync_DoesReplace_StubCustodiansBaseUrl_TextToken()
+    {
+        // Arrange
+        var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "org-directory.json");
+        var fileContent = await File.ReadAllTextAsync(filePath);
+        _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
+
+        _mockConfiguration["StubCustodiansBaseUrl"].Returns("https://example123.com");
+
+        // Act
+        var providers = await _sut.GetCustodiansAsync();
+
+        // Assert
+        var provider = providers.FirstOrDefault(p => p.OrgId == "EDUCATION-01");
+        Assert.NotNull(provider);
+        Assert.Equal("Example Education Custodian", provider.OrgName);
+
+        Assert.Equal("https://example123.com/v1/education/manifest", provider.Connection.Url);
+        Assert.NotNull(provider.Connection.Auth);
+        Assert.Equal("https://example123.com/v1/auth/token", provider.Connection.Auth.TokenUrl);
     }
 }

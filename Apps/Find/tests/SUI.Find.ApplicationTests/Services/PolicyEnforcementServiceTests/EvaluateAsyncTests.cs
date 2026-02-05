@@ -31,7 +31,7 @@ public class EvaluateAsyncTests
                 {
                     Effect = "allow",
                     Modes = ["EXISTENCE"],
-                    DataTypes = ["mental_health_ptr"],
+                    DataTypes = ["health_details_ptr"],
                     DestOrgTypes = ["LOCAL_AUTHORITY", "HEALTH", "POLICE"],
                     Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
                     ValidFrom = DateTimeOffset.Parse("2025-01-01T00:00:00Z"),
@@ -42,7 +42,7 @@ public class EvaluateAsyncTests
         var request = new PolicyDecisionRequest(
             SourceOrgId: "HEALTH-01",
             DestinationOrgId: "LOCAL-AUTHORITY-01",
-            RecordType: "health.mental-health",
+            RecordType: "health.details",
             Mode: ShareMode.Existence,
             Purpose: "SAFEGUARDING"
         );
@@ -68,7 +68,7 @@ public class EvaluateAsyncTests
                 {
                     Effect = "allow",
                     Modes = ["EXISTENCE"],
-                    DataTypes = ["children_social_care_ptr"],
+                    DataTypes = ["health_details_ptr"],
                     DestOrgTypes = ["LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE"],
                     Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
                     ValidFrom = DateTimeOffset.Parse("2025-01-01T00:00:00Z"),
@@ -79,7 +79,7 @@ public class EvaluateAsyncTests
         var request = new PolicyDecisionRequest(
             SourceOrgId: "LOCAL-AUTHORITY-01",
             DestinationOrgId: "HEALTH-01",
-            RecordType: "local-authority.children-social-care",
+            RecordType: "health.details",
             Mode: ShareMode.Existence,
             Purpose: "SAFEGUARDING"
         );
@@ -190,7 +190,7 @@ public class EvaluateAsyncTests
                 {
                     Effect = "allow",
                     Modes = ["EXISTENCE"],
-                    DataTypes = ["mental_health_ptr"],
+                    DataTypes = ["health_details_ptr"],
                     DestOrgIds = [], // explicitly none
                     DestOrgTypes = [], // explicitly none
                     Purposes = ["SAFEGUARDING"],
@@ -202,7 +202,7 @@ public class EvaluateAsyncTests
         var request = new PolicyDecisionRequest(
             SourceOrgId: "HEALTH-01",
             DestinationOrgId: "LOCAL-AUTHORITY-01",
-            RecordType: "health.mental-health",
+            RecordType: "health.details",
             Mode: ShareMode.Existence,
             Purpose: "SAFEGUARDING"
         );

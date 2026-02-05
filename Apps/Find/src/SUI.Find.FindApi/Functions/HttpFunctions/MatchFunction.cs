@@ -4,27 +4,32 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Models;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models.Matching;
 using SUI.Find.Application.Services;
-using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Attributes;
+using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
-using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
-public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService service)
+public class MatchFunction(
+    ILogger<MatchFunction> logger,
+    IMatchPersonOrchestrationService matchOrchestrationService,
+    IOptions<MatchFunctionConfiguration> matchFunctionConfig
+)
 {
     [Function(nameof(MatchPerson))]
     [RequiredScopes("match-record.read")]
     [OpenApiOperation(
         operationId: "FindPerson",
         tags: ["Match"],
-        Summary = "Locate a persons unique id"
+        Summary = "I know of this person, what is their unique ID"
     )]
-    [OpenApiRequestBody("application/json", typeof(MatchPersonRequest), Required = true)]
+    [OpenApiRequestBody("application/json", typeof(PersonSpecification), Required = true)]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(PersonMatch))]
     [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
@@ -42,6 +47,7 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
         if (
             !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
             || authObj is not AuthContext authContext
+            || !VerifyApiKey(req)
         )
         {
             return await HttpResponseUtility.UnauthorizedResponse(
@@ -65,22 +71,21 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
             );
         }
 
-        var isValid = DataAnnotationValidator.Validate(request, out var validationResults);
-        if (!isValid)
-        {
-            return await HttpResponseUtility.ProblemResponse(
-                req,
-                HttpStatusCode.BadRequest,
-                "Invalid request",
-                validationResults ?? "The request model is invalid.",
-                context.InvocationId,
-                cancellationToken
-            );
-        }
-
-        var personMatch = await service.MatchPersonAsync(request, authContext.ClientId);
+        var personMatch = await matchOrchestrationService.FindPersonIdAsync(
+            request,
+            authContext.ClientId,
+            cancellationToken
+        );
         return await personMatch.Match(
-            encryptedPersonId => CreateOkResponse(req, encryptedPersonId),
+            id => CreateOkResponse(req, id),
+            async dataValidationResult =>
+                await HttpResponseUtility.BadRequestResponse(
+                    req,
+                    context.InvocationId,
+                    JsonSerializer.Serialize(dataValidationResult),
+                    "Validation error",
+                    cancellationToken
+                ),
             async notFound =>
                 await HttpResponseUtility.NotFoundResponse(
                     req,
@@ -98,20 +103,16 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
 
     private static bool TryGetMatchResponseRequestModel(
         HttpRequestData req,
-        out MatchPersonRequest model
+        out PersonSpecification model
     )
     {
-        model = new MatchPersonRequest();
+        model = new PersonSpecification();
         try
         {
             var requestBody = req.ReadAsString();
-            if (string.IsNullOrWhiteSpace(requestBody))
-            {
-                return false;
-            }
 
-            var request = JsonSerializer.Deserialize<MatchPersonRequest>(
-                requestBody,
+            var request = JsonSerializer.Deserialize<PersonSpecification>(
+                requestBody!,
                 JsonSerializerOptions.Web
             );
 
@@ -131,12 +132,36 @@ public class MatchFunction(ILogger<MatchFunction> logger, IMatchingService servi
 
     private static async Task<HttpResponseData> CreateOkResponse(
         HttpRequestData req,
-        EncryptedPersonId encryptedPersonId
+        PersonIdValue encryptedPersonId
     )
     {
         var res = req.CreateResponse(HttpStatusCode.OK);
         var responseBody = new PersonMatch(encryptedPersonId.Value);
         await res.WriteAsJsonAsync(responseBody);
         return res;
+    }
+
+    private bool VerifyApiKey(HttpRequestData req)
+    {
+        if (!req.Headers.Contains("x-api-key"))
+        {
+            logger.LogInformation("Missing x-api-key header");
+            return false;
+        }
+
+        var apiKey = req.Headers.GetValues("x-api-key").FirstOrDefault();
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            logger.LogInformation("Empty x-api-key header");
+            return false;
+        }
+
+        if (apiKey != matchFunctionConfig.Value.XApiKey)
+        {
+            logger.LogWarning("Invalid x-api-key header value");
+            return false;
+        }
+
+        return true;
     }
 }

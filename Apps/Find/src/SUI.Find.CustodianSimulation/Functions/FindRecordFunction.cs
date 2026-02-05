@@ -45,7 +45,7 @@ public sealed class LocalAuthorityManifestFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public Task<HttpResponseData> Run(
         [HttpTrigger(
-            AuthorizationLevel.Function,
+            AuthorizationLevel.Anonymous,
             "get",
             Route = "v1/local-authority/manifest/{personId}"
         )]
@@ -92,7 +92,7 @@ public sealed class EducationManifestFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/education/manifest")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/education/manifest")]
             HttpRequestData req,
         FunctionContext context
     )
@@ -149,7 +149,7 @@ public sealed class HealthManifestFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public Task<HttpResponseData> Run(
         [HttpTrigger(
-            AuthorizationLevel.Function,
+            AuthorizationLevel.Anonymous,
             "get",
             Route = "v1/health/children/{personId}/manifest"
         )]
@@ -199,7 +199,7 @@ public sealed class PoliceManifestFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/police/locate/{personId}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/police/locate/{personId}")]
             HttpRequestData req,
         string personId,
         FunctionContext context
@@ -251,7 +251,7 @@ public sealed class HousingManifestFunction(IDataProvider store)
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public Task<HttpResponseData> Run(
         [HttpTrigger(
-            AuthorizationLevel.Function,
+            AuthorizationLevel.Anonymous,
             "get",
             Route = "v1/housing/manifest/{personId}/{recordType?}"
         )]

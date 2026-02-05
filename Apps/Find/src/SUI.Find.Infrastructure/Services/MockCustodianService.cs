@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IO.Abstractions;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
@@ -10,7 +11,7 @@ using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Infrastructure.Services;
 
-public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
+public class MockCustodianService(IFileSystem fileSystem, IConfiguration config) : ICustodianService
 {
     public async Task<IReadOnlyList<ProviderDefinition>> GetCustodiansAsync()
     {
@@ -24,6 +25,13 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         }
 
         var json = await fileSystem.File.ReadAllTextAsync(filePath);
+
+        var stubCustodiansBaseUrl = config["StubCustodiansBaseUrl"];
+        if (!string.IsNullOrWhiteSpace(stubCustodiansBaseUrl))
+        {
+            json = json.Replace("{StubCustodiansBaseUrl}", stubCustodiansBaseUrl);
+        }
+
         var doc =
             JsonSerializer.Deserialize<MockOrgDirectory>(json, JsonSerializerOptions.Web)
             ?? throw new InvalidOperationException($"Failed to deserialize {fileName}");
@@ -61,28 +69,35 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
                         },
                         DsaPolicy = new DsaPolicyDefinition
                         {
-                            Version = DateTimeOffset.Parse(org.DsaPolicy.Version, CultureInfo.InvariantCulture),
-                            Defaults = org.DsaPolicy.Defaults.Select(d => new DsaRuleDefinition
-                            {
-                                Effect = d.Effect,
-                                Modes = d.Modes,
-                                DataTypes = d.DataTypes,
-                                DestOrgTypes = d.DestOrgTypes,
-                                Purposes = d.Purposes,
-                                ValidFrom = d.ValidFrom
-                            }).ToList(),
-                            Exceptions = org.DsaPolicy.Exceptions.Select(e => new DsaRuleDefinition
-                            {
-                                Effect = e.Effect,
-                                Modes = e.Modes,
-                                DataTypes = e.DataTypes,
-                                DestOrgTypes = e.DestOrgTypes,
-                                DestOrgIds = e.DestOrgIds,
-                                Purposes = e.Purposes,
-                                ValidFrom = e.ValidFrom,
-                                ValidUntil = e.ValidUntil,
-                                Reason = e.Reason
-                            }).ToList()
+                            Version = DateTimeOffset.Parse(
+                                org.DsaPolicy.Version,
+                                CultureInfo.InvariantCulture
+                            ),
+                            Defaults = org
+                                .DsaPolicy.Defaults.Select(d => new DsaRuleDefinition
+                                {
+                                    Effect = d.Effect,
+                                    Modes = d.Modes,
+                                    DataTypes = d.DataTypes,
+                                    DestOrgTypes = d.DestOrgTypes,
+                                    Purposes = d.Purposes,
+                                    ValidFrom = d.ValidFrom,
+                                })
+                                .ToList(),
+                            Exceptions = org
+                                .DsaPolicy.Exceptions.Select(e => new DsaRuleDefinition
+                                {
+                                    Effect = e.Effect,
+                                    Modes = e.Modes,
+                                    DataTypes = e.DataTypes,
+                                    DestOrgTypes = e.DestOrgTypes,
+                                    DestOrgIds = e.DestOrgIds,
+                                    Purposes = e.Purposes,
+                                    ValidFrom = e.ValidFrom,
+                                    ValidUntil = e.ValidUntil,
+                                    Reason = e.Reason,
+                                })
+                                .ToList(),
                         },
                         Encryption =
                             org.Encryption == null
@@ -160,7 +175,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
     {
         public string Version { get; set; } = null!;
         public List<MockDsaRule> Defaults { get; set; } = null!;
-        public List<MockDsaException> Exceptions { get; set; } = null!;
+        public List<MockDsaExceptionDto> Exceptions { get; set; } = null!;
     }
 
     private sealed class MockDsaRule
@@ -173,7 +188,7 @@ public class MockCustodianService(IFileSystem fileSystem) : ICustodianService
         public DateTimeOffset? ValidFrom { get; set; } = null!;
     }
 
-    private sealed class MockDsaException
+    private sealed class MockDsaExceptionDto
     {
         public string Effect { get; set; } = null!;
         public List<string> Modes { get; set; } = null!;

@@ -1,5 +1,4 @@
 using Azure.Data.Tables;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,13 +6,12 @@ using Microsoft.Extensions.Hosting;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.AuditProcessor.Startup;
 using SUI.Find.Infrastructure;
+using SUI.Find.Infrastructure.Extensions;
 using SUI.Find.Infrastructure.Services;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
-builder
-    .Services.AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights();
+builder.UseOpenTelemetry();
 
 builder.Services.AddSingleton<IAuditService, AuditStorageTableService>();
 builder.Services.AddAzureTableServices();

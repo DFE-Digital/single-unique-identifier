@@ -4,5 +4,5 @@ namespace SUI.Find.Infrastructure.Interfaces.Fhir;
 
 public interface IFhirClientFactory
 {
-    FhirClient CreateFhirClient();
+    Task<FhirClient> CreateFhirClientAsync(CancellationToken cancellationToken = default);
 }

@@ -1,6 +1,6 @@
 using NSubstitute;
 using SUI.Find.Application.Models.Fhir;
-using SUI.Find.Infrastructure.Services.PdsServices;
+using SUI.Find.Infrastructure.Services.Fhir;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services.FhirServicesTests;
 
@@ -21,8 +21,8 @@ public class FhirServiceTests : BaseFhirClientTests
 
         // Act
         var testFhirClient = new TestFhirClientError();
-        FhirClientFactoryMock.CreateFhirClient().Returns(testFhirClient);
-        var result = await _fhirService.PerformSearchAsync(searchQuery);
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
 
         // Assert
         Assert.False(result.Success);
@@ -35,10 +35,10 @@ public class FhirServiceTests : BaseFhirClientTests
         // Arrange
         var searchQuery = new SearchQuery();
         var testFhirClient = new TestFhirClientUnmatched();
-        FhirClientFactoryMock.CreateFhirClient().Returns(testFhirClient);
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
 
         // Act
-        var result = await _fhirService.PerformSearchAsync(searchQuery);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
 
         // Assert
         Assert.True(result.Success);
@@ -51,10 +51,10 @@ public class FhirServiceTests : BaseFhirClientTests
         // Arrange
         var searchQuery = new SearchQuery();
         var testFhirClient = new TestFhirClientSinglePersonMatch();
-        FhirClientFactoryMock.CreateFhirClient().Returns(testFhirClient);
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
 
         // Act
-        var result = await _fhirService.PerformSearchAsync(searchQuery);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
 
         // Assert
         Assert.True(result.Success);
@@ -69,13 +69,45 @@ public class FhirServiceTests : BaseFhirClientTests
         // Arrange
         var searchQuery = new SearchQuery();
         var testFhirClient = new TestFhirClientMultiMatch();
-        FhirClientFactoryMock.CreateFhirClient().Returns(testFhirClient);
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
 
         // Act
-        var result = await _fhirService.PerformSearchAsync(searchQuery);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
 
         // Assert
         Assert.True(result.Success);
         Assert.Equal(SearchResult.ResultType.MultiMatched, result.Value?.Type);
+    }
+
+    [Fact]
+    public async Task ShouldReturnFail_WhenTheBundleResourceIdIsNull()
+    {
+        // Edge case test
+        // Arrange
+        var searchQuery = new SearchQuery();
+        var testFhirClient = new TestFhirClientNoResourceId();
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
+
+        // Act
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Success);
+    }
+
+    [Fact]
+    public async Task ShouldReturnFail_WhenTheBundleSearchIsNull()
+    {
+        // Edge case test
+        // Arrange
+        var searchQuery = new SearchQuery();
+        var testFhirClient = new TestFhirClientEntryComponentSearchNull();
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
+
+        // Act
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Success);
     }
 }

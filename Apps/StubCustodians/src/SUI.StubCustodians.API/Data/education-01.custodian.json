@@ -1,0 +1,136 @@
+{
+  "orgId": "EDUCATION-01",
+  "orgName": "Example Education Custodian",
+  "orgType": "EDUCATION",
+  "records": [
+    {
+      "recordId": "ATT-5919-1",
+      "personId": "llvwLYMyw4gDCN-FblGIYA",
+      "recordType": "education.details",
+      "version": "1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/education.details.record.v1.json",
+      "payload": {
+        "educationSettingName": "ST Johns",
+        "educationSettingAddress": {
+          "line1": "School Lane",
+          "line2": "",
+          "townOrCity": "Leeds",
+          "county": "West Yorkshire",
+          "postcode": "LS26 2EF"
+        },
+        "educationSettingTelephone": "0123456789",
+        "educationActiveStatusesAndPlans": [
+          {
+            "status": "SEND",
+            "plan": "Education, Health and Care (EHC) plan"
+          }
+        ],
+        "yearlyEducationAttendances": [
+          {
+            "academicTermYearStart": 2025,
+            "academicTermYearEnd": 2026,
+            "attendancePercentage": 75,
+            "unauthorisedAbsencePercentage": 1,
+            "suspensions": 3,
+            "exclusions": 1,
+            "schoolMovesNonTransitional": 0,
+            "schoolsAverageAttendance": 97.5
+          },
+          {
+            "academicTermYearStart": 2024,
+            "academicTermYearEnd": 2025,
+            "attendancePercentage": 62.7,
+            "unauthorisedAbsencePercentage": 9,
+            "suspensions": 3,
+            "exclusions": 1,
+            "schoolMovesNonTransitional": 1,
+            "schoolsAverageAttendance": 95.5
+          }
+        ]
+      }
+    },
+    {
+      "recordId": "ATT-3210-1",
+      "personId": "q86LnOncgsSRMleFEa6fAQ",
+      "recordType": "education.details",
+      "version": "1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/education.details.record.v1.json",
+      "payload": {
+        "educationSettingName": "Redwood Academy",
+        "educationSettingAddress": {
+          "line1": "Redrood Drive",
+          "line2": "Maltby",
+          "townOrCity": "London",
+          "county": null,
+          "postcode": "SE6 8DL"
+        },
+        "educationSettingTelephone": "0123456789",
+        "educationActiveStatusesAndPlans": [
+          {
+            "status": "SEND",
+            "plan": "Education, Health and Care (EHC) plan"
+          }
+        ],
+        "yearlyEducationAttendances": [
+          {
+            "academicTermYearStart": 2025,
+            "academicTermYearEnd": 2026,
+            "attendancePercentage": 70,
+            "unauthorisedAbsencePercentage": 2,
+            "suspensions": 1,
+            "exclusions": 0,
+            "schoolMovesNonTransitional": 0,
+            "schoolsAverageAttendance": 97.5
+          },
+          {
+            "academicTermYearStart": 2024,
+            "academicTermYearEnd": 2025,
+            "attendancePercentage": 62.7,
+            "unauthorisedAbsencePercentage": 9,
+            "suspensions": 3,
+            "exclusions": 1,
+            "schoolMovesNonTransitional": 1,
+            "schoolsAverageAttendance": 95.5
+          }
+        ]
+      }
+    },
+    {
+      "recordId": "ATT-3210-1",
+      "personId": "q86LnOncgsSRMleFEa6fAQ",
+      "recordType": "personal.details",
+      "version": "1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
+      "payload": {
+        "firstName": null,
+        "lastName": null,
+        "dateOfBirth": null,
+        "address": {
+          "line1": "12 Burton Street",
+          "line2": null,
+          "townOrCity": "London",
+          "county": null,
+          "postcode": "SW1A 0AA"
+        },
+        "namesOfIndividualsResidingAtMainAddress": [
+          "James Smith",
+          "Henry Smith",
+          "Thomas Smith",
+          "Jason Archer",
+          "Sarah Flint-Smith"
+        ],
+        "birthAssignedSex": null,
+        "pronouns": null,
+        "ethnicity": null,
+        "firstLanguage": null,
+        "designatedLocalAuthority": null,
+        "englishAsAdditionalLanguage": null,
+        "braille": null,
+        "signLanguage": true,
+        "makaton": true,
+        "interpreter": null,
+        "relatedPeople": null
+      }
+    }
+  ]
+}

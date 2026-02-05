@@ -94,7 +94,7 @@ public class UrlStorageTableService(
         }
     }
 
-    public async Task EnsureAuditTableExistsAsync(CancellationToken cancellationToken)
+    public async Task EnsureTableExistsAsync(CancellationToken cancellationToken)
     {
         await client.CreateTableIfNotExistsAsync(
             InfrastructureConstants.StorageTableUrlMappings.TableName,

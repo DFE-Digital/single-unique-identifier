@@ -3,6 +3,7 @@
   <Folder Name="/Apps/Find/" />
   <Folder Name="/Apps/Find/src/">
     <Project Path="Apps/Find/src/SUI.Find.Application/SUI.Find.Application.csproj" />
+    <Project Path="Apps/Find/src/SUI.Find.AuditProcessor/SUI.Find.AuditProcessor.csproj" />
     <Project Path="Apps/Find/src/SUI.Find.CustodianSimulation/SUI.Find.CustodianSimulation.csproj" />
     <Project Path="Apps/Find/src/SUI.Find.Domain/SUI.Find.Domain.csproj" />
     <Project Path="Apps/Find/src/SUI.Find.FindApi/SUI.Find.FindApi.csproj" />
@@ -10,6 +11,7 @@
   </Folder>
   <Folder Name="/Apps/Find/tests/">
     <Project Path="Apps/Find/tests/SUI.Find.ApplicationTests/SUI.Find.ApplicationTests.csproj" />
+    <Project Path="Apps/Find/tests/SUI.Find.AuditProcessor.UnitTests/SUI.Find.AuditProcessor.UnitTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.Domain.UnitTests/SUI.Find.Domain.UnitTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.FindApi.IntegrationTests/SUI.Find.FindApi.IntegrationTests.csproj" />
@@ -54,6 +56,7 @@
   <Folder Name="/Apps/StubCustodians/tests/">
     <Project Path="Apps/StubCustodians/tests/SUI.StubCustodians.API.Unit.Tests/SUI.StubCustodians.API.Unit.Tests.csproj" />
     <Project Path="Apps/StubCustodians/tests/SUI.StubCustodians.Application.Unit.Tests/SUI.StubCustodians.Application.Unit.Tests.csproj" />
+    <Project Path="Apps/StubCustodians/tests/SUI.StubCustodians.Infrastructure.Unit.Tests/SUI.StubCustodians.Infrastructure.Unit.Tests.csproj" />
   </Folder>
   <Folder Name="/Apps/Transfer/" />
   <Folder Name="/Apps/Transfer/src/">

@@ -33,7 +33,7 @@ public class AuthTokenFunction(
     [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
     public async Task<HttpResponseData> AuthToken(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/auth/token")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/auth/token")]
             HttpRequestData req,
         FunctionContext context
     )
@@ -145,7 +145,7 @@ public class AuthTokenFunction(
         }
 
         var hasAuthHeader = requestData.Headers.TryGetValues("Authorization", out var authValues);
-        if (!hasAuthHeader || authValues is null)
+        if (authValues is null || !hasAuthHeader)
         {
             logger.LogWarning("Missing Authorization header.");
             return (false, string.Empty);

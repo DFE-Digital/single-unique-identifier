@@ -84,8 +84,8 @@ Audit/event logging may be implemented separately and asynchronously; it is not 
 The table is partitioned by SUI so that discovery for a person is a single-partition query.
 
 #### Keys
-- **PartitionKey**: `SUI#{Sui}`
-- **RowKey**: `C#{CustodianId}|RT#{RecordType}|SYS#{SystemId}`
+- **PartitionKey**: `SUI_{Sui}`
+- **RowKey**: `C_{CustodianId}|RT_{RecordType}|SYS_{SystemId}`
 
 This key ensures that a custodian can have distinct rows per record type and system identifier without overwriting.
 
@@ -122,7 +122,7 @@ All properties are factual observations; no inferred status is stored.
 
 ### Q1: Discovery by SUI (primary)
 Input: `Sui`  
-Operation: query `SuiCustodianRegister` by `PartitionKey = SUI#{Sui}` and return all rows.
+Operation: query `SuiCustodianRegister` by `PartitionKey = SUI_{Sui}` and return all rows.
 
 ### Q2: Discovery starting from demographic
 1. Resolve NHS number via PDS match.

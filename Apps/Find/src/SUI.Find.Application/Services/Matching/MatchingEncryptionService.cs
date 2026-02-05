@@ -1,0 +1,81 @@
+using Microsoft.Extensions.Logging;
+using OneOf;
+using OneOf.Types;
+using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
+using SUI.Find.Domain.ValueObjects;
+
+namespace SUI.Find.Application.Services.Matching;
+
+public interface IMatchingEncryptionService
+{
+    Task<OneOf<EncryptedPersonId, NotFound, Error>> MatchPersonAsync(
+        MatchPersonRequest request,
+        string clientId
+    );
+}
+
+public class MatchingEncryptionService(
+    ILogger<MatchingEncryptionService> logger,
+    IMatchRepository repository,
+    ICustodianService custodianService,
+    IPersonIdEncryptionService encryptionService
+) : IMatchingEncryptionService
+{
+    public async Task<OneOf<EncryptedPersonId, NotFound, Error>> MatchPersonAsync(
+        MatchPersonRequest request,
+        string clientId
+    )
+    {
+        try
+        {
+            var org = await custodianService.GetCustodianAsync(clientId);
+            if (!org.Success || org.Value is null)
+            {
+                logger.LogError(
+                    "Custodian organisation not found for client ID: {ClientId}",
+                    clientId
+                );
+                return new NotFound();
+            }
+
+            if (org.Value.Encryption is null)
+            {
+                logger.LogError(
+                    "Encryption definition not found for custodian organisation: {OrgId}",
+                    org.Value.OrgId
+                );
+                return new Error();
+            }
+
+            var response = await repository.MatchPersonAsync(request);
+            return response.Match<OneOf<EncryptedPersonId, NotFound, Error>>(
+                nhsNumber =>
+                {
+                    var encryptionResult = encryptionService.EncryptNhsToPersonId(
+                        nhsNumber,
+                        org.Value.Encryption
+                    );
+
+                    if (encryptionResult is not { Success: true, Value: not null })
+                        return new Error();
+
+                    var idResult = EncryptedPersonId.Create(encryptionResult.Value);
+                    if (!idResult.Success)
+                    {
+                        logger.LogInformation("{Message}", idResult.Error);
+                        return new Error();
+                    }
+                    return idResult.Value!;
+                },
+                notFound => new NotFound(),
+                error => new Error()
+            );
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while matching person.");
+            return new Error();
+        }
+    }
+}

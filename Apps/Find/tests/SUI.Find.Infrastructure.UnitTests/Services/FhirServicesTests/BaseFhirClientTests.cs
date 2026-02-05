@@ -3,7 +3,7 @@ using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
-using SUI.Find.Infrastructure.Services.PdsServices;
+using SUI.Find.Infrastructure.Services.Fhir;
 using Task = System.Threading.Tasks.Task;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services.FhirServicesTests;
@@ -133,5 +133,69 @@ public class TestFhirClientError : FhirClient
         where TResource : class
     {
         throw new Exception("Error occurred while performing read");
+    }
+}
+
+public class TestFhirClientNoResourceId : FhirClient
+{
+    public TestFhirClientNoResourceId(
+        string endpoint = "https://example.com/fhir",
+        FhirClientSettings settings = null!,
+        HttpMessageHandler messageHandler = null!
+    )
+        : base(endpoint, settings, messageHandler) { }
+
+    public override async Task<Bundle?> SearchAsync<TResource>(
+        SearchParams q,
+        CancellationToken? ct = null
+    )
+    {
+        var bundle = new Bundle
+        {
+            Entry = new List<Bundle.EntryComponent>()
+            {
+                new()
+                {
+                    Resource = new Patient { Id = null },
+                    Search = new Bundle.SearchComponent()
+                    {
+                        Mode = Bundle.SearchEntryMode.Match,
+                        Score = 1.0m,
+                    },
+                },
+            },
+        };
+
+        return await Task.FromResult<Bundle?>(bundle);
+    }
+}
+
+public class TestFhirClientEntryComponentSearchNull : FhirClient
+{
+    public TestFhirClientEntryComponentSearchNull(
+        string endpoint = "https://example.com/fhir",
+        FhirClientSettings settings = null!,
+        HttpMessageHandler messageHandler = null!
+    )
+        : base(endpoint, settings, messageHandler) { }
+
+    public override async Task<Bundle?> SearchAsync<TResource>(
+        SearchParams q,
+        CancellationToken? ct = null
+    )
+    {
+        var bundle = new Bundle
+        {
+            Entry = new List<Bundle.EntryComponent>()
+            {
+                new()
+                {
+                    Resource = new Patient { Id = "123" },
+                    Search = null,
+                },
+            },
+        };
+
+        return await Task.FromResult<Bundle?>(bundle);
     }
 }

@@ -27,3 +27,14 @@ output "app_service_plan_sku" {
   value       = azurerm_service_plan.shared.sku_name
   description = "SKU of the shared App Service plan."
 }
+
+output "log_analytics_workspace_id" {
+  value       = azurerm_log_analytics_workspace.shared.id
+  description = "ID of the shared Log Analytics workspace."
+}
+
+output "app_insights_connection_string" {
+  value       = azurerm_application_insights.shared.connection_string
+  description = "Connection string for the shared Application Insights instance."
+  sensitive   = true
+}
