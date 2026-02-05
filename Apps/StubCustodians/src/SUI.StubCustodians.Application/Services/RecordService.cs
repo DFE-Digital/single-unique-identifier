@@ -1,10 +1,12 @@
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.Application.Services;
 
-public class RecordService(IDataProvider dataProvider) : IRecordService
+public class RecordService(IDataProvider dataProvider, IConfiguration configuration)
+    : IRecordService
 {
     public async Task<RecordEnvelope<T>?> GetRecord<T>(string recordId, string orgId)
         where T : class
@@ -24,9 +26,13 @@ public class RecordService(IDataProvider dataProvider) : IRecordService
             return null;
         }
 
+        var conf = !string.IsNullOrWhiteSpace(configuration["UseEncryptedId"])
+            ? configuration["UseEncryptedId"]
+            : "false";
+        var useEncryptedId = conf != null && bool.Parse(conf);
         var result = new RecordEnvelope<T>
         {
-            PersonId = orgRecord.PersonId,
+            PersonId = useEncryptedId ? orgRecord.EncryptedPersonId : orgRecord.PersonId,
             RecordId = orgRecord.RecordId,
             RecordType = orgRecord.RecordType,
             Version = orgRecord.Version,

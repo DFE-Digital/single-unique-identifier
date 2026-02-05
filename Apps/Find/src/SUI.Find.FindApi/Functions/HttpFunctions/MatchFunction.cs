@@ -101,10 +101,7 @@ public class MatchFunction(
         );
     }
 
-    private static bool TryGetMatchResponseRequestModel(
-        HttpRequestData req,
-        out PersonSpecification model
-    )
+    private bool TryGetMatchResponseRequestModel(HttpRequestData req, out PersonSpecification model)
     {
         model = new PersonSpecification();
         try
@@ -124,8 +121,9 @@ public class MatchFunction(
             model = request;
             return true;
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
+            logger.LogError(ex, ex.Message);
             return false;
         }
     }

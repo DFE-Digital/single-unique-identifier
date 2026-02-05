@@ -5,7 +5,8 @@
   "records": [
     {
       "recordId": "MHR-1234-X",
-      "personId": "mUHyb0yUEydpKKrhHgMDKQ",
+      "personId": "9691292211",
+      "encryptedPersonId": "oupx6095s75Y1xPUQMo9zg",
       "recordType": "health.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/health.details.v1.json",

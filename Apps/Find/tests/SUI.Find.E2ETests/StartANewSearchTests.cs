@@ -77,7 +77,8 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         [
             new()
             {
-                Sui = "JOUlb4UYZy5LiU5_aZECcA",
+                EncryptedSui = "JOUlb4UYZy5LiU5_aZECcA",
+                Sui = "9691292211",
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records =
                 [
@@ -98,7 +99,8 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             },
             new()
             {
-                Sui = "adWfHH8E617gyBEz6tRdng",
+                EncryptedSui = "adWfHH8E617gyBEz6tRdng",
+                Sui = "9691292211",
                 TestClientId = "EDUCATION-01",
                 Records =
                 [
@@ -412,13 +414,14 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
 public class TestData
 {
-    public string Sui { get; set; }
-    public TestRecord[] Records { get; set; }
-    public string TestClientId { get; set; }
+    public required string Sui { get; set; }
+    public required TestRecord[] Records { get; set; }
+    public required string TestClientId { get; set; }
+    public required string EncryptedSui { get; set; }
 }
 
 public class TestRecord
 {
-    public string RecordType { get; set; }
-    public string TestValue { get; set; }
+    public required string RecordType { get; set; }
+    public required string TestValue { get; set; }
 }

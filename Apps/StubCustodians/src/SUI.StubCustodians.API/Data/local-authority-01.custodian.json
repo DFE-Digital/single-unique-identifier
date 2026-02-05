@@ -5,7 +5,8 @@
   "records": [
     {
       "recordId": "CSC-5919-A",
-      "personId": "JOUlb4UYZy5LiU5_aZECcA",
+      "personId": "9691292211",
+      "encryptedPersonId": "gkITssvF1IAbNgpcMv2lyA",
       "recordType": "childrens-services.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
@@ -51,7 +52,8 @@
     },
     {
       "recordId": "CSC-5919-A",
-      "personId": "JOUlb4UYZy5LiU5_aZECcA",
+      "personId": "9691292211",
+      "encryptedPersonId": "gkITssvF1IAbNgpcMv2lyA",
       "recordType": "personal.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.v1.json",
