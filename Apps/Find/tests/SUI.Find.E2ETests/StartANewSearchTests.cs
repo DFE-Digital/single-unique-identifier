@@ -39,25 +39,20 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
     public async Task InitializeAsync()
     {
-        await ResetAzureTablesAsync([
-            "ResultsUrlMappings",
-            "TestHubNameHistory",
-            "TestHubNameInstances",
-        ]);
+        if (!Fixture.Config.SkipResetAzureTables)
+        {
+            await ResetAzureTablesAsync([
+                "ResultsUrlMappings",
+                "TestHubNameHistory",
+                "TestHubNameInstances",
+            ]);
+        }
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
 
     private async Task ResetAzureTablesAsync(string[] tableNames)
     {
-        if (string.IsNullOrWhiteSpace(Fixture.Config.FindApiStorageConnectionString))
-        {
-            TestOutputHelper.WriteLine(
-                $"Info: {nameof(Fixture.Config.FindApiStorageConnectionString)} is not set - skipping reset of Azure storage tables"
-            );
-            return;
-        }
-
         var service = new TableServiceClient(Fixture.Config.FindApiStorageConnectionString);
 
         foreach (var table in tableNames)
@@ -73,6 +68,8 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
             await service.CreateTableIfNotExistsAsync(table);
         }
+
+        TestOutputHelper.WriteLine($"Reset Azure Tables complete: {string.Join(", ", tableNames)}");
     }
 
     [Fact]
@@ -210,7 +207,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     /// <param name="url">URL of the Search Status endpoint</param>
     private async Task<SearchJob> RunAndAwaitAndAssertSearchStatusCompletion(string url)
     {
-        const int retryCount = 15;
+        url = RemoveLeadingSlashFromUrl(url);
+
+        const int retryCount = 30;
 
         var isCompleted = false;
         var status = "unknown";
@@ -229,7 +228,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 {
                     isCompleted = true;
                 }
-                return status != "Completed";
+
+                var retry = status is "Queued" or "Running";
+                return retry;
             })
             .WaitAndRetryAsync(
                 retryCount,
@@ -242,9 +243,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 }
             );
 
-        await retryPolicy.ExecuteAsync(() =>
-            Fixture.Client.GetAsync(RemoveLeadingSlashFromUrl(url))
-        );
+        await retryPolicy.ExecuteAsync(() => Fixture.Client.GetAsync(url));
 
         TestOutputHelper.WriteLine(
             $"Finished checking for search completion, final status was {status}, is completed: {isCompleted}"
@@ -252,9 +251,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
         Assert.True(isCompleted);
 
-        var typedResult = await Fixture.Client.GetFromJsonAsync<SearchJob>(
-            RemoveLeadingSlashFromUrl(url)
-        );
+        var typedResult = await Fixture.Client.GetFromJsonAsync<SearchJob>(url);
         return typedResult!;
     }
 
