@@ -14,8 +14,7 @@ on:
       - "Apps/Find/**"
 
 jobs:
-  e2e-test-ooi:
-    name: E2E Tests - out of infrastructure
+  e2e-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
