@@ -39,21 +39,26 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
     public async Task InitializeAsync()
     {
-        if (!Fixture.Config.SkipResetAzureTables)
-        {
-            await ResetAzureTablesAsync([
-                "ResultsUrlMappings",
-                "TestHubNameHistory",
-                "TestHubNameInstances",
-            ]);
-        }
+        await ResetAzureTablesAsync([
+            "ResultsUrlMappings",
+            "TestHubNameHistory",
+            "TestHubNameInstances",
+        ]);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    private static async Task ResetAzureTablesAsync(string[] tableNames)
+    private async Task ResetAzureTablesAsync(string[] tableNames)
     {
-        var service = new TableServiceClient("UseDevelopmentStorage=true");
+        if (string.IsNullOrWhiteSpace(Fixture.Config.FindApiStorageConnectionString))
+        {
+            TestOutputHelper.WriteLine(
+                $"Info: {nameof(Fixture.Config.FindApiStorageConnectionString)} is not set - skipping reset of Azure storage tables"
+            );
+            return;
+        }
+
+        var service = new TableServiceClient(Fixture.Config.FindApiStorageConnectionString);
 
         foreach (var table in tableNames)
         {
