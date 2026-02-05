@@ -27,9 +27,9 @@ public class AuditPepFindActivityTests
             [
                 new(
                     new CustodianSearchResultItem(
+                        "test-custodian",
                         "RecordA",
                         "http://url1",
-                        "test-custodian",
                         "System A",
                         "TestRecord 1"
                     ),

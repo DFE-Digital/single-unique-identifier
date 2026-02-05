@@ -1,9 +1,9 @@
 namespace SUI.Find.Application.Models;
 
 public sealed record CustodianSearchResultItem(
+    string CustodianId,
     string RecordType,
     string RecordUrl,
-    string CustodianId,
     string? SystemId,
     string? RecordId
 )
@@ -13,9 +13,9 @@ public sealed record CustodianSearchResultItem(
         SearchResultItem searchResultItem
     ) =>
         new(
+            custodianId,
             searchResultItem.RecordType,
             searchResultItem.RecordUrl,
-            custodianId,
             searchResultItem.SystemId,
             searchResultItem.RecordId
         );
