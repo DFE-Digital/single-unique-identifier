@@ -40,7 +40,8 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download) version 9.0.300 or later
+- [.NET SDK](https://dotnet.microsoft.com/download) version 10.0.102 or later
+- [.NET runtime](https://dotnet.microsoft.com/download/dotnet/9.0) 9.0.x (required for `dotnet pwsh` and other local tools until PowerShell 7.6 is released with .NET 10 support)
 
 ### Setup
 

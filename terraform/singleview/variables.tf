@@ -53,7 +53,7 @@ variable "app_settings" {
 variable "webapp_dotnet_version" {
   description = "Dotnet version for the web app stack."
   type        = string
-  default     = "9.0"
+  default     = "10.0"
 }
 
 variable "app_service_plan_sku" {

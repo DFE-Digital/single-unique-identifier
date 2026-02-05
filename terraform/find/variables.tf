@@ -59,7 +59,7 @@ variable "audit_app_settings" {
 variable "function_dotnet_version" {
   description = "Dotnet version for the function app stack."
   type        = string
-  default     = "9.0"
+  default     = "10.0"
 }
 
 variable "app_service_plan_sku" {

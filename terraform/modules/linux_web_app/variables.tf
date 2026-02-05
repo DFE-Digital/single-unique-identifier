@@ -39,7 +39,7 @@ variable "ftps_state" {
 variable "dotnet_version" {
   description = "Dotnet version for the application stack. Set null to omit."
   type        = string
-  default     = "9.0"
+  default     = "10.0"
 }
 
 variable "environment_tag" {

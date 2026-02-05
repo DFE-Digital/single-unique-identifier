@@ -1,8 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Interfaces;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace SUI.StubCustodians.API.OpenApi;
 
@@ -10,13 +9,13 @@ namespace SUI.StubCustodians.API.OpenApi;
 public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
 {
     private static OpenApiTag Tag(string name, string description, int order) =>
-        new OpenApiTag
+        new()
         {
             Name = name,
             Description = description,
             Extensions = new Dictionary<string, IOpenApiExtension>
             {
-                ["x-tag-order"] = new OpenApiInteger(order),
+                ["x-tag-order"] = new JsonNodeExtension(JsonValue.Create(order)),
             },
         };
 
@@ -27,7 +26,7 @@ public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
     )
     {
         document.Components ??= new OpenApiComponents();
-        document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
 
         document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {
@@ -48,29 +47,22 @@ public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
 
         var oauthRequirement = new OpenApiSecurityRequirement
         {
-            [
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "oauth2_clientCredentials",
-                    },
-                }
-            ] = Array.Empty<string>(),
+            [new OpenApiSecuritySchemeReference("oauth2_clientCredentials", document)] = [],
         };
 
         foreach (var (pathKey, pathItem) in document.Paths)
         {
             var route = pathKey.Trim('/').ToLowerInvariant();
 
-            bool isPublic =
+            var isPublic =
                 route.EndsWith("status")
                 || route.EndsWith("health")
                 || route.EndsWith("token")
                 || route.StartsWith("openapi")
                 || route.StartsWith("swagger");
 
+            if (pathItem.Operations == null)
+                continue;
             foreach (var op in pathItem.Operations.Values)
             {
                 if (isPublic)
@@ -83,7 +75,7 @@ public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
             }
         }
 
-        document.Tags = new List<OpenApiTag>
+        document.Tags = new HashSet<OpenApiTag>
         {
             Tag("Health", "Service health check", 1),
             Tag("Auth", "Simulate an OAuth provider", 2),

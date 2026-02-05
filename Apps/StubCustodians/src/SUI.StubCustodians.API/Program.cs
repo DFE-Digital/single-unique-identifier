@@ -1,7 +1,6 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using SUI.StubCustodians.API.OpenApi;
-using SUI.StubCustodians.API.OpenApiTransformers;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Services;
 using SUI.StubCustodians.Infrastructure.Extensions;
@@ -48,7 +47,7 @@ namespace SUI.StubCustodians.API
                     setup.SubstituteApiVersionInUrl = true;
                 });
 
-            ConfigureServices(builder.Services, builder.Configuration);
+            ConfigureServices(builder.Services);
 
             var app = builder.Build();
 
@@ -77,10 +76,7 @@ namespace SUI.StubCustodians.API
             app.Run();
         }
 
-        private static void ConfigureServices(
-            IServiceCollection services,
-            IConfiguration configuration
-        )
+        private static void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(3, 10));
             services.AddSingleton<IDataProvider, FileDataProvider>();

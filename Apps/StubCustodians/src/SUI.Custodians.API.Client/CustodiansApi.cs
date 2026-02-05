@@ -896,6 +896,7 @@ namespace SUI.Custodians.API.Client
         public string Token_type { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("expires_in")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^-?(?:0|[1-9]\d*)$")]
         public int Expires_in { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("scope")]
@@ -931,27 +932,7 @@ namespace SUI.Custodians.API.Client
         public string? Title { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("status")]
-        public int? Status { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("detail")]
-        public string? Detail { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("instance")]
-        public string? Instance { get; set; } = default!;
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ProblemDetails2
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("type")]
-        public string? Type { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("title")]
-        public string? Title { get; set; } = default!;
-
-        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^-?(?:0|[1-9]\d*)$")]
         public int? Status { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("detail")]
@@ -967,12 +948,13 @@ namespace SUI.Custodians.API.Client
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("problemDetails")]
-        public ProblemDetails2? ProblemDetails { get; set; } = default!;
+        public ProblemDetails ProblemDetails { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("contentType")]
         public string? ContentType { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("statusCode")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^-?(?:0|[1-9]\d*)$")]
         public int StatusCode { get; set; } = default!;
 
     }
@@ -1001,6 +983,8 @@ namespace SUI.Custodians.API.Client
         public string RecordType { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("version")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^-?(?:0|[1-9]\d*)$")]
         public int Version { get; set; } = default!;
 
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
