@@ -280,4 +280,47 @@ public class FindPersonIdAsyncTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
     }
+
+    [Fact]
+    public async Task ShouldReturnError_WhenEncryptionFails()
+    {
+        // Arrange
+        var personSpec = CreateMinimalValidPersonSpec();
+        _encryptionConfiguration.Value.Returns(
+            new EncryptionConfiguration() { EnablePersonIdEncryption = true }
+        );
+        _custodianService
+            .GetCustodianAsync("test-client-id")
+            .Returns(
+                Domain.Models.Result<ProviderDefinition>.Ok(
+                    new ProviderDefinition()
+                    {
+                        Encryption = new EncryptionDefinition() { Key = "some-encryption-key" },
+                    }
+                )
+            );
+        var nhsPersonId = NhsPersonId.Create("9999999999").Value;
+        _matchingService
+            .MatchPersonAsync(personSpec, Arg.Any<CancellationToken>())
+            .Returns(
+                Task.FromResult<OneOf<NhsPersonId, DataQualityResult, NotFound, Error>>(
+                    nhsPersonId!
+                )
+            );
+
+        // Simulate encryption failure (Success = false, Value = null)
+        _encryptionService
+            .EncryptNhsToPersonId(nhsPersonId!.Value, Arg.Any<EncryptionDefinition>())
+            .Returns(Domain.Models.Result<string>.Fail("encryption failed"));
+
+        // Act
+        var result = await _sut.FindPersonIdAsync(
+            specification: personSpec,
+            clientId: "test-client-id",
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<Error>(result.Value);
+    }
 }
