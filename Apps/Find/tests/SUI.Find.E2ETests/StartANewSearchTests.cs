@@ -33,7 +33,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         "fetch-record.write",
         "fetch-record.read",
     ];
-    private const string ValidEncryptedSuid = "Cy13hyZL-4LSIwVy50p-Hg"; // Test id that exists in mock data
+    private const string ValidEncryptedSuid = "JOUlb4UYZy5LiU5_aZECcA"; // Test id that exists in mock data
 
     private record HealthCheckResponse(string? Value);
 
@@ -201,29 +201,64 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         var searchResultTypedContent = JsonSerializer.Deserialize<SearchResults>(
             searchResultContent
         );
-        Assert.Single(searchResultTypedContent!.Items);
-        var searchResultItem = searchResultTypedContent.Items[0];
-        Assert.False(string.IsNullOrEmpty(searchResultItem.RecordUrl));
+        Assert.True(searchResultTypedContent!.Items.Length == 5);
+        foreach (var searchResultItem in searchResultTypedContent.Items)
+        {
+            Assert.False(string.IsNullOrEmpty(searchResultItem.RecordUrl));
 
-        // TODO: Step 4, Get data from fetch and assert
-        var recordUrl = RemoveLeadingSlashFromUrl(searchResultItem.RecordUrl);
-        TestOutputHelper.WriteLine(
-            $"Getting data from fetch: {Fixture.Client.BaseAddress}{recordUrl}"
-        );
+            // TODO: Step 4, Get data from fetch and assert
+            var recordUrl = RemoveLeadingSlashFromUrl(searchResultItem.RecordUrl);
+            TestOutputHelper.WriteLine(
+                $"Getting data from fetch: {Fixture.Client.BaseAddress}{recordUrl}"
+            );
 
-        var fetchResult = await Fixture.Client.GetAsync(recordUrl);
-        Assert.Equal(HttpStatusCode.OK, fetchResult.StatusCode);
-        var fetchResultContent = await fetchResult.Content.ReadAsStringAsync();
-        var fetchResultTypedContent = JsonSerializer.Deserialize<CustodianRecord>(
-            fetchResultContent
-        );
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.SchemaUri));
-        Assert.NotNull(fetchResultTypedContent.Payload);
+            var fetchResult = await Fixture.Client.GetAsync(recordUrl);
+            Assert.Equal(HttpStatusCode.OK, fetchResult.StatusCode);
+            var fetchResultContent = await fetchResult.Content.ReadAsStringAsync();
+            var fetchResultTypedContent = JsonSerializer.Deserialize<CustodianRecord>(
+                fetchResultContent
+            );
+            Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
+            Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
+            Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
+            Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.SchemaUri));
+            Assert.NotNull(fetchResultTypedContent.Payload);
 
-        TestOutputHelper.WriteLine("Fetch verified ok");
+            TestOutputHelper.WriteLine("Fetch verified ok");
+
+            switch (fetchResultTypedContent.RecordType)
+            {
+                case "health.details":
+                    var registeredGpName = fetchResultTypedContent.Payload.Value.GetProperty(
+                        "registeredGPName"
+                    );
+                    Assert.Equal("Dr E Green", registeredGpName.GetString());
+                    break;
+                case "childrens-services.details":
+                    var keyWorker = fetchResultTypedContent.Payload.Value.GetProperty("keyWorker");
+                    Assert.Equal("Alex Patel", keyWorker.GetString());
+                    break;
+                case "education.details":
+                    var educationSettingName = fetchResultTypedContent.Payload.Value.GetProperty(
+                        "educationSettingName"
+                    );
+                    Assert.Equal("ST Johns", educationSettingName.GetString());
+                    break;
+                case "personal.details":
+                    var firstName = fetchResultTypedContent.Payload.Value.GetProperty("firstName");
+                    Assert.Equal("Octavia", firstName.GetString());
+                    break;
+                case "crime-justice.details":
+                    var policeMarkerDetails = fetchResultTypedContent.Payload.Value.GetProperty(
+                        "policeMarkerDetails"
+                    );
+                    Assert.Equal(
+                        "Individuals at the address may resort to violent behaviour",
+                        policeMarkerDetails.GetString()
+                    );
+                    break;
+            }
+        }
     }
 
     /// <summary>
