@@ -54,7 +54,7 @@ public class MockCustodianServiceTests
         var defaultRule = la.DsaPolicy.Defaults.First();
         Assert.Equal("allow", defaultRule.Effect);
         Assert.Contains("EXISTENCE", defaultRule.Modes);
-        Assert.Contains("local_authority_ptr", defaultRule.DataTypes);
+        Assert.Contains("local_authority", defaultRule.RecordTypes);
         Assert.Contains("POLICE", defaultRule.DestOrgTypes);
         Assert.Equal(DateTimeOffset.Parse("2025-01-01T00:00:00Z"), defaultRule.ValidFrom);
 

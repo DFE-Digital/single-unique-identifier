@@ -7,7 +7,6 @@
       "recordId": "HOM-1234-H",
       "personId": "A3L_dqR9dU4J2iwoLA2wsA",
       "recordType": "housing.homelessness",
-      "dataType": "housing.homelessness.case.v1",
       "schemaUri": "https://schemas.example.gov.uk/sui/housing.homelessness.case.v1.json",
       "payload": {
         "caseId": "HOMELESS-771234",
