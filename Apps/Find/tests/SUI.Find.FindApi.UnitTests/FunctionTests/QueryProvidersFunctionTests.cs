@@ -43,11 +43,11 @@ public class QueryProvidersFunctionTests
             new ProviderDefinition { OrgId = "org1" }
         );
 
-        var expectedItems = new List<SearchResultItem>
+        var expectedItems = new List<CustodianSearchResultItem>
         {
-            new("SystemA", "Provider A", "Type1", "/v1/records/original-id"),
+            new("test-custodian", "Type1", "/v1/records/original-id", "SystemA", "TestRecord"),
         };
-        var expectedResult = Result<IReadOnlyList<SearchResultItem>>.Ok(expectedItems);
+        var expectedResult = Result<IReadOnlyList<CustodianSearchResultItem>>.Ok(expectedItems);
 
         _mockQueryProvidersService
             .QueryProvidersAsync(input, Arg.Any<CancellationToken>())
@@ -66,7 +66,9 @@ public class QueryProvidersFunctionTests
             .UpsertAsync(
                 Arg.Is<IdRegisterEntry>(e =>
                     e.Sui == input.Suid
-                    && e.CustodianId == expectedItems[0].ProviderId
+                    && e.CustodianId == input.Provider.OrgId
+                    && e.SystemId == expectedItems[0].SystemId
+                    && e.CustodianSubjectId == expectedItems[0].RecordId
                     && e.RecordType == expectedItems[0].RecordType
                     && e.Provenance == Provenance.DiscoveredViaFanout
                 ),

@@ -12,11 +12,15 @@ namespace SUI.Find.Infrastructure.UnitTests.Services.BuildCustodianRequestServic
 
 public class GetSearchResultItemsFromCustodianAsyncTests
 {
-    private readonly ILogger<BuildCustodianRequestsService> _mockLogger = Substitute.For<ILogger<BuildCustodianRequestsService>>();
-    private readonly IBuildCustodianHttpRequest _mockRequestBuilder = Substitute.For<IBuildCustodianHttpRequest>();
+    private readonly ILogger<BuildCustodianRequestsService> _mockLogger = Substitute.For<
+        ILogger<BuildCustodianRequestsService>
+    >();
+    private readonly IBuildCustodianHttpRequest _mockRequestBuilder =
+        Substitute.For<IBuildCustodianHttpRequest>();
     private readonly IProviderHttpClient _mockHttpClient = Substitute.For<IProviderHttpClient>();
     private readonly IOutboundAuthService _mockAuthService = Substitute.For<IOutboundAuthService>();
-    private readonly IPersonIdEncryptionService _mockEncryptionService = Substitute.For<IPersonIdEncryptionService>();
+    private readonly IPersonIdEncryptionService _mockEncryptionService =
+        Substitute.For<IPersonIdEncryptionService>();
     private readonly BuildCustodianRequestsService _sut;
 
     public GetSearchResultItemsFromCustodianAsyncTests()
@@ -40,7 +44,7 @@ public class GetSearchResultItemsFromCustodianAsyncTests
             OrgId = orgId,
             ProviderName = "Test Provider",
             Encryption = encryption,
-            Connection = new ConnectionDefinition { Url = "https://test-provider.com/api/records" }
+            Connection = new ConnectionDefinition { Url = "https://test-provider.com/api/records" },
         };
     }
 
@@ -48,14 +52,20 @@ public class GetSearchResultItemsFromCustodianAsyncTests
     public async Task GetSearchResultItemsFromCustodianAsync_ReturnsFail_WhenEncryptionIsNull()
     {
         // Arrange
-        var input = new QueryProviderInput("client-id-1",
+        var input = new QueryProviderInput(
+            "client-id-1",
             "job-id-1",
             "invocation-id",
-            "1234567890123456", MockProvider(encryption: null));
+            "1234567890123456",
+            MockProvider(encryption: null)
+        );
         var request = new BuildCustodianRequestDto(input.Provider, "1234567890");
 
         // Act
-        var result = await _sut.GetSearchResultItemsFromCustodianAsync(request, CancellationToken.None);
+        var result = await _sut.GetSearchResultItemsFromCustodianAsync(
+            request,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.False(result.Success);
@@ -67,45 +77,71 @@ public class GetSearchResultItemsFromCustodianAsyncTests
     public async Task GetSearchResultItemsFromCustodianAsync_ReturnsFail_WhenEncryptionFails()
     {
         // Arrange
-        var encryption = new EncryptionDefinition { Key = "test-key", KeyId = "key-1", Algorithm = "AES" };
-        var input = new QueryProviderInput("client-id-1",
+        var encryption = new EncryptionDefinition
+        {
+            Key = "test-key",
+            KeyId = "key-1",
+            Algorithm = "AES",
+        };
+        var input = new QueryProviderInput(
+            "client-id-1",
             "job-id-1",
             "invocation-id",
-            "1234567890123456", MockProvider(encryption: encryption));
+            "1234567890123456",
+            MockProvider(encryption: encryption)
+        );
         var request = new BuildCustodianRequestDto(input.Provider, "1234567890");
 
-
-        _mockEncryptionService.EncryptNhsToPersonId(request.Suid, input.Provider.Encryption!)
+        _mockEncryptionService
+            .EncryptNhsToPersonId(request.Suid, input.Provider.Encryption!)
             .Returns(Result<string>.Fail("Encryption failed"));
 
         // Act
-        var result = await _sut.GetSearchResultItemsFromCustodianAsync(request, CancellationToken.None);
+        var result = await _sut.GetSearchResultItemsFromCustodianAsync(
+            request,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.False(result.Success);
         Assert.Equal("Encryption failed", result.Error);
-        await _mockAuthService.DidNotReceiveWithAnyArgs().GetAccessTokenAsync(null, CancellationToken.None);
+        await _mockAuthService
+            .DidNotReceiveWithAnyArgs()
+            .GetAccessTokenAsync(null, CancellationToken.None);
     }
 
     [Fact]
     public async Task GetSearchResultItemsFromCustodianAsync_ReturnsFail_WhenAuthTokenFails()
     {
         // Arrange
-        var encryption = new EncryptionDefinition { Key = "test-key", KeyId = "key-1", Algorithm = "AES" };
-        var input = new QueryProviderInput("client-id-1",
+        var encryption = new EncryptionDefinition
+        {
+            Key = "test-key",
+            KeyId = "key-1",
+            Algorithm = "AES",
+        };
+        var input = new QueryProviderInput(
+            "client-id-1",
             "job-id-1",
             "invocation-id",
-            "1234567890123456", MockProvider(encryption: encryption));
+            "1234567890123456",
+            MockProvider(encryption: encryption)
+        );
         var request = new BuildCustodianRequestDto(input.Provider, "1234567890");
 
-        _mockEncryptionService.EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
+        _mockEncryptionService
+            .EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
             .Returns(Result<string>.Ok("encrypted-id"));
 
-        _mockAuthService.GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
+        _mockAuthService
+            .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Fail("Auth error"));
 
         // Act
-        var result = await _sut.GetSearchResultItemsFromCustodianAsync(request, CancellationToken.None);
+        var result = await _sut.GetSearchResultItemsFromCustodianAsync(
+            request,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.False(result.Success);
@@ -117,28 +153,43 @@ public class GetSearchResultItemsFromCustodianAsyncTests
     public async Task GetSearchResultItemsFromCustodianAsync_ReturnsFail_WhenHttpSendFails()
     {
         // Arrange
-        var encryption = new EncryptionDefinition { Key = "test-key", KeyId = "key-1", Algorithm = "AES" };
-        var input = new QueryProviderInput("client-id-1",
+        var encryption = new EncryptionDefinition
+        {
+            Key = "test-key",
+            KeyId = "key-1",
+            Algorithm = "AES",
+        };
+        var input = new QueryProviderInput(
+            "client-id-1",
             "job-id-1",
             "invocation-id",
-            "1234567890123456", MockProvider(encryption: encryption));
+            "1234567890123456",
+            MockProvider(encryption: encryption)
+        );
         var request = new BuildCustodianRequestDto(input.Provider, "1234567890");
         using var httpRequestMessage = new HttpRequestMessage();
 
-        _mockEncryptionService.EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
+        _mockEncryptionService
+            .EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
             .Returns(Result<string>.Ok("encrypted-id"));
 
-        _mockAuthService.GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
+        _mockAuthService
+            .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("valid-token"));
 
-        _mockRequestBuilder.BuildHttpRequest(input.Provider, "encrypted-id", "valid-token")
+        _mockRequestBuilder
+            .BuildHttpRequest(input.Provider, "encrypted-id", "valid-token")
             .Returns(httpRequestMessage);
 
-        _mockHttpClient.SendAsync(httpRequestMessage, Arg.Any<CancellationToken>())
+        _mockHttpClient
+            .SendAsync(httpRequestMessage, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Fail("Http connection error"));
 
         // Act
-        var result = await _sut.GetSearchResultItemsFromCustodianAsync(request, CancellationToken.None);
+        var result = await _sut.GetSearchResultItemsFromCustodianAsync(
+            request,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.False(result.Success);
@@ -149,28 +200,43 @@ public class GetSearchResultItemsFromCustodianAsyncTests
     public async Task GetSearchResultItemsFromCustodianAsync_ReturnsFail_WhenProviderReturnsEmptyResponse()
     {
         // Arrange
-        var encryption = new EncryptionDefinition { Key = "test-key", KeyId = "key-1", Algorithm = "AES" };
-        var input = new QueryProviderInput("client-id-1",
+        var encryption = new EncryptionDefinition
+        {
+            Key = "test-key",
+            KeyId = "key-1",
+            Algorithm = "AES",
+        };
+        var input = new QueryProviderInput(
+            "client-id-1",
             "job-id-1",
             "invocation-id",
-            "1234567890123456", MockProvider(encryption: encryption));
+            "1234567890123456",
+            MockProvider(encryption: encryption)
+        );
         var request = new BuildCustodianRequestDto(input.Provider, "1234567890");
         using var httpRequestMessage = new HttpRequestMessage();
 
-        _mockEncryptionService.EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
+        _mockEncryptionService
+            .EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
             .Returns(Result<string>.Ok("encrypted-id"));
 
-        _mockAuthService.GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
+        _mockAuthService
+            .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("valid-token"));
 
-        _mockRequestBuilder.BuildHttpRequest(input.Provider, "encrypted-id", "valid-token")
+        _mockRequestBuilder
+            .BuildHttpRequest(input.Provider, "encrypted-id", "valid-token")
             .Returns(httpRequestMessage);
 
-        _mockHttpClient.SendAsync(httpRequestMessage, Arg.Any<CancellationToken>())
+        _mockHttpClient
+            .SendAsync(httpRequestMessage, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok(string.Empty));
 
         // Act
-        var result = await _sut.GetSearchResultItemsFromCustodianAsync(request, CancellationToken.None);
+        var result = await _sut.GetSearchResultItemsFromCustodianAsync(
+            request,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.False(result.Success);
@@ -181,28 +247,43 @@ public class GetSearchResultItemsFromCustodianAsyncTests
     public async Task GetSearchResultItemsFromCustodianAsync_ReturnsFail_WhenProviderReturnsEmptyList()
     {
         // Arrange
-        var encryption = new EncryptionDefinition { Key = "test-key", KeyId = "key-1", Algorithm = "AES" };
-        var input = new QueryProviderInput("client-id-1",
+        var encryption = new EncryptionDefinition
+        {
+            Key = "test-key",
+            KeyId = "key-1",
+            Algorithm = "AES",
+        };
+        var input = new QueryProviderInput(
+            "client-id-1",
             "job-id-1",
             "invocation-id",
-            "1234567890123456", MockProvider(encryption: encryption));
+            "1234567890123456",
+            MockProvider(encryption: encryption)
+        );
         var request = new BuildCustodianRequestDto(input.Provider, "1234567890");
         using var httpRequestMessage = new HttpRequestMessage();
 
-        _mockEncryptionService.EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
+        _mockEncryptionService
+            .EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
             .Returns(Result<string>.Ok("encrypted-id"));
 
-        _mockAuthService.GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
+        _mockAuthService
+            .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("valid-token"));
 
-        _mockRequestBuilder.BuildHttpRequest(input.Provider, "encrypted-id", "valid-token")
+        _mockRequestBuilder
+            .BuildHttpRequest(input.Provider, "encrypted-id", "valid-token")
             .Returns(httpRequestMessage);
 
-        _mockHttpClient.SendAsync(httpRequestMessage, Arg.Any<CancellationToken>())
+        _mockHttpClient
+            .SendAsync(httpRequestMessage, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("[]"));
 
         // Act
-        var result = await _sut.GetSearchResultItemsFromCustodianAsync(request, CancellationToken.None);
+        var result = await _sut.GetSearchResultItemsFromCustodianAsync(
+            request,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.False(result.Success);
@@ -213,32 +294,50 @@ public class GetSearchResultItemsFromCustodianAsyncTests
     public async Task GetSearchResultItemsFromCustodianAsync_ReturnsOk_WhenProviderReturnsValidItems()
     {
         // Arrange
-        var encryption = new EncryptionDefinition { Key = "test-key", KeyId = "key-1", Algorithm = "AES" };
-        var input = new QueryProviderInput("client-id-1",
+        var encryption = new EncryptionDefinition
+        {
+            Key = "test-key",
+            KeyId = "key-1",
+            Algorithm = "AES",
+        };
+        var input = new QueryProviderInput(
+            "client-id-1",
             "job-id-1",
             "invocation-id",
-            "1234567890123456", MockProvider(encryption: encryption));
+            "1234567890123456",
+            MockProvider(encryption: encryption)
+        );
         var request = new BuildCustodianRequestDto(input.Provider, "1234567890");
         using var httpRequestMessage = new HttpRequestMessage();
 
-        _mockEncryptionService.EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
+        _mockEncryptionService
+            .EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
             .Returns(Result<string>.Ok("encrypted-id"));
 
-        _mockAuthService.GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
+        _mockAuthService
+            .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("valid-token"));
 
-        _mockRequestBuilder.BuildHttpRequest(input.Provider, "encrypted-id", "valid-token")
+        _mockRequestBuilder
+            .BuildHttpRequest(input.Provider, "encrypted-id", "valid-token")
             .Returns(httpRequestMessage);
 
-        var expectedItems = new List<SearchResultItem> { new("SystemA", "Provider A", "Type1", "/v1/records/original-id") };
+        var expectedItems = new List<SearchResultItem>
+        {
+            new("Type1", "/v1/records/original-id", "SystemA", "TestRecord"),
+        };
 
         var jsonResponse = JsonSerializer.Serialize(expectedItems, JsonSerializerOptions.Web);
 
-        _mockHttpClient.SendAsync(httpRequestMessage, Arg.Any<CancellationToken>())
+        _mockHttpClient
+            .SendAsync(httpRequestMessage, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok(jsonResponse));
 
         // Act
-        var result = await _sut.GetSearchResultItemsFromCustodianAsync(request, CancellationToken.None);
+        var result = await _sut.GetSearchResultItemsFromCustodianAsync(
+            request,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.True(result.Success);
@@ -246,8 +345,11 @@ public class GetSearchResultItemsFromCustodianAsyncTests
         Assert.Single(result.Value);
         Assert.Equal("/v1/records/original-id", result.Value[0].RecordUrl);
 
-        _mockRequestBuilder.Received(1).BuildHttpRequest(input.Provider, "encrypted-id", "valid-token");
-        await _mockHttpClient.Received(1).SendAsync(httpRequestMessage, Arg.Any<CancellationToken>());
+        _mockRequestBuilder
+            .Received(1)
+            .BuildHttpRequest(input.Provider, "encrypted-id", "valid-token");
+        await _mockHttpClient
+            .Received(1)
+            .SendAsync(httpRequestMessage, Arg.Any<CancellationToken>());
     }
 }
-

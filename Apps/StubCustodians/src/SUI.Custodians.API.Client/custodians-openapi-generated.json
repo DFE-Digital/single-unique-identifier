@@ -750,21 +750,13 @@
       },
       "SearchResultItem": {
         "required": [
-          "providerSystem",
-          "providerId",
           "recordType",
-          "recordUrl"
+          "recordUrl",
+          "recordId",
+          "systemId"
         ],
         "type": "object",
         "properties": {
-          "providerSystem": {
-            "type": "string",
-            "additionalProperties": false
-          },
-          "providerId": {
-            "type": "string",
-            "additionalProperties": false
-          },
           "recordType": {
             "type": "string",
             "additionalProperties": false
@@ -772,6 +764,16 @@
           "recordUrl": {
             "type": "string",
             "additionalProperties": false
+          },
+          "recordId": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "systemId": {
+            "type": "string",
+            "additionalProperties": false,
+            "nullable": true
           }
         },
         "additionalProperties": false

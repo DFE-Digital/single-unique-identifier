@@ -11,10 +11,10 @@ using SUI.Find.Infrastructure.UnitTests.Utility;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services.FhirServicesTests;
 
-public class AuthTokenServiceTests
+public class FhirAuthTokenServiceTests
 {
     private readonly IOptions<AuthTokenServiceConfig> _subOptions;
-    private readonly ILogger<AuthTokenService> _subLogger;
+    private readonly ILogger<FhirAuthTokenService> _subLogger;
     private readonly IHttpClientFactory _subHttpClientFactory;
     private readonly ISecretService _subSecretService;
     private readonly MockHttpMessageHandler _mockHttpMessageHandler;
@@ -41,10 +41,10 @@ public class AuthTokenServiceTests
     private const string DummyClientId = "test-client-id";
     private const string DummyKid = "test-kid";
 
-    public AuthTokenServiceTests()
+    public FhirAuthTokenServiceTests()
     {
         _subOptions = Substitute.For<IOptions<AuthTokenServiceConfig>>();
-        _subLogger = Substitute.For<ILogger<AuthTokenService>>();
+        _subLogger = Substitute.For<ILogger<FhirAuthTokenService>>();
         _subHttpClientFactory = Substitute.For<IHttpClientFactory>();
         _subSecretService = Substitute.For<ISecretService>();
 
@@ -73,9 +73,9 @@ public class AuthTokenServiceTests
             .Returns(Task.FromResult(secretValue));
     }
 
-    private AuthTokenService CreateService()
+    private FhirAuthTokenService CreateService()
     {
-        return new AuthTokenService(
+        return new FhirAuthTokenService(
             _subOptions,
             _subLogger,
             _subHttpClientFactory,

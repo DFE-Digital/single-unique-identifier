@@ -33,7 +33,7 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
         var partitionKey = RegisterKeys.PartitionKey(registerEntry.Sui);
 
         var systemId = string.IsNullOrWhiteSpace(registerEntry.SystemId)
-            ? "Unknown"
+            ? "DefaultSystem"
             : registerEntry.SystemId;
 
         var rowKey = RegisterKeys.RowKey(

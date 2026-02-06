@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Interfaces.Matching;
@@ -24,7 +24,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructureServices(
         this IServiceCollection services,
-        IHostEnvironment env
+        IConfiguration configuration
     )
     {
         services.AddSingleton<IAuditService, AuditStorageTableService>();
@@ -43,14 +43,14 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<ISecretService, AzureKeyVaultSecretService>();
 
-        // If development
-        if (env.IsDevelopment())
+        var useStubAuthTokenService = configuration.GetValue<bool>("UseStubAuthTokenService");
+        if (useStubAuthTokenService)
         {
-            services.AddSingleton<IAuthTokenService, StubAuthTokenService>();
+            services.AddSingleton<IFhirAuthTokenService, StubFhirAuthTokenService>();
         }
         else
         {
-            services.AddSingleton<IAuthTokenService, AuthTokenService>();
+            services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
         }
 
         services.AddAzureTableServices();
@@ -60,11 +60,15 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddSecretClientServices(this IServiceCollection services)
     {
+        services
+            .AddOptions<AzureSecretConfiguration>()
+            .BindConfiguration(AzureSecretConfiguration.SectionName);
+
         services.AddSingleton<SecretClient>(sp =>
         {
             var config = sp.GetRequiredService<IOptions<AzureSecretConfiguration>>().Value;
             var uriString =
-                config.KeyVaultUrl
+                config.KeyVaultUri
                 ?? "https://localdevtotallyrandomaddressbecauseitdoesntrunwiththestubauthtokenservice";
             return new SecretClient(
                 vaultUri: new Uri(uriString),

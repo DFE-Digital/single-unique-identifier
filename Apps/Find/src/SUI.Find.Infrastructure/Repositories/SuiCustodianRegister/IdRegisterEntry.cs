@@ -4,9 +4,9 @@ public class IdRegisterEntry
 {
     public required string Sui { get; init; }
     public required string CustodianId { get; init; }
-    public string? SystemId { get; init; } // TODO: confirm populating process, needs to be mandatory
+    public required string SystemId { get; init; }
     public required string RecordType { get; init; }
-    public string? CustodianSubjectId { get; init; } //TODO: confirm populating process, must stay nullable
+    public string? CustodianSubjectId { get; init; }
     public DateTimeOffset? FirstSeenUtc { get; init; }
     public DateTimeOffset? LastSeenUtc { get; init; }
     public required Provenance Provenance { get; init; }

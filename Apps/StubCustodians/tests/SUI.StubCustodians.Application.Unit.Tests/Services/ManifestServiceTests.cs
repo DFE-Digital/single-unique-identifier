@@ -60,8 +60,8 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
             Assert.NotNull(result);
             Assert.IsType<List<SearchResultItem>>(result);
             var searchResultItem = result.First();
-            Assert.Equal(orgId, searchResultItem.ProviderId);
-            Assert.Equal(recordType, searchResultItem.RecordType);
+            Assert.Null(searchResultItem.SystemId);
+            Assert.Equal(recordId, searchResultItem.RecordId);
             Assert.Equal(recordType, searchResultItem.RecordType);
             if (orgId == "local-authority-01" || orgId == "health-01")
             {

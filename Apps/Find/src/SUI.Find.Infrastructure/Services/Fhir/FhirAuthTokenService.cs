@@ -13,12 +13,12 @@ using SUI.Find.Infrastructure.Models.Fhir;
 
 namespace SUI.Find.Infrastructure.Services.Fhir;
 
-public class AuthTokenService(
+public class FhirAuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
-    ILogger<AuthTokenService> logger,
+    ILogger<FhirAuthTokenService> logger,
     IHttpClientFactory httpClientFactory,
     ISecretService secretService
-) : IAuthTokenService, IDisposable
+) : IFhirAuthTokenService, IDisposable
 {
     private static readonly JsonWebTokenHandler TokenHandler = new();
     private readonly SemaphoreSlim _renewalLock = new(1, 1);

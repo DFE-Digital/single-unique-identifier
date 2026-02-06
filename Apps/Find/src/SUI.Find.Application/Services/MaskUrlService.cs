@@ -12,13 +12,13 @@ public class MaskUrlService(
     IFetchUrlStorageService fetchUrlStorageService
 ) : IMaskUrlService
 {
-    public async Task<IReadOnlyList<SearchResultItem>> CreateAsync(
-        List<SearchResultItem> items,
+    public async Task<IReadOnlyList<CustodianSearchResultItem>> CreateAsync(
+        List<CustodianSearchResultItem> items,
         QueryProviderInput input,
         CancellationToken ct
     )
     {
-        var masked = new List<SearchResultItem>();
+        var masked = new List<CustodianSearchResultItem>();
         foreach (var item in items)
         {
             try
