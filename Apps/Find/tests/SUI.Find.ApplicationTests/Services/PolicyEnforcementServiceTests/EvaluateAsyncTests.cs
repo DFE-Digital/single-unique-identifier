@@ -42,7 +42,7 @@ public class EvaluateAsyncTests
         var request = new PolicyDecisionRequest(
             SourceOrgId: "HEALTH-01",
             DestinationOrgId: "LOCAL-AUTHORITY-01",
-            RecordType: "health_details",
+            RecordType: "health.details",
             Mode: ShareMode.Existence,
             Purpose: "SAFEGUARDING"
         );
@@ -79,7 +79,7 @@ public class EvaluateAsyncTests
         var request = new PolicyDecisionRequest(
             SourceOrgId: "LOCAL-AUTHORITY-01",
             DestinationOrgId: "HEALTH-01",
-            RecordType: "health_details",
+            RecordType: "health.details",
             Mode: ShareMode.Existence,
             Purpose: "SAFEGUARDING"
         );
@@ -165,7 +165,7 @@ public class EvaluateAsyncTests
         var request = new PolicyDecisionRequest(
             SourceOrgId: "POLICE-01",
             DestinationOrgId: "LOCAL-AUTHORITY-01",
-            RecordType: "crime_justice",
+            RecordType: "crime-justice",
             Mode: ShareMode.Existence,
             Purpose: "SAFEGUARDING"
         );
