@@ -20,18 +20,18 @@ public class PolicyEnforcementService(
     {
         var now = timeProvider.GetUtcNow();
         var modeString = request.Mode.ToString();
-        var recordType = request.RecordType;
+        var normalisedRecordType = request.RecordType.Replace(".", "_").Replace("-", "_");
 
         // First look for exceptions as these take precedence
         var matchedRule = dsaPolicy.Exceptions.FirstOrDefault(exception =>
-            RuleMatches(exception, request, destOrgType, modeString, recordType, now)
+            RuleMatches(exception, request, destOrgType, modeString, normalisedRecordType, now)
         );
 
         var isException = matchedRule is not null;
 
         // If no exception matched, look for default rules
         matchedRule ??= dsaPolicy.Defaults.FirstOrDefault(defaultRule =>
-            RuleMatches(defaultRule, request, destOrgType, modeString, recordType, now)
+            RuleMatches(defaultRule, request, destOrgType, modeString, normalisedRecordType, now)
         );
 
         if (matchedRule == null)
@@ -40,7 +40,7 @@ public class PolicyEnforcementService(
                 "No matching rule found for {SourceOrg} -> {DestOrg}, recordType: {RecordType}, mode: {Mode}, purpose: {Purpose}. Denying by default.",
                 request.SourceOrgId,
                 request.DestinationOrgId,
-                recordType,
+                normalisedRecordType,
                 request.Mode,
                 request.Purpose
             );
@@ -65,7 +65,7 @@ public class PolicyEnforcementService(
 
         var ruleType = isException ? "exception" : "default";
         var reason =
-            $"Matched {ruleType} rule: effect={matchedRule.Effect}, recordType={recordType}";
+            $"Matched {ruleType} rule: effect={matchedRule.Effect}, recordType={normalisedRecordType}";
 
         logger.LogInformation(
             "Policy decision for {SourceOrg} -> {DestOrg}: {Decision}. Reason: {Reason}",
@@ -118,7 +118,7 @@ public class PolicyEnforcementService(
         return results;
     }
 
-    private static bool RuleMatches(
+    private bool RuleMatches(
         DsaRuleDefinition rule,
         PolicyDecisionRequest request,
         string destOrgType,
