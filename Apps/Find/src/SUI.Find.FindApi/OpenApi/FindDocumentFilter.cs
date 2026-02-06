@@ -42,6 +42,23 @@ public sealed class FindDocumentFilter : IDocumentFilter
             Description = "API Key for authentication",
         };
 
+        var operationIdHeader = new OpenApiHeader
+        {
+            Description = "Primary trace ID for the whole operation",
+            Schema = new OpenApiSchema { Type = "string" },
+            Example = new OpenApiString("082d58852e3244eed72f52f41e0f8045"),
+        };
+
+        var invocationIdHeader = new OpenApiHeader
+        {
+            Description = "Secondary trace ID for the whole operation",
+            Schema = new OpenApiSchema { Type = "string" },
+            Example = new OpenApiString("a49d73e8-dc36-4be5-92a6-9bf62868aa99"),
+        };
+
+        document.Components.Headers["Operation-Id"] = operationIdHeader;
+        document.Components.Headers["Invocation-Id"] = invocationIdHeader;
+
         var oauthRequirement = new OpenApiSecurityRequirement
         {
             [
@@ -82,6 +99,12 @@ public sealed class FindDocumentFilter : IDocumentFilter
 
             bool isMatchEndpoint = route.Contains("matchperson");
 
+            var hasTraceHeaders = !(
+                route.EndsWith("health")
+                || route.StartsWith("openapi")
+                || route.StartsWith("swagger")
+            );
+
             foreach (var op in pathItem.Operations.Values)
             {
                 if (isPublic)
@@ -101,6 +124,15 @@ public sealed class FindDocumentFilter : IDocumentFilter
                 else
                 {
                     op.Security = new List<OpenApiSecurityRequirement> { oauthRequirement };
+                }
+
+                if (hasTraceHeaders)
+                {
+                    foreach (var responseHeaders in op.Responses.Values.Select(x => x.Headers))
+                    {
+                        responseHeaders["Operation-Id"] = operationIdHeader;
+                        responseHeaders["Invocation-Id"] = invocationIdHeader;
+                    }
                 }
             }
         }
