@@ -24,7 +24,6 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         IClassFixture<FunctionTestFixture>,
         IAsyncLifetime
 {
-    private const string TestClientId = "LOCAL-AUTHORITY-01";
     private const string TestClientSecret = "SUIProject";
     private static readonly string[] TetScopes =
     [
@@ -77,7 +76,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         [
             new()
             {
-                EncryptedSui = "JOUlb4UYZy5LiU5_aZECcA",
+                EncryptedSui = "gkITssvF1IAbNgpcMv2lyA",
                 Sui = "9691292211",
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records =
@@ -90,6 +89,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     },
                     new TestRecord { RecordType = "education.details", TestValue = "ST Johns" },
                     new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
+                    new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
                     new TestRecord
                     {
                         RecordType = "crime-justice.details",
@@ -99,7 +99,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             },
             new()
             {
-                EncryptedSui = "adWfHH8E617gyBEz6tRdng",
+                EncryptedSui = "vehNMF2ySUU23P206A6BYA",
                 Sui = "9691292211",
                 TestClientId = "EDUCATION-01",
                 Records =
@@ -112,6 +112,25 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     },
                     new TestRecord { RecordType = "education.details", TestValue = "ST Johns" },
                     new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
+                    new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
+                ],
+            },
+            new()
+            {
+                EncryptedSui = "-hg7DkXLL7oqmKzPwAfxGA",
+                Sui = "9449306613",
+                TestClientId = "LOCAL-AUTHORITY-01",
+                Records = [new TestRecord { RecordType = "personal.details", TestValue = "Briar" }],
+            },
+            new()
+            {
+                EncryptedSui = "Gwy1RFyGF4b_sSbbPZExtQ",
+                Sui = "9449306494",
+                TestClientId = "HEALTH-01",
+                Records =
+                [
+                    new TestRecord { RecordType = "personal.details", TestValue = "Red" },
+                    new TestRecord { RecordType = "health.details", TestValue = "Dr E Green" },
                 ],
             },
         ];
@@ -129,7 +148,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         );
 
         // Step 1, start a new search
-        var newSearchJob = await RunAndAssertNewSearchEndpoint(testData.Sui);
+        var newSearchJob = await RunAndAssertNewSearchEndpoint(
+            Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui
+        );
 
         // Step 2, check the status
         var statusUrl = newSearchJob.Links.TryGetValue("status", out var statusLink);
@@ -143,7 +164,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
         // Fin
     }
-    
+
     private async Task EnsureApiIsUpAsync()
     {
         const string url = "health";
@@ -244,12 +265,15 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         var searchResultTypedContent = JsonSerializer.Deserialize<SearchResults>(
             searchResultContent
         );
-        Assert.True(searchResultTypedContent!.Items.Length == testData.Records.Length);
+        Assert.True(
+            searchResultTypedContent!.Items.Length == testData.Records.Length,
+            $"Record count mismatch. Expected: {testData.Records.Length}, actual: {searchResultTypedContent.Items.Length}"
+        );
         foreach (var searchResultItem in searchResultTypedContent.Items)
         {
             Assert.False(string.IsNullOrEmpty(searchResultItem.RecordUrl));
 
-            // TODO: Step 4, Get data from fetch and assert
+            // Step 4, Get data from fetch and assert
             var recordUrl = RemoveLeadingSlashFromUrl(searchResultItem.RecordUrl);
             TestOutputHelper.WriteLine(
                 $"Getting data from fetch: {Fixture.Client.BaseAddress}{recordUrl}"

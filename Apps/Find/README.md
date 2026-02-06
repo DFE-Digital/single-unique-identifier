@@ -73,9 +73,19 @@ Or, using the command line (from the repo root):
 
 ## Test Data
 
-### scenario 1
+| Given   | Family   | Birthdate  | Gender | Phone | Email | Postcode | NHS Number | Notes                                                                                                     |
+|---------|----------|------------|--------|-------|-------|----------|------------|-----------------------------------------------------------------------------------------------------------|
+| Octavia | Chislett | 2008-09-20 | female | null  | null  | KT19 0ST | 9691292211 | should return 6 records when logged in as LOCAL-AUTHORITY-01 and 4 records when logged in as EDUCATION-01 |
+| Briar   | Anderton | 2009-02-15 | male   | null  | null  | KT21 1JA | 9449306613 | should return 1 record when logged in as LOCAL-AUTHORITY-01                                               |
+| Red     | Flindall | 2011-05-17 | male   | null  | null  | KT20 6XJ | 9449306494 | should return 2 records when logged in as HEALTH-01                                                       |
+
+Automated tests can be found at Apps/Find/tests/SUI.Find.E2ETests/StartANewSearchTests.cs
+
+### End to end
+this is a full end to end test example using the swagger ui to execute the requests.
 
 #### Match
+Search for a person and get an SUI back
 ```
 /v1/matchperson
 
@@ -100,6 +110,7 @@ response without encryption
 }
 ```
 #### Find - start search
+Take the SUI from the previous call and send it to the searches endpoint
 ```
 v1/searches
 
@@ -131,6 +142,7 @@ Example Response
 }
 ```
 #### Find - get results
+Take the Job ID from the previous step and use it to get the results
 ```
 /v1/searches/5493C9E42891BDDDBDA27C34E24CFF85A3D70CF0FD1FC964559462C26F36FDF5/results
 
@@ -183,7 +195,8 @@ example response
   }
 }
 ```
-
+#### Fetch - get a personal details record
+Use the urls from the previous result to pull the records
 ```
 v1/records/2d9782ef03204778b1a29fc2edb1132e
 

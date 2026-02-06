@@ -52,7 +52,8 @@
     },
     {
       "recordId": "ATT-3210-1",
-      "personId": "vehNMF2ySUU23P206A6BYA",
+      "personId": "9691292211",
+      "encryptedPersonId": "vehNMF2ySUU23P206A6BYA",
       "recordType": "personal.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",

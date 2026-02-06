@@ -30,7 +30,7 @@ public sealed class FileDataProvider(
         return cfg
             .Records.Where(r =>
                 string.Equals(
-                    useEncryptedId ? r.PersonId : r.EncryptedPersonId,
+                    useEncryptedId ? r.EncryptedPersonId : r.PersonId,
                     personId,
                     StringComparison.OrdinalIgnoreCase
                 )
@@ -53,7 +53,7 @@ public sealed class FileDataProvider(
         return cfg
             .Records.Where(r =>
                 string.Equals(
-                    useEncryptedId ? r.PersonId : r.EncryptedPersonId,
+                    useEncryptedId ? r.EncryptedPersonId : r.PersonId,
                     personId,
                     StringComparison.OrdinalIgnoreCase
                 ) && string.Equals(r.RecordType, recordType, StringComparison.OrdinalIgnoreCase)
