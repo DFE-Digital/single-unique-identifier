@@ -120,7 +120,7 @@ public class FetchRecordService(
         return result;
     }
 
-    private record FetchResult(
+    private sealed record FetchResult(
         ResolvedFetchMapping? Mapping,
         CustodianRecord? Record,
         FetchOutcome Outcome,
