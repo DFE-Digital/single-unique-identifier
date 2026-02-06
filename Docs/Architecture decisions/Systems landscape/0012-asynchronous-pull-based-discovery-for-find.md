@@ -361,6 +361,9 @@ sequenceDiagram
 This flow reflects the asynchronous and distributed nature of discovery and avoids
 conflating historical knowledge, provisional signals, and confirmed results.
 
+### High-level Architecture
+
+![High level architecture](./assets/suihighlevel.drawio.png)
 
 ### Optional Webhook Notification
 
