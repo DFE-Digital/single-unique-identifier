@@ -91,6 +91,7 @@ builder.Services.AddHostedService<AzureStorageTableStartup>();
 
 builder.UseMiddleware<JwtAuthMiddleware>();
 builder.UseMiddleware<AuditMiddleware>();
+builder.UseMiddleware<ResponseTracingMiddleware>();
 
 builder.Services.AddSingleton(sp =>
 {
