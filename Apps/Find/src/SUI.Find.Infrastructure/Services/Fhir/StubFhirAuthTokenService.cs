@@ -4,9 +4,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models.Fhir;
-using SUI.Find.Infrastructure.Services.Fhir;
 
-namespace SUI.Find.Infrastructure.Services;
+namespace SUI.Find.Infrastructure.Services.Fhir;
 
 /// <summary>
 /// Override AuthTokenService to use local keys instead of Key Vault.
@@ -17,12 +16,12 @@ namespace SUI.Find.Infrastructure.Services;
 /// <param name="httpClientFactory"></param>
 /// <param name="secretService"></param>
 [ExcludeFromCodeCoverage(Justification = "Stub for local development & testing purposes")]
-public class StubAuthTokenService(
+public class StubFhirAuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
-    ILogger<StubAuthTokenService> logger,
+    ILogger<StubFhirAuthTokenService> logger,
     IHttpClientFactory httpClientFactory,
     ISecretService secretService
-) : AuthTokenService(options, logger, httpClientFactory, secretService)
+) : FhirAuthTokenService(options, logger, httpClientFactory, secretService)
 {
     private readonly IOptions<AuthTokenServiceConfig> _options = options;
 
