@@ -10,7 +10,7 @@ namespace SUI.Find.Infrastructure.Factories.Fhir;
 [ExcludeFromCodeCoverage(Justification = "Factory class on concrete FhirClient creation")]
 public class FhirClientFactory(
     IOptions<AuthTokenServiceConfig> nhsAuthConfig,
-    IAuthTokenService authTokenService
+    IFhirAuthTokenService fhirAuthTokenService
 ) : IFhirClientFactory
 {
     public async Task<FhirClient> CreateFhirClientAsync(
@@ -25,7 +25,7 @@ public class FhirClientFactory(
         if (fhirClient.RequestHeaders == null)
             return fhirClient;
 
-        var accessToken = await authTokenService
+        var accessToken = await fhirAuthTokenService
             .GetBearerToken(cancellationToken)
             .ConfigureAwait(false);
 

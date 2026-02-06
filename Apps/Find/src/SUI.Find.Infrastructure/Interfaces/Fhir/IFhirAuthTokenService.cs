@@ -1,6 +1,6 @@
 namespace SUI.Find.Infrastructure.Interfaces.Fhir;
 
-public interface IAuthTokenService
+public interface IFhirAuthTokenService
 {
     Task<string> GetBearerToken(CancellationToken cancellationToken);
 }

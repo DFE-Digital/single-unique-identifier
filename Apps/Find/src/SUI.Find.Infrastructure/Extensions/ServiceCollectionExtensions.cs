@@ -46,11 +46,11 @@ public static class ServiceCollectionExtensions
         var useStubAuthTokenService = configuration.GetValue<bool>("UseStubAuthTokenService");
         if (useStubAuthTokenService)
         {
-            services.AddSingleton<IAuthTokenService, StubAuthTokenService>();
+            services.AddSingleton<IFhirAuthTokenService, StubFhirAuthTokenService>();
         }
         else
         {
-            services.AddSingleton<IAuthTokenService, AuthTokenService>();
+            services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
         }
 
         services.AddAzureTableServices();
