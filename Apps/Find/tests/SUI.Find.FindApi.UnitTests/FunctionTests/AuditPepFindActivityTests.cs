@@ -78,8 +78,6 @@ public class AuditPepFindActivityTests
             return false;
         if (record.RecordType != expected.Item.RecordType)
             return false;
-        if (string.IsNullOrWhiteSpace(record.DataType))
-            return false;
         //
         // Policy decision snapshot checks
         if (!record.IsSharedAllowed)

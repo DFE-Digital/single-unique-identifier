@@ -307,7 +307,6 @@ public class FetchRecordService(
                         SourceOrgId = mapping.TargetOrgId,
                         RecordUrl = mapping.TargetUrl,
                         RecordType = mapping.RecordType,
-                        DataType = mapping.RecordType,
                         IsSharedAllowed = pepDecision.IsAllowed,
                         RuleType = pepDecision.RuleType ?? "unknown",
                         RuleEffect = pepDecision.RuleEffect ?? "unknown",

@@ -78,7 +78,7 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
                                 {
                                     Effect = d.Effect,
                                     Modes = d.Modes,
-                                    DataTypes = d.DataTypes,
+                                    RecordTypes = d.RecordTypes,
                                     DestOrgTypes = d.DestOrgTypes,
                                     Purposes = d.Purposes,
                                     ValidFrom = d.ValidFrom,
@@ -89,7 +89,7 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
                                 {
                                     Effect = e.Effect,
                                     Modes = e.Modes,
-                                    DataTypes = e.DataTypes,
+                                    RecordTypes = e.RecordTypes,
                                     DestOrgTypes = e.DestOrgTypes,
                                     DestOrgIds = e.DestOrgIds,
                                     Purposes = e.Purposes,
@@ -182,7 +182,7 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
     {
         public string Effect { get; set; } = null!;
         public List<string> Modes { get; set; } = null!;
-        public List<string> DataTypes { get; set; } = null!;
+        public List<string> RecordTypes { get; set; } = null!;
         public List<string> DestOrgTypes { get; set; } = null!;
         public List<string> Purposes { get; set; } = null!;
         public DateTimeOffset? ValidFrom { get; set; } = null!;
@@ -192,7 +192,7 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
     {
         public string Effect { get; set; } = null!;
         public List<string> Modes { get; set; } = null!;
-        public List<string> DataTypes { get; set; } = null!;
+        public List<string> RecordTypes { get; set; } = null!;
         public List<string> DestOrgTypes { get; set; } = null!;
         public List<string> DestOrgIds { get; set; } = null!;
         public List<string> Purposes { get; set; } = null!;

@@ -42,7 +42,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "local_authority_ptr", "children_social_care_ptr" ],
+            "recordTypes": [ "local_authority", "children_social_care" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -50,7 +50,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "children_social_care_file" ],
+            "recordTypes": [ "children_social_care" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -128,7 +128,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "education_ptr", "attendance_ptr", "exclusion_ptr" ],
+            "recordTypes": [ "education", "attendance", "exclusion" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -136,7 +136,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "attendance_record", "exclusion_record" ],
+            "recordTypes": [ "attendance", "exclusion" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION" ],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -146,7 +146,7 @@
           {
             "effect": "deny",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "attendance_record", "exclusion_record" ],
+            "recordTypes": [ "attendance", "exclusion" ],
             "destOrgTypes": [ "VOLUNTARY" ],
             "purposes": [ "GENERAL_ENQUIRY" ]
           }
@@ -201,7 +201,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "health_ptr", "mental_health_ptr" ],
+            "recordTypes": [ "health", "mental_health" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -209,7 +209,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "health_record", "mental_health_record" ],
+            "recordTypes": [ "health", "mental_health" ],
             "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -251,7 +251,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "police_ptr" ],
+            "recordTypes": [ "police" ],
             "destOrgTypes": [ "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -259,7 +259,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "police_record" ],
+            "recordTypes": [ "police" ],
             "destOrgTypes": [ "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -269,7 +269,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE", "CONTENT" ],
-            "dataTypes": [ "police_ptr", "police_record" ],
+            "recordTypes": [ "police" ],
             "destOrgIds": [ "LOCAL-AUTHORITY-01" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-12-01T00:00:00Z",
@@ -327,7 +327,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "housing_ptr", "homelessness_ptr" ],
+            "recordTypes": [ "housing", "homelessness" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -335,7 +335,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "housing_record", "homelessness_record" ],
+            "recordTypes": [ "housing", "homelessness" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "HOUSING" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "HOUSING_SUPPORT" ],
             "validFrom": "2025-01-01T00:00:00Z"
