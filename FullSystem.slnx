@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/Apps/" />
-  <Folder Name="/Apps/Find/" />
+  <Folder Name="/Apps/Find/">
+    <File Path="Apps/Find/README.md" />
+  </Folder>
   <Folder Name="/Apps/Find/src/">
     <Project Path="Apps/Find/src/SUI.Find.Application/SUI.Find.Application.csproj" />
     <Project Path="Apps/Find/src/SUI.Find.AuditProcessor/SUI.Find.AuditProcessor.csproj" />

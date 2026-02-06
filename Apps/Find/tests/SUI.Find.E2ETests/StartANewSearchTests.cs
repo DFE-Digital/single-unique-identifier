@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -8,6 +9,7 @@ using Polly;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Models;
 using Xunit.Abstractions;
+using static System.Environment;
 
 namespace SUI.Find.E2ETests;
 
@@ -159,6 +161,29 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         var searchJob = JsonSerializer.Deserialize<SearchJob>(searchJobContent);
         Assert.False(string.IsNullOrEmpty(searchJob!.JobId));
 
+        var traceId =
+            (
+                newSearchJobResult.Headers.TryGetValues("Trace-Id", out var traceIds)
+                    ? traceIds.FirstOrDefault()
+                    : null
+            ) ?? "Unknown";
+
+        var invocationId =
+            (
+                newSearchJobResult.Headers.TryGetValues("Invocation-Id", out var invocationIds)
+                    ? invocationIds.FirstOrDefault()
+                    : null
+            ) ?? "Unknown";
+
+        TestOutputHelper.WriteLine(
+            $"Search started: {new { traceId, invocationId, jobId = searchJob.JobId }}"
+        );
+
+        var observabilityInfo = Fixture.Config.IsLocal
+            ? $"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}"
+            : GenerateAppInsightsLink(traceId);
+        TestOutputHelper.WriteLine($"{NewLine}Trace observability: {observabilityInfo}{NewLine}");
+
         return searchJob;
     }
 
@@ -257,4 +282,38 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
     private static string RemoveLeadingSlashFromUrl(string url) =>
         url.StartsWith('/') ? url[1..] : url;
+
+    private static string GenerateAppInsightsLink(string traceId)
+    {
+        const string template =
+            "https://portal.azure.com#@fad277c9-c60a-4da1-b5f3-b3b8b34a82f9/blade/Microsoft_OperationsManagementSuite_Workspace/Logs.ReactView/resourceId/%2Fsubscriptions%2F4be6cd11-d358-413e-a744-8716ef3488c8%2FresourceGroups%2Fs270d01rg-ukw-dev%2Fproviders%2Fmicrosoft.insights%2Fcomponents%2Fs270d01appi-ukw-services01/source/LogsBlade.AnalyticsShareLinkToQuery/q/{0}/timespan/P1D/limit/1000";
+
+        var query = $"""
+            union traces, exceptions
+            | where operation_Id == "{traceId}"
+            | extend message = coalesce(message, innermostMessage)
+            """;
+
+        return string.Format(template, EncodedKqlQuery(query));
+
+        static string EncodedKqlQuery(string query)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(query);
+            using var memoryStream = new MemoryStream();
+            using (
+                var compressedStream = new GZipStream(
+                    memoryStream,
+                    CompressionMode.Compress,
+                    leaveOpen: true
+                )
+            )
+            {
+                compressedStream.Write(bytes, 0, bytes.Length);
+            }
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            var data = memoryStream.ToArray();
+            var encodedQuery = Convert.ToBase64String(data);
+            return System.Web.HttpUtility.UrlEncode(encodedQuery);
+        }
+    }
 }

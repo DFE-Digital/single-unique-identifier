@@ -64,7 +64,7 @@ docker run --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 -ti --name sui-grafana gr
 Alternatively, you can use Aspire Dashboard to view traces and logs:
 
 ```bash
-docker run --rm -p 18888:18888 -p 4317:18889 -ti --name sui-aspire-dashboard mcr.microsoft.com/dotnet/aspire-dashboard:latest
+docker run --rm -p 18888:18888 -p 4317:18889 -ti --name sui-aspire-dashboard mcr.microsoft.com/dotnet/aspire-dashboard:latest --env ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
 ```
 
 Point your app at the local collector by specifying the values in the `local.settings.json` file:
