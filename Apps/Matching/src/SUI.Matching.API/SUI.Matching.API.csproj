@@ -14,4 +14,7 @@
     <ProjectReference Include="..\SUI.Matching.Domain\SUI.Matching.Domain.csproj" />
     <ProjectReference Include="..\SUI.Matching.Infrastructure\SUI.Matching.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Update="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.2" />
+  </ItemGroup>
 </Project>
