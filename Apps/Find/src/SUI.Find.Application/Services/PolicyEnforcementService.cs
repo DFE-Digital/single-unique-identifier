@@ -118,7 +118,7 @@ public class PolicyEnforcementService(
         return results;
     }
 
-    private bool RuleMatches(
+    private static bool RuleMatches(
         DsaRuleDefinition rule,
         PolicyDecisionRequest request,
         string destOrgType,
