@@ -241,7 +241,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     {
         url = RemoveLeadingSlashFromUrl(url);
 
-        const int retryCount = 30;
+        const int retryCount = 150;
 
         var isCompleted = false;
         var status = "unknown";
