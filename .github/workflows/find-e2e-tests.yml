@@ -14,7 +14,7 @@ on:
       - "Apps/Find/**"
 
 jobs:
-  e2e-test:
+  e2e-test-ephemeral:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -84,5 +84,21 @@ jobs:
           echo "StubCustodians API failed to start"
           exit 1
 
-      - name: Run E2E Tests
+      - name: Run E2E Tests (against ephemeral environment)
         run: dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj --logger "console;verbosity=detailed"
+
+  e2e-test-dev:
+    runs-on: ubuntu-latest
+    # rs-todo: only trigger after successfull deployment to main
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      
+      # rs-todo: wrap on multiple lines, ideally:
+      - name: Run E2E Tests (against dev environment)
+        run: dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj --logger "console;verbosity=detailed" -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ -e E2E__SkipResetAzureTables=True
