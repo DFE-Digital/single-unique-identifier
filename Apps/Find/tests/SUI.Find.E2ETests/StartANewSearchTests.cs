@@ -9,7 +9,6 @@ using Polly;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Models;
 using Xunit.Abstractions;
-using static System.Environment;
 
 namespace SUI.Find.E2ETests;
 
@@ -77,7 +76,10 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     [Fact]
     public async Task Should_PersistSearchData_When_OrchestrationCompletes()
     {
-        await EnsureApiIsUpAsync();
+        await Task.WhenAll(
+            EnsureServiceIsUpAsync("Find API", Fixture.Client),
+            EnsureServiceIsUpAsync("StubCustodians API", Fixture.StubCustodiansClient)
+        );
 
         var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, TetScopes);
         Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
@@ -101,12 +103,12 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         // Fin
     }
 
-    private async Task EnsureApiIsUpAsync()
+    private async Task EnsureServiceIsUpAsync(string serviceName, HttpClient client)
     {
         const string url = "health";
         var waitInterval = TimeSpan.FromSeconds(10);
 
-        TestOutputHelper.WriteLine($"Checking Find API is up: {Fixture.Client.BaseAddress}{url}");
+        TestOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
 
         // If health check does not indicate healthy, wait and then retry
         const int retryCount = 3;
@@ -117,7 +119,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 retryAttempt =>
                 {
                     TestOutputHelper.WriteLine(
-                        $"Find API does not indicate healthy, waiting for {waitInterval.Seconds} seconds, then retrying, retry {retryAttempt} / {retryCount}..."
+                        $"{serviceName} does not indicate healthy, waiting for {waitInterval.Seconds} seconds, then retrying, retry {retryAttempt} / {retryCount}..."
                     );
                     return TimeSpan.FromSeconds(10);
                 }
@@ -127,20 +129,22 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         {
             try
             {
-                using var response = await Fixture.Client.GetAsync(url);
+                using var response = await client.GetAsync(url);
                 var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
                 return content?.Value == "Healthy";
             }
             catch (Exception ex)
             {
-                TestOutputHelper.WriteLine($"Warning: health check exception: {ex.Message}");
+                TestOutputHelper.WriteLine(
+                    $"Warning: health check exception ({serviceName}): {ex.Message}"
+                );
                 return false;
             }
         });
 
-        Assert.True(healthy, "The Find API does not appear to be up and healthy");
+        Assert.True(healthy, $"The {serviceName} does not appear to be up and healthy");
 
-        TestOutputHelper.WriteLine("Find API is up 👍");
+        TestOutputHelper.WriteLine($"{serviceName} is up 👍");
     }
 
     private async Task<SearchJob> RunAndAssertNewSearchEndpoint()
@@ -179,10 +183,13 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             $"Search started: {new { traceId, invocationId, jobId = searchJob.JobId }}"
         );
 
-        var observabilityInfo = Fixture.Config.IsLocal
+        var observabilityLink = Fixture.Config.IsLocal
             ? $"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}"
             : GenerateAppInsightsLink(traceId);
-        TestOutputHelper.WriteLine($"{NewLine}Trace observability: {observabilityInfo}{NewLine}");
+
+        TestOutputHelper.WriteLine("");
+        TestOutputHelper.WriteLine($"Trace observability: {observabilityLink}");
+        TestOutputHelper.WriteLine("");
 
         return searchJob;
     }
