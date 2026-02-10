@@ -2,20 +2,68 @@ name: Find E2E Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      manual_run_ephemeral:
+        description: e2e test 'ephemeral' environment
+        default: true
+        type: boolean
+      manual_run_dev:
+        description: e2e test 'dev' environment
+        default: false
+        type: boolean
+  
+  deployment_status:
+
   push:
     branches:
       - main
     paths:
       - "Apps/Find/**"
+      - "Apps/StubCustodians/**"
+      - .github/workflows/find-e2e-tests.yml
+
   pull_request:
     branches:
       - main
     paths:
       - "Apps/Find/**"
+      - "Apps/StubCustodians/**"
+      - .github/workflows/find-e2e-tests.yml
 
 jobs:
-  e2e-test-ephemeral:
+  # For manual workflow runs (workflow_dispatch) give the user the option of where to run against (ephemeral/dev/both)
+  # Otherwise, always run against ephemeral environment, and also run against dev environment after successful deployment to dev.
+  eval-workflow-setup:
     runs-on: ubuntu-latest
+    steps:
+      - id: eval
+        name: Evaluate Workflow Setup
+        env:
+          RUN_EPHEMERAL: ${{ github.event_name != 'workflow_dispatch' || inputs.manual_run_ephemeral == true }}
+          RUN_DEV: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true }}
+        run: |
+          echo
+          echo "run_ephemeral=$RUN_EPHEMERAL" >> "$GITHUB_OUTPUT"
+          echo "run_dev=$RUN_DEV" >> "$GITHUB_OUTPUT"
+
+          echo "---- GitHub Context Info: ----"
+          echo "github.event_name: ${{ github.event_name || '(no value)' }}"
+          echo "github.event.deployment_status.state: ${{ github.event.deployment_status.state || '(no value)' }}"
+          echo "github.event.deployment.environment: ${{ github.event.deployment.environment || '(no value)' }}"
+          echo "inputs.manual_run_ephemeral: ${{ inputs.manual_run_ephemeral || '(no value)' }}"
+          echo "inputs.manual_run_dev: ${{ inputs.manual_run_dev || '(no value)' }}"
+          echo
+          echo "---- Evaluated Workflow Setup: ----"
+          echo "RUN_EPHEMERAL: $RUN_EPHEMERAL"
+          echo "RUN_DEV: $RUN_DEV"
+    outputs:
+      run_ephemeral: ${{ steps.eval.outputs.run_ephemeral }}
+      run_dev: ${{ steps.eval.outputs.run_dev }}
+
+  e2e-test-ephemeral:
+    needs: eval-workflow-setup
+    runs-on: ubuntu-latest
+    if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -69,8 +117,9 @@ jobs:
             -e E2E__SkipResetAzureTables=False
 
   e2e-test-dev:
+    needs: eval-workflow-setup
     runs-on: ubuntu-latest
-    # rs-todo: only trigger after successfull deployment to main
+    if: needs.eval-workflow-setup.outputs.run_dev == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
