@@ -60,4 +60,3 @@ jobs:
       artifact_name: ${{ fromJson(needs.build-and-test-StubCustodians.outputs.artifact_names)['SUI.StubCustodians.API'] }}
       component_descriptor: custodians01
       package_path: publish
-      dotnet_version: "10.0.x"
