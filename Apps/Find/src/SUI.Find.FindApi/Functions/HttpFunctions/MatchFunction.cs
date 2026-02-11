@@ -123,7 +123,7 @@ public class MatchFunction(
         }
         catch (JsonException ex)
         {
-            logger.LogError(ex, ex.Message);
+            logger.LogError(ex, $"Failed to parse Match request: {ex.Message}");
             return false;
         }
     }
