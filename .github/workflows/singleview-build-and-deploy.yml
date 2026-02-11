@@ -60,4 +60,3 @@ jobs:
       artifact_name: ${{ fromJson(needs.build-and-test-SingleView.outputs.artifact_names)['SUI.SingleView.Web'] }}
       component_descriptor: singleview01
       package_path: publish
-      dotnet_version: "10.0.x"
