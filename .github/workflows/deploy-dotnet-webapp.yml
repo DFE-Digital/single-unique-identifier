@@ -28,7 +28,7 @@ on:
       dotnet_version:
         description: Dotnet version to use
         required: false
-        default: "9.0.x"
+        default: "10.0.x"
         type: string
       package_path:
         description: Publish output directory
