@@ -26,7 +26,7 @@ public sealed class FileDataProvider(
         await throttleService.DelayAsync(cancellationToken);
 
         var cfg = await LoadAsync(orgId, cancellationToken);
-        var useEncryptedId = bool.Parse(configuration["UseEncryptedId"] ?? "false");
+        var useEncryptedId = configuration.UseEncryptedId();
 
         return cfg
             .Records.Where(r =>
