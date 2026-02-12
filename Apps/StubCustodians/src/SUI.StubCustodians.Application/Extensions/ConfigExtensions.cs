@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace SUI.StubCustodians.Infrastructure.Extensions;
+namespace SUI.StubCustodians.Application.Extensions;
 
 public static class ConfigExtensions
 {
