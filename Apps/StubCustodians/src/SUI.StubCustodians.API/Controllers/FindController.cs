@@ -70,9 +70,10 @@ public class FindController(ILogger<FindController> logger, IManifestService man
                 cancellationToken
             );
             logger.LogInformation(
-                "Got manifest for personId:'{PersonId}', OrgId: '{OrgId}'. Returned: {Result}",
+                "Got manifest for personId:'{PersonId}', OrgId: '{OrgId}', RecordType: '{RecordType}'. Returned: {Result}",
                 personId,
                 orgId,
+                recordType,
                 JsonSerializer.Serialize(result)
             );
             return TypedResults.Ok(result);

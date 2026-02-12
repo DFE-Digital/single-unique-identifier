@@ -5,7 +5,8 @@
   "records": [
     {
       "recordId": "POL-3210-P",
-      "personId": "1XbwUS3fCfGcVSwRB0rJLA",
+      "personId": "9691292211",
+      "encryptedPersonId": "FDP4W_qDZtCk-w2Hmqiq7A",
       "recordType": "crime-justice.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/crime-justice.details.v1.json",
@@ -15,7 +16,7 @@
           "Youth justice service (YJS)",
           "Police"
         ],
-        "lastPoliceProtectionPowerEvent": "None",
+        "lastPoliceProtectionPowerEvent": null,
         "missingEpisodes": [
           {
             "date": "2024-10-30",
