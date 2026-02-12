@@ -1,6 +1,6 @@
 namespace SUI.Find.Application.Models.Matching;
 
-public class KnownData
+public class Metadata
 {
     public required string RecordType { get; set; }
     public string? SystemId { get; set; }
