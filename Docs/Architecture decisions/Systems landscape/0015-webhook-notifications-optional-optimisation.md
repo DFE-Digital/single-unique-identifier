@@ -1,6 +1,6 @@
 # ADR-SUI-0015: Optional Webhook Notifications for Task Availability
 
-Date: 2026-02-05
+Date: 05 February 2026  
 Author: Simon Parsons  
 Decision owners: SUI Service Team  
 Category: Distributed discovery architecture

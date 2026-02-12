@@ -1,6 +1,6 @@
 # ADR-SUI-0017: Exposure Model for National APIs (Public vs Private)
 
-Date: 2026-02-05
+Date: 05 February 2026  
 Author: Simon Parsons  
 Decision owners: SUI Service Team  
 Category: Security and network architecture

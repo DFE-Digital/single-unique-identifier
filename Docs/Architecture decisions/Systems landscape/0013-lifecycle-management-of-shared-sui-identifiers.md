@@ -1,6 +1,6 @@
 # ADR-SUI-0013: Lifecycle Management of Shared SUI Identifiers
 
-Date: 2026-02-05
+Date: February 2026  
 Author: Simon Parsons  
 Decision owners: SUI Service Team  
 Category: Identity lifecycle and coordination

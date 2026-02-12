@@ -1,6 +1,6 @@
 # ADR-SUI-0016: API Edge Pattern for National Services (API Gateway / APIM)
 
-Date: 2026-02-05
+Date: 05 February 2026  
 Author: Simon Parsons  
 Decision owners: SUI Service Team  
 Category: Platform architecture

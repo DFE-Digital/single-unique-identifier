@@ -1,6 +1,6 @@
 # ADR-SUI-0008: Lifecycle, Expiry and Invalidation of Issued SUI Identifiers
 
-Date: 2025-12-11
+Date: 11 December 2025
 
 Author: Simon Parsons
 

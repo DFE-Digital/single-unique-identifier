@@ -1,6 +1,6 @@
 # ADR-SUI-0010: Use of NHS Number as the Single Unique Identifier
 
-Date: 2026-01-26
+Date: 26 January 2026  
 Author: Simon Parsons  
 Decision owners: SUI Service Team  
 Category: Identity and matching
