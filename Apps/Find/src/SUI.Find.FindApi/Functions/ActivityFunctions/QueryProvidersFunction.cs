@@ -39,7 +39,7 @@ public class QueryProvidersFunction(
                     Sui = data.Suid,
                     CustodianId = data.Provider.OrgId,
                     RecordType = searchResultItem.RecordType,
-                    SystemId = searchResultItem.SystemId,
+                    SystemId = searchResultItem.SystemId ?? string.Empty,
                     CustodianSubjectId = searchResultItem.RecordId,
                     Provenance = Provenance.DiscoveredViaFanout,
                     LastIdDeliveredAtUtc = null,
