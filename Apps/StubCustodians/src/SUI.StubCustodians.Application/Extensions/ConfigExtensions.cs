@@ -6,6 +6,9 @@ public static class ConfigExtensions
 {
     public static bool UseEncryptedId(this IConfiguration config)
     {
-        return bool.Parse(config["UseEncryptedId"] ?? "false");
+        var value = !string.IsNullOrWhiteSpace(config["UseEncryptedId"])
+            ? config["UseEncryptedId"]
+            : "false";
+        return bool.Parse(value);
     }
 }
