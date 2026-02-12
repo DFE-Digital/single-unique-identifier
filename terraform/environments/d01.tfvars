@@ -9,8 +9,8 @@ service_offering              = "MAIS Pilot 3"
 app_service_plan_sku          = "B1"
 app_service_plan_os_type      = "Linux"
 app_service_plan_worker_count = 1
-function_dotnet_version       = "9.0"
-webapp_dotnet_version         = "9.0"
+function_dotnet_version       = "10.0"
+webapp_dotnet_version         = "10.0"
 use_stub_custodians           = true
 
 find_app_settings = {

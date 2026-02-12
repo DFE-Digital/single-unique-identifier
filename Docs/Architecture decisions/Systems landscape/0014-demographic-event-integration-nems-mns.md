@@ -1,6 +1,10 @@
 # ADR-SUI-0014: Demographic Event Integration for Identifier Lifecycle Triggers (NEMS / MNS)
 
+<<<<<<< HEAD
 Date: 05 February 2026  
+=======
+Date: 2026-02-05
+>>>>>>> main
 Author: Simon Parsons  
 Decision owners: SUI Service Team  
 Category: Systems integration

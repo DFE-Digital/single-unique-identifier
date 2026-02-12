@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.1",
   "info": {
     "title": "Custodians API",
     "version": "1.0"
@@ -10,6 +10,7 @@
         "tags": [
           "Auth"
         ],
+        "summary": "Issue a sandbox bearer token using client credentials (Form)",
         "operationId": "TokenForm",
         "requestBody": {
           "content": {
@@ -100,7 +101,8 @@
               }
             }
           }
-        }
+        },
+        "security": [ ]
       }
     },
     "/api/v1/Fetch/{orgId}/{recordType}/{recordId}": {
@@ -547,7 +549,8 @@
           "200": {
             "description": "OK"
           }
-        }
+        },
+        "security": [ ]
       }
     }
   },
@@ -565,13 +568,15 @@
             "additionalProperties": false
           },
           "scope": {
-            "type": "array",
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "type": "string",
               "additionalProperties": false
             },
-            "additionalProperties": false,
-            "nullable": true
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -588,7 +593,11 @@
             "additionalProperties": false
           },
           "expires_in": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "additionalProperties": false,
             "format": "int32"
           },
@@ -616,9 +625,11 @@
             "additionalProperties": false
           },
           "recordType": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ],
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -627,80 +638,65 @@
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ],
+            "additionalProperties": false
           },
           "title": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ],
+            "additionalProperties": false
           },
           "status": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
             "additionalProperties": false,
-            "format": "int32",
-            "nullable": true
+            "format": "int32"
           },
           "detail": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ],
+            "additionalProperties": false
           },
           "instance": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ],
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
-      },
-      "ProblemDetails2": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
-          },
-          "title": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
-          },
-          "status": {
-            "type": "integer",
-            "additionalProperties": false,
-            "format": "int32",
-            "nullable": true
-          },
-          "detail": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
-          },
-          "instance": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
-          }
-        },
-        "additionalProperties": false,
-        "nullable": true
       },
       "ProblemHttpResult": {
         "type": "object",
         "properties": {
           "problemDetails": {
-            "$ref": "#/components/schemas/ProblemDetails2"
+            "$ref": "#/components/schemas/ProblemDetails"
           },
           "contentType": {
-            "type": "string",
-            "additionalProperties": false,
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ],
+            "additionalProperties": false
           },
           "statusCode": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "additionalProperties": false,
             "format": "int32"
           }
@@ -738,7 +734,11 @@
             "additionalProperties": false
           },
           "version": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
             "additionalProperties": false,
             "format": "int32"
           },
@@ -750,27 +750,33 @@
       },
       "SearchResultItem": {
         "required": [
-          "providerSystem",
-          "providerId",
           "recordType",
-          "recordUrl"
+          "recordUrl",
+          "recordId",
+          "systemId"
         ],
         "type": "object",
         "properties": {
-          "providerSystem": {
-            "type": "string",
-            "additionalProperties": false
-          },
-          "providerId": {
-            "type": "string",
-            "additionalProperties": false
-          },
           "recordType": {
             "type": "string",
             "additionalProperties": false
           },
           "recordUrl": {
             "type": "string",
+            "additionalProperties": false
+          },
+          "recordId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "additionalProperties": false
+          },
+          "systemId": {
+            "type": [
+              "null",
+              "string"
+            ],
             "additionalProperties": false
           }
         },

@@ -40,7 +40,8 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download) version 9.0.300 or later
+- [.NET SDK](https://dotnet.microsoft.com/download) version 10.0.102 or later
+- [.NET runtime](https://dotnet.microsoft.com/download/dotnet/9.0) 9.0.x (required for `dotnet pwsh` and other local tools until PowerShell 7.6 is released with .NET 10 support)
 
 ### Setup
 
@@ -58,13 +59,13 @@ This will install the tools specified in `.config/dotnet-tools.json`, including 
 To view local traces and logs from any app, run the Grafana otel-lgtm stack:
 
 ```bash
-docker run --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 -ti --name sui-grafana grafana/otel-lgtm
+docker run -d --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 -ti --name sui-grafana grafana/otel-lgtm
 ```
 
 Alternatively, you can use Aspire Dashboard to view traces and logs:
 
 ```bash
-docker run --rm -p 18888:18888 -p 4317:18889 -ti --name sui-aspire-dashboard mcr.microsoft.com/dotnet/aspire-dashboard:latest
+docker run -d --rm -p 18888:18888 -p 4317:18889 -ti --env ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true --name sui-aspire-dashboard mcr.microsoft.com/dotnet/aspire-dashboard:latest
 ```
 
 Point your app at the local collector by specifying the values in the `local.settings.json` file:

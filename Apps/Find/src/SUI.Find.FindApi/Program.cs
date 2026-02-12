@@ -67,7 +67,7 @@ builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
 // Infrastructure services
-builder.Services.AddInfrastructureServices(builder.Environment).AddSecretClientServices();
+builder.Services.AddInfrastructureServices(builder.Configuration).AddSecretClientServices();
 
 // Application services
 builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
@@ -91,6 +91,7 @@ builder.Services.AddHostedService<AzureStorageTableStartup>();
 
 builder.UseMiddleware<JwtAuthMiddleware>();
 builder.UseMiddleware<AuditMiddleware>();
+builder.UseMiddleware<ResponseTracingMiddleware>();
 
 builder.Services.AddSingleton(sp =>
 {

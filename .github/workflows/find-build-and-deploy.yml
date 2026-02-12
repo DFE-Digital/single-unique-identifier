@@ -60,7 +60,6 @@ jobs:
       artifact_name: ${{ fromJson(needs.build-and-test-Find.outputs.artifact_names)['SUI.Find.FindApi'] }}
       component_descriptor: find01
       package_path: publish
-      dotnet_version: "9.0.x"
 
   deploy-find-audit:
     name: Audit processor - Deploy Function App
@@ -77,4 +76,3 @@ jobs:
       artifact_name: ${{ fromJson(needs.build-and-test-Find.outputs.artifact_names)['SUI.Find.AuditProcessor'] }}
       component_descriptor: findaudit01
       package_path: publish
-      dotnet_version: "9.0.x"

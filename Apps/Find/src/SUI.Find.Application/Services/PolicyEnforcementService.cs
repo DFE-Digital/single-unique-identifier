@@ -91,7 +91,7 @@ public class PolicyEnforcementService(
         string sourceOrgId,
         string destOrgId,
         string destOrgType,
-        IReadOnlyList<SearchResultItem> searchResultItems,
+        IReadOnlyList<CustodianSearchResultItem> searchResultItems,
         DsaPolicyDefinition dsaPolicy,
         string purpose,
         CancellationToken cancellationToken = default
