@@ -29,7 +29,7 @@ public class MockCustodianServiceTests
 
         // Assert: check a few known mappings
         var la = providers.FirstOrDefault(p =>
-            p is { OrgId: "LOCAL-AUTHORITY-01", RecordType: "local-authority" }
+            p is { OrgId: "LOCAL-AUTHORITY-01", RecordType: "childrens-services.details" }
         );
         Assert.NotNull(la);
         Assert.Equal("Example Local Authority", la.OrgName);
@@ -54,7 +54,7 @@ public class MockCustodianServiceTests
         var defaultRule = la.DsaPolicy.Defaults.First();
         Assert.Equal("allow", defaultRule.Effect);
         Assert.Contains("EXISTENCE", defaultRule.Modes);
-        Assert.Contains("local_authority", defaultRule.RecordTypes);
+        Assert.Contains("childrens-services.details", defaultRule.RecordTypes);
         Assert.Contains("POLICE", defaultRule.DestOrgTypes);
         Assert.Equal(DateTimeOffset.Parse("2025-01-01T00:00:00Z"), defaultRule.ValidFrom);
 
@@ -74,7 +74,7 @@ public class MockCustodianServiceTests
 
         // Check an education record with a body template
         var edu = providers.FirstOrDefault(p =>
-            p.OrgId == "EDUCATION-01" && p.RecordType == "education"
+            p.OrgId == "EDUCATION-01" && p.RecordType == "education.details"
         );
         Assert.NotNull(edu);
         Assert.Equal("POST", edu.Connection.Method);
