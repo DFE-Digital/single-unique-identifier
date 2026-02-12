@@ -19,6 +19,26 @@
               "clientSecret": "SUIProject"
             }
           }
+        },
+        {
+          "recordType": "personal.details",
+          "connection": {
+            "method": "POST",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
+            "personIdPosition": "body",
+            "bodyTemplate": {
+              "recordType": "personal.details",
+              "personId": "{personId}",
+              "orgId": "local-authority-01"
+            },
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
         }
       ],
       "dsaPolicy": {
@@ -63,6 +83,26 @@
             "personIdPosition": "body",
             "bodyTemplate": {
               "recordType": "education.details",
+              "personId": "{personId}",
+              "orgId": "education-01"
+            },
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
+        },
+        {
+          "recordType": "personal.details",
+          "connection": {
+            "method": "POST",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
+            "personIdPosition": "body",
+            "bodyTemplate": {
+              "recordType": "personal.details",
               "personId": "{personId}",
               "orgId": "education-01"
             },
@@ -149,7 +189,7 @@
             "effect": "allow",
             "modes": [ "CONTENT" ],
             "recordTypes": [ "health.details" ],
-            "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY" ],
+            "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY", "EDUCATION" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
           }

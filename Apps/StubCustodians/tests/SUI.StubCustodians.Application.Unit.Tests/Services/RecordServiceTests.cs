@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using SUI.Custodians.Domain.Models;
 using SUI.StubCustodians.Application.Interfaces;
@@ -11,11 +12,13 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Services
     {
         private readonly RecordService _recordService;
         private readonly IDataProvider _dataProvider;
+        private readonly IConfiguration _configuration;
 
         public RecordServiceTests()
         {
             _dataProvider = Substitute.For<IDataProvider>();
-            _recordService = new RecordService(_dataProvider);
+            _configuration = Substitute.For<IConfiguration>();
+            _recordService = new RecordService(_dataProvider, _configuration);
         }
 
         [Fact]
