@@ -65,7 +65,10 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
                                 ClientId = conn.Auth.ClientId,
                                 ClientSecret = conn.Auth.ClientSecret,
                             },
-                            BodyTemplateJson = conn.BodyTemplate?.ToString(),
+                            BodyTemplateJson =
+                                conn.BodyTemplate != null
+                                    ? JsonSerializer.Serialize(conn.BodyTemplate)
+                                    : null,
                         },
                         DsaPolicy = new DsaPolicyDefinition
                         {

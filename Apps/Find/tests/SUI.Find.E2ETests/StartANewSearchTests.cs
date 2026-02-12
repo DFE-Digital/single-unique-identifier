@@ -23,7 +23,6 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         IClassFixture<FunctionTestFixture>,
         IAsyncLifetime
 {
-    private const string TestClientId = "LOCAL-AUTHORITY-01";
     private const string TestClientSecret = "SUIProject";
     private static readonly string[] TetScopes =
     [
@@ -32,7 +31,6 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         "fetch-record.write",
         "fetch-record.read",
     ];
-    private const string ValidEncryptedSuid = "Cy13hyZL-4LSIwVy50p-Hg"; // Test id that exists in mock data
 
     private record HealthCheckResponse(string? Value);
 
@@ -73,22 +71,88 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         TestOutputHelper.WriteLine($"Reset Azure Tables complete: {string.Join(", ", tableNames)}");
     }
 
-    [Fact]
-    public async Task Should_PersistSearchData_When_OrchestrationCompletes()
+    public static TheoryData<TestData> TestData =>
+        [
+            new()
+            {
+                EncryptedSui = "gkITssvF1IAbNgpcMv2lyA",
+                Sui = "9691292211",
+                TestClientId = "LOCAL-AUTHORITY-01",
+                Records =
+                [
+                    new TestRecord { RecordType = "health.details", TestValue = "Dr E Green" },
+                    new TestRecord
+                    {
+                        RecordType = "childrens-services.details",
+                        TestValue = "Alex Patel",
+                    },
+                    new TestRecord { RecordType = "education.details", TestValue = "ST Johns" },
+                    new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
+                    new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
+                    new TestRecord
+                    {
+                        RecordType = "crime-justice.details",
+                        TestValue = "Individuals at the address may resort to violent behaviour",
+                    },
+                ],
+            },
+            new()
+            {
+                EncryptedSui = "vehNMF2ySUU23P206A6BYA",
+                Sui = "9691292211",
+                TestClientId = "EDUCATION-01",
+                Records =
+                [
+                    new TestRecord { RecordType = "health.details", TestValue = "Dr E Green" },
+                    new TestRecord
+                    {
+                        RecordType = "childrens-services.details",
+                        TestValue = "Alex Patel",
+                    },
+                    new TestRecord { RecordType = "education.details", TestValue = "ST Johns" },
+                    new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
+                    new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
+                ],
+            },
+            new()
+            {
+                EncryptedSui = "-hg7DkXLL7oqmKzPwAfxGA",
+                Sui = "9449306613",
+                TestClientId = "LOCAL-AUTHORITY-01",
+                Records = [new TestRecord { RecordType = "personal.details", TestValue = "Briar" }],
+            },
+            new()
+            {
+                EncryptedSui = "Gwy1RFyGF4b_sSbbPZExtQ",
+                Sui = "9449306494",
+                TestClientId = "HEALTH-01",
+                Records =
+                [
+                    new TestRecord { RecordType = "personal.details", TestValue = "Red" },
+                    new TestRecord { RecordType = "health.details", TestValue = "Dr E Green" },
+                ],
+            },
+        ];
+
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public async Task Should_PersistSearchData_When_OrchestrationCompletes(TestData testData)
     {
         await Task.WhenAll(
             EnsureServiceIsUpAsync("Find API", Fixture.Client),
             EnsureServiceIsUpAsync("StubCustodians API", Fixture.StubCustodiansClient)
         );
 
-        var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, TetScopes);
+        var authToken = await GetAuthTokenAsync(testData.TestClientId, TestClientSecret, TetScopes);
         Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
             authToken
         );
 
         // Step 1, start a new search
-        var newSearchJob = await RunAndAssertNewSearchEndpoint();
+        var newSearchJob = await RunAndAssertNewSearchEndpoint(
+            Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui
+        );
 
         // Step 2, check the status
         var statusUrl = newSearchJob.Links.TryGetValue("status", out var statusLink);
@@ -98,7 +162,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         // Step 3, Get the results from fetch and assert
         var resultsUrl = statusResult.Links.TryGetValue("results", out var resultsLink);
         Assert.True(resultsUrl);
-        await RunAndAssertFetchEndpoint(resultsLink!.Href);
+        await RunAndAssertFetchEndpoint(resultsLink!.Href, testData);
 
         // Fin
     }
@@ -147,15 +211,15 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         TestOutputHelper.WriteLine($"{serviceName} is up 👍");
     }
 
-    private async Task<SearchJob> RunAndAssertNewSearchEndpoint()
+    private async Task<SearchJob> RunAndAssertNewSearchEndpoint(string suid)
     {
         const string startSearchUrl = "v1/searches";
 
         TestOutputHelper.WriteLine(
-            $"Starting new search to find records for SUI: {ValidEncryptedSuid} ({Fixture.Client.BaseAddress}{startSearchUrl})"
+            $"Starting new search to find records for SUI: {suid} ({Fixture.Client.BaseAddress}{startSearchUrl})"
         );
 
-        var body = new StartSearchRequest(ValidEncryptedSuid);
+        var body = new StartSearchRequest(suid);
         var stringContent = new StringContent(JsonSerializer.Serialize(body));
         var newSearchJobResult = await Fixture.Client.PostAsync(startSearchUrl, stringContent);
 
@@ -194,7 +258,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         return searchJob;
     }
 
-    private async Task RunAndAssertFetchEndpoint(string url)
+    private async Task RunAndAssertFetchEndpoint(string url, TestData testData)
     {
         url = RemoveLeadingSlashFromUrl(url);
 
@@ -208,29 +272,83 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         var searchResultTypedContent = JsonSerializer.Deserialize<SearchResults>(
             searchResultContent
         );
-        Assert.Single(searchResultTypedContent!.Items);
-        var searchResultItem = searchResultTypedContent.Items[0];
-        Assert.False(string.IsNullOrEmpty(searchResultItem.RecordUrl));
-
-        // TODO: Step 4, Get data from fetch and assert
-        var recordUrl = RemoveLeadingSlashFromUrl(searchResultItem.RecordUrl);
-        TestOutputHelper.WriteLine(
-            $"Getting data from fetch: {Fixture.Client.BaseAddress}{recordUrl}"
+        Assert.True(
+            searchResultTypedContent!.Items.Length == testData.Records.Length,
+            $"Record count mismatch. Expected: {testData.Records.Length}, actual: {searchResultTypedContent.Items.Length}"
         );
+        foreach (var searchResultItem in searchResultTypedContent.Items)
+        {
+            Assert.False(string.IsNullOrEmpty(searchResultItem.RecordUrl));
 
-        var fetchResult = await Fixture.Client.GetAsync(recordUrl);
-        Assert.Equal(HttpStatusCode.OK, fetchResult.StatusCode);
-        var fetchResultContent = await fetchResult.Content.ReadAsStringAsync();
-        var fetchResultTypedContent = JsonSerializer.Deserialize<CustodianRecord>(
-            fetchResultContent
-        );
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
-        Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.SchemaUri));
-        Assert.NotNull(fetchResultTypedContent.Payload);
+            // Step 4, Get data from fetch and assert
+            var recordUrl = RemoveLeadingSlashFromUrl(searchResultItem.RecordUrl);
+            TestOutputHelper.WriteLine(
+                $"Getting data from fetch: {Fixture.Client.BaseAddress}{recordUrl}"
+            );
 
-        TestOutputHelper.WriteLine("Fetch verified ok");
+            var fetchResult = await Fixture.Client.GetAsync(recordUrl);
+            Assert.Equal(HttpStatusCode.OK, fetchResult.StatusCode);
+            var fetchResultContent = await fetchResult.Content.ReadAsStringAsync();
+            var fetchResultTypedContent = JsonSerializer.Deserialize<CustodianRecord>(
+                fetchResultContent
+            );
+            Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
+            Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
+            Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
+            Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.SchemaUri));
+            Assert.NotNull(fetchResultTypedContent.Payload);
+
+            TestOutputHelper.WriteLine("Fetch verified ok");
+
+            switch (fetchResultTypedContent.RecordType)
+            {
+                case "health.details":
+                    var registeredGpName = fetchResultTypedContent.Payload.Value.GetProperty(
+                        "registeredGPName"
+                    );
+                    Assert.Equal(
+                        testData.Records.First(x => x.RecordType == "health.details").TestValue,
+                        registeredGpName.GetString()
+                    );
+                    break;
+                case "childrens-services.details":
+                    var keyWorker = fetchResultTypedContent.Payload.Value.GetProperty("keyWorker");
+                    Assert.Equal(
+                        testData
+                            .Records.First(x => x.RecordType == "childrens-services.details")
+                            .TestValue,
+                        keyWorker.GetString()
+                    );
+                    break;
+                case "education.details":
+                    var educationSettingName = fetchResultTypedContent.Payload.Value.GetProperty(
+                        "educationSettingName"
+                    );
+                    Assert.Equal(
+                        testData.Records.First(x => x.RecordType == "education.details").TestValue,
+                        educationSettingName.GetString()
+                    );
+                    break;
+                case "personal.details":
+                    var firstName = fetchResultTypedContent.Payload.Value.GetProperty("firstName");
+                    Assert.Equal(
+                        testData.Records.First(x => x.RecordType == "personal.details").TestValue,
+                        firstName.GetString()
+                    );
+                    break;
+                case "crime-justice.details":
+                    var policeMarkerDetails = fetchResultTypedContent.Payload.Value.GetProperty(
+                        "policeMarkerDetails"
+                    );
+                    Assert.Equal(
+                        testData
+                            .Records.First(x => x.RecordType == "crime-justice.details")
+                            .TestValue,
+                        policeMarkerDetails.GetString()
+                    );
+                    break;
+            }
+        }
     }
 
     /// <summary>
@@ -323,4 +441,18 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             return System.Web.HttpUtility.UrlEncode(encodedQuery);
         }
     }
+}
+
+public class TestData
+{
+    public required string Sui { get; set; }
+    public required TestRecord[] Records { get; set; }
+    public required string TestClientId { get; set; }
+    public required string EncryptedSui { get; set; }
+}
+
+public class TestRecord
+{
+    public required string RecordType { get; set; }
+    public required string TestValue { get; set; }
 }

@@ -5,7 +5,8 @@
   "records": [
     {
       "recordId": "CSC-5919-A",
-      "personId": "Cy13hyZL-4LSIwVy50p-Hg",
+      "personId": "9691292211",
+      "encryptedPersonId": "gkITssvF1IAbNgpcMv2lyA",
       "recordType": "childrens-services.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
@@ -50,61 +51,16 @@
       }
     },
     {
-      "recordId": "CSC-1234-A",
-      "personId": "9D8EHKuYWQVYGYVbSb0JZg",
-      "recordType": "childrens-services.details",
-      "version": "1",
-      "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
-      "payload": {
-        "keyWorker": "Alex Patel",
-        "dutyContactDetails": [
-          "csc@bromley.gov.uk",
-          "08792675387"
-        ],
-        "teamInvolvement": [
-          "Disabled Children Team",
-          "Neighbourhood Team"
-        ],
-        "cscActiveStatusesAndPlans": [
-          {
-            "status": "Child In Need",
-            "plan": "Child in need plan"
-          }
-        ],
-        "childrensServicesReferrals": [
-          {
-            "date": "2025-12-18",
-            "type": "Early Help"
-          },
-          {
-            "date": "2025-12-02",
-            "type": "Early Help"
-          },
-          {
-            "date": "2025-12-18",
-            "type": "Social Care"
-          },
-          {
-            "date": "2022-10-01",
-            "type": "Early Help"
-          },
-          {
-            "date": "2022-10-02",
-            "type": "Social Care"
-          }
-        ]
-      }
-    },
-    {
-      "recordId": "CSC-5919-A",
-      "personId": "Cy13hyZL-4LSIwVy50p-Hg",
+      "recordId": "CSC-5920-A",
+      "personId": "9691292211",
+      "encryptedPersonId": "gkITssvF1IAbNgpcMv2lyA",
       "recordType": "personal.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.v1.json",
       "payload": {
-        "firstName": "Sarah",
-        "lastName": "Smith",
-        "dateOfBirth": "2011-09-25",
+        "firstName": "Octavia",
+        "lastName": "Chislett",
+        "dateOfBirth": "2008-09-20",
         "address": null,
         "namesOfIndividualsResidingAtMainAddress": null,
         "birthAssignedSex": "Female",
@@ -120,7 +76,7 @@
         "relatedPeople": [
           {
             "relationshipToTheChild": "Father",
-            "name": "Jeff Smith",
+            "name": "Jeff Chislett",
             "dob": "1988-11-01",
             "risk": [
               "Individual may possess firearms"
@@ -128,13 +84,83 @@
           },
           {
             "relationshipToTheChild": "Birth mother",
-            "name": "Julie Smith",
+            "name": "Julie Chislett",
             "dob": "1962-02-25",
             "risk": [
               "Individual may resort to violent behaviour"
             ]
           }
         ]
+      }
+    },
+    {
+      "recordId": "CSC-3211-1",
+      "personId": "9449306613",
+      "encryptedPersonId": "-hg7DkXLL7oqmKzPwAfxGA",
+      "recordType": "personal.details",
+      "version": "1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
+      "payload": {
+        "firstName": "Briar",
+        "lastName": "Anderton",
+        "dateOfBirth": "2009-02-15",
+        "address": {
+          "line1": "East Lodge",
+          "line2": "Rookery Hill",
+          "townOrCity": "Surrey",
+          "county": null,
+          "postcode": "KT21 1JA"
+        },
+        "namesOfIndividualsResidingAtMainAddress": [
+          "James Anderton",
+          "Henry Anderton"
+        ],
+        "birthAssignedSex": null,
+        "pronouns": null,
+        "ethnicity": null,
+        "firstLanguage": null,
+        "designatedLocalAuthority": null,
+        "englishAsAdditionalLanguage": null,
+        "braille": null,
+        "signLanguage": true,
+        "makaton": true,
+        "interpreter": null,
+        "relatedPeople": null
+      }
+    },
+    {
+      "recordId": "CSC-3212-1",
+      "personId": "9449306494",
+      "encryptedPersonId": "dhXcpqi19UQ9FCg5MQKI5Q",
+      "recordType": "personal.details",
+      "version": "1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
+      "payload": {
+        "firstName": "Red",
+        "lastName": "Flindall",
+        "dateOfBirth": "2011-05-17",
+        "address": {
+          "line1": "Ditton Lawn",
+          "line2": "Lovelands Lane",
+          "townOrCity": "Surrey",
+          "county": null,
+          "postcode": "KT20 6XJ"
+        },
+        "namesOfIndividualsResidingAtMainAddress": [
+          "James Flindall",
+          "Henry Flindall"
+        ],
+        "birthAssignedSex": null,
+        "pronouns": null,
+        "ethnicity": null,
+        "firstLanguage": null,
+        "designatedLocalAuthority": null,
+        "englishAsAdditionalLanguage": null,
+        "braille": null,
+        "signLanguage": true,
+        "makaton": true,
+        "interpreter": null,
+        "relatedPeople": null
       }
     }
   ]

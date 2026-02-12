@@ -11,4 +11,6 @@ public record Config
     public bool SkipResetAzureTables { get; init; }
 
     public string? FindApiStorageConnectionString { get; init; } = "UseDevelopmentStorage=true";
+
+    public bool UseEncryptedIds { get; set; } = true;
 }
