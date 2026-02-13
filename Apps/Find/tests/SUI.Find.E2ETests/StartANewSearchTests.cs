@@ -20,7 +20,6 @@ namespace SUI.Find.E2ETests;
 [Trait("Category", "E2E")]
 public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
     : E2ETestBase(fixture, testOutputHelper),
-        IClassFixture<FunctionTestFixture>,
         IAsyncLifetime
 {
     private const string TestClientSecret = "SUIProject";
@@ -32,12 +31,12 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         "fetch-record.read",
     ];
 
-    private record HealthCheckResponse(string? Value);
-
     private record SearchStatusResponse(string? Status);
 
     public async Task InitializeAsync()
     {
+        await Fixture.EnsureServicesAreUpAsync(TestOutputHelper);
+
         if (!Fixture.Config.SkipResetAzureTables)
         {
             await ResetAzureTablesAsync([
@@ -138,11 +137,6 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     [MemberData(nameof(TestData))]
     public async Task Should_PersistSearchData_When_OrchestrationCompletes(TestData testData)
     {
-        await Task.WhenAll(
-            EnsureServiceIsUpAsync("Find API", Fixture.Client),
-            EnsureServiceIsUpAsync("StubCustodians API", Fixture.StubCustodiansClient)
-        );
-
         var authToken = await GetAuthTokenAsync(testData.TestClientId, TestClientSecret, TetScopes);
         Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
@@ -165,50 +159,6 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         await RunAndAssertFetchEndpoint(resultsLink!.Href, testData);
 
         // Fin
-    }
-
-    private async Task EnsureServiceIsUpAsync(string serviceName, HttpClient client)
-    {
-        const string url = "health";
-        var waitInterval = TimeSpan.FromSeconds(10);
-
-        TestOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
-
-        // If health check does not indicate healthy, wait and then retry
-        const int retryCount = 3;
-        var retryPolicy = Policy
-            .HandleResult<bool>(healthy => !healthy)
-            .WaitAndRetryAsync(
-                retryCount,
-                retryAttempt =>
-                {
-                    TestOutputHelper.WriteLine(
-                        $"{serviceName} does not indicate healthy, waiting for {waitInterval.Seconds} seconds, then retrying, retry {retryAttempt} / {retryCount}..."
-                    );
-                    return TimeSpan.FromSeconds(10);
-                }
-            );
-
-        var healthy = await retryPolicy.ExecuteAsync(async () =>
-        {
-            try
-            {
-                using var response = await client.GetAsync(url);
-                var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
-                return content?.Value == "Healthy";
-            }
-            catch (Exception ex)
-            {
-                TestOutputHelper.WriteLine(
-                    $"Warning: health check exception ({serviceName}): {ex.Message}"
-                );
-                return false;
-            }
-        });
-
-        Assert.True(healthy, $"The {serviceName} does not appear to be up and healthy");
-
-        TestOutputHelper.WriteLine($"{serviceName} is up 👍");
     }
 
     private async Task<SearchJob> RunAndAssertNewSearchEndpoint(string suid)

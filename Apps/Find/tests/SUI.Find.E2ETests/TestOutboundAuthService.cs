@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
@@ -9,19 +8,30 @@ using SUI.Find.Application.Services;
 using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Utility;
+using Xunit.Abstractions;
 
-namespace SUI.Find.FindApi.IntegrationTests;
+namespace SUI.Find.E2ETests;
 
 [Collection("E2E")]
 [Trait("Category", "E2E")]
-public class TestOutboundAuthService
+public class TestOutboundAuthService(
+    FunctionTestFixture fixture,
+    ITestOutputHelper testOutputHelper
+) : IAsyncLifetime
 {
+    public async Task InitializeAsync()
+    {
+        await fixture.EnsureServicesAreUpAsync(testOutputHelper);
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
     [Fact]
     public async Task TestOutboundAuth_RealService_ReturnsToken()
     {
         // Arrange
         var logger = Substitute.For<ILogger<OutboundAuthService>>();
-        var httpClient = new HttpClient();
+        using var httpClient = new HttpClient();
         var httpClientFactory = Substitute.For<IHttpClientFactory>();
         httpClientFactory
             .CreateClient(ApplicationConstants.Providers.LoggingName)
@@ -36,7 +46,7 @@ public class TestOutboundAuthService
             {
                 Auth = new AuthDefinition
                 {
-                    TokenUrl = "https://localhost:7256/api/v1/auth/token",
+                    TokenUrl = $"{fixture.StubCustodiansClient.BaseAddress}v1/auth/token",
                     ClientId = "SUI-SERVICE",
                     ClientSecret = "SUIProject",
                     Scopes = new List<string> { "find-record.read", "fetch-record.read" },
@@ -109,12 +119,12 @@ public class TestOutboundAuthService
             Connection = new ConnectionDefinition
             {
                 Url =
-                    "https://localhost:7256/api/v1/find/local-authority-01/{personId}?recordType=childrens-services.details",
+                    $"{fixture.StubCustodiansClient.BaseAddress}v1/find/local-authority-01/{{personId}}?recordType=childrens-services.details",
                 Method = "GET",
                 PersonIdPosition = "path",
                 Auth = new AuthDefinition
                 {
-                    TokenUrl = "https://localhost:7256/api/v1/auth/token",
+                    TokenUrl = $"{fixture.StubCustodiansClient.BaseAddress}v1/auth/token",
                     ClientId = "SUI-SERVICE",
                     ClientSecret = "SUIProject",
                     Scopes = new List<string> { "find-record.read", "fetch-record.read" },
