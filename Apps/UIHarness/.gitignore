@@ -1,0 +1,73 @@
+# Visual Studio
+.vs/
+**/.vs/
+
+# VS Code
+.vscode/
+**/.vscode/
+
+# Rider / IntelliJ
+.idea/
+**/.idea/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Test results / coverage
+TestResults/
+**/TestResults/
+coverage/
+coverage.*
+**/coverage/
+**/coverage.*
+
+# Publish output
+publish/
+**/publish/
+
+# NuGet
+packages/
+**/packages/
+*.nupkg
+*.snupkg
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# ASP.NET
+wwwroot/lib/
+**/wwwroot/lib/
+
+# Node (if you add frontend tooling later)
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+
+# Local environment/secrets
+.env
+.env.*
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# ReSharper
+_ReSharper*/
+**/_ReSharper*/
+*.DotSettings.user
+
+# Azure Functions local settings (if used)
+local.settings.json

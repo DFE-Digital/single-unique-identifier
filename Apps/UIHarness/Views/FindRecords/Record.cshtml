@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = "Record";
+    var custodianId = (string)(ViewData["CustodianId"] ?? "");
+    var nhsNumber = (string)(ViewData["NhsNumber"] ?? "");
+    var recordType = (string)(ViewData["RecordType"] ?? "");
+}
+
+<div class="container" style="max-width: 920px; padding-top: 24px;">
+    <h1 class="mb-3">Record (demo)</h1>
+
+    <dl class="row">
+        <dt class="col-sm-3">Custodian</dt>
+        <dd class="col-sm-9">@custodianId</dd>
+
+        <dt class="col-sm-3">NHS Number</dt>
+        <dd class="col-sm-9">@nhsNumber</dd>
+
+        <dt class="col-sm-3">Record type</dt>
+        <dd class="col-sm-9">@recordType</dd>
+    </dl>
+
+    <p class="mb-0 text-muted">
+        This page is a placeholder representing a custodian-hosted record endpoint.
+        In the real service, this URL would be used to retrieve record details in a controlled, policy-governed way.
+    </p>
+</div>

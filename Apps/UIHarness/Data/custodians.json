@@ -1,0 +1,245 @@
+[
+    {
+        "custodianId": "housing-01",
+        "name": "Eastborough Council Housing",
+        "category": "Housing",
+        "recordTypes": [ "Housing Case File", "Tenancy Record", "Repairs and Safety Notes" ],
+        "contacts": [
+            {
+                "name": "Housing Duty Team",
+                "role": "Front door",
+                "telephone": "01234 111 200",
+                "email": "housing.duty@eastborough.gov.uk",
+                "address": "Civic Offices, Eastborough, EB1 2AB",
+                "appliesToRecordTypes": []
+            },
+            {
+                "name": "Housing Safeguarding Lead",
+                "role": "Safeguarding liaison",
+                "telephone": "01234 111 212",
+                "email": "housing.safeguarding@eastborough.gov.uk",
+                "address": "Civic Offices, Eastborough, EB1 2AB",
+                "appliesToRecordTypes": [ "Housing Case File" ]
+            },
+            {
+                "name": "Repairs Contact Centre",
+                "role": "Repairs",
+                "telephone": "01234 111 201",
+                "email": "repairs@eastborough.gov.uk",
+                "address": "Civic Offices, Eastborough, EB1 2AB",
+                "appliesToRecordTypes": [ "Repairs and Safety Notes" ]
+            },
+            {
+                "name": "Gas Safety Contractor Desk",
+                "role": "Safety inspections",
+                "telephone": "01234 111 208",
+                "email": "gassafety@eastborough.gov.uk",
+                "address": "Civic Offices, Eastborough, EB1 2AB",
+                "appliesToRecordTypes": [ "Repairs and Safety Notes" ]
+            }
+        ],
+        "knownPeople": [
+            {
+                "nhsNumber": "9691292211",
+                "recordTypes": [ "Housing Case File", "Repairs and Safety Notes" ]
+            }
+        ]
+    },
+    {
+        "custodianId": "socialcare-01",
+        "name": "Eastborough Childrens Social Care",
+        "category": "Social Care",
+        "recordTypes": [ "Child Protection Plan", "Safeguarding Referral", "Care Episode Summary" ],
+        "contacts": [
+            {
+                "name": "MASH",
+                "role": "Multi-Agency Safeguarding Hub",
+                "telephone": "01234 222 100",
+                "email": "mash@eastborough.gov.uk",
+                "address": "MASH, Eastborough, EB2 3CD",
+                "appliesToRecordTypes": []
+            },
+            {
+                "name": "Allocated Social Worker Duty",
+                "role": "Case contact",
+                "telephone": "01234 222 101",
+                "email": "duty.socialcare@eastborough.gov.uk",
+                "address": "Childrens Services, Eastborough, EB2 3CD",
+                "appliesToRecordTypes": [ "Child Protection Plan", "Care Episode Summary" ]
+            },
+            {
+                "name": "IRO Service",
+                "role": "Independent Reviewing Officer",
+                "telephone": "01234 222 119",
+                "email": "iro@eastborough.gov.uk",
+                "address": "Childrens Services, Eastborough, EB2 3CD",
+                "appliesToRecordTypes": [ "Care Episode Summary" ]
+            }
+        ],
+        "knownPeople": [
+            {
+                "nhsNumber": "9691292211",
+                "recordTypes": [ "Safeguarding Referral", "Child Protection Plan" ]
+            },
+            {
+                "nhsNumber": "9449306613",
+                "recordTypes": [ "Safeguarding Referral" ]
+            }
+        ]
+    },
+    {
+        "custodianId": "education-01",
+        "name": "Eastborough Education and Schools",
+        "category": "Education",
+        "recordTypes": [ "School Attendance", "SEN Support Plan", "Exclusions and Behaviour" ],
+        "contacts": [
+            {
+                "name": "Education Welfare Service",
+                "role": "Attendance",
+                "telephone": "01234 333 300",
+                "email": "ews@eastborough.gov.uk",
+                "address": "Education Offices, Eastborough, EB3 4EF",
+                "appliesToRecordTypes": [ "School Attendance" ]
+            },
+            {
+                "name": "SEN Team",
+                "role": "Special Educational Needs",
+                "telephone": "01234 333 301",
+                "email": "sen@eastborough.gov.uk",
+                "address": "Education Offices, Eastborough, EB3 4EF",
+                "appliesToRecordTypes": [ "SEN Support Plan" ]
+            },
+            {
+                "name": "School DSL",
+                "role": "Designated safeguarding lead (school)",
+                "telephone": "01234 333 312",
+                "email": "dsl@school.example.uk",
+                "address": "Local School (via custodian), Eastborough",
+                "appliesToRecordTypes": [ "Exclusions and Behaviour", "School Attendance" ]
+            },
+            {
+                "name": "Schools Enquiries",
+                "role": "General enquiries",
+                "telephone": "01234 333 399",
+                "email": "schools@eastborough.gov.uk",
+                "address": "Education Offices, Eastborough, EB3 4EF",
+                "appliesToRecordTypes": []
+            }
+        ],
+        "knownPeople": [
+            {
+                "nhsNumber": "9691292211",
+                "recordTypes": [ "School Attendance" ]
+            },
+            {
+                "nhsNumber": "9449306613",
+                "recordTypes": [ "School Attendance", "SEN Support Plan" ]
+            }
+        ]
+    },
+    {
+        "custodianId": "police-01",
+        "name": "Eastborough Police Safeguarding Unit",
+        "category": "Police",
+        "recordTypes": [ "Incident Log", "Missing Person Report", "Domestic Abuse Marker" ],
+        "contacts": [
+            {
+                "name": "Safeguarding Desk",
+                "role": "Safeguarding enquiries",
+                "telephone": "01234 444 040",
+                "email": "safeguarding@eastborough.police.uk",
+                "address": "Eastborough Police HQ, EB4 5GH",
+                "appliesToRecordTypes": []
+            },
+            {
+                "name": "Missing Persons Team",
+                "role": "Missing persons",
+                "telephone": "01234 444 041",
+                "email": "missingpersons@eastborough.police.uk",
+                "address": "Eastborough Police HQ, EB4 5GH",
+                "appliesToRecordTypes": [ "Missing Person Report" ]
+            },
+            {
+                "name": "Public Protection Unit",
+                "role": "Domestic abuse and vulnerability",
+                "telephone": "01234 444 055",
+                "email": "ppu@eastborough.police.uk",
+                "address": "Eastborough Police HQ, EB4 5GH",
+                "appliesToRecordTypes": [ "Domestic Abuse Marker" ]
+            }
+        ],
+        "knownPeople": [
+            {
+                "nhsNumber": "9449306494",
+                "recordTypes": [ "Incident Log" ]
+            }
+        ]
+    },
+    {
+        "custodianId": "nhs-01",
+        "name": "NHS Community Health Service",
+        "category": "Health",
+        "recordTypes": [ "Community Notes", "Immunisation Record", "CAMHS Referral" ],
+        "contacts": [
+            {
+                "name": "Health Records Team",
+                "role": "Records enquiries",
+                "telephone": "01234 555 500",
+                "email": "records.community@nhs.uk",
+                "address": "Community Health Centre, EB5 6IJ",
+                "appliesToRecordTypes": []
+            },
+            {
+                "name": "Named Nurse (Safeguarding)",
+                "role": "Safeguarding lead",
+                "telephone": "01234 555 505",
+                "email": "safeguarding.nurse@nhs.uk",
+                "address": "Community Health Centre, EB5 6IJ",
+                "appliesToRecordTypes": [ "Community Notes" ]
+            },
+            {
+                "name": "CAMHS Admin",
+                "role": "CAMHS referrals",
+                "telephone": "01234 555 510",
+                "email": "camhs.admin@nhs.uk",
+                "address": "Community Health Centre, EB5 6IJ",
+                "appliesToRecordTypes": [ "CAMHS Referral" ]
+            }
+        ],
+        "knownPeople": [
+            {
+                "nhsNumber": "9691292211",
+                "recordTypes": [ "Immunisation Record" ]
+            },
+            {
+                "nhsNumber": "9449306494",
+                "recordTypes": [ "Community Notes", "CAMHS Referral" ]
+            }
+        ]
+    },
+    {
+        "custodianId": "youthjustice-01",
+        "name": "Eastborough Youth Justice Service",
+        "category": "Youth Justice",
+        "recordTypes": [ "Intervention Plan", "Risk Assessment", "Case Summary" ],
+        "contacts": [
+            {
+                "name": "YJS Duty Officer",
+                "role": "Duty contact",
+                "telephone": "01234 666 600",
+                "email": "yjs.duty@eastborough.gov.uk",
+                "address": "YJS Offices, Eastborough, EB6 7KL",
+                "appliesToRecordTypes": []
+            },
+            {
+                "name": "Case Manager Team",
+                "role": "Case enquiries",
+                "telephone": "01234 666 602",
+                "email": "yjs.cases@eastborough.gov.uk",
+                "address": "YJS Offices, Eastborough, EB6 7KL",
+                "appliesToRecordTypes": [ "Case Summary", "Intervention Plan" ]
+            }
+        ],
+        "knownPeople": []
+    }
+]

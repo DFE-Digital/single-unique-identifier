@@ -1,0 +1,611 @@
+{
+    "templates": [
+        {
+            "recordType": "Incident Log",
+            "summary": "Police incident record: incident type, officers involved, location, actions taken, and outcome.",
+            "sections": [
+                {
+                    "title": "Incident details",
+                    "fields": [
+                        {
+                            "label": "Incident reference",
+                            "value": "POL-{N4}-I-2026-01472"
+                        },
+                        {
+                            "label": "Date/time reported",
+                            "value": "{RECENT_DATE} 18:42"
+                        },
+                        {
+                            "label": "Reported by",
+                            "value": "Member of public"
+                        },
+                        {
+                            "label": "Location",
+                            "value": "High Street, Eastborough town centre"
+                        },
+                        {
+                            "label": "Incident type",
+                            "value": "Shoplifting"
+                        },
+                        {
+                            "label": "Risk grading",
+                            "value": "Standard"
+                        }
+                    ]
+                },
+                {
+                    "title": "Officers and actions",
+                    "fields": [
+                        {
+                            "label": "Attending officers",
+                            "value": "PC A. Khan (Collar 3187), PC J. Reeves (Collar 2661)"
+                        },
+                        {
+                            "label": "Initial action",
+                            "value": "Stopped and detained at scene by store security; officers attended within 12 minutes."
+                        },
+                        {
+                            "label": "Items involved",
+                            "value": "Confectionery and toiletries; estimated value £23.70."
+                        },
+                        {
+                            "label": "Arrest",
+                            "value": "Arrested on suspicion of theft; transported to Eastborough Police Station."
+                        }
+                    ]
+                },
+                {
+                    "title": "Interview and outcome",
+                    "fields": [
+                        {
+                            "label": "Interview",
+                            "value": "Interviewed under caution in presence of appropriate adult; admission made; remorse expressed."
+                        },
+                        {
+                            "label": "Safeguarding considerations",
+                            "value": "Child safeguarding flag raised due to circumstances and absence of guardian at scene."
+                        },
+                        {
+                            "label": "Outcome",
+                            "value": "Youth disposal: community resolution with restorative apology; referral made to partner agency for early help check."
+                        },
+                        {
+                            "label": "Information sharing",
+                            "value": "Safeguarding summary shared with MASH under child welfare basis."
+                        }
+                    ]
+                },
+                {
+                    "title": "Timeline (summary)",
+                    "fields": [
+                        {
+                            "label": "{RECENT_DATE} 18:42",
+                            "value": "Incident reported by store manager."
+                        },
+                        {
+                            "label": "{RECENT_DATE} 18:54",
+                            "value": "Officers arrived; child detained by store security."
+                        },
+                        {
+                            "label": "{RECENT_DATE} 20:10",
+                            "value": "Interview completed; appropriate adult present."
+                        },
+                        {
+                            "label": "{RECENT_DATE} 21:05",
+                            "value": "Disposal recorded; safeguarding referral logged."
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "Missing Person Report",
+            "summary": "Missing person report: circumstances, risk assessment, enquiries, and resolution.",
+            "sections": [
+                {
+                    "title": "Report overview",
+                    "fields": [
+                        {
+                            "label": "Report reference",
+                            "value": "MIS-{N4}-M-2026-00318"
+                        },
+                        {
+                            "label": "Date/time reported",
+                            "value": "{RECENT_DATE} 19:26"
+                        },
+                        {
+                            "label": "Reported by",
+                            "value": "Parent/guardian"
+                        },
+                        {
+                            "label": "Last seen",
+                            "value": "{RECENT_DATE} 16:10 near Riverside Park"
+                        },
+                        {
+                            "label": "Risk assessment",
+                            "value": "Medium"
+                        }
+                    ]
+                },
+                {
+                    "title": "Enquiries and actions",
+                    "fields": [
+                        {
+                            "label": "Initial enquiries",
+                            "value": "Checks completed: local hospitals, known associates, and transport hubs."
+                        },
+                        {
+                            "label": "Social media/call-outs",
+                            "value": "No public appeal made at this stage; monitored via control room updates."
+                        },
+                        {
+                            "label": "Safeguarding actions",
+                            "value": "Partner agency notification made due to vulnerability markers."
+                        }
+                    ]
+                },
+                {
+                    "title": "Resolution",
+                    "fields": [
+                        {
+                            "label": "Status",
+                            "value": "Closed"
+                        },
+                        {
+                            "label": "Found",
+                            "value": "{RECENT_DATE} 23:02 located with friends; no immediate harm identified."
+                        },
+                        {
+                            "label": "Return discussion",
+                            "value": "Return discussion completed; reasons explored; recommendation for early help follow-up."
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "Domestic Abuse Marker",
+            "summary": "Police marker indicating domestic abuse risk within household context; high-level view only.",
+            "sections": [
+                {
+                    "title": "Marker",
+                    "fields": [
+                        {
+                            "label": "Marker reference",
+                            "value": "DA-{N4}-2026-00044"
+                        },
+                        {
+                            "label": "Risk level",
+                            "value": "High"
+                        },
+                        {
+                            "label": "Last reviewed",
+                            "value": "{OLDER_DATE}"
+                        },
+                        {
+                            "label": "Notes",
+                            "value": "Marker exists in police systems. This demo shows high-level information only; full detail restricted."
+                        }
+                    ]
+                },
+                {
+                    "title": "Safeguarding handling (summary)",
+                    "fields": [
+                        {
+                            "label": "Safeguarding unit involvement",
+                            "value": "Yes"
+                        },
+                        {
+                            "label": "Partner notification",
+                            "value": "Shared with MASH for safeguarding purposes."
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "School Attendance",
+            "summary": "School attendance record: roll status, attendance pattern, interventions, and DSL actions.",
+            "sections": [
+                {
+                    "title": "Attendance overview",
+                    "fields": [
+                        {
+                            "label": "Academic year",
+                            "value": "2025/26"
+                        },
+                        {
+                            "label": "School",
+                            "value": "Eastborough Academy"
+                        },
+                        {
+                            "label": "Year group",
+                            "value": "Year 7"
+                        },
+                        {
+                            "label": "Attendance (to date)",
+                            "value": "82%"
+                        },
+                        {
+                            "label": "Persistent absence",
+                            "value": "Yes"
+                        }
+                    ]
+                },
+                {
+                    "title": "Pattern and interventions",
+                    "fields": [
+                        {
+                            "label": "Pattern noted",
+                            "value": "Repeated absence on Mondays and following weekends; late arrivals increasing."
+                        },
+                        {
+                            "label": "Parent contact",
+                            "value": "3 contact attempts; 1 meeting held; action plan agreed."
+                        },
+                        {
+                            "label": "Education welfare",
+                            "value": "EWS referral made; monitoring in place."
+                        },
+                        {
+                            "label": "Safeguarding lead",
+                            "value": "DSL consulted; information logged for context."
+                        }
+                    ]
+                },
+                {
+                    "title": "Recent events",
+                    "fields": [
+                        {
+                            "label": "{OLDER_DATE}",
+                            "value": "Attendance monitoring started due to threshold breach."
+                        },
+                        {
+                            "label": "{RECENT_DATE}",
+                            "value": "EWS referral updated; follow-up date agreed."
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "Safeguarding Referral",
+            "summary": "Children's social care referral: source, triage decision, safeguarding actions, and next steps.",
+            "sections": [
+                {
+                    "title": "Referral summary",
+                    "fields": [
+                        {
+                            "label": "Referral id",
+                            "value": "SCR-{N4}-R-2026-00612"
+                        },
+                        {
+                            "label": "Received",
+                            "value": "{RECENT_DATE} 10:14"
+                        },
+                        {
+                            "label": "Source",
+                            "value": "School DSL"
+                        },
+                        {
+                            "label": "Concern type",
+                            "value": "Neglect indicators and home instability"
+                        }
+                    ]
+                },
+                {
+                    "title": "Triage decision",
+                    "fields": [
+                        {
+                            "label": "Decision",
+                            "value": "Assessment required"
+                        },
+                        {
+                            "label": "Rationale (summary)",
+                            "value": "Multiple agencies reporting concerns; attendance and home conditions raised."
+                        },
+                        {
+                            "label": "Actions",
+                            "value": "Agency checks requested (police, education, health); allocation to assessment team."
+                        }
+                    ]
+                },
+                {
+                    "title": "Next steps",
+                    "fields": [
+                        {
+                            "label": "Timescales",
+                            "value": "Initial assessment within 10 working days."
+                        },
+                        {
+                            "label": "Information sharing basis",
+                            "value": "Safeguarding / child welfare"
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "Housing Case File",
+            "summary": "Housing case: property context, reported concerns, actions taken, and safeguards.",
+            "sections": [
+                {
+                    "title": "Case overview",
+                    "fields": [
+                        {
+                            "label": "Case reference",
+                            "value": "HOU-{N4}-C-2026-00197"
+                        },
+                        {
+                            "label": "Primary issue",
+                            "value": "Property condition (damp/mould) and household stress"
+                        },
+                        {
+                            "label": "Status",
+                            "value": "Open"
+                        },
+                        {
+                            "label": "Last updated",
+                            "value": "{RECENT_DATE}"
+                        }
+                    ]
+                },
+                {
+                    "title": "Actions and notes (summary)",
+                    "fields": [
+                        {
+                            "label": "Action taken",
+                            "value": "Inspection arranged; repair order raised; safeguarding liaison notified due to vulnerability markers."
+                        },
+                        {
+                            "label": "Resident contact",
+                            "value": "Contact attempts recorded; appointment agreed for access."
+                        },
+                        {
+                            "label": "Safeguarding context",
+                            "value": "Concerns shared with partner agency under child welfare basis."
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "Repairs and Safety Notes",
+            "summary": "Repairs and safety record: hazards, inspections, work orders, and follow-up.",
+            "sections": [
+                {
+                    "title": "Repair log",
+                    "fields": [
+                        {
+                            "label": "Work order",
+                            "value": "REP-{N4}-WO-2026-00483"
+                        },
+                        {
+                            "label": "Hazard",
+                            "value": "Damp and mould"
+                        },
+                        {
+                            "label": "Priority",
+                            "value": "Urgent"
+                        },
+                        {
+                            "label": "Inspection date",
+                            "value": "{RECENT_DATE}"
+                        },
+                        {
+                            "label": "Follow-up",
+                            "value": "Ventilation works ordered; re-inspection scheduled within 28 days."
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "Tenancy Record",
+            "summary": "Tenancy details and support status; high-level summary for demo.",
+            "sections": [
+                {
+                    "title": "Tenancy details",
+                    "fields": [
+                        {
+                            "label": "Tenancy reference",
+                            "value": "TEN-{N4}-2023-01822"
+                        },
+                        {
+                            "label": "Tenancy type",
+                            "value": "Council tenancy"
+                        },
+                        {
+                            "label": "Start date",
+                            "value": "2023-06-14"
+                        },
+                        {
+                            "label": "Status",
+                            "value": "Active"
+                        }
+                    ]
+                },
+                {
+                    "title": "Support (summary)",
+                    "fields": [
+                        {
+                            "label": "Support in place",
+                            "value": "Tenancy sustainment support offered; payment plan arranged."
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "SEN Support Plan",
+            "summary": "SEN plan summary: needs, support, professionals, and review dates.",
+            "sections": [
+                {
+                    "title": "Plan overview",
+                    "fields": [
+                        {
+                            "label": "Plan id",
+                            "value": "SEN-{N4}-2025-00071"
+                        },
+                        {
+                            "label": "Plan type",
+                            "value": "SEN Support"
+                        },
+                        {
+                            "label": "Primary need",
+                            "value": "SEMH"
+                        },
+                        {
+                            "label": "Last review",
+                            "value": "{OLDER_DATE}"
+                        },
+                        {
+                            "label": "Next review",
+                            "value": "{FUTURE_DATE}"
+                        }
+                    ]
+                },
+                {
+                    "title": "Provision (summary)",
+                    "fields": [
+                        {
+                            "label": "Support",
+                            "value": "Pastoral check-ins; small group intervention; SENCO oversight."
+                        },
+                        {
+                            "label": "External professionals",
+                            "value": "Educational psychologist input requested."
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "Exclusions and Behaviour",
+            "summary": "Behaviour log and exclusions summary; high-level view for demo.",
+            "sections": [
+                {
+                    "title": "Behaviour and exclusions",
+                    "fields": [
+                        {
+                            "label": "Term",
+                            "value": "Spring 2026"
+                        },
+                        {
+                            "label": "Behaviour incidents logged",
+                            "value": "6"
+                        },
+                        {
+                            "label": "Sanctions",
+                            "value": "2 detentions; 1 internal exclusion"
+                        },
+                        {
+                            "label": "DSL involvement",
+                            "value": "Yes"
+                        }
+                    ]
+                },
+                {
+                    "title": "Notes (summary)",
+                    "fields": [
+                        {
+                            "label": "Summary",
+                            "value": "Behaviour concerns escalated to pastoral team; DSL aware for safeguarding context."
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "Care Episode Summary",
+            "summary": "Care episode summary: episode type, key milestones, and review schedule.",
+            "sections": [
+                {
+                    "title": "Episode",
+                    "fields": [
+                        {
+                            "label": "Episode id",
+                            "value": "CARE-{N4}-2025-00214"
+                        },
+                        {
+                            "label": "Episode type",
+                            "value": "CIN"
+                        },
+                        {
+                            "label": "Start date",
+                            "value": "2025-09-03"
+                        },
+                        {
+                            "label": "Current stage",
+                            "value": "Review"
+                        }
+                    ]
+                },
+                {
+                    "title": "Reviews (summary)",
+                    "fields": [
+                        {
+                            "label": "Last review",
+                            "value": "{OLDER_DATE}"
+                        },
+                        {
+                            "label": "Next review",
+                            "value": "{FUTURE_DATE}"
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "recordType": "Child Protection Plan",
+            "summary": "Child protection plan: category, status, review cadence, and key actions (summary only).",
+            "sections": [
+                {
+                    "title": "Plan",
+                    "fields": [
+                        {
+                            "label": "Plan id",
+                            "value": "CPP-{N4}-2025-00033"
+                        },
+                        {
+                            "label": "Category",
+                            "value": "Neglect"
+                        },
+                        {
+                            "label": "Status",
+                            "value": "Active"
+                        },
+                        {
+                            "label": "Next review",
+                            "value": "{FUTURE_DATE}"
+                        }
+                    ]
+                },
+                {
+                    "title": "Core group (summary)",
+                    "fields": [
+                        {
+                            "label": "Frequency",
+                            "value": "Every 4 weeks"
+                        },
+                        {
+                            "label": "Summary",
+                            "value": "Plan actions and professional network maintained; this demo shows summary only."
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
