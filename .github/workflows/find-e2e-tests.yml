@@ -44,7 +44,7 @@ jobs:
       - id: eval
         name: Evaluate Workflow Setup
         env:
-          RUN_EPHEMERAL: ${{ github.event_name != 'workflow_dispatch' || inputs.manual_run_ephemeral == true }}
+          RUN_EPHEMERAL: ${{ (github.event_name != 'workflow_dispatch' && github.event_name != 'deployment_status') || inputs.manual_run_ephemeral == true }}
           RUN_DEV: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true }}
         run: |
           echo
