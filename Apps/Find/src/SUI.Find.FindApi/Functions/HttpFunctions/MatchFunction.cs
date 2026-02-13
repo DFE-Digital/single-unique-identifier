@@ -78,24 +78,16 @@ public class MatchFunction(
             return await HttpResponseUtility.BadRequestResponse(
                 req,
                 context.InvocationId,
-                "DemographicRecord is required.",
+                "PersonSpecification is required.",
                 "Validation error",
                 cancellationToken
             );
         }
 
-        if (request.Metadata is null || request.Metadata.Length == 0)
-        {
-            return await HttpResponseUtility.BadRequestResponse(
-                req,
-                context.InvocationId,
-                "Metadata must contain at least one record.",
-                "Validation error",
-                cancellationToken
-            );
-        }
-
-        if (request.Metadata.Any(k => string.IsNullOrWhiteSpace(k.RecordType)))
+        if (
+            request.Metadata != null
+            && request.Metadata.Any(k => string.IsNullOrWhiteSpace(k.RecordType))
+        )
         {
             return await HttpResponseUtility.BadRequestResponse(
                 req,
@@ -112,46 +104,27 @@ public class MatchFunction(
             cancellationToken
         );
 
-        // if (personMatch.IsT0)
-        // {
-        //     var sui = personMatch.AsT0.Value;
-        //
-        //     foreach (var entry in request.Metadata)
-        //     {
-        //         await idRegisterRepository.UpsertAsync(
-        //             new IdRegisterEntry
-        //             {
-        //                 Sui = sui,
-        //                 CustodianId = authContext.ClientId,
-        //                 RecordType = entry.RecordType,
-        //                 SystemId = entry.SystemId ?? string.Empty,
-        //                 CustodianSubjectId = entry.RecordId,
-        //                 Provenance = Provenance.AlreadyHeldByCustodian,
-        //                 LastIdDeliveredAtUtc = DateTimeOffset.UtcNow
-        //             },
-        //             cancellationToken
-        //         );
-        //     }
-        // }
-
         return await personMatch.Match(
             async id =>
             {
-                foreach (var entry in request.Metadata)
+                if (request.Metadata is not null)
                 {
-                    await idRegisterRepository.UpsertAsync(
-                        new IdRegisterEntry
-                        {
-                            Sui = id.Value,
-                            CustodianId = authContext.ClientId,
-                            RecordType = entry.RecordType,
-                            SystemId = entry.SystemId ?? string.Empty,
-                            CustodianSubjectId = entry.RecordId,
-                            Provenance = Provenance.AlreadyHeldByCustodian,
-                            LastIdDeliveredAtUtc = DateTimeOffset.UtcNow,
-                        },
-                        cancellationToken
-                    );
+                    foreach (var entry in request.Metadata)
+                    {
+                        await idRegisterRepository.UpsertAsync(
+                            new IdRegisterEntry
+                            {
+                                Sui = id.Value,
+                                CustodianId = authContext.ClientId,
+                                RecordType = entry.RecordType,
+                                SystemId = entry.SystemId ?? string.Empty,
+                                CustodianSubjectId = entry.RecordId,
+                                Provenance = Provenance.AlreadyHeldByCustodian,
+                                LastIdDeliveredAtUtc = DateTimeOffset.UtcNow,
+                            },
+                            cancellationToken
+                        );
+                    }
                 }
 
                 return await CreateOkResponse(req, id);
@@ -181,7 +154,7 @@ public class MatchFunction(
 
     private static bool TryGetMatchResponseRequestModel(HttpRequestData req, out MatchRequest model)
     {
-        model = new MatchRequest();
+        model = new MatchRequest { PersonSpecification = new PersonSpecification() };
 
         try
         {
