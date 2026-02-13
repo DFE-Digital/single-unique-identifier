@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "SUI.Find.CustodianSimulation": {
-      "commandName": "Project",
-      "commandLineArgs": "--port 7082",
-      "launchBrowser": false
-    }
-  }
-}
