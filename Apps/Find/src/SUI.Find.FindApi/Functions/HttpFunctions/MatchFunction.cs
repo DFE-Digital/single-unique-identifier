@@ -152,7 +152,7 @@ public class MatchFunction(
         );
     }
 
-    private static bool TryGetMatchResponseRequestModel(HttpRequestData req, out MatchRequest model)
+    private bool TryGetMatchResponseRequestModel(HttpRequestData req, out MatchRequest model)
     {
         model = new MatchRequest { PersonSpecification = new PersonSpecification() };
 
@@ -173,8 +173,9 @@ public class MatchFunction(
             model = request;
             return true;
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
+            logger.LogError(ex, "Failed to parse Match request: {ExMessage}", ex.Message);
             return false;
         }
     }
