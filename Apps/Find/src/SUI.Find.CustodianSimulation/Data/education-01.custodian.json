@@ -7,7 +7,6 @@
       "recordId": "ATT-5919-1",
       "personId": "llvwLYMyw4gDCN-FblGIYA",
       "recordType": "education.attendance",
-      "dataType": "education.attendance.record.v1",
       "schemaUri": "https://schemas.example.gov.uk/sui/education.attendance.record.v1.json",
       "payload": {
         "enrolmentId": "ENR-765919",
@@ -22,7 +21,6 @@
       "recordId": "ATT-3210-1",
       "personId": "q86LnOncgsSRMleFEa6fAQ",
       "recordType": "education.attendance",
-      "dataType": "education.attendance.record.v1",
       "schemaUri": "https://schemas.example.gov.uk/sui/education.attendance.record.v1.json",
       "payload": {
         "enrolmentId": "ENR-543210",

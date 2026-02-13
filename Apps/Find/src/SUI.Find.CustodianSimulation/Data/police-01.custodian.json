@@ -7,7 +7,6 @@
       "recordId": "POL-3210-P",
       "personId": "1XbwUS3fCfGcVSwRB0rJLA",
       "recordType": "crime-justice",
-      "dataType": "crime-justice.incident.v1",
       "schemaUri": "https://schemas.example.gov.uk/sui/crime-justice.incident.v1.json",
       "payload": {
         "incidentId": "INC-543210",

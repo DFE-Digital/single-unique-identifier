@@ -49,7 +49,6 @@ public class AuditPepFindActivity(
                     SourceOrgId = r.SourceOrgId,
                     RecordUrl = r.Item.RecordUrl,
                     RecordType = r.Item.RecordType,
-                    DataType = r.Item.RecordType,
 
                     IsSharedAllowed = r.Decision.IsAllowed,
                     RuleType = r.Decision.RuleType ?? "unknown",

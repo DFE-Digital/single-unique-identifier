@@ -31,7 +31,7 @@ public class EvaluateAsyncTests
                 {
                     Effect = "allow",
                     Modes = ["EXISTENCE"],
-                    DataTypes = ["health_details_ptr"],
+                    RecordTypes = ["health.details"],
                     DestOrgTypes = ["LOCAL_AUTHORITY", "HEALTH", "POLICE"],
                     Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
                     ValidFrom = DateTimeOffset.Parse("2025-01-01T00:00:00Z"),
@@ -68,7 +68,7 @@ public class EvaluateAsyncTests
                 {
                     Effect = "allow",
                     Modes = ["EXISTENCE"],
-                    DataTypes = ["health_details_ptr"],
+                    RecordTypes = ["health.details"],
                     DestOrgTypes = ["LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE"],
                     Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
                     ValidFrom = DateTimeOffset.Parse("2025-01-01T00:00:00Z"),
@@ -104,7 +104,7 @@ public class EvaluateAsyncTests
                 {
                     Effect = "allow",
                     Modes = ["EXISTENCE"],
-                    DataTypes = ["police_ptr"],
+                    RecordTypes = ["crime-justice.details"],
                     DestOrgTypes = ["POLICE"], // Only POLICE orgs
                     Purposes = ["SAFEGUARDING", "CRIME_PREVENTION"],
                     ValidFrom = DateTimeOffset.Parse("2025-01-01T00:00:00Z"),
@@ -115,7 +115,7 @@ public class EvaluateAsyncTests
         var request = new PolicyDecisionRequest(
             SourceOrgId: "POLICE-01",
             DestinationOrgId: "EDUCATION-01",
-            RecordType: "crime-justice",
+            RecordType: "crime-justice.details",
             Mode: ShareMode.Existence,
             Purpose: "SAFEGUARDING"
         );
@@ -140,7 +140,7 @@ public class EvaluateAsyncTests
                 {
                     Effect = "allow",
                     Modes = ["EXISTENCE"],
-                    DataTypes = ["crime_justice_ptr"],
+                    RecordTypes = ["crime-justice.details"],
                     DestOrgTypes = ["POLICE"], // Only POLICE by default
                     Purposes = ["SAFEGUARDING"],
                 },
@@ -151,7 +151,7 @@ public class EvaluateAsyncTests
                 {
                     Effect = "allow",
                     Modes = ["EXISTENCE", "CONTENT"],
-                    DataTypes = ["crime_justice_ptr", "crime_justice_record"],
+                    RecordTypes = ["crime-justice.details"],
                     DestOrgIds = ["LOCAL-AUTHORITY-01"], // Specific org exception
                     DestOrgTypes = [], // Empty is fine when using destOrgIds
                     Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
@@ -165,7 +165,7 @@ public class EvaluateAsyncTests
         var request = new PolicyDecisionRequest(
             SourceOrgId: "POLICE-01",
             DestinationOrgId: "LOCAL-AUTHORITY-01",
-            RecordType: "crime-justice",
+            RecordType: "crime-justice.details",
             Mode: ShareMode.Existence,
             Purpose: "SAFEGUARDING"
         );
@@ -190,7 +190,7 @@ public class EvaluateAsyncTests
                 {
                     Effect = "allow",
                     Modes = ["EXISTENCE"],
-                    DataTypes = ["health_details_ptr"],
+                    RecordTypes = ["health.details"],
                     DestOrgIds = [], // explicitly none
                     DestOrgTypes = [], // explicitly none
                     Purposes = ["SAFEGUARDING"],
