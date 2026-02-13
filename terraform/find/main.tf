@@ -84,6 +84,28 @@ module "key_vault" {
   tags = var.tags
 }
 
+# Grant the current Terraform principal access to manage Key Vault secrets.
+resource "azurerm_key_vault_access_policy" "terraform_operator" {
+  key_vault_id = module.key_vault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Get",
+    "Set",
+    "Delete",
+    "List",
+  ]
+
+  storage_permissions = [
+    "Get",
+  ]
+}
+
 resource "random_password" "find_match_api_key" {
   length  = 32
   special = true
@@ -93,6 +115,10 @@ resource "azurerm_key_vault_secret" "find_match_api_key" {
   name         = "find-match-api-key"
   value        = random_password.find_match_api_key.result
   key_vault_id = module.key_vault.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
 }
 
 data "terraform_remote_state" "stub_custodians" {
