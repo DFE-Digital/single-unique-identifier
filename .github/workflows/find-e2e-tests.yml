@@ -30,6 +30,11 @@ on:
       - "Apps/StubCustodians/**"
       - .github/workflows/find-e2e-tests.yml
 
+concurrency:
+  # Do not allow e2e tests to run concurrently against dev
+  group: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
+  cancel-in-progress: false
+
 jobs:
   # For manual workflow runs (workflow_dispatch) give the user the option of where to run against (ephemeral/dev/both)
   # Otherwise, always run against ephemeral environment, and also run against dev environment after successful deployment to dev.
@@ -39,7 +44,7 @@ jobs:
       - id: eval
         name: Evaluate Workflow Setup
         env:
-          RUN_EPHEMERAL: ${{ github.event_name != 'workflow_dispatch' || inputs.manual_run_ephemeral == true }}
+          RUN_EPHEMERAL: ${{ (github.event_name != 'workflow_dispatch' && github.event_name != 'deployment_status') || inputs.manual_run_ephemeral == true }}
           RUN_DEV: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true }}
         run: |
           echo
