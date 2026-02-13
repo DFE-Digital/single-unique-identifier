@@ -75,7 +75,7 @@ module "key_vault" {
   location            = data.terraform_remote_state.core.outputs.resource_group_location
 
   tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
+  rbac_authorization_enabled = true
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -84,26 +84,16 @@ module "key_vault" {
   tags = var.tags
 }
 
-# Grant the current Terraform principal access to manage Key Vault secrets.
-resource "azurerm_key_vault_access_policy" "terraform_operator" {
-  key_vault_id = module.key_vault.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
+module "rbac_assignments_terraform_operator" {
+  source = "../modules/rbac_assignments"
+  scope  = module.key_vault.id
 
-  key_permissions = [
-    "Get",
-  ]
-
-  secret_permissions = [
-    "Get",
-    "Set",
-    "Delete",
-    "List",
-  ]
-
-  storage_permissions = [
-    "Get",
-  ]
+  assignments = {
+    terraform_operator_secrets = {
+      principal_id = data.azurerm_client_config.current.object_id
+      role_name    = "Key Vault Secrets Officer"
+    }
+  }
 }
 
 resource "random_password" "find_match_api_key" {
@@ -117,7 +107,7 @@ resource "azurerm_key_vault_secret" "find_match_api_key" {
   key_vault_id = module.key_vault.id
 
   depends_on = [
-    azurerm_key_vault_access_policy.terraform_operator
+    module.rbac_assignments_terraform_operator
   ]
 }
 
@@ -180,16 +170,16 @@ module "function_app" {
   ]
 }
 
-# Grant the function app's managed identity access to Key Vault secrets
-resource "azurerm_key_vault_access_policy" "function_app" {
-  key_vault_id = module.key_vault.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = module.function_app.principal_id
+module "rbac_assignments_function_app" {
+  source = "../modules/rbac_assignments"
+  scope  = module.key_vault.id
 
-  secret_permissions = [
-    "Get",
-    "List",
-  ]
+  assignments = {
+    function_app_secrets = {
+      principal_id = module.function_app.principal_id
+      role_name    = "Key Vault Secrets User"
+    }
+  }
 }
 
 module "audit_processor_function_app" {
