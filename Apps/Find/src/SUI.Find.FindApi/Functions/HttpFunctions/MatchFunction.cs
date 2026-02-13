@@ -8,17 +8,18 @@ using Microsoft.Extensions.Options;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models.Matching;
-using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
+using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
 public class MatchFunction(
     ILogger<MatchFunction> logger,
     IMatchPersonOrchestrationService matchOrchestrationService,
+    IIdRegisterRepository idRegisterRepository,
     IOptions<MatchFunctionConfiguration> matchFunctionConfig
 )
 {
@@ -29,7 +30,7 @@ public class MatchFunction(
         tags: ["Match"],
         Summary = "I know of this person, what is their unique ID"
     )]
-    [OpenApiRequestBody("application/json", typeof(PersonSpecification), Required = true)]
+    [OpenApiRequestBody("application/json", typeof(MatchRequest), Required = true)]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(PersonMatch))]
     [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(Problem))]
     [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
@@ -44,6 +45,7 @@ public class MatchFunction(
         using var logScope = logger.BeginScope(
             new Dictionary<string, object> { ["CorrelationId"] = context.InvocationId }
         );
+
         if (
             !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
             || authObj is not AuthContext authContext
@@ -71,13 +73,89 @@ public class MatchFunction(
             );
         }
 
+        if (request.PersonSpecification is null)
+        {
+            return await HttpResponseUtility.BadRequestResponse(
+                req,
+                context.InvocationId,
+                "DemographicRecord is required.",
+                "Validation error",
+                cancellationToken
+            );
+        }
+
+        if (request.Metadata is null || request.Metadata.Length == 0)
+        {
+            return await HttpResponseUtility.BadRequestResponse(
+                req,
+                context.InvocationId,
+                "Metadata must contain at least one record.",
+                "Validation error",
+                cancellationToken
+            );
+        }
+
+        if (request.Metadata.Any(k => string.IsNullOrWhiteSpace(k.RecordType)))
+        {
+            return await HttpResponseUtility.BadRequestResponse(
+                req,
+                context.InvocationId,
+                "RecordType is mandatory for all Metadata entries.",
+                "Validation error",
+                cancellationToken
+            );
+        }
+
         var personMatch = await matchOrchestrationService.FindPersonIdAsync(
-            request,
+            request.PersonSpecification,
             authContext.ClientId,
             cancellationToken
         );
+
+        // if (personMatch.IsT0)
+        // {
+        //     var sui = personMatch.AsT0.Value;
+        //
+        //     foreach (var entry in request.Metadata)
+        //     {
+        //         await idRegisterRepository.UpsertAsync(
+        //             new IdRegisterEntry
+        //             {
+        //                 Sui = sui,
+        //                 CustodianId = authContext.ClientId,
+        //                 RecordType = entry.RecordType,
+        //                 SystemId = entry.SystemId ?? string.Empty,
+        //                 CustodianSubjectId = entry.RecordId,
+        //                 Provenance = Provenance.AlreadyHeldByCustodian,
+        //                 LastIdDeliveredAtUtc = DateTimeOffset.UtcNow
+        //             },
+        //             cancellationToken
+        //         );
+        //     }
+        // }
+
         return await personMatch.Match(
-            id => CreateOkResponse(req, id),
+            async id =>
+            {
+                foreach (var entry in request.Metadata)
+                {
+                    await idRegisterRepository.UpsertAsync(
+                        new IdRegisterEntry
+                        {
+                            Sui = id.Value,
+                            CustodianId = authContext.ClientId,
+                            RecordType = entry.RecordType,
+                            SystemId = entry.SystemId ?? string.Empty,
+                            CustodianSubjectId = entry.RecordId,
+                            Provenance = Provenance.AlreadyHeldByCustodian,
+                            LastIdDeliveredAtUtc = DateTimeOffset.UtcNow,
+                        },
+                        cancellationToken
+                    );
+                }
+
+                return await CreateOkResponse(req, id);
+            },
             async dataValidationResult =>
                 await HttpResponseUtility.BadRequestResponse(
                     req,
@@ -101,14 +179,15 @@ public class MatchFunction(
         );
     }
 
-    private bool TryGetMatchResponseRequestModel(HttpRequestData req, out PersonSpecification model)
+    private static bool TryGetMatchResponseRequestModel(HttpRequestData req, out MatchRequest model)
     {
-        model = new PersonSpecification();
+        model = new MatchRequest();
+
         try
         {
             var requestBody = req.ReadAsString();
 
-            var request = JsonSerializer.Deserialize<PersonSpecification>(
+            var request = JsonSerializer.Deserialize<MatchRequest>(
                 requestBody!,
                 JsonSerializerOptions.Web
             );
@@ -121,9 +200,8 @@ public class MatchFunction(
             model = request;
             return true;
         }
-        catch (JsonException ex)
+        catch (JsonException)
         {
-            logger.LogError(ex, $"Failed to parse Match request: {ex.Message}");
             return false;
         }
     }

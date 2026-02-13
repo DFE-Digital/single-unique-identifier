@@ -10,11 +10,11 @@ using SUI.Find.Application.Enums.Matching;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Matching;
-using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Functions.HttpFunctions;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.UnitTests.Mocks;
+using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
@@ -25,6 +25,8 @@ public class MatchFunctionTests
     private readonly IMatchPersonOrchestrationService _matchPersonOrchestrationService =
         Substitute.For<IMatchPersonOrchestrationService>();
     private readonly IOptions<MatchFunctionConfiguration> _matchFunctionConfig;
+    private readonly IIdRegisterRepository _idRegisterRepository =
+        Substitute.For<IIdRegisterRepository>();
 
     public MatchFunctionTests()
     {
@@ -33,7 +35,7 @@ public class MatchFunctionTests
     }
 
     private MatchFunction CreateFunction() =>
-        new(_logger, _matchPersonOrchestrationService, _matchFunctionConfig);
+        new(_logger, _matchPersonOrchestrationService, _idRegisterRepository, _matchFunctionConfig);
 
     private static FunctionContext CreateContextWithAuth(string clientId = "test-client-id")
     {
@@ -55,18 +57,33 @@ public class MatchFunctionTests
         return headers;
     }
 
+    private static MatchRequest CreateMatchRequest() =>
+        new()
+        {
+            PersonSpecification = new PersonSpecification
+            {
+                Given = "John",
+                Family = "Doe",
+                BirthDate = DateOnly.Parse("1990-01-01"),
+            },
+            Metadata =
+            [
+                new Metadata
+                {
+                    RecordType = "Test RecordType",
+                    SystemId = "Test System",
+                    RecordId = "9999999999",
+                },
+            ],
+        };
+
     [Fact]
     public async Task ShouldReturnOk_WithEncryptedSuid_WhenMatchIsSuccessful()
     {
         // Arrange
         var function = CreateFunction();
         var context = CreateContextWithAuth();
-        var validRequest = new MatchPersonRequest
-        {
-            Given = "John",
-            Family = "Doe",
-            BirthDate = DateOnly.Parse("1990-01-01"),
-        };
+        var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
         var encryptedPersonId = new EncryptedSuidPersonId("some-encrypted-id");
@@ -87,6 +104,17 @@ public class MatchFunctionTests
         var responseBody = await JsonSerializer.DeserializeAsync<PersonMatch>(response.Body);
         Assert.NotNull(responseBody);
         Assert.Equal(encryptedPersonId.Value, responseBody.PersonId);
+        await _idRegisterRepository
+            .Received(1)
+            .UpsertAsync(
+                Arg.Is<IdRegisterEntry>(e =>
+                    e.RecordType == "Test RecordType"
+                    && e.CustodianSubjectId == "9999999999"
+                    && e.SystemId == "Test System"
+                    && e.CustodianId == "test-client-id"
+                ),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]
@@ -95,12 +123,7 @@ public class MatchFunctionTests
         // Arrange
         var function = CreateFunction();
         var context = CreateContextWithAuth();
-        var validRequest = new MatchPersonRequest
-        {
-            Given = "John",
-            Family = "Doe",
-            BirthDate = DateOnly.Parse("1990-01-01"),
-        };
+        var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
         _matchPersonOrchestrationService
@@ -116,6 +139,9 @@ public class MatchFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        await _idRegisterRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -124,12 +150,7 @@ public class MatchFunctionTests
         // Arrange
         var function = CreateFunction();
         var context = CreateContextWithAuth();
-        var validRequest = new MatchPersonRequest
-        {
-            Given = "John",
-            Family = "Doe",
-            BirthDate = DateOnly.Parse("1990-01-01"),
-        };
+        var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
         _matchPersonOrchestrationService
@@ -145,6 +166,9 @@ public class MatchFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        await _idRegisterRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -155,12 +179,7 @@ public class MatchFunctionTests
         var context = Substitute.For<FunctionContext>();
         context.Items.Returns(new Dictionary<object, object>());
         context.InvocationId.Returns(Guid.NewGuid().ToString());
-        var validRequest = new MatchPersonRequest
-        {
-            Given = "John",
-            Family = "Doe",
-            BirthDate = DateOnly.Parse("1990-01-01"),
-        };
+        var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
@@ -169,6 +188,9 @@ public class MatchFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        await _idRegisterRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -177,12 +199,7 @@ public class MatchFunctionTests
         // Arrange
         var function = CreateFunction();
         var context = CreateContextWithAuth();
-        var validRequest = new MatchPersonRequest
-        {
-            Given = "John",
-            Family = "Doe",
-            BirthDate = DateOnly.Parse("1990-01-01"),
-        };
+        var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey(null);
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
@@ -191,6 +208,9 @@ public class MatchFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        await _idRegisterRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -199,12 +219,7 @@ public class MatchFunctionTests
         // Arrange
         var function = CreateFunction();
         var context = CreateContextWithAuth();
-        var validRequest = new MatchPersonRequest
-        {
-            Given = "John",
-            Family = "Doe",
-            BirthDate = DateOnly.Parse("1990-01-01"),
-        };
+        var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey("wrong-api-key");
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
@@ -213,6 +228,9 @@ public class MatchFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        await _idRegisterRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -221,12 +239,7 @@ public class MatchFunctionTests
         // Arrange
         var function = CreateFunction();
         var context = CreateContextWithAuth();
-        var validRequest = new MatchPersonRequest
-        {
-            Given = "John",
-            Family = "Doe",
-            BirthDate = DateOnly.Parse("1990-01-01"),
-        };
+        var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey("");
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
@@ -235,6 +248,9 @@ public class MatchFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        await _idRegisterRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -243,12 +259,7 @@ public class MatchFunctionTests
         // Arrange
         var function = CreateFunction();
         var context = CreateContextWithAuth();
-        var inValidRequest = new PersonSpecification
-        {
-            Given = "John",
-            Family = "Doe but it doesnt matter because were returning an invalid request anyway",
-            BirthDate = DateOnly.Parse("1990-01-01"),
-        };
+        var inValidRequest = CreateMatchRequest();
         _matchPersonOrchestrationService
             .FindPersonIdAsync(
                 Arg.Any<PersonSpecification>(),
@@ -267,6 +278,9 @@ public class MatchFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        await _idRegisterRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -277,9 +291,10 @@ public class MatchFunctionTests
         // Arrange
         var service = Substitute.For<IMatchPersonOrchestrationService>();
         var logger = Substitute.For<ILogger<MatchFunction>>();
+        var repository = Substitute.For<IIdRegisterRepository>();
         var config = Substitute.For<IOptions<MatchFunctionConfiguration>>();
         config.Value.Returns(new MatchFunctionConfiguration { XApiKey = TestApiKey });
-        var function = new MatchFunction(logger, service, config);
+        var function = new MatchFunction(logger, service, repository, config);
 
         var context = CreateContextWithAuth();
         context.InvocationId.Returns(Guid.NewGuid().ToString());
@@ -292,6 +307,9 @@ public class MatchFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        await _idRegisterRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -300,9 +318,10 @@ public class MatchFunctionTests
         // Arrange
         var service = Substitute.For<IMatchPersonOrchestrationService>();
         var logger = Substitute.For<ILogger<MatchFunction>>();
+        var repository = Substitute.For<IIdRegisterRepository>();
         var config = Substitute.For<IOptions<MatchFunctionConfiguration>>();
         config.Value.Returns(new MatchFunctionConfiguration { XApiKey = TestApiKey });
-        var function = new MatchFunction(logger, service, config);
+        var function = new MatchFunction(logger, service, repository, config);
 
         var context = CreateContextWithAuth();
         context.InvocationId.Returns(Guid.NewGuid().ToString());
@@ -315,5 +334,8 @@ public class MatchFunctionTests
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        await _idRegisterRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
     }
 }
