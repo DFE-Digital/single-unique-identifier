@@ -95,13 +95,3 @@ jobs:
         with:
           app-name: ${{ steps.app_name.outputs.webapp_name }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-
-  e2e-test-deployment:
-    needs: deploy
-    name: Run E2E tests against dev, if applicable
-    if: success() && inputs.environment == 'd01'
-    uses: ./.github/workflows/find-e2e-tests.yml
-    secrets: inherit
-    with:
-      run_dev: true
-      run_ephemeral: false

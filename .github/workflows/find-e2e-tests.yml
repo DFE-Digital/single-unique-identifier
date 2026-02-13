@@ -3,25 +3,16 @@ name: Find E2E Tests
 on:
   workflow_dispatch:
     inputs:
-      run_ephemeral:
+      manual_run_ephemeral:
         description: e2e test 'ephemeral' environment
         default: true
         type: boolean
-      run_dev:
+      manual_run_dev:
         description: e2e test 'dev' environment
         default: false
         type: boolean
-
-  workflow_call:
-    inputs:
-      run_ephemeral:
-        description: e2e test 'ephemeral' environment
-        default: true
-        type: boolean
-      run_dev:
-        description: e2e test 'dev' environment
-        default: false
-        type: boolean
+  
+  deployment_status:
 
   push:
     branches:
@@ -39,22 +30,17 @@ on:
       - "Apps/StubCustodians/**"
       - .github/workflows/find-e2e-tests.yml
 
-concurrency:
-  # Do not allow e2e tests to run concurrently against dev
-  group: ${{ inputs.run_dev && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
-  cancel-in-progress: false
-
 jobs:
-  # For manual workflow runs (workflow_dispatch) and calls from other workflows (workflow_call) give the option of where to run against (ephemeral/dev/both);
-  # Otherwise, for pushes and pull requests, only run against ephemeral environment.
+  # For manual workflow runs (workflow_dispatch) give the user the option of where to run against (ephemeral/dev/both)
+  # Otherwise, always run against ephemeral environment, and also run against dev environment after successful deployment to dev.
   eval-workflow-setup:
     runs-on: ubuntu-latest
     steps:
       - id: eval
         name: Evaluate Workflow Setup
         env:
-          RUN_EPHEMERAL: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || inputs.run_ephemeral == true }}
-          RUN_DEV: ${{ inputs.run_dev == true }}
+          RUN_EPHEMERAL: ${{ github.event_name != 'workflow_dispatch' || inputs.manual_run_ephemeral == true }}
+          RUN_DEV: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true }}
         run: |
           echo
           echo "run_ephemeral=$RUN_EPHEMERAL" >> "$GITHUB_OUTPUT"
@@ -62,8 +48,10 @@ jobs:
 
           echo "---- GitHub Context Info: ----"
           echo "github.event_name: ${{ github.event_name || '(no value)' }}"
-          echo "inputs.run_ephemeral: ${{ inputs.run_ephemeral || '(no value)' }}"
-          echo "inputs.run_dev: ${{ inputs.run_dev || '(no value)' }}"
+          echo "github.event.deployment_status.state: ${{ github.event.deployment_status.state || '(no value)' }}"
+          echo "github.event.deployment.environment: ${{ github.event.deployment.environment || '(no value)' }}"
+          echo "inputs.manual_run_ephemeral: ${{ inputs.manual_run_ephemeral || '(no value)' }}"
+          echo "inputs.manual_run_dev: ${{ inputs.manual_run_dev || '(no value)' }}"
           echo
           echo "---- Evaluated Workflow Setup: ----"
           echo "RUN_EPHEMERAL: $RUN_EPHEMERAL"
