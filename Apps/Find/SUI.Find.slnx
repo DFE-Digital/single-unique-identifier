@@ -2,7 +2,6 @@
   <Folder Name="/src/">
     <Project Path="src/SUI.Find.AuditProcessor/SUI.Find.AuditProcessor.csproj" />
     <Project Path="src\SUI.Find.Application\SUI.Find.Application.csproj" />
-    <Project Path="src\SUI.Find.CustodianSimulation\SUI.Find.CustodianSimulation.csproj" />
     <Project Path="src\SUI.Find.Domain\SUI.Find.Domain.csproj" />
     <Project Path="src\SUI.Find.FindApi\SUI.Find.FindApi.csproj" />
     <Project Path="src\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />

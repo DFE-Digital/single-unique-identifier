@@ -20,7 +20,7 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 
 ## Glossary of Components
 
-* **`Matching Service`** (a.k.a. *`PDS Adapter`* or *`SUI.Matching.API`*) \
+* **`Matching Service`** (a.k.a. *`PDS Adapter`*) \
   Match a PDS record (and NHS Number), given some demographic data.
 
 * **`MatchFunction`** (*"I know of this person, what is their ID"*) \
@@ -121,7 +121,6 @@ dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
 dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
 dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
 dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
-dotnet pwsh ./Apps/Matching/test_and_cover_matching.ps1
 ```
 
 ## Set up Private Nuget Feed
