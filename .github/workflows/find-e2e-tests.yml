@@ -69,6 +69,13 @@ jobs:
     needs: eval-workflow-setup
     runs-on: ubuntu-latest
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
+    services:
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports:
+          - 10000:10000
+          - 10001:10001
+          - 10002:10002
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -78,19 +85,8 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Install node
-        uses: actions/setup-node@v6
-        with:
-          node-version: lts/*
-
       - name: Install Azure Functions Core Tools
         run: npm i -g azure-functions-core-tools@4
-
-      - name: Install Azurite
-        run: npm install -g azurite
-
-      - name: run azurite
-        run: azurite --silent &
 
       - name: Build Find Solution
         run: dotnet build Apps/Find/SUI.Find.slnx
