@@ -9,7 +9,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/SUI.Find.AuditProcessor.UnitTests/SUI.Find.AuditProcessor.UnitTests.csproj" />
     <Project Path="tests/SUI.Find.Infrastructure.IntegrationTests/SUI.Find.Infrastructure.IntegrationTests.csproj" />
-    <Project Path="tests\SUI.Find.ApplicationTests\SUI.Find.ApplicationTests.csproj" />
+    <Project Path="tests/SUI.Find.Application.UnitTests/SUI.Find.Application.UnitTests.csproj" />
     <Project Path="tests\SUI.Find.Domain.UnitTests\SUI.Find.Domain.UnitTests.csproj" />
     <Project Path="tests\SUI.Find.E2ETests\SUI.Find.E2ETests.csproj" />
     <Project Path="tests\SUI.Find.FindApi.IntegrationTests\SUI.Find.FindApi.IntegrationTests.csproj" />
