@@ -18,6 +18,7 @@
     <Project Path="Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.FindApi.IntegrationTests/SUI.Find.FindApi.IntegrationTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.FindApi.UnitTests/SUI.Find.FindApi.UnitTests.csproj" />
+    <Project Path="Apps/Find/tests/SUI.Find.Infrastructure.IntegrationTests/SUI.Find.Infrastructure.IntegrationTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.Infrastructure.UnitTests/SUI.Find.Infrastructure.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Apps/Matching/" />

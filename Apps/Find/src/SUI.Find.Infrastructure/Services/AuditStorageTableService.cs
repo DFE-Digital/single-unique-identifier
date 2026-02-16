@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using Azure.Data.Tables;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Events.Audit;
@@ -7,7 +5,6 @@ using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Services;
 
-[ExcludeFromCodeCoverage(Justification = "Basic Infrastructure code.")]
 public class AuditStorageTableService(TableServiceClient client)
     : IAuditService,
         ITableServiceEnsureCreated
