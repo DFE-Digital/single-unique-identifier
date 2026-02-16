@@ -20,7 +20,7 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 
 ## Glossary of Components
 
-* **`Matching Service`** (a.k.a. *`PDS Adapter`* or *`SUI.Matching.API`*) \
+* **`Matching Service`** (a.k.a. *`PDS Adapter`*) \
   Match a PDS record (and NHS Number), given some demographic data.
 
 * **`MatchFunction`** (*"I know of this person, what is their ID"*) \
