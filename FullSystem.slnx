@@ -11,7 +11,7 @@
     <Project Path="Apps/Find/src/SUI.Find.Infrastructure/SUI.Find.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/Apps/Find/tests/">
-    <Project Path="Apps/Find/tests/SUI.Find.ApplicationTests/SUI.Find.ApplicationTests.csproj" />
+    <Project Path="Apps/Find/tests/SUI.Find.Application.UnitTests/SUI.Find.Application.UnitTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.AuditProcessor.UnitTests/SUI.Find.AuditProcessor.UnitTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.Domain.UnitTests/SUI.Find.Domain.UnitTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj" />
