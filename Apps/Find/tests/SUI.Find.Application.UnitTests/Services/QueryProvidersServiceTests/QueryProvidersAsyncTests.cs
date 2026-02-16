@@ -123,7 +123,7 @@ public class QueryProvidersAsyncTests
                 Arg.Any<BuildCustodianRequestDto>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(Result<List<CustodianSearchResultItem>>.Ok(null));
+            .Returns(Result<List<CustodianSearchResultItem>>.Ok(null!));
 
         // Act
         var result = await _sut.QueryProvidersAsync(input, CancellationToken.None);
