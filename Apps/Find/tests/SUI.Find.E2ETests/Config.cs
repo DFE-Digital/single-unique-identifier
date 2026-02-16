@@ -12,5 +12,5 @@ public record Config
 
     public string? FindApiStorageConnectionString { get; init; } = "UseDevelopmentStorage=true";
 
-    public bool UseEncryptedIds { get; set; } = true;
+    public bool UseEncryptedIds { get; set; } = false;
 }

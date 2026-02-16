@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
+using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
@@ -74,6 +76,7 @@ public class TestOutboundAuthService(
         var loggerProviderHttp = Substitute.For<ILogger<ProviderHttpClient>>();
         var loggerEncryption = Substitute.For<ILogger<PersonIdEncryptionService>>();
         var loggerMaskUrl = Substitute.For<ILogger<MaskUrlService>>();
+        var encryptionConfig = Substitute.For<IOptions<EncryptionConfiguration>>();
 
         var httpClientFactory = Substitute.For<IHttpClientFactory>();
         var httpClientFactory2 = Substitute.For<IHttpClientFactory>();
@@ -88,13 +91,17 @@ public class TestOutboundAuthService(
         var providerHttpClient = new ProviderHttpClient(httpClientFactory2, loggerProviderHttp);
         var encryptionService = new PersonIdEncryptionService(loggerEncryption);
         var requestBuilder = new BuildCustodianHttpRequest();
+        encryptionConfig.Value.Returns(
+            new EncryptionConfiguration { EnablePersonIdEncryption = false }
+        );
 
         var buildCustodianRequestService = new BuildCustodianRequestsService(
             loggerBuildRequest,
             requestBuilder,
             providerHttpClient,
             outboundAuthService,
-            encryptionService
+            encryptionService,
+            encryptionConfig
         );
 
         var fetchUrlStorageService = Substitute.For<IFetchUrlStorageService>();
