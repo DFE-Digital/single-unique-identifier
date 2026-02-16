@@ -10,6 +10,10 @@ on:
         description: JSON array of project names (e.g. ["SUI.Find.FindApi","SUI.Find.AuditProcessor"])
         type: string
         required: true
+      requires_azurite:
+        description: If true, azurite will be spun up as a build dependency
+        default: false
+        type: boolean
     outputs:
       artifact_names:
         description: JSON map of project -> artifact name
@@ -25,6 +29,13 @@ permissions:
 jobs:
   build-test-dotnet:
     runs-on: ubuntu-latest
+    services:
+      azurite:
+        image: ${{ inputs.requires_azurite == true && 'mcr.microsoft.com/azure-storage/azurite' || '' }}
+        ports:
+          - 10000:10000
+          - 10001:10001
+          - 10002:10002
     env:
       PROJECTS_JSON: ${{ inputs.project_names }}
     outputs:
