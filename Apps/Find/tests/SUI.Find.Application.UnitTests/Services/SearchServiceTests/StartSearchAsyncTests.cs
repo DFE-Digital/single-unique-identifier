@@ -26,7 +26,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     [Fact]
     public async Task ShouldReturnExistingJob_WhenDuplicateRequest()
     {
-        var instanceId = $"{_encryptedPersonId}-{ClientId}";
+        var instanceId = $"{_encryptedPersonId.Value}-{ClientId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
 
         var orchestrationMeta = new OrchestrationMetadata("SearchOrchestrator", "hashed-id")
@@ -38,7 +38,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .Returns(orchestrationMeta);
 
         var result = await Sut.StartSearchAsync(
-            _encryptedPersonId,
+            _encryptedPersonId.Value,
             ClientId,
             _scopes,
             _client,
@@ -67,7 +67,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Custodian not found"));
 
         var result = await Sut.StartSearchAsync(
-            _encryptedPersonId,
+            _encryptedPersonId.Value,
             ClientId,
             _scopes,
             _client,
@@ -105,7 +105,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .Returns("job-123");
 
         var result = await Sut.StartSearchAsync(
-            _encryptedPersonId,
+            _encryptedPersonId.Value,
             ClientId,
             _scopes,
             _client,
@@ -138,7 +138,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .Returns(Domain.Models.Result<string>.Fail("Decryption failed"));
 
         var result = await Sut.StartSearchAsync(
-            _encryptedPersonId,
+            _encryptedPersonId.Value,
             ClientId,
             _scopes,
             _client,
@@ -177,7 +177,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .Returns("job-123");
 
         var result = await Sut.StartSearchAsync(
-            _encryptedPersonId,
+            _encryptedPersonId.Value,
             ClientId,
             _scopes,
             _client,

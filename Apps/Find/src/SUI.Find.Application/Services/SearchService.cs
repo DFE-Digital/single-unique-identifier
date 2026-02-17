@@ -19,7 +19,7 @@ namespace SUI.Find.Application.Services;
 public interface ISearchService
 {
     Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
-        EncryptedPersonId encryptedPersonId,
+        string encryptedPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -59,7 +59,7 @@ public class SearchService(
 ) : ISearchService
 {
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
-        EncryptedPersonId encryptedPersonId,
+        string encryptedPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -98,7 +98,7 @@ public class SearchService(
             var originalJob = new SearchJobDto
             {
                 JobId = originalJobId,
-                PersonId = encryptedPersonId.Value,
+                PersonId = encryptedPersonId,
                 Status = jobStatus,
                 CreatedAt = existingInstance.CreatedAt,
                 LastUpdatedAt = existingInstance.LastUpdatedAt,
@@ -122,7 +122,7 @@ public class SearchService(
         if (encryptDefinition.Value.Encryption is not null && encrypt)
         {
             var unencryptedPersonId = encryptionService.DecryptPersonIdToNhs(
-                encryptedPersonId.Value,
+                encryptedPersonId,
                 encryptDefinition.Value.Encryption
             );
 
@@ -136,14 +136,10 @@ public class SearchService(
         }
         else
         {
-            personId = encryptedPersonId.Value;
+            personId = encryptedPersonId;
         }
 
-        var metaData = new SearchJobMetadata(
-            encryptedPersonId.Value,
-            DateTime.UtcNow,
-            correlationId
-        );
+        var metaData = new SearchJobMetadata(encryptedPersonId, DateTime.UtcNow, correlationId);
 
         var policyContext = new PolicyContext(
             clientId,
@@ -164,7 +160,7 @@ public class SearchService(
         var searchJob = new SearchJobDto
         {
             JobId = jobId,
-            PersonId = encryptedPersonId.Value,
+            PersonId = encryptedPersonId,
             Status = SearchStatus.Queued,
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,
