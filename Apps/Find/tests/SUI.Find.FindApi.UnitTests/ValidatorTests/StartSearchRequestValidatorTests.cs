@@ -27,7 +27,7 @@ public class StartSearchRequestValidatorTests
     [InlineData("Cy14hyZL-4LSIwVy50p-H", true)] // Too short
     [InlineData("Cy13hyZL-4LSIwVy50p-Hgglsa", true)] // Too long
     [InlineData("1234567890123", false)] // Too long
-    [InlineData("123456789", false)] // Too long
+    [InlineData("123456789", false)] // Too short
     public void ShouldReturnFalse_WhenSuidIsInvalid(string? suid, bool encryptedIds)
     {
         // Arrange
