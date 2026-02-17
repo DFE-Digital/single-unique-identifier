@@ -12,14 +12,13 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.Services;
 
 public interface ISearchService
 {
     Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
-        string encryptedPersonId,
+        string inputPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -59,7 +58,7 @@ public class SearchService(
 ) : ISearchService
 {
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
-        string encryptedPersonId,
+        string inputPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -67,7 +66,7 @@ public class SearchService(
         CancellationToken cancellationToken
     )
     {
-        var instanceId = $"{encryptedPersonId}-{clientId}";
+        var instanceId = $"{inputPersonId}-{clientId}";
         var hashedInstanceId = hashService.HmacSha256Hash(instanceId);
 
         var existingInstance = await client.GetInstanceAsync(
@@ -98,7 +97,7 @@ public class SearchService(
             var originalJob = new SearchJobDto
             {
                 JobId = originalJobId,
-                PersonId = encryptedPersonId,
+                PersonId = inputPersonId,
                 Status = jobStatus,
                 CreatedAt = existingInstance.CreatedAt,
                 LastUpdatedAt = existingInstance.LastUpdatedAt,
@@ -122,7 +121,7 @@ public class SearchService(
         if (encryptDefinition.Value.Encryption is not null && encrypt)
         {
             var unencryptedPersonId = encryptionService.DecryptPersonIdToNhs(
-                encryptedPersonId,
+                inputPersonId,
                 encryptDefinition.Value.Encryption
             );
 
@@ -136,10 +135,10 @@ public class SearchService(
         }
         else
         {
-            personId = encryptedPersonId;
+            personId = inputPersonId;
         }
 
-        var metaData = new SearchJobMetadata(encryptedPersonId, DateTime.UtcNow, correlationId);
+        var metaData = new SearchJobMetadata(inputPersonId, DateTime.UtcNow, correlationId);
 
         var policyContext = new PolicyContext(
             clientId,
@@ -160,7 +159,7 @@ public class SearchService(
         var searchJob = new SearchJobDto
         {
             JobId = jobId,
-            PersonId = encryptedPersonId,
+            PersonId = inputPersonId,
             Status = SearchStatus.Queued,
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,
