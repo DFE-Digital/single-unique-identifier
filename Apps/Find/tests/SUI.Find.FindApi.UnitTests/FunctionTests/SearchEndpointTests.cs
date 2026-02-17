@@ -3,8 +3,10 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using OneOf.Types;
+using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
@@ -22,6 +24,9 @@ public class SearchEndpointTests
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
     private readonly FunctionContext _context = Substitute.For<FunctionContext>();
     private readonly ISearchService _searchService = Substitute.For<ISearchService>();
+    private readonly IOptions<EncryptionConfiguration> _encryptionConfig = Substitute.For<
+        IOptions<EncryptionConfiguration>
+    >();
 
     private const string ValidSuid = "Cy13hyZL-4LSIwVy50p-Hg";
     private const string InvalidSuid = "invalid-suid";
@@ -29,6 +34,9 @@ public class SearchEndpointTests
 
     public SearchEndpointTests()
     {
+        _encryptionConfig.Value.Returns(
+            new EncryptionConfiguration { EnablePersonIdEncryption = true }
+        );
         _context.InvocationId.Returns(Guid.NewGuid().ToString());
         var items = new Dictionary<object, object>
         {
@@ -36,7 +44,7 @@ public class SearchEndpointTests
         };
         _context.Items.Returns(items);
         var logger = Substitute.For<ILogger<SearchFunction>>();
-        _sut = new SearchFunction(logger, _searchService);
+        _sut = new SearchFunction(logger, _searchService, _encryptionConfig);
     }
 
     [Fact]
@@ -89,7 +97,7 @@ public class SearchEndpointTests
         };
         _searchService
             .StartSearchAsync(
-                Arg.Any<EncryptedPersonId>(),
+                Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<string[]>(),
                 Arg.Any<DurableTaskClient>(),
@@ -125,7 +133,7 @@ public class SearchEndpointTests
 
         _searchService
             .StartSearchAsync(
-                Arg.Any<EncryptedPersonId>(),
+                Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<string[]>(),
                 Arg.Any<DurableTaskClient>(),

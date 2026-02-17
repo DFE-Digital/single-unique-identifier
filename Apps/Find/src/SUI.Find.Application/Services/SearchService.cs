@@ -3,21 +3,22 @@ using System.Text.Json;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
+using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.Services;
 
 public interface ISearchService
 {
     Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
-        EncryptedPersonId encryptedPersonId,
+        string inputPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -52,11 +53,12 @@ public class SearchService(
     ILogger<SearchService> logger,
     IPersonIdEncryptionService encryptionService,
     ICustodianService custodianService,
-    IHashService hashService
+    IHashService hashService,
+    IOptions<EncryptionConfiguration> encryptionConfig
 ) : ISearchService
 {
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
-        EncryptedPersonId encryptedPersonId,
+        string inputPersonId,
         string clientId,
         string[] scopes,
         DurableTaskClient client,
@@ -64,7 +66,7 @@ public class SearchService(
         CancellationToken cancellationToken
     )
     {
-        var instanceId = $"{encryptedPersonId}-{clientId}";
+        var instanceId = $"{inputPersonId}-{clientId}";
         var hashedInstanceId = hashService.HmacSha256Hash(instanceId);
 
         var existingInstance = await client.GetInstanceAsync(
@@ -95,7 +97,7 @@ public class SearchService(
             var originalJob = new SearchJobDto
             {
                 JobId = originalJobId,
-                PersonId = encryptedPersonId.Value,
+                PersonId = inputPersonId,
                 Status = jobStatus,
                 CreatedAt = existingInstance.CreatedAt,
                 LastUpdatedAt = existingInstance.LastUpdatedAt,
@@ -114,30 +116,29 @@ public class SearchService(
             return new Error();
         }
 
-        if (encryptDefinition.Value.Encryption is null)
+        string personId;
+        var encrypt = encryptionConfig.Value.EnablePersonIdEncryption;
+        if (encryptDefinition.Value.Encryption is not null && encrypt)
         {
-            logger.LogWarning(
-                "Custodian configuration for ClientId: {ClientId} has no encryption defined.",
-                clientId
+            var unencryptedPersonId = encryptionService.DecryptPersonIdToNhs(
+                inputPersonId,
+                encryptDefinition.Value.Encryption
             );
-            return new Error();
-        }
 
-        var unencryptedPersonId = encryptionService.DecryptPersonIdToNhs(
-            encryptedPersonId.Value,
-            encryptDefinition.Value.Encryption
-        );
-        if (!unencryptedPersonId.Success || unencryptedPersonId.Value is null)
+            if (!unencryptedPersonId.Success || unencryptedPersonId.Value is null)
+            {
+                logger.LogWarning("Failed to decrypt SUID for ClientId: {ClientId}.", clientId);
+                return new Error();
+            }
+
+            personId = unencryptedPersonId.Value;
+        }
+        else
         {
-            logger.LogWarning("Failed to decrypt SUID for ClientId: {ClientId}.", clientId);
-            return new Error();
+            personId = inputPersonId;
         }
 
-        var metaData = new SearchJobMetadata(
-            encryptedPersonId.Value,
-            DateTime.UtcNow,
-            correlationId
-        );
+        var metaData = new SearchJobMetadata(inputPersonId, DateTime.UtcNow, correlationId);
 
         var policyContext = new PolicyContext(
             clientId,
@@ -146,11 +147,7 @@ public class SearchService(
             encryptDefinition.Value.OrgType
         );
 
-        var orchestratorInput = new SearchOrchestratorInput(
-            unencryptedPersonId.Value,
-            metaData,
-            policyContext
-        );
+        var orchestratorInput = new SearchOrchestratorInput(personId, metaData, policyContext);
 
         var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
             "SearchOrchestrator",
@@ -162,7 +159,7 @@ public class SearchService(
         var searchJob = new SearchJobDto
         {
             JobId = jobId,
-            PersonId = encryptedPersonId.Value,
+            PersonId = inputPersonId,
             Status = SearchStatus.Queued,
             CreatedAt = DateTime.UtcNow,
             LastUpdatedAt = DateTime.UtcNow,
