@@ -4,33 +4,33 @@ updates:
     directory: /
     schedule:
       interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
     commit-message:
       prefix: "[gha]-"
-      
+
   - package-ecosystem: nuget
     directory: "/Apps/Find"
     schedule:
       interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
     commit-message:
       prefix: "[nuget][Find]-"
-      
-  - package-ecosystem: nuget
-    directory: "/Apps/SingleView"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "[nuget][SingleView]-"
-      
+    groups:
+      all-version-updates:
+        patterns:
+          - "*"
+
   - package-ecosystem: nuget
     directory: "/Apps/StubCustodians"
     schedule:
       interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
     commit-message:
       prefix: "[nuget][StubCustodians]-"
-  
-  - package-ecosystem: nuget
-    directory: "/Apps/Transfer"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "[nuget][Transfer]-"
+    groups:
+      all-version-updates:
+        patterns:
+          - "*"
