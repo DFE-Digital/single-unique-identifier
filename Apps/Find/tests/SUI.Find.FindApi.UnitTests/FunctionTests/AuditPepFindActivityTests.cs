@@ -16,17 +16,23 @@ public class AuditPepFindActivityTests
     public async Task ShouldCallAuditService_WhenResultsArePresent()
     {
         // Arrange
-        var mockAuditService = Substitute.For<IAuditService>();
+        var mockAuditClient = Substitute.For<IAuditQueueClient>();
         var mockTimeProvider = TimeProvider.System;
         var logger = Substitute.For<ILogger<AuditPepFindActivity>>();
-        var auditActivity = new AuditPepFindActivity(logger, mockAuditService, mockTimeProvider);
+        var auditActivity = new AuditPepFindActivity(logger, mockAuditClient, mockTimeProvider);
 
         var input = new AuditPepFindInput(
             new PolicyContext("client-1", ["scope1"], "SAFEGUARDING", "LOCAL_AUTHORITY"),
             new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
             [
                 new(
-                    new SearchResultItem("System A", "Provider Name 1", "RecordA", "http://url1"),
+                    new CustodianSearchResultItem(
+                        "test-custodian",
+                        "RecordA",
+                        "http://url1",
+                        "System A",
+                        "TestRecord 1"
+                    ),
                     "org1",
                     new PolicyDecisionResult
                     {
@@ -43,9 +49,9 @@ public class AuditPepFindActivityTests
         await auditActivity.AuditPepFindAsync(input, CancellationToken.None);
 
         // Assert
-        await mockAuditService
+        await mockAuditClient
             .Received(1)
-            .WriteAccessAuditLogAsync(
+            .SendAuditEventAsync(
                 Arg.Is<AuditEvent>(ae => ValidateAuditEventInputs(ae, input, expected)),
                 Arg.Any<CancellationToken>()
             );
@@ -71,8 +77,6 @@ public class AuditPepFindActivityTests
         if (record.RecordUrl != expected.Item.RecordUrl)
             return false;
         if (record.RecordType != expected.Item.RecordType)
-            return false;
-        if (string.IsNullOrWhiteSpace(record.DataType))
             return false;
         //
         // Policy decision snapshot checks

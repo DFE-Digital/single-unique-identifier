@@ -20,7 +20,7 @@ public class FetchRecordService(
     IProviderHttpClient providerClient,
     IOutboundAuthService outboundAuthService,
     IPolicyEnforcementService policyEnforcementService,
-    IAuditService auditService,
+    IAuditQueueClient auditService,
     TimeProvider timeProvider
 ) : IFetchRecordService
 {
@@ -108,7 +108,7 @@ public class FetchRecordService(
                 endTime,
                 receivedByteCount
             );
-            await auditService.WriteAccessAuditLogAsync(auditPayload, cancellationToken);
+            await auditService.SendAuditEventAsync(auditPayload, cancellationToken);
         }
 
         return result;
@@ -120,7 +120,7 @@ public class FetchRecordService(
         return result;
     }
 
-    private record FetchResult(
+    private sealed record FetchResult(
         ResolvedFetchMapping? Mapping,
         CustodianRecord? Record,
         FetchOutcome Outcome,
@@ -307,7 +307,6 @@ public class FetchRecordService(
                         SourceOrgId = mapping.TargetOrgId,
                         RecordUrl = mapping.TargetUrl,
                         RecordType = mapping.RecordType,
-                        DataType = mapping.RecordType,
                         IsSharedAllowed = pepDecision.IsAllowed,
                         RuleType = pepDecision.RuleType ?? "unknown",
                         RuleEffect = pepDecision.RuleEffect ?? "unknown",

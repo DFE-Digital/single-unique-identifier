@@ -17,7 +17,6 @@ public sealed class ProviderDefinition
     public EncryptionDefinition? Encryption { get; init; }
 
     public DsaPolicyDefinition DsaPolicy { get; set; } = new();
-
 }
 
 public sealed class ConnectionDefinition
@@ -70,7 +69,7 @@ public sealed class DsaRuleDefinition
 
     public List<string> Modes { get; init; } = [];
 
-    public List<string> DataTypes { get; init; } = [];
+    public List<string> RecordTypes { get; init; } = [];
 
     public List<string> DestOrgTypes { get; init; } = [];
 
@@ -84,8 +83,8 @@ public sealed class DsaRuleDefinition
 
     public string? Reason { get; init; }
 }
+
 public sealed class ResponseDefinition
 {
     public string Shape { get; init; } = "searchResultItems";
 }
-

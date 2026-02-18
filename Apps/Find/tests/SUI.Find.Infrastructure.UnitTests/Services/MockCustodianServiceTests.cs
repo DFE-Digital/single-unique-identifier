@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using SUI.Find.Infrastructure.Services;
 
@@ -7,11 +8,12 @@ namespace SUI.Find.Infrastructure.UnitTests.Services;
 public class MockCustodianServiceTests
 {
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
+    private readonly IConfiguration _mockConfiguration = Substitute.For<IConfiguration>();
     private readonly MockCustodianService _sut;
 
     public MockCustodianServiceTests()
     {
-        _sut = new MockCustodianService(_mockFileSystem);
+        _sut = new MockCustodianService(_mockFileSystem, _mockConfiguration);
     }
 
     [Fact]
@@ -27,7 +29,7 @@ public class MockCustodianServiceTests
 
         // Assert: check a few known mappings
         var la = providers.FirstOrDefault(p =>
-            p is { OrgId: "LOCAL-AUTHORITY-01", RecordType: "local-authority" }
+            p is { OrgId: "LOCAL-AUTHORITY-01", RecordType: "childrens-services.details" }
         );
         Assert.NotNull(la);
         Assert.Equal("Example Local Authority", la.OrgName);
@@ -52,7 +54,7 @@ public class MockCustodianServiceTests
         var defaultRule = la.DsaPolicy.Defaults.First();
         Assert.Equal("allow", defaultRule.Effect);
         Assert.Contains("EXISTENCE", defaultRule.Modes);
-        Assert.Contains("local_authority_ptr", defaultRule.DataTypes);
+        Assert.Contains("childrens-services.details", defaultRule.RecordTypes);
         Assert.Contains("POLICE", defaultRule.DestOrgTypes);
         Assert.Equal(DateTimeOffset.Parse("2025-01-01T00:00:00Z"), defaultRule.ValidFrom);
 
@@ -72,7 +74,7 @@ public class MockCustodianServiceTests
 
         // Check an education record with a body template
         var edu = providers.FirstOrDefault(p =>
-            p.OrgId == "EDUCATION-01" && p.RecordType == "education"
+            p.OrgId == "EDUCATION-01" && p.RecordType == "education.details"
         );
         Assert.NotNull(edu);
         Assert.Equal("POST", edu.Connection.Method);
@@ -110,11 +112,34 @@ public class MockCustodianServiceTests
 
         var targetOrgId = "NON-EXISTENT-ORG-ID";
 
-        // Act 
+        // Act
         var result = await _sut.GetCustodianAsync(targetOrgId);
 
         // Assert
         Assert.False(result.Success);
         Assert.Contains(targetOrgId, result.Error);
+    }
+
+    [Fact]
+    public async Task GetCustodiansAsync_DoesReplace_StubCustodiansBaseUrl_TextToken()
+    {
+        // Arrange
+        var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "org-directory.json");
+        var fileContent = await File.ReadAllTextAsync(filePath);
+        _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
+
+        _mockConfiguration["StubCustodiansBaseUrl"].Returns("https://example123.com");
+
+        // Act
+        var providers = await _sut.GetCustodiansAsync();
+
+        // Assert
+        var provider = providers.FirstOrDefault(p => p.OrgId == "EDUCATION-01");
+        Assert.NotNull(provider);
+        Assert.Equal("Example Education Custodian", provider.OrgName);
+
+        Assert.Equal("https://example123.com/v1/education/manifest", provider.Connection.Url);
+        Assert.NotNull(provider.Connection.Auth);
+        Assert.Equal("https://example123.com/v1/auth/token", provider.Connection.Auth.TokenUrl);
     }
 }

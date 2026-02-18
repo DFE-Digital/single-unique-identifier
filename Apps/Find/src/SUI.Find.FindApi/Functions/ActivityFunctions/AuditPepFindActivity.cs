@@ -18,7 +18,7 @@ public record AuditPepFindInput(
 
 public class AuditPepFindActivity(
     ILogger<AuditPepFindActivity> logger,
-    IAuditService auditService,
+    IAuditQueueClient auditQueueClient,
     TimeProvider timeProvider
 )
 {
@@ -49,7 +49,6 @@ public class AuditPepFindActivity(
                     SourceOrgId = r.SourceOrgId,
                     RecordUrl = r.Item.RecordUrl,
                     RecordType = r.Item.RecordType,
-                    DataType = r.Item.RecordType,
 
                     IsSharedAllowed = r.Decision.IsAllowed,
                     RuleType = r.Decision.RuleType ?? "unknown",
@@ -81,6 +80,6 @@ public class AuditPepFindActivity(
         };
 
         // Write to audit service
-        await auditService.WriteAccessAuditLogAsync(auditEvent, cancellationToken);
+        await auditQueueClient.SendAuditEventAsync(auditEvent, cancellationToken);
     }
 }

@@ -12,7 +12,7 @@ locals {
     },
     var.environment_tag == null ? {} : { Environment = var.environment_tag },
     var.product == null ? {} : { Product = var.product },
-    var.service_offering == null ? {} : { Service_Offering = var.service_offering },
+    var.service_offering == null ? {} : { "Service Offering" = var.service_offering },
   )
 }
 
@@ -50,5 +50,10 @@ resource "azurerm_linux_web_app" "this" {
     local.base_tags,
     var.tags,
   )
-}
 
+  lifecycle {
+    ignore_changes = [
+      tags["hidden-link: /app-insights-resource-id"] # This hidden link is managed by Azure, and so is safe to ignore in the Terraform
+    ]
+  }
+}

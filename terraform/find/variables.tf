@@ -34,7 +34,7 @@ variable "product" {
 }
 
 variable "service_offering" {
-  description = "Service_Offering tag value."
+  description = "Service Offering tag value."
   type        = string
 }
 
@@ -44,8 +44,14 @@ variable "tags" {
   default     = {}
 }
 
-variable "app_settings" {
-  description = "Additional app settings to apply to the function app."
+variable "find_app_settings" {
+  description = "Additional app settings to apply to the Find function app."
+  type        = map(string)
+  default     = {}
+}
+
+variable "audit_app_settings" {
+  description = "Additional app settings to apply to the Audit function app."
   type        = map(string)
   default     = {}
 }
@@ -53,7 +59,7 @@ variable "app_settings" {
 variable "function_dotnet_version" {
   description = "Dotnet version for the function app stack."
   type        = string
-  default     = "8.0"
+  default     = "10.0"
 }
 
 variable "app_service_plan_sku" {
@@ -72,4 +78,16 @@ variable "app_service_plan_worker_count" {
   description = "Number of workers for the App Service plan (present to support shared tfvars files)."
   type        = number
   default     = null
+}
+
+variable "use_stub_custodians" {
+  description = "Set to true to dynamically add the corresponding `StubCustodiansBaseUrl` configuration to the Find Function App (requires the StubCustodians to be deployed for the corresponding environment)."
+  type        = bool
+  default     = false
+}
+
+variable "key_vault_use_rbac" {
+  description = "Set to true to enable Key Vault RBAC authorization and role assignments; false uses access policies."
+  type        = bool
+  default     = false
 }

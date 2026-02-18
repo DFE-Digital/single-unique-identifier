@@ -6,14 +6,14 @@
       "orgType": "LOCAL_AUTHORITY",
       "records": [
         {
-          "recordType": "local-authority",
+          "recordType": "childrens-services.details",
           "connection": {
             "method": "GET",
-            "url": "http://localhost:7082/v1/local-authority/manifest/{personId}?recordType=local-authority",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/local-authority-01/{personId}?recordType=childrens-services.details",
             "personIdPosition": "path",
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
@@ -21,14 +21,19 @@
           }
         },
         {
-          "recordType": "local-authority.children-social-care",
+          "recordType": "personal.details",
           "connection": {
-            "method": "GET",
-            "url": "http://localhost:7082/v1/local-authority/manifest/{personId}?recordType=local-authority.children-social-care",
-            "personIdPosition": "path",
+            "method": "POST",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
+            "personIdPosition": "body",
+            "bodyTemplate": {
+              "recordType": "personal.details",
+              "personId": "{personId}",
+              "orgId": "local-authority-01"
+            },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
@@ -42,7 +47,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "local_authority_ptr", "children_social_care_ptr" ],
+            "recordTypes": [ "childrens-services.details", "personal.details" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -50,7 +55,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "children_social_care_record" ],
+            "recordTypes": [ "childrens-services.details", "personal.details" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -71,53 +76,42 @@
       "orgType": "EDUCATION",
       "records": [
         {
-          "recordType": "education",
+          "recordType": "education.details",
           "connection": {
             "method": "POST",
-            "url": "http://localhost:7082/v1/education/manifest",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
             "personIdPosition": "body",
             "bodyTemplate": {
-              "recordType": "education",
-              "personId": "{personId}"
+              "recordType": "education.details",
+              "personId": "{personId}",
+              "orgId": "education-01"
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
-              "scopes": [ "find-record.read fetch-record.read" ]
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
             }
           }
         },
         {
-          "recordType": "education.attendance",
+          "recordType": "personal.details",
           "connection": {
             "method": "POST",
-            "url": "http://localhost:7082/v1/education/manifest",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
             "personIdPosition": "body",
             "bodyTemplate": {
-              "recordType": "education.attendance",
-              "personId": "{personId}"
+              "recordType": "personal.details",
+              "personId": "{personId}",
+              "orgId": "education-01"
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
-              "scopes": [ "find-record.read fetch-record.read" ]
-            }
-          }
-        },
-        {
-          "recordType": "education.exclusion",
-          "connection": {
-            "method": "POST",
-            "url": "http://localhost:7082/v1/education/manifest",
-            "personIdPosition": "body",
-            "bodyTemplate": {
-              "recordType": "education.exclusion",
-              "personId": "{personId}"
-            },
-            "auth": {
-              "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
-              "scopes": [ "find-record.read fetch-record.read" ]
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
             }
           }
         }
@@ -128,7 +122,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "education_ptr", "attendance_ptr", "exclusion_ptr" ],
+            "recordTypes": [ "education.details" , "personal.details"],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -136,7 +130,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "attendance_record", "exclusion_record" ],
+            "recordTypes": [ "education.details", "personal.details" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION" ],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -146,7 +140,7 @@
           {
             "effect": "deny",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "attendance_record", "exclusion_record" ],
+            "recordTypes": [ "education.details" ],
             "destOrgTypes": [ "VOLUNTARY" ],
             "purposes": [ "GENERAL_ENQUIRY" ]
           }
@@ -165,29 +159,14 @@
       "orgType": "HEALTH",
       "records": [
         {
-          "recordType": "health",
+          "recordType": "health.details",
           "connection": {
             "method": "GET",
-            "url": "http://localhost:7082/v1/health/children/{personId}/manifest?type=health",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/health-01/{personId}?type=health.details",
             "personIdPosition": "path",
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
-              "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
-              "clientSecret": "SUIProject"
-            }
-          }
-        },
-        {
-          "recordType": "health.mental-health",
-          "connection": {
-            "method": "GET",
-            "url": "http://localhost:7082/v1/health/children/{personId}/manifest?type=health.mental-health",
-            "personIdPosition": "path",
-            "auth": {
-              "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
@@ -201,7 +180,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "health_ptr", "mental_health_ptr" ],
+            "recordTypes": [ "health.details" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -209,8 +188,8 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "health_record", "mental_health_record" ],
-            "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY" ],
+            "recordTypes": [ "health.details" ],
+            "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY", "EDUCATION" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
           }
@@ -230,14 +209,19 @@
       "orgType": "POLICE",
       "records": [
         {
-          "recordType": "crime-justice",
+          "recordType": "crime-justice.details",
           "connection": {
             "method": "POST",
-            "url": "http://localhost:7082/v1/police/locate/{personId}",
-            "personIdPosition": "path",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
+            "personIdPosition": "body",
+            "bodyTemplate": {
+              "recordType": "crime-justice.details",
+              "personId": "{personId}",
+              "orgId": "police-01"
+            },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
               "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
@@ -251,7 +235,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "police_ptr" ],
+            "recordTypes": [ "crime-justice.details" ],
             "destOrgTypes": [ "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -259,7 +243,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "police_record" ],
+            "recordTypes": [ "crime-justice.details" ],
             "destOrgTypes": [ "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -269,7 +253,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE", "CONTENT" ],
-            "dataTypes": [ "police_ptr", "police_record" ],
+            "recordTypes": [ "crime-justice.details" ],
             "destOrgIds": [ "LOCAL-AUTHORITY-01" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-12-01T00:00:00Z",
@@ -282,71 +266,6 @@
         "algorithm": "AES-256-CBC",
         "keyId": "POLICE-01-KEY-1",
         "key": "hVVOB+IwSa3VXQs9AD90XM6j4Q2wk1HJ5FdV5nbedlI="
-      }
-    },
-
-    {
-      "orgId": "HOUSING-01",
-      "orgName": "Example Housing Custodian",
-      "orgType": "HOUSING",
-      "records": [
-        {
-          "recordType": "housing",
-          "connection": {
-            "method": "GET",
-            "url": "http://localhost:7082/v1/housing/manifest/{personId}/housing",
-            "personIdPosition": "path",
-            "auth": {
-              "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
-              "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
-              "clientSecret": "SUIProject"
-            }
-          }
-        },
-        {
-          "recordType": "housing.homelessness",
-          "connection": {
-            "method": "GET",
-            "url": "http://localhost:7082/v1/housing/manifest/{personId}/housing.homelessness",
-            "personIdPosition": "path",
-            "auth": {
-              "type": "oauth2_client_credentials",
-              "tokenUrl": "http://localhost:7082/v1/auth/token",
-              "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
-              "clientSecret": "SUIProject"
-            }
-          }
-        }
-      ],
-      "dsaPolicy": {
-        "version": "2025-11-10T12:00:00Z",
-        "defaults": [
-          {
-            "effect": "allow",
-            "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "housing_ptr", "homelessness_ptr" ],
-            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
-            "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
-            "validFrom": "2025-01-01T00:00:00Z"
-          },
-          {
-            "effect": "allow",
-            "modes": [ "CONTENT" ],
-            "dataTypes": [ "housing_record", "homelessness_record" ],
-            "destOrgTypes": [ "LOCAL_AUTHORITY", "HOUSING" ],
-            "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "HOUSING_SUPPORT" ],
-            "validFrom": "2025-01-01T00:00:00Z"
-          }
-        ],
-        "exceptions": []
-      },
-      "encryption": {
-        "algorithm": "AES-256-CBC",
-        "keyId": "HOUSING-01-KEY-1",
-        "key": "MNDT3oAYRDadaPNO8hyntQLSagFQ9mpLVeD4Eq8JV4U="
       }
     }
   ]

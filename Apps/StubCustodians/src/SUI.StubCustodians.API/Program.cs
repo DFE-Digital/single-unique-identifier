@@ -1,9 +1,10 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
-using SUI.Custodians.Domain.Models;
-using SUI.StubCustodians.API.OpenApiTransformers;
+using SUI.StubCustodians.API.OpenApi;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Services;
+using SUI.StubCustodians.Infrastructure.Extensions;
+using SUI.StubCustodians.Infrastructure.Services;
 
 namespace SUI.StubCustodians.API
 {
@@ -15,10 +16,13 @@ namespace SUI.StubCustodians.API
 
             builder.Services.AddControllers();
 
+            builder.UseOpenTelemetry();
+
             builder.Services.AddOpenApi(options =>
             {
                 options.AddSchemaTransformer<CustodiansOpenApiSchemaTransformer>();
                 options.AddDocumentTransformer<CustodiansOpenApiDocumentTransformer>();
+                options.AddDocumentTransformer<FindDocumentFilter>();
             });
 
             builder.Services.AddEndpointsApiExplorer();
@@ -43,7 +47,7 @@ namespace SUI.StubCustodians.API
                     setup.SubstituteApiVersionInUrl = true;
                 });
 
-            ConfigureServices(builder.Services, builder.Configuration);
+            ConfigureServices(builder.Services);
 
             var app = builder.Build();
 
@@ -65,38 +69,19 @@ namespace SUI.StubCustodians.API
                     }
                 });
             }
-
+            app.UseMiddleware<ScopeEnforcementMiddleware>();
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
         }
 
-        private static void ConfigureServices(
-            IServiceCollection services,
-            IConfiguration configuration
-        )
+        private static void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped(typeof(IRecordServiceHandler<>), typeof(RecordServiceHandler<>));
-
-            services.AddScoped<
-                IRecordProvider<PersonalDetailsRecordV1>,
-                PersonalDetailsRecordProvider
-            >();
-
-            services.AddScoped<
-                IRecordProvider<EducationDetailsRecordV1>,
-                EducationDetailsRecordProvider
-            >();
-
-            services.AddScoped<
-                IRecordProvider<ChildrensServicesDetailsRecordV1>,
-                ChildrensServicesDetailsRecordProvider
-            >();
-
-            services.AddScoped<IRecordProvider<CrimeDataRecordV1>, CrimeDataRecordProvider>();
-
-            services.AddScoped<IRecordProvider<HealthDataRecordV1>, HealthDataRecordProvider>();
+            services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(3, 10));
+            services.AddSingleton<IDataProvider, FileDataProvider>();
+            services.AddScoped<IManifestService, ManifestService>();
+            services.AddScoped<IRecordService, RecordService>();
         }
     }
 }

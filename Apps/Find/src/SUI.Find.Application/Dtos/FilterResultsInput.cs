@@ -6,7 +6,7 @@ public sealed record FilterResultsInput(
     string SourceOrgId,
     string DestOrgId,
     string DestOrgType,
-    IReadOnlyList<SearchResultItem> Items,
+    IReadOnlyList<CustodianSearchResultItem> Items,
     DsaPolicyDefinition DsaPolicy,
     string Purpose
 );

@@ -12,7 +12,7 @@ public class QueryProvidersService(
     IMaskUrlService maskUrlService
 ) : IQueryProvidersService
 {
-    public async Task<Result<IReadOnlyList<SearchResultItem>>> QueryProvidersAsync(
+    public async Task<Result<IReadOnlyList<CustodianSearchResultItem>>> QueryProvidersAsync(
         QueryProviderInput data,
         CancellationToken cancellationToken
     )
@@ -28,7 +28,7 @@ public class QueryProvidersService(
         if (!searchResultItemsResponse.Success || searchResultItemsResponse.Value == null)
         {
             logger.LogInformation("Get SearchResultItems From custodian service returned null");
-            return Result<IReadOnlyList<SearchResultItem>>.Fail(
+            return Result<IReadOnlyList<CustodianSearchResultItem>>.Fail(
                 "searchResultItemsResponse returned null"
             );
         }
@@ -41,6 +41,6 @@ public class QueryProvidersService(
             cancellationToken
         );
 
-        return Result<IReadOnlyList<SearchResultItem>>.Ok(maskedSearchResultItems);
+        return Result<IReadOnlyList<CustodianSearchResultItem>>.Ok(maskedSearchResultItems);
     }
 }

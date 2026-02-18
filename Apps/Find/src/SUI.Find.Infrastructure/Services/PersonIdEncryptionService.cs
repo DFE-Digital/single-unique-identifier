@@ -159,7 +159,7 @@ public class PersonIdEncryptionService(ILogger<PersonIdEncryptionService> logger
         Aes? aes = null;
         try
         {
-            // https://learn.microsoft.com/en-us/dotnet/api/System.Security.Cryptography.CipherMode?view=net-9.0
+            // https://learn.microsoft.com/en-us/dotnet/api/System.Security.Cryptography.CipherMode?view=net-10.0
             aes = Aes.Create();
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.None;

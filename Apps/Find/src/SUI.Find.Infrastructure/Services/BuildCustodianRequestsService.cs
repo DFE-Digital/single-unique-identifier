@@ -1,5 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
@@ -12,31 +14,45 @@ public class BuildCustodianRequestsService(
     IBuildCustodianHttpRequest requestBuilder,
     IProviderHttpClient providerHttpClient,
     IOutboundAuthService outboundAuthService,
-    IPersonIdEncryptionService encryptionService) : IBuildCustodianRequestService
+    IPersonIdEncryptionService encryptionService,
+    IOptions<EncryptionConfiguration> encryptionConfig
+) : IBuildCustodianRequestService
 {
-    public async Task<Result<List<SearchResultItem>>> GetSearchResultItemsFromCustodianAsync(BuildCustodianRequestDto data, CancellationToken cancellationToken)
+    public async Task<
+        Result<List<CustodianSearchResultItem>>
+    > GetSearchResultItemsFromCustodianAsync(
+        BuildCustodianRequestDto data,
+        CancellationToken cancellationToken
+    )
     {
-
-        if (data.Provider.Encryption is null)
+        var personId = string.Empty;
+        var encrypt = encryptionConfig.Value.EnablePersonIdEncryption;
+        if (data.Provider.Encryption is not null && encrypt)
         {
-            logger.LogError("Provider {ProviderDefinition} has no encryption configured", data.Provider);
-            return Result<List<SearchResultItem>>.Fail("Provider has no encryption configured");
-        }
-
-        var encryptedPersonId = encryptionService.EncryptNhsToPersonId(
-            data.Suid,
-            data.Provider.Encryption
-        );
-
-        if (!encryptedPersonId.Success)
-        {
-            logger.LogError(
-                "Encryption failed for provider {Provider}: {ErrorMessage}",
-                data.Provider.ProviderName,
-                encryptedPersonId.Error
+            var encryptedPersonId = encryptionService.EncryptNhsToPersonId(
+                data.Suid,
+                data.Provider.Encryption
             );
 
-            return Result<List<SearchResultItem>>.Fail(encryptedPersonId.Error ?? "Encryption of PersonId Failed");
+            if (!encryptedPersonId.Success)
+            {
+                logger.LogError(
+                    "Encryption failed for provider {Provider}: {ErrorMessage}",
+                    data.Provider.ProviderName,
+                    encryptedPersonId.Error
+                );
+
+                return Result<List<CustodianSearchResultItem>>.Fail(
+                    encryptedPersonId.Error ?? "Encryption of PersonId Failed"
+                );
+            }
+
+            if (encryptedPersonId.Value != null)
+                personId = encryptedPersonId.Value;
+        }
+        else
+        {
+            personId = data.Suid;
         }
 
         var tokenResult = await outboundAuthService.GetAccessTokenAsync(
@@ -52,12 +68,14 @@ public class BuildCustodianRequestsService(
                 tokenResult.Error
             );
 
-            return Result<List<SearchResultItem>>.Fail(tokenResult.Error ?? "Failed to obtain token");
+            return Result<List<CustodianSearchResultItem>>.Fail(
+                tokenResult.Error ?? "Failed to obtain token"
+            );
         }
 
         using var httpRequest = requestBuilder.BuildHttpRequest(
             data.Provider,
-            encryptedPersonId.Value!,
+            personId,
             tokenResult.Value
         );
 
@@ -71,13 +89,17 @@ public class BuildCustodianRequestsService(
                 responseResult.Error
             );
 
-            return Result<List<SearchResultItem>>.Fail(responseResult.Error ?? "Response from provider unsuccessful");
+            return Result<List<CustodianSearchResultItem>>.Fail(
+                responseResult.Error ?? "Response from provider unsuccessful"
+            );
         }
 
         if (string.IsNullOrWhiteSpace(responseResult.Value))
         {
             logger.LogInformation("Provider returned empty response");
-            return Result<List<SearchResultItem>>.Fail("Empty response returned by provider");
+            return Result<List<CustodianSearchResultItem>>.Fail(
+                "Empty response returned by provider"
+            );
         }
 
         var searchResultItems = JsonSerializer.Deserialize<List<SearchResultItem>>(
@@ -88,15 +110,15 @@ public class BuildCustodianRequestsService(
         if (searchResultItems is null || searchResultItems.Count == 0)
         {
             logger.LogInformation("No search result items found in service response");
-            return Result<List<SearchResultItem>>.Fail("No search result items");
+            return Result<List<CustodianSearchResultItem>>.Fail("No search result items");
         }
 
-        return Result<List<SearchResultItem>>.Ok(searchResultItems);
+        return Result<List<CustodianSearchResultItem>>.Ok(
+            searchResultItems
+                .Select(searchResultItem =>
+                    CustodianSearchResultItem.Create(data.Provider.OrgId, searchResultItem)
+                )
+                .ToList()
+        );
     }
 }
-
-
-
-
-
-

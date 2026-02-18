@@ -19,28 +19,28 @@ public class PolicyEnforcementService(
     )
     {
         var now = timeProvider.GetUtcNow();
-        var modeString = request.Mode == ShareMode.Existence ? "EXISTENCE" : "CONTENT";
-        var dataType = MapRecordTypeToDataType(request.RecordType, request.Mode);
+        var modeString = request.Mode.ToString();
+        var recordType = request.RecordType;
 
         // First look for exceptions as these take precedence
         var matchedRule = dsaPolicy.Exceptions.FirstOrDefault(exception =>
-            RuleMatches(exception, request, destOrgType, modeString, dataType, now)
+            RuleMatches(exception, request, destOrgType, modeString, recordType, now)
         );
 
         var isException = matchedRule is not null;
 
         // If no exception matched, look for default rules
         matchedRule ??= dsaPolicy.Defaults.FirstOrDefault(defaultRule =>
-            RuleMatches(defaultRule, request, destOrgType, modeString, dataType, now)
+            RuleMatches(defaultRule, request, destOrgType, modeString, recordType, now)
         );
 
         if (matchedRule == null)
         {
             logger.LogInformation(
-                "No matching rule found for {SourceOrg} -> {DestOrg}, dataType: {DataType}, mode: {Mode}, purpose: {Purpose}. Denying by default.",
+                "No matching rule found for {SourceOrg} -> {DestOrg}, recordType: {RecordType}, mode: {Mode}, purpose: {Purpose}. Denying by default.",
                 request.SourceOrgId,
                 request.DestinationOrgId,
-                dataType,
+                recordType,
                 request.Mode,
                 request.Purpose
             );
@@ -64,7 +64,8 @@ public class PolicyEnforcementService(
         );
 
         var ruleType = isException ? "exception" : "default";
-        var reason = $"Matched {ruleType} rule: effect={matchedRule.Effect}, dataType={dataType}";
+        var reason =
+            $"Matched {ruleType} rule: effect={matchedRule.Effect}, recordType={recordType}";
 
         logger.LogInformation(
             "Policy decision for {SourceOrg} -> {DestOrg}: {Decision}. Reason: {Reason}",
@@ -91,7 +92,7 @@ public class PolicyEnforcementService(
         string sourceOrgId,
         string destOrgId,
         string destOrgType,
-        IReadOnlyList<SearchResultItem> searchResultItems,
+        IReadOnlyList<CustodianSearchResultItem> searchResultItems,
         DsaPolicyDefinition dsaPolicy,
         string purpose,
         CancellationToken cancellationToken = default
@@ -122,7 +123,7 @@ public class PolicyEnforcementService(
         PolicyDecisionRequest request,
         string destOrgType,
         string modeString,
-        string dataType,
+        string recordType,
         DateTimeOffset now
     )
     {
@@ -131,7 +132,7 @@ public class PolicyEnforcementService(
             return false;
         }
 
-        if (!rule.DataTypes.Contains(dataType, StringComparer.OrdinalIgnoreCase))
+        if (!rule.RecordTypes.Contains(recordType, StringComparer.OrdinalIgnoreCase))
         {
             return false;
         }
@@ -176,25 +177,5 @@ public class PolicyEnforcementService(
         }
 
         return true;
-    }
-
-    // This is the only mapping logic between record types and data types where it is not purely configuration checking.
-    // It is based on the naming conventions we have for mock data types we have created.
-    // Very likely this will need to be revisited in the future if we have a more formal mapping or different naming conventions.
-    private static string MapRecordTypeToDataType(string recordType, ShareMode mode)
-    {
-        // Extract the specific record type (part after the first dot if present)
-        // e.g., "local-authority.children-social-care" → "children-social-care"
-        //       "health.mental-health" → "mental-health"
-        //       "crime-justice" → "crime-justice" (no change if no dot)
-        // This is because of the mock data type naming convention we have. Liable to change in the future.
-        var specificType = recordType.Contains('.')
-            ? recordType[(recordType.IndexOf('.') + 1)..]
-            : recordType;
-
-        // Normalize: replace dots and dashes with underscores
-        var normalized = specificType.Replace(".", "_").Replace("-", "_");
-
-        return mode == ShareMode.Existence ? $"{normalized}_ptr" : $"{normalized}_record";
     }
 }

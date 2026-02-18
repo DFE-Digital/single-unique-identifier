@@ -2,20 +2,80 @@ name: Find E2E Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      manual_run_ephemeral:
+        description: e2e test 'ephemeral' environment
+        default: true
+        type: boolean
+      manual_run_dev:
+        description: e2e test 'dev' environment
+        default: false
+        type: boolean
+  
+  deployment_status:
+
   push:
     branches:
       - main
     paths:
       - "Apps/Find/**"
+      - "Apps/StubCustodians/**"
+      - .github/workflows/find-e2e-tests.yml
+
   pull_request:
     branches:
       - main
     paths:
       - "Apps/Find/**"
+      - "Apps/StubCustodians/**"
+      - .github/workflows/find-e2e-tests.yml
+
+concurrency:
+  # Do not allow e2e tests to run concurrently against dev
+  group: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
+  cancel-in-progress: false
 
 jobs:
-  e2e-test:
+  # For manual workflow runs (workflow_dispatch) give the user the option of where to run against (ephemeral/dev/both)
+  # Otherwise, always run against ephemeral environment, and also run against dev environment after successful deployment to dev.
+  eval-workflow-setup:
     runs-on: ubuntu-latest
+    steps:
+      - id: eval
+        name: Evaluate Workflow Setup
+        env:
+          RUN_EPHEMERAL: ${{ (github.event_name != 'workflow_dispatch' && github.event_name != 'deployment_status') || inputs.manual_run_ephemeral == true }}
+          RUN_DEV: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true }}
+        run: |
+          echo
+          echo "run_ephemeral=$RUN_EPHEMERAL" >> "$GITHUB_OUTPUT"
+          echo "run_dev=$RUN_DEV" >> "$GITHUB_OUTPUT"
+
+          echo "---- GitHub Context Info: ----"
+          echo "github.event_name: ${{ github.event_name || '(no value)' }}"
+          echo "github.event.deployment_status.state: ${{ github.event.deployment_status.state || '(no value)' }}"
+          echo "github.event.deployment.environment: ${{ github.event.deployment.environment || '(no value)' }}"
+          echo "inputs.manual_run_ephemeral: ${{ inputs.manual_run_ephemeral || '(no value)' }}"
+          echo "inputs.manual_run_dev: ${{ inputs.manual_run_dev || '(no value)' }}"
+          echo
+          echo "---- Evaluated Workflow Setup: ----"
+          echo "RUN_EPHEMERAL: $RUN_EPHEMERAL"
+          echo "RUN_DEV: $RUN_DEV"
+    outputs:
+      run_ephemeral: ${{ steps.eval.outputs.run_ephemeral }}
+      run_dev: ${{ steps.eval.outputs.run_dev }}
+
+  e2e-test-ephemeral:
+    needs: eval-workflow-setup
+    runs-on: ubuntu-latest
+    if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
+    services:
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports:
+          - 10000:10000
+          - 10001:10001
+          - 10002:10002
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -23,66 +83,57 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "9.0.x"
-
-      - name: Install node
-        uses: actions/setup-node@v6
-        with:
-          node-version: lts/*
+          global-json-file: global.json
 
       - name: Install Azure Functions Core Tools
         run: npm i -g azure-functions-core-tools@4
 
-      - name: Install Azurite
-        run: npm install -g azurite
-
-      - name: run azurite
-        run: azurite --silent &
-
-      - name: Build Solution
+      - name: Build Find Solution
         run: dotnet build Apps/Find/SUI.Find.slnx
 
-      - name: Create local.settings.json for Custodian Simulator
-        run: |
-          cp Apps/Find/src/SUI.Find.CustodianSimulation/example.local.settings.json \
-             Apps/Find/src/SUI.Find.CustodianSimulation/local.settings.json
+      - name: Build StubCustodians Solution
+        run: dotnet build Apps/StubCustodians/SUI.StubCustodians.slnx
 
       - name: Create local.settings.json for Find API
         run: |
           cp Apps/Find/src/SUI.Find.FindApi/example.local.settings.json \
              Apps/Find/src/SUI.Find.FindApi/local.settings.json
 
-      - name: Start Custodian Simulator
-        run: func start --port 7082 &
-        working-directory: Apps/Find/src/SUI.Find.CustodianSimulation
+      - name: Start StubCustodians API
+        run: dotnet run --launch-profile http &
+        working-directory: Apps/StubCustodians/src/SUI.StubCustodians.API
 
       - name: Start Find API
         run: func start --port 7182 &
+        env:
+          StubCustodiansBaseUrl: http://localhost:5193
         working-directory: Apps/Find/src/SUI.Find.FindApi
 
-      - name: Wait for Find API to start
+      - name: Run E2E Tests (against ephemeral environment)
         run: |
-          for i in {1..30}; do
-           if curl -sf http://localhost:7182/api/health; then
-              echo "Find API is ready"
-              exit 0
-           fi
-            sleep 2
-          done
-          echo "Find API failed to start"
-          exit 1
+          dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
+            --logger "console;verbosity=detailed" \
+            -e E2E__BaseUrl=http://localhost:7182/api/ \
+            -e E2E__StubCustodiansBaseUrl=http://localhost:5193/api/ \
+            -e E2E__SkipResetAzureTables=False
 
-      - name: Wait for Custodian Simulator to start
+  e2e-test-dev:
+    needs: eval-workflow-setup
+    runs-on: ubuntu-latest
+    if: needs.eval-workflow-setup.outputs.run_dev == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      
+      - name: Run E2E Tests (against dev environment)
         run: |
-          for i in {1..30}; do
-           if curl -sf http://localhost:7082/status; then
-              echo "Custodian API is ready"
-              exit 0
-           fi
-            sleep 2
-          done
-          echo "Custodian API failed to start"
-          exit 1
-
-      - name: Run E2E Tests
-        run: dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj
+          dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
+            --logger "console;verbosity=detailed" \
+            -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ \
+            -e E2E__StubCustodiansBaseUrl=https://s270d01app-ukw-custodians01.azurewebsites.net/api/ \
+            -e E2E__SkipResetAzureTables=True

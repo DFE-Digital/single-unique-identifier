@@ -1,5 +1,9 @@
 name: 'Build, Test, Deploy: "Find" Solution'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
     inputs:
@@ -37,8 +41,11 @@ jobs:
       pull-requests: write
       checks: write
       packages: read
+      actions: write
     with:
       directory_name: Apps/Find
+      project_names: '["SUI.Find.FindApi","SUI.Find.AuditProcessor"]'
+      requires_azurite: true
 
   deploy-Find:
     name: Find - Deploy Function App
@@ -50,7 +57,23 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      directory_name: Apps/Find
+      artifact_name: ${{ fromJson(needs.build-and-test-Find.outputs.artifact_names)['SUI.Find.FindApi'] }}
       component_descriptor: find01
-      project_path: Apps/Find/src/SUI.Find.FindApi/SUI.Find.FindApi.csproj
       package_path: publish
-      dotnet_version: "9.0.x"
+
+  deploy-find-audit:
+    name: Audit processor - Deploy Function App
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs:
+      - build-and-test-Find
+    uses: ./.github/workflows/deploy-dotnet-functionapp.yml
+    secrets: inherit
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      directory_name: Apps/Find
+      artifact_name: ${{ fromJson(needs.build-and-test-Find.outputs.artifact_names)['SUI.Find.AuditProcessor'] }}
+      component_descriptor: findaudit01
+      package_path: publish

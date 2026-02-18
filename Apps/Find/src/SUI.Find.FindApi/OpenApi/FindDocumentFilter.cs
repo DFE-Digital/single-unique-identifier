@@ -34,6 +34,31 @@ public sealed class FindDocumentFilter : IDocumentFilter
             },
         };
 
+        document.Components.SecuritySchemes["x-api-key"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.ApiKey,
+            In = ParameterLocation.Header,
+            Name = "x-api-key",
+            Description = "API Key for authentication",
+        };
+
+        var operationIdHeader = new OpenApiHeader
+        {
+            Description = "Primary trace ID for the whole operation",
+            Schema = new OpenApiSchema { Type = "string" },
+            Example = new OpenApiString("082d58852e3244eed72f52f41e0f8045"),
+        };
+
+        var invocationIdHeader = new OpenApiHeader
+        {
+            Description = "Secondary trace ID for the whole operation",
+            Schema = new OpenApiSchema { Type = "string" },
+            Example = new OpenApiString("a49d73e8-dc36-4be5-92a6-9bf62868aa99"),
+        };
+
+        document.Components.Headers["Operation-Id"] = operationIdHeader;
+        document.Components.Headers["Invocation-Id"] = invocationIdHeader;
+
         var oauthRequirement = new OpenApiSecurityRequirement
         {
             [
@@ -43,6 +68,20 @@ public sealed class FindDocumentFilter : IDocumentFilter
                     {
                         Type = ReferenceType.SecurityScheme,
                         Id = "oauth2_clientCredentials",
+                    },
+                }
+            ] = Array.Empty<string>(),
+        };
+
+        var apiKeyRequirement = new OpenApiSecurityRequirement
+        {
+            [
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "x-api-key",
                     },
                 }
             ] = Array.Empty<string>(),
@@ -58,6 +97,14 @@ public sealed class FindDocumentFilter : IDocumentFilter
                 || route.StartsWith("openapi")
                 || route.StartsWith("swagger");
 
+            bool isMatchEndpoint = route.Contains("matchperson");
+
+            var hasTraceHeaders = !(
+                route.EndsWith("health")
+                || route.StartsWith("openapi")
+                || route.StartsWith("swagger")
+            );
+
             foreach (var op in pathItem.Operations.Values)
             {
                 if (isPublic)
@@ -66,7 +113,27 @@ public sealed class FindDocumentFilter : IDocumentFilter
                     continue;
                 }
 
-                op.Security = new List<OpenApiSecurityRequirement> { oauthRequirement };
+                if (isMatchEndpoint)
+                {
+                    op.Security = new List<OpenApiSecurityRequirement>
+                    {
+                        oauthRequirement,
+                        apiKeyRequirement,
+                    };
+                }
+                else
+                {
+                    op.Security = new List<OpenApiSecurityRequirement> { oauthRequirement };
+                }
+
+                if (hasTraceHeaders)
+                {
+                    foreach (var responseHeaders in op.Responses.Values.Select(x => x.Headers))
+                    {
+                        responseHeaders["Operation-Id"] = operationIdHeader;
+                        responseHeaders["Invocation-Id"] = invocationIdHeader;
+                    }
+                }
             }
         }
 

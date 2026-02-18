@@ -1,0 +1,14 @@
+﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\SUI.Custodians.API.Client\SUI.Custodians.API.Client.csproj" />
+    <Project Path="src\SUI.Custodians.Domain\SUI.Custodians.Domain.csproj" />
+    <Project Path="src\SUI.StubCustodians.API\SUI.StubCustodians.API.csproj" />
+    <Project Path="src\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />
+    <Project Path="src\SUI.StubCustodians.Infrastructure\SUI.StubCustodians.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\SUI.StubCustodians.API.Unit.Tests\SUI.StubCustodians.API.Unit.Tests.csproj" />
+    <Project Path="tests\SUI.StubCustodians.Application.Unit.Tests\SUI.StubCustodians.Application.Unit.Tests.csproj" />
+    <Project Path="tests\SUI.StubCustodians.Infrastructure.Unit.Tests\SUI.StubCustodians.Infrastructure.Unit.Tests.csproj" />
+  </Folder>
+</Solution>

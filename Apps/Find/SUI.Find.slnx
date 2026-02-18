@@ -1,14 +1,16 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src\SUI.Find.Application\SUI.Find.Application.csproj" Type="Classic C#" />
-    <Project Path="src\SUI.Find.CustodianSimulation\SUI.Find.CustodianSimulation.csproj" Type="Classic C#" />
+    <Project Path="src/SUI.Find.AuditProcessor/SUI.Find.AuditProcessor.csproj" />
+    <Project Path="src\SUI.Find.Application\SUI.Find.Application.csproj" />
     <Project Path="src\SUI.Find.Domain\SUI.Find.Domain.csproj" />
     <Project Path="src\SUI.Find.FindApi\SUI.Find.FindApi.csproj" />
     <Project Path="src\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests\SUI.Find.ApplicationTests\SUI.Find.ApplicationTests.csproj" />
-    <Project Path="tests\SUI.Find.Domain.UnitTests\SUI.Find.Domain.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="tests/SUI.Find.AuditProcessor.UnitTests/SUI.Find.AuditProcessor.UnitTests.csproj" />
+    <Project Path="tests/SUI.Find.Infrastructure.IntegrationTests/SUI.Find.Infrastructure.IntegrationTests.csproj" />
+    <Project Path="tests/SUI.Find.Application.UnitTests/SUI.Find.Application.UnitTests.csproj" />
+    <Project Path="tests\SUI.Find.Domain.UnitTests\SUI.Find.Domain.UnitTests.csproj" />
     <Project Path="tests\SUI.Find.E2ETests\SUI.Find.E2ETests.csproj" />
     <Project Path="tests\SUI.Find.FindApi.IntegrationTests\SUI.Find.FindApi.IntegrationTests.csproj" />
     <Project Path="tests\SUI.Find.FindApi.UnitTests\SUI.Find.FindApi.UnitTests.csproj" />

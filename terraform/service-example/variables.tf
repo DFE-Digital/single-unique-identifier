@@ -29,7 +29,7 @@ variable "product" {
 }
 
 variable "service_offering" {
-  description = "Service_Offering tag value."
+  description = "Service Offering tag value."
   type        = string
 }
 
@@ -53,7 +53,7 @@ variable "app_settings" {
 variable "webapp_dotnet_version" {
   description = "Dotnet version for the web app stack."
   type        = string
-  default     = "8.0"
+  default     = "10.0"
 }
 
 variable "app_service_plan_sku" {

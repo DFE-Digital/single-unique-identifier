@@ -1,5 +1,9 @@
 name: 'Build, Test, Deploy: "SingleView" Solution'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
     inputs:
@@ -37,8 +41,10 @@ jobs:
       pull-requests: write
       checks: write
       packages: read
+      actions: write
     with:
       directory_name: Apps/SingleView
+      project_names: '["SUI.SingleView.Web"]'
 
   deploy-singleview:
     name: SingleView - Deploy Web App
@@ -50,7 +56,7 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      directory_name: Apps/SingleView
+      artifact_name: ${{ fromJson(needs.build-and-test-SingleView.outputs.artifact_names)['SUI.SingleView.Web'] }}
       component_descriptor: singleview01
-      project_path: Apps/SingleView/src/SUI.SingleView.Web/SUI.SingleView.Web.csproj
       package_path: publish
-      dotnet_version: "9.0.x"

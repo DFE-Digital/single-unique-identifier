@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
@@ -8,9 +9,14 @@ public class E2ETestBase
 {
     protected readonly FunctionTestFixture Fixture;
 
-    protected E2ETestBase(FunctionTestFixture fixture)
+    protected readonly ITestOutputHelper TestOutputHelper;
+
+    protected E2ETestBase(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
     {
         Fixture = fixture;
+        TestOutputHelper = testOutputHelper;
+
+        TestOutputHelper.WriteLine(Fixture.Config.ToString());
     }
 
     protected async Task<string?> GetAuthTokenAsync(
@@ -37,6 +43,12 @@ public class E2ETestBase
 
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64Auth);
 
+        TestOutputHelper.WriteLine(
+            "Requesting access token from: {0}{1}",
+            Fixture.Client.BaseAddress,
+            request.RequestUri
+        );
+
         var response = await Fixture.Client.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
@@ -46,6 +58,8 @@ public class E2ETestBase
         }
 
         var result = await response.Content.ReadFromJsonAsync<JsonElement>();
-        return result.GetProperty("access_token").GetString();
+        var accessToken = result.GetProperty("access_token").GetString();
+        TestOutputHelper.WriteLine("Access token received OK");
+        return accessToken;
     }
 }

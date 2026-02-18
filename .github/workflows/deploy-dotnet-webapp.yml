@@ -7,6 +7,14 @@ on:
         description: Target environment (tfvars name, e.g. d01)
         required: true
         type: string
+      directory_name:
+        description: Directory name used for artifact naming
+        required: true
+        type: string
+      artifact_name:
+        description: Name of the build artifact to download
+        required: true
+        type: string
       web_app_name:
         description: Optional full Azure Web App name override (when set, no name is computed).
         required: false
@@ -16,15 +24,6 @@ on:
         description: Component descriptor (optionally including instance) used in the computed name (e.g. singleview01).
         required: false
         default: ""
-        type: string
-      project_path:
-        description: Path to the web project (*.csproj)
-        required: true
-        type: string
-      dotnet_version:
-        description: Dotnet version to use
-        required: false
-        default: "9.0.x"
         type: string
       package_path:
         description: Publish output directory
@@ -43,6 +42,7 @@ permissions:
   id-token: write
   contents: read
   packages: read
+  actions: read
 
 jobs:
   deploy:
@@ -51,7 +51,7 @@ jobs:
     environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
-      AZURE_WEBAPP_PACKAGE_PATH: ${{ inputs.package_path }}
+      AZURE_WEBAPP_PACKAGE_PATH: ${{ inputs.package_path }}/${{ inputs.artifact_name }}
       ARM_USE_OIDC: true
 
     steps:
@@ -84,24 +84,14 @@ jobs:
           fi
           echo "webapp_name=$webapp_name" >> "$GITHUB_OUTPUT"
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+      - name: Download build artifact
+        uses: actions/download-artifact@v7
         with:
-          dotnet-version: ${{ inputs.dotnet_version }}
-
-      - name: Publish web app
-        run: |
-          dotnet publish ${{ inputs.project_path }} \
-            -c Release \
-            -o $AZURE_WEBAPP_PACKAGE_PATH
-
-      - name: Archive package
-        run: |
-          cd $AZURE_WEBAPP_PACKAGE_PATH
-          zip -r ../webapp.zip .
+          name: ${{ inputs.artifact_name }}
+          path: ${{ inputs.package_path }}/${{ inputs.artifact_name }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ steps.app_name.outputs.webapp_name }}
-          package: webapp.zip
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}

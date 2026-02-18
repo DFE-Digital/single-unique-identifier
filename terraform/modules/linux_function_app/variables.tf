@@ -44,7 +44,7 @@ variable "ftps_state" {
 variable "dotnet_version" {
   description = "Dotnet version for the function app stack."
   type        = string
-  default     = "8.0"
+  default     = "10.0"
 }
 
 variable "environment_tag" {
@@ -60,7 +60,7 @@ variable "product" {
 }
 
 variable "service_offering" {
-  description = "Service_Offering tag value."
+  description = "Service Offering tag value."
   type        = string
   default     = null
 }
@@ -75,4 +75,10 @@ variable "app_settings" {
   description = "Additional app settings to apply to the function app."
   type        = map(string)
   default     = {}
+}
+
+variable "application_insights_connection_string" {
+  description = "Optional. Specifies the connection string that the function app should use to connect to Application Insights for telemetry and logging."
+  type        = string
+  default     = null
 }

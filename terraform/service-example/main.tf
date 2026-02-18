@@ -34,6 +34,11 @@ module "web_app" {
   service_offering = var.service_offering
 
   dotnet_version = var.webapp_dotnet_version
-  app_settings   = var.app_settings
+  app_settings = merge(
+    {
+      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
+    },
+    var.app_settings,
+  )
   tags           = var.tags
 }
