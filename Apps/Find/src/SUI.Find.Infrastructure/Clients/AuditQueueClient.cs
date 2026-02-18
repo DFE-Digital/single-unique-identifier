@@ -11,7 +11,10 @@ public class AuditQueueClient(
     IQueueClientFactory queueClientFactory
 ) : IAuditQueueClient
 {
-    public async Task SendAuditEventAsync(AuditEvent auditMessage, CancellationToken cancellationToken)
+    public async Task SendAuditEventAsync(
+        AuditEvent auditMessage,
+        CancellationToken cancellationToken
+    )
     {
         var queueClient = queueClientFactory.GetAuditClient();
         var messageJson = JsonSerializer.Serialize(auditMessage, JsonSerializerOptions.Web);
