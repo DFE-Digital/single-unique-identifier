@@ -1,3 +1,4 @@
+using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Models;
 using SUI.Find.Infrastructure.Services;
 
@@ -42,9 +43,10 @@ public static class StartSearchRequestValidator
         }
         else
         {
-            if (request.Suid.Length != 10)
+            var nhsId = NhsPersonId.Create(request.Suid);
+            if (!nhsId.Success)
             {
-                errorMessage = "NHS Number is not valid";
+                errorMessage = nhsId.Error ?? "NHS Number is not valid";
                 return false;
             }
         }
