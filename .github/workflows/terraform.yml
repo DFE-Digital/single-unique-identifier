@@ -11,6 +11,7 @@ on:
         type: choice
         options:
           - d01
+          - d02
       apply:
         description: Apply changes (otherwise plan only)
         required: true
