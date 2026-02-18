@@ -10,6 +10,7 @@
       "recordType": "childrens-services.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
+      "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
         "keyWorker": "Alex Patel",
         "dutyContactDetails": [
@@ -57,6 +58,7 @@
       "recordType": "personal.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.v1.json",
+      "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
         "firstName": "Octavia",
         "lastName": "Chislett",
@@ -100,6 +102,7 @@
       "recordType": "personal.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
+      "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
         "firstName": "Briar",
         "lastName": "Anderton",
@@ -135,6 +138,7 @@
       "recordType": "personal.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
+      "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
         "firstName": "Red",
         "lastName": "Flindall",

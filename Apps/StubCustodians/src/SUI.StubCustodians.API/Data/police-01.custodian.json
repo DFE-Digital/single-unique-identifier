@@ -10,6 +10,7 @@
       "recordType": "crime-justice.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/crime-justice.details.v1.json",
+      "systemId": "POLICE-SYSTEM-01",
       "payload": {
         "policeMarkerDetails": "Individuals at the address may resort to violent behaviour",
         "servicesKnownTo": [

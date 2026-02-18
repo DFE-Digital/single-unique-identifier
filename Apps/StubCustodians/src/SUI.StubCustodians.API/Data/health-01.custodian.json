@@ -10,6 +10,7 @@
       "recordType": "health.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/health.details.v1.json",
+      "systemId": "HEALTH-SYSTEM-01",
       "payload": {
         "registeredGPName": "Dr E Green",
         "RegisteredGPSurgery": "Duke Medical Centre",
@@ -60,6 +61,7 @@
       "recordType": "health.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/health.details.v1.json",
+      "systemId": "HEALTH-SYSTEM-01",
       "payload": {
         "registeredGPName": "Dr E Green",
         "RegisteredGPSurgery": "Duke Medical Centre",

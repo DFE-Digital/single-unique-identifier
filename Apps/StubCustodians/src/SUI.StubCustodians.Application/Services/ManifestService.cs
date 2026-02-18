@@ -22,7 +22,7 @@ public class ManifestService(IDataProvider store) : IManifestService
                 RecordType: r.RecordType,
                 RecordUrl: BuildRecordUrl(baseUrl, orgId, r.RecordType, r.RecordId),
                 RecordId: r.RecordId,
-                SystemId: null // TODO: enrich some of the sample data with a SystemId property and some example values
+                SystemId: r.SystemId
             ))
             .ToList();
 

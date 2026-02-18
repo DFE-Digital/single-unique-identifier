@@ -8,5 +8,6 @@ public sealed class CustodianRecord
     public string RecordType { get; set; } = default!;
     public int Version { get; set; }
     public string SchemaUri { get; set; } = default!;
+    public string SystemId { get; set; } = default!;
     public System.Text.Json.JsonElement Payload { get; set; }
 }
