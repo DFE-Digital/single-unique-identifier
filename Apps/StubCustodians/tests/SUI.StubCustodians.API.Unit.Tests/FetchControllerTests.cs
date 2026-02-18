@@ -70,8 +70,25 @@ namespace SUI.StubCustodians.API.Unit.Tests
 
             var childrensServicesRecord =
                 result.Value as RecordEnvelope<ChildrensServicesDetailsRecord>;
+
             Assert.NotNull(childrensServicesRecord);
             Assert.Equal(record.SchemaUri, childrensServicesRecord.SchemaUri);
+            Assert.Equal(record.RecordLink.Title, childrensServicesRecord.RecordLink.Title);
+            Assert.Equal(record.RecordLink.Url, childrensServicesRecord.RecordLink.Url);
+            Assert.Equal(record.ContactDetails.Name, childrensServicesRecord.ContactDetails.Name);
+            Assert.Equal(
+                record.ContactDetails.Address,
+                childrensServicesRecord.ContactDetails.Address
+            );
+            Assert.Equal(
+                record.ContactDetails.Description,
+                childrensServicesRecord.ContactDetails.Description
+            );
+            Assert.Equal(record.ContactDetails.Email, childrensServicesRecord.ContactDetails.Email);
+            Assert.Equal(
+                record.ContactDetails.Telephone,
+                childrensServicesRecord.ContactDetails.Telephone
+            );
             Assert.Equal(record.Payload.KeyWorker, childrensServicesRecord.Payload.KeyWorker);
         }
 
