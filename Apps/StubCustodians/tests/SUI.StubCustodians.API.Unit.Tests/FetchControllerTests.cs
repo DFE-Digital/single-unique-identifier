@@ -34,6 +34,19 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 PersonId = personId,
                 RecordType = recordType,
                 Version = version,
+                ContactDetails = new ContactDetails
+                {
+                    Name = "John Doe",
+                    Description = "John Doe",
+                    Email = "test@test.com",
+                    Address = "1 test street",
+                    Telephone = "0123456789",
+                },
+                RecordLink = new RecordLink
+                {
+                    Title = "Test Link",
+                    Url = "https://www.example.gov.uk/",
+                },
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -76,6 +89,19 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
+                ContactDetails = new ContactDetails
+                {
+                    Name = "John Doe",
+                    Description = "John Doe",
+                    Email = "test@test.com",
+                    Address = "1 test street",
+                    Telephone = "0123456789",
+                },
+                RecordLink = new RecordLink
+                {
+                    Title = "Test Link",
+                    Url = "https://www.example.gov.uk/",
+                },
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -118,6 +144,19 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
+                ContactDetails = new ContactDetails
+                {
+                    Name = "John Doe",
+                    Description = "John Doe",
+                    Email = "test@test.com",
+                    Address = "1 test street",
+                    Telephone = "0123456789",
+                },
+                RecordLink = new RecordLink
+                {
+                    Title = "Test Link",
+                    Url = "https://www.example.gov.uk/",
+                },
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -164,6 +203,19 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
+                ContactDetails = new ContactDetails
+                {
+                    Name = "John Doe",
+                    Description = "John Doe",
+                    Email = "test@test.com",
+                    Address = "1 test street",
+                    Telephone = "0123456789",
+                },
+                RecordLink = new RecordLink
+                {
+                    Title = "Test Link",
+                    Url = "https://www.example.gov.uk/",
+                },
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -206,6 +258,19 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
+                ContactDetails = new ContactDetails
+                {
+                    Name = "John Doe",
+                    Description = "John Doe",
+                    Email = "test@test.com",
+                    Address = "1 test street",
+                    Telephone = "0123456789",
+                },
+                RecordLink = new RecordLink
+                {
+                    Title = "Test Link",
+                    Url = "https://www.example.gov.uk/",
+                },
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -247,6 +312,19 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
+                ContactDetails = new ContactDetails
+                {
+                    Name = "John Doe",
+                    Description = "John Doe",
+                    Email = "test@test.com",
+                    Address = "1 test street",
+                    Telephone = "0123456789",
+                },
+                RecordLink = new RecordLink
+                {
+                    Title = "Test Link",
+                    Url = "https://www.example.gov.uk/",
+                },
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),

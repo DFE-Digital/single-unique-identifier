@@ -35,6 +35,8 @@ public class RecordService(IDataProvider dataProvider, IConfiguration configurat
             RecordType = orgRecord.RecordType,
             Version = orgRecord.Version,
             SchemaUri = new Uri(orgRecord.SchemaUri),
+            ContactDetails = orgRecord.ContactDetails,
+            RecordLink = orgRecord.RecordLink,
             Payload = personRecord,
         };
         return result;

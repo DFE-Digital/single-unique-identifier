@@ -608,6 +608,32 @@
         },
         "additionalProperties": false
       },
+      "ContactDetails": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "description": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "telephone": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "email": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "address": {
+            "type": "string",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
       "ManifestRequest": {
         "required": [
           "orgId",
@@ -710,7 +736,9 @@
           "schemaUri",
           "recordType",
           "version",
-          "payload"
+          "payload",
+          "contactDetails",
+          "recordLink"
         ],
         "type": "object",
         "properties": {
@@ -744,6 +772,26 @@
           },
           "payload": {
             "$ref": "#/components/schemas/SuiRecord"
+          },
+          "contactDetails": {
+            "$ref": "#/components/schemas/ContactDetails"
+          },
+          "recordLink": {
+            "$ref": "#/components/schemas/RecordLink"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RecordLink": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "title": {
+            "type": "string",
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
