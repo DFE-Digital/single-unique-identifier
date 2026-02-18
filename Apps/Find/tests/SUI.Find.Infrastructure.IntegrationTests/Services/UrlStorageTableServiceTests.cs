@@ -122,7 +122,7 @@ public class UrlStorageTableServiceTests : IAsyncLifetime
     {
         // ARRANGE
         var correctOrg = "ABCDE12345";
-        var wrongOrg = "ZZZZZ99999";
+        var wrongOrg = "ABCDE99999"; // same first 5 chars, different full org
         var fetchId = $"Fetch_{Guid.NewGuid()}";
 
         await _sut.AddAsync(
