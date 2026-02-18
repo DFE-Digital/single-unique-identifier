@@ -3,9 +3,7 @@ name: Dependabot PR formatter
 # This pipeline is designed to run against only Dependabot's PRs and apply the csharpier formatting to them, specifically so that the changes to the csproj XML files are formatted to the repo's standards.
 
 on:
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: write
