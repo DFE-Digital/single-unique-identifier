@@ -1,7 +1,7 @@
 # Single Unique Identifier
 
 This repository is a mono repo that contains multiple .NET solutions, each organised under its own directory.
-.NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring seperation of concerns, maintainability and testability.
+.NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring separation of concerns, maintainability and testability.
 
 To view our documentation, please visit the [Docs](/Docs/index.md) directory.
 
@@ -15,7 +15,7 @@ To view our documentation, please visit the [Docs](/Docs/index.md) directory.
 
 ## What is 'Single Unique Identifier'?
 
-Single Unique Identifier is a proposed set of systems and standards to faciliate information
+Single Unique Identifier is a proposed set of systems and standards to facilitate information
 sharing between multiple agencies for the improved safeguarding and welfare of children.
 
 ## Glossary of Components
@@ -35,6 +35,16 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 
 * **`StubCustodians`** (a.k.a. *`Stubs`*) \
   Stub API that simulates real Custodians, to provide example data to Find and Fetch for testing purposes.
+
+## Record Types Reference
+
+| C# Type Name                     | Record Type ID             | Schema URI                                                                |
+|----------------------------------|----------------------------|---------------------------------------------------------------------------|
+| `ChildrensServicesDetailsRecord` | childrens-services.details | https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json  |
+| `CrimeDataRecord`                | crime-justice.details      | https://schemas.example.gov.uk/sui/CrimeDataRecordV1.json                 |
+| `EducationDetailsRecord`         | education.details          | https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json          |
+| `HealthDataRecord`               | health.details             | https://schemas.example.gov.uk/sui/HealthDataRecordV1.json                |
+| `PersonalDetailsRecord`          | personal.details           | https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json           |
 
 ## Getting Started
 
@@ -83,7 +93,7 @@ If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
 ## Repository structure
 
-Each solution is self-contained and follows a consistant structure:
+Each solution is self-contained and follows a consistent structure:
 
 ```
 Apps/AppOrComponentName/
@@ -132,7 +142,7 @@ click on your photo in the top right > click Settings > Developer Settings > Per
 click generate new token (classic) > add a note to describe the token > set an expiration date >
 check the 'write:packages' permission > click Generate token.
 
-Save a copy on the token on your machine incase you need it in the future.
+Save a copy on the token on your machine in case you need it in the future.
 
 ### JetBrains Rider IDE
 
