@@ -55,11 +55,7 @@ The only material difference from Option B is the absence of encryption or decry
   "theme": "default",
   "themeVariables": {
     "background": "#ffffff",
-    "primaryTextColor": "#000000",
-    "secondaryTextColor": "#000000",
-    "tertiaryTextColor": "#000000",
-    "lineColor": "#000000",
-    "sequenceNumberColor": "#000000"
+    "textColor": "#000000"
   }
 }}%%
 sequenceDiagram

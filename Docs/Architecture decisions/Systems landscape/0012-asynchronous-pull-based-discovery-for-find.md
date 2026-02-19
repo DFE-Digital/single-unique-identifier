@@ -196,22 +196,10 @@ processing, optional provisional signals, and incremental result availability.
 
 ```mermaid
 %%{init: {
-  "theme": "base",
+  "theme": "default",
   "themeVariables": {
-    "primaryColor": "#ffffff",
-    "secondaryColor": "#ffffff",
-    "tertiaryColor": "#ffffff",
-    "primaryBorderColor": "#000000",
-    "lineColor": "#000000",
-    "primaryTextColor": "#000000",
-    "secondaryTextColor": "#000000",
-    "tertiaryTextColor": "#000000",
-    "actorBkg": "#ffffff",
-    "actorBorder": "#000000",
-    "noteBkgColor": "#ffffff",
-    "noteBorderColor": "#000000",
-    "activationBkgColor": "#ffffff",
-    "activationBorderColor": "#000000"
+    "background": "#ffffff",
+    "textColor": "#000000"
   }
 }}%%
 sequenceDiagram

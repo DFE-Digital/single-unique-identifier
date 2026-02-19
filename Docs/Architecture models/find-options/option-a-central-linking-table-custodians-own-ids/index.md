@@ -56,13 +56,10 @@ Record retrieval through FETCH works in the same way as Option B: FIND mediates 
 
 ```mermaid
 %%{init: {
-  "theme": "base",
+  "theme": "default",
   "themeVariables": {
     "background": "#ffffff",
-    "primaryTextColor": "#000000",
-    "secondaryTextColor": "#000000",
-    "tertiaryTextColor": "#000000",
-    "lineColor": "#000000"
+    "textColor": "#000000"
   }
 }}%%
 sequenceDiagram
