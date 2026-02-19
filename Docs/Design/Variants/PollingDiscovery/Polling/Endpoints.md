@@ -31,7 +31,7 @@ It covers:
 | Endpoint | Purpose | Notes |
 |---|---|---|
 | `POST /work/claim` | Atomically claim the next available work item and obtain a lease | **Canonical** polling mechanism |
-| `POST /work/{workItemId}/result` | Submit the result for a leased work item (completes it) | Must validate lease ownership and expiry |
+| `POST /work/{workItemId}/result` | Submit the result for a leased work item (accepted for async processing) | Validates lease ownership and expiry; enqueues result |
 | `POST /work/{workItemId}/lease/renew` | Renew the lease for an in-progress work item | **Optional** capability |
 | `HEAD /work/available` | Advisory signal that work is likely available | **Optional**, not relied upon for correctness |
 
@@ -57,7 +57,7 @@ Server MUST:
 
 - accept and propagate trace context,
 - log Trace ID as canonical correlation identifier,
-- include `workItemId` and `jobId` as log fields.
+- include `workItemId`, `jobId`, and `leaseId` as log fields.
 
 ### 2.3 Cache control (mandatory)
 
@@ -74,7 +74,7 @@ This applies to **all** responses including errors (`400/401/403/409/429/503`).
 
 ### 2.4 Backoff signalling
 
-- For “no work”: return `204 No Content` and include `Retry-After: <seconds>`.
+- For “no work”: return `204 No Content` and SHOULD include `Retry-After: <seconds>`.
 - For throttling: return `429 Too Many Requests` and include `Retry-After: <seconds>`.
 - For transient service issues: return `503 Service Unavailable` and MAY include `Retry-After: <seconds>`.
 
@@ -86,7 +86,7 @@ Clients MUST honour `Retry-After` and apply jittered backoff.
   - A retry MAY return the same leased item if the server can correlate and deduplicate.
   - Otherwise, the server MUST ensure the caller cannot accidentally claim multiple concurrent items beyond its policy/limits.
 - `POST /work/{workItemId}/result` SHOULD be idempotent:
-  - Repeated identical submissions for a completed work item SHOULD return `200 OK` (or `409 Conflict` if the server cannot safely treat it as idempotent).
+  - Repeated identical submissions for a completed work item SHOULD return `202 Accepted` (or `409 Conflict` if the server cannot safely treat it as idempotent).
 - `POST /work/{workItemId}/lease/renew` SHOULD be idempotent within a short window (renewing a valid lease multiple times results in the same or extended expiry).
 
 ### 2.6 HTTP/2
@@ -108,8 +108,8 @@ No body required.
 
 **Responses**
 
-- `201 Created` — work item claimed; response includes lease expiry.
-- `204 No Content` — no work available; includes `Retry-After`.
+- `201 Created` — work item claimed; response includes lease metadata and expiry.
+- `204 No Content` — no work available; SHOULD include `Retry-After`.
 - `401 Unauthorized` / `403 Forbidden` — auth/authZ failure.
 - `429 Too Many Requests` — caller must slow down; includes `Retry-After`.
 - `503 Service Unavailable` — transient service issue; MAY include `Retry-After`.
@@ -120,6 +120,7 @@ No body required.
 {
   "workItemId": "abc123",
   "jobId": "job789",
+  "leaseId": "lease456",
   "sui": "9434765919",
   "leaseExpiresUtc": "2026-02-17T12:34:56Z"
 }
@@ -127,10 +128,13 @@ No body required.
 
 ---
 
-### 3.2 `POST /work/{workItemId}/result` (Submit and complete)
+### 3.2 `POST /work/{workItemId}/result` (Submit result; accepted for async processing)
 
 **Purpose**  
-Submit the result of processing a previously leased work item and mark it **complete**.
+Submit the result of processing a previously leased work item.
+
+**Behaviour**  
+The API validates the lease and enqueues the result for asynchronous processing (`JobResultsInbound`). Domain writes (for example inserting `SearchResults`) occur in the queue processor.
 
 **Requirements**
 
@@ -139,18 +143,29 @@ Server MUST validate:
 - the work item exists,
 - the work item is currently leased,
 - the lease is owned by the authenticated custodian,
-- the lease has not expired.
+- the lease has not expired,
+- the submitted `leaseId` matches the current lease.
 
 If lease validation fails, server MUST return `409 Conflict`.
+
+**Result payload shape**
+
+Result payloads vary by `JobType`.
+
+- For `JobType = CustodianLookup` (search fan-out), the request SHOULD include `records[]` of `{ systemId, recordType, recordUrl }`.
+- For other job types, the request MAY omit `records[]` and instead supply a job-specific `payload` object.
 
 **Request body**
 
 ```json
 {
+  "jobId": "job789",
+  "leaseId": "lease456",
   "resultType": "HasRecords",
   "records": [
     {
-      "type": "SAFEGUARDING_PTR",
+      "systemId": "cust-123",
+      "recordType": "SAFEGUARDING_PTR",
       "recordUrl": "https://custodian.example/records/xyz"
     }
   ]
@@ -159,7 +174,7 @@ If lease validation fails, server MUST return `409 Conflict`.
 
 **Responses**
 
-- `200 OK` — accepted and completed.
+- `202 Accepted` — validated and enqueued.
 - `400 Bad Request` — invalid payload/schema.
 - `401 Unauthorized` / `403 Forbidden` — auth/authZ failure.
 - `409 Conflict` — lease invalid/expired or not owned by caller.
@@ -176,8 +191,14 @@ Extend the lease for a work item that is still being processed.
 **Important**  
 This endpoint is optional. If not implemented in Alpha, custodians MUST complete processing before `leaseExpiresUtc` and submit the result within the existing lease duration.
 
-**Request**  
-No body required.
+**Request body**
+
+```json
+{
+  "jobId": "job789",
+  "leaseId": "lease456"
+}
+```
 
 **Responses**
 
@@ -210,7 +231,7 @@ This endpoint MUST NOT be relied upon for correctness. It is advisory and subjec
 **Responses**
 
 - `200 OK` — work likely available at evaluation time.
-- `204 No Content` — no work available at evaluation time; includes `Retry-After`.
+- `204 No Content` — no work available at evaluation time; SHOULD include `Retry-After`.
 - `401 Unauthorized` / `403 Forbidden` — auth/authZ failure.
 - `429 Too Many Requests` — includes `Retry-After`.
 - `503 Service Unavailable` — transient service issue; MAY include `Retry-After`.
@@ -229,7 +250,7 @@ sequenceDiagram
     loop Poll for work
         C->>F: POST /work/claim (Authorization, traceparent)
         alt Work available
-            F-->>C: 201 {workItemId, jobId, sui, leaseExpiresUtc}<br/>Cache-Control:no-store...<br/>Vary:Authorization
+            F-->>C: 201 {workItemId, jobId, leaseId, sui, leaseExpiresUtc}<br/>Cache-Control:no-store...<br/>Vary:Authorization
             C->>S: Perform local lookup for SUI
             S-->>C: Result (records/no records/error)
 
@@ -239,9 +260,9 @@ sequenceDiagram
             end
 
             C->>F: POST /work/{workItemId}/result (Authorization, traceparent)
-            F-->>C: 200 OK<br/>Cache-Control:no-store...<br/>Vary:Authorization
+            F-->>C: 202 Accepted<br/>Cache-Control:no-store...<br/>Vary:Authorization
         else No work
-            F-->>C: 204 No Content<br/>Retry-After: N<br/>Cache-Control:no-store...<br/>Vary:Authorization
+            F-->>C: 204 No Content<br/>Retry-After: N (optional)<br/>Cache-Control:no-store...<br/>Vary:Authorization
             Note over C: Wait N seconds (with jitter), then poll again
         else Throttled
             F-->>C: 429 Too Many Requests<br/>Retry-After: N<br/>Cache-Control:no-store...<br/>Vary:Authorization
@@ -263,9 +284,10 @@ If you implement the optional availability probe, it can sit before `/work/claim
 openapi: 3.0.3
 info:
   title: FIND Custodian Polling API
-  version: 0.2.0
+  version: 0.3.0
   description: |
     Polling endpoints for custodians to claim discovery work under a lease, optionally renew a lease, and submit results.
+    Result submission is accepted for asynchronous processing (queued) and is safe under retries when implemented idempotently.
 
 servers:
   - url: https://find.example.gov.uk
@@ -284,8 +306,8 @@ paths:
       summary: Claim the next available work item (atomic lease)
       description: |
         Atomically selects and leases the next available work item for the authenticated custodian.
-        Returns 204 when no work exists, with Retry-After to guide backoff.
-        Signals backpressure with 429, and transient service issues with 503 (Retry-After may be present).
+        Returns 204 when no work exists (Retry-After may be present).
+        Signals backpressure with 429 (Retry-After present), and transient service issues with 503 (Retry-After may be present).
       operationId: claimWork
       parameters:
         - name: traceparent
@@ -315,7 +337,7 @@ paths:
           headers:
             Retry-After:
               schema: { type: integer, minimum: 0 }
-              description: Backoff duration in seconds.
+              description: Backoff duration in seconds (may be omitted).
             Cache-Control: { schema: { type: string } }
             Pragma: { schema: { type: string } }
             Expires: { schema: { type: string } }
@@ -385,7 +407,7 @@ paths:
           headers:
             Retry-After:
               schema: { type: integer, minimum: 0 }
-              description: Backoff duration in seconds.
+              description: Backoff duration in seconds (may be omitted).
             Cache-Control: { schema: { type: string } }
             Pragma: { schema: { type: string } }
             Expires: { schema: { type: string } }
@@ -427,10 +449,10 @@ paths:
   /work/{workItemId}/result:
     post:
       tags: [Work]
-      summary: Submit result for a leased work item (completes it)
+      summary: Submit result for a leased work item (accepted for async processing)
       description: |
-        Submits the outcome of processing a leased work item and marks it complete.
-        The server validates lease ownership and expiry.
+        Submits the outcome of processing a leased work item. The server validates lease ownership and expiry.
+        On success, the result is enqueued for asynchronous processing and the request returns 202.
       operationId: submitWorkResult
       parameters:
         - name: workItemId
@@ -452,8 +474,8 @@ paths:
             schema:
               $ref: "#/components/schemas/WorkResultRequest"
       responses:
-        "200":
-          description: Accepted and completed
+        "202":
+          description: Accepted and enqueued for processing
           headers:
             Cache-Control: { schema: { type: string } }
             Pragma: { schema: { type: string } }
@@ -528,6 +550,12 @@ paths:
           in: header
           required: false
           schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeaseRenewRequest"
       responses:
         "200":
           description: Lease renewed
@@ -598,7 +626,7 @@ components:
   schemas:
     WorkClaimResponse:
       type: object
-      required: [workItemId, jobId, sui, leaseExpiresUtc]
+      required: [workItemId, jobId, leaseId, sui, leaseExpiresUtc]
       properties:
         workItemId:
           type: string
@@ -606,6 +634,9 @@ components:
         jobId:
           type: string
           description: Identifier of the discovery job this work item belongs to.
+        leaseId:
+          type: string
+          description: Lease identifier required for renew and result submission.
         sui:
           type: string
           description: Subject identifier used for discovery (e.g. NHS number).
@@ -613,6 +644,17 @@ components:
           type: string
           format: date-time
           description: UTC timestamp when the lease expires.
+
+    LeaseRenewRequest:
+      type: object
+      required: [jobId, leaseId]
+      properties:
+        jobId:
+          type: string
+          description: Identifier of the discovery job this work item belongs to.
+        leaseId:
+          type: string
+          description: Lease identifier being renewed.
 
     LeaseRenewResponse:
       type: object
@@ -628,29 +670,39 @@ components:
 
     WorkResultRequest:
       type: object
-      required: [resultType]
+      required: [jobId, leaseId, resultType]
       properties:
+        jobId:
+          type: string
+          description: Identifier of the discovery job this work item belongs to.
+        leaseId:
+          type: string
+          description: Lease identifier under which the result is being submitted.
         resultType:
           type: string
           enum: [HasRecords, NoRecords, TemporaryError, PermanentError]
         records:
           type: array
           items:
-            $ref: "#/components/schemas/RecordPointer"
-          description: Present when resultType=HasRecords.
+            $ref: "#/components/schemas/SearchRecordPointer"
+          description: Present when resultType=HasRecords for search fan-out jobs.
+        payload:
+          type: object
+          additionalProperties: true
+          description: Optional job-type specific payload for non-search job types.
 
-    RecordPointer:
+    SearchRecordPointer:
       type: object
-      required: [type, recordUrl]
+      required: [systemId, recordType, recordUrl]
       properties:
-        type:
+        systemId:
           type: string
-          description: Record type identifier.
+          description: Custodian-local identifier for the subject.
+        recordType:
+          type: string
+          description: Logical record type identifier.
         recordUrl:
           type: string
           format: uri
           description: URL to retrieve the record (pointer only).
 ```
-
-
-
