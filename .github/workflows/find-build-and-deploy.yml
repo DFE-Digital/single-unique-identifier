@@ -47,6 +47,7 @@ jobs:
       directory_name: Apps/Find
       project_names: '["SUI.Find.FindApi","SUI.Find.AuditProcessor"]'
       requires_azurite: true
+      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
   deploy-Find:
     name: Find - Deploy Function App
