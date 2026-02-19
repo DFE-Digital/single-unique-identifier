@@ -25,7 +25,7 @@ The Alpha baseline uses **Azure Table Storage as the single source of truth** fo
 
 Redis is **not** part of the Alpha baseline. It is explicitly deferred as an optional optimisation to suppress idle reads if telemetry proves it is needed.
 
-This ADR covers broker/storage only. It does not redefine endpoint semantics (see ADR‑SUI‑0018).
+This ADR covers broker/storage only. It does not redefine endpoint semantics (see ADR-SUI-0018).
 
 ---
 
@@ -40,22 +40,39 @@ This ADR assumes enterprise deployments behind proxies and load balancers, and s
 
 ---
 
-## 2. Non‑Negotiable Requirements
+## 2. Non-Negotiable Requirements
 
-### 2.1 Correctness invariant
+### 2.1 Core correctness rule
 
-At any moment, a job SHALL be leased to at most one custodian.
+At any moment, a single job must be actively assigned (leased) to no more than one custodian.  
+
+It must not be possible for two custodians to process the same job at the same time.
+
+Where multiple custodians are required to carry out the same task, the task shall be represented by multiple independent jobs.
+
+Competing claim attempts for the same job must result in exactly one successful claim and all other attempts being rejected in a deterministic manner.
+
 
 ### 2.2 Minimal state maintenance
 
-- Lease expiry MUST NOT require a background process to “flip state back”.  
-- Polling MUST NOT require repeated multi-step reads in the idle case.  
-- Writes MUST be limited to the moments where progress occurs (enqueue, claim, complete, explicit renew if enabled).
+The design must not depend on background maintenance processes to keep job state correct.
 
-### 2.3 Partition‑scoped access patterns
+Specifically:
 
-- “Find me work for custodian X” MUST be achievable without full-table scans.  
-- Any scaling strategy MUST be explicit about hot partitions and sharding.
+- When a lease expires, the job must automatically become eligible for re-claim based solely on its stored timestamps. No background task should be required to reset flags or update state.
+- In the common “no work available” case, polling must require only a single read operation.
+- Write operations must occur only when meaningful progress happens (job creation, successful claim, completion, or explicit lease renewal if enabled).
+
+The system must avoid periodic sweepers, cleanup daemons, or repair jobs as part of normal operation.
+
+
+### 2.3 Partition-scoped access patterns
+
+When a custodian requests work, the system must be able to locate eligible jobs by querying only that custodian’s partition in Table Storage.
+
+The design must avoid scanning the entire table across all custodians.
+
+If one custodian generates significantly more traffic than others, the design must allow explicit scaling of partitions for that custodian. Any such scaling approach must be deliberate, observable, and operationally controlled.
 
 ---
 
@@ -63,11 +80,15 @@ At any moment, a job SHALL be leased to at most one custodian.
 
 ### 3.1 Alpha baseline decision
 
-FIND SHALL store durable job metadata and lease state in **Azure Table Storage** using a single authoritative table (`FindJobs`).
+FIND SHALL store durable job metadata and lease state in **Azure Table Storage** using a single authoritative table (`Jobs`).
 
-Leasing SHALL be represented as **lease overlay fields** (owner/id/expiry). The lifecycle state SHALL remain separate and SHALL NOT require a “Leased” state that must be reverted on expiry.
+Leasing SHALL be represented as **lease overlay fields** (id/expiry). The lifecycle SHALL be represented using timestamps rather than state transitions.
 
 All claim/complete transitions SHALL be enforced using optimistic concurrency (ETag + `If-Match`). Where two claimers race, one update succeeds and the other fails deterministically (`412 Precondition Failed`).
+
+Azure Table Storage assigns an `ETag` to every entity version. When a job is read, its current `ETag` is returned. Claim and completion updates are performed using `If-Match` with that `ETag`, meaning the update will only succeed if the entity has not been modified since it was read. If another claimant updates the entity first, the `ETag` changes and the second update fails with `412 Precondition Failed`. This provides deterministic lease exclusivity without distributed locks.
+
+Jobs older than a rolling 72 hour window SHALL be ignored for polling selection. Reinsertion or escalation of such jobs is treated as a separate operational concern outside this ADR.
 
 ### 3.2 Deferred optimisation
 
@@ -80,11 +101,13 @@ Redis MAY be introduced later only to suppress idle reads and reduce claim laten
 Azure Table Storage is selected because it supports the Alpha requirements with minimal operational overhead:
 
 - **Deterministic exclusivity without locks:** optimistic concurrency provides a clean “winner/loser” claim outcome under contention, avoiding distributed locks.  
+- **Horizontal scalability aligned to access pattern:** Table Storage scales by partition. Because work is partitioned by custodian and polling is partition-scoped, the workload naturally aligns with the storage model and can scale out predictably.  
+- **Cost model aligned to Alpha learning:** Table Storage is consumption-based and transaction-priced, with no database engine to provision or maintain. This keeps fixed costs low while allowing throughput to scale with demand.  
 - **Low operational burden:** no database engine to patch/tune; capacity planning is simpler during Alpha learning.  
 - **Entity-centric model fit:** the job and lease are naturally modelled as a single entity with atomic transitions.  
 - **Minimal write amplification:** the baseline requires no additional index tables and no background maintenance tasks.
 
-Table Storage is not chosen because it is universally best; it is chosen because it is sufficient for Alpha while keeping the architecture simple and defendable.
+Table Storage is not chosen because it is universally best; it is chosen because it is sufficient for Alpha while keeping the architecture simple, economical, and defendable.
 
 ---
 
@@ -104,61 +127,76 @@ Relational queues provide strong transactional semantics and mature patterns. Th
 
 ## 6. Storage Model
 
-### 6.1 Table: `FindJobs` (authoritative)
+### 6.1 Table: `Jobs` (authoritative)
 
 One entity per job.
 
 #### Keys
 
-- `PartitionKey`: `custodianId|shard`  
-- `RowKey`: `{CreatedAtUtcTicks:D20}|{jobId}`
+- `PartitionKey`: `custodianId`  
+- `RowKey`: `{CreatedAtUtcTicks:D20}|{JobId}`
 
-The RowKey embeds a monotonic time prefix to support stable “oldest-first” selection within a partition without secondary indexes.
+The RowKey embeds a monotonic time prefix to support stable “oldest-first” selection within a partition.
+
+The RowKey begins with a fixed-width UTC ticks prefix. Because Azure Table Storage performs lexicographic comparisons on RowKey values, range queries using the ticks prefix (for example `RowKey >= "{windowStartTicks:D20}|"`) remain fully constrained by time. The `{JobId}` suffix does not affect the ability to bound scans by time; it exists only to guarantee uniqueness and stable ordering within identical tick values.
 
 #### Properties
 
 | Property | Type | Meaning |
 |---|---|---|
-| State | string | `Ready`, `Completed`, `Failed` |
-| NextVisibleAtUtc | datetime | When the job becomes claimable again |
-| LeaseOwner | string? | Custodian identifier that holds the current lease |
-| LeaseId | string? | Unique lease token |
+| JobId | string | The id of the job |
+| SearchId | string | Business correlation identifier |
+| LeaseId | string? | Current lease identifier |
 | LeaseExpiresAtUtc | datetime? | Lease end time |
 | AttemptCount | int | Number of times the job has been claimed |
 | CreatedAtUtc | datetime | Creation timestamp |
 | UpdatedAtUtc | datetime | Last update timestamp |
-| PayloadRef | string | Pointer to payload (e.g. blob key) if payload is large |
-| CorrelationId | string | Trace/audit correlation |
+| CompletedAtUtc | datetime? | When the job was confirmed as completed |
+| PayloadType | string | The job type |
+| PayloadJson | string | Payload JSON |
+| JobTraceParent | string? | Stored trace context seed |
 
-#### Core idea: visibility is time-based, not state-based
+#### Core idea: visibility is time-based
 
 A job is claimable when:
 
-- `State = Ready`  
-- AND `NextVisibleAtUtc <= now`
+- `CompletedAtUtc` is null
+- AND `AttemptCount <= maxAttempts`
+- AND (`LeaseExpiresAtUtc` is null OR `LeaseExpiresAtUtc < now`)
 
-When a lease is acquired, the system sets:
+Jobs older than 72 hours are out of scope for polling selection. In Table Storage this is enforced by restricting the query to RowKeys within the 72 hour window (because RowKey is prefixed with creation ticks).
 
-- `NextVisibleAtUtc = LeaseExpiresAtUtc`
+### 6.2 Table: `FindJobResults`
 
-This means the job becomes invisible purely by moving `NextVisibleAtUtc` forward. When the lease expires, the job becomes eligible again automatically because time moves on. No background work is required.
+Results are stored separately to optimise aggregation by job.
 
-This avoids the “who flips State back on expiry?” trap entirely.
+#### Keys
+
+- `PartitionKey`: `JobId`  
+- `RowKey`: `{custodianId}|{SubmittedAtUtcTicks:D20}`
+
+#### Properties
+
+| Property | Type | Meaning |
+|---|---|---|
+| SearchId | string | Business correlation identifier |
+| LeaseId | string | Lease under which result was submitted |
+| SubmittedAtUtc | datetime | Submission time |
+| ResultJson | string | Result payload |
+| CustodianCorrelationId | string? | Custodian diagnostic correlation |
+| ResultTraceParent | string? | Inbound trace context if supplied |
 
 ---
 
 ## 7. Access Patterns and Transaction Counts
 
-This section is deliberately explicit because the “minimal transactions” requirement is critical.
-
 ### 7.1 Enqueue a job (progress event)
 
 **Transactions:** 1 write
 
-Insert `FindJobs` entity:
+Insert `Jobs` entity:
 
-- `State = Ready`
-- `NextVisibleAtUtc = now`
+- `CreatedAtUtc = now`
 - `AttemptCount = 0`
 - Lease fields null
 
@@ -167,82 +205,49 @@ Insert `FindJobs` entity:
 **Idle case (no work)**  
 **Transactions:** 1 query
 
-Query within `custodianId|shard` partition:
+Query within `custodianId` partition:
 
-- Filter: `State == "Ready" AND NextVisibleAtUtc <= now`
+- Filter: `RowKey >= windowStartTicks`
 - Order: by RowKey (natural)
-- Top: 1
+- Page until first eligible entity found
 
-If no entity returned: respond `204`.
+If none found: respond `204`.
 
 **Successful claim**  
 **Transactions:** 1 query + 1 conditional update
 
 For the selected entity, attempt conditional update (`If-Match` ETag):
 
-- `LeaseOwner = custodianId`
 - `LeaseId = new GUID`
 - `LeaseExpiresAtUtc = now + leaseDuration`
-- `NextVisibleAtUtc = LeaseExpiresAtUtc`
 - `AttemptCount = AttemptCount + 1`
 - `UpdatedAtUtc = now`
 
-If conditional update fails (`412`), treat as a lost race and return `204` or retry once with the next candidate (policy defined in ADR‑SUI‑0018).
+If conditional update fails (`412`), continue scanning for next eligible candidate (bounded by policy defined in ADR-SUI-0018).
 
 ### 7.3 Complete a job (progress event)
 
 **Transactions:** 1 conditional update
 
-- `State = Completed` (or `Failed`)
-- Optionally clear lease fields
+- `CompletedAtUtc = now`
 - `UpdatedAtUtc = now`
 
 ### 7.4 Renew a lease (optional)
-
-Renew is optional for Alpha and SHOULD only exist if processing time can exceed the lease duration.
 
 **Transactions:** 1 conditional update
 
 - Verify `LeaseId` matches
 - Extend `LeaseExpiresAtUtc`
-- Set `NextVisibleAtUtc = LeaseExpiresAtUtc`
 
-If renew is not implemented, the job simply becomes eligible again after expiry.
+If renew is not implemented, the job becomes eligible again after expiry (within the 72 hour window).
 
 ---
 
-## 8. Partitioning and Sharding Strategy
+## 8. Partitioning Strategy
 
-Azure Table throughput is partition-bound. The baseline therefore makes sharding explicit in the PartitionKey from day one.
+Azure Table throughput is partition-bound. The baseline uses one partition per custodian (`PartitionKey = custodianId`).
 
-### 8.1 Baseline
-
-- Start with a single shard per custodian: `custodianId|00`.
-
-### 8.2 Scaling via shards (when needed)
-
-If a custodian becomes hot, introduce more shards:
-
-- `custodianId|00`, `custodianId|01`, `custodianId|02`, …
-
-**Shard assignment for new jobs** is deterministic:
-
-- `shard = hash(jobId) mod N`
-
-**Claim selection across shards** remains simple for Alpha:
-
-- The API tries a small bounded set of shards per poll (e.g. round‑robin starting point per instance).  
-- The shard count is configuration, not implicit behaviour.
-
-The intent is to keep queries partition-scoped while retaining the ability to spread load if a single custodian becomes a throughput hotspot.
-
-### 8.3 Telemetry triggers
-
-Shard introduction decisions are driven by telemetry:
-
-- sustained claim latency increases  
-- partition throttling signals  
-- elevated retry rates on Table operations  
+Further partitioning MAY be introduced later if telemetry indicates sustained partition throttling.
 
 ---
 
@@ -254,12 +259,9 @@ Alpha SHALL rely on:
 
 - `204` responses when no work exists  
 - `429` / `503` with `Retry-After` when throttling is required  
-- mandatory client jitter/backoff (defined in ADR‑SUI‑0018)
+- mandatory client jitter/backoff (defined in ADR-SUI-0018)
 
-Redis is deferred because introducing it by default increases operational surface area. If telemetry later shows that idle Table queries are too expensive, Redis can be introduced as a **read-suppressing hint layer**:
-
-- “there is likely work for custodian X”  
-- “here are candidate job IDs”
+Redis is deferred because introducing it by default increases operational surface area. If telemetry later shows that idle Table queries are too expensive, Redis can be introduced as a read-suppressing hint layer.
 
 Even then, Table remains authoritative for claims.
 
@@ -268,13 +270,13 @@ Even then, Table remains authoritative for claims.
 ## 10. Failure Modes
 
 **Lease expiry**  
-No action required. Eligibility returns automatically because `NextVisibleAtUtc` is in the past once the lease expires.
+No action required. Eligibility returns automatically when `LeaseExpiresAtUtc < now` (subject to the 72 hour window).
 
 **Concurrent claim attempts**  
 Resolved deterministically by conditional update (`412` on loser). Correctness preserved.
 
-**Stale candidate selection**  
-If a candidate is returned but the conditional update fails, the system returns `204` or retries once. No correctness impact.
+**Stale jobs beyond window**  
+Jobs older than 72 hours are not considered for polling. Operational reinsertion is external to this ADR.
 
 **Table throttling**  
 Surfaced through `429`/`503` and client backoff.
@@ -288,7 +290,7 @@ No correctness impact; system falls back to Table-only behaviour.
 
 | Option | Correctness | Idle Efficiency | Operational Complexity | Fit for Alpha |
 |---|---|---|---|---|
-| Table-only (FindJobs with NextVisibleAtUtc) | ✅ Strong | ⚠️ Medium | ✅ Low | Recommended baseline |
+| Table-only (windowed selection) | ✅ Strong | ⚠️ Medium | ✅ Low | Recommended baseline |
 | Table + Redis hints | ✅ Strong | ✅ High | ⚠️ Medium–High | Introduce only if needed |
 | Service Bus + metadata store | ✅ Strong | ✅ High | ⚠️ Medium | Viable alternative model |
 | Postgres/SQL queue table | ✅ Strong | ✅ High | ⚠️ Medium | Viable but heavier |
@@ -303,7 +305,7 @@ The Alpha baseline is simple, deterministic, and cheap to operate. Lease expiry 
 
 ### Trade-offs
 
-Performance is strongly shaped by partition distribution. If one custodian becomes hot, sharding must be introduced. If idle polling becomes expensive, Redis may be justified as a later optimisation.
+Performance is shaped by partition distribution and window size. Jobs older than 72 hours require separate operational handling if still required.
 
 ---
 
@@ -312,7 +314,7 @@ Performance is strongly shaped by partition distribution. If one custodian becom
 ```mermaid
 flowchart TB
   Cust["Custodian outbound HTTPS"] --> API["FIND Polling API"]
-  API --> Jobs["Azure Table Storage<br/>FindJobs<br/>Authoritative job and lease state"]
-  API --> EH["Event Hubs<br/>Audit stream"]
+  API --> Jobs["Azure Table Storage<br/>Jobs<br/>Authoritative job and lease state"]
+  API --> Results["Azure Table Storage<br/>FindJobResults<br/>Results by JobId"]
   API -.->|optional| R["Redis<br/>Dispatch hints"]
 ```

@@ -218,13 +218,14 @@ HTTP/2 SHALL NOT be mandatory.
 ## 7. Decision
 1. FIND SHALL implement single-step atomic claim as the canonical polling mechanism.  
 2. `POST /work/claim` SHALL be the canonical poll endpoint and SHALL perform availability detection and lease acquisition as a single operation.  
-3. If work is available, the response SHOULD be `201 Created` with lease metadata and payload.  
+3. If work is available, the response SHOULD be `201 Created` with lease metadata and payload. The response SHALL include `jobId` and `leaseId`, and MAY include `searchId` and any client-provided correlation identifier.  
 4. If no work is available, the response SHALL be `204 No Content`.  
 5. Polling/lease responses SHOULD include `Cache-Control: no-store` to minimise proxy caching distortion risk in enterprise networks.  
 6. Backpressure SHALL be signalled using `429` and `503`, and MAY include `Retry-After`.  
 7. The system SHOULD accept and propagate W3C Trace Context (`traceparent`) for end-to-end correlation.  
 8. HEAD probing MAY be supported as advisory only. HEAD SHALL NOT be relied upon for correctness.  
-9. Long polling SHALL NOT be adopted as part of the Alpha baseline. Any future introduction of long polling SHALL be evaluated in a dedicated ADR focused on connection-bound operational constraints.
+9. Long polling SHALL NOT be adopted as part of the Alpha baseline. Any future introduction of long polling SHALL be evaluated in a dedicated ADR focused on connection-bound operational constraints.  
+10. Results submission endpoints MUST include `jobId` and `leaseId` so that result submission can be deterministically correlated with the lease that was issued.
 
 ---
 
@@ -242,7 +243,7 @@ HTTP/2 SHALL NOT be mandatory.
 
 ### Security and observability notes (minimal)
 - Custodian polling SHALL use TLS and token-based authentication; rate limiting SHOULD be enforced per custodian (`429`) with `Retry-After`.  
-- Metrics/traces/logs SHOULD record claim outcomes (`201` vs `204`), lease lifecycle (renew/complete/expire), and correlation IDs (`traceparent`).
+- Metrics/traces/logs SHOULD record claim outcomes (`201` vs `204`), lease lifecycle (renew/complete/expire), `jobId`, `leaseId`, and correlation IDs (`traceparent`).
 
 ---
 

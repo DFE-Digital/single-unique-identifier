@@ -1,5 +1,9 @@
 # Polling API Design: Custodian Work Claim and Result Submission
 
+Date: 18 February 2026  
+Owner: SUI Service Team  
+Scope: Custodian-facing polling, lease claim, optional lease renewal, and result submission for FIND pull-based discovery.
+
 This document describes the polling endpoints that enable custodians to pull discovery work from FIND, claim it under a lease, perform local lookup, and submit results.
 
 It covers:
@@ -27,7 +31,8 @@ It covers:
 | Endpoint | Purpose | Notes |
 |---|---|---|
 | `POST /work/claim` | Atomically claim the next available work item and obtain a lease | **Canonical** polling mechanism |
-| `POST /work/{workItemId}/result` | Submit the result for a leased work item | Must validate lease ownership and expiry |
+| `POST /work/{workItemId}/result` | Submit the result for a leased work item (completes it) | Must validate lease ownership and expiry |
+| `POST /work/{workItemId}/lease/renew` | Renew the lease for an in-progress work item | **Optional** capability |
 | `HEAD /work/available` | Advisory signal that work is likely available | **Optional**, not relied upon for correctness |
 
 ---
@@ -39,7 +44,7 @@ It covers:
 All endpoints require Bearer token authentication (unattended / M2M).
 
 - Custodian identity MUST be derived from the token.
-- Authorisation MUST ensure a custodian can only claim and submit for its own work.
+- Authorisation MUST ensure a custodian can only claim and submit/renew for its own work.
 
 ### 2.2 Tracing
 
@@ -65,14 +70,26 @@ Expires: 0
 Vary: Authorization
 ```
 
+This applies to **all** responses including errors (`400/401/403/409/429/503`).
+
 ### 2.4 Backoff signalling
 
 - For “no work”: return `204 No Content` and include `Retry-After: <seconds>`.
 - For throttling: return `429 Too Many Requests` and include `Retry-After: <seconds>`.
+- For transient service issues: return `503 Service Unavailable` and MAY include `Retry-After: <seconds>`.
 
 Clients MUST honour `Retry-After` and apply jittered backoff.
 
-### 2.5 HTTP/2
+### 2.5 Idempotency and retries
+
+- `POST /work/claim` MUST be safe under retries:
+  - A retry MAY return the same leased item if the server can correlate and deduplicate.
+  - Otherwise, the server MUST ensure the caller cannot accidentally claim multiple concurrent items beyond its policy/limits.
+- `POST /work/{workItemId}/result` SHOULD be idempotent:
+  - Repeated identical submissions for a completed work item SHOULD return `200 OK` (or `409 Conflict` if the server cannot safely treat it as idempotent).
+- `POST /work/{workItemId}/lease/renew` SHOULD be idempotent within a short window (renewing a valid lease multiple times results in the same or extended expiry).
+
+### 2.6 HTTP/2
 
 HTTP/2 MAY be enabled as a transport optimisation (connection multiplexing, reduced overhead under concurrency).  
 The API MUST remain fully functional over HTTP/1.1. Clients SHALL NOT be required to configure HTTP/2 explicitly.
@@ -91,12 +108,13 @@ No body required.
 
 **Responses**
 
-- `200 OK` — work item claimed; response includes lease expiry.
+- `201 Created` — work item claimed; response includes lease expiry.
 - `204 No Content` — no work available; includes `Retry-After`.
 - `401 Unauthorized` / `403 Forbidden` — auth/authZ failure.
 - `429 Too Many Requests` — caller must slow down; includes `Retry-After`.
+- `503 Service Unavailable` — transient service issue; MAY include `Retry-After`.
 
-**Response body (200)**
+**Response body (201)**
 
 ```json
 {
@@ -109,19 +127,21 @@ No body required.
 
 ---
 
-### 3.2 `POST /work/{workItemId}/result`
+### 3.2 `POST /work/{workItemId}/result` (Submit and complete)
 
 **Purpose**  
-Submit the result of processing a previously leased work item.
+Submit the result of processing a previously leased work item and mark it **complete**.
 
 **Requirements**
 
-- Server MUST validate:
-  - the work item exists,
-  - the work item is currently leased,
-  - the lease is owned by the authenticated custodian,
-  - the lease has not expired.
-- If lease validation fails, server MUST return `409 Conflict`.
+Server MUST validate:
+
+- the work item exists,
+- the work item is currently leased,
+- the lease is owned by the authenticated custodian,
+- the lease has not expired.
+
+If lease validation fails, server MUST return `409 Conflict`.
 
 **Request body**
 
@@ -139,14 +159,47 @@ Submit the result of processing a previously leased work item.
 
 **Responses**
 
-- `200 OK` — accepted.
+- `200 OK` — accepted and completed.
 - `400 Bad Request` — invalid payload/schema.
 - `401 Unauthorized` / `403 Forbidden` — auth/authZ failure.
 - `409 Conflict` — lease invalid/expired or not owned by caller.
+- `429 Too Many Requests` — includes `Retry-After`.
+- `503 Service Unavailable` — transient service issue; MAY include `Retry-After`.
 
 ---
 
-### 3.3 `HEAD /work/available` (Optional, advisory only)
+### 3.3 `POST /work/{workItemId}/lease/renew` (Optional)
+
+**Purpose**  
+Extend the lease for a work item that is still being processed.
+
+**Important**  
+This endpoint is optional. If not implemented in Alpha, custodians MUST complete processing before `leaseExpiresUtc` and submit the result within the existing lease duration.
+
+**Request**  
+No body required.
+
+**Responses**
+
+- `200 OK` — lease renewed; response includes updated expiry.
+- `400 Bad Request` — invalid work item id.
+- `401 Unauthorized` / `403 Forbidden` — auth/authZ failure.
+- `409 Conflict` — lease invalid/expired or not owned by caller.
+- `429 Too Many Requests` — includes `Retry-After`.
+- `503 Service Unavailable` — transient service issue; MAY include `Retry-After`.
+
+**Response body (200)**
+
+```json
+{
+  "workItemId": "abc123",
+  "leaseExpiresUtc": "2026-02-17T12:44:56Z"
+}
+```
+
+---
+
+### 3.4 `HEAD /work/available` (Optional, advisory only)
 
 **Purpose**  
 Provide a lightweight signal that work is likely available for the authenticated custodian.
@@ -160,6 +213,7 @@ This endpoint MUST NOT be relied upon for correctness. It is advisory and subjec
 - `204 No Content` — no work available at evaluation time; includes `Retry-After`.
 - `401 Unauthorized` / `403 Forbidden` — auth/authZ failure.
 - `429 Too Many Requests` — includes `Retry-After`.
+- `503 Service Unavailable` — transient service issue; MAY include `Retry-After`.
 
 ---
 
@@ -175,9 +229,14 @@ sequenceDiagram
     loop Poll for work
         C->>F: POST /work/claim (Authorization, traceparent)
         alt Work available
-            F-->>C: 200 {workItemId, jobId, sui, leaseExpiresUtc}<br/>Cache-Control:no-store...<br/>Vary:Authorization
+            F-->>C: 201 {workItemId, jobId, sui, leaseExpiresUtc}<br/>Cache-Control:no-store...<br/>Vary:Authorization
             C->>S: Perform local lookup for SUI
             S-->>C: Result (records/no records/error)
+
+            opt Processing exceeds lease duration (optional)
+                C->>F: POST /work/{workItemId}/lease/renew (Authorization, traceparent)
+                F-->>C: 200 {workItemId, leaseExpiresUtc}<br/>Cache-Control:no-store...<br/>Vary:Authorization
+            end
 
             C->>F: POST /work/{workItemId}/result (Authorization, traceparent)
             F-->>C: 200 OK<br/>Cache-Control:no-store...<br/>Vary:Authorization
@@ -187,11 +246,14 @@ sequenceDiagram
         else Throttled
             F-->>C: 429 Too Many Requests<br/>Retry-After: N<br/>Cache-Control:no-store...<br/>Vary:Authorization
             Note over C: Backoff more aggressively, then retry
+        else Transient service issue
+            F-->>C: 503 Service Unavailable<br/>Retry-After: N (optional)<br/>Cache-Control:no-store...<br/>Vary:Authorization
+            Note over C: Backoff, then retry
         end
     end
 ```
 
-If you later choose to implement the optional availability probe, it sits before `/work/claim`, but does not replace it.
+If you implement the optional availability probe, it can sit before `/work/claim`, but does not replace it.
 
 ---
 
@@ -201,16 +263,19 @@ If you later choose to implement the optional availability probe, it sits before
 openapi: 3.0.3
 info:
   title: FIND Custodian Polling API
-  version: 0.1.0
+  version: 0.2.0
   description: |
-    Polling endpoints for custodians to claim discovery work under a lease and submit results.
+    Polling endpoints for custodians to claim discovery work under a lease, optionally renew a lease, and submit results.
+
 servers:
   - url: https://find.example.gov.uk
+
 security:
   - bearerAuth: []
+
 tags:
   - name: Work
-    description: Work claim and result submission
+    description: Work claim, optional lease renewal, and result submission
 
 paths:
   /work/claim:
@@ -220,32 +285,27 @@ paths:
       description: |
         Atomically selects and leases the next available work item for the authenticated custodian.
         Returns 204 when no work exists, with Retry-After to guide backoff.
+        Signals backpressure with 429, and transient service issues with 503 (Retry-After may be present).
       operationId: claimWork
       parameters:
         - name: traceparent
           in: header
           required: false
-          schema:
-            type: string
+          schema: { type: string }
           description: W3C Trace Context traceparent header.
         - name: tracestate
           in: header
           required: false
-          schema:
-            type: string
+          schema: { type: string }
           description: W3C Trace Context tracestate header.
       responses:
-        "200":
+        "201":
           description: Work item claimed
           headers:
-            Cache-Control:
-              schema: { type: string }
-            Pragma:
-              schema: { type: string }
-            Expires:
-              schema: { type: string }
-            Vary:
-              schema: { type: string }
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
           content:
             application/json:
               schema:
@@ -254,38 +314,46 @@ paths:
           description: No work available
           headers:
             Retry-After:
-              schema:
-                type: integer
-                minimum: 0
+              schema: { type: integer, minimum: 0 }
               description: Backoff duration in seconds.
-            Cache-Control:
-              schema: { type: string }
-            Pragma:
-              schema: { type: string }
-            Expires:
-              schema: { type: string }
-            Vary:
-              schema: { type: string }
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "401":
           description: Unauthorised
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "403":
           description: Forbidden
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "429":
           description: Too many requests
           headers:
             Retry-After:
-              schema:
-                type: integer
-                minimum: 0
+              schema: { type: integer, minimum: 0 }
               description: Backoff duration in seconds.
-            Cache-Control:
-              schema: { type: string }
-            Pragma:
-              schema: { type: string }
-            Expires:
-              schema: { type: string }
-            Vary:
-              schema: { type: string }
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+        "503":
+          description: Service unavailable (transient)
+          headers:
+            Retry-After:
+              schema: { type: integer, minimum: 0 }
+              description: Backoff duration in seconds (may be omitted).
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
 
   /work/available:
     head:
@@ -299,83 +367,84 @@ paths:
         - name: traceparent
           in: header
           required: false
-          schema:
-            type: string
+          schema: { type: string }
         - name: tracestate
           in: header
           required: false
-          schema:
-            type: string
+          schema: { type: string }
       responses:
         "200":
           description: Work likely available
           headers:
-            Cache-Control:
-              schema: { type: string }
-            Pragma:
-              schema: { type: string }
-            Expires:
-              schema: { type: string }
-            Vary:
-              schema: { type: string }
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "204":
           description: No work available
           headers:
             Retry-After:
-              schema:
-                type: integer
-                minimum: 0
-            Cache-Control:
-              schema: { type: string }
-            Pragma:
-              schema: { type: string }
-            Expires:
-              schema: { type: string }
-            Vary:
-              schema: { type: string }
+              schema: { type: integer, minimum: 0 }
+              description: Backoff duration in seconds.
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "401":
           description: Unauthorised
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "403":
           description: Forbidden
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "429":
           description: Too many requests
           headers:
             Retry-After:
-              schema:
-                type: integer
-                minimum: 0
-            Cache-Control:
-              schema: { type: string }
-            Pragma:
-              schema: { type: string }
-            Expires:
-              schema: { type: string }
-            Vary:
-              schema: { type: string }
+              schema: { type: integer, minimum: 0 }
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+        "503":
+          description: Service unavailable (transient)
+          headers:
+            Retry-After:
+              schema: { type: integer, minimum: 0 }
+              description: Backoff duration in seconds (may be omitted).
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
 
   /work/{workItemId}/result:
     post:
       tags: [Work]
-      summary: Submit result for a leased work item
+      summary: Submit result for a leased work item (completes it)
       description: |
-        Submits the outcome of processing a leased work item. The server validates lease ownership and expiry.
+        Submits the outcome of processing a leased work item and marks it complete.
+        The server validates lease ownership and expiry.
       operationId: submitWorkResult
       parameters:
         - name: workItemId
           in: path
           required: true
-          schema:
-            type: string
+          schema: { type: string }
         - name: traceparent
           in: header
           required: false
-          schema:
-            type: string
+          schema: { type: string }
         - name: tracestate
           in: header
           required: false
-          schema:
-            type: string
+          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -384,39 +453,140 @@ paths:
               $ref: "#/components/schemas/WorkResultRequest"
       responses:
         "200":
-          description: Accepted
+          description: Accepted and completed
           headers:
-            Cache-Control:
-              schema: { type: string }
-            Pragma:
-              schema: { type: string }
-            Expires:
-              schema: { type: string }
-            Vary:
-              schema: { type: string }
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "400":
           description: Bad request (validation/schema error)
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "401":
           description: Unauthorised
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "403":
           description: Forbidden
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "409":
           description: Conflict (lease invalid/expired or not owned by caller)
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
         "429":
           description: Too many requests
           headers:
             Retry-After:
+              schema: { type: integer, minimum: 0 }
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+        "503":
+          description: Service unavailable (transient)
+          headers:
+            Retry-After:
+              schema: { type: integer, minimum: 0 }
+              description: Backoff duration in seconds (may be omitted).
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+
+  /work/{workItemId}/lease/renew:
+    post:
+      tags: [Work]
+      summary: Renew the lease for a work item (optional)
+      description: |
+        Optional endpoint. Extends the lease for an in-progress work item.
+        The server validates lease ownership and expiry.
+      operationId: renewWorkLease
+      parameters:
+        - name: workItemId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: traceparent
+          in: header
+          required: false
+          schema: { type: string }
+        - name: tracestate
+          in: header
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Lease renewed
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+          content:
+            application/json:
               schema:
-                type: integer
-                minimum: 0
-            Cache-Control:
-              schema: { type: string }
-            Pragma:
-              schema: { type: string }
-            Expires:
-              schema: { type: string }
-            Vary:
-              schema: { type: string }
+                $ref: "#/components/schemas/LeaseRenewResponse"
+        "400":
+          description: Bad request
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+        "401":
+          description: Unauthorised
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+        "403":
+          description: Forbidden
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+        "409":
+          description: Conflict (lease invalid/expired or not owned by caller)
+          headers:
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+        "429":
+          description: Too many requests
+          headers:
+            Retry-After:
+              schema: { type: integer, minimum: 0 }
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
+        "503":
+          description: Service unavailable (transient)
+          headers:
+            Retry-After:
+              schema: { type: integer, minimum: 0 }
+              description: Backoff duration in seconds (may be omitted).
+            Cache-Control: { schema: { type: string } }
+            Pragma: { schema: { type: string } }
+            Expires: { schema: { type: string } }
+            Vary: { schema: { type: string } }
 
 components:
   securitySchemes:
@@ -444,6 +614,18 @@ components:
           format: date-time
           description: UTC timestamp when the lease expires.
 
+    LeaseRenewResponse:
+      type: object
+      required: [workItemId, leaseExpiresUtc]
+      properties:
+        workItemId:
+          type: string
+          description: Unique identifier for the leased work item.
+        leaseExpiresUtc:
+          type: string
+          format: date-time
+          description: UTC timestamp when the renewed lease expires.
+
     WorkResultRequest:
       type: object
       required: [resultType]
@@ -469,3 +651,6 @@ components:
           format: uri
           description: URL to retrieve the record (pointer only).
 ```
+
+
+
