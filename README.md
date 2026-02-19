@@ -3,15 +3,15 @@
 This repository is a mono repo that contains multiple .NET solutions, each organised under its own directory.
 .NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring separation of concerns, maintainability and testability.
 
-To view our documentation, please visit the [Docs](/Docs/index.md) directory.
+To view our documentation, please visit the [Docs](./Docs/index.md) directory.
 
-| Directory/File                   | Description                                                                                                 |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| [Apps](/Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
-| [Docs](/Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
-| [SystemTests](/SystemTests/)     | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
-| [LICENCE](/LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
-| [Contributing](/CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
+| Directory/File                    | Description                                                                                                 |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [Apps](./Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
+| [Docs](./Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
+| [SystemTests](./SystemTests)      | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
+| [LICENCE](./LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
+| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
 
 ## What is 'Single Unique Identifier'?
 
@@ -91,6 +91,34 @@ OTEL_SERVICE_NAME=Your.App.Name
 Open `http://localhost:3000` (admin/admin) and use Explore to view logs and traces.
 If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
+## CI runners (self-hosted)
+
+We currently use a self-hosted GitHub Actions runner to avoid GitHub-hosted runner budget limits.
+It runs as an Azure Container App using a [github-runner docker image](https://github.com/myoung34/docker-github-actions-runner) and is registered at the repo level.
+
+Key details:
+- Workflows target `runs-on: [self-hosted, ubuntu-latest]` (the runner is labelled `ubuntu-latest`, `linux`, `ghrunner`).
+- Container Apps does not provide a Docker daemon, so Docker-based actions and `services:` containers will fail.
+  If a workflow needs Docker, it must run on a VM-based runner instead.
+- Azurite is started as a local process in workflows (no container services).
+- Artifact storage limits still apply because artifacts are stored in GitHub, not on the runner.
+- To switch back to GitHub-hosted runners, revert jobs to `runs-on: ubuntu-latest`.
+
+Operational notes:
+- The runner is currently configured with a PAT (classic) stored as an Azure Container App secret.
+  - This should be updated to utilise a GitHub app registration when possible.
+- The Container App is configured to keep at least one replica running.
+- The runner is hosted as an Azure Container App in the Azure Portal.
+
+## Artifact cleanup
+
+Artifacts are stored in GitHub, so usage can still hit storage quotas. The repo currently uses a 60-day default retention policy for artifacts and logs.
+There is a custom cleanup script to delete additional artifacts manually when needed:
+
+```
+./.github/scripts/cleanup-artifacts.sh --help
+```
+
 ## Repository structure
 
 Each solution is self-contained and follows a consistent structure:
@@ -119,30 +147,27 @@ You can run tests and generate coverage reports from anywhere within the reposit
 All required tools (PowerShell 7.5.4, ReportGenerator, etc.) are installed as local .NET tools.
 
 1. Restore local tools (This installs PowerShell and all other required tools locally.)
-
-```
-dotnet tool restore
-```
-
-2. Run the test & coverage scripts (You can run the wrapper script for each solution i.e: `dotnet pwsh <relative path to the solution scoped script>`)
-
-```
-dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
-dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
-dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
-dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
-```
+    ```
+    dotnet tool restore
+    ```
+2. Run the test and coverage scripts (You can run the wrapper script for each solution i.e.: `dotnet pwsh <relative path to the solution scoped script>`)
+    ```
+    dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
+    dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
+    dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
+    dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
+    ```
 
 ## Set up Private Nuget Feed
 
-We are using GitHub Packages for hosting API Clients, this feed require you to sign in to be able to do a restore.
+We are using GitHub Packages for hosting API Clients, this feed requires you to sign in to be able to do a restore.
 You will need to get a 'Personal Access Token (Classic)' from GitHub.
 
 click on your photo in the top right > click Settings > Developer Settings > Personal access tokens > Tokens (classic) >
 click generate new token (classic) > add a note to describe the token > set an expiration date >
 check the 'write:packages' permission > click Generate token.
 
-Save a copy on the token on your machine in case you need it in the future.
+Save a copy of the token on your machine in case you need it in the future.
 
 ### JetBrains Rider IDE
 
