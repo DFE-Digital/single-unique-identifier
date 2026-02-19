@@ -92,7 +92,12 @@ Jobs older than a rolling 72 hour window SHALL be ignored for polling selection.
 
 ### 3.2 Deferred optimisation
 
-Redis MAY be introduced later only to suppress idle reads and reduce claim latency, but it SHALL remain non-authoritative and fully disposable. Correctness SHALL never depend on Redis.
+Redis was considered as a potential optimisation because polling systems are typically dominated by the idle case (high volumes of requests that return `204 No Content`). Even partition-scoped Table queries have a per-request cost and can become a throughput constraint if many custodians poll frequently.
+
+A Redis layer could be used as a non-authoritative hint mechanism to suppress unnecessary Table reads when there is clearly no work, or to accelerate candidate selection when work is known to exist (for example by tracking a per-custodian “work available” flag or a small set of candidate JobIds). In all cases, the authoritative lease claim would still be enforced in Table Storage.
+
+Redis is deferred in Alpha to avoid introducing additional operational surface area unless telemetry shows it is required.
+
 
 ---
 
