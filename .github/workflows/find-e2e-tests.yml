@@ -65,13 +65,6 @@ jobs:
     needs: eval-workflow-setup
     runs-on: ubuntu-latest
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
-    services:
-      azurite:
-        image: mcr.microsoft.com/azure-storage/azurite
-        ports:
-          - 10000:10000
-          - 10001:10001
-          - 10002:10002
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -80,6 +73,27 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
+
+      - name: Setup Node.js (for Azurite and Functions tools)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install and start Azurite
+        run: |
+          npm i -g azurite
+          azurite \
+            --blobHost 127.0.0.1 --blobPort 10000 \
+            --queueHost 127.0.0.1 --queuePort 10001 \
+            --tableHost 127.0.0.1 --tablePort 10002 \
+            --location /tmp/azurite \
+            --debug /tmp/azurite/debug.log &
+          for port in 10000 10001 10002; do
+            for i in {1..20}; do
+              (echo > /dev/tcp/127.0.0.1/$port) >/dev/null 2>&1 && break
+              sleep 0.5
+            done
+          done
 
       - name: Install Azure Functions Core Tools
         run: npm i -g azure-functions-core-tools@4
