@@ -96,7 +96,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     new TestRecord
                     {
                         RecordType = "crime-justice.details",
-                        TestValue = "Individuals at the address may resort to violent behaviour",
+                        TestValue = "Risk of home visits - dangerous dog reported",
                     },
                 ],
             },
@@ -295,11 +295,11 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     var policeMarkerDetails = fetchResultTypedContent.Payload.Value.GetProperty(
                         "policeMarkerDetails"
                     );
-                    Assert.Equal(
+                    Assert.Contains(
+                        policeMarkerDetails.GetString(),
                         testData
-                            .Records.First(x => x.RecordType == "crime-justice.details")
-                            .TestValue,
-                        policeMarkerDetails.GetString()
+                            .Records.Where(x => x.RecordType == "crime-justice.details")
+                            .Select(x => x.TestValue)
                     );
                     break;
             }

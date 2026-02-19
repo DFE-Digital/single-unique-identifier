@@ -57,7 +57,7 @@
       "schemaUri": "https://schemas.example.gov.uk/sui/crime-justice.details.v1.json",
       "systemId": "POLICE-SYSTEM-02",
       "payload": {
-        "policeMarkerDetails": "Individuals at the address may resort to violent behaviour",
+        "policeMarkerDetails": "Risk of home visits - dangerous dog reported",
         "servicesKnownTo": [
           "Youth justice service (YJS)",
           "Police"
