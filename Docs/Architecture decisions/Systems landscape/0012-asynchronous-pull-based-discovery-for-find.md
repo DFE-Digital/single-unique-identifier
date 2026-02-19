@@ -198,18 +198,21 @@ processing, optional provisional signals, and incremental result availability.
 %%{init: {
   "theme": "base",
   "themeVariables": {
+    "primaryColor": "#ffffff",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
     "primaryTextColor": "#000000",
     "secondaryTextColor": "#000000",
     "tertiaryTextColor": "#000000",
-    "lineColor": "#000000",
-    "primaryBorderColor": "#000000"
-  },
-  "themeCSS": "
-    svg { background-color: #ffffff !important; }
-    .actor { fill: #ffffff !important; stroke: #000000 !important; }
-    .note { fill: #ffffff !important; stroke: #000000 !important; }
-    text { fill: #000000 !important; }
-  "
+    "actorBkg": "#ffffff",
+    "actorBorder": "#000000",
+    "noteBkgColor": "#ffffff",
+    "noteBorderColor": "#000000",
+    "activationBkgColor": "#ffffff",
+    "activationBorderColor": "#000000"
+  }
 }}%%
 sequenceDiagram
     autonumber
@@ -218,7 +221,7 @@ sequenceDiagram
     participant User as End User (Searcher)
     participant CustA as Custodian A Worker
     participant CustB as Custodian B Worker
-
+    
     box rgba(240,240,240,0.5) "SUI National Service"
         participant Match as MATCH service
         participant Find as FIND service
