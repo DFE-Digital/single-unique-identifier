@@ -60,6 +60,16 @@ Option B provides full cross-organisational discovery and record retrieval **wit
 The SUI is always encrypted in a custodian-specific way, and only the central service is able to translate between forms.
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "background": "#ffffff",
+    "primaryTextColor": "#000000",
+    "secondaryTextColor": "#000000",
+    "tertiaryTextColor": "#000000",
+    "lineColor": "#000000"
+  }
+}}%%
 sequenceDiagram
     autonumber
 

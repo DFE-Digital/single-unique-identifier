@@ -195,6 +195,16 @@ within the Distributed ID architecture. It shows attended initiation, unattended
 processing, optional provisional signals, and incremental result availability.
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "background": "#ffffff",
+    "primaryTextColor": "#000000",
+    "secondaryTextColor": "#000000",
+    "tertiaryTextColor": "#000000",
+    "lineColor": "#000000"
+  }
+}}%%
 sequenceDiagram
     autonumber
 

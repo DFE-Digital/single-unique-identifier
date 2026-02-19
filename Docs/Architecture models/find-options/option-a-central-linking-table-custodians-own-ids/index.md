@@ -55,6 +55,16 @@ Once the SUI is known and the link table has been queried:
 Record retrieval through FETCH works in the same way as Option B: FIND mediates access to each custodian, applies policy-based filtering, and returns only the permitted content.
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "background": "#ffffff",
+    "primaryTextColor": "#000000",
+    "secondaryTextColor": "#000000",
+    "tertiaryTextColor": "#000000",
+    "lineColor": "#000000"
+  }
+}}%%
 sequenceDiagram
     autonumber
 
