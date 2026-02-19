@@ -51,6 +51,13 @@ The only material difference from Option B is the absence of encryption or decry
 
 
 ```mermaid
+%%{init: {
+  "theme": "default",
+  "themeVariables": {
+    "background": "#ffffff",
+    "textColor": "#000000"
+  }
+}}%%
 sequenceDiagram
     autonumber
 

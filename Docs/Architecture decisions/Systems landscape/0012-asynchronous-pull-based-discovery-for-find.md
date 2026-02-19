@@ -195,6 +195,13 @@ within the Distributed ID architecture. It shows attended initiation, unattended
 processing, optional provisional signals, and incremental result availability.
 
 ```mermaid
+%%{init: {
+  "theme": "default",
+  "themeVariables": {
+    "background": "#ffffff",
+    "textColor": "#000000"
+  }
+}}%%
 sequenceDiagram
     autonumber
 
@@ -202,7 +209,7 @@ sequenceDiagram
     participant User as End User (Searcher)
     participant CustA as Custodian A Worker
     participant CustB as Custodian B Worker
-
+    
     box rgba(240,240,240,0.5) "SUI National Service"
         participant Match as MATCH service
         participant Find as FIND service
