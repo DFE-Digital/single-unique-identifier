@@ -46,6 +46,7 @@ jobs:
     with:
       directory_name: Apps/Transfer
       project_names: '["SUI.Transfer.API"]'
+      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
   deploy-Transfer:
     name: Transfer - Deploy Web App

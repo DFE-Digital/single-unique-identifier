@@ -46,6 +46,7 @@ jobs:
     with:
       directory_name: Apps/SingleView
       project_names: '["SUI.SingleView.Web"]'
+      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
   deploy-singleview:
     name: SingleView - Deploy Web App
