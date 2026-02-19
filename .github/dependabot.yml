@@ -8,6 +8,10 @@ updates:
       time: "06:00"
     commit-message:
       prefix: "[gha]-"
+    groups:
+      github-actions-updates:
+        patterns:
+          - "*"
 
   - package-ecosystem: nuget
     directory: "/Apps/Find"
@@ -18,9 +22,14 @@ updates:
     commit-message:
       prefix: "[nuget][Find]-"
     groups:
-      all-version-updates:
+      FIND-package-updates:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "FluentAssertions"
+        update-types:
+          - "version-update:semver-major" # Do not allow FluentAssertions to be upgraded past v7, v8+ requires a commercial licence, whereas v7 is free-to-use commercially.
+      - dependency-name: "Azure.Storage.Queues" # Stay on 12.24.0 of Azure.Storage.Queues until Azurite is updated to support the new API version
 
   - package-ecosystem: nuget
     directory: "/Apps/StubCustodians"
@@ -31,6 +40,10 @@ updates:
     commit-message:
       prefix: "[nuget][StubCustodians]-"
     groups:
-      all-version-updates:
+      STUBS-package-updates:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "FluentAssertions"
+        update-types:
+          - "version-update:semver-major" # Do not allow FluentAssertions to be upgraded past v7, v8+ requires a commercial licence, whereas v7 is free-to-use commercially.

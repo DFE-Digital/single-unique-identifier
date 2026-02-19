@@ -14,6 +14,7 @@ on:
         type: choice
         options:
           - d01
+          - d02
       deploy:
         description: Deploy to Azure Function App
         required: false

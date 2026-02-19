@@ -13,6 +13,8 @@ var builder = FunctionsApplication.CreateBuilder(args);
 
 builder.UseOpenTelemetry();
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddSingleton<IAuditService, AuditStorageTableService>();
 builder.Services.AddAzureTableServices();
 

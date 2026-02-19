@@ -9,6 +9,17 @@
       "encryptedPersonId": "oupx6095s75Y1xPUQMo9zg",
       "recordType": "health.details",
       "version": "1",
+      "contactDetails": {
+        "name": "Health Records Team",
+        "description": "Records enquiries",
+        "telephone": "01234 555 500",
+        "email": "records.community@nhs.uk",
+        "address": "Community Health Centre, EB5 6IJ"
+      },
+      "recordLink": {
+        "url": "https://example.nhs.uk/imms/login",
+        "title": "NHS Immunisations Portal (demo)"
+      },
       "schemaUri": "https://schemas.example.gov.uk/sui/health.details.v1.json",
       "systemId": "HEALTH-SYSTEM-01",
       "payload": {
@@ -60,6 +71,17 @@
       "encryptedPersonId": "Gwy1RFyGF4b_sSbbPZExtQ",
       "recordType": "health.details",
       "version": "1",
+      "contactDetails": {
+        "name": "Health Records Team",
+        "description": "Records enquiries",
+        "telephone": "01234 555 500",
+        "email": "records.community@nhs.uk",
+        "address": "Community Health Centre, EB5 6IJ"
+      },
+      "recordLink": {
+        "url": "https://example.nhs.uk/imms/login",
+        "title": "NHS Immunisations Portal (demo)"
+      },
       "schemaUri": "https://schemas.example.gov.uk/sui/health.details.v1.json",
       "systemId": "HEALTH-SYSTEM-01",
       "payload": {

@@ -11,8 +11,6 @@ on:
         description: e2e test 'dev' environment
         default: false
         type: boolean
-  
-  deployment_status:
 
   push:
     branches:
@@ -32,7 +30,7 @@ on:
 
 concurrency:
   # Do not allow e2e tests to run concurrently against dev
-  group: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
+  group: ${{ inputs.manual_run_dev == true && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:
@@ -45,7 +43,7 @@ jobs:
         name: Evaluate Workflow Setup
         env:
           RUN_EPHEMERAL: ${{ (github.event_name != 'workflow_dispatch' && github.event_name != 'deployment_status') || inputs.manual_run_ephemeral == true }}
-          RUN_DEV: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true }}
+          RUN_DEV: ${{ inputs.manual_run_dev == true }}
         run: |
           echo
           echo "run_ephemeral=$RUN_EPHEMERAL" >> "$GITHUB_OUTPUT"
@@ -53,8 +51,6 @@ jobs:
 
           echo "---- GitHub Context Info: ----"
           echo "github.event_name: ${{ github.event_name || '(no value)' }}"
-          echo "github.event.deployment_status.state: ${{ github.event.deployment_status.state || '(no value)' }}"
-          echo "github.event.deployment.environment: ${{ github.event.deployment.environment || '(no value)' }}"
           echo "inputs.manual_run_ephemeral: ${{ inputs.manual_run_ephemeral || '(no value)' }}"
           echo "inputs.manual_run_dev: ${{ inputs.manual_run_dev || '(no value)' }}"
           echo
@@ -129,7 +125,7 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-      
+
       - name: Run E2E Tests (against dev environment)
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
