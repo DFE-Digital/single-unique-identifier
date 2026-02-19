@@ -1,4 +1,4 @@
-namespace SUI.Find.Application.Models;
+namespace SUI.StubCustodians.Application.Models;
 
 public class ContactDetails
 {

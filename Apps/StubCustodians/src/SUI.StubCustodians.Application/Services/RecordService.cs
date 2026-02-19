@@ -21,7 +21,7 @@ public class RecordService(IDataProvider dataProvider, IConfiguration configurat
         {
             return null;
         }
-        var personRecord = orgRecord.Payload.Deserialize<T>(JsonSerializerOptions.Web);
+        var personRecord = orgRecord.Payload?.Deserialize<T>(JsonSerializerOptions.Web);
         if (personRecord == null)
         {
             return null;

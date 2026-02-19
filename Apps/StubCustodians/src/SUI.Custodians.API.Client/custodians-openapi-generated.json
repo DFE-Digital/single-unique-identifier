@@ -736,9 +736,9 @@
           "schemaUri",
           "recordType",
           "version",
-          "payload",
           "contactDetails",
-          "recordLink"
+          "recordLink",
+          "payload"
         ],
         "type": "object",
         "properties": {
@@ -770,14 +770,28 @@
             "additionalProperties": false,
             "format": "int32"
           },
-          "payload": {
-            "$ref": "#/components/schemas/SuiRecord"
-          },
           "contactDetails": {
-            "$ref": "#/components/schemas/ContactDetails"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContactDetails"
+              }
+            ]
           },
           "recordLink": {
-            "$ref": "#/components/schemas/RecordLink"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecordLink"
+              }
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/SuiRecord"
           }
         },
         "additionalProperties": false
