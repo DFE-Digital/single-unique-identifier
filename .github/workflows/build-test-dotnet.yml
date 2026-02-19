@@ -29,13 +29,6 @@ permissions:
 jobs:
   build-test-dotnet:
     runs-on: ubuntu-latest
-    services:
-      azurite:
-        image: ${{ inputs.requires_azurite == true && 'mcr.microsoft.com/azure-storage/azurite' || '' }}
-        ports:
-          - 10000:10000
-          - 10001:10001
-          - 10002:10002
     env:
       PROJECTS_JSON: ${{ inputs.project_names }}
     outputs:
@@ -62,6 +55,29 @@ jobs:
         with:
           distribution: "microsoft"
           java-version: 21
+
+      - name: Setup Node.js (for Azurite)
+        if: inputs.requires_azurite == true
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install and start Azurite
+        if: inputs.requires_azurite == true
+        run: |
+          npm i -g azurite
+          azurite \
+            --blobHost 127.0.0.1 --blobPort 10000 \
+            --queueHost 127.0.0.1 --queuePort 10001 \
+            --tableHost 127.0.0.1 --tablePort 10002 \
+            --location /tmp/azurite \
+            --debug /tmp/azurite/debug.log &
+          for port in 10000 10001 10002; do
+            for i in {1..20}; do
+              (echo > /dev/tcp/127.0.0.1/$port) >/dev/null 2>&1 && break
+              sleep 0.5
+            done
+          done
 
       - name: Install .Net Tools
         run: |
