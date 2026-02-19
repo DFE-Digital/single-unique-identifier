@@ -198,12 +198,18 @@ processing, optional provisional signals, and incremental result availability.
 %%{init: {
   "theme": "base",
   "themeVariables": {
-    "background": "#ffffff",
     "primaryTextColor": "#000000",
     "secondaryTextColor": "#000000",
     "tertiaryTextColor": "#000000",
-    "lineColor": "#000000"
-  }
+    "lineColor": "#000000",
+    "primaryBorderColor": "#000000"
+  },
+  "themeCSS": "
+    svg { background-color: #ffffff !important; }
+    .actor { fill: #ffffff !important; stroke: #000000 !important; }
+    .note { fill: #ffffff !important; stroke: #000000 !important; }
+    text { fill: #000000 !important; }
+  "
 }}%%
 sequenceDiagram
     autonumber
