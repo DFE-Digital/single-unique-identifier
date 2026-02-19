@@ -37,7 +37,9 @@ jobs:
   # For manual workflow runs (workflow_dispatch) give the user the option of where to run against (ephemeral/dev/both)
   # Otherwise, always run against ephemeral environment, and also run against dev environment after successful deployment to dev.
   eval-workflow-setup:
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     steps:
       - id: eval
         name: Evaluate Workflow Setup
@@ -63,7 +65,9 @@ jobs:
 
   e2e-test-ephemeral:
     needs: eval-workflow-setup
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
     steps:
       - name: Checkout repository
@@ -129,7 +133,9 @@ jobs:
 
   e2e-test-dev:
     needs: eval-workflow-setup
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     if: needs.eval-workflow-setup.outputs.run_dev == 'true'
     steps:
       - name: Checkout repository

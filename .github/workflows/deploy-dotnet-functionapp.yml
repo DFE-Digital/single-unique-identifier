@@ -47,7 +47,9 @@ permissions:
 jobs:
   deploy:
     name: Deploy dotnet function app to Azure
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
