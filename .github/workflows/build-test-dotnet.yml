@@ -14,6 +14,10 @@ on:
         description: If true, azurite will be spun up as a build dependency
         default: false
         type: boolean
+      upload_artifacts:
+        description: If true, publish and upload per-project build artifacts
+        default: false
+        type: boolean
     outputs:
       artifact_names:
         description: JSON map of project -> artifact name
@@ -58,8 +62,8 @@ jobs:
           distribution: "microsoft"
           java-version: 21
 
-      - name: Setup Node.js (for Azurite)
-        if: inputs.requires_azurite == true
+      - name: Setup Node.js (for Azurite and artifact upload)
+        if: inputs.requires_azurite == true || inputs.upload_artifacts == true
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -128,6 +132,7 @@ jobs:
 
       - name: Publish projects
         id: publish
+        if: inputs.upload_artifacts == true
         run: |
           app="${{ inputs.directory_name }}"
           app="${app##*/}"
@@ -144,12 +149,18 @@ jobs:
           echo "map=$(echo "$map" | jq -c .)" >> "$GITHUB_OUTPUT"
           echo "include=$(echo "$include" | jq -c .)" >> "$GITHUB_OUTPUT"
 
-      - name: Upload combined artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: publish-all
-          path: publish
-          include-hidden-files: true
+      - name: Install artifact helper
+        if: inputs.upload_artifacts == true
+        run: |
+          npm install --prefix "$RUNNER_TEMP/artifact-uploader" @actions/artifact @actions/glob
+
+      - name: Upload per-project artifacts
+        if: inputs.upload_artifacts == true
+        env:
+          PROJECTS_JSON: ${{ inputs.project_names }}
+          ARTIFACT_NAMES: ${{ steps.publish.outputs.map }}
+          NODE_PATH: ${{ runner.temp }}/artifact-uploader/node_modules
+        run: node .github/scripts/upload-artifacts.js
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
@@ -157,25 +168,3 @@ jobs:
         with:
           recreate: true
           path: ${{ inputs.directory_name }}/CoverageReport/SummaryGithub.md
-
-  upload-artifacts:
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
-    needs: build-test-dotnet
-    strategy:
-      matrix:
-        project: ${{ fromJson(inputs.project_names) }}
-    steps:
-      - name: Download combined artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: publish-all
-          path: .
-
-      - name: Upload per-project artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ fromJson(needs.build-test-dotnet.outputs.artifact_names)[matrix.project] }}
-          path: ${{ matrix.project }}
-          include-hidden-files: true
