@@ -61,13 +61,10 @@ The SUI is always encrypted in a custodian-specific way, and only the central se
 
 ```mermaid
 %%{init: {
-  "theme": "base",
+  "theme": "default",
   "themeVariables": {
     "background": "#ffffff",
-    "primaryTextColor": "#000000",
-    "secondaryTextColor": "#000000",
-    "tertiaryTextColor": "#000000",
-    "lineColor": "#000000"
+    "textColor": "#000000"
   }
 }}%%
 sequenceDiagram
