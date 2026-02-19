@@ -28,7 +28,9 @@ permissions:
 
 jobs:
   build-test-dotnet:
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     env:
       PROJECTS_JSON: ${{ inputs.project_names }}
     outputs:
@@ -166,7 +168,9 @@ jobs:
           path: code-coverage-results.md
 
   upload-artifacts:
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     needs: build-test-dotnet
     strategy:
       matrix:

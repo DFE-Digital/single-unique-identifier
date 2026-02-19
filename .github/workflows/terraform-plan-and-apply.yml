@@ -33,7 +33,9 @@ permissions:
 jobs:
   terraform:
     name: Terraform ${{ inputs.root }} for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
