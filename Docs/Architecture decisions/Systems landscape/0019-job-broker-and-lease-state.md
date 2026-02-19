@@ -132,7 +132,7 @@ Relational queues provide strong transactional semantics and mature patterns. Th
 
 ## 6. Storage Model
 
-### 6.1 Table: `Jobs` (authoritative)
+### 6.1 Table: `Jobs` 
 
 One entity per job.
 
@@ -141,55 +141,156 @@ One entity per job.
 - `PartitionKey`: `custodianId`  
 - `RowKey`: `{CreatedAtUtcTicks:D20}|{JobId}`
 
-The RowKey embeds a monotonic time prefix to support stable “oldest-first” selection within a partition.
+The `RowKey` embeds a monotonic time prefix to support stable “oldest-first” selection within a partition.
 
-The RowKey begins with a fixed-width UTC ticks prefix. Because Azure Table Storage performs lexicographic comparisons on RowKey values, range queries using the ticks prefix (for example `RowKey >= "{windowStartTicks:D20}|"`) remain fully constrained by time. The `{JobId}` suffix does not affect the ability to bound scans by time; it exists only to guarantee uniqueness and stable ordering within identical tick values.
+The `RowKey` begins with a fixed-width UTC ticks prefix. Because Azure Table Storage performs lexicographic comparisons on `RowKey` values, range queries using the ticks prefix (for example `RowKey >= "{windowStartTicks:D20}|"`) remain fully constrained by time. The `{JobId}` suffix does not affect the ability to bound scans by time; it exists only to guarantee uniqueness and stable ordering where multiple jobs share identical tick values.
 
 #### Properties
 
 | Property | Type | Meaning |
 |---|---|---|
-| JobId | string | The id of the job |
-| SearchId | string | Business correlation identifier |
+| JobId | string | The identifier of the job |
+| JobType | string | The logical type of work (e.g. `CustodianLookup`, `ReindexRun`) |
+| WorkItemType | string? | The category of higher-level work this job contributes to (e.g. `SearchExecution`) |
+| WorkItemId | string? | Correlation identifier for aggregation across related jobs (e.g. a search execution id) |
 | LeaseId | string? | Current lease identifier |
-| LeaseExpiresAtUtc | datetime? | Lease end time |
-| AttemptCount | int | Number of times the job has been claimed |
-| CreatedAtUtc | datetime | Creation timestamp |
-| UpdatedAtUtc | datetime | Last update timestamp |
+| LeaseExpiresAtUtc | datetime? | Lease expiry timestamp |
+| AttemptCount | int | Number of times the job has been successfully claimed |
+| CreatedAtUtc | datetime | Creation timestamp (UTC) |
+| UpdatedAtUtc | datetime | Last mutation timestamp (UTC) |
 | CompletedAtUtc | datetime? | When the job was confirmed as completed |
-| PayloadType | string | The job type |
-| PayloadJson | string | Payload JSON |
+| PayloadJson | string | Serialised job payload |
 | JobTraceParent | string? | Stored trace context seed |
+
+The `Jobs` table is business-agnostic. “Search” is treated as one possible `WorkItemType`, rather than a first-class concern of the broker.
 
 #### Core idea: visibility is time-based
 
 A job is claimable when:
 
 - `CompletedAtUtc` is null
-- AND `AttemptCount <= maxAttempts`
+- AND `AttemptCount < maxAttempts`
 - AND (`LeaseExpiresAtUtc` is null OR `LeaseExpiresAtUtc < now`)
 
 Jobs older than 72 hours are out of scope for polling selection. In Table Storage this is enforced by restricting the query to RowKeys within the 72 hour window (because RowKey is prefixed with creation ticks).
 
-### 6.2 Table: `FindJobResults`
+### 6.2 Queue: `JobResultsInbound` (ingress boundary)
 
-Results are stored separately to optimise aggregation by job.
+Results submitted by custodians are **not** written directly to storage tables.
+
+Instead, the submission endpoint SHALL:
+
+1. Validate lease ownership (`LeaseId` matches and is not expired).
+2. Perform minimal structural validation.
+3. Enqueue a result message onto a durable queue (`JobResultsInbound`).
+
+This ensures:
+
+- The HTTP surface remains thin and fast.
+- Result processing is decoupled from request handling.
+- Downstream processing can scale independently.
+- Transient storage or aggregation failures do not block custodians.
+
+#### Message Shape (logical)
+
+Each message SHALL include one or more record pointers returned by a custodian.
+
+| Property | Meaning |
+|---|---|
+| JobId | The job the result relates to |
+| JobType | Logical job type |
+| WorkItemType | Higher-level work category (if any) |
+| WorkItemId | Correlation identifier for aggregation (if any) |
+| LeaseId | Lease under which the result was submitted |
+| CustodianId | Submitting custodian |
+| SubmittedAtUtc | Submission timestamp |
+| Results | Collection of record pointers |
+
+Each entry in `Results` SHALL include:
+
+| Property | Meaning |
+|---|---|
+| SystemId | Custodian system identifier for the subject |
+| RecordType | Logical record type (e.g. `ChildProtectionPlan`, `SEN`) |
+| RecordUrl | URL from which the record can be retrieved |
+
+The queue is durable. Messages are processed at-least-once.
+
+Lease correctness is enforced before enqueueing. The queue processor does not re-evaluate lease validity.
+
+---
+
+### 6.3 Result Processing Model
+
+A dedicated queue processor consumes messages from `JobResultsInbound`.
+
+Processing behaviour is determined by `JobType`.
+
+This keeps the broker generic and allows different job types to evolve independently.
+
+#### Example: Search fan-out
+
+Where:
+
+- `WorkItemType = SearchExecution`
+- `JobType = CustodianLookup`
+
+The processor SHALL:
+
+1. Persist one row per discovered record into a `SearchResults` table.
+2. Use `PartitionKey = WorkItemId`.
+3. Use `RowKey = {SubmittedAtUtcTicks:D20}|{custodianId}|{systemId}|{recordType}`.
+
+This allows efficient aggregation of all discovered records for a single search execution across custodians, returned in chronological order.
+
+#### Example: Other job types
+
+For non-search jobs, the processor may:
+
+- Update a domain table.
+- Trigger downstream workflows.
+- Emit events.
+- Mark related entities complete.
+
+The broker does not assume or enforce any particular post-processing behaviour beyond lease and completion semantics.
+
+---
+
+### 6.4 Table: `SearchResults`
+
+This table is updated only for the **search fan-out** job type. It stores **record pointers** returned by custodians (system id, record type, and URL) and is optimised for assembling a single search response.
+
+> Note: other job types MAY write to other domain tables. This ADR defines only the table required for search result aggregation.
 
 #### Keys
 
-- `PartitionKey`: `JobId`  
-- `RowKey`: `{custodianId}|{SubmittedAtUtcTicks:D20}`
+- `PartitionKey`: `WorkItemId`
+- `RowKey`: `{SubmittedAtUtcTicks:D20}|{custodianId}|{systemId}|{recordType}`
+
+Placing the ticks prefix first ensures results are naturally returned in **chronological order** (oldest-first) within a search when scanning by `RowKey`.
+
+The `{custodianId}|{systemId}|{recordType}` suffix provides stable ordering and reduces the chance of collisions if multiple records are submitted at the same tick.
 
 #### Properties
 
 | Property | Type | Meaning |
 |---|---|---|
-| SearchId | string | Business correlation identifier |
-| LeaseId | string | Lease under which result was submitted |
-| SubmittedAtUtc | datetime | Submission time |
-| ResultJson | string | Result payload |
-| CustodianCorrelationId | string? | Custodian diagnostic correlation |
-| ResultTraceParent | string? | Inbound trace context if supplied |
+| CustodianId | string | Submitting custodian |
+| SystemId | string | Custodian-local identifier for the subject |
+| RecordType | string | Logical record type |
+| RecordUrl | string | URL pointer to retrieve the record |
+| SubmittedAtUtc | datetime | Submission timestamp |
+| JobId | string | The job that produced this result (diagnostic / traceability) |
+
+#### Idempotency and Duplicate Handling
+
+Queue delivery is at-least-once. If the same result message is processed more than once, the ticks-prefixed `RowKey` MAY result in duplicate rows.
+
+For Alpha, duplicates SHALL be tolerated and de-duplicated at read time using the tuple:
+
+- `custodianId + systemId + recordType`
+
+If duplicates are not acceptable, the `RowKey` SHALL be made deterministic (e.g. `{custodianId}|{systemId}|{recordType}` or `{JobId}|{systemId}|{recordType}`), at the cost of losing strict chronological ordering in key order.
 
 ---
 
@@ -205,7 +306,7 @@ Insert `Jobs` entity:
 - `AttemptCount = 0`
 - Lease fields null
 
-### 7.2 Poll / claim a job (progress event)
+### 7.2 Poll / claim a job (progress event) (idle case bound)
 
 **Idle case (no work)**  
 **Transactions:** 1 query
@@ -214,9 +315,9 @@ Query within `custodianId` partition:
 
 - Filter: `RowKey >= windowStartTicks`
 - Order: by RowKey (natural)
-- Page until first eligible entity found
+- Page until the first eligible entity is found
 
-If none found: respond `204`.
+The API SHALL apply a hard upper bound on the number of entities inspected per poll (to prevent unbounded partition scans). If no eligible job is found within the bound, the API SHALL respond `204` (or apply `Retry-After` as defined in ADR-SUI-0018).
 
 **Successful claim**  
 **Transactions:** 1 query + 1 conditional update
@@ -241,8 +342,13 @@ If conditional update fails (`412`), continue scanning for next eligible candida
 
 **Transactions:** 1 conditional update
 
-- Verify `LeaseId` matches
+Renewal SHALL be performed using optimistic concurrency (`ETag` + `If-Match`) in the same manner as claim and completion updates.
+
+The renew operation SHALL:
+
+- Verify `LeaseId` matches the current entity value
 - Extend `LeaseExpiresAtUtc`
+- Update `UpdatedAtUtc`
 
 If renew is not implemented, the job becomes eligible again after expiry (within the 72 hour window).
 
@@ -320,6 +426,8 @@ Performance is shaped by partition distribution and window size. Jobs older than
 flowchart TB
   Cust["Custodian outbound HTTPS"] --> API["FIND Polling API"]
   API --> Jobs["Azure Table Storage<br/>Jobs<br/>Authoritative job and lease state"]
-  API --> Results["Azure Table Storage<br/>FindJobResults<br/>Results by JobId"]
+  API --> Q["Queue<br/>JobResultsInbound<br/>Inbound result messages"]
+  Q --> Proc["Queue Processor<br/>JobType dispatch"]
+  Proc --> SR["Azure Table Storage<br/>SearchResults<br/>Record pointers by WorkItemId"]
   API -.->|optional| R["Redis<br/>Dispatch hints"]
 ```

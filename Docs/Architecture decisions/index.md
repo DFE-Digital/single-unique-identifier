@@ -94,7 +94,8 @@ This index and the ADR set should be read with that progression in mind.
 | 0016 | API Edge Pattern for National Services | System landscape | Not Started | How the national discovery APIs should be exposed and protected at the platform edge |
 | 0017 | Exposure Model for National APIs (Public vs Private)| System landscape | Not Started | Public vs Private network posture |
 | 0018 | High-Performance Polling for Pull-Based Discovery | System landscape | Proposed | Achieving high performance, low latency polling |
-| 0019 | Job Broker and Lease State | Proposed | Light weight job broker and lease state management |
+| 0019 | Job Broker and Lease State | System Landscape | Proposed | Light weight job broker and lease state management |
+| 0020 | Correlation and Trace Continuity Across Distributed Search and Polling | System Landscape | Proposed | Correlation of requests |
 
 ---
 
