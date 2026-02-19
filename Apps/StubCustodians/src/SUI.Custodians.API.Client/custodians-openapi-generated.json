@@ -608,6 +608,32 @@
         },
         "additionalProperties": false
       },
+      "ContactDetails": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "description": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "telephone": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "email": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "address": {
+            "type": "string",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
       "ManifestRequest": {
         "required": [
           "orgId",
@@ -710,6 +736,8 @@
           "schemaUri",
           "recordType",
           "version",
+          "contactDetails",
+          "recordLink",
           "payload"
         ],
         "type": "object",
@@ -742,8 +770,42 @@
             "additionalProperties": false,
             "format": "int32"
           },
+          "contactDetails": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContactDetails"
+              }
+            ]
+          },
+          "recordLink": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecordLink"
+              }
+            ]
+          },
           "payload": {
             "$ref": "#/components/schemas/SuiRecord"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RecordLink": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "additionalProperties": false
+          },
+          "title": {
+            "type": "string",
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
