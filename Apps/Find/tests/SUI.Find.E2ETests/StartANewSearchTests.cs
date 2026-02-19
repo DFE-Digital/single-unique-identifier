@@ -93,6 +93,11 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                         RecordType = "crime-justice.details",
                         TestValue = "Individuals at the address may resort to violent behaviour",
                     },
+                    new TestRecord
+                    {
+                        RecordType = "crime-justice.details",
+                        TestValue = "Individuals at the address may resort to violent behaviour",
+                    },
                 ],
             },
             new()
