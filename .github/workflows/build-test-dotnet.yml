@@ -14,6 +14,18 @@ on:
         description: If true, azurite will be spun up as a build dependency
         default: false
         type: boolean
+      skip_tests:
+        description: Skip test execution and related setup (Azurite, coverage)
+        default: false
+        type: boolean
+      skip_scans:
+        description: Skip SonarCloud scan steps
+        default: false
+        type: boolean
+      deploy_requested:
+        description: Indicates a deploy is intended (used to enforce tests/scans)
+        default: false
+        type: boolean
       upload_artifacts:
         description: If true, publish and upload per-project build artifacts
         default: false
@@ -40,6 +52,13 @@ jobs:
     outputs:
       artifact_names: ${{ steps.publish.outputs.map }}
     steps:
+      - name: Validate deploy requires tests and scans
+        if: inputs.deploy_requested == true && (inputs.skip_tests == true || inputs.skip_scans == true)
+        run: |
+          echo "Deployment requires tests and scans."
+          echo "Re-run with skip_tests=false and skip_scans=false."
+          exit 1
+
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -63,13 +82,13 @@ jobs:
           java-version: 21
 
       - name: Setup Node.js (for Azurite and artifact upload)
-        if: inputs.requires_azurite == true || inputs.upload_artifacts == true
+        if: inputs.upload_artifacts == true || (inputs.requires_azurite == true && inputs.skip_tests != true)
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install and start Azurite
-        if: inputs.requires_azurite == true
+        if: inputs.requires_azurite == true && inputs.skip_tests != true
         run: |
           npm i -g azurite
           azurite \
@@ -85,11 +104,20 @@ jobs:
             done
           done
 
-      - name: Install .Net Tools
+      - name: Install test coverage tools
+        if: inputs.skip_tests != true
         run: |
           dotnet tool install --global dotnet-coverage
           dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Install SonarScanner
+        if: inputs.skip_scans != true
+        run: |
           dotnet tool install --global dotnet-sonarscanner
+
+      - name: Add .NET tools to PATH
+        if: inputs.skip_tests != true || inputs.skip_scans != true
+        run: |
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Set up NuGet authentication
@@ -98,13 +126,18 @@ jobs:
           dotnet nuget update source DFEDigital --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
 
       - name: Start SonarCloud Scanner
+        if: inputs.skip_scans != true
         run: |
+          coverage_arg=""
+          if [ "${{ inputs.skip_tests }}" != "true" ]; then
+            coverage_arg="/d:sonar.coverageReportPaths=./${{ inputs.directory_name }}/CoverageReport/SonarQube.xml"
+          fi
           dotnet-sonarscanner begin \
             /k:"DFE-Digital_single-unique-identifier" \
             /o:"dfe-digital" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.coverageReportPaths=./${{ inputs.directory_name }}/CoverageReport/SonarQube.xml \
+            $coverage_arg \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
             /d:sonar.exclusions="**/wwwroot/**,**/*Hardcoded*,**/SUI.Find.CustodianSimulation/**" \
             /d:sonar.cpd.exclusions="**/Program.cs" \
@@ -118,14 +151,17 @@ jobs:
         run: dotnet build ./${{ inputs.directory_name }} --no-incremental
 
       - name: Run tests
+        if: inputs.skip_tests != true
         run: dotnet test ./${{ inputs.directory_name }} --no-build --verbosity normal --settings ${{ inputs.directory_name }}/tests.runsettings --filter "Category!=E2E"
 
       - name: Generate coverage report
+        if: inputs.skip_tests != true
         run: |
           reportgenerator -reports:./${{ inputs.directory_name }}/**/coverage.cobertura.xml -targetdir:${{ inputs.directory_name }}/CoverageReport -reporttypes:SonarQube,Html,MarkdownSummaryGithub
           dotnet coverage merge --reports "${{ inputs.directory_name }}/**/coverage.cobertura.xml" -f cobertura -o ${{ inputs.directory_name }}/coverage/coverage.xml
 
       - name: End SonarCloud Scanner
+        if: inputs.skip_scans != true
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         env:
           NuGetPackageSourceCredentials_DFEDigital: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}
@@ -163,7 +199,7 @@ jobs:
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && inputs.skip_tests != true
         with:
           recreate: true
           path: ${{ inputs.directory_name }}/CoverageReport/SummaryGithub.md
