@@ -47,6 +47,11 @@ async function run() {
   const retentionDays = getRetentionDays();
   const options = retentionDays ? { retentionDays } : {};
   const client = new DefaultArtifactClient();
+  const workspaceRoot = process.env.GITHUB_WORKSPACE || process.cwd();
+  const artifactRoot = process.env.ARTIFACT_ROOT || 'publish';
+  const resolvedArtifactRoot = path.isAbsolute(artifactRoot)
+    ? artifactRoot
+    : path.resolve(workspaceRoot, artifactRoot);
 
   for (const project of projects) {
     const artifactName = artifactNames[project];
@@ -54,8 +59,7 @@ async function run() {
       throw new Error(`Missing artifact name for project: ${project}`);
     }
 
-    const repoRoot = process.env.GITHUB_WORKSPACE || process.cwd();
-    const projectPath = path.resolve(repoRoot, project);
+    const projectPath = path.resolve(resolvedArtifactRoot, project);
     if (!fs.existsSync(projectPath)) {
       throw new Error(`Project path does not exist: ${projectPath}`);
     }

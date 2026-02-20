@@ -195,6 +195,7 @@ jobs:
         env:
           PROJECTS_JSON: ${{ inputs.project_names }}
           ARTIFACT_NAMES: ${{ steps.publish.outputs.map }}
+          ARTIFACT_ROOT: ${{ github.workspace }}/publish
         run: node .github/scripts/upload-artifacts.mjs
 
       - name: Add Coverage PR Comment
