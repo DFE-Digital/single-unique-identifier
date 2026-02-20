@@ -20,6 +20,11 @@ on:
         required: false
         default: false
         type: boolean
+      upload_artifacts:
+        description: Upload build artifacts (auto-enabled when deploying)
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - main
@@ -46,7 +51,7 @@ jobs:
     with:
       directory_name: Apps/StubCustodians
       project_names: '["SUI.StubCustodians.API"]'
-      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
   deploy-StubCustodians:
     name: Custodians - Deploy Web App
