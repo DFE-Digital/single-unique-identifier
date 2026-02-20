@@ -14,6 +14,10 @@ on:
         description: If true, azurite will be spun up as a build dependency
         default: false
         type: boolean
+      upload_artifacts:
+        description: If true, publish and upload per-project build artifacts
+        default: false
+        type: boolean
     outputs:
       artifact_names:
         description: JSON map of project -> artifact name
@@ -28,14 +32,9 @@ permissions:
 
 jobs:
   build-test-dotnet:
-    runs-on: ubuntu-latest
-    services:
-      azurite:
-        image: ${{ inputs.requires_azurite == true && 'mcr.microsoft.com/azure-storage/azurite' || '' }}
-        ports:
-          - 10000:10000
-          - 10001:10001
-          - 10002:10002
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     env:
       PROJECTS_JSON: ${{ inputs.project_names }}
     outputs:
@@ -63,11 +62,35 @@ jobs:
           distribution: "microsoft"
           java-version: 21
 
+      - name: Setup Node.js (for Azurite and artifact upload)
+        if: inputs.requires_azurite == true || inputs.upload_artifacts == true
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install and start Azurite
+        if: inputs.requires_azurite == true
+        run: |
+          npm i -g azurite
+          azurite \
+            --blobHost 127.0.0.1 --blobPort 10000 \
+            --queueHost 127.0.0.1 --queuePort 10001 \
+            --tableHost 127.0.0.1 --tablePort 10002 \
+            --location /tmp/azurite \
+            --debug /tmp/azurite/debug.log &
+          for port in 10000 10001 10002; do
+            for i in {1..20}; do
+              (echo > /dev/tcp/127.0.0.1/$port) >/dev/null 2>&1 && break
+              sleep 0.5
+            done
+          done
+
       - name: Install .Net Tools
         run: |
           dotnet tool install --global dotnet-coverage
           dotnet tool install --global dotnet-reportgenerator-globaltool
           dotnet tool install --global dotnet-sonarscanner
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Set up NuGet authentication
         run: |
@@ -99,7 +122,7 @@ jobs:
 
       - name: Generate coverage report
         run: |
-          reportgenerator -reports:./${{ inputs.directory_name }}/**/coverage.cobertura.xml -targetdir:${{ inputs.directory_name }}/CoverageReport -reporttypes:SonarQube,html
+          reportgenerator -reports:./${{ inputs.directory_name }}/**/coverage.cobertura.xml -targetdir:${{ inputs.directory_name }}/CoverageReport -reporttypes:SonarQube,Html,MarkdownSummaryGithub
           dotnet coverage merge --reports "${{ inputs.directory_name }}/**/coverage.cobertura.xml" -f cobertura -o ${{ inputs.directory_name }}/coverage/coverage.xml
 
       - name: End SonarCloud Scanner
@@ -109,6 +132,7 @@ jobs:
 
       - name: Publish projects
         id: publish
+        if: inputs.upload_artifacts == true
         run: |
           app="${{ inputs.directory_name }}"
           app="${app##*/}"
@@ -125,46 +149,22 @@ jobs:
           echo "map=$(echo "$map" | jq -c .)" >> "$GITHUB_OUTPUT"
           echo "include=$(echo "$include" | jq -c .)" >> "$GITHUB_OUTPUT"
 
-      - name: Upload combined artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: publish-all
-          path: publish
-          include-hidden-files: true
+      - name: Install artifact helper
+        if: inputs.upload_artifacts == true
+        run: |
+          npm install --prefix "$RUNNER_TEMP/artifact-uploader" @actions/artifact @actions/glob
 
-      - name: Publish coverage
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        if: github.event_name == 'pull_request'
-        with:
-          filename: ${{ inputs.directory_name }}/coverage/coverage.xml
-          badge: true
-          format: markdown
-          hide_complexity: true
-          output: both
+      - name: Upload per-project artifacts
+        if: inputs.upload_artifacts == true
+        env:
+          PROJECTS_JSON: ${{ inputs.project_names }}
+          ARTIFACT_NAMES: ${{ steps.publish.outputs.map }}
+          NODE_PATH: ${{ runner.temp }}/artifact-uploader/node_modules
+        run: node .github/scripts/upload-artifacts.js
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
         with:
           recreate: true
-          path: code-coverage-results.md
-
-  upload-artifacts:
-    runs-on: ubuntu-latest
-    needs: build-test-dotnet
-    strategy:
-      matrix:
-        project: ${{ fromJson(inputs.project_names) }}
-    steps:
-      - name: Download combined artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: publish-all
-          path: .
-
-      - name: Upload per-project artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ fromJson(needs.build-test-dotnet.outputs.artifact_names)[matrix.project] }}
-          path: ${{ matrix.project }}
-          include-hidden-files: true
+          path: ${{ inputs.directory_name }}/CoverageReport/SummaryGithub.md
