@@ -82,7 +82,7 @@ jobs:
           java-version: 21
 
       - name: Setup Node.js (for Azurite and artifact upload)
-        if: inputs.upload_artifacts == true || (inputs.requires_azurite == true && inputs.skip_tests != true)
+        if: inputs.requires_azurite == true && inputs.skip_tests != true
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -185,18 +185,13 @@ jobs:
           echo "map=$(echo "$map" | jq -c .)" >> "$GITHUB_OUTPUT"
           echo "include=$(echo "$include" | jq -c .)" >> "$GITHUB_OUTPUT"
 
-      - name: Install artifact helper
-        if: inputs.upload_artifacts == true
-        run: |
-          npm install --prefix "${{ github.workspace }}/.github/scripts" @actions/artifact @actions/glob
-
       - name: Upload per-project artifacts
         if: inputs.upload_artifacts == true
-        env:
-          PROJECTS_JSON: ${{ inputs.project_names }}
-          ARTIFACT_NAMES: ${{ steps.publish.outputs.map }}
-          ARTIFACT_ROOT: ${{ github.workspace }}/publish
-        run: node .github/scripts/upload-artifacts.mjs
+        uses: ./.github/actions/upload-artifacts
+        with:
+          projects_json: ${{ inputs.project_names }}
+          artifact_names: ${{ steps.publish.outputs.map }}
+          artifact_root: ${{ github.workspace }}/publish
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
