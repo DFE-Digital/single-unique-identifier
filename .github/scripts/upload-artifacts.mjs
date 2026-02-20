@@ -1,7 +1,7 @@
-const artifact = require('@actions/artifact');
-const glob = require('@actions/glob');
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { DefaultArtifactClient } from '@actions/artifact';
+import { create as createGlob } from '@actions/glob';
 
 function parseJson(label, value) {
   try {
@@ -24,7 +24,7 @@ function getRetentionDays() {
 }
 
 async function collectFiles(rootDir) {
-  const globber = await glob.create(`${rootDir}/**`, {
+  const globber = await createGlob(`${rootDir}/**`, {
     followSymbolicLinks: false,
     implicitDescendants: true,
     excludeHiddenFiles: false,
@@ -46,8 +46,7 @@ async function run() {
 
   const retentionDays = getRetentionDays();
   const options = retentionDays ? { retentionDays } : {};
-
-  const client = artifact.create();
+  const client = new DefaultArtifactClient();
 
   for (const project of projects) {
     const artifactName = artifactNames[project];
@@ -55,7 +54,8 @@ async function run() {
       throw new Error(`Missing artifact name for project: ${project}`);
     }
 
-    const projectPath = path.resolve(project);
+    const repoRoot = process.env.GITHUB_WORKSPACE || process.cwd();
+    const projectPath = path.resolve(repoRoot, project);
     if (!fs.existsSync(projectPath)) {
       throw new Error(`Project path does not exist: ${projectPath}`);
     }
