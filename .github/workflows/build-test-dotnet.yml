@@ -152,15 +152,14 @@ jobs:
       - name: Install artifact helper
         if: inputs.upload_artifacts == true
         run: |
-          npm install --prefix "$RUNNER_TEMP/artifact-uploader" @actions/artifact @actions/glob
+          npm install --prefix "${{ github.workspace }}/.github/scripts" @actions/artifact @actions/glob
 
       - name: Upload per-project artifacts
         if: inputs.upload_artifacts == true
         env:
           PROJECTS_JSON: ${{ inputs.project_names }}
           ARTIFACT_NAMES: ${{ steps.publish.outputs.map }}
-          NODE_PATH: ${{ runner.temp }}/artifact-uploader/node_modules
-        run: node .github/scripts/upload-artifacts.js
+        run: node .github/scripts/upload-artifacts.mjs
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
