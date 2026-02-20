@@ -21,6 +21,7 @@
         "title": "Social Care Team"
       },
       "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
+      "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
         "keyWorker": "Alex Patel",
         "dutyContactDetails": [
@@ -79,6 +80,7 @@
         "title": "Social Care Team"
       },
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.v1.json",
+      "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
         "firstName": "Octavia",
         "lastName": "Chislett",
@@ -133,6 +135,7 @@
         "title": "Social Care Team"
       },
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
+      "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
         "firstName": "Briar",
         "lastName": "Anderton",
@@ -179,6 +182,7 @@
         "title": "Social Care Team"
       },
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
+      "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
         "firstName": "Red",
         "lastName": "Flindall",

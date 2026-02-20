@@ -21,6 +21,7 @@
         "title": "Police Login Portal"
       },
       "schemaUri": "https://schemas.example.gov.uk/sui/crime-justice.details.v1.json",
+      "systemId": "POLICE-SYSTEM-01",
       "payload": {
         "policeMarkerDetails": "Individuals at the address may resort to violent behaviour",
         "servicesKnownTo": [
@@ -46,6 +47,35 @@
           }
         ]
       }
-    }
+    },
+    {
+      "recordId": "POL-3211-P",
+      "personId": "9691292211",
+      "encryptedPersonId": "FDP4W_qDZtCk-w2Hmqiq7A",
+      "recordType": "crime-justice.details",
+      "version": "1",
+      "schemaUri": "https://schemas.example.gov.uk/sui/crime-justice.details.v1.json",
+      "systemId": "POLICE-SYSTEM-02",
+      "payload": {
+        "policeMarkerDetails": "Risk of home visits - dangerous dog reported",
+        "servicesKnownTo": [
+          "Youth justice service (YJS)",
+          "Police"
+        ],
+        "lastPoliceProtectionPowerEvent": null,
+        "missingEpisodes": [],
+        "riskSexualExploitation": null,
+        "riskCriminalExploitation": null,
+        "riskRadicalisation": true,
+        "riskModernSlaveryAndTrafficking": null,
+        "riskGangsAndYouthViolence": true,
+        "crimeActiveStatusesAndPlans": [
+          {
+            "status": "Open to Youth Justice Service",
+            "plan": null
+          }
+        ]
+      }
+    }    
   ]
 }

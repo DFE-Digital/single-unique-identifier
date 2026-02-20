@@ -10,6 +10,7 @@
       "recordType": "education.details",
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/education.details.record.v1.json",
+      "systemId": "EDUCATION-SYSTEM-01",
       "contactDetails": {
         "name": "School Records Team",
         "description": "Records enquiries",
@@ -79,6 +80,7 @@
         "title": "School Login Portal"
       },
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
+      "systemId": "EDUCATION-SYSTEM-01",
       "payload": {
         "firstName": "Octavia",
         "lastName": null,

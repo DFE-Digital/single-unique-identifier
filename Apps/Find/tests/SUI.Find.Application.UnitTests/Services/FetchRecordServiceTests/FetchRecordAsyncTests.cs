@@ -110,6 +110,8 @@ public class FetchRecordAsyncTests
         var body = Assert.IsType<CustodianRecord>(result.Value);
         Assert.Equal(expectedResult.RecordId, body.RecordId);
         Assert.Equal(expectedResult.PersonId, body.PersonId);
+        Assert.Equal(expectedResult.SchemaUri, body.SchemaUri);
+        Assert.Equal(expectedResult.RecordType, body.RecordType);
     }
 
     [Fact]
