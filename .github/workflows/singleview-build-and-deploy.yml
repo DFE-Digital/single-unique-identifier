@@ -25,6 +25,16 @@ on:
         required: false
         default: false
         type: boolean
+      skip_tests:
+        description: Skip tests and related setup
+        required: false
+        default: false
+        type: boolean
+      skip_scans:
+        description: Skip SonarCloud scans
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - main
@@ -52,6 +62,9 @@ jobs:
       directory_name: Apps/SingleView
       project_names: '["SUI.SingleView.Web"]'
       upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+      skip_tests: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_tests == 'true' }}
+      skip_scans: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_scans == 'true' }}
+      deploy_requested: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true' }}
 
   deploy-singleview:
     name: SingleView - Deploy Web App
