@@ -91,33 +91,9 @@ OTEL_SERVICE_NAME=Your.App.Name
 Open `http://localhost:3000` (admin/admin) and use Explore to view logs and traces.
 If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
-## CI runners (self-hosted)
+## CI workflows
 
-We currently use a self-hosted GitHub Actions runner to avoid GitHub-hosted runner budget limits.
-It runs as an Azure Container App using a [github-runner docker image](https://github.com/myoung34/docker-github-actions-runner) and is registered at the repo level.
-
-Key details:
-- Workflows target `runs-on: [self-hosted, ubuntu-latest]` (the runner is labelled `ubuntu-latest`, `linux`, `ghrunner`).
-- Container Apps does not provide a Docker daemon, so Docker-based actions and `services:` containers will fail.
-  If a workflow needs Docker, it must run on a VM-based runner instead.
-- Azurite is started as a local process in workflows (no container services).
-- Artifact storage limits still apply because artifacts are stored in GitHub, not on the runner.
-- To switch back to GitHub-hosted runners, revert jobs to `runs-on: ubuntu-latest`.
-
-Operational notes:
-- The runner is currently configured with a PAT (classic) stored as an Azure Container App secret.
-  - This should be updated to utilise a GitHub app registration when possible.
-- The Container App is configured to keep at least one replica running.
-- The runner is hosted as an Azure Container App in the Azure Portal.
-
-## Artifact cleanup
-
-Artifacts are stored in GitHub, so usage can still hit storage quotas. The repo currently uses a 60-day default retention policy for artifacts and logs.
-There is a custom cleanup script to delete additional artifacts manually when needed:
-
-```
-./.github/scripts/cleanup-artifacts.sh --help
-```
+Workflow structure and inputs are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md). Self-hosted runner and Azure artifact storage details (including the rate-limit workaround and switchback flags) are in [Docs/Developers/ci-self-hosted-runner.md](./Docs/Developers/ci-self-hosted-runner.md).
 
 ## Repository structure
 
