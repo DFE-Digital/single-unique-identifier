@@ -10,7 +10,7 @@ the improved safeguarding and welfare of children.
 
 ## Contributing to the Docs
 
-* Please make sure that the `./Architecture decisions` Markdown documents are navigable outside of Structurizer, by running the `./Architecture decisions/generate-overview-table.sh` bash script if any ADRs are changed/added.
+* Please make sure that the [Architecture decisions](./Architecture%20decisions) Markdown documents are navigable outside of Structurizer, by running the [generate-overview-table.sh](./Architecture%20decisions/generate-overview-table.sh) script if any ADRs are changed/added.
 * After changing/adding any decisions and documentation, please make sure that Structurizer runs and displays correctly, and check it has no errors in the UI after loading it.
 
 ## Structurizr
@@ -23,7 +23,7 @@ visualised in an interactive UI using Structurizr.
     * Download from https://rancherdesktop.io/ (or https://github.com/rancher-sandbox/rancher-desktop/releases)
     * Rancher Desktop is a free, open-source application for running Docker
     images and does not require a license to use for commercial purposes.
-2. Run Structurizr using Docker, from this repo's root:
+2. Run Structurizr using Docker, from this repo's root. Mount the [Docs](./) directory:
     ```
     docker run -it --rm -p 2323:8080 -v ./Docs/:/usr/local/structurizr structurizr/lite
     ```
@@ -37,4 +37,5 @@ visualised in an interactive UI using Structurizr.
 
 ### Development
 
-* [SUI.Matching.API - Getting started](./Developers/SUI.Matching.API/gettingstarted.md)
+* [CI workflows](./Developers/ci-workflows.md)
+* [Self-hosted runner and artifact storage](./Developers/ci-self-hosted-runner.md)
