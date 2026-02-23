@@ -1,0 +1,68 @@
+name: Download build artifact from Azure Blob
+description: Download a build artifact from Azure Blob Storage using AzCopy.
+inputs:
+  artifact_name:
+    description: Name of the build artifact to download
+    required: true
+  destination_path:
+    description: Local path to download the artifact into
+    required: true
+  account_name:
+    description: Azure Storage account name
+    required: true
+  container_name:
+    description: Azure Storage container name
+    required: true
+  sas_token:
+    description: SAS token for the container
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install packages
+      shell: bash
+      run: |
+        if ! command -v unzip >/dev/null 2>&1; then
+          sudo apt-get update -y
+          sudo apt-get install -y unzip
+        fi
+        if ! command -v azcopy >/dev/null 2>&1; then
+          ubuntu_version="$(lsb_release -rs)"
+          curl -sSL "https://packages.microsoft.com/config/ubuntu/${ubuntu_version}/packages-microsoft-prod.deb" -o /tmp/packages-microsoft-prod.deb
+          sudo dpkg -i /tmp/packages-microsoft-prod.deb
+          sudo apt-get update -y
+          sudo apt-get install -y azcopy
+        fi
+
+    - name: Download artifact from Azure Blob
+      shell: bash
+      env:
+        ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        DESTINATION_PATH: ${{ inputs.destination_path }}
+        ACCOUNT_NAME: ${{ inputs.account_name }}
+        CONTAINER_NAME: ${{ inputs.container_name }}
+        SAS_TOKEN: ${{ inputs.sas_token }}
+      run: |
+        set -euo pipefail
+        if [ -z "${ACCOUNT_NAME:-}" ] || [ -z "${CONTAINER_NAME:-}" ] || [ -z "${SAS_TOKEN:-}" ]; then
+          echo "Azure storage inputs are required for Azure artifact downloads." >&2
+          exit 1
+        fi
+
+        sas="${SAS_TOKEN#\?}"
+        dest="${DESTINATION_PATH}"
+        mkdir -p "$dest"
+
+        tmp_dir="$(mktemp -d)"
+        cleanup() { rm -rf "$tmp_dir"; }
+        trap cleanup EXIT
+
+        zip_path="$tmp_dir/${ARTIFACT_NAME}.zip"
+        src="https://${ACCOUNT_NAME}.blob.core.windows.net/${CONTAINER_NAME}/${ARTIFACT_NAME}.zip?${sas}"
+        azcopy cp "$src" "$zip_path" --overwrite=true
+
+        if ! command -v unzip >/dev/null 2>&1; then
+          echo "unzip is required to extract artifacts." >&2
+          exit 1
+        fi
+        unzip -q "$zip_path" -d "$dest"
