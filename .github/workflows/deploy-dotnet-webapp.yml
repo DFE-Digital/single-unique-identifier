@@ -30,6 +30,11 @@ on:
         required: false
         default: publish
         type: string
+      artifact_store:
+        description: Storage backend for build artifacts (github or azure)
+        required: false
+        default: github
+        type: string
     secrets:
       AZURE_CLIENT_ID:
         required: true
@@ -37,6 +42,12 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
+      AZURE_ARTIFACTS_ACCOUNT:
+        required: false
+      AZURE_ARTIFACTS_CONTAINER:
+        required: false
+      AZURE_ARTIFACTS_SAS:
+        required: false
 
 permissions:
   id-token: write
@@ -59,6 +70,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Install Azure CLI
+        run: |
+          if ! command -v az >/dev/null 2>&1; then
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          fi
 
       - name: Azure login with OIDC for ${{ inputs.environment }}
         uses: azure/login@v2
@@ -86,11 +103,22 @@ jobs:
           fi
           echo "webapp_name=$webapp_name" >> "$GITHUB_OUTPUT"
 
-      - name: Download build artifact
+      - name: Download build artifact (GitHub)
+        if: inputs.artifact_store != 'azure'
         uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.artifact_name }}
           path: ${{ inputs.package_path }}/${{ inputs.artifact_name }}
+
+      - name: Download build artifact (Azure)
+        if: inputs.artifact_store == 'azure'
+        uses: ./.github/actions/download-blob-artifact
+        with:
+          artifact_name: ${{ inputs.artifact_name }}
+          destination_path: ${{ inputs.package_path }}/${{ inputs.artifact_name }}
+          account_name: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT || vars.AZURE_ARTIFACTS_ACCOUNT }}
+          container_name: ${{ secrets.AZURE_ARTIFACTS_CONTAINER || vars.AZURE_ARTIFACTS_CONTAINER }}
+          sas_token: ${{ secrets.AZURE_ARTIFACTS_SAS }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3

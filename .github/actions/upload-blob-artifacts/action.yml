@@ -1,0 +1,96 @@
+name: Upload build artifacts to Azure Blob
+description: Upload per-project build artifacts to Azure Blob Storage using AzCopy.
+inputs:
+  projects_json:
+    description: JSON array of project names (e.g. ["SUI.Find.FindApi","SUI.Find.AuditProcessor"])
+    required: true
+  artifact_names:
+    description: JSON map of project -> artifact name
+    required: true
+  artifact_root:
+    description: Root directory containing per-project publish output
+    required: false
+    default: publish
+  account_name:
+    description: Azure Storage account name
+    required: true
+  container_name:
+    description: Azure Storage container name
+    required: true
+  sas_token:
+    description: SAS token for the container
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install packages
+      shell: bash
+      run: |
+        if ! command -v zip >/dev/null 2>&1; then
+          sudo apt-get update -y
+          sudo apt-get install -y zip
+        fi
+        if ! command -v azcopy >/dev/null 2>&1; then
+          ubuntu_version="$(lsb_release -rs)"
+          curl -sSL "https://packages.microsoft.com/config/ubuntu/${ubuntu_version}/packages-microsoft-prod.deb" -o /tmp/packages-microsoft-prod.deb
+          sudo dpkg -i /tmp/packages-microsoft-prod.deb
+          sudo apt-get update -y
+          sudo apt-get install -y azcopy
+        fi
+
+    - name: Upload per-project artifacts to Azure Blob
+      shell: bash
+      env:
+        PROJECTS_JSON: ${{ inputs.projects_json }}
+        ARTIFACT_NAMES: ${{ inputs.artifact_names }}
+        ARTIFACT_ROOT: ${{ inputs.artifact_root }}
+        ACCOUNT_NAME: ${{ inputs.account_name }}
+        CONTAINER_NAME: ${{ inputs.container_name }}
+        SAS_TOKEN: ${{ inputs.sas_token }}
+      run: |
+        set -euo pipefail
+        if [ -z "${ACCOUNT_NAME:-}" ] || [ -z "${CONTAINER_NAME:-}" ] || [ -z "${SAS_TOKEN:-}" ]; then
+          echo "Azure storage inputs are required for Azure artifact uploads." >&2
+          exit 1
+        fi
+
+        sas="${SAS_TOKEN#\?}"
+        workspace="${GITHUB_WORKSPACE:-$(pwd)}"
+        root="${ARTIFACT_ROOT:-publish}"
+        if [ "${root#"/"}" = "$root" ]; then
+          root="$workspace/$root"
+        fi
+
+        tmp_dir="$(mktemp -d)"
+        cleanup() { rm -rf "$tmp_dir"; }
+        trap cleanup EXIT
+
+        zip_dir() {
+          local source_dir="$1"
+          local output_zip="$2"
+          if ! command -v zip >/dev/null 2>&1; then
+            echo "zip is required to package artifacts." >&2
+            return 1
+          fi
+          (cd "$source_dir" && zip -r "$output_zip" . >/dev/null)
+        }
+
+        for project in $(echo "$PROJECTS_JSON" | jq -r '.[]'); do
+          artifact_name=$(echo "$ARTIFACT_NAMES" | jq -r --arg key "$project" '.[$key]')
+          if [ -z "$artifact_name" ] || [ "$artifact_name" = "null" ]; then
+            echo "Missing artifact name for project: $project" >&2
+            exit 1
+          fi
+
+          src="$root/$project"
+          if [ ! -d "$src" ]; then
+            echo "Project path does not exist: $src" >&2
+            exit 1
+          fi
+
+          zip_path="$tmp_dir/${artifact_name}.zip"
+          zip_dir "$src" "$zip_path"
+
+          dest="https://${ACCOUNT_NAME}.blob.core.windows.net/${CONTAINER_NAME}/${artifact_name}.zip?${sas}"
+          azcopy cp "$zip_path" "$dest" --overwrite=true
+        done
