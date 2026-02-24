@@ -5,8 +5,6 @@ locals {
       FUNCTIONS_EXTENSION_VERSION = "~4"
       WEBSITE_RUN_FROM_PACKAGE    = "1"
 
-      WEBSITE_HEALTHCHECK_MAXPINGFAILURES = "5"
-
       APPLICATIONINSIGHTS_CONNECTION_STRING = var.application_insights_connection_string
     },
     var.environment_tag == null ? {} : { ASPNETCORE_ENVIRONMENT = var.environment_tag },
@@ -57,7 +55,9 @@ resource "azurerm_linux_function_app" "this" {
 
   site_config {
     ftps_state = var.ftps_state
-    health_check_path = var.health_check_path
+
+    health_check_path                 = var.health_check_path
+    health_check_eviction_time_in_min = var.health_check_path == null ? null : 5
 
     application_stack {
       dotnet_version = var.dotnet_version
