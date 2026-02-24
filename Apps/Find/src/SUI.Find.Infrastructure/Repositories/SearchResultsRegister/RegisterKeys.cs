@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 
+[ExcludeFromCodeCoverage(Justification = "Used only in infrastructure services.")]
 public class RegisterKeys
 {
     public static string PartitionKey(string jobId) => $"{Normalise(jobId)}";

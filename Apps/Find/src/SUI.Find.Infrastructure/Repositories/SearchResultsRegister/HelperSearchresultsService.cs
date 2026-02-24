@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 
 namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 
+[ExcludeFromCodeCoverage(Justification = "Used only as a helper with no logic embedded")]
 public class HelperSearchresultsService : ISearchResultsService
 {
     private readonly ISearchResultsRegisterRepository _resultsRepository;
