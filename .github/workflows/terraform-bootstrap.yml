@@ -37,6 +37,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Setup Node.js (for Terraform)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Install Azure CLI
         run: |
           if ! command -v az >/dev/null 2>&1; then
