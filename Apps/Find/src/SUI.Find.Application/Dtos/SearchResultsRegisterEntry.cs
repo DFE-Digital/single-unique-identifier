@@ -1,4 +1,4 @@
-namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
+namespace SUI.Find.Application.Dtos;
 
 public class SearchResultsRegisterEntry
 {

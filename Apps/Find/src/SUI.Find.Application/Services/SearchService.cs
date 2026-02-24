@@ -54,7 +54,8 @@ public class SearchService(
     IPersonIdEncryptionService encryptionService,
     ICustodianService custodianService,
     IHashService hashService,
-    IOptions<EncryptionConfiguration> encryptionConfig
+    IOptions<EncryptionConfiguration> encryptionConfig,
+    ISearchResultsService searchResultsService
 ) : ISearchService
 {
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
@@ -260,35 +261,43 @@ public class SearchService(
                 return new Unauthorized();
             }
 
-            if (metaData.IsRunning)
+            // Fetch partial persisted results
+            var persistedItems = await searchResultsService.GetResultsByJobIdAsync(
+                jobId,
+                cancellationToken
+            );
+
+            var persistedResultItems = persistedItems.Select(r => new SearchResultItem(
+                r.RecordType,
+                r.RecordUrl,
+                r.SystemId,
+                RecordId: null
+            ) //TODO: should this have been populated when storing
+            );
+
+            SearchResultItem[] orchestratorItems = [];
+
+            if (!metaData.IsRunning && !string.IsNullOrEmpty(metaData.SerializedOutput))
             {
-                return new SearchResultsDto
-                {
-                    JobId = jobId,
-                    Suid = meta.Suid,
-                    Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    Items = [],
-                };
+                orchestratorItems =
+                    JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput)
+                    ?? Array.Empty<SearchResultItem>();
             }
 
-            if (string.IsNullOrEmpty(metaData.SerializedOutput))
-            {
-                return new SearchResultsDto
-                {
-                    JobId = jobId,
-                    Suid = meta.Suid,
-                    Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    Items = [],
-                };
-            }
-            var items = JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput);
+            // Merge and de-duplicate results
+            var combinedItems = orchestratorItems
+                .Concat(persistedResultItems)
+                .GroupBy(i => (jobId, i.SystemId, i.RecordType)) // based on ADR 19
+                .Select(g => g.First())
+                .ToArray();
 
+            // Return final DTO
             return new SearchResultsDto
             {
                 JobId = jobId,
                 Suid = meta.Suid,
                 Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                Items = items ?? [],
+                Items = combinedItems,
             };
         }
         catch (Exception ex)

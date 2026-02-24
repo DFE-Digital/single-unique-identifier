@@ -1,4 +1,4 @@
-using SUI.Find.Application.Models;
+using SUI.Find.Application.Dtos;
 
 namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 
