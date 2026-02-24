@@ -193,23 +193,20 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
     }
 
     [Fact]
-    public async Task ShouldMergePersistedAndOrchestratorResults()
+    public async Task ShouldReturnOrchestratorResults_WhenJobIsCompleted()
     {
-        var orchestratorItems = new[]
-        {
-            new SearchResultItem("Health", "Type1", "url1", "SystemA"),
-        };
+        var orchestratorItems = new[] { new SearchResultItem("Type1", "Url1", "SystemA", null) };
 
-        var meta = new OrchestrationMetadata("Orchestrator", "merge-job")
+        var meta = new OrchestrationMetadata("Orchestrator", "completed-job")
         {
             RuntimeStatus = OrchestrationRuntimeStatus.Completed,
             SerializedOutput = JsonSerializer.Serialize(orchestratorItems),
         };
 
-        _client.GetInstanceAsync("merge-job", true, Arg.Any<CancellationToken>()).Returns(meta);
+        _client.GetInstanceAsync("completed-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
         SearchResultsService
-            .GetResultsByJobIdAsync("merge-job", Arg.Any<CancellationToken>())
+            .GetResultsByJobIdAsync("completed-job", Arg.Any<CancellationToken>())
             .Returns(
                 new[]
                 {
@@ -219,14 +216,14 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         SystemId = "SystemB",
                         RecordType = "Type2",
                         RecordUrl = "url2",
-                        JobId = "merge-job",
+                        JobId = "completed-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
                     },
                 }
             );
 
         var result = await Sut.GetSearchResultsAsync(
-            "merge-job",
+            "completed-job",
             ClientId,
             _client,
             CancellationToken.None
@@ -234,6 +231,8 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         var body = Assert.IsType<SearchResultsDto>(result.Value);
 
-        Assert.Equal(2, body.Items.Length);
+        Assert.Single(body.Items);
+        Assert.Equal("SystemA", body.Items[0].SystemId);
+        Assert.Equal("Type1", body.Items[0].RecordType);
     }
 }
