@@ -4,11 +4,7 @@ namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 
 public interface ISearchResultsRegisterRepository
 {
-    Task AddAsync(
-        string jobId,
-        CustodianSearchResultItem item,
-        CancellationToken cancellationToken
-    );
+    Task AddAsync(SearchResultsRegisterEntry entry, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<SearchResultsRegisterEntry>> GetByJobIdAsync(
         string jobId,

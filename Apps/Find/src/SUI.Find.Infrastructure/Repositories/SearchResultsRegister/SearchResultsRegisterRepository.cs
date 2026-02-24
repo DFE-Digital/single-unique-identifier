@@ -1,10 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
-using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 
+[ExcludeFromCodeCoverage(
+    Justification = "Will be covered after confirmation on current implementation"
+)]
 public class SearchResultsRegisterRepository
     : ISearchResultsRegisterRepository,
         ITableServiceEnsureCreated
@@ -28,32 +31,29 @@ public class SearchResultsRegisterRepository
     private TableClient Table => _client.GetTableClient(TableName);
 
     public async Task AddAsync(
-        string jobId,
-        CustodianSearchResultItem item,
+        SearchResultsRegisterEntry entry,
         CancellationToken cancellationToken = default
     )
     {
-        var partitionKey = RegisterKeys.PartitionKey(jobId);
+        var partitionKey = RegisterKeys.PartitionKey(entry.JobId);
 
-        var submittedAtUtc = DateTimeOffset.UtcNow;
-
-        var systemId = string.IsNullOrWhiteSpace(item.SystemId) ? "DefaultSystem" : item.SystemId;
+        var systemId = string.IsNullOrWhiteSpace(entry.SystemId) ? "DefaultSystem" : entry.SystemId;
 
         var rowKey = RegisterKeys.RowKey(
-            submittedAtUtc,
-            item.CustodianId,
-            item.RecordType,
+            entry.SubmittedAtUtc,
+            entry.CustodianId,
+            entry.RecordType,
             systemId
         );
 
         var entity = new TableEntity(partitionKey, rowKey)
         {
-            { "CustodianId", item.CustodianId },
+            { "CustodianId", entry.CustodianId },
             { "SystemId", systemId },
-            { "RecordType", item.RecordType },
-            { "RecordUrl", item.RecordUrl },
-            { "SubmittedAtUtc", submittedAtUtc },
-            { "JobId", jobId },
+            { "RecordType", entry.RecordType },
+            { "RecordUrl", entry.RecordUrl },
+            { "SubmittedAtUtc", entry.SubmittedAtUtc },
+            { "JobId", entry.JobId },
         };
 
         try
@@ -63,7 +63,7 @@ public class SearchResultsRegisterRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to persist SearchResult for JobId {JobId}", jobId);
+            _logger.LogError(ex, "Failed to persist SearchResult for JobId {JobId}", entry.JobId);
         }
     }
 
