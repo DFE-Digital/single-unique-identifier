@@ -261,43 +261,46 @@ public class SearchService(
                 return new Unauthorized();
             }
 
-            // Fetch partial persisted results
-            var persistedItems = await searchResultsService.GetResultsByJobIdAsync(
-                jobId,
-                cancellationToken
-            );
+            SearchResultItem[] finalItems;
 
-            var persistedResultItems = persistedItems.Select(r => new SearchResultItem(
-                r.RecordType,
-                r.RecordUrl,
-                r.SystemId,
-                RecordId: null
-            ) //TODO: should this have been populated when storing
-            );
-
-            SearchResultItem[] orchestratorItems = [];
-
-            if (!metaData.IsRunning && !string.IsNullOrEmpty(metaData.SerializedOutput))
+            // If job is still running → return partial persisted results
+            if (metaData.IsRunning)
             {
-                orchestratorItems =
-                    JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput)
-                    ?? Array.Empty<SearchResultItem>();
+                var persistedItems = await searchResultsService.GetResultsByJobIdAsync(
+                    jobId,
+                    cancellationToken
+                );
+
+                finalItems = persistedItems
+                    .Select(r => new SearchResultItem(
+                        r.RecordType,
+                        r.RecordUrl,
+                        r.SystemId,
+                        RecordId: null // TODO: should this have been populated while storing
+                    ))
+                    .ToArray();
+            }
+            else
+            {
+                // Completed / Failed / Terminated → return orchestrator output (existing behaviour)
+                if (!string.IsNullOrEmpty(metaData.SerializedOutput))
+                {
+                    finalItems =
+                        JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput)
+                        ?? Array.Empty<SearchResultItem>();
+                }
+                else
+                {
+                    finalItems = Array.Empty<SearchResultItem>();
+                }
             }
 
-            // Merge and de-duplicate results
-            var combinedItems = orchestratorItems
-                .Concat(persistedResultItems)
-                .GroupBy(i => (jobId, i.SystemId, i.RecordType)) // based on ADR 19
-                .Select(g => g.First())
-                .ToArray();
-
-            // Return final DTO
             return new SearchResultsDto
             {
                 JobId = jobId,
                 Suid = meta.Suid,
                 Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                Items = combinedItems,
+                Items = finalItems,
             };
         }
         catch (Exception ex)

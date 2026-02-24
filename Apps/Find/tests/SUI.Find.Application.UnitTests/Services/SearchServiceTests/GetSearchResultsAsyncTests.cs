@@ -236,46 +236,4 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         Assert.Equal(2, body.Items.Length);
     }
-
-    [Fact]
-    public async Task ShouldDeduplicatePersistedAndOrchestratorResults()
-    {
-        var duplicate = new SearchResultItem("Type1", "url1", "SystemA", null);
-
-        var meta = new OrchestrationMetadata("Orchestrator", "dup-job")
-        {
-            RuntimeStatus = OrchestrationRuntimeStatus.Completed,
-            SerializedOutput = JsonSerializer.Serialize(new[] { duplicate }),
-        };
-
-        _client.GetInstanceAsync("dup-job", true, Arg.Any<CancellationToken>()).Returns(meta);
-
-        SearchResultsService
-            .GetResultsByJobIdAsync("dup-job", Arg.Any<CancellationToken>())
-            .Returns(
-                new[]
-                {
-                    new SearchResultsRegisterEntry
-                    {
-                        CustodianId = "Health",
-                        SystemId = "SystemA",
-                        RecordType = "Type1",
-                        RecordUrl = "url1",
-                        JobId = "dup-job",
-                        SubmittedAtUtc = DateTimeOffset.UtcNow,
-                    },
-                }
-            );
-
-        var result = await Sut.GetSearchResultsAsync(
-            "dup-job",
-            ClientId,
-            _client,
-            CancellationToken.None
-        );
-
-        var body = Assert.IsType<SearchResultsDto>(result.Value);
-
-        Assert.Single(body.Items); // deduplicated
-    }
 }
