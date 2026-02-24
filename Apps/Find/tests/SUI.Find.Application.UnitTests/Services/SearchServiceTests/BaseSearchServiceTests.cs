@@ -21,6 +21,8 @@ public class BaseSearchServiceTests
     protected readonly IOptions<EncryptionConfiguration> EncryptionConfig = Substitute.For<
         IOptions<EncryptionConfiguration>
     >();
+    protected readonly ISearchResultsService SearchResultsService =
+        Substitute.For<ISearchResultsService>();
 
     protected BaseSearchServiceTests()
     {
@@ -29,7 +31,8 @@ public class BaseSearchServiceTests
             EncryptionService,
             CustodianService,
             HashService,
-            EncryptionConfig
+            EncryptionConfig,
+            SearchResultsService
         );
         EncryptionConfig.Value.Returns(
             new EncryptionConfiguration { EnablePersonIdEncryption = true }

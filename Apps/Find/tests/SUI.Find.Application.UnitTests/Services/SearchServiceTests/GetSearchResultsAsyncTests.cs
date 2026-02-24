@@ -149,4 +149,133 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         Assert.Equal(SearchStatus.Completed, body.Status);
         Assert.Equal(2, body.Items.Length);
     }
+
+    [Fact]
+    public async Task ShouldReturnPersistedResults_WhenJobIsRunning()
+    {
+        var meta = new OrchestrationMetadata("Orchestrator", "running-job")
+        {
+            RuntimeStatus = OrchestrationRuntimeStatus.Running,
+        };
+
+        _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
+
+        SearchResultsService
+            .GetResultsByJobIdAsync("running-job", Arg.Any<CancellationToken>())
+            .Returns(
+                new[]
+                {
+                    new SearchResultsRegisterEntry
+                    {
+                        CustodianId = "Health",
+                        SystemId = "SystemA",
+                        RecordType = "Type1",
+                        RecordUrl = "url1",
+                        JobId = "running-job",
+                        SubmittedAtUtc = DateTimeOffset.UtcNow,
+                    },
+                }
+            );
+
+        var result = await Sut.GetSearchResultsAsync(
+            "running-job",
+            ClientId,
+            _client,
+            CancellationToken.None
+        );
+
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+
+        Assert.Single(body.Items);
+        Assert.Equal("SystemA", body.Items[0].SystemId);
+        Assert.Equal("Type1", body.Items[0].RecordType);
+        Assert.Equal("url1", body.Items[0].RecordUrl);
+    }
+
+    [Fact]
+    public async Task ShouldMergePersistedAndOrchestratorResults()
+    {
+        var orchestratorItems = new[]
+        {
+            new SearchResultItem("Health", "Type1", "url1", "SystemA"),
+        };
+
+        var meta = new OrchestrationMetadata("Orchestrator", "merge-job")
+        {
+            RuntimeStatus = OrchestrationRuntimeStatus.Completed,
+            SerializedOutput = JsonSerializer.Serialize(orchestratorItems),
+        };
+
+        _client.GetInstanceAsync("merge-job", true, Arg.Any<CancellationToken>()).Returns(meta);
+
+        SearchResultsService
+            .GetResultsByJobIdAsync("merge-job", Arg.Any<CancellationToken>())
+            .Returns(
+                new[]
+                {
+                    new SearchResultsRegisterEntry
+                    {
+                        CustodianId = "Education",
+                        SystemId = "SystemB",
+                        RecordType = "Type2",
+                        RecordUrl = "url2",
+                        JobId = "merge-job",
+                        SubmittedAtUtc = DateTimeOffset.UtcNow,
+                    },
+                }
+            );
+
+        var result = await Sut.GetSearchResultsAsync(
+            "merge-job",
+            ClientId,
+            _client,
+            CancellationToken.None
+        );
+
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+
+        Assert.Equal(2, body.Items.Length);
+    }
+
+    [Fact]
+    public async Task ShouldDeduplicatePersistedAndOrchestratorResults()
+    {
+        var duplicate = new SearchResultItem("Type1", "url1", "SystemA", null);
+
+        var meta = new OrchestrationMetadata("Orchestrator", "dup-job")
+        {
+            RuntimeStatus = OrchestrationRuntimeStatus.Completed,
+            SerializedOutput = JsonSerializer.Serialize(new[] { duplicate }),
+        };
+
+        _client.GetInstanceAsync("dup-job", true, Arg.Any<CancellationToken>()).Returns(meta);
+
+        SearchResultsService
+            .GetResultsByJobIdAsync("dup-job", Arg.Any<CancellationToken>())
+            .Returns(
+                new[]
+                {
+                    new SearchResultsRegisterEntry
+                    {
+                        CustodianId = "Health",
+                        SystemId = "SystemA",
+                        RecordType = "Type1",
+                        RecordUrl = "url1",
+                        JobId = "dup-job",
+                        SubmittedAtUtc = DateTimeOffset.UtcNow,
+                    },
+                }
+            );
+
+        var result = await Sut.GetSearchResultsAsync(
+            "dup-job",
+            ClientId,
+            _client,
+            CancellationToken.None
+        );
+
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+
+        Assert.Single(body.Items); // deduplicated
+    }
 }
