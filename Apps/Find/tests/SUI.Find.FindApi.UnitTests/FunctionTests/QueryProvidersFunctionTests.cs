@@ -6,6 +6,7 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
 using SUI.Find.FindApi.Functions.ActivityFunctions;
+using SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
@@ -19,6 +20,8 @@ public class QueryProvidersFunctionTests
         Substitute.For<IQueryProvidersService>();
     private readonly IIdRegisterRepository _mockIdRegisterRepository =
         Substitute.For<IIdRegisterRepository>();
+    private readonly ISearchResultsRegisterRepository _mockSearchResultsRegisterRepository =
+        Substitute.For<ISearchResultsRegisterRepository>();
     private readonly FunctionContext _mockContext = Substitute.For<FunctionContext>();
     private readonly QueryProvidersFunction _sut;
 
@@ -27,7 +30,8 @@ public class QueryProvidersFunctionTests
         _sut = new QueryProvidersFunction(
             _mockLogger,
             _mockQueryProvidersService,
-            _mockIdRegisterRepository
+            _mockIdRegisterRepository,
+            _mockSearchResultsRegisterRepository
         );
     }
 
@@ -56,11 +60,12 @@ public class QueryProvidersFunctionTests
         // Act
         var result = await _sut.QueryProvider(_mockContext, input, CancellationToken.None);
 
-        // Assert
+        // Assert - QueryProvidersService called
         await _mockQueryProvidersService
             .Received(1)
             .QueryProvidersAsync(input, Arg.Any<CancellationToken>());
 
+        // Assert - ID Register called for each item
         await _mockIdRegisterRepository
             .Received(expectedItems.Count)
             .UpsertAsync(
@@ -74,6 +79,25 @@ public class QueryProvidersFunctionTests
                 ),
                 Arg.Any<CancellationToken>()
             );
+
+        // Assert - SearchResultsRepository called for each item
+        await _mockSearchResultsRegisterRepository
+            .Received(expectedItems.Count)
+            .AddAsync(
+                Arg.Is<SearchResultsRegisterEntry>(e =>
+                    e.CustodianId == input.Provider.OrgId
+                    && e.RecordType == expectedItems[0].RecordType
+                    && e.RecordUrl == expectedItems[0].RecordUrl
+                    && e.SystemId == expectedItems[0].SystemId
+                    && e.JobId == input.JobId
+                    && e.SubmittedAtUtc != default
+                ),
+                Arg.Any<CancellationToken>()
+            );
+
+        // Assert - returned items
+        Assert.Equal(expectedItems.Count, result.Count);
+        Assert.Equal(expectedItems, result);
 
         Assert.Single(result);
         Assert.Equal(expectedItems, result);
