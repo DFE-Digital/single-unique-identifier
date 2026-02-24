@@ -12,6 +12,7 @@ using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Factories.Fhir;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
+using SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Services.Fhir;
@@ -38,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
         services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
         services.AddSingleton<IIdRegisterRepository, SuiCustodianRegisterRepository>();
+        services.AddSingleton<ISearchResultsRegisterRepository, SearchResultsRegisterRepository>();
         services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
         services.AddSingleton<IFhirService, FhirService>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
