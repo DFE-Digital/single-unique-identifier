@@ -57,6 +57,7 @@ public class QueryProvidersFunction(
                     SystemId = searchResultItem.SystemId ?? string.Empty,
                     RecordType = searchResultItem.RecordType,
                     RecordUrl = searchResultItem.RecordUrl,
+                    RecordId = searchResultItem.RecordId,
                     SubmittedAtUtc = DateTimeOffset.UtcNow,
                     JobId = data.JobId,
                     WorkItemId = data.JobId, // This will be changed later

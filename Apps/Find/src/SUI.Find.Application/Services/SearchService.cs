@@ -276,7 +276,7 @@ public class SearchService(
                         r.RecordType,
                         r.RecordUrl,
                         r.SystemId,
-                        RecordId: null // TODO: should this have been populated while storing
+                        r.RecordId
                     ))
                     .ToArray();
             }

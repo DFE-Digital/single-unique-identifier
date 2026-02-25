@@ -52,6 +52,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
             { "SystemId", systemId },
             { "RecordType", entry.RecordType },
             { "RecordUrl", entry.RecordUrl },
+            { "RecordId", entry.RecordId },
             { "SubmittedAtUtc", entry.SubmittedAtUtc },
             { "JobId", entry.JobId },
             { "WorkItemId", entry.WorkItemId },
@@ -111,6 +112,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
                         SystemId = systemId,
                         RecordType = recordType,
                         RecordUrl = entity.GetString("RecordUrl"),
+                        RecordId = entity.GetString("RecordId"),
                         SubmittedAtUtc = entity
                             .GetDateTimeOffset("SubmittedAtUtc")!
                             .Value.UtcDateTime,
