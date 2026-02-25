@@ -56,6 +56,9 @@ resource "azurerm_linux_function_app" "this" {
   site_config {
     ftps_state = var.ftps_state
 
+    health_check_path                 = var.health_check_path
+    health_check_eviction_time_in_min = var.health_check_path == null ? null : 5
+
     application_stack {
       dotnet_version = var.dotnet_version
       use_dotnet_isolated_runtime = true
