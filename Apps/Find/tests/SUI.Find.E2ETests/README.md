@@ -11,14 +11,14 @@ Because azure dotnet isolated function do not play well in memory, this
 requires you to test against running applications.
 
 1. Ideally, clean out your Azurite storage tables for a clean run.
-2. Start the SUI.Find.FindApi and SUI.Find.CustodianSimulator.
+2. Start the SUI.Find.FindApi and SUI.StubCustodians.
    - JetBrains Rider can throw up runtime issues with durable functions so it's recommended to use the function app CLI 'func'
    - To run in CLI:
      - For SUI.Find.FindApi, go into project directory and run `func start --port 7182`
-     - For SUI.Find.CustodianSimulator, go into project directory and run `func start --port 7082`
+     - For SUI.StubCustodians, go into project directory and run `dotnet run`
      - Run these in different terminal windows so they can run simultaneously and view the logs.
 3. Run the E2E tests in CLI or an IDE of your choice.
-4. Stop the SUI.Find.FindApi and SUI.Find.CustodianSimulator.
+4. Stop the SUI.Find.FindApi and SUI.StubCustodians.
 
 ## How to run it against the dev environment
 

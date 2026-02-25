@@ -1,0 +1,42 @@
+name: Dependabot PR formatter
+
+# This pipeline is designed to run against only Dependabot's PRs and apply the csharpier formatting to them, specifically so that the changes to the csproj XML files are formatted to the repo's standards.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  format-csproj-xml-files:
+    if: startsWith(github.head_ref, 'dependabot/nuget')
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }} # crucial for the git push in the later step
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Install repo's dotnet tools
+        run: dotnet tool restore
+
+      - name: Format .csproj and .props files
+        run: |
+          shopt -s globstar
+          dotnet csharpier format **/*.csproj **/*.props
+
+      - name: Commit changes # note that the git commit early exits if there are no changes, and hence nothing is pushed
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git add .
+          git commit -m "Apply CSharpier formatting on .csproj and .props files updated by Dependabot" || exit 0
+          git push

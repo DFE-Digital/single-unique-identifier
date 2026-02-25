@@ -90,13 +90,15 @@ Search for a person and get an SUI back
 /v1/matchperson
 
 {
-"given": "Octavia",
-"family": "Chislett",
-"birthDate": "2008-09-20",
-"gender": "female",
-"phone": null,
-"email": null,
-"addressPostalCode": "KT19 0ST"
+  "personSpecification": {
+    "given": "Octavia",
+    "family": "Chislett",
+    "birthDate": "2008-09-20",
+    "gender": "female",
+    "phone": null,
+    "email": null,
+    "addressPostalCode": "KT19 0ST"
+  }
 }
 
 response with encryption (LOCAL-AUTHORITY-01)

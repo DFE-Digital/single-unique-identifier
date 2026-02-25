@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
+using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
@@ -21,16 +23,23 @@ public class GetSearchResultItemsFromCustodianAsyncTests
     private readonly IOutboundAuthService _mockAuthService = Substitute.For<IOutboundAuthService>();
     private readonly IPersonIdEncryptionService _mockEncryptionService =
         Substitute.For<IPersonIdEncryptionService>();
+    private readonly IOptions<EncryptionConfiguration> _encryptionConfig = Substitute.For<
+        IOptions<EncryptionConfiguration>
+    >();
     private readonly BuildCustodianRequestsService _sut;
 
     public GetSearchResultItemsFromCustodianAsyncTests()
     {
+        _encryptionConfig.Value.Returns(
+            new EncryptionConfiguration { EnablePersonIdEncryption = true }
+        );
         _sut = new BuildCustodianRequestsService(
             _mockLogger,
             _mockRequestBuilder,
             _mockHttpClient,
             _mockAuthService,
-            _mockEncryptionService
+            _mockEncryptionService,
+            _encryptionConfig
         );
     }
 
@@ -49,7 +58,7 @@ public class GetSearchResultItemsFromCustodianAsyncTests
     }
 
     [Fact]
-    public async Task GetSearchResultItemsFromCustodianAsync_ReturnsFail_WhenEncryptionIsNull()
+    public async Task GetSearchResultItemsFromCustodianAsync_ReturnsSuccess_WhenEncryptionIsNull()
     {
         // Arrange
         var input = new QueryProviderInput(
@@ -60,6 +69,30 @@ public class GetSearchResultItemsFromCustodianAsyncTests
             MockProvider(encryption: null)
         );
         var request = new BuildCustodianRequestDto(input.Provider, "1234567890");
+        using var httpRequestMessage = new HttpRequestMessage();
+
+        _mockEncryptionService
+            .EncryptNhsToPersonId(Arg.Any<string>(), Arg.Any<EncryptionDefinition>())
+            .Returns(Result<string>.Ok("encrypted-id"));
+
+        _mockAuthService
+            .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Ok("valid-token"));
+
+        _mockRequestBuilder
+            .BuildHttpRequest(input.Provider, "1234567890", "valid-token")
+            .Returns(httpRequestMessage);
+
+        var expectedItems = new List<SearchResultItem>
+        {
+            new("Type1", "/v1/records/original-id", "SystemA", "TestRecord"),
+        };
+
+        var jsonResponse = JsonSerializer.Serialize(expectedItems, JsonSerializerOptions.Web);
+
+        _mockHttpClient
+            .SendAsync(httpRequestMessage, Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Ok(jsonResponse));
 
         // Act
         var result = await _sut.GetSearchResultItemsFromCustodianAsync(
@@ -68,8 +101,17 @@ public class GetSearchResultItemsFromCustodianAsyncTests
         );
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Contains("no encryption configured", result.Error);
+        Assert.True(result.Success);
+        Assert.NotNull(result.Value);
+        Assert.Single(result.Value);
+        Assert.Equal("/v1/records/original-id", result.Value[0].RecordUrl);
+
+        _mockRequestBuilder
+            .Received(1)
+            .BuildHttpRequest(input.Provider, "1234567890", "valid-token");
+        await _mockHttpClient
+            .Received(1)
+            .SendAsync(httpRequestMessage, Arg.Any<CancellationToken>());
         _mockEncryptionService.DidNotReceiveWithAnyArgs().EncryptNhsToPersonId(null, null);
     }
 

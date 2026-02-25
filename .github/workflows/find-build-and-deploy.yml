@@ -14,8 +14,29 @@ on:
         type: choice
         options:
           - d01
+          - d02
       deploy:
         description: Deploy to Azure Function App
+        required: false
+        default: false
+        type: boolean
+      upload_artifacts:
+        description: Upload build artifacts (auto-enabled when deploying)
+        required: false
+        default: false
+        type: boolean
+      artifact_store:
+        description: Artifact storage backend (github or azure)
+        required: false
+        default: azure
+        type: string
+      skip_tests:
+        description: Skip tests and related setup
+        required: false
+        default: false
+        type: boolean
+      skip_scans:
+        description: Skip SonarCloud scans
         required: false
         default: false
         type: boolean
@@ -45,6 +66,12 @@ jobs:
     with:
       directory_name: Apps/Find
       project_names: '["SUI.Find.FindApi","SUI.Find.AuditProcessor"]'
+      requires_azurite: true
+      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      skip_tests: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_tests == 'true' }}
+      skip_scans: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_scans == 'true' }}
+      deploy_requested: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true' }}
 
   deploy-Find:
     name: Find - Deploy Function App
@@ -58,6 +85,7 @@ jobs:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       directory_name: Apps/Find
       artifact_name: ${{ fromJson(needs.build-and-test-Find.outputs.artifact_names)['SUI.Find.FindApi'] }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
       component_descriptor: find01
       package_path: publish
 
@@ -74,5 +102,6 @@ jobs:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       directory_name: Apps/Find
       artifact_name: ${{ fromJson(needs.build-and-test-Find.outputs.artifact_names)['SUI.Find.AuditProcessor'] }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
       component_descriptor: findaudit01
       package_path: publish

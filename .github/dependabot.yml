@@ -4,33 +4,46 @@ updates:
     directory: /
     schedule:
       interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
     commit-message:
       prefix: "[gha]-"
-      
+    groups:
+      github-actions-updates:
+        patterns:
+          - "*"
+
   - package-ecosystem: nuget
     directory: "/Apps/Find"
     schedule:
       interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
     commit-message:
       prefix: "[nuget][Find]-"
-      
-  - package-ecosystem: nuget
-    directory: "/Apps/SingleView"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "[nuget][SingleView]-"
-      
+    groups:
+      FIND-package-updates:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "FluentAssertions"
+        update-types:
+          - "version-update:semver-major" # Do not allow FluentAssertions to be upgraded past v7, v8+ requires a commercial licence, whereas v7 is free-to-use commercially.
+      - dependency-name: "Azure.Storage.Queues" # Stay on 12.24.0 of Azure.Storage.Queues until Azurite is updated to support the new API version
+
   - package-ecosystem: nuget
     directory: "/Apps/StubCustodians"
     schedule:
       interval: "weekly"
+      day: "wednesday"
+      time: "06:00"
     commit-message:
       prefix: "[nuget][StubCustodians]-"
-  
-  - package-ecosystem: nuget
-    directory: "/Apps/Transfer"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "[nuget][Transfer]-"
+    groups:
+      STUBS-package-updates:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "FluentAssertions"
+        update-types:
+          - "version-update:semver-major" # Do not allow FluentAssertions to be upgraded past v7, v8+ requires a commercial licence, whereas v7 is free-to-use commercially.

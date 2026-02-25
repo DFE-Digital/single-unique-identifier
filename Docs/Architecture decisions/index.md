@@ -89,6 +89,7 @@ This index and the ADR set should be read with that progression in mind.
 | 0011 | Authentication and trust boundaries for SUI APIs | Systems landscape | Draft | Incomplete; to be developed further |
 | 0012 | Asynchronous pull-based discovery for FIND | Systems landscape | Proposed | Current active discovery design |
 | 0013 | Lifecycle management of shared SUI identifiers | Systems landscape | Draft | Replacement for ADR-0008 in post-encryption architecture |
+<<<<<<< HEAD
 | 0014 | Demographic Event Integration for Identifier Lifecycle Triggers (NEMS / MNS) | Systems landscape | Not Started | Integrating the National discovery service with NHS demographic event notification services |
 | 0015 | Optional Webhook Notifications for Task Availability | System landscape | Not Started | Webhook-based notifications as an optional enhancement to the pull-based polling model |
 | 0016 | API Edge Pattern for National Services | System landscape | Not Started | How the national discovery APIs should be exposed and protected at the platform edge |
@@ -96,6 +97,12 @@ This index and the ADR set should be read with that progression in mind.
 | 0018 | High-Performance Polling for Pull-Based Discovery | System landscape | Proposed | Achieving high performance, low latency polling |
 | 0019 | Job Broker and Lease State | System Landscape | Proposed | Light weight job broker and lease state management |
 | 0020 | Correlation and Trace Continuity Across Distributed Search and Polling | System Landscape | Proposed | Correlation of requests |
+=======
+| 0014 | Demographic Event Integration for Identifier Lifecycle Triggers (NEMS / MNS) | Systems landscape | Draft | Integrating the National discovery service with NHS demographic event notification services |
+| 0015 | Optional Webhook Notifications for Task Availability | System landscape | Draft | Webhook-based notifications as an optional enhancement to the pull-based polling model |
+| 0016 | API Edge Pattern for National Services | System landscape | Draft | How the national discovery APIs should be exposed and protected at the platform edge |
+| 0017 | 
+>>>>>>> main
 
 ---
 

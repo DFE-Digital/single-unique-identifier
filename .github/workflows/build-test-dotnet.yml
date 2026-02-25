@@ -10,6 +10,37 @@ on:
         description: JSON array of project names (e.g. ["SUI.Find.FindApi","SUI.Find.AuditProcessor"])
         type: string
         required: true
+      requires_azurite:
+        description: If true, azurite will be spun up as a build dependency
+        default: false
+        type: boolean
+      skip_tests:
+        description: Skip test execution and related setup (Azurite, coverage)
+        default: false
+        type: boolean
+      skip_scans:
+        description: Skip SonarCloud scan steps
+        default: false
+        type: boolean
+      deploy_requested:
+        description: Indicates a deploy is intended (used to enforce tests/scans)
+        default: false
+        type: boolean
+      artifact_store:
+        description: Storage backend for build artifacts (github or azure)
+        default: github
+        type: string
+      upload_artifacts:
+        description: If true, publish and upload per-project build artifacts
+        default: false
+        type: boolean
+    secrets:
+      AZURE_ARTIFACTS_ACCOUNT:
+        required: false
+      AZURE_ARTIFACTS_CONTAINER:
+        required: false
+      AZURE_ARTIFACTS_SAS:
+        required: false
     outputs:
       artifact_names:
         description: JSON map of project -> artifact name
@@ -24,12 +55,21 @@ permissions:
 
 jobs:
   build-test-dotnet:
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     env:
       PROJECTS_JSON: ${{ inputs.project_names }}
     outputs:
       artifact_names: ${{ steps.publish.outputs.map }}
     steps:
+      - name: Validate deploy requires tests and scans
+        if: inputs.deploy_requested == true && (inputs.skip_tests == true || inputs.skip_scans == true)
+        run: |
+          echo "Deployment requires tests and scans."
+          echo "Re-run with skip_tests=false and skip_scans=false."
+          exit 1
+
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -52,11 +92,44 @@ jobs:
           distribution: "microsoft"
           java-version: 21
 
-      - name: Install .Net Tools
+      - name: Setup Node.js (for Azurite and artifact upload)
+        if: inputs.requires_azurite == true && inputs.skip_tests != true
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install and start Azurite
+        if: inputs.requires_azurite == true && inputs.skip_tests != true
+        run: |
+          npm i -g azurite
+          azurite \
+            --blobHost 127.0.0.1 --blobPort 10000 \
+            --queueHost 127.0.0.1 --queuePort 10001 \
+            --tableHost 127.0.0.1 --tablePort 10002 \
+            --location /tmp/azurite \
+            --debug /tmp/azurite/debug.log &
+          for port in 10000 10001 10002; do
+            for i in {1..20}; do
+              (echo > /dev/tcp/127.0.0.1/$port) >/dev/null 2>&1 && break
+              sleep 0.5
+            done
+          done
+
+      - name: Install test coverage tools
+        if: inputs.skip_tests != true
         run: |
           dotnet tool install --global dotnet-coverage
           dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Install SonarScanner
+        if: inputs.skip_scans != true
+        run: |
           dotnet tool install --global dotnet-sonarscanner
+
+      - name: Add .NET tools to PATH
+        if: inputs.skip_tests != true || inputs.skip_scans != true
+        run: |
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Set up NuGet authentication
         run: |
@@ -64,13 +137,18 @@ jobs:
           dotnet nuget update source DFEDigital --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
 
       - name: Start SonarCloud Scanner
+        if: inputs.skip_scans != true
         run: |
+          coverage_arg=""
+          if [ "${{ inputs.skip_tests }}" != "true" ]; then
+            coverage_arg="/d:sonar.coverageReportPaths=./${{ inputs.directory_name }}/CoverageReport/SonarQube.xml"
+          fi
           dotnet-sonarscanner begin \
             /k:"DFE-Digital_single-unique-identifier" \
             /o:"dfe-digital" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.coverageReportPaths=./${{ inputs.directory_name }}/CoverageReport/SonarQube.xml \
+            $coverage_arg \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
             /d:sonar.exclusions="**/wwwroot/**,**/*Hardcoded*,**/SUI.Find.CustodianSimulation/**" \
             /d:sonar.cpd.exclusions="**/Program.cs" \
@@ -84,20 +162,24 @@ jobs:
         run: dotnet build ./${{ inputs.directory_name }} --no-incremental
 
       - name: Run tests
+        if: inputs.skip_tests != true
         run: dotnet test ./${{ inputs.directory_name }} --no-build --verbosity normal --settings ${{ inputs.directory_name }}/tests.runsettings --filter "Category!=E2E"
 
       - name: Generate coverage report
+        if: inputs.skip_tests != true
         run: |
-          reportgenerator -reports:./${{ inputs.directory_name }}/**/coverage.cobertura.xml -targetdir:${{ inputs.directory_name }}/CoverageReport -reporttypes:SonarQube,html
+          reportgenerator -reports:./${{ inputs.directory_name }}/**/coverage.cobertura.xml -targetdir:${{ inputs.directory_name }}/CoverageReport -reporttypes:SonarQube,Html,MarkdownSummaryGithub
           dotnet coverage merge --reports "${{ inputs.directory_name }}/**/coverage.cobertura.xml" -f cobertura -o ${{ inputs.directory_name }}/coverage/coverage.xml
 
       - name: End SonarCloud Scanner
+        if: inputs.skip_scans != true
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         env:
           NuGetPackageSourceCredentials_DFEDigital: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish projects
         id: publish
+        if: inputs.upload_artifacts == true
         run: |
           app="${{ inputs.directory_name }}"
           app="${app##*/}"
@@ -114,46 +196,28 @@ jobs:
           echo "map=$(echo "$map" | jq -c .)" >> "$GITHUB_OUTPUT"
           echo "include=$(echo "$include" | jq -c .)" >> "$GITHUB_OUTPUT"
 
-      - name: Upload combined artifact
-        uses: actions/upload-artifact@v6
+      - name: Upload per-project artifacts (GitHub)
+        if: inputs.upload_artifacts == true && inputs.artifact_store != 'azure'
+        uses: ./.github/actions/upload-artifacts
         with:
-          name: publish-all
-          path: publish
-          include-hidden-files: true
+          projects_json: ${{ inputs.project_names }}
+          artifact_names: ${{ steps.publish.outputs.map }}
+          artifact_root: ${{ github.workspace }}/publish
 
-      - name: Publish coverage
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        if: github.event_name == 'pull_request'
+      - name: Upload per-project artifacts (Azure)
+        if: inputs.upload_artifacts == true && inputs.artifact_store == 'azure'
+        uses: ./.github/actions/upload-blob-artifacts
         with:
-          filename: ${{ inputs.directory_name }}/coverage/coverage.xml
-          badge: true
-          format: markdown
-          hide_complexity: true
-          output: both
+          projects_json: ${{ inputs.project_names }}
+          artifact_names: ${{ steps.publish.outputs.map }}
+          artifact_root: ${{ github.workspace }}/publish
+          account_name: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT || vars.AZURE_ARTIFACTS_ACCOUNT }}
+          container_name: ${{ secrets.AZURE_ARTIFACTS_CONTAINER || vars.AZURE_ARTIFACTS_CONTAINER }}
+          sas_token: ${{ secrets.AZURE_ARTIFACTS_SAS }}
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && inputs.skip_tests != true
         with:
           recreate: true
-          path: code-coverage-results.md
-
-  upload-artifacts:
-    runs-on: ubuntu-latest
-    needs: build-test-dotnet
-    strategy:
-      matrix:
-        project: ${{ fromJson(inputs.project_names) }}
-    steps:
-      - name: Download combined artifact
-        uses: actions/download-artifact@v7
-        with:
-          name: publish-all
-          path: .
-
-      - name: Upload per-project artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ fromJson(needs.build-test-dotnet.outputs.artifact_names)[matrix.project] }}
-          path: ${{ matrix.project }}
-          include-hidden-files: true
+          path: ${{ inputs.directory_name }}/CoverageReport/SummaryGithub.md

@@ -74,14 +74,50 @@ module "key_vault" {
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
 
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  rbac_authorization_enabled = var.key_vault_use_rbac
 
   environment_tag  = var.environment_tag
   product          = var.product
   service_offering = var.service_offering
 
   tags = var.tags
+}
+
+module "rbac_assignments_terraform_operator" {
+  source = "../modules/rbac_assignments"
+  scope  = module.key_vault.id
+
+  assignments = var.key_vault_use_rbac ? {
+    terraform_operator_secrets = {
+      principal_id = data.azurerm_client_config.current.object_id
+      role_name    = "Key Vault Secrets Officer"
+    }
+  } : {}
+}
+
+# Access policy fallback for environments that cannot create RBAC role assignments.
+resource "azurerm_key_vault_access_policy" "terraform_operator" {
+  count = var.key_vault_use_rbac ? 0 : 1
+
+  key_vault_id = module.key_vault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Get",
+    "Set",
+    "Delete",
+    "List",
+  ]
+
+  storage_permissions = [
+    "Get",
+  ]
 }
 
 resource "random_password" "find_match_api_key" {
@@ -93,6 +129,11 @@ resource "azurerm_key_vault_secret" "find_match_api_key" {
   name         = "find-match-api-key"
   value        = random_password.find_match_api_key.result
   key_vault_id = module.key_vault.id
+
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
 }
 
 data "terraform_remote_state" "stub_custodians" {
@@ -154,8 +195,21 @@ module "function_app" {
   ]
 }
 
-# Grant the function app's managed identity access to Key Vault secrets
+module "rbac_assignments_function_app" {
+  source = "../modules/rbac_assignments"
+  scope  = module.key_vault.id
+
+  assignments = var.key_vault_use_rbac ? {
+    function_app_secrets = {
+      principal_id = module.function_app.principal_id
+      role_name    = "Key Vault Secrets User"
+    }
+  } : {}
+}
+
 resource "azurerm_key_vault_access_policy" "function_app" {
+  count = var.key_vault_use_rbac ? 0 : 1
+
   key_vault_id = module.key_vault.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = module.function_app.principal_id

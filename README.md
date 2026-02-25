@@ -1,26 +1,26 @@
 # Single Unique Identifier
 
 This repository is a mono repo that contains multiple .NET solutions, each organised under its own directory.
-.NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring seperation of concerns, maintainability and testability.
+.NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring separation of concerns, maintainability and testability.
 
-To view our documentation, please visit the [Docs](/Docs/index.md) directory.
+To view our documentation, please visit the [Docs](./Docs/index.md) directory.
 
-| Directory/File                   | Description                                                                                                 |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| [Apps](/Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
-| [Docs](/Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
-| [SystemTests](/SystemTests/)     | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
-| [LICENCE](/LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
-| [Contributing](/CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
+| Directory/File                    | Description                                                                                                 |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [Apps](./Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
+| [Docs](./Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
+| [SystemTests](./SystemTests)      | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
+| [LICENCE](./LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
+| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
 
 ## What is 'Single Unique Identifier'?
 
-Single Unique Identifier is a proposed set of systems and standards to faciliate information
+Single Unique Identifier is a proposed set of systems and standards to facilitate information
 sharing between multiple agencies for the improved safeguarding and welfare of children.
 
 ## Glossary of Components
 
-* **`Matching Service`** (a.k.a. *`PDS Adapter`* or *`SUI.Matching.API`*) \
+* **`Matching Service`** (a.k.a. *`PDS Adapter`*) \
   Match a PDS record (and NHS Number), given some demographic data.
 
 * **`MatchFunction`** (*"I know of this person, what is their ID"*) \
@@ -35,6 +35,16 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 
 * **`StubCustodians`** (a.k.a. *`Stubs`*) \
   Stub API that simulates real Custodians, to provide example data to Find and Fetch for testing purposes.
+
+## Record Types Reference
+
+| C# Type Name                     | Record Type ID             | Schema URI                                                                |
+|----------------------------------|----------------------------|---------------------------------------------------------------------------|
+| `ChildrensServicesDetailsRecord` | childrens-services.details | https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json  |
+| `CrimeDataRecord`                | crime-justice.details      | https://schemas.example.gov.uk/sui/CrimeDataRecordV1.json                 |
+| `EducationDetailsRecord`         | education.details          | https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json          |
+| `HealthDataRecord`               | health.details             | https://schemas.example.gov.uk/sui/HealthDataRecordV1.json                |
+| `PersonalDetailsRecord`          | personal.details           | https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json           |
 
 ## Getting Started
 
@@ -81,9 +91,13 @@ OTEL_SERVICE_NAME=Your.App.Name
 Open `http://localhost:3000` (admin/admin) and use Explore to view logs and traces.
 If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
+## CI workflows
+
+Workflow structure and inputs are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md). Self-hosted runner and Azure artifact storage details (including the rate-limit workaround and switchback flags) are in [Docs/Developers/ci-self-hosted-runner.md](./Docs/Developers/ci-self-hosted-runner.md).
+
 ## Repository structure
 
-Each solution is self-contained and follows a consistant structure:
+Each solution is self-contained and follows a consistent structure:
 
 ```
 Apps/AppOrComponentName/
@@ -109,31 +123,27 @@ You can run tests and generate coverage reports from anywhere within the reposit
 All required tools (PowerShell 7.5.4, ReportGenerator, etc.) are installed as local .NET tools.
 
 1. Restore local tools (This installs PowerShell and all other required tools locally.)
-
-```
-dotnet tool restore
-```
-
-2. Run the test & coverage scripts (You can run the wrapper script for each solution i.e: `dotnet pwsh <relative path to the solution scoped script>`)
-
-```
-dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
-dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
-dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
-dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
-dotnet pwsh ./Apps/Matching/test_and_cover_matching.ps1
-```
+    ```
+    dotnet tool restore
+    ```
+2. Run the test and coverage scripts (You can run the wrapper script for each solution i.e.: `dotnet pwsh <relative path to the solution scoped script>`)
+    ```
+    dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
+    dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
+    dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
+    dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
+    ```
 
 ## Set up Private Nuget Feed
 
-We are using GitHub Packages for hosting API Clients, this feed require you to sign in to be able to do a restore.
+We are using GitHub Packages for hosting API Clients, this feed requires you to sign in to be able to do a restore.
 You will need to get a 'Personal Access Token (Classic)' from GitHub.
 
 click on your photo in the top right > click Settings > Developer Settings > Personal access tokens > Tokens (classic) >
 click generate new token (classic) > add a note to describe the token > set an expiration date >
 check the 'write:packages' permission > click Generate token.
 
-Save a copy on the token on your machine incase you need it in the future.
+Save a copy of the token on your machine in case you need it in the future.
 
 ### JetBrains Rider IDE
 

@@ -85,3 +85,9 @@ variable "use_stub_custodians" {
   type        = bool
   default     = false
 }
+
+variable "key_vault_use_rbac" {
+  description = "Set to true to enable Key Vault RBAC authorization and role assignments; false uses access policies."
+  type        = bool
+  default     = false
+}

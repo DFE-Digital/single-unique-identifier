@@ -1,0 +1,56 @@
+name: Upload build artifacts
+description: Upload per-project build artifacts using the Actions artifact client.
+inputs:
+  projects_json:
+    description: JSON array of project names (e.g. ["SUI.Find.FindApi","SUI.Find.AuditProcessor"])
+    required: true
+  artifact_names:
+    description: JSON map of project -> artifact name
+    required: true
+  artifact_root:
+    description: Root directory containing per-project publish output
+    required: false
+    default: publish
+  retention_days:
+    description: Artifact retention days (optional)
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 24
+
+    - name: Install artifact helper
+      shell: bash
+      run: |
+        npm install --prefix "${{ github.action_path }}" @actions/artifact @actions/glob
+
+    - name: Expose Actions runtime token for artifact upload
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const {
+            ACTIONS_RUNTIME_URL,
+            ACTIONS_RUNTIME_TOKEN,
+            ACTIONS_RESULTS_URL
+          } = process.env;
+          if (!ACTIONS_RUNTIME_URL || !ACTIONS_RUNTIME_TOKEN || !ACTIONS_RESULTS_URL) {
+            core.setFailed('Missing ACTIONS_RUNTIME_* or ACTIONS_RESULTS_URL env vars required for artifact upload.');
+            return;
+          }
+          core.setSecret(ACTIONS_RUNTIME_TOKEN);
+          core.setSecret(ACTIONS_RESULTS_URL);
+          core.exportVariable('ACTIONS_RUNTIME_URL', ACTIONS_RUNTIME_URL);
+          core.exportVariable('ACTIONS_RUNTIME_TOKEN', ACTIONS_RUNTIME_TOKEN);
+          core.exportVariable('ACTIONS_RESULTS_URL', ACTIONS_RESULTS_URL);
+
+    - name: Upload per-project artifacts
+      shell: bash
+      env:
+        PROJECTS_JSON: ${{ inputs.projects_json }}
+        ARTIFACT_NAMES: ${{ inputs.artifact_names }}
+        ARTIFACT_ROOT: ${{ inputs.artifact_root }}
+        ARTIFACT_RETENTION_DAYS: ${{ inputs.retention_days }}
+      run: node "${{ github.action_path }}/upload-artifacts.mjs"

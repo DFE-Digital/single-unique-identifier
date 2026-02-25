@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using OneOf;
@@ -10,7 +9,6 @@ using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.Infrastructure.Services;
 
-[ExcludeFromCodeCoverage(Justification = "Uses TableServiceClient directly")]
 public class UrlStorageTableService(
     ILogger<UrlStorageTableService> logger,
     TableServiceClient client

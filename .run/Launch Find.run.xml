@@ -14,21 +14,6 @@
         </option>
         <option name="executable">
           <ExecutableSnapshot>
-            <option
-              name="id"
-              value="runConfig:.NET Launch Settings Profile.SUI.Matching.API: https"
-            />
-          </ExecutableSnapshot>
-        </option>
-      </ExecutableRowSnapshot>
-      <ExecutableRowSnapshot>
-        <option name="condition">
-          <ConditionSnapshot>
-            <option name="type" value="immediately" />
-          </ConditionSnapshot>
-        </option>
-        <option name="executable">
-          <ExecutableSnapshot>
             <option name="id" value="runConfig:Azure - Run Function App.SUI.Find.FindApi" />
           </ExecutableSnapshot>
         </option>
@@ -41,10 +26,7 @@
         </option>
         <option name="executable">
           <ExecutableSnapshot>
-            <option
-              name="id"
-              value="runConfig:Azure - Run Function App.SUI.Find.CustodianSimulation"
-            />
+            <option name="id" value="runConfig:Azure - Run Function App.SUI.Find.AuditProcessor" />
           </ExecutableSnapshot>
         </option>
       </ExecutableRowSnapshot>

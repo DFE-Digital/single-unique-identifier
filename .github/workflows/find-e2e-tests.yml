@@ -11,8 +11,6 @@ on:
         description: e2e test 'dev' environment
         default: false
         type: boolean
-  
-  deployment_status:
 
   push:
     branches:
@@ -30,17 +28,24 @@ on:
       - "Apps/StubCustodians/**"
       - .github/workflows/find-e2e-tests.yml
 
+concurrency:
+  # Do not allow e2e tests to run concurrently against dev
+  group: ${{ inputs.manual_run_dev == true && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
+  cancel-in-progress: false
+
 jobs:
   # For manual workflow runs (workflow_dispatch) give the user the option of where to run against (ephemeral/dev/both)
   # Otherwise, always run against ephemeral environment, and also run against dev environment after successful deployment to dev.
   eval-workflow-setup:
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     steps:
       - id: eval
         name: Evaluate Workflow Setup
         env:
-          RUN_EPHEMERAL: ${{ github.event_name != 'workflow_dispatch' || inputs.manual_run_ephemeral == true }}
-          RUN_DEV: ${{ (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'dev') || inputs.manual_run_dev == true }}
+          RUN_EPHEMERAL: ${{ (github.event_name != 'workflow_dispatch' && github.event_name != 'deployment_status') || inputs.manual_run_ephemeral == true }}
+          RUN_DEV: ${{ inputs.manual_run_dev == true }}
         run: |
           echo
           echo "run_ephemeral=$RUN_EPHEMERAL" >> "$GITHUB_OUTPUT"
@@ -48,8 +53,6 @@ jobs:
 
           echo "---- GitHub Context Info: ----"
           echo "github.event_name: ${{ github.event_name || '(no value)' }}"
-          echo "github.event.deployment_status.state: ${{ github.event.deployment_status.state || '(no value)' }}"
-          echo "github.event.deployment.environment: ${{ github.event.deployment.environment || '(no value)' }}"
           echo "inputs.manual_run_ephemeral: ${{ inputs.manual_run_ephemeral || '(no value)' }}"
           echo "inputs.manual_run_dev: ${{ inputs.manual_run_dev || '(no value)' }}"
           echo
@@ -62,7 +65,9 @@ jobs:
 
   e2e-test-ephemeral:
     needs: eval-workflow-setup
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
     steps:
       - name: Checkout repository
@@ -73,19 +78,29 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Install node
-        uses: actions/setup-node@v6
+      - name: Setup Node.js (for Azurite and Functions tools)
+        uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 20
+
+      - name: Install and start Azurite
+        run: |
+          npm i -g azurite
+          azurite \
+            --blobHost 127.0.0.1 --blobPort 10000 \
+            --queueHost 127.0.0.1 --queuePort 10001 \
+            --tableHost 127.0.0.1 --tablePort 10002 \
+            --location /tmp/azurite \
+            --debug /tmp/azurite/debug.log &
+          for port in 10000 10001 10002; do
+            for i in {1..20}; do
+              (echo > /dev/tcp/127.0.0.1/$port) >/dev/null 2>&1 && break
+              sleep 0.5
+            done
+          done
 
       - name: Install Azure Functions Core Tools
         run: npm i -g azure-functions-core-tools@4
-
-      - name: Install Azurite
-        run: npm install -g azurite
-
-      - name: run azurite
-        run: azurite --silent &
 
       - name: Build Find Solution
         run: dotnet build Apps/Find/SUI.Find.slnx
@@ -118,7 +133,9 @@ jobs:
 
   e2e-test-dev:
     needs: eval-workflow-setup
-    runs-on: ubuntu-latest
+    # Hosted runners blocked by budget; use self-hosted for now
+    # runs-on: ubuntu-latest
+    runs-on: [self-hosted, ubuntu-latest]
     if: needs.eval-workflow-setup.outputs.run_dev == 'true'
     steps:
       - name: Checkout repository
@@ -128,7 +145,7 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-      
+
       - name: Run E2E Tests (against dev environment)
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \

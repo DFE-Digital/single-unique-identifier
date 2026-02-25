@@ -14,6 +14,7 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" VersionOverride="8.16.0" />
     <ProjectReference Include="..\SUI.StubCustodians.Application\SUI.StubCustodians.Application.csproj" />
     <ProjectReference Include="..\SUI.Custodians.Domain\SUI.Custodians.Domain.csproj" />
   </ItemGroup>

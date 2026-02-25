@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
@@ -6,7 +5,6 @@ using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
-[ExcludeFromCodeCoverage(Justification = "Basic Infrastructure code.")]
 public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServiceEnsureCreated
 {
     private readonly TableServiceClient _client;

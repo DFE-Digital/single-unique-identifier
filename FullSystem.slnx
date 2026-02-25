@@ -6,32 +6,19 @@
   <Folder Name="/Apps/Find/src/">
     <Project Path="Apps/Find/src/SUI.Find.Application/SUI.Find.Application.csproj" />
     <Project Path="Apps/Find/src/SUI.Find.AuditProcessor/SUI.Find.AuditProcessor.csproj" />
-    <Project Path="Apps/Find/src/SUI.Find.CustodianSimulation/SUI.Find.CustodianSimulation.csproj" />
     <Project Path="Apps/Find/src/SUI.Find.Domain/SUI.Find.Domain.csproj" />
     <Project Path="Apps/Find/src/SUI.Find.FindApi/SUI.Find.FindApi.csproj" />
     <Project Path="Apps/Find/src/SUI.Find.Infrastructure/SUI.Find.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/Apps/Find/tests/">
-    <Project Path="Apps/Find/tests/SUI.Find.ApplicationTests/SUI.Find.ApplicationTests.csproj" />
+    <Project Path="Apps/Find/tests/SUI.Find.Application.UnitTests/SUI.Find.Application.UnitTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.AuditProcessor.UnitTests/SUI.Find.AuditProcessor.UnitTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.Domain.UnitTests/SUI.Find.Domain.UnitTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.FindApi.IntegrationTests/SUI.Find.FindApi.IntegrationTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.FindApi.UnitTests/SUI.Find.FindApi.UnitTests.csproj" />
+    <Project Path="Apps/Find/tests/SUI.Find.Infrastructure.IntegrationTests/SUI.Find.Infrastructure.IntegrationTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.Infrastructure.UnitTests/SUI.Find.Infrastructure.UnitTests.csproj" />
-  </Folder>
-  <Folder Name="/Apps/Matching/" />
-  <Folder Name="/Apps/Matching/src/">
-    <Project Path="Apps/Matching/src/SUI.Matching.API/SUI.Matching.API.csproj" />
-    <Project Path="Apps/Matching/src/SUI.Matching.Application/SUI.Matching.Application.csproj" />
-    <Project Path="Apps/Matching/src/SUI.Matching.Domain/SUI.Matching.Domain.csproj" />
-    <Project Path="Apps/Matching/src/SUI.Matching.Infrastructure/SUI.Matching.Infrastructure.csproj" />
-  </Folder>
-  <Folder Name="/Apps/Matching/tests/">
-    <Project Path="Apps/Matching/tests/SUI.Matching.API.Integration.Tests/SUI.Matching.API.Integration.Tests.csproj" />
-    <Project Path="Apps/Matching/tests/SUI.Matching.API.Unit.Tests/SUI.Matching.API.Unit.Tests.csproj" />
-    <Project Path="Apps/Matching/tests/SUI.Matching.Application.UnitTests/SUI.Matching.Application.UnitTests.csproj" />
-    <Project Path="Apps/Matching/tests/SUI.Matching.Infrastructure.UnitTests/SUI.Matching.Infrastructure.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Apps/SingleView/" />
   <Folder Name="/Apps/SingleView/src/">

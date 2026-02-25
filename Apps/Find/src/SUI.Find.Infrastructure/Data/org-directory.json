@@ -47,7 +47,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "childrens_services_details_ptr", "personal_details_ptr" ],
+            "recordTypes": [ "childrens-services.details", "personal.details" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -55,7 +55,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "childrens_services_details_record", "personal_details_record" ],
+            "recordTypes": [ "childrens-services.details", "personal.details" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -122,7 +122,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "education_details_ptr", "personal_details_ptr" ],
+            "recordTypes": [ "education.details" , "personal.details"],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -130,7 +130,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "education_details_record", "personal_details_record"  ],
+            "recordTypes": [ "education.details", "personal.details" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION" ],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -140,7 +140,7 @@
           {
             "effect": "deny",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "education_details_record" ],
+            "recordTypes": [ "education.details" ],
             "destOrgTypes": [ "VOLUNTARY" ],
             "purposes": [ "GENERAL_ENQUIRY" ]
           }
@@ -180,7 +180,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "health_details_ptr" ],
+            "recordTypes": [ "health.details" ],
             "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -188,7 +188,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "health_details_record" ],
+            "recordTypes": [ "health.details" ],
             "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY", "EDUCATION" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -235,7 +235,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
-            "dataTypes": [ "crime-justice_ptr" ],
+            "recordTypes": [ "crime-justice.details" ],
             "destOrgTypes": [ "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -243,7 +243,7 @@
           {
             "effect": "allow",
             "modes": [ "CONTENT" ],
-            "dataTypes": [ "crime_justice_record" ],
+            "recordTypes": [ "crime-justice.details" ],
             "destOrgTypes": [ "POLICE" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
@@ -253,7 +253,7 @@
           {
             "effect": "allow",
             "modes": [ "EXISTENCE", "CONTENT" ],
-            "dataTypes": [ "crime_justice_details_ptr", "crime_justice_details_record" ],
+            "recordTypes": [ "crime-justice.details" ],
             "destOrgIds": [ "LOCAL-AUTHORITY-01" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-12-01T00:00:00Z",

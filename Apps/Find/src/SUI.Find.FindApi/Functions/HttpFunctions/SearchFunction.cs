@@ -5,6 +5,8 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
@@ -16,7 +18,11 @@ using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
-public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searchService)
+public class SearchFunction(
+    ILogger<SearchFunction> logger,
+    ISearchService searchService,
+    IOptions<EncryptionConfiguration> encryptionConfig
+)
 {
     [OpenApiOperation(
         operationId: "searches",
@@ -72,7 +78,9 @@ public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searc
             cancellationToken
         );
 
-        if (!StartSearchRequestValidator.IsValid(searchRequest, out var errorMessage))
+        var encrypt = encryptionConfig.Value.EnablePersonIdEncryption;
+
+        if (!StartSearchRequestValidator.IsValid(searchRequest, encrypt, out var errorMessage))
         {
             return await HttpResponseUtility.BadRequestResponse(
                 req,
@@ -83,11 +91,21 @@ public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searc
         }
 
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);
+        var personId = string.Empty;
 
-        var encryptedPersonIdResult = EncryptedPersonId.Create(searchRequest!.Suid);
-        var encryptedPersonId = encryptedPersonIdResult.Value!;
+        if (encrypt)
+        {
+            var encryptedPersonIdResult = EncryptedPersonId.Create(searchRequest!.Suid);
+            personId = encryptedPersonIdResult.Value!.Value;
+        }
+        else
+        {
+            if (searchRequest?.Suid != null)
+                personId = searchRequest.Suid;
+        }
+
         var searchJob = await searchService.StartSearchAsync(
-            encryptedPersonId,
+            personId,
             authContext.ClientId,
             authContext.Scopes.ToArray(),
             client,

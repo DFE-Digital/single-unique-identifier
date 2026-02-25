@@ -1,1 +1,0 @@
-& "../../test_and_cover.ps1" -SolutionPath "./Apps/Matching/SUI.Matching.slnx"

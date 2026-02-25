@@ -38,11 +38,12 @@ variable "service_offering" {
 }
 
 variable "tenant_id" {
-  description = "Azure tenant ID for the Key Vault access policy"
+  description = "Azure tenant ID for the Key Vault"
   type        = string
 }
 
-variable "object_id" {
-  description = "Object ID of the user, service principal, or security group for the Key Vault access policy"
-  type        = string
+variable "rbac_authorization_enabled" {
+  description = "Whether Azure Key Vault uses RBAC for data plane authorization."
+  type        = bool
+  default     = true
 }

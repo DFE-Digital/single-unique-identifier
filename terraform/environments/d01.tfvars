@@ -12,6 +12,7 @@ app_service_plan_worker_count = 1
 function_dotnet_version       = "10.0"
 webapp_dotnet_version         = "10.0"
 use_stub_custodians           = true
+key_vault_use_rbac            = false
 
 find_app_settings = {
   NhsAuthConfig__NHS_DIGITAL_TOKEN_URL                       = "https://int.api.service.nhs.uk/oauth2/token"
