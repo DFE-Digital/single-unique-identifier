@@ -12,6 +12,15 @@ on:
         default: false
         type: boolean
 
+  workflow_run:
+    workflows:
+      - Terraform Core Infrastructure
+      - Terraform Find
+      - Terraform Custodians
+      - 'Build, Test, Deploy: "Find" Solution'
+      - 'Build, Test, Deploy: "Custodians" Solution'
+    types: [completed]
+
   push:
     branches:
       - main
@@ -30,12 +39,14 @@ on:
 
 concurrency:
   # Do not allow e2e tests to run concurrently against dev
-  group: ${{ inputs.manual_run_dev == true && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
+  # Use a fixed group only when running dev E2E (successful workflow_run on main, or manual dev run);
+  # otherwise use a per-run group so ephemeral tests don't block each other.
+  group: ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') || (github.event_name == 'workflow_dispatch' && inputs.manual_run_dev == true)) && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:
   # For manual workflow runs (workflow_dispatch) give the user the option of where to run against (ephemeral/dev/both)
-  # Otherwise, always run against ephemeral environment, and also run against dev environment after successful deployment to dev.
+  # Otherwise, run against ephemeral for push/PR, and against dev after successful workflow runs on main.
   eval-workflow-setup:
     # Hosted runners blocked by budget; use self-hosted for now
     # runs-on: ubuntu-latest
@@ -44,8 +55,8 @@ jobs:
       - id: eval
         name: Evaluate Workflow Setup
         env:
-          RUN_EPHEMERAL: ${{ (github.event_name != 'workflow_dispatch' && github.event_name != 'deployment_status') || inputs.manual_run_ephemeral == true }}
-          RUN_DEV: ${{ inputs.manual_run_dev == true }}
+          RUN_EPHEMERAL: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || inputs.manual_run_ephemeral == true }}
+          RUN_DEV: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') || inputs.manual_run_dev == true }}
         run: |
           echo
           echo "run_ephemeral=$RUN_EPHEMERAL" >> "$GITHUB_OUTPUT"
@@ -53,6 +64,9 @@ jobs:
 
           echo "---- GitHub Context Info: ----"
           echo "github.event_name: ${{ github.event_name || '(no value)' }}"
+          echo "github.event.workflow_run.event: ${{ github.event.workflow_run.event || '(no value)' }}"
+          echo "github.event.workflow_run.conclusion: ${{ github.event.workflow_run.conclusion || '(no value)' }}"
+          echo "github.event.workflow_run.head_branch: ${{ github.event.workflow_run.head_branch || '(no value)' }}"
           echo "inputs.manual_run_ephemeral: ${{ inputs.manual_run_ephemeral || '(no value)' }}"
           echo "inputs.manual_run_dev: ${{ inputs.manual_run_dev || '(no value)' }}"
           echo
