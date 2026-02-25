@@ -8,4 +8,5 @@ public class SearchResultEntry
     public required string RecordUrl { get; init; }
     public DateTimeOffset SubmittedAtUtc { get; init; }
     public required string JobId { get; init; }
+    public required string WorkItemId { get; init; }
 }

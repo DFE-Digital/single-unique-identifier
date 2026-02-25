@@ -60,6 +60,7 @@ public class QueryProvidersFunction(
                     RecordUrl = searchResultItem.RecordUrl,
                     SubmittedAtUtc = DateTimeOffset.UtcNow,
                     JobId = data.JobId,
+                    WorkItemId = data.JobId, // This will be changed later
                 },
                 cancellationToken
             );

@@ -53,6 +53,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
             { "RecordUrl", entry.RecordUrl },
             { "SubmittedAtUtc", entry.SubmittedAtUtc },
             { "JobId", entry.JobId },
+            { "WorkItemId", entry.WorkItemId },
         };
 
         try
@@ -109,6 +110,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
                             .GetDateTimeOffset("SubmittedAtUtc")!
                             .Value.UtcDateTime,
                         JobId = entity.GetString("JobId"),
+                        WorkItemId = entity.GetString("WorkItemId"),
                     }
                 );
             }

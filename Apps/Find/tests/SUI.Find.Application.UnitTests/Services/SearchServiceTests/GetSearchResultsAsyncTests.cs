@@ -173,6 +173,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         RecordUrl = "url1",
                         JobId = "running-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
+                        WorkItemId = "work-item-1",
                     },
                 }
             );
@@ -218,6 +219,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         RecordUrl = "url2",
                         JobId = "completed-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
+                        WorkItemId = "work-item-2",
                     },
                 }
             );
