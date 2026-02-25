@@ -30,14 +30,10 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
     {
         var partitionKey = RegisterKeys.PartitionKey(registerEntry.Sui);
 
-        var systemId = string.IsNullOrWhiteSpace(registerEntry.SystemId)
-            ? "DefaultSystem"
-            : registerEntry.SystemId;
-
         var rowKey = RegisterKeys.RowKey(
             registerEntry.CustodianId,
             registerEntry.RecordType,
-            systemId
+            registerEntry.SystemId
         );
 
         TableEntity entity;
@@ -70,7 +66,7 @@ public class SuiCustodianRegisterRepository : IIdRegisterRepository, ITableServi
         entity["Sui"] = registerEntry.Sui;
         entity["CustodianId"] = registerEntry.CustodianId;
         entity["RecordType"] = registerEntry.RecordType;
-        entity["SystemId"] = systemId;
+        entity["SystemId"] = registerEntry.SystemId;
         entity["CustodianSubjectId"] = registerEntry.CustodianSubjectId;
         entity["Provenance"] = registerEntry.Provenance.ToString();
 

@@ -130,8 +130,20 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             SerializedOutput = JsonSerializer.Serialize(
                 new SearchResultItem[]
                 {
-                    new("Health", "http://example.com/record/1", "TestSystem", "TestRecord"),
-                    new("Education", "http://example.com/record/2", "TestSystem", "TestRecord"),
+                    new()
+                    {
+                        RecordType = "Health",
+                        RecordUrl = "http://example.com/record/1",
+                        SystemId = "TestSystem",
+                        RecordId = "TestRecord",
+                    },
+                    new()
+                    {
+                        RecordType = "Education",
+                        RecordUrl = "http://example.com/record/2",
+                        SystemId = "TestSystem",
+                        RecordId = "TestRecord",
+                    },
                 }
             ),
         };
@@ -198,7 +210,16 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
     [Fact]
     public async Task ShouldReturnOrchestratorResults_WhenJobIsCompleted()
     {
-        var orchestratorItems = new[] { new SearchResultItem("Type1", "Url1", "SystemA", "12345") };
+        var orchestratorItems = new[]
+        {
+            new SearchResultItem()
+            {
+                RecordType = "Type1",
+                RecordUrl = "Url1",
+                SystemId = "SystemA",
+                RecordId = "12345",
+            },
+        };
 
         var meta = new OrchestrationMetadata("Orchestrator", "completed-job")
         {
