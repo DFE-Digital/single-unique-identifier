@@ -9,20 +9,20 @@ namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 [ExcludeFromCodeCoverage(
     Justification = "Will be covered after confirmation on current implementation"
 )]
-public class SearchResultsRegisterRepository
-    : ISearchResultsRegisterRepository,
+public class SearchResultEntryRepository
+    : ISearchResultEntryRepository,
         ITableServiceEnsureCreated
 {
     private readonly TableServiceClient _client;
-    private readonly ILogger<SearchResultsRegisterRepository> _logger;
+    private readonly ILogger<SearchResultEntryRepository> _logger;
 
     private const string TableName = InfrastructureConstants
         .StorageTableSearchResultsRegister
         .TableName;
 
-    public SearchResultsRegisterRepository(
+    public SearchResultEntryRepository(
         TableServiceClient client,
-        ILogger<SearchResultsRegisterRepository> logger
+        ILogger<SearchResultEntryRepository> logger
     )
     {
         _client = client;

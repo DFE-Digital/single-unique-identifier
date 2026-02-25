@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
         services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
         services.AddSingleton<IIdRegisterRepository, SuiCustodianRegisterRepository>();
-        services.AddSingleton<ISearchResultsRegisterRepository, SearchResultsRegisterRepository>();
+        services.AddSingleton<ISearchResultEntryRepository, SearchResultEntryRepository>();
         services.AddSingleton<ISearchResultsService, HelperSearchresultsService>();
         services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
         services.AddSingleton<IFhirService, FhirService>();

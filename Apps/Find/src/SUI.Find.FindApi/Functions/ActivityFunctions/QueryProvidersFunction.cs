@@ -12,7 +12,7 @@ public class QueryProvidersFunction(
     ILogger<QueryProvidersFunction> logger,
     IQueryProvidersService queryProvidersService,
     IIdRegisterRepository idRegisterRepository,
-    ISearchResultsRegisterRepository searchResultsRegisterRepository
+    ISearchResultEntryRepository searchResultEntryRepository
 )
 {
     [Function(nameof(QueryProvidersFunction))]
@@ -51,7 +51,7 @@ public class QueryProvidersFunction(
             );
 
             // 2. Persist to SearchResultsEntryStorage for partial results
-            await searchResultsRegisterRepository.UpsertAsync(
+            await searchResultEntryRepository.UpsertAsync(
                 new SearchResultsRegisterEntry
                 {
                     CustodianId = data.Provider.OrgId,

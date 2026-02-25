@@ -20,8 +20,8 @@ public class QueryProvidersFunctionTests
         Substitute.For<IQueryProvidersService>();
     private readonly IIdRegisterRepository _mockIdRegisterRepository =
         Substitute.For<IIdRegisterRepository>();
-    private readonly ISearchResultsRegisterRepository _mockSearchResultsRegisterRepository =
-        Substitute.For<ISearchResultsRegisterRepository>();
+    private readonly ISearchResultEntryRepository _mockSearchResultEntryRepository =
+        Substitute.For<ISearchResultEntryRepository>();
     private readonly FunctionContext _mockContext = Substitute.For<FunctionContext>();
     private readonly QueryProvidersFunction _sut;
 
@@ -31,7 +31,7 @@ public class QueryProvidersFunctionTests
             _mockLogger,
             _mockQueryProvidersService,
             _mockIdRegisterRepository,
-            _mockSearchResultsRegisterRepository
+            _mockSearchResultEntryRepository
         );
     }
 
@@ -81,7 +81,7 @@ public class QueryProvidersFunctionTests
             );
 
         // Assert - SearchResultsRepository called for each item
-        await _mockSearchResultsRegisterRepository
+        await _mockSearchResultEntryRepository
             .Received(expectedItems.Count)
             .UpsertAsync(
                 Arg.Is<SearchResultsRegisterEntry>(e =>

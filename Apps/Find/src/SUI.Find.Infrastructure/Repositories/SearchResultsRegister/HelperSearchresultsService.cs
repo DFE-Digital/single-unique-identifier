@@ -7,9 +7,9 @@ namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 [ExcludeFromCodeCoverage(Justification = "Used only as a helper with no logic embedded")]
 public class HelperSearchresultsService : ISearchResultsService
 {
-    private readonly ISearchResultsRegisterRepository _resultsRepository;
+    private readonly ISearchResultEntryRepository _resultsRepository;
 
-    public HelperSearchresultsService(ISearchResultsRegisterRepository resultsRepository)
+    public HelperSearchresultsService(ISearchResultEntryRepository resultsRepository)
     {
         _resultsRepository = resultsRepository;
     }

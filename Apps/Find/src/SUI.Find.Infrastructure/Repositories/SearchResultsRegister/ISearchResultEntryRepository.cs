@@ -2,7 +2,7 @@ using SUI.Find.Application.Dtos;
 
 namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 
-public interface ISearchResultsRegisterRepository
+public interface ISearchResultEntryRepository
 {
     Task UpsertAsync(SearchResultsRegisterEntry entry, CancellationToken cancellationToken);
 
