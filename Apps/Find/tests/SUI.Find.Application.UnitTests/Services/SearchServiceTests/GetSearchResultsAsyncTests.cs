@@ -263,4 +263,46 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         Assert.Equal("Url1", body.Items[0].RecordUrl);
         Assert.Equal("12345", body.Items[0].RecordId);
     }
+
+    [Fact]
+    public async Task ShouldDefaultSystemId_WhenPersistedResultHasNullOrEmptySystemId()
+    {
+        var meta = new OrchestrationMetadata("Orchestrator", "running-job")
+        {
+            RuntimeStatus = OrchestrationRuntimeStatus.Running,
+        };
+
+        _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
+
+        SearchResultEntryRepository
+            .GetByWorkItemIdAsync("running-job", Arg.Any<CancellationToken>())
+            .Returns(
+                new[]
+                {
+                    new SearchResultEntry
+                    {
+                        CustodianId = "Health",
+                        SystemId = "", // simulate bad persisted data
+                        RecordType = "Type1",
+                        RecordUrl = "url1",
+                        RecordId = "12345",
+                        JobId = "running-job",
+                        SubmittedAtUtc = DateTimeOffset.UtcNow,
+                        WorkItemId = "running-job",
+                    },
+                }
+            );
+
+        var result = await Sut.GetSearchResultsAsync(
+            "running-job",
+            ClientId,
+            _client,
+            CancellationToken.None
+        );
+
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+
+        Assert.Single(body.Items);
+        Assert.Equal("DefaultSystem", body.Items[0].SystemId);
+    }
 }
