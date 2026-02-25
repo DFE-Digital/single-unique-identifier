@@ -55,7 +55,7 @@ public class SearchService(
     ICustodianService custodianService,
     IHashService hashService,
     IOptions<EncryptionConfiguration> encryptionConfig,
-    ISearchResultsService searchResultsService
+    ISearchResultEntryRepository searchResultEntryRepository
 ) : ISearchService
 {
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
@@ -266,7 +266,7 @@ public class SearchService(
             // If job is still running → return partial persisted results
             if (metaData.IsRunning)
             {
-                var persistedItems = await searchResultsService.GetResultsByWorkItemIdAsync(
+                var persistedItems = await searchResultEntryRepository.GetByWorkItemIdAsync(
                     jobId,
                     cancellationToken
                 );

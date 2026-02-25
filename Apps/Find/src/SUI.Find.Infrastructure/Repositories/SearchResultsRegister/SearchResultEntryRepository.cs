@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;

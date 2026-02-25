@@ -160,8 +160,8 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
-        SearchResultsService
-            .GetResultsByWorkItemIdAsync("running-job", Arg.Any<CancellationToken>())
+        SearchResultEntryRepository
+            .GetByWorkItemIdAsync("running-job", Arg.Any<CancellationToken>())
             .Returns(
                 new[]
                 {
@@ -206,8 +206,8 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         _client.GetInstanceAsync("completed-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
-        SearchResultsService
-            .GetResultsByWorkItemIdAsync("completed-job", Arg.Any<CancellationToken>())
+        SearchResultEntryRepository
+            .GetByWorkItemIdAsync("completed-job", Arg.Any<CancellationToken>())
             .Returns(
                 new[]
                 {

@@ -1,6 +1,6 @@
 using SUI.Find.Application.Dtos;
 
-namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
+namespace SUI.Find.Application.Interfaces;
 
 public interface ISearchResultEntryRepository
 {
