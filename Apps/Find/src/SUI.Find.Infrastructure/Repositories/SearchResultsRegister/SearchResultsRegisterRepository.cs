@@ -36,11 +36,11 @@ public class SearchResultsRegisterRepository
         CancellationToken cancellationToken = default
     )
     {
-        var partitionKey = RegisterKeys.PartitionKey(entry.JobId);
+        var partitionKey = SearchResultStorageKeys.PartitionKey(entry.JobId);
 
         var systemId = string.IsNullOrWhiteSpace(entry.SystemId) ? "DefaultSystem" : entry.SystemId;
 
-        var rowKey = RegisterKeys.RowKey(
+        var rowKey = SearchResultStorageKeys.RowKey(
             entry.SubmittedAtUtc,
             entry.CustodianId,
             entry.RecordType,
@@ -73,7 +73,7 @@ public class SearchResultsRegisterRepository
         CancellationToken cancellationToken = default
     )
     {
-        var partitionKey = RegisterKeys.PartitionKey(jobId);
+        var partitionKey = SearchResultStorageKeys.PartitionKey(jobId);
 
         var results = new List<SearchResultsRegisterEntry>();
         var seen = new HashSet<string>();
