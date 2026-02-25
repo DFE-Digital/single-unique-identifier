@@ -50,8 +50,8 @@ public class QueryProvidersFunction(
                 cancellationToken
             );
 
-            // 2. Persist to SearchResults Register for partial results
-            await searchResultsRegisterRepository.AddAsync(
+            // 2. Persist to SearchResultsEntryStorage for partial results
+            await searchResultsRegisterRepository.UpsertAsync(
                 new SearchResultsRegisterEntry
                 {
                     CustodianId = data.Provider.OrgId,

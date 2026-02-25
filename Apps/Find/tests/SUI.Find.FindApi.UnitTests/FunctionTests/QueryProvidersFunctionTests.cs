@@ -83,7 +83,7 @@ public class QueryProvidersFunctionTests
         // Assert - SearchResultsRepository called for each item
         await _mockSearchResultsRegisterRepository
             .Received(expectedItems.Count)
-            .AddAsync(
+            .UpsertAsync(
                 Arg.Is<SearchResultsRegisterEntry>(e =>
                     e.CustodianId == input.Provider.OrgId
                     && e.RecordType == expectedItems[0].RecordType

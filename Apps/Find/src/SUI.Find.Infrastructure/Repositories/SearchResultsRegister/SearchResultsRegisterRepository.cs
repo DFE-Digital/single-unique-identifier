@@ -31,7 +31,7 @@ public class SearchResultsRegisterRepository
 
     private TableClient Table => _client.GetTableClient(TableName);
 
-    public async Task AddAsync(
+    public async Task UpsertAsync(
         SearchResultsRegisterEntry entry,
         CancellationToken cancellationToken = default
     )
