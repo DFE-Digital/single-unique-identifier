@@ -14,6 +14,11 @@ run-name: >-
     format('ephemeral (auto from {0} {1})', github.event_name, github.ref_name)
   }}
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -166,9 +171,21 @@ jobs:
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
             --logger "console;verbosity=detailed" \
+            --logger "trx;LogFileName=e2e-ephemeral.trx" \
+            --results-directory TestResults \
             -e E2E__BaseUrl=http://localhost:7182/api/ \
             -e E2E__StubCustodiansBaseUrl=http://localhost:5193/api/ \
             -e E2E__SkipResetAzureTables=False
+
+      - name: Publish E2E test summary (ephemeral)
+        if: always()
+        continue-on-error: true
+        uses: dorny/test-reporter@v2
+        with:
+          name: Find E2E (ephemeral)
+          path: TestResults/e2e-ephemeral.trx
+          reporter: dotnet-trx
+          fail-on-error: false
 
   e2e-test-dev:
     name: E2E tests (dev ${{ inputs.environment || 'd01' }})
@@ -198,6 +215,18 @@ jobs:
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
             --logger "console;verbosity=detailed" \
+            --logger "trx;LogFileName=e2e-dev.trx" \
+            --results-directory TestResults \
             -e E2E__BaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}func-${{ steps.env_config.outputs.region_short }}-find01.azurewebsites.net/api/ \
             -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
             -e E2E__SkipResetAzureTables=True
+
+      - name: Publish E2E test summary (dev)
+        if: always()
+        continue-on-error: true
+        uses: dorny/test-reporter@v2
+        with:
+          name: Find E2E (dev)
+          path: TestResults/e2e-dev.trx
+          reporter: dotnet-trx
+          fail-on-error: false
