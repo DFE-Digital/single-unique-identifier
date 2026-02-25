@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
+namespace SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
 
 [ExcludeFromCodeCoverage(Justification = "Used only in infrastructure services.")]
 public static class SearchResultEntryKeys

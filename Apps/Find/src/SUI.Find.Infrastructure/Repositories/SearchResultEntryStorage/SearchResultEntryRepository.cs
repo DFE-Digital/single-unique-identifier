@@ -5,7 +5,7 @@ using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Interfaces;
 
-namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
+namespace SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
 
 [ExcludeFromCodeCoverage(
     Justification = "Will be covered after confirmation on current implementation"

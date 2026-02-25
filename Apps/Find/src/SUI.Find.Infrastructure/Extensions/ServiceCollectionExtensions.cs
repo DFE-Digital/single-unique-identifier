@@ -12,7 +12,7 @@ using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Factories.Fhir;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
-using SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
+using SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Services.Fhir;

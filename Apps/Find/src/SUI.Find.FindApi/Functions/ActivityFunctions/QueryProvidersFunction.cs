@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
 namespace SUI.Find.FindApi.Functions.ActivityFunctions;
