@@ -16,7 +16,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
     private readonly ILogger<SearchResultEntryRepository> _logger;
 
     private const string TableName = InfrastructureConstants
-        .StorageTableSearchResultsRegister
+        .StorageTableSearchResultEntries
         .TableName;
 
     public SearchResultEntryRepository(

@@ -20,8 +20,8 @@ public static class InfrastructureConstants
         public const string TableName = "SuiCustodianRegister";
     }
 
-    public static class StorageTableSearchResultsRegister
+    public static class StorageTableSearchResultEntries
     {
-        public const string TableName = "SearchResultsRegister";
+        public const string TableName = "SearchResultEntries";
     }
 }
