@@ -266,7 +266,7 @@ public class SearchService(
             // If job is still running → return partial persisted results
             if (metaData.IsRunning)
             {
-                var persistedItems = await searchResultsService.GetResultsByJobIdAsync(
+                var persistedItems = await searchResultsService.GetResultsByWorkItemIdAsync(
                     jobId,
                     cancellationToken
                 );

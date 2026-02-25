@@ -34,7 +34,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
         CancellationToken cancellationToken = default
     )
     {
-        var partitionKey = SearchResultEntryKeys.PartitionKey(entry.JobId);
+        var partitionKey = SearchResultEntryKeys.PartitionKey(entry.WorkItemId);
 
         var systemId = string.IsNullOrWhiteSpace(entry.SystemId) ? "DefaultSystem" : entry.SystemId;
 
@@ -63,16 +63,20 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to persist SearchResult for JobId {JobId}", entry.JobId);
+            _logger.LogError(
+                ex,
+                "Failed to persist SearchResult for WorkItemId {WorkItemId}",
+                entry.WorkItemId
+            );
         }
     }
 
-    public async Task<IReadOnlyList<SearchResultEntry>> GetByJobIdAsync(
-        string jobId,
+    public async Task<IReadOnlyList<SearchResultEntry>> GetByWorkItemIdAsync(
+        string workItemId,
         CancellationToken cancellationToken = default
     )
     {
-        var partitionKey = SearchResultEntryKeys.PartitionKey(jobId);
+        var partitionKey = SearchResultEntryKeys.PartitionKey(workItemId);
 
         var results = new List<SearchResultEntry>();
         var seen = new HashSet<string>();

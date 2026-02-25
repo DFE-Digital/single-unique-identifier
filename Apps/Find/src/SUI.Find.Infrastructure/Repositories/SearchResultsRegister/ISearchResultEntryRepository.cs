@@ -6,8 +6,8 @@ public interface ISearchResultEntryRepository
 {
     Task UpsertAsync(SearchResultEntry entry, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<SearchResultEntry>> GetByJobIdAsync(
-        string jobId,
+    Task<IReadOnlyList<SearchResultEntry>> GetByWorkItemIdAsync(
+        string workItemId,
         CancellationToken cancellationToken
     );
 }

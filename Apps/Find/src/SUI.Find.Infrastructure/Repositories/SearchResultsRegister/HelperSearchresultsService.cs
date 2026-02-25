@@ -14,11 +14,11 @@ public class HelperSearchresultsService : ISearchResultsService
         _resultsRepository = resultsRepository;
     }
 
-    public async Task<IReadOnlyList<SearchResultEntry>> GetResultsByJobIdAsync(
-        string jobId,
+    public async Task<IReadOnlyList<SearchResultEntry>> GetResultsByWorkItemIdAsync(
+        string workItemId,
         CancellationToken cancellationToken
     )
     {
-        return await _resultsRepository.GetByJobIdAsync(jobId, cancellationToken);
+        return await _resultsRepository.GetByWorkItemIdAsync(workItemId, cancellationToken);
     }
 }

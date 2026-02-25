@@ -161,7 +161,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
         SearchResultsService
-            .GetResultsByJobIdAsync("running-job", Arg.Any<CancellationToken>())
+            .GetResultsByWorkItemIdAsync("running-job", Arg.Any<CancellationToken>())
             .Returns(
                 new[]
                 {
@@ -173,7 +173,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         RecordUrl = "url1",
                         JobId = "running-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
-                        WorkItemId = "work-item-1",
+                        WorkItemId = "running-job",
                     },
                 }
             );
@@ -207,7 +207,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         _client.GetInstanceAsync("completed-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
         SearchResultsService
-            .GetResultsByJobIdAsync("completed-job", Arg.Any<CancellationToken>())
+            .GetResultsByWorkItemIdAsync("completed-job", Arg.Any<CancellationToken>())
             .Returns(
                 new[]
                 {
@@ -219,7 +219,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         RecordUrl = "url2",
                         JobId = "completed-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
-                        WorkItemId = "work-item-2",
+                        WorkItemId = "completed-job",
                     },
                 }
             );
