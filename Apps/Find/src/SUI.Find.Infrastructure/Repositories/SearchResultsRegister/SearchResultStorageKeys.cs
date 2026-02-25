@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 
 [ExcludeFromCodeCoverage(Justification = "Used only in infrastructure services.")]
-public class SearchResultStorageKeys
+public static class SearchResultStorageKeys
 {
     public static string PartitionKey(string workItemId) => $"{Normalise(workItemId)}";
 
