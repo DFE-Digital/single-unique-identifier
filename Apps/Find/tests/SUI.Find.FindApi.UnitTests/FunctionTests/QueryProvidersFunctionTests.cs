@@ -19,6 +19,8 @@ public class QueryProvidersFunctionTests
         Substitute.For<IQueryProvidersService>();
     private readonly IIdRegisterRepository _mockIdRegisterRepository =
         Substitute.For<IIdRegisterRepository>();
+    private readonly ISearchResultEntryRepository _mockSearchResultEntryRepository =
+        Substitute.For<ISearchResultEntryRepository>();
     private readonly FunctionContext _mockContext = Substitute.For<FunctionContext>();
     private readonly QueryProvidersFunction _sut;
 
@@ -27,7 +29,8 @@ public class QueryProvidersFunctionTests
         _sut = new QueryProvidersFunction(
             _mockLogger,
             _mockQueryProvidersService,
-            _mockIdRegisterRepository
+            _mockIdRegisterRepository,
+            _mockSearchResultEntryRepository
         );
     }
 
@@ -56,11 +59,12 @@ public class QueryProvidersFunctionTests
         // Act
         var result = await _sut.QueryProvider(_mockContext, input, CancellationToken.None);
 
-        // Assert
+        // Assert - QueryProvidersService called
         await _mockQueryProvidersService
             .Received(1)
             .QueryProvidersAsync(input, Arg.Any<CancellationToken>());
 
+        // Assert - ID Register called for each item
         await _mockIdRegisterRepository
             .Received(expectedItems.Count)
             .UpsertAsync(
@@ -74,6 +78,25 @@ public class QueryProvidersFunctionTests
                 ),
                 Arg.Any<CancellationToken>()
             );
+
+        // Assert - SearchResultsRepository called for each item
+        await _mockSearchResultEntryRepository
+            .Received(expectedItems.Count)
+            .UpsertAsync(
+                Arg.Is<SearchResultEntry>(e =>
+                    e.CustodianId == input.Provider.OrgId
+                    && e.RecordType == expectedItems[0].RecordType
+                    && e.RecordUrl == expectedItems[0].RecordUrl
+                    && e.SystemId == expectedItems[0].SystemId
+                    && e.JobId == input.JobId
+                    && e.SubmittedAtUtc != default
+                ),
+                Arg.Any<CancellationToken>()
+            );
+
+        // Assert - returned items
+        Assert.Equal(expectedItems.Count, result.Count);
+        Assert.Equal(expectedItems, result);
 
         Assert.Single(result);
         Assert.Equal(expectedItems, result);

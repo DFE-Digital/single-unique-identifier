@@ -149,4 +149,97 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         Assert.Equal(SearchStatus.Completed, body.Status);
         Assert.Equal(2, body.Items.Length);
     }
+
+    [Fact]
+    public async Task ShouldReturnPersistedResults_WhenJobIsRunning()
+    {
+        var meta = new OrchestrationMetadata("Orchestrator", "running-job")
+        {
+            RuntimeStatus = OrchestrationRuntimeStatus.Running,
+        };
+
+        _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
+
+        SearchResultEntryRepository
+            .GetByWorkItemIdAsync("running-job", Arg.Any<CancellationToken>())
+            .Returns(
+                new[]
+                {
+                    new SearchResultEntry
+                    {
+                        CustodianId = "Health",
+                        SystemId = "SystemA",
+                        RecordType = "Type1",
+                        RecordUrl = "url1",
+                        RecordId = "12345",
+                        JobId = "running-job",
+                        SubmittedAtUtc = DateTimeOffset.UtcNow,
+                        WorkItemId = "running-job",
+                    },
+                }
+            );
+
+        var result = await Sut.GetSearchResultsAsync(
+            "running-job",
+            ClientId,
+            _client,
+            CancellationToken.None
+        );
+
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+
+        Assert.Single(body.Items);
+        Assert.Equal("SystemA", body.Items[0].SystemId);
+        Assert.Equal("Type1", body.Items[0].RecordType);
+        Assert.Equal("url1", body.Items[0].RecordUrl);
+        Assert.Equal("12345", body.Items[0].RecordId);
+    }
+
+    [Fact]
+    public async Task ShouldReturnOrchestratorResults_WhenJobIsCompleted()
+    {
+        var orchestratorItems = new[] { new SearchResultItem("Type1", "Url1", "SystemA", "12345") };
+
+        var meta = new OrchestrationMetadata("Orchestrator", "completed-job")
+        {
+            RuntimeStatus = OrchestrationRuntimeStatus.Completed,
+            SerializedOutput = JsonSerializer.Serialize(orchestratorItems),
+        };
+
+        _client.GetInstanceAsync("completed-job", true, Arg.Any<CancellationToken>()).Returns(meta);
+
+        SearchResultEntryRepository
+            .GetByWorkItemIdAsync("completed-job", Arg.Any<CancellationToken>())
+            .Returns(
+                new[]
+                {
+                    new SearchResultEntry
+                    {
+                        CustodianId = "Education",
+                        SystemId = "SystemB",
+                        RecordType = "Type2",
+                        RecordUrl = "url2",
+                        RecordId = "99999",
+                        JobId = "completed-job",
+                        SubmittedAtUtc = DateTimeOffset.UtcNow,
+                        WorkItemId = "completed-job",
+                    },
+                }
+            );
+
+        var result = await Sut.GetSearchResultsAsync(
+            "completed-job",
+            ClientId,
+            _client,
+            CancellationToken.None
+        );
+
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+
+        Assert.Single(body.Items);
+        Assert.Equal("SystemA", body.Items[0].SystemId);
+        Assert.Equal("Type1", body.Items[0].RecordType);
+        Assert.Equal("Url1", body.Items[0].RecordUrl);
+        Assert.Equal("12345", body.Items[0].RecordId);
+    }
 }
