@@ -171,6 +171,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         SystemId = "SystemA",
                         RecordType = "Type1",
                         RecordUrl = "url1",
+                        RecordId = "12345",
                         JobId = "running-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
                         WorkItemId = "running-job",
@@ -191,12 +192,13 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         Assert.Equal("SystemA", body.Items[0].SystemId);
         Assert.Equal("Type1", body.Items[0].RecordType);
         Assert.Equal("url1", body.Items[0].RecordUrl);
+        Assert.Equal("12345", body.Items[0].RecordId);
     }
 
     [Fact]
     public async Task ShouldReturnOrchestratorResults_WhenJobIsCompleted()
     {
-        var orchestratorItems = new[] { new SearchResultItem("Type1", "Url1", "SystemA", null) };
+        var orchestratorItems = new[] { new SearchResultItem("Type1", "Url1", "SystemA", "12345") };
 
         var meta = new OrchestrationMetadata("Orchestrator", "completed-job")
         {
@@ -217,6 +219,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         SystemId = "SystemB",
                         RecordType = "Type2",
                         RecordUrl = "url2",
+                        RecordId = "99999",
                         JobId = "completed-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
                         WorkItemId = "completed-job",
@@ -236,5 +239,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         Assert.Single(body.Items);
         Assert.Equal("SystemA", body.Items[0].SystemId);
         Assert.Equal("Type1", body.Items[0].RecordType);
+        Assert.Equal("Url1", body.Items[0].RecordUrl);
+        Assert.Equal("12345", body.Items[0].RecordId);
     }
 }
