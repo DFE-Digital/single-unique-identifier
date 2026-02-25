@@ -60,7 +60,7 @@ public class QueryProvidersFunction(
                     RecordId = searchResultItem.RecordId,
                     SubmittedAtUtc = DateTimeOffset.UtcNow,
                     JobId = data.JobId,
-                    WorkItemId = data.JobId, // This will be changed later
+                    WorkItemId = data.JobId, // In this context (fan-out architecture), WorkItemId is the same as JobId.
                 },
                 cancellationToken
             );
