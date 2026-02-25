@@ -14,7 +14,7 @@ public class HelperSearchresultsService : ISearchResultsService
         _resultsRepository = resultsRepository;
     }
 
-    public async Task<IReadOnlyList<SearchResultsRegisterEntry>> GetResultsByJobIdAsync(
+    public async Task<IReadOnlyList<SearchResultEntry>> GetResultsByJobIdAsync(
         string jobId,
         CancellationToken cancellationToken
     )

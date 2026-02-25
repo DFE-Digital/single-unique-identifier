@@ -84,7 +84,7 @@ public class QueryProvidersFunctionTests
         await _mockSearchResultEntryRepository
             .Received(expectedItems.Count)
             .UpsertAsync(
-                Arg.Is<SearchResultsRegisterEntry>(e =>
+                Arg.Is<SearchResultEntry>(e =>
                     e.CustodianId == input.Provider.OrgId
                     && e.RecordType == expectedItems[0].RecordType
                     && e.RecordUrl == expectedItems[0].RecordUrl

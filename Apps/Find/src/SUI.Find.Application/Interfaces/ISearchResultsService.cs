@@ -4,7 +4,7 @@ namespace SUI.Find.Application.Interfaces;
 
 public interface ISearchResultsService
 {
-    Task<IReadOnlyList<SearchResultsRegisterEntry>> GetResultsByJobIdAsync(
+    Task<IReadOnlyList<SearchResultEntry>> GetResultsByJobIdAsync(
         string jobId,
         CancellationToken cancellationToken
     );

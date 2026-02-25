@@ -165,7 +165,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             .Returns(
                 new[]
                 {
-                    new SearchResultsRegisterEntry
+                    new SearchResultEntry
                     {
                         CustodianId = "Health",
                         SystemId = "SystemA",
@@ -210,7 +210,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             .Returns(
                 new[]
                 {
-                    new SearchResultsRegisterEntry
+                    new SearchResultEntry
                     {
                         CustodianId = "Education",
                         SystemId = "SystemB",

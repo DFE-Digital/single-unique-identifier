@@ -9,9 +9,7 @@ namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 [ExcludeFromCodeCoverage(
     Justification = "Will be covered after confirmation on current implementation"
 )]
-public class SearchResultEntryRepository
-    : ISearchResultEntryRepository,
-        ITableServiceEnsureCreated
+public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableServiceEnsureCreated
 {
     private readonly TableServiceClient _client;
     private readonly ILogger<SearchResultEntryRepository> _logger;
@@ -32,7 +30,7 @@ public class SearchResultEntryRepository
     private TableClient Table => _client.GetTableClient(TableName);
 
     public async Task UpsertAsync(
-        SearchResultsRegisterEntry entry,
+        SearchResultEntry entry,
         CancellationToken cancellationToken = default
     )
     {
@@ -68,14 +66,14 @@ public class SearchResultEntryRepository
         }
     }
 
-    public async Task<IReadOnlyList<SearchResultsRegisterEntry>> GetByJobIdAsync(
+    public async Task<IReadOnlyList<SearchResultEntry>> GetByJobIdAsync(
         string jobId,
         CancellationToken cancellationToken = default
     )
     {
         var partitionKey = SearchResultEntryKeys.PartitionKey(jobId);
 
-        var results = new List<SearchResultsRegisterEntry>();
+        var results = new List<SearchResultEntry>();
         var seen = new HashSet<string>();
 
         await foreach (
@@ -101,7 +99,7 @@ public class SearchResultEntryRepository
                 seen.Add(dedupeKey);
 
                 results.Add(
-                    new SearchResultsRegisterEntry
+                    new SearchResultEntry
                     {
                         CustodianId = custodianId,
                         SystemId = systemId,

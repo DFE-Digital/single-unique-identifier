@@ -1,6 +1,6 @@
 namespace SUI.Find.Application.Dtos;
 
-public class SearchResultsRegisterEntry
+public class SearchResultEntry
 {
     public required string CustodianId { get; init; }
     public required string SystemId { get; init; }

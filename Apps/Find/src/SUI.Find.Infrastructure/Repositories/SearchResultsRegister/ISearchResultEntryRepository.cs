@@ -4,9 +4,9 @@ namespace SUI.Find.Infrastructure.Repositories.SearchResultsRegister;
 
 public interface ISearchResultEntryRepository
 {
-    Task UpsertAsync(SearchResultsRegisterEntry entry, CancellationToken cancellationToken);
+    Task UpsertAsync(SearchResultEntry entry, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<SearchResultsRegisterEntry>> GetByJobIdAsync(
+    Task<IReadOnlyList<SearchResultEntry>> GetByJobIdAsync(
         string jobId,
         CancellationToken cancellationToken
     );

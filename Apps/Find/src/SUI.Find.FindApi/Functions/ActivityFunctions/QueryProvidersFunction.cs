@@ -52,7 +52,7 @@ public class QueryProvidersFunction(
 
             // 2. Persist to SearchResultsEntryStorage for partial results
             await searchResultEntryRepository.UpsertAsync(
-                new SearchResultsRegisterEntry
+                new SearchResultEntry
                 {
                     CustodianId = data.Provider.OrgId,
                     SystemId = searchResultItem.SystemId ?? string.Empty,
