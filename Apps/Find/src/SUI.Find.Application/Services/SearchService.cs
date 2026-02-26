@@ -143,7 +143,6 @@ public class SearchService(
 
         var policyContext = new PolicyContext(
             clientId,
-            scopes,
             "SAFEGUARDING", // TODO: Hard coded for now. Review later. Potentially pull it through the endpoint as part of the query.
             encryptDefinition.Value.OrgType
         );

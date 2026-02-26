@@ -44,7 +44,6 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
         var policyData = new PolicyContext(
             "different-client-id",
-            [],
             "SAFEGUARDING",
             "LOCAL_AUTHORITY"
         );

@@ -84,12 +84,7 @@ public class SearchOrchestratorFunctionsTests
         var input = new SearchOrchestratorInput(
             Suid: "1234567890123456",
             Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
-            PolicyContext: new PolicyContext(
-                "test-client-1",
-                ["scope1", "scope2"],
-                "SAFEGUARDING",
-                "LOCAL_AUTHORITY"
-            )
+            PolicyContext: new PolicyContext("test-client-1", "SAFEGUARDING", "LOCAL_AUTHORITY")
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
@@ -124,12 +119,7 @@ public class SearchOrchestratorFunctionsTests
         var input = new SearchOrchestratorInput(
             Suid: "",
             Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
-            PolicyContext: new PolicyContext(
-                "test-client-1",
-                ["scope1", "scope2"],
-                "SAFEGUARDING",
-                "LOCAL_AUTHORITY"
-            )
+            PolicyContext: new PolicyContext("test-client-1", "SAFEGUARDING", "LOCAL_AUTHORITY")
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
@@ -145,12 +135,7 @@ public class SearchOrchestratorFunctionsTests
         var input = new SearchOrchestratorInput(
             Suid: "1234567890123456",
             Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
-            PolicyContext: new PolicyContext(
-                "test-client-1",
-                ["scope1", "scope2"],
-                "SAFEGUARDING",
-                "LOCAL_AUTHORITY"
-            )
+            PolicyContext: new PolicyContext("test-client-1", "SAFEGUARDING", "LOCAL_AUTHORITY")
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
