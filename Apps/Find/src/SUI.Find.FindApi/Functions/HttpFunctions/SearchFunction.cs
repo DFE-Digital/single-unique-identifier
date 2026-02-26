@@ -107,7 +107,6 @@ public class SearchFunction(
         var searchJob = await searchService.StartSearchAsync(
             personId,
             authContext.ClientId,
-            authContext.Scopes.ToArray(),
             client,
             context.InvocationId,
             cancellationToken
