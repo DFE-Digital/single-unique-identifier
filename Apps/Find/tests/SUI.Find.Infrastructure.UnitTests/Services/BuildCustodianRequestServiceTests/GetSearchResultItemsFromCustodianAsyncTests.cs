@@ -85,7 +85,13 @@ public class GetSearchResultItemsFromCustodianAsyncTests
 
         var expectedItems = new List<SearchResultItem>
         {
-            new("Type1", "/v1/records/original-id", "SystemA", "TestRecord"),
+            new()
+            {
+                RecordType = "Type1",
+                RecordUrl = "/v1/records/original-id",
+                SystemId = "SystemA",
+                RecordId = "TestRecord",
+            },
         };
 
         var jsonResponse = JsonSerializer.Serialize(expectedItems, JsonSerializerOptions.Web);
@@ -366,7 +372,13 @@ public class GetSearchResultItemsFromCustodianAsyncTests
 
         var expectedItems = new List<SearchResultItem>
         {
-            new("Type1", "/v1/records/original-id", "SystemA", "TestRecord"),
+            new()
+            {
+                RecordType = "Type1",
+                RecordUrl = "/v1/records/original-id",
+                SystemId = "SystemA",
+                RecordId = "TestRecord",
+            },
         };
 
         var jsonResponse = JsonSerializer.Serialize(expectedItems, JsonSerializerOptions.Web);

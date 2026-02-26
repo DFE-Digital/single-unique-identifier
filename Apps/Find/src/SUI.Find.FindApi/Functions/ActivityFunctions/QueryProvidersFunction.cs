@@ -41,7 +41,7 @@ public class QueryProvidersFunction(
                     Sui = data.Suid,
                     CustodianId = data.Provider.OrgId,
                     RecordType = searchResultItem.RecordType,
-                    SystemId = searchResultItem.SystemId ?? string.Empty,
+                    SystemId = searchResultItem.SystemId,
                     CustodianSubjectId = searchResultItem.RecordId,
                     Provenance = Provenance.DiscoveredViaFanout,
                     LastIdDeliveredAtUtc = null,
@@ -54,7 +54,7 @@ public class QueryProvidersFunction(
                 new SearchResultEntry
                 {
                     CustodianId = data.Provider.OrgId,
-                    SystemId = searchResultItem.SystemId ?? string.Empty,
+                    SystemId = searchResultItem.SystemId,
                     RecordType = searchResultItem.RecordType,
                     RecordUrl = searchResultItem.RecordUrl,
                     RecordId = searchResultItem.RecordId,

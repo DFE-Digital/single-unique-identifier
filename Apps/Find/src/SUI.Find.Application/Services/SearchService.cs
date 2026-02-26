@@ -272,12 +272,13 @@ public class SearchService(
                 );
 
                 finalItems = persistedItems
-                    .Select(r => new SearchResultItem(
-                        r.RecordType,
-                        r.RecordUrl,
-                        r.SystemId,
-                        r.RecordId
-                    ))
+                    .Select(r => new SearchResultItem
+                    {
+                        RecordType = r.RecordType,
+                        RecordId = r.RecordId,
+                        RecordUrl = r.RecordUrl,
+                        SystemId = r.SystemId,
+                    })
                     .ToArray();
             }
             else

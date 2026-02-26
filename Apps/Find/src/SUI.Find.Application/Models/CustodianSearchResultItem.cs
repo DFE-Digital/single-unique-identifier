@@ -4,7 +4,7 @@ public sealed record CustodianSearchResultItem(
     string CustodianId,
     string RecordType,
     string RecordUrl,
-    string? SystemId,
+    string SystemId,
     string? RecordId
 )
 {

@@ -37,19 +37,17 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
     {
         var partitionKey = SearchResultEntryKeys.PartitionKey(entry.WorkItemId);
 
-        var systemId = string.IsNullOrWhiteSpace(entry.SystemId) ? "DefaultSystem" : entry.SystemId;
-
         var rowKey = SearchResultEntryKeys.RowKey(
             entry.SubmittedAtUtc,
             entry.CustodianId,
             entry.RecordType,
-            systemId
+            entry.SystemId
         );
 
         var entity = new TableEntity(partitionKey, rowKey)
         {
             { "CustodianId", entry.CustodianId },
-            { "SystemId", systemId },
+            { "SystemId", entry.SystemId },
             { "RecordType", entry.RecordType },
             { "RecordUrl", entry.RecordUrl },
             { "RecordId", entry.RecordId },
