@@ -9,7 +9,9 @@ The self-hosted runner and Azure Blob artifact storage are in place as a **worka
 - Labels: `self-hosted`, `ubuntu-latest`, `linux`, `ghrunner`.
 - **No Docker daemon** in Container Apps, so Docker-based actions and `services:` containers will fail.
 - Azurite is started as a local process when tests require it.
-- The runner currently authenticates with a classic PAT stored as an Azure Container App secret (to be replaced by a GitHub App when approved).
+- The runner authenticates via the org‑managed GitHub App **sui-self-hosted-runner**.
+  - Key env vars: `APP_ID`, `APP_PRIVATE_KEY`, `APP_LOGIN`, `RUNNER_SCOPE=repo`, and `REPO_URL`.
+  - Required permissions: **Administration: read & write** on the repo (to create runner registration tokens); **Actions: read** and **Metadata: read** are also recommended.
 - The deploy workflows install Azure CLI at runtime because the self-hosted runner image does not include `az` by default. See [`deploy-dotnet-webapp.yml`](../../.github/workflows/deploy-dotnet-webapp.yml) and [`deploy-dotnet-functionapp.yml`](../../.github/workflows/deploy-dotnet-functionapp.yml).
 
 ## Switching back to GitHub-hosted runners
