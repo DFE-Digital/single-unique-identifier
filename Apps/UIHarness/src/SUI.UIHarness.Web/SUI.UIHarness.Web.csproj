@@ -5,8 +5,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Components\Controls\" />
-  </ItemGroup>
 </Project>
