@@ -52,3 +52,5 @@ Required secrets/vars:
 - `AZURE_ARTIFACTS_CONTAINER` (secret or repo variable) - container name.
 
 The storage account connection currently uses a SAS token that is set to expire on `February 23, 2027`. We recommend switching to service‑principal access when permissions allow, but this was not done yet due to lack of role assignment permissions. The service principal needs the `Storage Blob Data Contributor` role on the storage account or container.
+
+Lifecycle management is enabled on the artifact container to delete blobs more than 60 days old, matching the GitHub artifact retention window.
