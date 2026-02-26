@@ -327,10 +327,19 @@ This table is written at the time jobs are created for the WorkItem.
 
 WorkItem completeness SHALL be derived as:
 
-1. Sum `ExpectedJobCount` across all JobTypes for the WorkItem.
+1. `ExpectedJobCount` for a specific job (or sum of jobs) [Search] the WorkItem.
 2. Count distinct `JobId` values written to `SearchResults` for the same `WorkItemId`.
-3. Compute percentage completeness as:
+3. Compute percentage completeness as unique jobs in search results as a percentage of total jobs
+4. Status may be In Progress, Completed (when all job ids are in the Search Results), Expired when an acceptable period has been exceeded
+---
 
+#### Architectural Boundary
+
+This mechanism:
+
+- Does not participate in lease enforcement.
+- Does not influence job eligibility.
+- Exists solely to support status calculation endpoints.
 
 ## 7. Access Patterns and Transaction Counts
 
