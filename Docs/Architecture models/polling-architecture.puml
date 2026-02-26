@@ -10,14 +10,19 @@ AddElementTag("Storage Queue", $bgColor="#de8aff", $borderColor="#000", $fontCol
 AddElementTag("Storage Table", $bgColor="#fd7b7b", $borderColor="#000", $fontColor="#000")
 AddElementTag("Class-level Service", $bgColor="#fdc07b", $borderColor="#000", $fontColor="#000")
 
+AddRelTag("Lease job", $textColor="#974242", $lineColor="#974242")
+AddRelTag("Check lease", $textColor="#2a4291", $lineColor="#2a4291")
+AddRelTag("Job Creation", $textColor="#21693f", $lineColor="#21693f")
+AddRelTag("Get Job status", $textColor="#4f2169", $lineColor="#4f2169")
+
 
 ' Jobs Provider/Service
 Component(JobsService, "JobService", "Class-level Service", $tags="Class-level Service")
 ComponentDb(JobsTable, "Jobs", "Storage Table", $tags="Storage Table")
-ComponentDb(WorkItemJobCountTable, "WorkItemJobCount", "Storage Table", $tags="Storage Table")
+ComponentDb(WorkItemJobCountTable, "WorkItemJobCounts", "Storage Table", $tags="Storage Table")
 
-Rel(JobsService, JobsTable, "Reads and writes")
-Rel(JobsService, WorkItemJobCountTable, "Reads and writes")
+Rel(JobsService, JobsTable, "Reads and Upserts")
+Rel(JobsService, WorkItemJobCountTable, "Reads and Upserts")
 
 
 ' Request a new search related:
@@ -27,13 +32,13 @@ Component(SearchRequestHandler, "SearchRequestHandler", "Queue Trigger", "Create
 
 Rel(StartSearchEndpoint, SearchRequestsQueue, "Sends: SearchRequestMessage")
 Rel(SearchRequestsQueue, SearchRequestHandler, "Handles: SearchRequestMessage")
-Rel(SearchRequestHandler, JobsService, "")
+Rel(SearchRequestHandler, JobsService, "Create Jobs\nCreate Work Item Job Count", $tags="Job Creation")
 
 
 ' Lease related:
 Component(ClaimWorkEndpoint, "POST /v2/work/claim", "HTTP Trigger", "a.k.a. 'Lease endpoint'", $tags="HTTP Trigger")
 
-Rel(ClaimWorkEndpoint, JobsService, "")
+Rel(ClaimWorkEndpoint, JobsService, "Lease Job", $tags="Lease job")
 
 
 ' Submit results
@@ -44,13 +49,14 @@ ComponentDb(SearchResultEntriesTable, "SearchResultEntries", "Storage Table", $t
 
 Rel(SubmitResultEndpoint, JobResultsInboundQueue, "Sends: JobResultMessage")
 Rel(JobResultsInboundQueue, JobResultHandler, "Handles: JobResultMessage")
-Rel(SubmitResultEndpoint, JobsService, "")
-Rel(JobResultHandler, SearchResultEntriesTable, "Reads and writes")
+Rel(SubmitResultEndpoint, JobsService, "Check lease has not expired", $tags="Check lease")
+Rel(JobResultHandler, SearchResultEntriesTable, "Upserts Search Result Entries")
 
 
 ' Search results
 Component(GetSearchResultsEndpoint, "POST /v2/searches/:workItemId/results", "HTTP Trigger", "Get search results", $tags="HTTP Trigger")
-Rel(GetSearchResultsEndpoint, JobsService, "")
+Rel(GetSearchResultsEndpoint, JobsService, "Get Job status & percentage completeness", $tags="Get Job status")
+Rel(GetSearchResultsEndpoint, SearchResultEntriesTable, "Get Search Result Entries")
 
 
 ' Layout hints
