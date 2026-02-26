@@ -20,7 +20,6 @@ public interface ISearchService
     Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
         string inputPersonId,
         string clientId,
-        string[] scopes,
         DurableTaskClient client,
         string correlationId,
         CancellationToken cancellationToken
@@ -61,7 +60,6 @@ public class SearchService(
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
         string inputPersonId,
         string clientId,
-        string[] scopes,
         DurableTaskClient client,
         string correlationId,
         CancellationToken cancellationToken
