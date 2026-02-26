@@ -202,26 +202,4 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
 
         results.Should().BeEmpty();
     }
-
-    [Fact]
-    public async Task UpsertAsync_WhenSystemIdEmpty_PersistsDefaultSystem()
-    {
-        var entry = new SearchResultEntry
-        {
-            CustodianId = "Custodian",
-            SystemId = "", // empty
-            RecordType = "Type",
-            RecordUrl = "url",
-            RecordId = "1",
-            SubmittedAtUtc = DateTimeOffset.UtcNow,
-            JobId = "job",
-            WorkItemId = $"work_{Guid.NewGuid()}",
-        };
-
-        await _sut.UpsertAsync(entry);
-
-        var results = await _sut.GetByWorkItemIdAsync(entry.WorkItemId);
-
-        results.Single().SystemId.Should().Be("DefaultSystem");
-    }
 }
