@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
@@ -7,9 +6,6 @@ using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
 
-[ExcludeFromCodeCoverage(
-    Justification = "Will be covered after confirmation on current implementation"
-)]
 public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableServiceEnsureCreated
 {
     private readonly TableServiceClient _client;
