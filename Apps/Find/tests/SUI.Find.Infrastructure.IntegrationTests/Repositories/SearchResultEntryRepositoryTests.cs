@@ -172,8 +172,8 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             WorkItemId = workItemId,
         };
 
-        await _sut.UpsertAsync(first);
         await _sut.UpsertAsync(second);
+        await _sut.UpsertAsync(first);
 
         var results = await _sut.GetByWorkItemIdAsync(workItemId);
 
