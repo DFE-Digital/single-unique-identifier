@@ -54,7 +54,7 @@ Rel(JobResultHandler, SearchResultEntriesTable, "Upserts Search Result Entries")
 
 
 ' Search results
-Component(GetSearchResultsEndpoint, "POST /v2/searches/:workItemId/results", "HTTP Trigger", "Get search results", $tags="HTTP Trigger")
+Component(GetSearchResultsEndpoint, "POST /v2/searches/{workItemId}/results", "HTTP Trigger", "Get search results", $tags="HTTP Trigger")
 Rel(GetSearchResultsEndpoint, JobsService, "Get Job status & percentage completeness", $tags="Get Job status")
 Rel(GetSearchResultsEndpoint, SearchResultEntriesTable, "Get Search Result Entries")
 
