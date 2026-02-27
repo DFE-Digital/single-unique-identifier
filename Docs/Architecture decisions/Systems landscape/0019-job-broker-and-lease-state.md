@@ -13,11 +13,15 @@ Proposed
 
 ---
 
+This ADR defines the lease strategy and job state.
+
+References to Azure Table Storage in this document describe the current Discovery implementation used to validate the lease model under real contention and polling behaviour. They do not constitute a strategic or long-term datastore decision. The target Alpha storage strategy remains to be defined separately.
+
 ## Executive Summary
 
-ADR-SUI-0018 defines how custodians poll FIND and claim work under a time-bound lease. This ADR defines the minimum infrastructure and storage model required to make that lease model correct, fast, and easy to operate during Alpha.
+ADR-SUI-0018 defines how custodians poll FIND and claim work under a time-bound lease. This ADR defines the minimum infrastructure and storage model required to make that lease model correct, fast, and easy to operate during Discovery.
 
-The Alpha baseline uses **Azure Table Storage as the single source of truth** for job state and lease state. The design intentionally avoids background sweepers and avoids write-heavy indexing. The aim is to keep Table Storage interactions minimal:
+The Discovery implementation uses **Azure Table Storage as the single source of truth** for job state and lease state. The design intentionally avoids background sweepers and avoids write-heavy indexing. The aim is to keep Table Storage interactions minimal:
 
 - **No-work poll:** one partition-scoped query returning `204`  
 - **Successful claim:** one query + one conditional update  
@@ -31,7 +35,7 @@ This ADR covers broker/storage only. It does not redefine endpoint semantics (se
 
 ## 1. Context
 
-FIND implements a pull-based discovery model. Custodians poll FIND to claim work, perform local lookup, and submit results. The dominant cost driver in polling systems is usually the idle case (many polls returning “no work”). Therefore the Alpha design must keep both of these true:
+FIND implements a pull-based discovery model. Custodians poll FIND to claim work, perform local lookup, and submit results. The dominant cost driver in polling systems is usually the idle case (many polls returning “no work”). Therefore the Discovery design must keep both of these true:
 
 1. **Correctness:** only one custodian can hold a lease for a given job at any moment.  
 2. **Efficiency:** maintaining lease state must not be onerous; Table transactions must be minimised and access patterns must avoid scans.
@@ -78,7 +82,9 @@ If one custodian generates significantly more traffic than others, the design mu
 
 ## 3. Decision
 
-### 3.1 Alpha baseline decision
+The lease strategy defined below is the architectural decision captured by this ADR. The specific storage technology referenced reflects the current Discovery implementation and does not bind the programme to a long-term persistence platform.
+
+### 3.1 Discovery implementation decision (non-strategic storage)
 
 FIND SHALL store durable job metadata and lease state in **Azure Table Storage** using a single authoritative table (`Jobs`).
 
@@ -96,12 +102,12 @@ Redis was considered as a potential optimisation because polling systems are typ
 
 A Redis layer could be used as a non-authoritative hint mechanism to suppress unnecessary Table reads when there is clearly no work, or to accelerate candidate selection when work is known to exist (for example by tracking a per-custodian “work available” flag or a small set of candidate JobIds). In all cases, the authoritative lease claim would still be enforced in Table Storage.
 
-Redis is deferred in Alpha to avoid introducing additional operational surface area unless telemetry shows it is required.
+Redis is deferred in Discovery to avoid introducing additional operational surface area unless telemetry shows it is required.
 
 
 ---
 
-## 4. Why Azure Table Storage for Alpha
+## 4. Why Azure Table Storage for Discovery
 
 Azure Table Storage is selected because it supports the Alpha requirements with minimal operational overhead:
 
@@ -116,7 +122,7 @@ Table Storage is not chosen because it is universally best; it is chosen because
 
 ---
 
-## 5. Why not Service Bus or a relational queue table for Alpha
+## 5. Why not Service Bus or a relational queue table for Discovery
 
 ### 5.1 Broker-first (Service Bus)
 
@@ -218,8 +224,6 @@ The queue is durable. Messages are processed at-least-once.
 
 Lease correctness is enforced before enqueueing. The queue processor does not re-evaluate lease validity.
 
----
-
 ### 6.3 Result Processing Model
 
 A dedicated queue processor consumes messages from `JobResultsInbound`.
@@ -253,8 +257,6 @@ For non-search jobs, the processor may:
 - Mark related entities complete.
 
 The broker does not assume or enforce any particular post-processing behaviour beyond lease and completion semantics.
-
----
 
 ### 6.4 Table: `SearchResults`
 
@@ -292,7 +294,52 @@ For Alpha, duplicates SHALL be tolerated and de-duplicated at read time using th
 
 If duplicates are not acceptable, the `RowKey` SHALL be made deterministic (e.g. `{custodianId}|{systemId}|{recordType}` or `{JobId}|{systemId}|{recordType}`), at the cost of losing strict chronological ordering in key order.
 
+### 6.5 Work Item Expected Job Count (Discovery Implementation)
+
+Certain endpoints require the service to calculate the status of a WorkItem (for example, a search execution). 
+
+Lease correctness alone does not provide sufficient information to determine overall completion. The service must also know how many jobs were created for the WorkItem.
+
+To support this, the Discovery implementation SHALL persist the expected number of jobs created per WorkItem.
+
+
+#### Table: `WorkItemJobCount`
+
+One entity per WorkItem and JobType.
+
+##### Keys
+
+- `PartitionKey`: `WorkItemId`
+- `RowKey`: `JobType`
+
+##### Properties
+
+| Property | Type | Meaning |
+|---|---|---|
+| ExpectedJobCount | int | Number of jobs created for this WorkItem and JobType |
+| CreatedAtUtc | datetime | Timestamp of initial creation |
+| UpdatedAtUtc | datetime | Last update timestamp |
+
+This table is written at the time jobs are created for the WorkItem.
+
+
+#### Status Derivation
+
+WorkItem completeness SHALL be derived as:
+
+1. `ExpectedJobCount` for a specific job (or sum of jobs) [Search] the WorkItem.
+2. Count distinct `JobId` values written to `SearchResults` for the same `WorkItemId`.
+3. Compute percentage completeness as unique jobs in search results as a percentage of total jobs
+4. Status may be In Progress, Completed (when all job ids are in the Search Results), Expired when an acceptable period has been exceeded
 ---
+
+#### Architectural Boundary
+
+This mechanism:
+
+- Does not participate in lease enforcement.
+- Does not influence job eligibility.
+- Exists solely to support status calculation endpoints.
 
 ## 7. Access Patterns and Transaction Counts
 
@@ -366,7 +413,7 @@ Further partitioning MAY be introduced later if telemetry indicates sustained pa
 
 In polling systems, the primary lever for idle efficiency is not storage choice; it is client behaviour (backoff) and server backpressure.
 
-Alpha SHALL rely on:
+Discovery SHALL rely on:
 
 - `204` responses when no work exists  
 - `429` / `503` with `Retry-After` when throttling is required  
@@ -399,7 +446,7 @@ No correctness impact; system falls back to Table-only behaviour.
 
 ## 11. Comparative Summary
 
-| Option | Correctness | Idle Efficiency | Operational Complexity | Fit for Alpha |
+| Option | Correctness | Idle Efficiency | Operational Complexity | Fit for Discovery |
 |---|---|---|---|---|
 | Table-only (windowed selection) | ✅ Strong | ⚠️ Medium | ✅ Low | Recommended baseline |
 | Table + Redis hints | ✅ Strong | ✅ High | ⚠️ Medium–High | Introduce only if needed |
@@ -412,7 +459,7 @@ No correctness impact; system falls back to Table-only behaviour.
 
 ### Positive
 
-The Alpha baseline is simple, deterministic, and cheap to operate. Lease expiry requires no background maintenance, and Table transactions remain tightly bounded.
+The Discovery implementation is simple, deterministic, and cheap to operate. Lease expiry requires no background maintenance, and Table transactions remain tightly bounded.
 
 ### Trade-offs
 
