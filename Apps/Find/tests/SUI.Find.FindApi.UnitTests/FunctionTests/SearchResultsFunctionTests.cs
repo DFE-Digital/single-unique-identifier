@@ -55,12 +55,13 @@ public class SearchResultsFunctionTests
 
     private static SearchResultItem CreateSearchResultItem()
     {
-        return new SearchResultItem(
-            "Health",
-            "http://example.com/record/1",
-            "TestSystem",
-            "TestRecord"
-        );
+        return new SearchResultItem()
+        {
+            RecordType = "Health",
+            RecordUrl = "http://example.com/record/1",
+            SystemId = "TestSystem",
+            RecordId = "TestRecord",
+        };
     }
 
     [Fact]

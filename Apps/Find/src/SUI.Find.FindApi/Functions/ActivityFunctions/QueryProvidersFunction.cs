@@ -10,7 +10,8 @@ namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 public class QueryProvidersFunction(
     ILogger<QueryProvidersFunction> logger,
     IQueryProvidersService queryProvidersService,
-    IIdRegisterRepository idRegisterRepository
+    IIdRegisterRepository idRegisterRepository,
+    ISearchResultEntryRepository searchResultEntryRepository
 )
 {
     [Function(nameof(QueryProvidersFunction))]
@@ -33,16 +34,33 @@ public class QueryProvidersFunction(
 
         foreach (var searchResultItem in result.Value)
         {
+            // 1. Upsert into ID Register
             await idRegisterRepository.UpsertAsync(
                 new IdRegisterEntry()
                 {
                     Sui = data.Suid,
                     CustodianId = data.Provider.OrgId,
                     RecordType = searchResultItem.RecordType,
-                    SystemId = searchResultItem.SystemId ?? string.Empty,
+                    SystemId = searchResultItem.SystemId,
                     CustodianSubjectId = searchResultItem.RecordId,
                     Provenance = Provenance.DiscoveredViaFanout,
                     LastIdDeliveredAtUtc = null,
+                },
+                cancellationToken
+            );
+
+            // 2. Persist to SearchResultsEntryStorage for partial results
+            await searchResultEntryRepository.UpsertAsync(
+                new SearchResultEntry
+                {
+                    CustodianId = data.Provider.OrgId,
+                    SystemId = searchResultItem.SystemId,
+                    RecordType = searchResultItem.RecordType,
+                    RecordUrl = searchResultItem.RecordUrl,
+                    RecordId = searchResultItem.RecordId,
+                    SubmittedAtUtc = DateTimeOffset.UtcNow,
+                    JobId = data.JobId,
+                    WorkItemId = data.JobId, // In this context (fan-out architecture), WorkItemId is the same as JobId.
                 },
                 cancellationToken
             );

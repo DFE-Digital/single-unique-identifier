@@ -54,7 +54,8 @@ public class SearchService(
     IPersonIdEncryptionService encryptionService,
     ICustodianService custodianService,
     IHashService hashService,
-    IOptions<EncryptionConfiguration> encryptionConfig
+    IOptions<EncryptionConfiguration> encryptionConfig,
+    ISearchResultEntryRepository searchResultEntryRepository
 ) : ISearchService
 {
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
@@ -260,35 +261,47 @@ public class SearchService(
                 return new Unauthorized();
             }
 
+            SearchResultItem[] finalItems;
+
+            // If job is still running → return partial persisted results
             if (metaData.IsRunning)
             {
-                return new SearchResultsDto
-                {
-                    JobId = jobId,
-                    Suid = meta.Suid,
-                    Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    Items = [],
-                };
-            }
+                var persistedItems = await searchResultEntryRepository.GetByWorkItemIdAsync(
+                    jobId,
+                    cancellationToken
+                );
 
-            if (string.IsNullOrEmpty(metaData.SerializedOutput))
-            {
-                return new SearchResultsDto
-                {
-                    JobId = jobId,
-                    Suid = meta.Suid,
-                    Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    Items = [],
-                };
+                finalItems = persistedItems
+                    .Select(r => new SearchResultItem
+                    {
+                        RecordType = r.RecordType,
+                        RecordId = r.RecordId,
+                        RecordUrl = r.RecordUrl,
+                        SystemId = r.SystemId,
+                    })
+                    .ToArray();
             }
-            var items = JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput);
+            else
+            {
+                // Completed / Failed / Terminated → return orchestrator output (existing behaviour)
+                if (!string.IsNullOrEmpty(metaData.SerializedOutput))
+                {
+                    finalItems =
+                        JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput)
+                        ?? Array.Empty<SearchResultItem>();
+                }
+                else
+                {
+                    finalItems = Array.Empty<SearchResultItem>();
+                }
+            }
 
             return new SearchResultsDto
             {
                 JobId = jobId,
                 Suid = meta.Suid,
                 Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                Items = items ?? [],
+                Items = finalItems,
             };
         }
         catch (Exception ex)
