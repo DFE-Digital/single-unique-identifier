@@ -12,7 +12,7 @@ public class MetadataDeserializationTests
         // Arrange
         var json = """
             {
-                "RecordType": "Record1"
+                "RecordType": "Type1"
             }
             """;
 
@@ -21,59 +21,31 @@ public class MetadataDeserializationTests
 
         // Assert
         Assert.NotNull(metadata);
-        Assert.Equal("Record1", metadata.RecordType);
+        Assert.Equal("Type1", metadata.RecordType);
         Assert.Equal(ApplicationConstants.SystemIds.Default, metadata.SystemId); // field-backed default
     }
 
-    [Fact]
-    public void SystemId_ShouldDefault_WhenJsonHasNullOrEmpty()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SystemId_ShouldDefault_WhenJsonHasNullOrEmpty(string? systemId)
     {
-        // null
-        var jsonNull = """
+        // Arrange
+        var json = $$"""
             {
-                "RecordType": "Record1",
-                "SystemId": null
+                "RecordType": "Type1",
+                "SystemId": "{{systemId}}"
             }
             """;
 
         // Act
-        var metadataNull = JsonSerializer.Deserialize<Metadata>(jsonNull);
+        var metadata = JsonSerializer.Deserialize<Metadata>(json);
 
         // Assert
-        Assert.NotNull(metadataNull);
-        Assert.Equal("Record1", metadataNull.RecordType);
-        Assert.Equal(ApplicationConstants.SystemIds.Default, metadataNull.SystemId);
-
-        // empty string
-        var jsonEmpty = """
-            {
-                "RecordType": "Record1",
-                "SystemId": ""
-            }
-            """;
-
-        var metadataEmpty = JsonSerializer.Deserialize<Metadata>(jsonEmpty);
-
-        // Assert
-        Assert.NotNull(metadataEmpty);
-        Assert.Equal("Record1", metadataEmpty.RecordType);
-        Assert.Equal(ApplicationConstants.SystemIds.Default, metadataEmpty.SystemId);
-
-        // whitespace
-        var jsonWhitespace = """
-            {
-                "RecordType": "Record1",
-                "SystemId": "   "
-            }
-            """;
-
-        // Act
-        var metadataWhitespace = JsonSerializer.Deserialize<Metadata>(jsonWhitespace);
-
-        // Assert
-        Assert.NotNull(metadataWhitespace);
-        Assert.Equal("Record1", metadataWhitespace.RecordType);
-        Assert.Equal(ApplicationConstants.SystemIds.Default, metadataWhitespace.SystemId);
+        Assert.NotNull(metadata);
+        Assert.Equal("Type1", metadata.RecordType);
+        Assert.Equal(ApplicationConstants.SystemIds.Default, metadata.SystemId);
     }
 
     [Fact]
@@ -81,7 +53,7 @@ public class MetadataDeserializationTests
     {
         var json = """
             {
-                "RecordType": "Record1",
+                "RecordType": "Type1",
                 "SystemId": "CustomSystem"
             }
             """;
@@ -90,7 +62,7 @@ public class MetadataDeserializationTests
 
         // Assert
         Assert.NotNull(metadata);
-        Assert.Equal("Record1", metadata.RecordType);
+        Assert.Equal("Type1", metadata.RecordType);
         Assert.Equal("CustomSystem", metadata.SystemId);
     }
 }

@@ -22,64 +22,28 @@ public class SearchResultItemDeserializationTests
         Assert.Equal(ApplicationConstants.SystemIds.Default, item.SystemId);
     }
 
-    [Fact]
-    public void SystemId_ShouldDefault_WhenJsonHasNullOrEmpty()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SystemId_ShouldDefault_WhenJsonHasNullOrEmpty(string? systemId)
     {
-        // null
-        var jsonNull = """
+        // Arrange
+        var json = $$"""
             {
                 "RecordType": "Type1",
                 "RecordUrl": "url1",
-                "SystemId": null
+                "SystemId": "{{systemId}}"
             }
             """;
 
         // Act
-        var itemNull = JsonSerializer.Deserialize<SearchResultItem>(
-            jsonNull,
-            JsonSerializerOptions.Web
-        );
+        var item = JsonSerializer.Deserialize<SearchResultItem>(json);
 
         // Assert
-        Assert.NotNull(itemNull);
-        Assert.Equal("Type1", itemNull.RecordType);
-        Assert.Equal(ApplicationConstants.SystemIds.Default, itemNull.SystemId);
-
-        // empty string
-        var jsonEmpty = """
-            {
-                "RecordType": "Type1",
-                "RecordUrl": "url1",
-                "SystemId": ""
-            }
-            """;
-
-        var itemEmpty = JsonSerializer.Deserialize<SearchResultItem>(
-            jsonEmpty,
-            JsonSerializerOptions.Web
-        );
-
-        // Assert
-        Assert.NotNull(itemEmpty);
-        Assert.Equal("Type1", itemEmpty.RecordType);
-        Assert.Equal(ApplicationConstants.SystemIds.Default, itemEmpty.SystemId);
-
-        // whitespace
-        var jsonWhitespace = """
-            {
-                "RecordType": "Type1",
-                "RecordUrl": "url1",
-                "SystemId": "   "
-            }
-            """;
-
-        // Act
-        var itemWhitespace = JsonSerializer.Deserialize<SearchResultItem>(jsonWhitespace);
-
-        // Assert
-        Assert.NotNull(itemWhitespace);
-        Assert.Equal("Type1", itemWhitespace.RecordType);
-        Assert.Equal(ApplicationConstants.SystemIds.Default, itemWhitespace.SystemId);
+        Assert.NotNull(item);
+        Assert.Equal("Type1", item.RecordType);
+        Assert.Equal(ApplicationConstants.SystemIds.Default, item.SystemId);
     }
 
     [Fact]
