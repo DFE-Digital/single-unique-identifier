@@ -1,4 +1,5 @@
 @using SUI.UIHarness.Web.Models
+@using SUI.UIHarness.Web.Models.Find
 @using SUI.UIHarness.Web.Services
 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
     <div>
@@ -98,7 +99,8 @@
         {
             return;
         }
-
+        
+        _foundRecords.Clear();
         _findProgress = 0;
         _showFindProgress = true;
         var searchJob = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber);
@@ -123,7 +125,7 @@
             }
             
             pollingCount++;
-            if (pollingCount >= 10)
+            if (pollingCount >= 10 || result.Status == FindSearchStatus.Completed)
             {
                 keepPolling = false;
             }

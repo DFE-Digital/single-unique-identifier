@@ -32,15 +32,7 @@ public class FindService : IFindService
         await GetAuthTokenAsync(clientId, TestClientSecret, Scopes);
         var request = new FindMatchRequest
         {
-            Metadata =
-            [
-                new FindMatchMetadata
-                {
-                    RecordType = "test",
-                    RecordId = "",
-                    SystemId = "",
-                },
-            ],
+            Metadata = [],
             PersonSpecification = new FindMatchPerson
             {
                 Given = person.Given,
@@ -122,7 +114,7 @@ public class FindService : IFindService
         return null;
     }
 
-    public async Task<FindCustodianRecord> FetchRecord(string clientId, string recordId)
+    public async Task<FindCustodianRecord?> FetchRecord(string clientId, string recordId)
     {
         await GetAuthTokenAsync(clientId, TestClientSecret, Scopes);
 

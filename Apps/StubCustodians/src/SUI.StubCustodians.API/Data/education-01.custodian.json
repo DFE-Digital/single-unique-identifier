@@ -11,17 +11,24 @@
       "version": "1",
       "schemaUri": "https://schemas.example.gov.uk/sui/education.details.record.v1.json",
       "systemId": "EDUCATION-SYSTEM-01",
-      "contactDetails": {
+      "contactDetails": [{
         "name": "School Records Team",
         "description": "Records enquiries",
         "telephone": "01234 555 500",
         "email": "records.schools@gov.uk",
         "address": "Schools Record Centre, EB5 6IJ"
       },
-      "recordLink": {
+        {
+          "name": "Education Welfare Service",
+          "description": "Attendance",
+          "telephone": "01234 555 123",
+          "email": "ews.schools@gov.uk",
+          "address": "Education Offices, EB5 6IJ"
+        }],
+      "recordLink": [{
         "url": "https://schools.gov.uk/login",
         "title": "School Login Portal"
-      },
+      }],
       "payload": {
         "educationSettingName": "ST Johns",
         "educationSettingAddress": {
@@ -68,17 +75,17 @@
       "encryptedPersonId": "vehNMF2ySUU23P206A6BYA",
       "recordType": "personal.details",
       "version": "1",
-      "contactDetails": {
+      "contactDetails": [{
         "name": "School Records Team",
         "description": "Records enquiries",
         "telephone": "01234 555 500",
         "email": "records.schools@gov.uk",
         "address": "Schools Record Centre, EB5 6IJ"
-      },
-      "recordLink": {
+      }],
+      "recordLink": [{
         "url": "https://schools.gov.uk/login",
         "title": "School Login Portal"
-      },
+      }],
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
       "systemId": "EDUCATION-SYSTEM-01",
       "payload": {

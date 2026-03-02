@@ -33,13 +33,16 @@
                         <div id="contactsContainer" class="mb-0">
                             @if (_currentRecord.ContactDetails != null)
                             {
-                                <div class="border rounded p-2 mb-2">
-                                    <div class="fw-semibold">@_currentRecord.ContactDetails.Name</div>
-                                    <div class="text-muted">@_currentRecord.ContactDetails.Description</div>
-                                    <div>Telephone: @_currentRecord.ContactDetails.Telephone</div>
-                                    <div>Email: @_currentRecord.ContactDetails.Email</div>
-                                    <div>Address: @_currentRecord.ContactDetails.Address</div>
-                                </div>
+                                foreach (var contactDetail in _currentRecord.ContactDetails)
+                                {
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="fw-semibold">@contactDetail.Name</div>
+                                        <div class="text-muted">@contactDetail.Description</div>
+                                        <div>Telephone: @contactDetail.Telephone</div>
+                                        <div>Email: @contactDetail.Email</div>
+                                        <div>Address: @contactDetail.Address</div>
+                                    </div>
+                                }
                             }
                             else
                             {
@@ -55,12 +58,16 @@
                     <div class="card-body">
                         <h3 class="h6 card-title mb-3">External system</h3>
                         <div id="externalContainer" class="mb-0">
-                            @if (_currentRecord.RecordLink != null)
+                            @if (_currentRecord.RecordLinks != null)
                             {
-                                <div class="border rounded p-2 mb-2">
-                                    <div class="fw-semibold">@_currentRecord.RecordLink.Title</div>
-                                    <div class="text-muted">@_currentRecord.RecordLink.Url</div>
-                                </div>
+                                foreach (var recordLink in _currentRecord.RecordLinks)
+                                {
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="fw-semibold">@recordLink.Title</div>
+                                        <div class="text-muted">@recordLink.Url</div>
+                                    </div>
+                                }
+                                
                             }
                         </div>
                     </div>
@@ -374,23 +381,23 @@
         _currentRecord = await FindService.FetchRecord(SelectedOrg, SelectedRecordUrl);
         _fetchProgress = 50;
         StateHasChanged();
-        if (_currentRecord.RecordType == "education.details" && _currentRecord.Payload != null)
+        if (_currentRecord is { RecordType: "education.details", Payload: not null })
         {
             _currentEducationRecord = _currentRecord.Payload.Value.Deserialize<EducationDetailsRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
         }
-        if (_currentRecord.RecordType == "childrens-services.details" && _currentRecord.Payload != null)
+        if (_currentRecord is { RecordType: "childrens-services.details", Payload: not null })
         {
             _currentChildrensServicesDetailsRecord = _currentRecord.Payload.Value.Deserialize<ChildrensServicesDetailsRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
         }
-        if (_currentRecord.RecordType == "crime-justice.details" && _currentRecord.Payload != null)
+        if (_currentRecord is { RecordType: "crime-justice.details", Payload: not null })
         {
             _currentCrimeDetailsRecord = _currentRecord.Payload.Value.Deserialize<CrimeDataRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
         }
-        if (_currentRecord.RecordType == "health.details" && _currentRecord.Payload != null)
+        if (_currentRecord is { RecordType: "health.details", Payload: not null })
         {
             _currentHealthDataRecord = _currentRecord.Payload.Value.Deserialize<HealthDataRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
         }
-        if (_currentRecord.RecordType == "personal.details" && _currentRecord.Payload != null)
+        if (_currentRecord is { RecordType: "personal.details", Payload: not null })
         {
             _currentPersonalDetailsRecord = _currentRecord.Payload.Value.Deserialize<PersonalDetailsRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
         }

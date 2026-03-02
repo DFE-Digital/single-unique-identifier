@@ -11,5 +11,5 @@ public interface IFindService
 
     Task<FindSearchResults> FindRecords(string clientId, string jobId);
 
-    Task<FindCustodianRecord> FetchRecord(string clientId, string recordId);
+    Task<FindCustodianRecord?> FetchRecord(string clientId, string recordId);
 }
