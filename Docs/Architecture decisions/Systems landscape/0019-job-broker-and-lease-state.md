@@ -319,6 +319,7 @@ One entity per WorkItem and JobType.
 | ExpectedJobCount | int | Number of jobs created for this WorkItem and JobType |
 | CreatedAtUtc | datetime | Timestamp of initial creation |
 | UpdatedAtUtc | datetime | Last update timestamp |
+| PayloadJson | string | Serialised job payload |
 
 This table is written at the time jobs are created for the WorkItem.
 
