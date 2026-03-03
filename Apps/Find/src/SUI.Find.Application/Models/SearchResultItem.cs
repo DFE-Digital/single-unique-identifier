@@ -16,5 +16,14 @@ public sealed record SearchResultItem
                 : value;
     } = ApplicationConstants.SystemIds.Default;
 
+    public string SystemName
+    {
+        get;
+        init =>
+            field = string.IsNullOrWhiteSpace(value)
+                ? ApplicationConstants.SystemIds.Default
+                : value;
+    } = ApplicationConstants.SystemIds.Default;
+
     public string? RecordId { get; init; }
 }

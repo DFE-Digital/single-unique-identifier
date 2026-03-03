@@ -5,11 +5,13 @@ public sealed record CustodianSearchResultItem(
     string RecordType,
     string RecordUrl,
     string SystemId,
+    string SystemName,
     string? RecordId
 )
 {
     public static CustodianSearchResultItem Create(
         string custodianId,
+        string custodianName,
         SearchResultItem searchResultItem
     ) =>
         new(
@@ -17,6 +19,7 @@ public sealed record CustodianSearchResultItem(
             searchResultItem.RecordType,
             searchResultItem.RecordUrl,
             searchResultItem.SystemId,
+            custodianName,
             searchResultItem.RecordId
         );
 }

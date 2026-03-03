@@ -116,7 +116,11 @@ public class BuildCustodianRequestsService(
         return Result<List<CustodianSearchResultItem>>.Ok(
             searchResultItems
                 .Select(searchResultItem =>
-                    CustodianSearchResultItem.Create(data.Provider.OrgId, searchResultItem)
+                    CustodianSearchResultItem.Create(
+                        data.Provider.OrgId,
+                        data.Provider.OrgName,
+                        searchResultItem
+                    )
                 )
                 .ToList()
         );
