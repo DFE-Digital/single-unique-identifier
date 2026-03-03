@@ -93,7 +93,7 @@ jobs:
     # Hosted runners blocked by budget; use self-hosted for now
     # runs-on: ubuntu-latest
     runs-on: [self-hosted, ubuntu-latest]
-    environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
+    environment: ${{ inputs.environment || github.event.inputs.environment }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment || github.event.inputs.environment }}
       AZURE_WEBAPP_PACKAGE_PATH: ${{ (inputs.package_path || github.event.inputs.package_path) }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
