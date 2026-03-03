@@ -92,10 +92,10 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
 
                 var dedupeKey = $"{custodianId}|{systemId}|{recordType}";
 
-                if (seen.Contains(dedupeKey))
-                {
-                    continue; // skip duplicate
-                }
+                // if (seen.Contains(dedupeKey))
+                // {
+                //     continue; // skip duplicate
+                // }
 
                 seen.Add(dedupeKey);
 
