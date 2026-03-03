@@ -64,7 +64,7 @@ Required inputs when running manually:
 1. Add a new `*-build-and-deploy.yml` in [`.github/workflows`](../../.github/workflows).
 2. Call `build-test-dotnet.yml` with `project_names`, `directory_name`, and `artifact_store`.
 3. Call the appropriate deploy workflow and pass the artifact name from `build-test-dotnet.yml` outputs.
-4. Keep `runs-on` consistent with the self-hosted runner labels.
+4. Keep `runs-on` consistent with the `RUNNER_LABELS` variable (JSON array). Default is `["ubuntu-latest"]`.
 
 ## Troubleshooting
 

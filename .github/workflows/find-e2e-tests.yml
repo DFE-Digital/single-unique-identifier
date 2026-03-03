@@ -76,9 +76,8 @@ jobs:
   # Otherwise, run against ephemeral for push/PR, and against dev after successful workflow runs on main.
   eval-workflow-setup:
     name: Evaluate run targets
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     steps:
       - id: eval
         name: Evaluate Workflow Setup
@@ -109,9 +108,8 @@ jobs:
   e2e-test-ephemeral:
     name: E2E tests (ephemeral)
     needs: eval-workflow-setup
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
     steps:
       - name: Checkout repository
@@ -190,9 +188,8 @@ jobs:
   e2e-test-dev:
     name: E2E tests (dev ${{ inputs.environment || 'd01' }})
     needs: eval-workflow-setup
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_dev == 'true'
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment || 'd01' }}
