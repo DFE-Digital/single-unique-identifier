@@ -1,9 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace SUI.Find.Infrastructure;
 
-[ExcludeFromCodeCoverage(Justification = "Used only in infrastructure services.")]
-internal static class TableKeyNormaliser
+public static class TableKeyNormaliser
 {
     public static string Normalise(string value)
     {
