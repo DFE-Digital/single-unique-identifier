@@ -154,7 +154,9 @@ public class JobRepositoryTests : IAsyncLifetime
         var custodianId = $"Custodian_{Guid.NewGuid()}";
         var partitionKey = JobKeys.PartitionKey(custodianId);
 
-        var tableClient = TableStorageFixture.Client.GetTableClient("JobRepository");
+        var tableClient = TableStorageFixture.Client.GetTableClient(
+            InfrastructureConstants.StorageTableJobRepository.TableName
+        );
 
         // insert a bad row
         var entity = new TableEntity(partitionKey, "bad-row")
