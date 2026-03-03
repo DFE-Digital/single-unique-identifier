@@ -5,7 +5,7 @@ namespace SUI.Find.Infrastructure.Repositories.JobRepository;
 [ExcludeFromCodeCoverage(
     Justification = "This will be covered after confirming implementation details"
 )]
-public class JobKeys
+public static class JobKeys
 {
     public static string PartitionKey(string custodianId) =>
         $"C_{TableKeyNormaliser.Normalise(custodianId)}";
