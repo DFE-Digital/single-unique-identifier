@@ -90,9 +90,8 @@ permissions:
 jobs:
   deploy:
     name: Deploy function app (${{ inputs.component_descriptor || github.event.inputs.component_descriptor || inputs.function_app_name || github.event.inputs.function_app_name || inputs.artifact_name || github.event.inputs.artifact_name }}) to ${{ inputs.environment || github.event.inputs.environment }}
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     environment: ${{ inputs.environment || github.event.inputs.environment }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment || github.event.inputs.environment }}
