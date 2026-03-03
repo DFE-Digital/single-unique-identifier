@@ -31,4 +31,6 @@ public static class RegisterKeys
         // 3.Replace forbidden characters
         return value.Replace("/", "_").Replace("\\", "_").Replace("#", "_").Replace("?", "_");
     }
+
+    //test PR comment
 }
