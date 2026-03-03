@@ -1,13 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Repositories.JobRepository;
 
-[ExcludeFromCodeCoverage(
-    Justification = "This will be covered after confirming implementation details"
-)]
 public class JobRepository : IJobRepository, ITableServiceEnsureCreated
 {
     private readonly TableServiceClient _client;
@@ -67,25 +63,19 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
     )
     {
         var partitionKey = JobKeys.PartitionKey(custodianId);
+        var windowStartRowKey = JobKeys.RowKey(windowStart, "default");
 
         var results = new List<Job>();
 
         await foreach (
             var entity in Table.QueryAsync<TableEntity>(
-                x => x.PartitionKey == partitionKey,
+                x => x.PartitionKey == partitionKey && x.RowKey.CompareTo(windowStartRowKey) >= 0,
                 cancellationToken: cancellationToken
             )
         )
         {
             try
             {
-                var created = entity.GetDateTimeOffset("CreatedAtUtc")!.Value;
-
-                if (created < windowStart)
-                {
-                    continue;
-                }
-
                 var jobTypeString = entity.GetString("JobType");
 
                 if (!Enum.TryParse<JobType>(jobTypeString, out var jobType))
@@ -111,7 +101,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
                         LeaseId = entity.GetString("LeaseId"),
                         LeaseExpiresAtUtc = entity.GetDateTimeOffset("LeaseExpiresAtUtc"),
                         AttemptCount = entity.GetInt32("AttemptCount") ?? 0,
-                        CreatedAtUtc = created,
+                        CreatedAtUtc = entity.GetDateTimeOffset("CreatedAtUtc")!.Value,
                         UpdatedAtUtc = entity.GetDateTimeOffset("UpdatedAtUtc")!.Value,
                         CompletedAtUtc = entity.GetDateTimeOffset("CompletedAtUtc"),
                         PayloadJson = entity.GetString("PayloadJson")!,
