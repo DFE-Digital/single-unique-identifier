@@ -1,0 +1,23 @@
+@startuml workitem-job-logical-view
+title Polling Architecture - WorkItem to Job logical view\n<size:12>(One WorkItem to Many Jobs)</size>
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+AddElementTag("WorkItem", $bgColor="#71a3ff", $borderColor="#000", $fontColor="#000")
+AddElementTag("Job", $bgColor="#ffb411", $borderColor="#000", $fontColor="#000")
+
+Component(SearchWorkItem, "Search", "WorkItem", $tags="WorkItem")
+
+Component(Job1, "Custodian 1", "Job", $tags="Job")
+Component(Job2, "Custodian 2", "Job", $tags="Job")
+Component(Job3, "Custodian 3", "Job", $tags="Job")
+Component(JobN, "Custodian N", "Job", $tags="Job")
+
+Rel(SearchWorkItem, Job1, "")
+Rel(SearchWorkItem, Job2, "")
+Rel(SearchWorkItem, Job3, "")
+Rel(SearchWorkItem, JobN, "")
+
+HIDE_STEREOTYPE()
+
+@enduml
