@@ -38,21 +38,26 @@
             <tr>
                 <th>Custodian</th>
                 <th>Record type</th>
+                <th>Record ID</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
-        @foreach (var p in _foundRecords)
-        {
-            <tr data-record-id="@p.Id">
-                <td>@p.CustodianName</td>
-                <td>@p.Type</td>
-                <td>@p.Url</td>
-                <td>
-                    <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentRecord(p)">Find Records</button>
-                </td>
-            </tr>
-        }
+            @if (_foundRecordsFor?.Org == SelectedOrg && _foundRecordsFor?.NhsNumber == CurrentPerson?.NhsNumber)
+            {
+                foreach (var p in _foundRecords)
+                {
+                    <tr data-record-id="@p.Id">
+                        <td>@p.CustodianName</td>
+                        <td>@p.Type</td>
+                        <td>@p.Id</td>
+                        <td>@p.Url</td>
+                        <td>
+                            <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentRecord(p)">Fetch Records</button>
+                        </td>
+                    </tr>
+                }
+            }
         </tbody>
     </table>
 </div>
@@ -81,14 +86,15 @@
     public LocalPerson? CurrentPerson { get; set; }
     
     [Parameter]
-    public string SelectedOrg { get; set; }
+    public required string SelectedOrg { get; set; }
     
     [Parameter]
     public EventCallback<LocalRecord> CurrentRecordChanged { get; set; }
 
     private bool _showFindProgress;
     private int _findProgress;
-    private List<LocalRecord> _foundRecords = [];
+    private readonly List<LocalRecord> _foundRecords = [];
+    private (string? Org, string? NhsNumber)? _foundRecordsFor;
     
     [Inject]
     public required IFindService FindService { get; set; }
@@ -101,6 +107,7 @@
         }
         
         _foundRecords.Clear();
+        _foundRecordsFor = null;
         _findProgress = 0;
         _showFindProgress = true;
         var searchJob = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber);
@@ -122,6 +129,7 @@
                 }
 
                 _foundRecords.Add(record);
+                _foundRecordsFor ??= (SelectedOrg, CurrentPerson.NhsNumber);
                 
                 StateHasChanged();
             }
