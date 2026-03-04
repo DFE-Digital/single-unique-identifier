@@ -1,7 +1,11 @@
 @using SUI.UIHarness.Web.Models
 @using SUI.UIHarness.Web.Services
 <div class="d-flex align-items-center gap-3 mb-3">
-                <button id="btnEnroll" type="button" class="btn btn-primary" @onclick="Enrol">Enrol</button>
+                <button id="btnEnroll" type="button" class="btn btn-primary" @onclick="Enrol" disabled="@_noOrgSelected">Enrol</button>
+                @if (_noOrgSelected)
+                {
+                    <span class="text-muted">Select an organisation above</span>
+                }
                 <span id="enrolStatus" class="text-muted"></span>
             </div>
 
@@ -44,9 +48,14 @@
                             <td>@(p.Phone ?? "")</td>
                             <td>@(p.Email ?? "")</td>
                             <td>@p.Postcode</td>
-                            <td class="nhs-number">@p.NhsNumber</td>
+                            <td class="nhs-number">
+                                @if (_enrolledFor == SelectedOrg)
+                                {
+                                    @p.NhsNumber
+                                }
+                            </td>
                             <td class="actions">
-                                @if (!string.IsNullOrEmpty(p.NhsNumber) && p.NhsNumber != "Not Found")
+                                @if (!string.IsNullOrEmpty(p.NhsNumber) && p.NhsNumber != "Not Found" && _enrolledFor == SelectedOrg)
                                 {
                                     <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentPerson(p)">Find Records</button>
                                 }
@@ -98,9 +107,12 @@
     private bool ShowEnrolProgress { get; set; }
 
     private int EnrolProgress { get; set; }
+
+    private bool _noOrgSelected;
+    private string? _enrolledFor = null;
     
     [Parameter]
-    public string SelectedOrg { get; set; }
+    public required string SelectedOrg { get; set; }
     
     [Parameter]
     public EventCallback<LocalPerson> CurrentPersonChanged { get; set; }
@@ -108,13 +120,19 @@
     [Inject]
     public required IFindService FindService { get; set; }
 
+    protected override void OnParametersSet()
+    {
+        _noOrgSelected = string.IsNullOrEmpty(SelectedOrg);
+    }
+
     private async Task Enrol()
     {
         if (string.IsNullOrEmpty(SelectedOrg))
         {
             return;
         }
-        
+
+        _enrolledFor = null;
         EnrolProgress = 0;
         ShowEnrolProgress = true;
         var a = 100 / _dataToOnboard.Count;
@@ -123,6 +141,7 @@
             EnrolProgress += a;
             var result = await FindService.MatchRecord(person, SelectedOrg);
             person.NhsNumber = result.PersonId;
+            _enrolledFor ??= SelectedOrg;
             StateHasChanged();
             await Task.Delay(500);
         }
