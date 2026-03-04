@@ -147,7 +147,7 @@ jobs:
 
       - name: Download build artifact (GitHub)
         if: (inputs.artifact_store || github.event.inputs.artifact_store) != 'azure'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}
           path: ${{ inputs.package_path || github.event.inputs.package_path }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
