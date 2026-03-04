@@ -1,5 +1,3 @@
-using SUI.Find.Domain.Models;
-
 namespace SUI.Find.Infrastructure.Repositories.JobRepository;
 
 public interface IJobRepository
