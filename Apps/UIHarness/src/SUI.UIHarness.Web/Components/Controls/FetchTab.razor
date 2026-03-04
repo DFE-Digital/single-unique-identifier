@@ -22,7 +22,7 @@
         </div>
     </div>
 }
-@if (_currentRecord != null)
+@if (_currentRecord != null && _fetchedForOrg == SelectedOrg)
 {
     <div id="fetchContent">
         <div class="row g-3">
@@ -348,12 +348,13 @@
     private CrimeDataRecord? _currentCrimeDetailsRecord;
     private HealthDataRecord? _currentHealthDataRecord;
     private string _selectedRecordUrl = string.Empty;
+    private string? _fetchedForOrg;
     
     [Parameter]
-    public string SelectedRecordUrl { get; set; }
+    public required string SelectedRecordUrl { get; set; }
     
     [Parameter]
-    public string SelectedOrg { get; set; }
+    public required string SelectedOrg { get; set; }
     
     [Inject]
     public required IFindService FindService { get; set; }
@@ -375,10 +376,12 @@
         }
         
         Reset();
+        _fetchedForOrg = null;
         _fetchProgress = 10;
         StateHasChanged();
         _showFetchProgress = true;
         _currentRecord = await FindService.FetchRecord(SelectedOrg, SelectedRecordUrl);
+        _fetchedForOrg = SelectedOrg;
         _fetchProgress = 50;
         StateHasChanged();
         if (_currentRecord is { RecordType: "education.details", Payload: not null })

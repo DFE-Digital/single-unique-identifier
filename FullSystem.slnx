@@ -34,7 +34,9 @@
     <Project Path="Apps/SingleView/tests/SUI.SingleView.IntegrationTests/SUI.SingleView.IntegrationTests.csproj" />
     <Project Path="Apps/SingleView/tests/SUI.SingleView.Web.UnitTests/SUI.SingleView.Web.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Apps/StubCustodians/" />
+  <Folder Name="/Apps/StubCustodians/">
+    <File Path="Apps/StubCustodians/readme.md" />
+  </Folder>
   <Folder Name="/Apps/StubCustodians/src/">
     <Project Path="Apps/StubCustodians/src/SUI.Custodians.API.Client/SUI.Custodians.API.Client.csproj" />
     <Project Path="Apps/StubCustodians/src/SUI.Custodians.Domain/SUI.Custodians.Domain.csproj" />

@@ -1,88 +1,92 @@
 @using SUI.UIHarness.Web.Models
 @using SUI.UIHarness.Web.Services
-<div class="d-flex align-items-center gap-3 mb-3">
-                <button id="btnEnroll" type="button" class="btn btn-primary" @onclick="Enrol" disabled="@_noOrgSelected">Enrol</button>
-                @if (_noOrgSelected)
-                {
-                    <span class="text-muted">Select an organisation above</span>
-                }
-                <span id="enrolStatus" class="text-muted"></span>
-            </div>
 
-            @if (ShowEnrolProgress)
+<div>
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <button id="btnEnroll" type="button" class="btn btn-primary" @onclick="Enrol" disabled="@_noOrgSelected">Enrol</button>
+        @if (_noOrgSelected)
+        {
+            <span class="text-muted">Select an organisation above</span>
+        }
+        <span id="enrolStatus" class="text-muted"></span>
+    </div>
+
+    @if (ShowEnrolProgress)
+    {
+        <div id="enrolProgressWrap" class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-muted">Processing</span>
+                <span id="enrolProgressText" class="text-muted"></span>
+            </div>
+            <div class="progress" role="progressbar" aria-label="Enrolment progress">
+                <div id="enrolProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:@(EnrolProgress)%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-striped align-middle" id="peopleTable">
+            <thead>
+            <tr>
+                <th>Given</th>
+                <th>Family</th>
+                <th>Birthdate</th>
+                <th>Gender</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Postcode</th>
+                <th>NHS Number</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var p in _dataToOnboard)
             {
-                <div id="enrolProgressWrap" class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-muted">Processing</span>
-                        <span id="enrolProgressText" class="text-muted"></span>
-                    </div>
-                    <div class="progress" role="progressbar" aria-label="Enrolment progress">
-                        <div id="enrolProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:@(EnrolProgress)%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                </div>
+                <tr data-person-id="@p.PersonId">
+                    <td>@p.Given</td>
+                    <td>@p.Family</td>
+                    <td>@p.BirthDate.ToString("yyyy-MM-dd")</td>
+                    <td>@p.Gender</td>
+                    <td>@(p.Phone ?? "")</td>
+                    <td>@(p.Email ?? "")</td>
+                    <td>@p.Postcode</td>
+                    <td class="nhs-number">
+                        @if (_enrolledForOrg == SelectedOrg)
+                        {
+                            @p.NhsNumber
+                        }
+                    </td>
+                    <td class="actions">
+                        @if (!string.IsNullOrEmpty(p.NhsNumber) && p.NhsNumber != "Not Found" && _enrolledForOrg == SelectedOrg)
+                        {
+                            <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentPerson(p)">Find Records</button>
+                        }
+                    </td>
+                </tr>
             }
+            </tbody>
+        </table>
+    </div>
 
-            <div class="table-responsive">
-                <table class="table table-striped align-middle" id="peopleTable">
-                    <thead>
-                    <tr>
-                        <th>Given</th>
-                        <th>Family</th>
-                        <th>Birthdate</th>
-                        <th>Gender</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Postcode</th>
-                        <th>NHS Number</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var p in _dataToOnboard)
-                    {
-                        <tr data-person-id="@p.PersonId">
-                            <td>@p.Given</td>
-                            <td>@p.Family</td>
-                            <td>@p.BirthDate.ToString("yyyy-MM-dd")</td>
-                            <td>@p.Gender</td>
-                            <td>@(p.Phone ?? "")</td>
-                            <td>@(p.Email ?? "")</td>
-                            <td>@p.Postcode</td>
-                            <td class="nhs-number">
-                                @if (_enrolledFor == SelectedOrg)
-                                {
-                                    @p.NhsNumber
-                                }
-                            </td>
-                            <td class="actions">
-                                @if (!string.IsNullOrEmpty(p.NhsNumber) && p.NhsNumber != "Not Found" && _enrolledFor == SelectedOrg)
-                                {
-                                    <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentPerson(p)">Find Records</button>
-                                }
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
+    <div class="mt-4">
+        <h2 class="h5">What this demo is showing</h2>
 
-            <div class="mt-4">
-                <h2 class="h5">What this demo is showing</h2>
+        <p class="mb-2">
+            This screen simulates how a custodian would enrol onto the Single Unique Identifier (SUI) service.
+            In practice, a custodian would extract demographic records from their own systems (such as name, date of birth and postcode) and submit them to the <strong>Find an ID</strong> service as part of a defined onboarding or batch process.
+        </p>
 
-                <p class="mb-2">
-                    This screen simulates how a custodian would enrol onto the Single Unique Identifier (SUI) service.
-                    In practice, a custodian would extract demographic records from their own systems (such as name, date of birth and postcode) and submit them to the <strong>Find an ID</strong> service as part of a defined onboarding or batch process.
-                </p>
+        <p class="mb-2">
+            The Find an ID service checks those details against <strong>PDS</strong> using a structured matching approach.
+            Where a match reaches a confidence score of 95% or higher, an <strong>NHS number</strong> is returned.
+        </p>
 
-                <p class="mb-2">
-                    The Find an ID service checks those details against <strong>PDS</strong> using a structured matching approach.
-                    Where a match reaches a confidence score of 95% or higher, an <strong>NHS number</strong> is returned.
-                </p>
+        <p class="mb-0">
+            The table above demonstrates that interaction. As matches are confirmed, the returned NHS number is shown against each record, representing how a custodian would then store that identifier alongside their existing data.
+        </p>
+    </div>
+</div>
 
-                <p class="mb-0">
-                    The table above demonstrates that interaction. As matches are confirmed, the returned NHS number is shown against each record, representing how a custodian would then store that identifier alongside their existing data.
-                </p>
-            </div>
 
 @code {
     private readonly List<LocalPerson> _dataToOnboard =
@@ -109,7 +113,7 @@
     private int EnrolProgress { get; set; }
 
     private bool _noOrgSelected;
-    private string? _enrolledFor = null;
+    private string? _enrolledForOrg;
     
     [Parameter]
     public required string SelectedOrg { get; set; }
@@ -132,7 +136,7 @@
             return;
         }
 
-        _enrolledFor = null;
+        _enrolledForOrg = null;
         EnrolProgress = 0;
         ShowEnrolProgress = true;
         var a = 100 / _dataToOnboard.Count;
@@ -141,7 +145,7 @@
             EnrolProgress += a;
             var result = await FindService.MatchRecord(person, SelectedOrg);
             person.NhsNumber = result.PersonId;
-            _enrolledFor ??= SelectedOrg;
+            _enrolledForOrg ??= SelectedOrg;
             StateHasChanged();
             await Task.Delay(500);
         }

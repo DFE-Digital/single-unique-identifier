@@ -6,7 +6,7 @@ namespace SUI.Find.Application.Interfaces;
 public interface IBuildCustodianRequestService
 {
     Task<Result<List<CustodianSearchResultItem>>> GetSearchResultItemsFromCustodianAsync(
-        BuildCustodianRequestDto request,
+        BuildCustodianRequestDto data,
         CancellationToken cancellationToken
     );
 }
