@@ -114,12 +114,14 @@
             var result = await FindService.FindRecords(SelectedOrg, searchJob);
             foreach (var resultItem in result.Items)
             {
-                if (resultItem.RecordId == null || _foundRecords.Any(r => r.Id == resultItem.RecordId))
+                var record = new LocalRecord(resultItem.RecordId ?? resultItem.RecordUrl, resultItem.RecordUrl, resultItem.RecordType, resultItem.CustodianName ?? string.Empty);
+                
+                if (_foundRecords.Contains(record))
                 {
                     continue;
                 }
 
-                _foundRecords.Add(new LocalRecord(resultItem.RecordId, resultItem.RecordUrl, resultItem.RecordType, resultItem.CustodianName ?? string.Empty));
+                _foundRecords.Add(record);
                 
                 StateHasChanged();
             }
