@@ -34,20 +34,36 @@ primarily the .NET SDK and `dotnet tool restore` from the repo root.
 - Follow the (Fhir readme)[./pds_fhir_local_setup.md] for using the matching service.
   - !Important - The .env file contains secrets so keep it away from source control and any AI ingestion tools.
 
+#### PDS Fhir setup - Troubleshooting
+
+You may need to remove these lines from your Find API's `local.settings.json`:
+
+```
+    "NhsAuthConfig:NHS_DIGITAL_CLIENT_ID": "",
+    "NhsAuthConfig:NHS_DIGITAL_KID": "",
+    "NhsAuthConfig:NHS_DIGITAL_PRIVATE_KEY": "",
+```
+
+Ensure that your `.env` file is located in the same directory as your Find API's `local.settings.json` file.
+
+Also, Windows only, ensure the line endings in your `.env` file are LF, not CRLF.
 
 ### To run locally
 
 #### Configure x-api-key
 
-The MatchPerson function requires an x-api-key header for authentication. Configure it in your `local.settings.json`:
+The MatchPerson function requires an `x-api-key` header for authentication. Configure it in your `local.settings.json`:
 
 ```json
 {
   "Values": {
-    "MatchFunction__XApiKey": "your-local-dev-key"
+    "MatchFunction__XApiKey": "local-dev-key-change-me"
   }
 }
 ```
+
+This is the `x-api-key` for invoking our match endpoint. It is **not** the key for PDS Fhir.
+For local dev, the key is not important, and it is recommended to keep the value as `local-dev-key-change-me`.
 
 In Dev/Test/Prod environments, the key is automatically retrieved from Azure Key Vault (secret name: `find-api-key`).
 
