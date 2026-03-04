@@ -16,7 +16,7 @@ public sealed record SearchResultItem
                 : value;
     } = ApplicationConstants.SystemIds.Default;
 
-    public string SystemName
+    public string CustodianName
     {
         get;
         init =>

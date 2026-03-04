@@ -45,7 +45,7 @@
         @foreach (var p in _foundRecords)
         {
             <tr data-record-id="@p.Id">
-                <td>@p.SystemName</td>
+                <td>@p.CustodianName</td>
                 <td>@p.Type</td>
                 <td>@p.Url</td>
                 <td>
@@ -119,7 +119,7 @@
                     continue;
                 }
 
-                _foundRecords.Add(new LocalRecord(resultItem.RecordId, resultItem.RecordUrl, resultItem.RecordType, resultItem.SystemName ?? string.Empty));
+                _foundRecords.Add(new LocalRecord(resultItem.RecordId, resultItem.RecordUrl, resultItem.RecordType, resultItem.CustodianName ?? string.Empty));
                 
                 StateHasChanged();
             }

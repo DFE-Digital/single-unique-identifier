@@ -55,7 +55,7 @@ public class QueryProvidersFunction(
                 {
                     CustodianId = data.Provider.OrgId,
                     SystemId = searchResultItem.SystemId,
-                    SystemName = searchResultItem.SystemName,
+                    CustodianName = searchResultItem.CustodianName,
                     RecordType = searchResultItem.RecordType,
                     RecordUrl = searchResultItem.RecordUrl,
                     RecordId = searchResultItem.RecordId,

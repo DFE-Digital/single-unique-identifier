@@ -180,7 +180,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                     {
                         CustodianId = "Health",
                         SystemId = "SystemA",
-                        SystemName = "Org1",
+                        CustodianName = "Org1",
                         RecordType = "Type1",
                         RecordUrl = "url1",
                         RecordId = "12345",
@@ -202,7 +202,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         Assert.Single(body.Items);
         Assert.Equal("SystemA", body.Items[0].SystemId);
-        Assert.Equal("Org1", body.Items[0].SystemName);
+        Assert.Equal("Org1", body.Items[0].CustodianName);
         Assert.Equal("Type1", body.Items[0].RecordType);
         Assert.Equal("url1", body.Items[0].RecordUrl);
         Assert.Equal("12345", body.Items[0].RecordId);
@@ -239,7 +239,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                     {
                         CustodianId = "Education",
                         SystemId = "SystemB",
-                        SystemName = "Org1",
+                        CustodianName = "Org1",
                         RecordType = "Type2",
                         RecordUrl = "url2",
                         RecordId = "99999",
@@ -285,7 +285,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                     {
                         CustodianId = "Health",
                         SystemId = "", // simulate bad persisted data
-                        SystemName = "Org1",
+                        CustodianName = "Org1",
                         RecordType = "Type1",
                         RecordUrl = "url1",
                         RecordId = "12345",
