@@ -9,17 +9,21 @@
       "encryptedPersonId": "FDP4W_qDZtCk-w2Hmqiq7A",
       "recordType": "crime-justice.details",
       "version": "1",
-      "contactDetails": [{
-        "name": "Police Records Team",
-        "description": "Records enquiries",
-        "telephone": "01234 555 500",
-        "email": "records.police@gov.uk",
-        "address": "Police Record Centre, EB5 6IJ"
-      }],
-      "recordLink": [{
-        "url": "https://police.gov.uk/login",
-        "title": "Police Login Portal"
-      }],
+      "contactDetails": [
+        {
+          "name": "Police Records Team",
+          "description": "Records enquiries",
+          "telephone": "01234 555 500",
+          "email": "records.police@gov.uk",
+          "address": "Police Record Centre, EB5 6IJ"
+        }
+      ],
+      "recordLink": [
+        {
+          "url": "https://police.gov.uk/login",
+          "title": "Police Login Portal"
+        }
+      ],
       "schemaUri": "https://schemas.example.gov.uk/sui/crime-justice.details.v1.json",
       "systemId": "POLICE-SYSTEM-01",
       "payload": {
@@ -76,6 +80,6 @@
           }
         ]
       }
-    }    
+    }
   ]
 }

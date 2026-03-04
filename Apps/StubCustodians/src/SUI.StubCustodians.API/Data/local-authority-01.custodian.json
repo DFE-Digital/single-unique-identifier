@@ -9,17 +9,21 @@
       "encryptedPersonId": "gkITssvF1IAbNgpcMv2lyA",
       "recordType": "childrens-services.details",
       "version": "1",
-      "contactDetails": [{
-        "name": "Social Care Team",
-        "description": "Records enquiries",
-        "telephone": "01234 555 500",
-        "email": "social.care@gov.uk",
-        "address": "Social Care Centre, EB5 6IJ"
-      }],
-      "recordLink": [{
-        "url": "https://portal.gov.uk/login",
-        "title": "Social Care Team"
-      }],
+      "contactDetails": [
+        {
+          "name": "Social Care Team",
+          "description": "Records enquiries",
+          "telephone": "01234 555 500",
+          "email": "social.care@gov.uk",
+          "address": "Social Care Centre, EB5 6IJ"
+        }
+      ],
+      "recordLink": [
+        {
+          "url": "https://portal.gov.uk/login",
+          "title": "Social Care Team"
+        }
+      ],
       "schemaUri": "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json",
       "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
@@ -68,17 +72,21 @@
       "encryptedPersonId": "gkITssvF1IAbNgpcMv2lyA",
       "recordType": "personal.details",
       "version": "1",
-      "contactDetails": [{
-        "name": "Social Care Team",
-        "description": "Records enquiries",
-        "telephone": "01234 555 500",
-        "email": "social.care@gov.uk",
-        "address": "Social Care Centre, EB5 6IJ"
-      }],
-      "recordLink": [{
-        "url": "https://portal.gov.uk/login",
-        "title": "Social Care Team"
-      }],
+      "contactDetails": [
+        {
+          "name": "Social Care Team",
+          "description": "Records enquiries",
+          "telephone": "01234 555 500",
+          "email": "social.care@gov.uk",
+          "address": "Social Care Centre, EB5 6IJ"
+        }
+      ],
+      "recordLink": [
+        {
+          "url": "https://portal.gov.uk/login",
+          "title": "Social Care Team"
+        }
+      ],
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.v1.json",
       "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
@@ -123,17 +131,21 @@
       "encryptedPersonId": "-hg7DkXLL7oqmKzPwAfxGA",
       "recordType": "personal.details",
       "version": "1",
-      "contactDetails": [{
-        "name": "Social Care Team",
-        "description": "Records enquiries",
-        "telephone": "01234 555 500",
-        "email": "social.care@gov.uk",
-        "address": "Social Care Centre, EB5 6IJ"
-      }],
-      "recordLink": [{
-        "url": "https://portal.gov.uk/login",
-        "title": "Social Care Team"
-      }],
+      "contactDetails": [
+        {
+          "name": "Social Care Team",
+          "description": "Records enquiries",
+          "telephone": "01234 555 500",
+          "email": "social.care@gov.uk",
+          "address": "Social Care Centre, EB5 6IJ"
+        }
+      ],
+      "recordLink": [
+        {
+          "url": "https://portal.gov.uk/login",
+          "title": "Social Care Team"
+        }
+      ],
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
       "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
@@ -170,17 +182,21 @@
       "encryptedPersonId": "dhXcpqi19UQ9FCg5MQKI5Q",
       "recordType": "personal.details",
       "version": "1",
-      "contactDetails": [{
-        "name": "Social Care Team",
-        "description": "Records enquiries",
-        "telephone": "01234 555 500",
-        "email": "social.care@gov.uk",
-        "address": "Social Care Centre, EB5 6IJ"
-      }],
-      "recordLink": [{
-        "url": "https://portal.gov.uk/login",
-        "title": "Social Care Team"
-      }],
+      "contactDetails": [
+        {
+          "name": "Social Care Team",
+          "description": "Records enquiries",
+          "telephone": "01234 555 500",
+          "email": "social.care@gov.uk",
+          "address": "Social Care Centre, EB5 6IJ"
+        }
+      ],
+      "recordLink": [
+        {
+          "url": "https://portal.gov.uk/login",
+          "title": "Social Care Team"
+        }
+      ],
       "schemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",
       "systemId": "LOCAL-AUTHORITY-SYSTEM-01",
       "payload": {
