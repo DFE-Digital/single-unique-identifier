@@ -19,15 +19,12 @@ public class JobRepositoryTests : IAsyncLifetime
     [Fact]
     public async Task UpsertAsync_CreatesNewJob_AsExpected()
     {
-        // ARRANGE
-        var custodianId = $"Custodian_{Guid.NewGuid()}";
-        var jobId = Guid.NewGuid().ToString();
         var createdAt = DateTimeOffset.UtcNow;
 
         var job = new Job
         {
-            JobId = jobId,
-            CustodianId = custodianId,
+            JobId = $"Job_{Guid.NewGuid()}",
+            CustodianId = $"Custodian_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             WorkItemId = $"WI_{Guid.NewGuid()}",
@@ -36,22 +33,20 @@ public class JobRepositoryTests : IAsyncLifetime
             AttemptCount = 1,
             CreatedAtUtc = createdAt,
             UpdatedAtUtc = createdAt,
-            CompletedAtUtc = null,
+            CompletedAtUtc = createdAt.AddMinutes(10),
             PayloadJson = "{}",
             JobTraceParent = "trace123",
         };
 
-        var partitionKey = JobKeys.PartitionKey(job.CustodianId);
-        var rowKey = JobKeys.RowKey(job.CreatedAtUtc, job.JobId);
+        await _sut.UpsertAsync(job);
 
-        // ACT
-        await _sut.UpsertAsync(job, CancellationToken.None);
-
-        // ASSERT
         var entity = (
             await TableStorageFixture
                 .Client.GetTableClient(InfrastructureConstants.StorageTableJobRepository.TableName)
-                .GetEntityAsync<TableEntity>(partitionKey, rowKey)
+                .GetEntityAsync<TableEntity>(
+                    JobKeys.PartitionKey(job.CustodianId),
+                    JobKeys.RowKey(job.CreatedAtUtc, job.JobId)
+                )
         ).Value;
 
         entity.GetString("JobId").Should().Be(job.JobId);
@@ -59,12 +54,12 @@ public class JobRepositoryTests : IAsyncLifetime
         entity.GetString("JobType").Should().Be(job.JobType.ToString());
         entity.GetString("WorkItemType").Should().Be(job.WorkItemType.ToString());
         entity.GetString("WorkItemId").Should().Be(job.WorkItemId);
+        entity.GetDateTimeOffset("CompletedAtUtc").Should().Be(job.CompletedAtUtc);
     }
 
     [Fact]
     public async Task ListJobsByCustodianIdAsync_FiltersByWindowStart()
     {
-        // ARRANGE
         var custodianId = $"Custodian_{Guid.NewGuid()}";
 
         var oldJob = new Job
@@ -94,10 +89,8 @@ public class JobRepositoryTests : IAsyncLifetime
 
         var windowStart = DateTimeOffset.UtcNow.AddHours(-1);
 
-        // ACT
         var jobs = await _sut.ListJobsByCustodianIdAsync(custodianId, windowStart);
 
-        // ASSERT
         jobs.Should().HaveCount(1);
         jobs.First().JobId.Should().Be("new-job");
     }
@@ -105,7 +98,6 @@ public class JobRepositoryTests : IAsyncLifetime
     [Fact]
     public async Task ListJobsByCustodianIdAsync_ReturnsChronologicalOrder()
     {
-        // ARRANGE
         var custodianId = $"Custodian_{Guid.NewGuid()}";
 
         var earlier = DateTimeOffset.UtcNow.AddMinutes(-10);
@@ -136,13 +128,11 @@ public class JobRepositoryTests : IAsyncLifetime
         await _sut.UpsertAsync(second);
         await _sut.UpsertAsync(first);
 
-        // ACT
         var jobs = await _sut.ListJobsByCustodianIdAsync(
             custodianId,
             DateTimeOffset.UtcNow.AddHours(-1)
         );
 
-        // ASSERT
         jobs.First().JobId.Should().Be("first-job");
         jobs.Last().JobId.Should().Be("second-job");
     }
@@ -150,7 +140,6 @@ public class JobRepositoryTests : IAsyncLifetime
     [Fact]
     public async Task ListJobsByCustodianIdAsync_SkipsInvalidRows()
     {
-        // ARRANGE
         var custodianId = $"Custodian_{Guid.NewGuid()}";
         var partitionKey = JobKeys.PartitionKey(custodianId);
 
@@ -158,7 +147,6 @@ public class JobRepositoryTests : IAsyncLifetime
             InfrastructureConstants.StorageTableJobRepository.TableName
         );
 
-        // insert a bad row
         var entity = new TableEntity(partitionKey, "bad-row")
         {
             { "JobId", null }, // corrupt row
@@ -166,13 +154,48 @@ public class JobRepositoryTests : IAsyncLifetime
 
         await tableClient.UpsertEntityAsync(entity);
 
-        // ACT
         var jobs = await _sut.ListJobsByCustodianIdAsync(
             custodianId,
             DateTimeOffset.UtcNow.AddHours(-1)
         );
 
-        // ASSERT
         jobs.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ListJobsByCustodianIdAsync_InvalidEnum_MapsToUnknown()
+    {
+        var custodianId = $"Custodian_{Guid.NewGuid()}";
+        var jobId = $"Job_{Guid.NewGuid()}";
+        var createdAt = DateTimeOffset.UtcNow;
+
+        var entity = new TableEntity(
+            JobKeys.PartitionKey(custodianId),
+            JobKeys.RowKey(createdAt, jobId)
+        )
+        {
+            { "JobId", jobId },
+            { "CustodianId", custodianId },
+            { "JobType", "INVALID" },
+            { "WorkItemType", "INVALID" },
+            { "CreatedAtUtc", createdAt },
+            { "UpdatedAtUtc", createdAt },
+            { "PayloadJson", "{}" },
+        };
+
+        var tableClient = TableStorageFixture.Client.GetTableClient(
+            InfrastructureConstants.StorageTableJobRepository.TableName
+        );
+
+        await tableClient.UpsertEntityAsync(entity);
+
+        var jobs = await _sut.ListJobsByCustodianIdAsync(
+            custodianId,
+            DateTimeOffset.UtcNow.AddHours(-1)
+        );
+
+        jobs.Should().HaveCount(1);
+        jobs.First().JobType.Should().Be(JobType.Unknown);
+        jobs.First().WorkItemType.Should().Be(WorkItemType.Unknown);
     }
 }
