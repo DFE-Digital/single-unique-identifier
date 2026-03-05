@@ -25,6 +25,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         {
             CustodianId = $"Custodian_{Guid.NewGuid()}",
             SystemId = $"System_{Guid.NewGuid()}",
+            CustodianName = $"System_{Guid.NewGuid()}",
             RecordType = $"RecordType_{Guid.NewGuid()}",
             RecordUrl = "http://example.com",
             RecordId = "123",
@@ -72,6 +73,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         {
             CustodianId = "CustodianA",
             SystemId = "SystemA",
+            CustodianName = "SystemA",
             RecordType = "Type1",
             RecordUrl = "url1",
             RecordId = "1",
@@ -87,6 +89,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         {
             CustodianId = "CustodianA",
             SystemId = "SystemA",
+            CustodianName = "SystemA",
             RecordType = "Type1",
             RecordUrl = "updated-url",
             RecordId = "1",
@@ -112,6 +115,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         {
             CustodianId = "CustodianA",
             SystemId = "SystemA",
+            CustodianName = "SystemA",
             RecordType = "Type1",
             RecordUrl = "url1",
             RecordId = "1",
@@ -124,6 +128,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         {
             CustodianId = "CustodianA",
             SystemId = "SystemA",
+            CustodianName = "SystemA",
             RecordType = "Type1",
             RecordUrl = "url2",
             RecordId = "2",
@@ -152,6 +157,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         {
             CustodianId = "A",
             SystemId = "S",
+            CustodianName = "S",
             RecordType = "T1",
             RecordUrl = "url1",
             RecordId = "1",
@@ -164,6 +170,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         {
             CustodianId = "B",
             SystemId = "S",
+            CustodianName = "S",
             RecordType = "T2",
             RecordUrl = "url2",
             RecordId = "2",

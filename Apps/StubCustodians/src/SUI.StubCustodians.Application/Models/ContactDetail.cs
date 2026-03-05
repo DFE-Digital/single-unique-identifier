@@ -1,6 +1,6 @@
 namespace SUI.StubCustodians.Application.Models;
 
-public class ContactDetails
+public class ContactDetail
 {
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;

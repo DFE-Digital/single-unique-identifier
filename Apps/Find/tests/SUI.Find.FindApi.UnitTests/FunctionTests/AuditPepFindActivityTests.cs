@@ -31,6 +31,7 @@ public class AuditPepFindActivityTests
                         "RecordA",
                         "http://url1",
                         "System A",
+                        "test org",
                         "TestRecord 1"
                     ),
                     "org1",

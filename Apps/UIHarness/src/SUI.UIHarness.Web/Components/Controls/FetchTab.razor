@@ -1,0 +1,422 @@
+@using System.Text.Json
+@using SUI.UIHarness.Web.Models.Find
+@using SUI.UIHarness.Web.Models.Records
+@using SUI.UIHarness.Web.Services
+@if (_currentRecord == null)
+{
+    <div class="mb-3">
+        <h2 class="h5 mb-2">Selected record</h2>
+        <div class="text-muted" id="selectedRecordText">No record selected yet.</div>
+        <div class="text-muted mt-1" id="fetchStatus"></div>
+    </div>
+}
+@if (_showFetchProgress)
+{
+    <div id="fetchProgressWrap" class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="text-muted">Retrieving record</span>
+            <span id="fetchProgressText" class="text-muted"></span>
+        </div>
+        <div class="progress" role="progressbar" aria-label="Fetch record progress">
+            <div id="fetchProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:@(_fetchProgress)%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+}
+@if (_currentRecord != null && _fetchedForOrg == SelectedOrg)
+{
+    <div id="fetchContent">
+        <div class="row g-3">
+            <div class="col-12 col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="h6 card-title mb-3">Contacts</h3>
+                        <div id="contactsContainer" class="mb-0">
+                            @if (_currentRecord.ContactDetails != null)
+                            {
+                                foreach (var contactDetail in _currentRecord.ContactDetails)
+                                {
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="fw-semibold">@contactDetail.Name</div>
+                                        <div class="text-muted">@contactDetail.Description</div>
+                                        <div>Telephone: @contactDetail.Telephone</div>
+                                        <div>Email: @contactDetail.Email</div>
+                                        <div>Address: @contactDetail.Address</div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-muted">None Provided</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="h6 card-title mb-3">External system</h3>
+                        <div id="externalContainer" class="mb-0">
+                            @if (_currentRecord.RecordLinks != null)
+                            {
+                                foreach (var recordLink in _currentRecord.RecordLinks)
+                                {
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="fw-semibold">@recordLink.Title</div>
+                                        <div class="text-muted">@recordLink.Url</div>
+                                    </div>
+                                }
+                                
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="h6 card-title mb-3">Record data</h3>
+                        @if (_currentRecord.Payload == null)
+                        {
+                            <div id="dataContainer" class="mb-0 text-muted">No record data provided.</div>
+                        }
+                        else
+                        {
+                            @if (_currentEducationRecord != null)
+                            {
+                                <div class="mb-0">
+                                    <div class="border rounded p-2 mb-2">
+                                        <div>Record type: @_currentRecord.RecordType</div>
+                                    </div>
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="fw-semibold">Education setting:</div>
+                                        <div>Name: @_currentEducationRecord.EducationSettingName</div>
+                                        <div>Address:
+                                            @if (_currentEducationRecord.EducationSettingAddress != null)
+                                            {
+                                                <text>@_currentEducationRecord.EducationSettingAddress.Line1, @_currentEducationRecord.EducationSettingAddress.Line2,
+                                                    @_currentEducationRecord.EducationSettingAddress.TownOrCity, @_currentEducationRecord.EducationSettingAddress.County, @_currentEducationRecord.EducationSettingAddress.Postcode</text>
+                                            }
+                                        </div>
+                                        <div>Telephone: @_currentEducationRecord.EducationSettingTelephone</div>
+                                    </div>
+                                    
+                                    @if (_currentEducationRecord.YearlyEducationAttendances != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Yearly education attendances:</div>
+                                            @foreach (var attendance in _currentEducationRecord.YearlyEducationAttendances)
+                                            {
+                                                <div class="border rounded p-2 mb-2">
+                                                    <div>Academic year: @attendance.AcademicTermYearStart - @attendance.AcademicTermYearEnd</div>
+                                                    <div>Attendance percentage: @attendance.AttendancePercentage%</div>
+                                                    <div>Exclusions: @attendance.Exclusions</div>
+                                                    <div>Non-transitional moves: @attendance.SchoolMovesNonTransitional</div>
+                                                    <div>Shool average attendance: @attendance.SchoolsAverageAttendance%</div>
+                                                    <div>Suspensions: @attendance.Suspensions</div>
+                                                    <div>Unauthorised absence: @attendance.UnauthorisedAbsencePercentage%</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            @if (_currentChildrensServicesDetailsRecord != null)
+                            {
+                                <div class="mb-0">
+                                    <div class="border rounded p-2 mb-2">
+                                        <div>Record type: @_currentRecord.RecordType</div>
+                                        <div>Key worker: @_currentChildrensServicesDetailsRecord.KeyWorker</div>
+                                    </div>
+                                    @if (_currentChildrensServicesDetailsRecord.ChildrensServicesReferrals != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Referrals:</div>
+                                            @foreach (var referral in _currentChildrensServicesDetailsRecord.ChildrensServicesReferrals)
+                                            {
+                                                <div>@referral.Date - @referral.Type</div>
+                                            }
+                                        </div>
+                                    }
+                                    
+                                    @if (_currentChildrensServicesDetailsRecord.DutyContactDetails != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Duty contact details:</div>
+                                            @foreach (var contact in _currentChildrensServicesDetailsRecord.DutyContactDetails)
+                                            {
+                                                <div>@contact</div>
+                                            }
+                                        </div>
+                                    }
+                                    
+                                    @if (_currentChildrensServicesDetailsRecord.TeamInvolvement != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Team involvement:</div>
+                                            @foreach (var involvement in _currentChildrensServicesDetailsRecord.TeamInvolvement)
+                                            {
+                                                <div>@involvement</div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            @if (_currentCrimeDetailsRecord != null)
+                            {
+                                <div class="mb-0">
+                                    <div class="border rounded p-2 mb-2">
+                                        <div>Record type: @_currentRecord.RecordType</div>
+                                        <div>Last Protection Power Event: @_currentCrimeDetailsRecord.LastPoliceProtectionPowerEvent</div>
+                                        <div>Police marker: @_currentCrimeDetailsRecord.PoliceMarkerDetails</div>
+                                    </div>
+                                    
+                                    @if (_currentCrimeDetailsRecord.LinkedCrimeRisks != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Crime risks:</div>
+                                            @foreach (var crimeRisk in _currentCrimeDetailsRecord.LinkedCrimeRisks)
+                                            {
+                                                <div>@crimeRisk.Date - @crimeRisk.RiskType</div>
+                                            }
+                                        </div>
+                                    }
+                                    @if (_currentCrimeDetailsRecord.MissingEpisodes != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Missing episodes:</div>
+                                            @foreach (var missingEpisode in _currentCrimeDetailsRecord.MissingEpisodes)
+                                            {
+                                                <div>@missingEpisode.Date - Return home interview attended: @missingEpisode.ReturnedHomeInterviewAttended</div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            @if (_currentHealthDataRecord != null)
+                            {
+                                <div class="mb-0">
+                                    <div class="border rounded p-2 mb-2">
+                                        <div>Record type: @_currentRecord.RecordType</div>
+                                        <div>GP name: @_currentHealthDataRecord.RegisteredGPName</div>
+                                        <div>GP surgery: @_currentHealthDataRecord.RegisteredGPSurgery</div>
+                                        <div>GP phone: @_currentHealthDataRecord.GPTelephone</div>
+                                        <div>GP Address:
+                                            @if (_currentHealthDataRecord.GPAddress != null)
+                                            {
+                                                <text>@_currentHealthDataRecord.GPAddress.Line1, @_currentHealthDataRecord.GPAddress.Line2,
+                                                    @_currentHealthDataRecord.GPAddress.TownOrCity, @_currentHealthDataRecord.GPAddress.County, @_currentHealthDataRecord.GPAddress.Postcode</text>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    @if (_currentHealthDataRecord.CAMHSContactDetails != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">CAHMS contact details:</div>
+                                            @foreach (var contactDetail in _currentHealthDataRecord.CAMHSContactDetails)
+                                            {
+                                                <div>@contactDetail</div>
+                                            }
+                                        </div>
+                                    }
+                                    @if (_currentHealthDataRecord.CAMHSTeamInvolvement != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">CAHMS involvements:</div>
+                                            @foreach (var involvement in _currentHealthDataRecord.CAMHSTeamInvolvement)
+                                            {
+                                                <div>@involvement</div>
+                                            }
+                                        </div>
+                                        
+                                    }
+                                    @if (_currentHealthDataRecord.EmergencyDepartmentAttendances != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Emergency department attendances:</div>
+                                            @foreach (var attendance in _currentHealthDataRecord.EmergencyDepartmentAttendances)
+                                            {
+                                                <div>@attendance.Date - @attendance.Reason</div>
+                                            }
+                                        </div>
+                                    }
+                                    @if (_currentHealthDataRecord.MissedAppointments != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Missed appointments:</div>
+                                            @foreach (var appointment in _currentHealthDataRecord.MissedAppointments)
+                                            {
+                                                <div>@appointment.Date - @appointment.Reason - @appointment.Setting</div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            @if (_currentPersonalDetailsRecord != null)
+                            {
+                                <div class="mb-0">
+                                    <div class="border rounded p-2 mb-2">
+                                        <div>Record type: @_currentRecord.RecordType</div>
+                                        <div>Name: @_currentPersonalDetailsRecord.FirstName @_currentPersonalDetailsRecord.LastName</div>
+                                        <div>Address:
+                                            @if (_currentPersonalDetailsRecord.Address != null)
+                                            {
+                                                <text>@_currentPersonalDetailsRecord.Address.Line1, @_currentPersonalDetailsRecord.Address.Line2,
+                                                    @_currentPersonalDetailsRecord.Address.TownOrCity, @_currentPersonalDetailsRecord.Address.County, @_currentPersonalDetailsRecord.Address.Postcode</text>
+                                            }</div>
+                                        <div>Sex: @_currentPersonalDetailsRecord.BirthAssignedSex</div>
+                                        <div>Braille: @_currentPersonalDetailsRecord.Braille</div>
+                                        <div>DOB: @_currentPersonalDetailsRecord.DateOfBirth</div>
+                                        <div>Local authority: @_currentPersonalDetailsRecord.DesignatedLocalAuthority</div>
+                                        <div>English as additional language: @_currentPersonalDetailsRecord.EnglishAsAdditionalLanguage</div>
+                                        <div>Ethnicity: @_currentPersonalDetailsRecord.Ethnicity</div>
+                                        <div>First language: @_currentPersonalDetailsRecord.FirstLanguage</div>
+                                        <div>Interpreter: @(_currentPersonalDetailsRecord.Interpreter.HasValue ? _currentPersonalDetailsRecord.Interpreter : "")</div>
+                                        <div>Makaton: @_currentPersonalDetailsRecord.Makaton</div>
+                                        <div>Pronouns: @_currentPersonalDetailsRecord.Pronouns</div>
+                                        <div>Sign language: @(_currentPersonalDetailsRecord.SignLanguage.HasValue ? _currentPersonalDetailsRecord.SignLanguage.Value : "")</div>
+                                    </div>
+                                    
+                                    @if (_currentPersonalDetailsRecord.NamesOfIndividualsResidingAtMainAddress != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Names of individuals at main address:</div>
+                                            @foreach (var person in _currentPersonalDetailsRecord.NamesOfIndividualsResidingAtMainAddress)
+                                            {
+                                                <div>@person</div>
+                                            }
+                                        </div>
+                                    }
+                                    @if (_currentPersonalDetailsRecord.RelatedPeople != null)
+                                    {
+                                        <div class="border rounded p-2 mb-2">
+                                            <div class="fw-semibold">Related people:</div>
+                                            @foreach (var person in _currentPersonalDetailsRecord.RelatedPeople)
+                                            {
+                                                <div>@person.Name - @person.DOB - @person.RelationshipToTheChild -
+                                                    @if (person.Risk != null)
+                                                    {
+                                                        @string.Join(", ", person.Risk)
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            <div class="mb-0">
+                                <div class="border rounded p-2 mb-2">
+                                    <div class="fw-semibold">Raw Data:</div>
+                                    <div class="text-break">@_currentRecord.Payload</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<div class="mt-4">
+    <h2 class="h5">What this demo is showing</h2>
+
+    <p class="mb-2">
+        This tab simulates fetching a record after a custodian has been identified by the Find a record step.
+        The custodian remains responsible for the content they return, including the contact details needed for follow-up.
+    </p>
+
+    <p class="mb-2">
+        Depending on the record type and the custodian, the response may include a summary of the record, a link to a custodian system where authorised users can view the full details, or both.
+        Some custodians may provide contact details only.
+    </p>
+
+    <p class="mb-0">
+        The progress indicator represents the time taken to retrieve information from the custodian.
+    </p>
+</div>
+
+@code {
+    private bool _showFetchProgress;
+    private int _fetchProgress;
+    private FindCustodianRecord? _currentRecord;
+    private EducationDetailsRecord? _currentEducationRecord;
+    private PersonalDetailsRecord? _currentPersonalDetailsRecord;
+    private ChildrensServicesDetailsRecord? _currentChildrensServicesDetailsRecord;
+    private CrimeDataRecord? _currentCrimeDetailsRecord;
+    private HealthDataRecord? _currentHealthDataRecord;
+    private string _selectedRecordUrl = string.Empty;
+    private string? _fetchedForOrg;
+    
+    [Parameter]
+    public required string SelectedRecordUrl { get; set; }
+    
+    [Parameter]
+    public required string SelectedOrg { get; set; }
+    
+    [Inject]
+    public required IFindService FindService { get; set; }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_selectedRecordUrl != SelectedRecordUrl)
+        {
+            await FetchRecord();
+            _selectedRecordUrl = SelectedRecordUrl;
+        }
+    }
+    
+    private async Task FetchRecord()
+    {
+        if (string.IsNullOrEmpty(SelectedRecordUrl) || string.IsNullOrEmpty(SelectedOrg))
+        {
+            return;
+        }
+        
+        Reset();
+        _fetchedForOrg = null;
+        _fetchProgress = 10;
+        StateHasChanged();
+        _showFetchProgress = true;
+        _currentRecord = await FindService.FetchRecord(SelectedOrg, SelectedRecordUrl);
+        _fetchedForOrg = SelectedOrg;
+        _fetchProgress = 50;
+        StateHasChanged();
+        if (_currentRecord is { RecordType: "education.details", Payload: not null })
+        {
+            _currentEducationRecord = _currentRecord.Payload.Value.Deserialize<EducationDetailsRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        }
+        if (_currentRecord is { RecordType: "childrens-services.details", Payload: not null })
+        {
+            _currentChildrensServicesDetailsRecord = _currentRecord.Payload.Value.Deserialize<ChildrensServicesDetailsRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        }
+        if (_currentRecord is { RecordType: "crime-justice.details", Payload: not null })
+        {
+            _currentCrimeDetailsRecord = _currentRecord.Payload.Value.Deserialize<CrimeDataRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        }
+        if (_currentRecord is { RecordType: "health.details", Payload: not null })
+        {
+            _currentHealthDataRecord = _currentRecord.Payload.Value.Deserialize<HealthDataRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        }
+        if (_currentRecord is { RecordType: "personal.details", Payload: not null })
+        {
+            _currentPersonalDetailsRecord = _currentRecord.Payload.Value.Deserialize<PersonalDetailsRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        }
+
+        _fetchProgress = 100;
+        StateHasChanged();
+        _showFetchProgress = false;
+    }
+
+    private void Reset()
+    {
+        _currentRecord = null;
+        _currentChildrensServicesDetailsRecord = null;
+        _currentEducationRecord = null;
+        _currentPersonalDetailsRecord = null;
+        _currentCrimeDetailsRecord = null;
+        _currentHealthDataRecord = null;
+    }
+}

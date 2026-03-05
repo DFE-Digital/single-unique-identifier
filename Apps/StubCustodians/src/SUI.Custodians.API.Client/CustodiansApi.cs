@@ -29,11 +29,17 @@ namespace SUI.Custodians.API.Client
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial interface ICustodiansApi
     {
+        /// <summary>
+        /// Issue a sandbox bearer token using client credentials (Form)
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         System.Threading.Tasks.Task<AuthTokenResponse> TokenFormAsync(Body body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Issue a sandbox bearer token using client credentials (Form)
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         System.Threading.Tasks.Task<AuthTokenResponse> TokenFormAsync(Body body, System.Threading.CancellationToken cancellationToken);
@@ -117,6 +123,9 @@ namespace SUI.Custodians.API.Client
         partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, System.Text.StringBuilder urlBuilder);
         partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
 
+        /// <summary>
+        /// Issue a sandbox bearer token using client credentials (Form)
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual System.Threading.Tasks.Task<AuthTokenResponse> TokenFormAsync(Body body)
@@ -125,6 +134,9 @@ namespace SUI.Custodians.API.Client
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Issue a sandbox bearer token using client credentials (Form)
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<AuthTokenResponse> TokenFormAsync(Body body, System.Threading.CancellationToken cancellationToken)
@@ -905,6 +917,27 @@ namespace SUI.Custodians.API.Client
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ContactDetail
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("description")]
+        public string Description { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("telephone")]
+        public string Telephone { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("email")]
+        public string Email { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("address")]
+        public string Address { get; set; } = default!;
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class ManifestRequest
     {
 
@@ -987,9 +1020,27 @@ namespace SUI.Custodians.API.Client
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^-?(?:0|[1-9]\d*)$")]
         public int Version { get; set; } = default!;
 
+        [System.Text.Json.Serialization.JsonPropertyName("contactDetails")]
+        public System.Collections.Generic.ICollection<ContactDetail>? ContactDetails { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("recordLinks")]
+        public System.Collections.Generic.ICollection<RecordLink>? RecordLinks { get; set; } = default!;
+
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
         [System.ComponentModel.DataAnnotations.Required]
         public SuiRecord Payload { get; set; } = new SuiRecord();
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class RecordLink
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("url")]
+        public string Url { get; set; } = default!;
+
+        [System.Text.Json.Serialization.JsonPropertyName("title")]
+        public string Title { get; set; } = default!;
 
     }
 

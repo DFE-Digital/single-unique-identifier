@@ -16,5 +16,7 @@ public sealed record SearchResultItem
                 : value;
     } = ApplicationConstants.SystemIds.Default;
 
+    public string CustodianName { get; init; } = "Unknown";
+
     public string? RecordId { get; init; }
 }
