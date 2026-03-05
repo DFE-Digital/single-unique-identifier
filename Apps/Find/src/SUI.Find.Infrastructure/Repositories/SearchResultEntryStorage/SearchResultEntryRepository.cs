@@ -76,7 +76,6 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
         var partitionKey = SearchResultEntryKeys.PartitionKey(workItemId);
 
         var results = new List<SearchResultEntry>();
-        var seen = new HashSet<string>();
 
         await foreach (
             var entity in Table.QueryAsync<TableEntity>(
@@ -90,15 +89,6 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
                 var custodianId = entity.GetString("CustodianId");
                 var systemId = entity.GetString("SystemId");
                 var recordType = entity.GetString("RecordType");
-
-                var dedupeKey = $"{custodianId}|{systemId}|{recordType}";
-
-                if (seen.Contains(dedupeKey))
-                {
-                    continue; // skip duplicate
-                }
-
-                seen.Add(dedupeKey);
 
                 results.Add(
                     new SearchResultEntry

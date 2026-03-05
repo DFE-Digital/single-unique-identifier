@@ -269,6 +269,7 @@ public class SearchService(
                 );
 
                 finalItems = persistedItems
+                    .Where(r => r.SubmittedAtUtc >= metaData.CreatedAt)
                     .Select(r => new SearchResultItem
                     {
                         RecordType = r.RecordType,

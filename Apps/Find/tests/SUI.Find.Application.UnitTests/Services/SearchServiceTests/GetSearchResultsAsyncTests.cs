@@ -209,6 +209,61 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
     }
 
     [Fact]
+    public async Task ShouldNotReturnPersistedResults_FromPreviousSearchExecutions_WhenJobIsRunning()
+    {
+        var searchCreatedAt = DateTimeOffset.UtcNow;
+
+        var meta = new OrchestrationMetadata("Orchestrator", "running-job")
+        {
+            RuntimeStatus = OrchestrationRuntimeStatus.Running,
+            CreatedAt = searchCreatedAt,
+        };
+
+        _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
+
+        SearchResultEntryRepository
+            .GetByWorkItemIdAsync("running-job", Arg.Any<CancellationToken>())
+            .Returns([
+                new SearchResultEntry
+                {
+                    SubmittedAtUtc = searchCreatedAt.AddSeconds(-1),
+                    RecordUrl = "old-result",
+                    CustodianId = "",
+                    SystemId = "",
+                    CustodianName = "",
+                    RecordType = "",
+                    JobId = "running-job",
+                    WorkItemId = "running-job",
+                },
+                new SearchResultEntry
+                {
+                    SubmittedAtUtc = searchCreatedAt,
+                    RecordUrl = "new-result",
+                    CustodianId = "",
+                    SystemId = "",
+                    CustodianName = "",
+                    RecordType = "",
+                    JobId = "running-job",
+                    WorkItemId = "running-job",
+                },
+            ]);
+
+        // ACT
+        var result = await Sut.GetSearchResultsAsync(
+            "running-job",
+            ClientId,
+            _client,
+            CancellationToken.None
+        );
+
+        // ASSERT
+        var body = Assert.IsType<SearchResultsDto>(result.Value);
+
+        var item = Assert.Single(body.Items);
+        Assert.Equal("new-result", item.RecordUrl);
+    }
+
+    [Fact]
     public async Task ShouldReturnOrchestratorResults_WhenJobIsCompleted()
     {
         var orchestratorItems = new[]
