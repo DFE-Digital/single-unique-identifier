@@ -50,7 +50,7 @@ public class WorkItemJobCountRepositoryExceptionTests
                 Arg.Any<EventId>(),
                 Arg.Any<Arg.AnyType>(),
                 Arg.Is<Exception>(ex => ex.Message == "Boom"),
-                Arg.Any<Func<Arg.AnyType, Exception, string>>()
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
             );
     }
 
@@ -89,7 +89,7 @@ public class WorkItemJobCountRepositoryExceptionTests
                 Arg.Any<EventId>(),
                 Arg.Any<Arg.AnyType>(),
                 Arg.Is<Exception>(ex => ex.Message == "Read failed"),
-                Arg.Any<Func<Arg.AnyType, Exception, string>>()
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
             );
     }
 }
