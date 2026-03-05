@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
@@ -6,6 +7,7 @@ using System.Text.Json;
 using Azure;
 using Azure.Data.Tables;
 using Polly;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Models;
 using Xunit.Abstractions;
@@ -153,15 +155,22 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui
         );
 
+        var hasStatusLink = newSearchJob.Links.TryGetValue("status", out var statusLink);
+        Assert.True(hasStatusLink);
+
+        var hasResultsLink = newSearchJob.Links.TryGetValue("results", out var resultsLink);
+        Assert.True(hasResultsLink);
+
         // Step 2, check the status
-        var statusUrl = newSearchJob.Links.TryGetValue("status", out var statusLink);
-        Assert.True(statusUrl);
-        var statusResult = await RunAndAwaitAndAssertSearchStatusCompletion(statusLink!.Href);
+        var statusResult = await RunAndAwaitAndAssertSearchStatusCompletion(
+            statusLink!.Href,
+            resultsLink!.Href,
+            testData
+        );
+        Assert.NotNull(statusResult);
 
         // Step 3, Get the results from fetch and assert
-        var resultsUrl = statusResult.Links.TryGetValue("results", out var resultsLink);
-        Assert.True(resultsUrl);
-        await RunAndAssertFetchEndpoint(resultsLink!.Href, testData);
+        await RunAndAssertFetchEndpoints(resultsLink.Href, testData);
 
         // Fin
     }
@@ -213,7 +222,41 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         return searchJob;
     }
 
-    private async Task RunAndAssertFetchEndpoint(string url, TestData testData)
+    private async Task RunAndAssertPartialSearchResults(string url, TestData testData)
+    {
+        url = RemoveLeadingSlashFromUrl(url);
+
+        TestOutputHelper.WriteLine(
+            $"Getting partial search results from: {Fixture.Client.BaseAddress}{url}"
+        );
+
+        var searchResults = await Fixture.Client.GetAsync(url);
+        var searchResultContent = await searchResults.Content.ReadAsStringAsync();
+        var searchResultTypedContent = JsonSerializer.Deserialize<SearchResults>(
+            searchResultContent
+        );
+
+        Assert.NotNull(searchResultTypedContent);
+
+        if (searchResultTypedContent.Status != SearchStatus.Running)
+        {
+            return; // Early exit if the job is no longer running
+        }
+
+        // Verify that we haven't got more results than we should (verifies that previous search results for this SUI+Custodian aren't being included)
+        Assert.InRange(searchResultTypedContent.Items.Length, 0, testData.Records.Length);
+
+        // Verify that PEP filtering has been applied to the partial search results, by checking we only have the record types that we're expecting
+        var expectedRecordTypes = testData.Records.Select(r => r.RecordType).ToFrozenSet();
+        var actualRecordTypes = searchResultTypedContent
+            .Items.Select(item => item.RecordType)
+            .ToFrozenSet();
+
+        var invalidRecordTypes = actualRecordTypes.Except(expectedRecordTypes).ToArray();
+        Assert.Empty(invalidRecordTypes);
+    }
+
+    private async Task RunAndAssertFetchEndpoints(string url, TestData testData)
     {
         url = RemoveLeadingSlashFromUrl(url);
 
@@ -309,10 +352,16 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     /// <summary>
     /// Uses Poly to keep polling for a Completed message
     /// </summary>
-    /// <param name="url">URL of the Search Status endpoint</param>
-    private async Task<SearchJob> RunAndAwaitAndAssertSearchStatusCompletion(string url)
+    /// <param name="statusUrl">URL of the Search Status endpoint</param>
+    /// <param name="resultsUrl">URL of the Search Results endpoint</param>
+    /// <param name="testData">The test data for this search run</param>
+    private async Task<SearchJob> RunAndAwaitAndAssertSearchStatusCompletion(
+        string statusUrl,
+        string resultsUrl,
+        TestData testData
+    )
     {
-        url = RemoveLeadingSlashFromUrl(url);
+        statusUrl = RemoveLeadingSlashFromUrl(statusUrl);
 
         const int retryCount = 150;
 
@@ -320,7 +369,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         var status = "unknown";
 
         TestOutputHelper.WriteLine(
-            $"Checking for search completion: {Fixture.Client.BaseAddress}{url}"
+            $"Checking for search completion: {Fixture.Client.BaseAddress}{statusUrl}"
         );
 
         var retryPolicy = Policy
@@ -332,6 +381,12 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 if (status == "Completed")
                 {
                     isCompleted = true;
+                }
+
+                if (status == "Running")
+                {
+                    // Verify partial results are as expected while its in-progress (i.e. the status is Running)
+                    RunAndAssertPartialSearchResults(resultsUrl, testData).Wait();
                 }
 
                 var retry = status is "Queued" or "Running";
@@ -348,7 +403,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 }
             );
 
-        await retryPolicy.ExecuteAsync(() => Fixture.Client.GetAsync(url));
+        await retryPolicy.ExecuteAsync(() => Fixture.Client.GetAsync(statusUrl));
 
         TestOutputHelper.WriteLine(
             $"Finished checking for search completion, final status was {status}, is completed: {isCompleted}"
@@ -356,7 +411,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
         Assert.True(isCompleted);
 
-        var typedResult = await Fixture.Client.GetFromJsonAsync<SearchJob>(url);
+        var typedResult = await Fixture.Client.GetFromJsonAsync<SearchJob>(statusUrl);
         return typedResult!;
     }
 
