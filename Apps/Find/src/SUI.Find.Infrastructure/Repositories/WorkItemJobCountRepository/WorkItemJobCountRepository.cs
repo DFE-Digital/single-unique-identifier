@@ -67,6 +67,8 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
         var partitionKey = WorkItemJobCountKeys.PartitionKey(workItemId);
         var rowKey = WorkItemJobCountKeys.RowKey(jobType);
 
+        int? result = null;
+
         try
         {
             var response = await Table.GetEntityIfExistsAsync<TableEntity>(
@@ -75,12 +77,10 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
                 cancellationToken: cancellationToken
             );
 
-            if (!response.HasValue)
+            if (response.HasValue)
             {
-                return null;
+                result = response.Value!.GetInt32("ExpectedJobCount");
             }
-
-            return response.Value!.GetInt32("ExpectedJobCount");
         }
         catch (Exception ex)
         {
@@ -90,9 +90,9 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
                 workItemId,
                 jobType
             );
-
-            return null;
         }
+
+        return result;
     }
 
     public async Task EnsureTableExistsAsync(CancellationToken cancellationToken)
