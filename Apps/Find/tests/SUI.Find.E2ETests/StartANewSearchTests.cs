@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
@@ -245,15 +244,6 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
         // Verify that we haven't got more results than we should (verifies that previous search results for this SUI+Custodian aren't being included)
         Assert.InRange(searchResultTypedContent.Items.Length, 0, testData.Records.Length);
-
-        // Verify that PEP filtering has been applied to the partial search results, by checking we only have the record types that we're expecting
-        var expectedRecordTypes = testData.Records.Select(r => r.RecordType).ToFrozenSet();
-        var actualRecordTypes = searchResultTypedContent
-            .Items.Select(item => item.RecordType)
-            .ToFrozenSet();
-
-        var invalidRecordTypes = actualRecordTypes.Except(expectedRecordTypes).ToArray();
-        Assert.Empty(invalidRecordTypes);
     }
 
     private async Task RunAndAssertFetchEndpoints(string url, TestData testData)

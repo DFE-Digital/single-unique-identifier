@@ -107,7 +107,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetByWorkItemIdAsync_Deduplicates_ByCustodianSystemAndRecordType()
+    public async Task GetByWorkItemIdAsync_DoesNotDeDuplicateRecords()
     {
         var workItemId = $"work_{Guid.NewGuid()}";
 
@@ -142,7 +142,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
 
         var results = await _sut.GetByWorkItemIdAsync(workItemId);
 
-        results.Should().HaveCount(1);
+        results.Should().HaveCount(2);
     }
 
     [Fact]
