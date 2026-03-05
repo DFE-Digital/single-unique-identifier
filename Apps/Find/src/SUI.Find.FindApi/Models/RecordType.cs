@@ -14,5 +14,5 @@ public enum RecordType
     Justice,
     JusticeYouthOffending,
     Voluntary,
-    Other
+    Other,
 }

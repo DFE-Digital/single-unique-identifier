@@ -6,5 +6,4 @@ public interface IProviderHttpClient
 {
     Task<Result<string>> GetAsync(string url, string? bearerToken, CancellationToken ct);
     Task<Result<string>> SendAsync(HttpRequestMessage request, CancellationToken ct);
-
 }

@@ -5,7 +5,6 @@ namespace SUI.Find.Infrastructure.UnitTests.Utility;
 
 public class BuildCustodianHttpRequestTests
 {
-
     private readonly BuildCustodianHttpRequest _sut = new();
     private const string DefaultOrgId = "test-org-123";
     private const string EncryptedPersonId = "1234567890123456";
@@ -81,11 +80,7 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider();
 
         // Act
-        var request = _sut.BuildHttpRequest(
-            provider,
-            EncryptedPersonId,
-            token
-        );
+        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, token);
 
         // Assert
         Assert.NotNull(request.Headers.Authorization);
@@ -103,11 +98,7 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider();
 
         // Act
-        var request = _sut.BuildHttpRequest(
-            provider,
-            EncryptedPersonId,
-            token
-        );
+        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, token);
 
         // Assert
         Assert.Null(request.Headers.Authorization);
