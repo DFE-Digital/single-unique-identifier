@@ -72,10 +72,21 @@ public static class ServiceCollectionExtensions
             var uriString =
                 config.KeyVaultUri
                 ?? "https://localdevtotallyrandomaddressbecauseitdoesntrunwiththestubauthtokenservice";
-            return new SecretClient(
-                vaultUri: new Uri(uriString),
-                credential: new DefaultAzureCredential()
-            );
+
+            Uri uri;
+            try
+            {
+                uri = new Uri(uriString);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException(
+                    $"Invalid {nameof(config.KeyVaultUri)}: {uriString} ({e.Message})",
+                    e
+                );
+            }
+
+            return new SecretClient(vaultUri: uri, credential: new DefaultAzureCredential());
         });
 
         return services;
