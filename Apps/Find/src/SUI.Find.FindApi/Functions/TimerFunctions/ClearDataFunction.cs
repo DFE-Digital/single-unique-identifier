@@ -17,7 +17,7 @@ public class ClearDataFunction(
     TableServiceClient tableServiceClient
 )
 {
-    private const string Schedule = "0 0 4 * * *";
+    private const string Schedule = "0 0 4 * * *"; // Once per day, at 4am
 
     [Function(nameof(ClearDataFunction))]
     [FixedDelayRetry(5, "00:00:10")]
@@ -87,14 +87,14 @@ public class ClearDataFunction(
             foreach (var errorResponse in transactionResponse.Value.Where(x => x.IsError))
             {
                 logger.LogError(
-                    "Error submitting delete transaction. Request ID: {detail}. Reason: {error}",
+                    "Error submitting delete transaction. Request ID: {Detail}. Reason: {Error}",
                     errorResponse.ClientRequestId,
                     errorResponse.ReasonPhrase
                 );
             }
 
             logger.LogInformation(
-                "{count} entities successfully removed from table",
+                "{Count} entities successfully removed from table",
                 transactionResponse.Value.Count(x => !x.IsError)
             );
         }
@@ -102,13 +102,13 @@ public class ClearDataFunction(
         {
             logger.LogError(
                 ex,
-                "One of the batch delete transactions failed. {message}",
+                "One of the batch delete transactions failed. {Message}",
                 ex.Message
             );
         }
         catch (RequestFailedException ex)
         {
-            logger.LogError(ex, "Error querying or clearing table. {message}", ex.Message);
+            logger.LogError(ex, "Error querying or clearing table. {Message}", ex.Message);
         }
         catch (InvalidOperationException ex)
         {
@@ -145,7 +145,7 @@ public class ClearDataFunction(
             );
 
             logger.LogInformation(
-                "{count} entities deleted from instance history",
+                "{Count} entities deleted from instance history",
                 purgeHistoryResult.PurgedInstanceCount
             );
         }
