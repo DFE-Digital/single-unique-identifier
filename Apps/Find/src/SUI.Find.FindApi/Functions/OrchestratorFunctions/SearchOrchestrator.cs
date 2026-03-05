@@ -131,7 +131,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
 
         logger.LogInformation(
             "Filtered to {Count} results after PEP enforcement",
-            pepResults.Count
+            pepResults.Count(x => x.Decision.IsAllowed)
         );
 
         // Audit PEP decisions

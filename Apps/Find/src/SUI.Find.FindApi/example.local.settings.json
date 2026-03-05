@@ -20,6 +20,7 @@
     "KeyVault:KeyVaultUri": "getTheRealUrl",
     "IdEncryption:EnablePersonIdEncryption": false,
     "MatchFunction:XApiKey": "local-dev-key-change-me",
-    "UseStubAuthTokenService": true
+    "UseStubAuthTokenService": true,
+    "StorageRetentionDays": 1
   }
 }

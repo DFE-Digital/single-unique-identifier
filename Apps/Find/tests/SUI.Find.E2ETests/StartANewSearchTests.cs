@@ -23,7 +23,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         IAsyncLifetime
 {
     private const string TestClientSecret = "SUIProject";
-    private static readonly string[] TetScopes =
+    private static readonly string[] TestScopes =
     [
         "find-record.write",
         "find-record.read",
@@ -142,7 +142,11 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     [MemberData(nameof(TestData))]
     public async Task Should_PersistSearchData_When_OrchestrationCompletes(TestData testData)
     {
-        var authToken = await GetAuthTokenAsync(testData.TestClientId, TestClientSecret, TetScopes);
+        var authToken = await GetAuthTokenAsync(
+            testData.TestClientId,
+            TestClientSecret,
+            TestScopes
+        );
         Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
             authToken
