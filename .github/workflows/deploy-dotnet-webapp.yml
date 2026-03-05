@@ -1,4 +1,5 @@
 name: Deploy Dotnet Web App
+run-name: Deploy web app (${{ inputs.component_descriptor || github.event.inputs.component_descriptor || inputs.web_app_name || github.event.inputs.web_app_name || inputs.artifact_name || github.event.inputs.artifact_name }}) to ${{ inputs.environment || github.event.inputs.environment }}
 
 on:
   workflow_call:
@@ -30,6 +31,11 @@ on:
         required: false
         default: publish
         type: string
+      artifact_store:
+        description: Storage backend for build artifacts (github or azure)
+        required: false
+        default: github
+        type: string
     secrets:
       AZURE_CLIENT_ID:
         required: true
@@ -37,6 +43,43 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
+      AZURE_ARTIFACTS_ACCOUNT:
+        required: false
+      AZURE_ARTIFACTS_CONTAINER:
+        required: false
+      AZURE_ARTIFACTS_SAS:
+        required: false
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment (tfvars name, e.g. d01)
+        required: false
+        default: d01
+        type: string
+      artifact_name:
+        description: Name of the build artifact to download
+        required: true
+        type: string
+      web_app_name:
+        description: Optional full Azure Web App name override (when set, no name is computed).
+        required: false
+        default: ""
+        type: string
+      component_descriptor:
+        description: Component descriptor (optionally including instance) used in the computed name (e.g. singleview01).
+        required: false
+        default: ""
+        type: string
+      package_path:
+        description: Publish output directory
+        required: false
+        default: publish
+        type: string
+      artifact_store:
+        description: Storage backend for build artifacts (github or azure)
+        required: false
+        default: azure
+        type: string
 
 permissions:
   id-token: write
@@ -46,21 +89,26 @@ permissions:
 
 jobs:
   deploy:
-    name: Deploy dotnet web app to Azure
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
-    environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
+    name: Deploy web app (${{ inputs.component_descriptor || github.event.inputs.component_descriptor || inputs.web_app_name || github.event.inputs.web_app_name || inputs.artifact_name || github.event.inputs.artifact_name }}) to ${{ inputs.environment || github.event.inputs.environment }}
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
+    environment: ${{ inputs.environment || github.event.inputs.environment }}
     env:
-      TARGET_ENVIRONMENT: ${{ inputs.environment }}
-      AZURE_WEBAPP_PACKAGE_PATH: ${{ inputs.package_path }}/${{ inputs.artifact_name }}
+      TARGET_ENVIRONMENT: ${{ inputs.environment || github.event.inputs.environment }}
+      AZURE_WEBAPP_PACKAGE_PATH: ${{ (inputs.package_path || github.event.inputs.package_path) }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
       ARM_USE_OIDC: true
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Azure login with OIDC for ${{ inputs.environment }}
+      - name: Install Azure CLI
+        run: |
+          if ! command -v az >/dev/null 2>&1; then
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          fi
+
+      - name: Azure login with OIDC for ${{ inputs.environment || github.event.inputs.environment }}
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -76,21 +124,42 @@ jobs:
       - name: Compute web app name
         id: app_name
         run: |
-          if [ -n "${{ inputs.web_app_name }}" ]; then
-            webapp_name="${{ inputs.web_app_name }}"
-          elif [ -n "${{ inputs.component_descriptor }}" ]; then
-            webapp_name="${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-${{ inputs.component_descriptor }}"
+          if [ -n "${{ inputs.web_app_name || github.event.inputs.web_app_name }}" ]; then
+            webapp_name="${{ inputs.web_app_name || github.event.inputs.web_app_name }}"
+          elif [ -n "${{ inputs.component_descriptor || github.event.inputs.component_descriptor }}" ]; then
+            webapp_name="${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-${{ inputs.component_descriptor || github.event.inputs.component_descriptor }}"
           else
             echo "Either inputs.web_app_name or inputs.component_descriptor must be set."
             exit 1
           fi
           echo "webapp_name=$webapp_name" >> "$GITHUB_OUTPUT"
 
-      - name: Download build artifact
+      - name: Show deployment context
+        run: |
+          echo "Environment: ${{ inputs.environment || github.event.inputs.environment }}"
+          echo "Artifact name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}"
+          echo "Artifact store: ${{ inputs.artifact_store || github.event.inputs.artifact_store }}"
+          echo "Package path: ${{ inputs.package_path || github.event.inputs.package_path }}"
+          echo "Component descriptor: ${{ inputs.component_descriptor || github.event.inputs.component_descriptor }}"
+          echo "Web app override: ${{ inputs.web_app_name || github.event.inputs.web_app_name }}"
+          echo "Computed web app name: ${{ steps.app_name.outputs.webapp_name }}"
+
+      - name: Download build artifact (GitHub)
+        if: (inputs.artifact_store || github.event.inputs.artifact_store) != 'azure'
         uses: actions/download-artifact@v7
         with:
-          name: ${{ inputs.artifact_name }}
-          path: ${{ inputs.package_path }}/${{ inputs.artifact_name }}
+          name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}
+          path: ${{ (inputs.package_path || github.event.inputs.package_path) }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
+
+      - name: Download build artifact (Azure)
+        if: (inputs.artifact_store || github.event.inputs.artifact_store) == 'azure'
+        uses: ./.github/actions/download-blob-artifact
+        with:
+          artifact_name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}
+          destination_path: ${{ (inputs.package_path || github.event.inputs.package_path) }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
+          account_name: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT || vars.AZURE_ARTIFACTS_ACCOUNT }}
+          container_name: ${{ secrets.AZURE_ARTIFACTS_CONTAINER || vars.AZURE_ARTIFACTS_CONTAINER }}
+          sas_token: ${{ secrets.AZURE_ARTIFACTS_SAS }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3

@@ -1,8 +1,35 @@
 name: Find E2E Tests
+run-name: >-
+  Find E2E - ${{
+    github.event_name == 'workflow_run' &&
+    format('dev:d01 (auto from {0} on {1})', github.event.workflow_run.name, github.event.workflow_run.head_branch) ||
+    github.event_name == 'workflow_dispatch' &&
+    format(
+      'dev:{0} ephemeral:{1} (manual)',
+      inputs.manual_run_dev && inputs.environment || 'false',
+      inputs.manual_run_ephemeral
+    ) ||
+    github.event_name == 'pull_request' &&
+    format('ephemeral (auto from PR {0})', github.head_ref || github.ref_name) ||
+    format('ephemeral (auto from {0} {1})', github.event_name, github.ref_name)
+  }}
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
 
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: Target environment for dev E2E tests (tfvars name)
+        required: false
+        default: d01
+        type: choice
+        options:
+          - d01
+          - d02
       manual_run_ephemeral:
         description: e2e test 'ephemeral' environment
         default: true
@@ -11,6 +38,15 @@ on:
         description: e2e test 'dev' environment
         default: false
         type: boolean
+
+  workflow_run:
+    workflows:
+      - Terraform Core Infrastructure
+      - Terraform Find
+      - Terraform Custodians
+      - 'Build, Test, Deploy: "Find" Solution'
+      - 'Build, Test, Deploy: "Custodians" Solution'
+    types: [completed]
 
   push:
     branches:
@@ -30,22 +66,24 @@ on:
 
 concurrency:
   # Do not allow e2e tests to run concurrently against dev
-  group: ${{ inputs.manual_run_dev == true && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
+  # Use a fixed group only when running dev E2E (successful workflow_run on main, or manual dev run);
+  # otherwise use a per-run group so ephemeral tests don't block each other.
+  group: ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') || (github.event_name == 'workflow_dispatch' && inputs.manual_run_dev == true)) && 'e2e-test-dev' || format('e2e-test-run-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:
   # For manual workflow runs (workflow_dispatch) give the user the option of where to run against (ephemeral/dev/both)
-  # Otherwise, always run against ephemeral environment, and also run against dev environment after successful deployment to dev.
+  # Otherwise, run against ephemeral for push/PR, and against dev after successful workflow runs on main.
   eval-workflow-setup:
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
+    name: Evaluate run targets
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     steps:
       - id: eval
         name: Evaluate Workflow Setup
         env:
-          RUN_EPHEMERAL: ${{ (github.event_name != 'workflow_dispatch' && github.event_name != 'deployment_status') || inputs.manual_run_ephemeral == true }}
-          RUN_DEV: ${{ inputs.manual_run_dev == true }}
+          RUN_EPHEMERAL: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || inputs.manual_run_ephemeral == true }}
+          RUN_DEV: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') || inputs.manual_run_dev == true }}
         run: |
           echo
           echo "run_ephemeral=$RUN_EPHEMERAL" >> "$GITHUB_OUTPUT"
@@ -53,6 +91,10 @@ jobs:
 
           echo "---- GitHub Context Info: ----"
           echo "github.event_name: ${{ github.event_name || '(no value)' }}"
+          echo "github.event.workflow_run.event: ${{ github.event.workflow_run.event || '(no value)' }}"
+          echo "github.event.workflow_run.conclusion: ${{ github.event.workflow_run.conclusion || '(no value)' }}"
+          echo "github.event.workflow_run.head_branch: ${{ github.event.workflow_run.head_branch || '(no value)' }}"
+          echo "inputs.environment: ${{ inputs.environment || '(no value)' }}"
           echo "inputs.manual_run_ephemeral: ${{ inputs.manual_run_ephemeral || '(no value)' }}"
           echo "inputs.manual_run_dev: ${{ inputs.manual_run_dev || '(no value)' }}"
           echo
@@ -64,10 +106,10 @@ jobs:
       run_dev: ${{ steps.eval.outputs.run_dev }}
 
   e2e-test-ephemeral:
+    name: E2E tests (ephemeral)
     needs: eval-workflow-setup
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
     steps:
       - name: Checkout repository
@@ -127,19 +169,39 @@ jobs:
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
             --logger "console;verbosity=detailed" \
+            --logger "trx;LogFileName=e2e-ephemeral.trx" \
+            --results-directory TestResults \
             -e E2E__BaseUrl=http://localhost:7182/api/ \
             -e E2E__StubCustodiansBaseUrl=http://localhost:5193/api/ \
             -e E2E__SkipResetAzureTables=False
 
+      - name: Publish E2E test summary (ephemeral)
+        if: always()
+        continue-on-error: true
+        uses: dorny/test-reporter@v2
+        with:
+          name: Find E2E (ephemeral)
+          path: TestResults/e2e-ephemeral.trx
+          reporter: dotnet-trx
+          fail-on-error: false
+
   e2e-test-dev:
+    name: E2E tests (dev ${{ inputs.environment || 'd01' }})
     needs: eval-workflow-setup
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_dev == 'true'
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.environment || 'd01' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
+        id: env_config
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ env.TARGET_ENVIRONMENT }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -150,6 +212,18 @@ jobs:
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
             --logger "console;verbosity=detailed" \
-            -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ \
-            -e E2E__StubCustodiansBaseUrl=https://s270d01app-ukw-custodians01.azurewebsites.net/api/ \
+            --logger "trx;LogFileName=e2e-dev.trx" \
+            --results-directory TestResults \
+            -e E2E__BaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}func-${{ steps.env_config.outputs.region_short }}-find01.azurewebsites.net/api/ \
+            -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
             -e E2E__SkipResetAzureTables=True
+
+      - name: Publish E2E test summary (dev)
+        if: always()
+        continue-on-error: true
+        uses: dorny/test-reporter@v2
+        with:
+          name: Find E2E (dev)
+          path: TestResults/e2e-dev.trx
+          reporter: dotnet-trx
+          fail-on-error: false

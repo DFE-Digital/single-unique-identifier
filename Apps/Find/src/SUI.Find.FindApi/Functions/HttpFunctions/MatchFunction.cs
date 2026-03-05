@@ -117,7 +117,7 @@ public class MatchFunction(
                                 Sui = id.Value,
                                 CustodianId = authContext.ClientId,
                                 RecordType = entry.RecordType,
-                                SystemId = entry.SystemId ?? string.Empty,
+                                SystemId = entry.SystemId,
                                 CustodianSubjectId = entry.RecordId,
                                 Provenance = Provenance.AlreadyHeldByCustodian,
                                 LastIdDeliveredAtUtc = DateTimeOffset.UtcNow,

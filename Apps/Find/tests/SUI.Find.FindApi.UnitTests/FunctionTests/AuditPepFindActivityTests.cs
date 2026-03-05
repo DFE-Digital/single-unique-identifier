@@ -22,7 +22,7 @@ public class AuditPepFindActivityTests
         var auditActivity = new AuditPepFindActivity(logger, mockAuditClient, mockTimeProvider);
 
         var input = new AuditPepFindInput(
-            new PolicyContext("client-1", ["scope1"], "SAFEGUARDING", "LOCAL_AUTHORITY"),
+            new PolicyContext("client-1", "SAFEGUARDING", "LOCAL_AUTHORITY"),
             new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
             [
                 new(
@@ -31,6 +31,7 @@ public class AuditPepFindActivityTests
                         "RecordA",
                         "http://url1",
                         "System A",
+                        "test org",
                         "TestRecord 1"
                     ),
                     "org1",

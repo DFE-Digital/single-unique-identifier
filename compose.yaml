@@ -1,0 +1,33 @@
+services:
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: azurite
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - azurite-data:/data
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    container_name: sui-aspire-dashboard
+    profiles:
+      - aspire
+    environment:
+      - ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
+    ports:
+      - "18888:18888"
+      - "4317:18889"
+  grafana-otel-lgtm:
+    image: grafana/otel-lgtm
+    container_name: sui-grafana
+    profiles:
+      - grafana
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+
+volumes:
+  azurite-data:

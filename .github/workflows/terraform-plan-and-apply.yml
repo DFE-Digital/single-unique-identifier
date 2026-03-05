@@ -33,10 +33,9 @@ permissions:
 jobs:
   terraform:
     name: Terraform ${{ inputs.root }} for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
-    environment: ${{ startsWith(inputs.environment, 't') && 'test' || 'dev' }}
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
+    environment: ${{ inputs.environment }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
       ARM_USE_OIDC: true
@@ -46,8 +45,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Setup Node.js (for Terraform)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
       - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v3
+
+      - name: Install Azure CLI
+        run: |
+          if ! command -v az >/dev/null 2>&1; then
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          fi
 
       - name: Azure login with OIDC for ${{ inputs.environment }}
         uses: azure/login@v2

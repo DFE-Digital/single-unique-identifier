@@ -52,6 +52,7 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 
 - [.NET SDK](https://dotnet.microsoft.com/download) version 10.0.102 or later
 - [.NET runtime](https://dotnet.microsoft.com/download/dotnet/9.0) 9.0.x (required for `dotnet pwsh` and other local tools until PowerShell 7.6 is released with .NET 10 support)
+- Container runtime for local dependencies (suggested: Rancher Desktop with the Docker Engine option enabled if you need a GUI for Docker)
 
 ### Setup
 
@@ -64,19 +65,35 @@ dotnet husky install
 
 This will install the tools specified in `.config/dotnet-tools.json`, including CSharpier for code formatting and Husky.Net for pre-commit hooks to ensure consistent code style.
 
+### Quick Run
+
+1. Complete the Setup step above.
+2. Start local dependencies (Azurite) from the repo root:
+    ```bash
+    docker compose up -d
+    ```
+    To include an observability stack, use a profile (this also starts Azurite):
+    ```bash
+    docker compose --profile aspire up -d
+    docker compose --profile grafana up -d
+    ```
+3. Follow the app-specific README to run locally (for example, `Apps/Find/README.md`).
+
 ### Local OpenTelemetry
 
-To view local traces and logs from any app, run the Grafana otel-lgtm stack:
+To view local traces and logs from any app, start one of the observability profiles:
 
 ```bash
-docker run -d --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 -ti --name sui-grafana grafana/otel-lgtm
+docker compose --profile grafana up -d
 ```
 
-Alternatively, you can use Aspire Dashboard to view traces and logs:
+Or:
 
 ```bash
-docker run -d --rm -p 18888:18888 -p 4317:18889 -ti --env ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true --name sui-aspire-dashboard mcr.microsoft.com/dotnet/aspire-dashboard:latest
+docker compose --profile aspire up -d
 ```
+
+Note: both profiles bind host port 4317 for OTLP gRPC, so run one at a time unless you change the port mapping in `compose.yaml`.
 
 Point your app at the local collector by specifying the values in the `local.settings.json` file:
 
@@ -91,33 +108,9 @@ OTEL_SERVICE_NAME=Your.App.Name
 Open `http://localhost:3000` (admin/admin) and use Explore to view logs and traces.
 If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
-## CI runners (self-hosted)
+## CI workflows
 
-We currently use a self-hosted GitHub Actions runner to avoid GitHub-hosted runner budget limits.
-It runs as an Azure Container App using a [github-runner docker image](https://github.com/myoung34/docker-github-actions-runner) and is registered at the repo level.
-
-Key details:
-- Workflows target `runs-on: [self-hosted, ubuntu-latest]` (the runner is labelled `ubuntu-latest`, `linux`, `ghrunner`).
-- Container Apps does not provide a Docker daemon, so Docker-based actions and `services:` containers will fail.
-  If a workflow needs Docker, it must run on a VM-based runner instead.
-- Azurite is started as a local process in workflows (no container services).
-- Artifact storage limits still apply because artifacts are stored in GitHub, not on the runner.
-- To switch back to GitHub-hosted runners, revert jobs to `runs-on: ubuntu-latest`.
-
-Operational notes:
-- The runner is currently configured with a PAT (classic) stored as an Azure Container App secret.
-  - This should be updated to utilise a GitHub app registration when possible.
-- The Container App is configured to keep at least one replica running.
-- The runner is hosted as an Azure Container App in the Azure Portal.
-
-## Artifact cleanup
-
-Artifacts are stored in GitHub, so usage can still hit storage quotas. The repo currently uses a 60-day default retention policy for artifacts and logs.
-There is a custom cleanup script to delete additional artifacts manually when needed:
-
-```
-./.github/scripts/cleanup-artifacts.sh --help
-```
+Workflow structure and inputs are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md). Self-hosted runner and Azure artifact storage details (including the rate-limit workaround and switchback flags) are in [Docs/Developers/ci-self-hosted-runner.md](./Docs/Developers/ci-self-hosted-runner.md).
 
 ## Repository structure
 

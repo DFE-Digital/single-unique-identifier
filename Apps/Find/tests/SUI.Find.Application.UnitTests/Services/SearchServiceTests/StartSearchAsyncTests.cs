@@ -2,7 +2,6 @@ using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using NSubstitute;
 using OneOf.Types;
-using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
@@ -16,7 +15,6 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
 
     private const string ClientId = "test-client-id";
-    private readonly string[] _scopes = [];
     private const string CorrelationId = "corr-id";
     private readonly CancellationToken _cancellationToken = CancellationToken.None;
     private readonly EncryptedPersonId _encryptedPersonId = EncryptedPersonId
@@ -40,7 +38,6 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
         var result = await Sut.StartSearchAsync(
             _encryptedPersonId.Value,
             ClientId,
-            _scopes,
             _client,
             CorrelationId,
             _cancellationToken
@@ -69,7 +66,6 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
         var result = await Sut.StartSearchAsync(
             _encryptedPersonId.Value,
             ClientId,
-            _scopes,
             _client,
             CorrelationId,
             _cancellationToken
@@ -107,7 +103,6 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
         var result = await Sut.StartSearchAsync(
             _encryptedPersonId.Value,
             ClientId,
-            _scopes,
             _client,
             CorrelationId,
             _cancellationToken
@@ -140,7 +135,6 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
         var result = await Sut.StartSearchAsync(
             _encryptedPersonId.Value,
             ClientId,
-            _scopes,
             _client,
             CorrelationId,
             _cancellationToken
@@ -179,7 +173,6 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
         var result = await Sut.StartSearchAsync(
             _encryptedPersonId.Value,
             ClientId,
-            _scopes,
             _client,
             CorrelationId,
             _cancellationToken

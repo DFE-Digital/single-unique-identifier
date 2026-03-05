@@ -257,7 +257,8 @@
             "destOrgIds": [ "LOCAL-AUTHORITY-01" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-12-01T00:00:00Z",
-            "reason": "Multi-agency safeguarding operation."
+            "validUntil": "9999-03-01T00:00:00Z",
+            "reason": "Timeboxed multi-agency safeguarding operation."
           }
         ]
       },

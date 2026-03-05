@@ -71,3 +71,9 @@ variable "app_settings" {
   type        = map(string)
   default     = {}
 }
+
+variable "health_check_path" {
+  description = "The URI path to the endpoint to use for health checks. Should return 200 OK if the API is up and healthy."
+  type        = string
+  default     = "/api/health"
+}

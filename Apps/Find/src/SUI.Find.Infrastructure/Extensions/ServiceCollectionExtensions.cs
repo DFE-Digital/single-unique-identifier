@@ -12,6 +12,7 @@ using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Factories.Fhir;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
+using SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Services.Fhir;
@@ -38,6 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
         services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
         services.AddSingleton<IIdRegisterRepository, SuiCustodianRegisterRepository>();
+        services.AddSingleton<ISearchResultEntryRepository, SearchResultEntryRepository>();
         services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
         services.AddSingleton<IFhirService, FhirService>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
@@ -70,10 +72,21 @@ public static class ServiceCollectionExtensions
             var uriString =
                 config.KeyVaultUri
                 ?? "https://localdevtotallyrandomaddressbecauseitdoesntrunwiththestubauthtokenservice";
-            return new SecretClient(
-                vaultUri: new Uri(uriString),
-                credential: new DefaultAzureCredential()
-            );
+
+            Uri uri;
+            try
+            {
+                uri = new Uri(uriString);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException(
+                    $"Invalid {nameof(config.KeyVaultUri)}: {uriString} ({e.Message})",
+                    e
+                );
+            }
+
+            return new SecretClient(vaultUri: uri, credential: new DefaultAzureCredential());
         });
 
         return services;

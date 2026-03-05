@@ -99,7 +99,6 @@ public class SearchEndpointTests
             .StartSearchAsync(
                 Arg.Any<string>(),
                 Arg.Any<string>(),
-                Arg.Any<string[]>(),
                 Arg.Any<DurableTaskClient>(),
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
@@ -135,7 +134,6 @@ public class SearchEndpointTests
             .StartSearchAsync(
                 Arg.Any<string>(),
                 Arg.Any<string>(),
-                Arg.Any<string[]>(),
                 Arg.Any<DurableTaskClient>(),
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()

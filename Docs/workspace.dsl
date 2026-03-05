@@ -14,7 +14,6 @@ workspace "SUI" "'Single unique identifier' is a proposed set of systems and sta
         }
 
         match = softwareSystem "MATCH Service" "Resolves an NHS number (SUI) from demographics" "External, API" {
-            !docs "./Developers/SUI.Matching.API"
         }
 
         fetch = softwareSystem "FETCH Service" "Retrieves record content from Custodians given a pointer" "External, API" {

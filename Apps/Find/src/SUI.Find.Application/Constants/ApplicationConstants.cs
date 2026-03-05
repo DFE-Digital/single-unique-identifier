@@ -27,4 +27,9 @@ public static class ApplicationConstants
     {
         public const string LoggingName = "providers";
     }
+
+    public static class SystemIds
+    {
+        public const string Default = "DefaultSystem";
+    }
 }

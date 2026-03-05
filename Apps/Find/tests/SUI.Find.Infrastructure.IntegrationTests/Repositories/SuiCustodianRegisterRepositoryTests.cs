@@ -204,39 +204,6 @@ public class SuiCustodianRegisterRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task UpsertAsync_WhenSystemIdNullOrEmpty_UsesDefaultSystem()
-    {
-        // ARRANGE
-        var entry = new IdRegisterEntry
-        {
-            Sui = $"Sui_{Guid.NewGuid()}",
-            CustodianId = $"Custodian_{Guid.NewGuid()}",
-            SystemId = string.Empty,
-            RecordType = $"RecordType_{Guid.NewGuid()}",
-            Provenance = Provenance.AlreadyHeldByCustodian,
-        };
-
-        var expectedPartitionKey = RegisterKeys.PartitionKey(entry.Sui);
-        var expectedRowKey = RegisterKeys.RowKey(
-            entry.CustodianId,
-            entry.RecordType,
-            "DefaultSystem"
-        );
-
-        // ACT
-        await _sut.UpsertAsync(entry, CancellationToken.None);
-
-        // ASSERT
-        var entity = (
-            await TableStorageFixture
-                .Client.GetTableClient(InfrastructureConstants.StorageTableIdRegister.TableName)
-                .GetEntityAsync<TableEntity>(expectedPartitionKey, expectedRowKey)
-        ).Value;
-
-        entity.GetString("SystemId").Should().Be("DefaultSystem");
-    }
-
-    [Fact]
     public async Task GetEntriesBySuiAsync_InvalidProvenance_DefaultsToUnknown()
     {
         // ARRANGE
