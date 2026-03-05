@@ -23,13 +23,9 @@ public record SearchJob
             {
                 { "self", new HalLink($"/v1/searches/{JobId}", "GET") },
                 { "status", new HalLink($"/v1/searches/{JobId}", "GET") },
+                { "results", new HalLink($"/v1/searches/{JobId}/results", "GET") },
                 { "cancel", new HalLink($"/v1/searches/{JobId}", "DELETE") },
             };
-
-            if (Status == SearchStatus.Completed)
-            {
-                links.Add("results", new HalLink($"/v1/searches/{JobId}/results", "GET"));
-            }
 
             return links;
         }
