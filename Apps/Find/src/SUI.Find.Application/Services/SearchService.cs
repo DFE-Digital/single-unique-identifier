@@ -275,6 +275,7 @@ public class SearchService(
                         RecordId = r.RecordId,
                         RecordUrl = r.RecordUrl,
                         SystemId = r.SystemId,
+                        CustodianName = r.CustodianName,
                     })
                     .ToArray();
             }

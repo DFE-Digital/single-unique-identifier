@@ -44,6 +44,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
         {
             { "CustodianId", entry.CustodianId },
             { "SystemId", entry.SystemId },
+            { "CustodianName", entry.CustodianName },
             { "RecordType", entry.RecordType },
             { "RecordUrl", entry.RecordUrl },
             { "RecordId", entry.RecordId },
@@ -104,6 +105,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
                     {
                         CustodianId = custodianId,
                         SystemId = systemId,
+                        CustodianName = entity.GetString("CustodianName"),
                         RecordType = recordType,
                         RecordUrl = entity.GetString("RecordUrl"),
                         RecordId = entity.GetString("RecordId"),

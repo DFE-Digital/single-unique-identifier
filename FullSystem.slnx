@@ -34,7 +34,9 @@
     <Project Path="Apps/SingleView/tests/SUI.SingleView.IntegrationTests/SUI.SingleView.IntegrationTests.csproj" />
     <Project Path="Apps/SingleView/tests/SUI.SingleView.Web.UnitTests/SUI.SingleView.Web.UnitTests.csproj" />
   </Folder>
-  <Folder Name="/Apps/StubCustodians/" />
+  <Folder Name="/Apps/StubCustodians/">
+    <File Path="Apps/StubCustodians/readme.md" />
+  </Folder>
   <Folder Name="/Apps/StubCustodians/src/">
     <Project Path="Apps/StubCustodians/src/SUI.Custodians.API.Client/SUI.Custodians.API.Client.csproj" />
     <Project Path="Apps/StubCustodians/src/SUI.Custodians.Domain/SUI.Custodians.Domain.csproj" />
@@ -63,6 +65,10 @@
     <Project Path="Apps/Transfer/tests/SUI.Transfer.Domain.Unit.Tests/SUI.Transfer.Domain.Unit.Tests.csproj" />
     <Project Path="Apps/Transfer/tests/SUI.Transfer.Infrastructure.Unit.Tests/SUI.Transfer.Infrastructure.Unit.Tests.csproj" />
     <Project Path="Apps/Transfer/tests/SUI.Transfer.IntegrationTests/SUI.Transfer.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/Apps/UIHarness/" />
+  <Folder Name="/Apps/UIHarness/src/">
+    <Project Path="Apps/UIHarness/src/SUI.UIHarness.Web/SUI.UIHarness.Web.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path="nuget.config" />

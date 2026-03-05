@@ -9,7 +9,7 @@ public sealed class CustodianRecord
     public int Version { get; set; }
     public string SchemaUri { get; set; } = string.Empty;
     public string SystemId { get; set; } = string.Empty;
-    public ContactDetails? ContactDetails { get; set; }
-    public RecordLink? RecordLink { get; set; }
+    public List<ContactDetail>? ContactDetails { get; set; }
+    public List<RecordLink>? RecordLinks { get; set; }
     public System.Text.Json.JsonElement? Payload { get; set; }
 }

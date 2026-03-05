@@ -52,6 +52,7 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 
 - [.NET SDK](https://dotnet.microsoft.com/download) version 10.0.102 or later
 - [.NET runtime](https://dotnet.microsoft.com/download/dotnet/9.0) 9.0.x (required for `dotnet pwsh` and other local tools until PowerShell 7.6 is released with .NET 10 support)
+- Container runtime for local dependencies (suggested: Rancher Desktop with the Docker Engine option enabled if you need a GUI for Docker)
 
 ### Setup
 
@@ -64,19 +65,35 @@ dotnet husky install
 
 This will install the tools specified in `.config/dotnet-tools.json`, including CSharpier for code formatting and Husky.Net for pre-commit hooks to ensure consistent code style.
 
+### Quick Run
+
+1. Complete the Setup step above.
+2. Start local dependencies (Azurite) from the repo root:
+    ```bash
+    docker compose up -d
+    ```
+    To include an observability stack, use a profile (this also starts Azurite):
+    ```bash
+    docker compose --profile aspire up -d
+    docker compose --profile grafana up -d
+    ```
+3. Follow the app-specific README to run locally (for example, `Apps/Find/README.md`).
+
 ### Local OpenTelemetry
 
-To view local traces and logs from any app, run the Grafana otel-lgtm stack:
+To view local traces and logs from any app, start one of the observability profiles:
 
 ```bash
-docker run -d --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 -ti --name sui-grafana grafana/otel-lgtm
+docker compose --profile grafana up -d
 ```
 
-Alternatively, you can use Aspire Dashboard to view traces and logs:
+Or:
 
 ```bash
-docker run -d --rm -p 18888:18888 -p 4317:18889 -ti --env ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true --name sui-aspire-dashboard mcr.microsoft.com/dotnet/aspire-dashboard:latest
+docker compose --profile aspire up -d
 ```
+
+Note: both profiles bind host port 4317 for OTLP gRPC, so run one at a time unless you change the port mapping in `compose.yaml`.
 
 Point your app at the local collector by specifying the values in the `local.settings.json` file:
 

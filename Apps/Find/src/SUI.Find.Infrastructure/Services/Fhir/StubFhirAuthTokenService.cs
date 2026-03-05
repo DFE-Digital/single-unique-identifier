@@ -32,6 +32,12 @@ public class StubFhirAuthTokenService(
 
         var privateKeyTask = _options.Value.NHS_DIGITAL_PRIVATE_KEY;
 
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation(
+                $$"""{{nameof(StubFhirAuthTokenService)}} Initializing. NHS_DIGITAL_PRIVATE_KEY length is: {KeyLength}""",
+                privateKeyTask == null ? "null" : privateKeyTask.Length
+            );
+
         if (string.IsNullOrEmpty(privateKeyTask))
         {
             using var rsa = RSA.Create(2048);
@@ -45,6 +51,12 @@ public class StubFhirAuthTokenService(
 
         var clientIdTask = _options.Value.NHS_DIGITAL_CLIENT_ID;
         var kidTask = _options.Value.NHS_DIGITAL_KID;
+
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation(
+                $$"""{{nameof(StubFhirAuthTokenService)}} Initializing. NHS_DIGITAL Key details are: {KeyDetails}""",
+                new { clientIdTask, kidTask }
+            );
 
         PrivateKey = privateKeyTask;
         ClientId = clientIdTask;

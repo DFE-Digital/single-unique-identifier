@@ -147,7 +147,14 @@ public class QueryProvidersAsyncTests
 
         var searchItems = new List<CustodianSearchResultItem>
         {
-            new("test-org-1", "Type1", "/v1/records/original-id", "SystemA", "TestRecord"),
+            new(
+                "test-org-1",
+                "Type1",
+                "/v1/records/original-id",
+                "SystemA",
+                "test org",
+                "TestRecord"
+            ),
         };
 
         _mockBuildRequest
@@ -159,7 +166,14 @@ public class QueryProvidersAsyncTests
 
         var maskedItems = new List<CustodianSearchResultItem>
         {
-            new("test-org-1", "Type1", "/v1/records/masked-id", "SystemA", "TestRecord"),
+            new(
+                "test-org-1",
+                "Type1",
+                "/v1/records/masked-id",
+                "SystemA",
+                "test org",
+                "TestRecord"
+            ),
         };
         _mockMaskUrlService
             .CreateAsync(

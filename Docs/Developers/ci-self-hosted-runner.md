@@ -14,9 +14,19 @@ The self-hosted runner and Azure Blob artifact storage are in place as a **worka
   - Required permissions: **Administration: read & write** on the repo (to create runner registration tokens); **Actions: read** and **Metadata: read** are also recommended.
 - The deploy workflows install Azure CLI at runtime because the self-hosted runner image does not include `az` by default. See [`deploy-dotnet-webapp.yml`](../../.github/workflows/deploy-dotnet-webapp.yml) and [`deploy-dotnet-functionapp.yml`](../../.github/workflows/deploy-dotnet-functionapp.yml).
 
+## Runner selection via RUNNER_LABELS
+
+Workflows read runner labels from the `RUNNER_LABELS` GitHub variable (JSON array). If it is not set, the default is `["ubuntu-latest"]`.
+
+Examples:
+
+- Repo variable: `RUNNER_LABELS=["self-hosted","ubuntu-latest"]`
+- Environment variable (e.g. `d01`, `d02`): `RUNNER_LABELS=["self-hosted","ubuntu-latest"]`
+- Switch back to hosted runners: `RUNNER_LABELS=["ubuntu-latest"]`
+
 ## Switching back to GitHub-hosted runners
 
-- Revert jobs to `runs-on: ubuntu-latest` (remove `self-hosted` labels). See [`.github/workflows`](../../.github/workflows).
+- Set `RUNNER_LABELS=["ubuntu-latest"]` at the repo or environment level. See [`.github/workflows`](../../.github/workflows).
 - Remove or scale down the Azure Container App runner if it is no longer needed.
 
 ## Artifact storage
