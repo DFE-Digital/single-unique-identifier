@@ -107,9 +107,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
                         RecordType = recordType,
                         RecordUrl = entity.GetString("RecordUrl"),
                         RecordId = entity.GetString("RecordId"),
-                        SubmittedAtUtc = entity
-                            .GetDateTimeOffset("SubmittedAtUtc")!
-                            .Value.UtcDateTime,
+                        SubmittedAtUtc = entity.GetDateTimeOffset("SubmittedAtUtc")!.Value,
                         JobId = entity.GetString("JobId"),
                         WorkItemId = entity.GetString("WorkItemId"),
                     }
