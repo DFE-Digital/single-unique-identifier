@@ -54,7 +54,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             .Select(provider =>
                 context.CallSubOrchestratorAsync<IReadOnlyList<SearchResultWithDecision>>(
                     nameof(SearchProviderSubOrchestrator),
-                    new SearchProviderSubOrchestratorInput(data, provider)
+                    new SearchProviderSubOrchestratorInput(jobId, data, provider)
                 )
             )
             .ToList();
@@ -86,13 +86,9 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
     )
     {
         var input = context.GetInput<SearchProviderSubOrchestratorInput>();
-        if (input is null)
-        {
-            throw new ArgumentException($"No input for {nameof(SearchProviderSubOrchestrator)}");
-        }
+        ArgumentNullException.ThrowIfNull(input);
 
-        var jobId = context.InstanceId;
-        var (data, provider) = input;
+        var (jobId, data, provider) = input;
         var requestingOrdId = data.PolicyContext.ClientId;
         var sourceOrgId = provider.OrgId;
 
@@ -144,6 +140,20 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             pepResults.Count,
             pepResults.Count(x => x.Decision.IsAllowed),
             pepResults.Count(x => !x.Decision.IsAllowed)
+        );
+
+        // Activity Three: Persist the PEP filtered provider's results
+        await context.CallActivityAsync(
+            nameof(PersistSearchResultsFunction),
+            new PersistSearchResultsInput(
+                pepResults,
+                WorkItemId: jobId, // In this context (fan-out architecture), WorkItemId is the same as JobId.
+                InvocationId: data.Metadata.InvocationId,
+                JobId: jobId,
+                RequestingOrdId: requestingOrdId,
+                SourceOrgId: sourceOrgId
+            ),
+            options
         );
 
         return pepResults;

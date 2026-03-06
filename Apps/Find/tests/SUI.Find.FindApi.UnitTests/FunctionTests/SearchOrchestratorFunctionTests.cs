@@ -58,6 +58,59 @@ public class SearchOrchestratorFunctionsTests
                 Arg.Any<QueryProviderInput>(),
                 Arg.Any<TaskOptions>()
             );
+
+        await _mockContext
+            .Received(2)
+            .CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+                "FilterResultsByPolicyFunction",
+                Arg.Any<FilterResultsInput>(),
+                Arg.Any<TaskOptions>()
+            );
+
+        await _mockContext
+            .Received(2)
+            .CallActivityAsync(
+                "PersistSearchResultsFunction",
+                Arg.Any<PersistSearchResultsInput>(),
+                Arg.Any<TaskOptions>()
+            );
+
+        // Assert the activity calls again, more specifically
+        await _mockContext
+            .Received(1)
+            .CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
+                "QueryProvidersFunction",
+                Arg.Is<QueryProviderInput>(x =>
+                    x.JobId == "instance-123"
+                    && x.RequestingOrg == "test-client-1"
+                    && x.Suid == "1234567890123456"
+                    && x.Provider.OrgId == "org1"
+                ),
+                Arg.Any<TaskOptions>()
+            );
+
+        await _mockContext
+            .Received(1)
+            .CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+                "FilterResultsByPolicyFunction",
+                Arg.Is<FilterResultsInput>(x =>
+                    x.DestOrgId == "test-client-1" && x.SourceOrgId == "org1"
+                ),
+                Arg.Any<TaskOptions>()
+            );
+
+        await _mockContext
+            .Received(1)
+            .CallActivityAsync(
+                "PersistSearchResultsFunction",
+                Arg.Is<PersistSearchResultsInput>(x =>
+                    x.WorkItemId == "instance-123"
+                    && x.JobId == "instance-123"
+                    && x.RequestingOrdId == "test-client-1"
+                    && x.SourceOrgId == "org1"
+                ),
+                Arg.Any<TaskOptions>()
+            );
     }
 
     [Fact]

@@ -19,8 +19,6 @@ public class QueryProvidersFunctionTests
         Substitute.For<IQueryProvidersService>();
     private readonly IIdRegisterRepository _mockIdRegisterRepository =
         Substitute.For<IIdRegisterRepository>();
-    private readonly ISearchResultEntryRepository _mockSearchResultEntryRepository =
-        Substitute.For<ISearchResultEntryRepository>();
     private readonly FunctionContext _mockContext = Substitute.For<FunctionContext>();
     private readonly QueryProvidersFunction _sut;
 
@@ -29,8 +27,7 @@ public class QueryProvidersFunctionTests
         _sut = new QueryProvidersFunction(
             _mockLogger,
             _mockQueryProvidersService,
-            _mockIdRegisterRepository,
-            _mockSearchResultEntryRepository
+            _mockIdRegisterRepository
         );
     }
 
@@ -82,21 +79,6 @@ public class QueryProvidersFunctionTests
                     && e.CustodianSubjectId == expectedItems[0].RecordId
                     && e.RecordType == expectedItems[0].RecordType
                     && e.Provenance == Provenance.DiscoveredViaFanout
-                ),
-                Arg.Any<CancellationToken>()
-            );
-
-        // Assert - SearchResultsRepository called for each item
-        await _mockSearchResultEntryRepository
-            .Received(expectedItems.Count)
-            .UpsertAsync(
-                Arg.Is<SearchResultEntry>(e =>
-                    e.CustodianId == input.Provider.OrgId
-                    && e.RecordType == expectedItems[0].RecordType
-                    && e.RecordUrl == expectedItems[0].RecordUrl
-                    && e.SystemId == expectedItems[0].SystemId
-                    && e.JobId == input.JobId
-                    && e.SubmittedAtUtc != default
                 ),
                 Arg.Any<CancellationToken>()
             );

@@ -9,6 +9,7 @@ public record SearchOrchestratorInput(
 );
 
 public record SearchProviderSubOrchestratorInput(
+    string JobId,
     SearchOrchestratorInput SearchInput,
     ProviderDefinition QueryProvider
 );
