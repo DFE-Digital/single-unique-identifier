@@ -176,6 +176,8 @@ module "function_app" {
       IdEncryption__EnablePersonIdEncryption = false
       UseStubAuthTokenService                = false
 
+      StorageRetentionDays = "1"
+
       StubCustodiansBaseUrl = try(
         "https://${data.terraform_remote_state.stub_custodians[0].outputs.web_app_default_hostname}",
         null

@@ -5,15 +5,18 @@ using SUI.Find.Application.Models;
 
 namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 
-public class GetProvidersFunction(ILogger<GetProvidersFunction> logger, ICustodianService custodianService)
+public class GetProvidersFunction(
+    ILogger<GetProvidersFunction> logger,
+    ICustodianService custodianService
+)
 {
     [Function(nameof(GetProvidersFunction))]
-
-    public async Task<IReadOnlyList<ProviderDefinition>> GetProviders([ActivityTrigger] string invocationId, string suid)
+    public async Task<IReadOnlyList<ProviderDefinition>> GetProviders(
+        [ActivityTrigger] string invocationId,
+        string suid
+    )
     {
-        using var logScope = logger.BeginScope(
-            "CorrelationId: {CorrelationId}", invocationId
-        );
+        using var logScope = logger.BeginScope("CorrelationId: {CorrelationId}", invocationId);
 
         logger.LogInformation("Get Providers triggered");
 
@@ -22,6 +25,5 @@ public class GetProvidersFunction(ILogger<GetProvidersFunction> logger, ICustodi
         logger.LogInformation("Get Providers request completed");
 
         return results;
-
     }
 }
