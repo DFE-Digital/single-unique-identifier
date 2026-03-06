@@ -125,4 +125,39 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
         result.Should().NotBeNull();
         result.ExpectedJobCount.Should().Be(10);
     }
+
+    [Fact]
+    public async Task GetByWorkItemIdAndJobTypeAsync_ReturnsUnknownJobType_WhenStoredStringIsInvalid()
+    {
+        var workItemId = $"WI_{Guid.NewGuid()}";
+        var lookupJobType = JobType.CustodianLookup; // Used to generate the RowKey so our Get method can find it
+        var now = DateTimeOffset.UtcNow;
+
+        var partitionKey = WorkItemJobCountKeys.PartitionKey(workItemId);
+        var rowKey = WorkItemJobCountKeys.RowKey(lookupJobType);
+
+        var tableClient = TableStorageFixture.Client.GetTableClient(
+            InfrastructureConstants.StorageTableWorkItemJobCountRepository.TableName
+        );
+
+        // Directly insert an entity with an invalid JobType string to simulate corrupted/legacy data
+        var invalidEntity = new TableEntity(partitionKey, rowKey)
+        {
+            { "WorkItemId", workItemId },
+            { "JobType", "SomeInvalidJobType" }, // Invalid JobType
+            { "ExpectedJobCount", 5 },
+            { "CreatedAtUtc", now },
+            { "UpdatedAtUtc", now },
+            { "PayloadJson", "{}" },
+        };
+
+        await tableClient.AddEntityAsync(invalidEntity);
+
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, lookupJobType);
+
+        result.Should().NotBeNull();
+        result.WorkItemId.Should().Be(workItemId);
+        result.JobType.Should().Be(JobType.Unknown);
+        result.ExpectedJobCount.Should().Be(5);
+    }
 }
