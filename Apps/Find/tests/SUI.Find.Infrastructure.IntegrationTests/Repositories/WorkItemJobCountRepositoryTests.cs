@@ -21,12 +21,13 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task UpsertAsync_CreatesNewRecord_AsExpected()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
+        var jobType = JobType.CustodianLookup;
         var now = DateTimeOffset.UtcNow;
 
         var entity = new WorkItemJobCount
         {
             WorkItemId = workItemId,
-            JobType = JobType.CustodianLookup,
+            JobType = jobType,
             ExpectedJobCount = 5,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
@@ -34,7 +35,7 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
         };
 
         var partitionKey = WorkItemJobCountKeys.PartitionKey(workItemId);
-        var rowKey = WorkItemJobCountKeys.RowKey(JobType.CustodianLookup);
+        var rowKey = WorkItemJobCountKeys.RowKey(jobType);
 
         await _sut.UpsertAsync(entity);
 
@@ -54,12 +55,13 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task GetByWorkItemIdAndJobTypeAsync_ReturnsCount_WhenRecordExists()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
+        var jobType = JobType.CustodianLookup;
         var now = DateTimeOffset.UtcNow;
 
         var entity = new WorkItemJobCount
         {
             WorkItemId = workItemId,
-            JobType = JobType.CustodianLookup,
+            JobType = jobType,
             ExpectedJobCount = 3,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
@@ -68,7 +70,7 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await _sut.UpsertAsync(entity);
 
-        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, JobType.CustodianLookup);
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, jobType);
 
         result.Should().NotBeNull();
         result.ExpectedJobCount.Should().Be(3);
@@ -89,12 +91,13 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task UpsertAsync_ReplacesExistingRecord()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
+        var jobType = JobType.CustodianLookup;
         var now = DateTimeOffset.UtcNow;
 
         var entity = new WorkItemJobCount
         {
             WorkItemId = workItemId,
-            JobType = JobType.CustodianLookup,
+            JobType = jobType,
             ExpectedJobCount = 1,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
@@ -106,7 +109,7 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
         var updated = new WorkItemJobCount
         {
             WorkItemId = workItemId,
-            JobType = JobType.CustodianLookup,
+            JobType = jobType,
             ExpectedJobCount = 10,
             CreatedAtUtc = now,
             UpdatedAtUtc = DateTimeOffset.UtcNow,
@@ -115,7 +118,7 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await _sut.UpsertAsync(updated);
 
-        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, JobType.CustodianLookup);
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, jobType);
 
         result.Should().NotBeNull();
         result.ExpectedJobCount.Should().Be(10);
