@@ -26,10 +26,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
 
     private TableClient Table => _client.GetTableClient(TableName);
 
-    public async Task UpsertAsync(
-        SearchResultEntry entry,
-        CancellationToken cancellationToken = default
-    )
+    public async Task UpsertAsync(SearchResultEntry entry, CancellationToken cancellationToken)
     {
         var partitionKey = SearchResultEntryKeys.PartitionKey(entry.WorkItemId);
 
@@ -70,7 +67,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
 
     public async Task<IReadOnlyList<SearchResultEntry>> GetByWorkItemIdAsync(
         string workItemId,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken
     )
     {
         var partitionKey = SearchResultEntryKeys.PartitionKey(workItemId);
