@@ -2,6 +2,7 @@ using Azure.Data.Tables;
 using Microsoft.Extensions.Logging.Abstractions;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
+using static System.Threading.CancellationToken;
 
 namespace SUI.Find.Infrastructure.IntegrationTests.Repositories;
 
@@ -12,8 +13,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         NullLogger<SearchResultEntryRepository>.Instance
     );
 
-    public async Task InitializeAsync() =>
-        await _sut.EnsureTableExistsAsync(CancellationToken.None);
+    public async Task InitializeAsync() => await _sut.EnsureTableExistsAsync(None);
 
     public Task DisposeAsync() => Task.CompletedTask;
 
@@ -43,7 +43,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         );
 
         // ACT
-        await _sut.UpsertAsync(entry, CancellationToken.None);
+        await _sut.UpsertAsync(entry, None);
 
         // ASSERT
         var entity = (
@@ -82,7 +82,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             WorkItemId = workItemId,
         };
 
-        await _sut.UpsertAsync(entry, CancellationToken.None);
+        await _sut.UpsertAsync(entry, None);
 
         // Change URL
         var updatedEntry = new SearchResultEntry
@@ -98,9 +98,9 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             WorkItemId = workItemId,
         };
 
-        await _sut.UpsertAsync(updatedEntry, CancellationToken.None);
+        await _sut.UpsertAsync(updatedEntry, None);
 
-        var results = await _sut.GetByWorkItemIdAsync(workItemId);
+        var results = await _sut.GetByWorkItemIdAsync(workItemId, None);
 
         results.Should().HaveCount(1);
         results.Single().RecordUrl.Should().Be("updated-url");
@@ -137,10 +137,10 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             WorkItemId = workItemId,
         };
 
-        await _sut.UpsertAsync(first);
-        await _sut.UpsertAsync(second);
+        await _sut.UpsertAsync(first, None);
+        await _sut.UpsertAsync(second, None);
 
-        var results = await _sut.GetByWorkItemIdAsync(workItemId);
+        var results = await _sut.GetByWorkItemIdAsync(workItemId, None);
 
         results.Should().HaveCount(2);
     }
@@ -179,10 +179,10 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             WorkItemId = workItemId,
         };
 
-        await _sut.UpsertAsync(second);
-        await _sut.UpsertAsync(first);
+        await _sut.UpsertAsync(second, None);
+        await _sut.UpsertAsync(first, None);
 
-        var results = await _sut.GetByWorkItemIdAsync(workItemId);
+        var results = (await _sut.GetByWorkItemIdAsync(workItemId, None)).ToArray();
 
         results.First().RecordType.Should().Be("T1");
         results.Last().RecordType.Should().Be("T2");
@@ -205,7 +205,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
 
         await tableClient.UpsertEntityAsync(entity);
 
-        var results = await _sut.GetByWorkItemIdAsync(workItemId);
+        var results = await _sut.GetByWorkItemIdAsync(workItemId, None);
 
         results.Should().BeEmpty();
     }
