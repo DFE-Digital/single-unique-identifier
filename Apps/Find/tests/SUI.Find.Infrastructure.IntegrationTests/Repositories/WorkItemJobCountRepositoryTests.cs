@@ -68,9 +68,10 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await _sut.UpsertAsync(entity);
 
-        var count = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, JobType.CustodianLookup);
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, JobType.CustodianLookup);
 
-        count.Should().Be(3);
+        result.Should().NotBeNull();
+        result.ExpectedJobCount.Should().Be(3);
     }
 
     [Fact]
@@ -114,8 +115,9 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await _sut.UpsertAsync(updated);
 
-        var count = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, JobType.CustodianLookup);
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, JobType.CustodianLookup);
 
-        count.Should().Be(10);
+        result.Should().NotBeNull();
+        result.ExpectedJobCount.Should().Be(10);
     }
 }

@@ -58,7 +58,7 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
         }
     }
 
-    public async Task<int?> GetByWorkItemIdAndJobTypeAsync(
+    public async Task<WorkItemJobCount?> GetByWorkItemIdAndJobTypeAsync(
         string workItemId,
         JobType jobType,
         CancellationToken cancellationToken = default
@@ -67,7 +67,7 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
         var partitionKey = WorkItemJobCountKeys.PartitionKey(workItemId);
         var rowKey = WorkItemJobCountKeys.RowKey(jobType);
 
-        int? result = null;
+        WorkItemJobCount? result = null;
 
         try
         {
@@ -79,7 +79,24 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
 
             if (response.HasValue)
             {
-                result = response.Value!.GetInt32("ExpectedJobCount");
+                TableEntity entity = response.Value!;
+
+                var jobTypeString = entity.GetString("JobType");
+
+                if (!Enum.TryParse<JobType>(jobTypeString, out var parsedJobType))
+                {
+                    parsedJobType = JobType.Unknown;
+                }
+
+                result = new WorkItemJobCount
+                {
+                    WorkItemId = entity.GetString("WorkItemId"),
+                    JobType = parsedJobType,
+                    ExpectedJobCount = entity.GetInt32("ExpectedJobCount") ?? 0,
+                    CreatedAtUtc = entity.GetDateTimeOffset("CreatedAtUtc")!.Value,
+                    UpdatedAtUtc = entity.GetDateTimeOffset("UpdatedAtUtc")!.Value,
+                    PayloadJson = entity.GetString("PayloadJson"),
+                };
             }
         }
         catch (Exception ex)

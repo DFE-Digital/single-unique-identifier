@@ -9,7 +9,7 @@ public interface IWorkItemJobCountRepository
         CancellationToken cancellationToken = default
     );
 
-    Task<int?> GetByWorkItemIdAndJobTypeAsync(
+    Task<WorkItemJobCount?> GetByWorkItemIdAndJobTypeAsync(
         string workItemId,
         JobType jobType,
         CancellationToken cancellationToken = default
