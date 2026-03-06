@@ -182,6 +182,21 @@ public class SearchOrchestratorFunctionsTests
             )
             .Returns(providers);
 
+        // Pass on the call to the sub-orchestrator like for real, so we get an end-to-end test of the main `SearchOrchestrator`
+        _mockContext
+            .CallSubOrchestratorAsync<IReadOnlyList<SearchResultWithDecision>>(
+                "SearchProviderSubOrchestrator",
+                Arg.Any<SearchProviderSubOrchestratorInput>()
+            )
+            .Returns(callInfo =>
+            {
+                var subOrchestratorInput = callInfo.Arg<SearchProviderSubOrchestratorInput>();
+                _mockContext
+                    .GetInput<SearchProviderSubOrchestratorInput>()
+                    .Returns(subOrchestratorInput);
+                return _orchestrator.SearchProviderSubOrchestrator(_mockContext);
+            });
+
         // Unfiltered query results per provider
         var queryResultOrg1 = new List<CustodianSearchResultItem>
         {
