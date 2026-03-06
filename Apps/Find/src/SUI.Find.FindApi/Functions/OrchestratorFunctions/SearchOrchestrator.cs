@@ -35,9 +35,12 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             throw new ArgumentException("Invalid input in Search Orchestrator");
         }
 
+        var jobId = context.InstanceId;
+
         using var logScope = logger.BeginScope(
-            "CorrelationId: {CorrelationId}",
-            data.Metadata.InvocationId
+            "CorrelationId: {CorrelationId}, JobId: {JobId}",
+            data.Metadata.InvocationId,
+            jobId
         );
 
         logger.LogInformation("Search Orchestrator started");
@@ -65,7 +68,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
                     "QueryProvidersFunction",
                     new QueryProviderInput(
                         data.PolicyContext.ClientId,
-                        context.InstanceId,
+                        jobId,
                         data.Metadata.InvocationId,
                         data.Suid,
                         provider
@@ -91,14 +94,14 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         foreach (var provider in availableProviders)
         {
             var providerResults = aggregatedQueryProviderResults
-                .Where(r =>
+                .Where(searchResultItem =>
                     string.Equals(
-                        r.CustodianId,
-                        provider.ProviderSystem,
+                        searchResultItem.CustodianId,
+                        provider.OrgId,
                         StringComparison.OrdinalIgnoreCase
                     )
                     && string.Equals(
-                        r.RecordType,
+                        searchResultItem.RecordType,
                         provider.RecordType,
                         StringComparison.OrdinalIgnoreCase
                     )
