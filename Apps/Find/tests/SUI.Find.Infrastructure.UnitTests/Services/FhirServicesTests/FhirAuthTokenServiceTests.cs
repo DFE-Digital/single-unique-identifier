@@ -21,23 +21,7 @@ public class FhirAuthTokenServiceTests
 
     private const string DummyToken = "a.dummy.token";
 
-    private const string DummyPrivateKey = """
-        -----BEGIN RSA PRIVATE KEY-----
-        MIICWgIBAAKBgFO1fY49w+i7dyUui3gd2lzHtTh/5uZn98Ai3DyigxVBzE1SdMsh
-        yt6xRIa6/gwpTrQGd3yxx51ud8l675fu5i10IJ7BjxKUHF0EBMidR4I9AbqRRjmk
-        FNQnP4n6B0coQXldD2WSXaS2U1en8L4sGQUAAT0pRUEg8T22oCE8wKDTAgMBAAEC
-        gYAFjGoeG4n4yzRCiqtD8vaeX75rWE79xrZtTeI7QqpdplbcaTLEpCDGUgmwxIRC
-        WhqVZDhXU5FfpgramAN5lqQ7G4S+61+gdMHvtY+oCFxd7DfghbRri7LQOP3ums4E
-        uhy1/5ohUjesIk1MKMCHU7tKDeyKKctT/cqd4DLYENx1wQJBAKS5iYC+GE+8xbuJ
-        PvidtLI0ZOxmshDrCdl94YeIJfvFQy9iy3EZ038CN00f/1to2weSVdTfHtX7+GYf
-        2u/k/k8CQQCCF7wkJKu/SDn29VCYnh4gYgjwfHNLmUtCFC+2HRg1W6y7GmWKz+++
-        ikNbe2hJsqbVoN9pwyQc1mj6p2PIlXg9AkBYUCCoJUJjfZGFOc/I+sQlxnFVTLmq
-        2Fgvgo2nXBcBJIEgppbrzCzXqxh7AOym1VCYfpwFxJmDn9NM7Ucz1lGBAkAvXNzO
-        e9tbhLw1wRJavhZRy99dTrHbMDBKGndUYjtSEdJNPEsDwriSMlxbjg5l5nj/BdbQ
-        9o7LQPRvbUnS2TgxAkALVbOWrBW0NUg6PS2kACaX5nMvGU+qH4Zmk3atBKhL2PDl
-        V8n23abMyu2iFczaQvORFmZjsirX2bN9/BKXVc7d
-        -----END RSA PRIVATE KEY-----
-        """;
+    private static readonly string DummyPrivateKey = GenerateDummyPrivateKey();
     private const string DummyClientId = "test-client-id";
     private const string DummyKid = "test-kid";
 
@@ -71,6 +55,12 @@ public class FhirAuthTokenServiceTests
         _subSecretService
             .GetSecretAsync(secretName, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(secretValue));
+    }
+
+    private static string GenerateDummyPrivateKey()
+    {
+        using var rsa = System.Security.Cryptography.RSA.Create(2048);
+        return Convert.ToBase64String(rsa.ExportRSAPrivateKey());
     }
 
     private FhirAuthTokenService CreateService()
