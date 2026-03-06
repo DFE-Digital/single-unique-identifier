@@ -76,6 +76,9 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
         result.ExpectedJobCount.Should().Be(3);
         result.WorkItemId.Should().Be(workItemId);
         result.JobType.Should().Be(jobType);
+        result.CreatedAtUtc.Should().Be(now);
+        result.UpdatedAtUtc.Should().Be(now);
+        result.PayloadJson.Should().Be("{}");
     }
 
     [Fact]
