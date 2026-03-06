@@ -1,5 +1,6 @@
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -83,7 +84,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
                     jobType = JobType.Unknown;
                 }
 
-                var workItemTypeString = entity.GetString("workItemType");
+                var workItemTypeString = entity.GetString("WorkItemType");
 
                 if (!Enum.TryParse<WorkItemType>(workItemTypeString, out var workItemType))
                 {
@@ -104,7 +105,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
                         CreatedAtUtc = entity.GetDateTimeOffset("CreatedAtUtc")!.Value,
                         UpdatedAtUtc = entity.GetDateTimeOffset("UpdatedAtUtc")!.Value,
                         CompletedAtUtc = entity.GetDateTimeOffset("CompletedAtUtc"),
-                        PayloadJson = entity.GetString("PayloadJson")!,
+                        PayloadJson = entity.GetString("PayloadJson"),
                         JobTraceParent = entity.GetString("JobTraceParent"),
                         ETag = entity.ETag.ToString(),
                     }

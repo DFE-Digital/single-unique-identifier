@@ -1,5 +1,6 @@
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging.Abstractions;
+using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 
 namespace SUI.Find.Infrastructure.IntegrationTests.Repositories;
@@ -92,7 +93,7 @@ public class JobRepositoryTests : IAsyncLifetime
         var jobs = await _sut.ListJobsByCustodianIdAsync(custodianId, windowStart);
 
         jobs.Should().HaveCount(1);
-        jobs.First().JobId.Should().Be("new-job");
+        jobs[0].JobId.Should().Be("new-job");
     }
 
     [Fact]
@@ -133,8 +134,8 @@ public class JobRepositoryTests : IAsyncLifetime
             DateTimeOffset.UtcNow.AddHours(-1)
         );
 
-        jobs.First().JobId.Should().Be("first-job");
-        jobs.Last().JobId.Should().Be("second-job");
+        jobs[0].JobId.Should().Be("first-job");
+        jobs[1].JobId.Should().Be("second-job");
     }
 
     [Fact]
@@ -195,7 +196,7 @@ public class JobRepositoryTests : IAsyncLifetime
         );
 
         jobs.Should().HaveCount(1);
-        jobs.First().JobType.Should().Be(JobType.Unknown);
-        jobs.First().WorkItemType.Should().Be(WorkItemType.Unknown);
+        jobs[0].JobType.Should().Be(JobType.Unknown);
+        jobs[0].WorkItemType.Should().Be(WorkItemType.Unknown);
     }
 }
