@@ -1,3 +1,7 @@
+// Disable the Durable Functions analyzer rules for this file - this file contains only tests, and the actual Azure Functions do exist in the real code
+#pragma warning disable DURABLE2003
+#pragma warning disable DURABLE2004
+
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
