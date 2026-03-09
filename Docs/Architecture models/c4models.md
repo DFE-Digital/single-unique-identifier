@@ -9,6 +9,10 @@ of using the NHS number as the SUI and how data could be transferred between
 data owners nationally, to present this data as a single view of a child for
 the improved safeguarding of children.
 
+## Polling Architecture - High-Level Component Diagram
+
+![Polling Architecture - High-Level Component Diagram](./generated/polling-architecture.png)
+
 ## Fan-out architecture models
 
 Structurizr models for the Fan-out Architecture can be found in the [/Docs/Structurizr](../Structurizr/) directory ([Structurizr Readme](../Structurizr/README.md)).
