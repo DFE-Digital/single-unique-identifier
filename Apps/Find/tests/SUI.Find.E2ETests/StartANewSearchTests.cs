@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
@@ -142,6 +143,11 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
     [Theory]
     [MemberData(nameof(TestData))]
+    [SuppressMessage(
+        "Usage",
+        "xUnit1045",
+        Justification = "The `TestData` is a C# record, and the default string serialization of records provides distinct text for the purposes of test exploration, identification and results."
+    )]
     public async Task Should_PersistSearchData_When_OrchestrationCompletes(TestData testData)
     {
         var authToken = await GetAuthTokenAsync(
