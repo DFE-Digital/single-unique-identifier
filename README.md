@@ -1,17 +1,20 @@
 # Single Unique Identifier
 
 This repository is a mono repo that contains multiple .NET solutions, each organised under its own directory.
-.NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring separation of concerns, maintainability and testability.
+The .NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring separation of concerns, maintainability and testability.
 
-To view our documentation, please visit the [Docs](./Docs/index.md) directory.
+To view our technical documentation, please visit the [Docs](./Docs/index.md) directory.
+
+Looking for getting started with local development? Skip to [Getting Started](#getting-started).
 
 | Directory/File                    | Description                                                                                                 |
 |-----------------------------------|-------------------------------------------------------------------------------------------------------------|
 | [Apps](./Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
 | [Docs](./Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
 | [SystemTests](./SystemTests)      | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
-| [LICENCE](./LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
-| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
+| [LICENCE](./LICENCE)              | Standard DfE software licence<!-- Yes, that is spelled correctly. -->, applying to the entire system.       |
+| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing.                                   |
+
 
 ## What is 'Single Unique Identifier'?
 
@@ -46,6 +49,7 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 | `HealthDataRecord`               | health.details             | https://schemas.example.gov.uk/sui/HealthDataRecordV1.json                |
 | `PersonalDetailsRecord`          | personal.details           | https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json           |
 
+
 ## Getting Started
 
 ### Prerequisites
@@ -65,9 +69,16 @@ dotnet husky install
 
 This will install the tools specified in `.config/dotnet-tools.json`, including CSharpier for code formatting and Husky.Net for pre-commit hooks to ensure consistent code style.
 
-### Quick Run
+Also, ensure the .NET self-signed certificate is installed (to enable HTTPS use locally):
+```bash
+dotnet dev-certs https --trust
+```
+If encountering problems with the .NET dev certificate, run `dotnet dev-certs https --clean` first, then run `dotnet dev-certs https --trust`.
 
-1. Complete the Setup step above.
+
+## Quick Run
+
+1. Complete the Getting Started steps above.
 2. Start local dependencies (Azurite) from the repo root:
     ```bash
     docker compose up -d
@@ -108,9 +119,11 @@ OTEL_SERVICE_NAME=Your.App.Name
 Open `http://localhost:3000` (admin/admin) and use Explore to view logs and traces.
 If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
+
 ## CI workflows
 
 Workflow structure and inputs are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md). Self-hosted runner and Azure artifact storage details (including the rate-limit workaround and switchback flags) are in [Docs/Developers/ci-self-hosted-runner.md](./Docs/Developers/ci-self-hosted-runner.md).
+
 
 ## Repository structure
 
@@ -125,6 +138,7 @@ Apps/AppOrComponentName/
     YourCsTestProject.Integration.Tests/
 ```
 
+
 ## Clean architecture
 
 Each solution is structured according to Clean Architecture principles
@@ -133,6 +147,7 @@ Each solution is structured according to Clean Architecture principles
 - Application - Application logic
 - Infrastructure - External concerns (e.g. database, third party API calls)
 - Presentation/API - UI, API/Endpoints
+
 
 ## Run tests and collect coverage locally
 
@@ -145,11 +160,10 @@ All required tools (PowerShell 7.5.4, ReportGenerator, etc.) are installed as lo
     ```
 2. Run the test and coverage scripts (You can run the wrapper script for each solution i.e.: `dotnet pwsh <relative path to the solution scoped script>`)
     ```
-    dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
-    dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
-    dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
     dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
+    dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
     ```
+
 
 ## Set up Private Nuget Feed
 
