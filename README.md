@@ -5,7 +5,7 @@ The .NET solutions follow the [Clean Architecture](https://learn.microsoft.com/e
 
 To view our technical documentation, please visit the [Docs](./Docs/index.md) directory.
 
-Looking for getting started with local development? Skip to [Getting Started](#getting-started).
+Looking to getting started with local development? Skip to [Getting Started](#getting-started).
 
 | Directory/File                    | Description                                                                                                 |
 |-----------------------------------|-------------------------------------------------------------------------------------------------------------|
@@ -21,23 +21,65 @@ Looking for getting started with local development? Skip to [Getting Started](#g
 Single Unique Identifier is a proposed set of systems and standards to facilitate information
 sharing between multiple agencies for the improved safeguarding and welfare of children.
 
+Today, information about a child is distributed across many independent systems — in education, health, children’s social care, police, youth justice, early years and more. When these systems cannot communicate or reliably match records, important details can be missed, duplicated, or delayed.
+
+This project investigates the technical foundations required to help practitioners access the right information at the right time, while maintaining strong standards of privacy, security, and data minimisation.
+
+This project is in the Discovery Phase.  This means everything in this repository should be considered exploratory, not production‑ready.
+
+### What This Discovery Phase Is Exploring
+
+This Discovery phase is focused on learning, prototyping, and testing.  It does **not** create a final service — it explores what could work.
+
+Key areas of exploration include:
+
+1. Improving Identity Matching ("Match")
+2. Finding Who Holds Information ("Find")
+3. Understanding Future Data Exchange ("Fetch")
+
+The Discovery phase aims to understand needs, test technical feasibility, explore architectural options, identify risks, engage system suppliers, produce evidence to inform future Alpha and Beta phases, and validate whether the approach could support a future national service.
+
+### Security, Trust, and Privacy
+
+A core principle of this work is that **safeguarding information must be protected**.  
+The Discovery phase therefore emphasises:
+
+- Data minimisation
+- Clear audit logging
+- Strong authentication and role‑based access
+- Privacy‑by‑design throughout the architecture
+- No central store of case data
+- Only the minimum metadata required to support safe decision‑making
+
+This project explores _how_ a safe, trusted, multi‑agency approach could be implemented — not just the technology, but the standards and safeguards required.
+
+
 ## Glossary of Components
 
-* **`Matching Service`** (a.k.a. *`PDS Adapter`*) \
-  Match a PDS record (and NHS Number), given some demographic data.
+### `MatchingService` (a.k.a. *`PDS Adapter`*)
+* Match a PDS record and return the NHS Number, given some demographic information about a child.
 
-* **`MatchFunction`** (*"I know of this person, what is their ID"*) \
-  Enables Custodians to tell us that they have a record.
-  Invokes Matching Service (above), and updates the ID register; given some demographic data and some metadata about the data (record) they hold.
+### `MatchFunction` (a.k.a. *`Get-an-Identifier`*)
+* A service that takes basic demographic information (name, date of birth, address) and determines the most accurate identifier for a child.  
+* This service also enables agencies (custodians) to tell us that they have a record about the provided demographic information.  
+* This helps link records across multiple organisations with higher confidence.  
+* This service invokes the `MatchingService` (above), and updates the ID register. Only the SUI and custodian metadata is stored.
 
-* **`SearchFunction`** (a.k.a. *`Find-a-record`*) \
-  Find record pointers for a given SUI.
+### `SearchFunction` (a.k.a. *`Find-a-record`*)
+* A mechanism to identify which custodians have a record relating to a child, **without sharing any case data**.  
+* This gives practitioners a starting point for collaboration.  
+* Returns record pointers for a given SUI.
 
-* **`FetchRecordFunction`** (a.k.a. *`Fetch-a-record`* or *`Fetch`*) \
-  Resolve and return the actual data for a given record pointer.
+### `FetchRecordFunction` (a.k.a. *`Fetch-a-record`*)
+* Resolves and returns the record for a given record pointer.  
+* This may include a summary of the record, a link to a custodian system where authorised users can view the full details, or both.  
+* Some custodians may provide contact details only.  
+* This explores secure, controlled sharing of small agreed‑upon information packets between systems.  
+* This is not part of Discovery, but Discovery lays the groundwork for understanding whether and how this could be feasible.
 
-* **`StubCustodians`** (a.k.a. *`Stubs`*) \
-  Stub API that simulates real Custodians, to provide example data to Find and Fetch for testing purposes.
+### `StubCustodians` (a.k.a. *`Stubs`*)
+* Stub API that simulates real custodians, to provide example data for testing purposes.
+
 
 ## Record Types Reference
 
@@ -56,7 +98,7 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 
 - [.NET SDK](https://dotnet.microsoft.com/download) version 10.0.102 or later
 - [.NET runtime](https://dotnet.microsoft.com/download/dotnet/9.0) 9.0.x (required for `dotnet pwsh` and other local tools until PowerShell 7.6 is released with .NET 10 support)
-- Container runtime for local dependencies (suggested: Rancher Desktop with the Docker Engine option enabled if you need a GUI for Docker)
+- Container runtime for local dependencies (suggested: [Rancher Desktop](https://rancherdesktop.io) with the Docker Engine option enabled. Recommended if you need a GUI for Docker)
 
 ### Setup
 
