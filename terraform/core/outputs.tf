@@ -28,6 +28,11 @@ output "app_service_plan_sku" {
   description = "SKU of the shared App Service plan."
 }
 
+output "function_app_integration_subnet_id" {
+  value       = azurerm_subnet.function_app_integration.id
+  description = "ID of the delegated subnet used for Function App regional VNet integration."
+}
+
 output "log_analytics_workspace_id" {
   value       = azurerm_log_analytics_workspace.shared.id
   description = "ID of the shared Log Analytics workspace."

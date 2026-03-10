@@ -72,3 +72,15 @@ variable "log_analytics_retention_in_days" {
   type        = number
   default     = 30
 }
+
+variable "function_app_integration_vnet_address_space" {
+  description = "Address space for the dedicated VNet used by App Service regional VNet integration."
+  type        = list(string)
+  default     = ["10.250.0.0/24"]
+}
+
+variable "function_app_integration_subnet_address_prefixes" {
+  description = "Address prefixes for the delegated subnet used by App Service regional VNet integration."
+  type        = list(string)
+  default     = ["10.250.0.0/26"]
+}

@@ -27,6 +27,13 @@ locals {
     var.environment_id,
     var.region_short
   )
+  function_app_integration_vnet_name = format(
+    "%s%svnet-%s-funcint01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  )
+  function_app_integration_subnet_name = "snet-function-app-integration"
 }
 
 module "resource_group" {
@@ -52,6 +59,32 @@ resource "azurerm_service_plan" "shared" {
   worker_count        = var.app_service_plan_worker_count
 
   tags = local.base_tags
+}
+
+resource "azurerm_virtual_network" "function_app_integration" {
+  name                = local.function_app_integration_vnet_name
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+  address_space       = var.function_app_integration_vnet_address_space
+
+  tags = local.base_tags
+}
+
+resource "azurerm_subnet" "function_app_integration" {
+  name                 = local.function_app_integration_subnet_name
+  resource_group_name  = module.resource_group.name
+  virtual_network_name = azurerm_virtual_network.function_app_integration.name
+  address_prefixes     = var.function_app_integration_subnet_address_prefixes
+  service_endpoints    = ["Microsoft.Storage"]
+
+  delegation {
+    name = "app-service-delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
 
 resource "azurerm_log_analytics_workspace" "shared" {
