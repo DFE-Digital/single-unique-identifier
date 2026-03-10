@@ -24,6 +24,23 @@ variable "https_only" {
   default     = true
 }
 
+variable "client_certificate_enabled" {
+  description = "Whether the web app should require client certificates."
+  type        = bool
+  default     = false
+}
+
+variable "client_certificate_mode" {
+  description = "Optional client certificate mode for the web app."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.client_certificate_mode == null || contains(["Required", "Optional", "OptionalInteractiveUser"], var.client_certificate_mode)
+    error_message = "client_certificate_mode must be null, Required, Optional, or OptionalInteractiveUser."
+  }
+}
+
 variable "enable_system_assigned_identity" {
   description = "Whether to enable a system-assigned managed identity."
   type        = bool
@@ -76,4 +93,16 @@ variable "health_check_path" {
   description = "The URI path to the endpoint to use for health checks. Should return 200 OK if the API is up and healthy."
   type        = string
   default     = "/api/health"
+}
+
+variable "http2_enabled" {
+  description = "Whether to enable HTTP/2 for the web app."
+  type        = bool
+  default     = true
+}
+
+variable "auth_settings_v2" {
+  description = "Optional auth_settings_v2 configuration for the web app."
+  type        = any
+  default     = null
 }
