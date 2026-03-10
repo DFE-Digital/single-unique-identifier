@@ -164,10 +164,7 @@ module "function_app" {
   service_plan_id     = data.terraform_remote_state.core.outputs.app_service_plan_id
 
   storage_account_name = local.function_storage_account_name
-  app_service_integration_subnet_id = try(
-    data.terraform_remote_state.core.outputs.function_app_integration_subnet_id,
-    null,
-  )
+  app_service_integration_subnet_id = data.terraform_remote_state.core.outputs.function_app_integration_subnet_id
   log_analytics_workspace_id = data.terraform_remote_state.core.outputs.log_analytics_workspace_id
 
   environment_tag  = var.environment_tag
@@ -243,10 +240,7 @@ module "audit_processor_function_app" {
   service_plan_id     = data.terraform_remote_state.core.outputs.app_service_plan_id
 
   storage_account_name = local.audit_processor_storage_account_name
-  app_service_integration_subnet_id = try(
-    data.terraform_remote_state.core.outputs.function_app_integration_subnet_id,
-    null,
-  )
+  app_service_integration_subnet_id = data.terraform_remote_state.core.outputs.function_app_integration_subnet_id
   log_analytics_workspace_id = data.terraform_remote_state.core.outputs.log_analytics_workspace_id
 
   environment_tag  = var.environment_tag

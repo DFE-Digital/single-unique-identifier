@@ -30,14 +30,10 @@ resource "azurerm_storage_account" "this" {
 
   allow_nested_items_to_be_public = false
 
-  dynamic "network_rules" {
-    for_each = var.app_service_integration_subnet_id == null ? [] : [var.app_service_integration_subnet_id]
-
-    content {
-      default_action             = "Deny"
-      bypass                     = ["AzureServices"]
-      virtual_network_subnet_ids = [network_rules.value]
-    }
+  network_rules {
+    default_action             = "Deny"
+    bypass                     = ["AzureServices"]
+    virtual_network_subnet_ids = [var.app_service_integration_subnet_id]
   }
 
   tags = merge(
@@ -98,7 +94,7 @@ resource "azurerm_linux_function_app" "this" {
   site_config {
     always_on              = true
     ftps_state             = var.ftps_state
-    vnet_route_all_enabled = var.app_service_integration_subnet_id != null
+    vnet_route_all_enabled = true
 
     health_check_path                 = var.health_check_path
     health_check_eviction_time_in_min = var.health_check_path == null ? null : 5
