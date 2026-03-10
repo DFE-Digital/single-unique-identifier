@@ -91,3 +91,14 @@ variable "key_vault_use_rbac" {
   type        = bool
   default     = false
 }
+
+variable "find_match_api_key_ttl_days" {
+  description = "Number of days before the generated Find Match API key secret expires."
+  type        = number
+  default     = 180
+
+  validation {
+    condition     = var.find_match_api_key_ttl_days > 0
+    error_message = "find_match_api_key_ttl_days must be greater than 0."
+  }
+}

@@ -125,10 +125,17 @@ resource "random_password" "find_match_api_key" {
   special = true
 }
 
+resource "time_static" "find_match_api_key_expiry_base" {}
+
 resource "azurerm_key_vault_secret" "find_match_api_key" {
-  name         = "find-match-api-key"
-  value        = random_password.find_match_api_key.result
-  key_vault_id = module.key_vault.id
+  name            = "find-match-api-key"
+  value           = random_password.find_match_api_key.result
+  key_vault_id    = module.key_vault.id
+  content_type    = "text/plain"
+  expiration_date = timeadd(
+    time_static.find_match_api_key_expiry_base.rfc3339,
+    format("%dh", var.find_match_api_key_ttl_days * 24),
+  )
 
   depends_on = [
     module.rbac_assignments_terraform_operator,
