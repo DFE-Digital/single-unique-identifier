@@ -29,6 +29,16 @@ resource "azurerm_storage_account" "this" {
 
   allow_nested_items_to_be_public = false
 
+  dynamic "network_rules" {
+    for_each = var.app_service_integration_subnet_id == null ? [] : [var.app_service_integration_subnet_id]
+
+    content {
+      default_action             = "Deny"
+      bypass                     = ["AzureServices"]
+      virtual_network_subnet_ids = [network_rules.value]
+    }
+  }
+
   tags = merge(
     local.base_tags,
     var.tags,
@@ -36,10 +46,11 @@ resource "azurerm_storage_account" "this" {
 }
 
 resource "azurerm_linux_function_app" "this" {
-  name                = var.name
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  service_plan_id     = var.service_plan_id
+  name                      = var.name
+  resource_group_name       = var.resource_group_name
+  location                  = var.location
+  service_plan_id           = var.service_plan_id
+  virtual_network_subnet_id = var.app_service_integration_subnet_id
 
   storage_account_name       = azurerm_storage_account.this.name
   storage_account_access_key = azurerm_storage_account.this.primary_access_key
@@ -54,14 +65,15 @@ resource "azurerm_linux_function_app" "this" {
   }
 
   site_config {
-    always_on = true
-    ftps_state = var.ftps_state
+    always_on              = true
+    ftps_state             = var.ftps_state
+    vnet_route_all_enabled = var.app_service_integration_subnet_id != null
 
     health_check_path                 = var.health_check_path
     health_check_eviction_time_in_min = var.health_check_path == null ? null : 5
 
     application_stack {
-      dotnet_version = var.dotnet_version
+      dotnet_version               = var.dotnet_version
       use_dotnet_isolated_runtime = true
     }
 

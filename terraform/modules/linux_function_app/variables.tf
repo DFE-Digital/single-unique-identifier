@@ -23,6 +23,12 @@ variable "storage_account_name" {
   type        = string
 }
 
+variable "app_service_integration_subnet_id" {
+  description = "Optional subnet ID used for regional VNet integration and storage account network rules."
+  type        = string
+  default     = null
+}
+
 variable "https_only" {
   description = "Whether the function app enforces HTTPS-only."
   type        = bool
