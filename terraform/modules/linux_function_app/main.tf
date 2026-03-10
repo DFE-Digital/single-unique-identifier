@@ -36,6 +36,16 @@ resource "azurerm_storage_account" "this" {
     virtual_network_subnet_ids = [var.app_service_integration_subnet_id]
   }
 
+  queue_properties {
+    logging {
+      delete                = true
+      read                  = true
+      write                 = true
+      version               = "1.0"
+      retention_policy_days = 30
+    }
+  }
+
   tags = merge(
     local.base_tags,
     var.tags,
