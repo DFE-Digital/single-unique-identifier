@@ -161,6 +161,7 @@ module "function_app" {
     data.terraform_remote_state.core.outputs.function_app_integration_subnet_id,
     null,
   )
+  log_analytics_workspace_id = data.terraform_remote_state.core.outputs.log_analytics_workspace_id
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -239,6 +240,7 @@ module "audit_processor_function_app" {
     data.terraform_remote_state.core.outputs.function_app_integration_subnet_id,
     null,
   )
+  log_analytics_workspace_id = data.terraform_remote_state.core.outputs.log_analytics_workspace_id
 
   environment_tag  = var.environment_tag
   product          = var.product

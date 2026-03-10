@@ -21,11 +21,12 @@ locals {
 }
 
 resource "azurerm_storage_account" "this" {
-  name                     = var.storage_account_name
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                               = var.storage_account_name
+  resource_group_name                = var.resource_group_name
+  location                           = var.location
+  account_tier                       = "Standard"
+  account_replication_type           = var.storage_account_replication_type
+  infrastructure_encryption_enabled = true
 
   allow_nested_items_to_be_public = false
 
@@ -43,6 +44,36 @@ resource "azurerm_storage_account" "this" {
     local.base_tags,
     var.tags,
   )
+}
+
+resource "azurerm_monitor_diagnostic_setting" "storage_service" {
+  for_each = var.log_analytics_workspace_id == null ? {} : {
+    blob  = "${azurerm_storage_account.this.id}/blobServices/default"
+    file  = "${azurerm_storage_account.this.id}/fileServices/default"
+    queue = "${azurerm_storage_account.this.id}/queueServices/default"
+    table = "${azurerm_storage_account.this.id}/tableServices/default"
+  }
+
+  name                       = "${var.storage_account_name}-${each.key}-diag"
+  target_resource_id         = each.value
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category = "StorageRead"
+  }
+
+  enabled_log {
+    category = "StorageWrite"
+  }
+
+  enabled_log {
+    category = "StorageDelete"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
 }
 
 resource "azurerm_linux_function_app" "this" {
