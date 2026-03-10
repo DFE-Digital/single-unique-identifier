@@ -24,9 +24,8 @@ variable "storage_account_name" {
 }
 
 variable "app_service_integration_subnet_id" {
-  description = "Optional subnet ID used for regional VNet integration and storage account network rules."
+  description = "Subnet ID used for regional VNet integration and storage account network rules."
   type        = string
-  default     = null
 }
 
 variable "log_analytics_workspace_id" {
