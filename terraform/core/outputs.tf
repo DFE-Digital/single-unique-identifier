@@ -29,7 +29,7 @@ output "app_service_plan_sku" {
 }
 
 output "function_app_integration_subnet_id" {
-  value       = azurerm_virtual_network.function_app_integration.subnet[0].id
+  value       = one(azurerm_virtual_network.function_app_integration.subnet).id
   description = "ID of the delegated subnet used for Function App regional VNet integration."
 }
 
