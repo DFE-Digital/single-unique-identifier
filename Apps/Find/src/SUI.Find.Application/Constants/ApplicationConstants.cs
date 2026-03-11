@@ -23,6 +23,11 @@ public static class ApplicationConstants
         }
     }
 
+    public static class Queues
+    {
+        public const string JobResultsQueueName = "job-results-inbound";
+    }
+
     public static class Providers
     {
         public const string LoggingName = "providers";
