@@ -34,6 +34,12 @@ locals {
     var.region_short,
   )
   function_app_integration_subnet_name = "snet-function-app-integration"
+  function_app_integration_nsg_name = format(
+    "%s%snsg-%s-funcint01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  )
 }
 
 module "resource_group" {
@@ -70,12 +76,21 @@ resource "azurerm_virtual_network" "function_app_integration" {
   tags = local.base_tags
 }
 
+resource "azurerm_network_security_group" "function_app_integration" {
+  name                = local.function_app_integration_nsg_name
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
+}
+
 resource "azurerm_subnet" "function_app_integration" {
-  name                 = local.function_app_integration_subnet_name
-  resource_group_name  = module.resource_group.name
-  virtual_network_name = azurerm_virtual_network.function_app_integration.name
-  address_prefixes     = var.function_app_integration_subnet_address_prefixes
-  service_endpoints    = ["Microsoft.Storage"]
+  name                      = local.function_app_integration_subnet_name
+  resource_group_name       = module.resource_group.name
+  virtual_network_name      = azurerm_virtual_network.function_app_integration.name
+  address_prefixes          = var.function_app_integration_subnet_address_prefixes
+  service_endpoints         = ["Microsoft.Storage"]
+  network_security_group_id = azurerm_network_security_group.function_app_integration.id
 
   delegation {
     name = "app-service-delegation"
