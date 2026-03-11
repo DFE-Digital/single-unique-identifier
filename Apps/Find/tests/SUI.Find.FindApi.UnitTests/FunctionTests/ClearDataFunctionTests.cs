@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using Azure;
 using Azure.Data.Tables;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Configuration;
