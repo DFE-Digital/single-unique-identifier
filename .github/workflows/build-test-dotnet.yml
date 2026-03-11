@@ -93,7 +93,7 @@ jobs:
 
       - name: Setup Node.js (for Azurite and artifact upload)
         if: inputs.requires_azurite == true && inputs.skip_tests != true
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
