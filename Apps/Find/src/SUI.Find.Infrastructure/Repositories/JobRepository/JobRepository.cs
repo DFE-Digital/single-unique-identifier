@@ -64,7 +64,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
     )
     {
         var partitionKey = JobKeys.PartitionKey(custodianId);
-        var windowStartRowKey = JobKeys.RowKey(windowStart, "default");
+        var windowStartRowKey = JobKeys.RowKey(windowStart, "\0");
 
         var results = new List<Job>();
 
