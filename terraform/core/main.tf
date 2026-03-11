@@ -73,6 +73,22 @@ resource "azurerm_virtual_network" "function_app_integration" {
   resource_group_name = module.resource_group.name
   address_space       = var.function_app_integration_vnet_address_space
 
+  subnet {
+    name              = local.function_app_integration_subnet_name
+    address_prefixes  = var.function_app_integration_subnet_address_prefixes
+    security_group    = azurerm_network_security_group.function_app_integration.id
+    service_endpoints = ["Microsoft.Storage"]
+
+    delegation {
+      name = "app-service-delegation"
+
+      service_delegation {
+        name    = "Microsoft.Web/serverFarms"
+        actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      }
+    }
+  }
+
   tags = local.base_tags
 }
 
@@ -82,24 +98,6 @@ resource "azurerm_network_security_group" "function_app_integration" {
   resource_group_name = module.resource_group.name
 
   tags = local.base_tags
-}
-
-resource "azurerm_subnet" "function_app_integration" {
-  name                      = local.function_app_integration_subnet_name
-  resource_group_name       = module.resource_group.name
-  virtual_network_name      = azurerm_virtual_network.function_app_integration.name
-  address_prefixes          = var.function_app_integration_subnet_address_prefixes
-  service_endpoints         = ["Microsoft.Storage"]
-  network_security_group_id = azurerm_network_security_group.function_app_integration.id
-
-  delegation {
-    name = "app-service-delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
 }
 
 resource "azurerm_log_analytics_workspace" "shared" {
