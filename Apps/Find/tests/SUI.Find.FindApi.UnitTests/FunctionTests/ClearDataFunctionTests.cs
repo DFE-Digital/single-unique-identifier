@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Azure;
 using Azure.Data.Tables;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Configuration;
@@ -68,7 +69,7 @@ public class ClearDataFunctionTests
         _tableClient
             .QueryAsync(
                 Arg.Any<Expression<Func<FetchUrlMappingEntity, bool>>>(),
-                null,
+                Arg.Any<int?>(),
                 Arg.Any<IEnumerable<string>>(),
                 Arg.Any<CancellationToken>()
             )
@@ -96,7 +97,7 @@ public class ClearDataFunctionTests
             .Received(1)
             .QueryAsync(
                 Arg.Any<Expression<Func<FetchUrlMappingEntity, bool>>>(),
-                null,
+                Arg.Any<int?>(),
                 Arg.Any<IEnumerable<string>>(),
                 Arg.Any<CancellationToken>()
             );
@@ -117,7 +118,7 @@ public class ClearDataFunctionTests
             );
 
         _mockLogger
-            .ReceivedWithAnyArgs(2)
+            .ReceivedWithAnyArgs(3)
             .LogInformation("1 entities deleted from instance history");
     }
 
@@ -132,6 +133,16 @@ public class ClearDataFunctionTests
             .GetTableClient(InfrastructureConstants.StorageTableUrlMappings.TableName)
             .Returns(_tableClient);
 
+        var purgeResult = new PurgeResult(0);
+
+        _taskClient
+            .PurgeAllInstancesAsync(
+                Arg.Any<PurgeInstancesFilter>(),
+                null,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(purgeResult);
+
         // Act
         await _function.ClearData(new TimerInfo(), _taskClient, _cancellationToken);
 
@@ -140,7 +151,7 @@ public class ClearDataFunctionTests
             .Received(1)
             .QueryAsync(
                 Arg.Any<Expression<Func<FetchUrlMappingEntity, bool>>>(),
-                null,
+                Arg.Any<int?>(),
                 Arg.Any<IEnumerable<string>>(),
                 Arg.Any<CancellationToken>()
             );
@@ -171,7 +182,7 @@ public class ClearDataFunctionTests
         _tableClient
             .QueryAsync(
                 Arg.Any<Expression<Func<FetchUrlMappingEntity, bool>>>(),
-                null,
+                Arg.Any<int?>(),
                 Arg.Any<IEnumerable<string>>(),
                 Arg.Any<CancellationToken>()
             )
@@ -182,14 +193,16 @@ public class ClearDataFunctionTests
             .Returns(_tableClient);
 
         // Act
-        await _function.ClearData(new TimerInfo(), _taskClient, _cancellationToken);
+        await Assert.ThrowsAsync<RequestFailedException>(() =>
+            _function.ClearData(new TimerInfo(), _taskClient, _cancellationToken)
+        );
 
         // Assert
         _tableClient
             .Received(1)
             .QueryAsync(
                 Arg.Any<Expression<Func<FetchUrlMappingEntity, bool>>>(),
-                null,
+                Arg.Any<int?>(),
                 Arg.Any<IEnumerable<string>>(),
                 Arg.Any<CancellationToken>()
             );
@@ -209,7 +222,7 @@ public class ClearDataFunctionTests
             );
 
         await _taskClient
-            .Received(1)
+            .DidNotReceive()
             .PurgeAllInstancesAsync(
                 Arg.Any<PurgeInstancesFilter>(),
                 Arg.Any<PurgeInstanceOptions>(),
@@ -227,7 +240,7 @@ public class ClearDataFunctionTests
         _tableClient
             .QueryAsync(
                 Arg.Any<Expression<Func<FetchUrlMappingEntity, bool>>>(),
-                null,
+                Arg.Any<int?>(),
                 Arg.Any<IEnumerable<string>>(),
                 Arg.Any<CancellationToken>()
             )
@@ -242,14 +255,16 @@ public class ClearDataFunctionTests
             .Returns(_tableClient);
 
         // Act
-        await _function.ClearData(new TimerInfo(), _taskClient, _cancellationToken);
+        await Assert.ThrowsAsync<TableTransactionFailedException>(() =>
+            _function.ClearData(new TimerInfo(), _taskClient, _cancellationToken)
+        );
 
         // Assert
         _tableClient
             .Received(1)
             .QueryAsync(
                 Arg.Any<Expression<Func<FetchUrlMappingEntity, bool>>>(),
-                null,
+                Arg.Any<int?>(),
                 Arg.Any<IEnumerable<string>>(),
                 Arg.Any<CancellationToken>()
             );
@@ -269,7 +284,7 @@ public class ClearDataFunctionTests
             );
 
         await _taskClient
-            .Received(1)
+            .DidNotReceive()
             .PurgeAllInstancesAsync(
                 Arg.Any<PurgeInstancesFilter>(),
                 Arg.Any<PurgeInstanceOptions>(),
