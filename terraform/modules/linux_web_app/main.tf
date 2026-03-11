@@ -16,6 +16,8 @@ locals {
   )
 }
 
+# Accepted until Alpha while the web app auth and mTLS approach is still under review.
+#trivy:ignore:AZU-0001 trivy:ignore:AZU-0003
 resource "azurerm_linux_web_app" "this" {
   name                       = var.name
   resource_group_name        = var.resource_group_name

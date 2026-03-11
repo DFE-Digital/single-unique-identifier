@@ -20,6 +20,8 @@ locals {
   )
 }
 
+# Accepted until Alpha while the DR posture for Function App storage is still under review.
+#trivy:ignore:AZU-0058
 resource "azurerm_storage_account" "this" {
   name                               = var.storage_account_name
   resource_group_name                = var.resource_group_name

@@ -127,6 +127,8 @@ resource "random_password" "find_match_api_key" {
 
 resource "time_static" "find_match_api_key_expiry_base" {}
 
+# Accepted until Alpha while API key and auth decisions are still being worked through.
+#trivy:ignore:AZU-0017
 resource "azurerm_key_vault_secret" "find_match_api_key" {
   name            = "find-match-api-key"
   value           = random_password.find_match_api_key.result
