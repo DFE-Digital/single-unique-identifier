@@ -111,6 +111,20 @@ dotnet husky install
 
 This will install the tools specified in `.config/dotnet-tools.json`, including CSharpier for code formatting and Husky.Net for pre-commit hooks to ensure consistent code style.
 
+Commits also run a GitLeaks pre-commit scan via Husky. The hook will use a pinned GitLeaks `8.30.0` binary and download it into a user cache directory if it is not already available on your machine. The auto-install path currently supports macOS and Linux on x64 and arm64, plus Windows on x64.
+
+If you need to refresh the repository baseline for tracked fixtures, run:
+
+```bash
+dotnet pwsh ./scripts/security/run-gitleaks.ps1 -Mode Baseline
+```
+
+If GitLeaks blocks a commit and you are certain the finding is expected, update `.gitleaks.toml` or regenerate `.gitleaks.baseline.json`. For urgent one-off commits only, you can bypass the local scan with:
+
+```bash
+SUI_SKIP_GITLEAKS=1 git commit
+```
+
 Also, ensure the .NET self-signed certificate is installed (to enable HTTPS use locally):
 ```bash
 dotnet dev-certs https --trust
@@ -165,6 +179,12 @@ If using Aspire Dashboard, navigate to `http://localhost:18888`.
 ## CI workflows
 
 Workflow structure and inputs are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md). Self-hosted runner and Azure artifact storage details (including the rate-limit workaround and switchback flags) are in [Docs/Developers/ci-self-hosted-runner.md](./Docs/Developers/ci-self-hosted-runner.md).
+
+Security scanning is layered:
+
+- `Trivy IaC Scan` blocks pull requests and pushes to `main` on `HIGH` and `CRITICAL` infrastructure-as-code findings.
+- `TruffleHog Secret Scan` blocks pull requests and pushes to `main` on new verified or unknown secret findings.
+- `Trivy Repository Scan` and `TruffleHog Deep Secret Scan` run as broader scheduled/manual hygiene scans.
 
 
 ## Repository structure

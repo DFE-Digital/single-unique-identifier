@@ -71,6 +71,20 @@ Required inputs when running manually:
 - If Azure uploads fail with missing inputs, ensure secrets/vars are set at the repo level (not just environment scope).
 - If deployments fail due to artifacts not found, verify the artifact names and storage backend match across build and deploy jobs.
 
+## Security scanning
+
+The repo now uses separate workflows for infrastructure checks and secret scanning:
+
+- [`trivy-iac.yml`](../../.github/workflows/trivy-iac.yml) blocks PRs and pushes to `main` when Trivy finds `HIGH` or `CRITICAL` IaC misconfigurations.
+- [`trufflehog.yml`](../../.github/workflows/trufflehog.yml) blocks PRs and pushes to `main` on new verified or unknown secrets.
+- [`trivy.yml`](../../.github/workflows/trivy.yml) runs a broader non-blocking repository scan on a schedule or via manual dispatch.
+- [`trufflehog-deep-scan.yml`](../../.github/workflows/trufflehog-deep-scan.yml) runs a deeper scheduled/manual scan across the current branch history.
+
+If you configure GitHub branch protection for `main`, set these required checks:
+
+- `Trivy IaC Scan / Trivy IaC scan`
+- `TruffleHog Secret Scan / TruffleHog secret scan`
+
 ## Artifact cleanup
 
 The repo currently uses a 60-day default retention policy for artifacts and logs (check repo settings for changes).
