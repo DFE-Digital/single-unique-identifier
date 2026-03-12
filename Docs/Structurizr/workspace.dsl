@@ -1,9 +1,5 @@
 workspace "SUI" "'Single unique identifier' is a proposed set of systems and standards to faciliate information sharing between child social care (CSC) systems. This workspace/repository contains software that demonstrates the viability of using the NHS number as the SUI and how data could be transferred between data owners nationally, to present this data as a single view of a child for the improved safeguarding of children." {
 
-    !docs "./Architecture models"
-
-    !adrs "./Architecture decisions/Systems landscape"
-
     model {
         searcher = person "Safeguarding Practioners" "Directly working with children and families to provide social care. e.g. social worker."
 
@@ -33,8 +29,6 @@ workspace "SUI" "'Single unique identifier' is a proposed set of systems and sta
         }
 
         find = softwareSystem "FIND Service" "Determines which Custodians hold records for an NHS number and returns pointers" "External, API" {
-            !adrs "./Architecture decisions/System/Find"
-
             find_orchestration = container "FIND.Orchestration" "Entry point for FIND; coordinates Auth, Directory, CORE, Cache, PEP and Audit; returns policy-filtered pointers to callers." "C#, Azure Functions"
             find_auth          = container "FIND.Account.Auth" "Authenticates relying parties (tokens/credentials) and ensures they are registered to use FIND." "C#, Azure Functions"
             find_directory     = container "FIND.Account.Directory" "Directory of relying parties and custodians (organisation id, type, attributes, endpoints)." "C#, Azure Functions / Storage"

@@ -57,6 +57,9 @@ public static class ServiceCollectionExtensions
 
         services.AddAzureTableServices();
 
+        services.AddOptions<JobClaimConfig>().BindConfiguration(JobClaimConfig.SectionName);
+        services.AddSingleton<IJobWindowStartService, JobWindowStartService>();
+
         return services;
     }
 

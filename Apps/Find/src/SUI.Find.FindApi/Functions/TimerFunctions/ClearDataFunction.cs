@@ -18,6 +18,7 @@ public class ClearDataFunction(
 )
 {
     private const string Schedule = "0 0 4 * * *"; // Once per day, at 4am
+    private const int BatchSize = 99;
 
     [Function(nameof(ClearDataFunction))]
     [FixedDelayRetry(5, "00:00:10")]
@@ -58,45 +59,48 @@ public class ClearDataFunction(
     {
         try
         {
-            var transactionActions = new List<TableTransactionAction>();
-
             var tableEntities = tableClient.QueryAsync<FetchUrlMappingEntity>(
                 e => e.Timestamp < purgeCutoff,
+                maxPerPage: BatchSize,
                 select: ["PartitionKey", "RowKey"],
                 cancellationToken: cancellationToken
             );
 
-            await foreach (var tableEntity in tableEntities)
+            var totalEntitiesRemoved = 0;
+
+            await foreach (var tableEntityPage in tableEntities.AsPages())
             {
-                transactionActions.Add(
-                    new TableTransactionAction(TableTransactionActionType.Delete, tableEntity)
+                var transactionActions = tableEntityPage
+                    .Values.Select(entity => new TableTransactionAction(
+                        TableTransactionActionType.Delete,
+                        entity
+                    ))
+                    .ToList();
+
+                var transactionResponse = await tableClient.SubmitTransactionAsync(
+                    transactionActions,
+                    cancellationToken
                 );
+
+                logger.LogInformation(
+                    "Batch of {Count} table entities successfully removed from table",
+                    transactionResponse.Value.Count(x => !x.IsError)
+                );
+
+                totalEntitiesRemoved += transactionResponse.Value.Count;
             }
 
-            if (transactionActions.Count == 0)
+            if (totalEntitiesRemoved == 0)
             {
                 logger.LogInformation("No table entities to delete.");
-                return;
             }
-
-            var transactionResponse = await tableClient.SubmitTransactionAsync(
-                transactionActions,
-                cancellationToken
-            );
-
-            foreach (var errorResponse in transactionResponse.Value.Where(x => x.IsError))
+            else
             {
-                logger.LogError(
-                    "Error submitting delete transaction. Request ID: {Detail}. Reason: {Error}",
-                    errorResponse.ClientRequestId,
-                    errorResponse.ReasonPhrase
+                logger.LogInformation(
+                    "{Count} total table entities successfully deleted.",
+                    totalEntitiesRemoved
                 );
             }
-
-            logger.LogInformation(
-                "{Count} entities successfully removed from table",
-                transactionResponse.Value.Count(x => !x.IsError)
-            );
         }
         catch (TableTransactionFailedException ex)
         {
@@ -105,18 +109,22 @@ public class ClearDataFunction(
                 "One of the batch delete transactions failed. {Message}",
                 ex.Message
             );
+            throw;
         }
         catch (RequestFailedException ex)
         {
             logger.LogError(ex, "Error querying or clearing table. {Message}", ex.Message);
+            throw;
         }
         catch (InvalidOperationException ex)
         {
             logger.LogError(ex, "This transaction batch has already been submitted");
+            throw;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unable to clear table");
+            throw;
         }
     }
 
@@ -152,6 +160,7 @@ public class ClearDataFunction(
         catch (Exception ex)
         {
             logger.LogError(ex, "Unable to clear instance history");
+            throw;
         }
     }
 }

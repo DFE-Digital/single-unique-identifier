@@ -9,15 +9,21 @@ of using the NHS number as the SUI and how data could be transferred between
 data owners nationally, to present this data as a single view of a child for
 the improved safeguarding of children.
 
-## Contributing to the Docs
+## Polling Architecture - High-Level Component Diagram
 
-* Please make sure that the `./Architecture decisions` Markdown documents are navigable outside of Structurizer, by running the `./Architecture decisions/generate-overview-table.sh` bash script if any ADRs are changed/added.
-* After changing/adding any decisions and documentation, please make sure that Structurizer runs and displays correctly, and check it has no errors in the UI after loading it.
+![Polling Architecture - High-Level Component Diagram](./generated/polling-architecture.png)
+
+## Fan-out architecture models
+
+Structurizr models for the Fan-out Architecture can be found in the [/Docs/Structurizr](../Structurizr/) directory ([Structurizr Readme](../Structurizr/README.md)).
+
+The models are also shown here, for ease of access:
+
+![SUI System Landscape view](./structurizr-export/structurizr-SUI.png)
+
+![SUI Find Fan-out architecture overview](./structurizr-export/structurizr-FIND_Containers.png)
 
 ## Initial architecture models
-
-> [!IMPORTANT]
-> **Please see the Diagrams tab in Structurizr for the up to date diagrams.**
 
 The diagrams below provide the original logical and high-level infrastructure
 views on the single unique identifier systems.
@@ -36,8 +42,8 @@ the users of SUI, the acronyms, and the external systems.
 
 ### Transfer & View architecture
 
-This Container diagram shows the current version of the architecture
-model for the Transfer & View systems.
+This Container diagram shows the architecture model for the Transfer & View systems,
+which are currently on-hold and not being actively developed.
 
 ![Transfer & View architecture](./generated/transfer-view-architecture-v2.png)
 

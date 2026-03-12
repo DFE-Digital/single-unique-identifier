@@ -1,4 +1,4 @@
-# Overview
+# SUI Architecture Decision Records
 
 Architectural decisions in the Single Unique Identifier (SUI) programme are captured using
 Architecture Decision Records (ADRs).

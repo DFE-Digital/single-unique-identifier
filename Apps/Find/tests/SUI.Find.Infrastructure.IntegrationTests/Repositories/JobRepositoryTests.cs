@@ -199,4 +199,40 @@ public class JobRepositoryTests : IAsyncLifetime
         jobs[0].JobType.Should().Be(JobType.Unknown);
         jobs[0].WorkItemType.Should().Be(WorkItemType.Unknown);
     }
+
+    [Fact]
+    public async Task ListJobsByCustodianIdAsync_DoesReturnAllApplicableJobs()
+    {
+        var windowStart = DateTimeOffset.UtcNow.AddHours(-1);
+        var custodianId = $"Custodian_{Guid.NewGuid()}";
+
+        string[] jobIds =
+        [
+            "a-job",
+            "07ac4f10-65f7-4802-88bd-822671cc9dc7",
+            "ab5e66ee-99a5-482f-9cc2-285e28410418",
+            "z-job",
+        ];
+
+        await Task.WhenAll(
+            jobIds
+                .Select(jobId => new Job
+                {
+                    JobId = jobId,
+                    CustodianId = custodianId,
+                    JobType = JobType.CustodianLookup,
+                    WorkItemType = WorkItemType.SearchExecution,
+                    CreatedAtUtc = windowStart,
+                    UpdatedAtUtc = DateTimeOffset.UtcNow,
+                    PayloadJson = "{}",
+                })
+                .Select(job => _sut.UpsertAsync(job))
+        );
+
+        // ACT
+        var jobs = await _sut.ListJobsByCustodianIdAsync(custodianId, windowStart);
+
+        // ASSERT
+        jobs.Select(x => x.JobId).Should().BeEquivalentTo(jobIds);
+    }
 }

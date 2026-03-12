@@ -4,10 +4,12 @@
 set -e
 
 # --- Configuration ---
+# Make the script able to be run from higher levels
+SCRIPT_BASE_DIR="$(dirname "$0")/"
 # The main markdown file to update.
-OVERVIEW_FILE="overview.md"
+OVERVIEW_FILE="${SCRIPT_BASE_DIR}overview.md"
 # The top-level directories to scan for documentation.
-DIRS_TO_SCAN=("Systems landscape" "System")
+DIRS_TO_SCAN=("${SCRIPT_BASE_DIR}Systems landscape" "${SCRIPT_BASE_DIR}System")
 
 
 # --- Function Definitions ---
@@ -19,7 +21,7 @@ DIRS_TO_SCAN=("Systems landscape" "System")
 # @param {string} output_file The temporary file to write the generated markdown to.
 generate_tables_for_dir() {
     local dir_path="$1"
-    local heading_level="$2"
+    local heading_prefix="$2"
     local output_file="$3"
 
     # Check if there are any markdown files directly within this directory.
@@ -37,7 +39,7 @@ generate_tables_for_dir() {
     if [ "$md_files_found" = true ]; then
         # Append the heading and table header to the output file.
         echo "" >> "$output_file"
-        echo "$heading_level $dir_name" >> "$output_file"
+        echo "### $heading_prefix$dir_name" >> "$output_file"
         echo "" >> "$output_file"
         echo "| ID | Name |" >> "$output_file"
         echo "|----|------|" >> "$output_file"
@@ -54,7 +56,7 @@ generate_tables_for_dir() {
                 local id="${BASH_REMATCH[1]}"
                 local name=$(echo "${BASH_REMATCH[2]}" | tr -d "\r")
                 # Create a relative markdown link.
-                local link=$(echo "[${id}](${md_file})" | sed 's/ /%20/')
+                local link=$(echo "[${id}](./${md_file#$SCRIPT_BASE_DIR})" | sed 's/ /%20/g')
 
                 # Append the formatted table row to the output file.
                 echo "| ${link} | ${name} |" >> "$output_file"
@@ -64,19 +66,16 @@ generate_tables_for_dir() {
 
     # --- Recursion Step ---
     # Now, find all subdirectories and call this function again for each one.
-    local next_heading_level="#$heading_level"
+    local next_heading_prefix="$heading_prefix$dir_name - "
     while IFS= read -r -d $'\0' sub_dir; do
-        echo "" >> "$output_file"
-        echo "$heading_level $dir_name" >> "$output_file"
-    
-        generate_tables_for_dir "$sub_dir" "$next_heading_level" "$output_file"
+        generate_tables_for_dir "$sub_dir" "$next_heading_prefix" "$output_file"
     done < <(find "$dir_path" -maxdepth 1 -mindepth 1 -type d -print0 | sort -z)
 }
 
 
 # --- Main Script Logic ---
 
-# 1. Validate that the overview file exists and contains the "## Summary" heading.
+# 1. Validate that the overview file exists and contains the "## Summary of ADRs" heading.
 if [ ! -f "$OVERVIEW_FILE" ]; then
     echo "Error: The file '$OVERVIEW_FILE' was not found." >&2
     exit 1
@@ -85,7 +84,7 @@ fi
 summary_line_num=$(grep -n -m 1 "## Summary of ADRs" "$OVERVIEW_FILE" | cut -d: -f1)
 
 if [ -z "$summary_line_num" ]; then
-    echo "Error: Heading '## Summary' not found in '$OVERVIEW_FILE'." >&2
+    echo "Error: Heading '## Summary of ADRs' not found in '$OVERVIEW_FILE'." >&2
     exit 1
 fi
 
@@ -97,7 +96,7 @@ trap 'rm -f -- "$TEMP_TABLES"' EXIT
 # 3. Generate the markdown content by scanning the specified directories.
 for dir in "${DIRS_TO_SCAN[@]}"; do
     if [ -d "$dir" ]; then
-        generate_tables_for_dir "$dir" "###" "$TEMP_TABLES"
+        generate_tables_for_dir "$dir" "" "$TEMP_TABLES"
     fi
 done
 
