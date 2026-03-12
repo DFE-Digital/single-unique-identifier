@@ -1,0 +1,80 @@
+name: Trivy IaC Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trivy-iac:
+    name: Trivy IaC scan
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run Trivy IaC scan
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: json
+          output: trivy-iac-results.json
+          severity: HIGH,CRITICAL
+          exit-code: 0
+          scanners: misconfig
+          skip-dirs: |
+            .config
+            .git
+            .github
+            .husky
+            .idea
+            .run
+            Apps
+            Docs
+            SystemTests
+            coverage
+
+      - name: Summarize Trivy IaC results
+        id: summarize
+        shell: bash
+        run: |
+          findings=$(jq '[.Results[]?.Misconfigurations[]?] | length' trivy-iac-results.json)
+          echo "count=$findings" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Trivy IaC Results"
+            echo ""
+            echo "- Findings: $findings"
+            echo "- Severity threshold: HIGH,CRITICAL"
+
+            if [[ "$findings" -gt 0 ]]; then
+              echo ""
+              echo "| Target | ID | Severity | Title |"
+              echo "| --- | --- | --- | --- |"
+              jq -r '
+                .Results[]? as $result
+                | $result.Misconfigurations[]?
+                | "| \($result.Target) | \(.ID) | \(.Severity) | \(.Title | gsub("\\|"; "\\\\|")) |"
+              ' trivy-iac-results.json
+            else
+              echo ""
+              echo "No HIGH/CRITICAL IaC findings found."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on HIGH/CRITICAL IaC findings
+        if: steps.summarize.outputs.count != '0'
+        shell: bash
+        run: |
+          echo "Trivy found ${{ steps.summarize.outputs.count }} HIGH/CRITICAL IaC findings."
+          exit 1
