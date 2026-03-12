@@ -71,4 +71,20 @@ We love pull requests from everyone.
 
 For all .NET projects, we utilise [CSharpier](https://csharpier.com) to standardise code style and formatting. There are pre-commit hooks configured in this repository via [Husky.Net](https://github.com/alirezanet/husky.net) to ensure code is formatted before being committed.
 
+##### Secret scanning
+
+Pre-commit hooks also run GitLeaks against staged changes. The repository uses a pinned GitLeaks `8.30.0` binary, installed on demand into a user cache directory by [`scripts/security/run-gitleaks.ps1`](./scripts/security/run-gitleaks.ps1). The auto-install path currently supports macOS and Linux on x64 and arm64, plus Windows on x64.
+
+If a finding is expected because you are working with tracked fixtures or local development examples, update `.gitleaks.toml` or regenerate `.gitleaks.baseline.json` intentionally:
+
+```bash
+dotnet pwsh ./scripts/security/run-gitleaks.ps1 -Mode Baseline
+```
+
+For urgent one-off commits only, you can bypass the local GitLeaks hook with:
+
+```bash
+SUI_SKIP_GITLEAKS=1 git commit
+```
+
 It is recommended that you install the CSharpier extension for your preferred IDE to allow you to format code as you work on it. This is especially useful when combined with the "format on save" feature of most editors. Please follow the official [Editor Integration](https://csharpier.com/docs/Editors) documentation for guidance on how to set this up for your preferred editor.
