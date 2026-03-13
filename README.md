@@ -18,12 +18,9 @@ Looking to getting started with local development? Skip to [Getting Started](#ge
 
 ## What is 'Single Unique Identifier'?
 
-Single Unique Identifier is a proposed set of systems and standards to facilitate information
-sharing between multiple agencies for the improved safeguarding and welfare of children.
-
 Today, information about a child is distributed across many independent systems — in education, health, children’s social care, police, youth justice, early years and more. When these systems cannot communicate or reliably match records, important details can be missed, duplicated, or delayed.
 
-This project investigates the technical foundations required to help practitioners access the right information at the right time, while maintaining strong standards of privacy, security, and data minimisation.
+This project investigates the technical foundations required to help practitioners improve safeguarding and welfare of children by accessing the right information at the right time, while maintaining strong standards of privacy, security, and data minimisation.
 
 This project is in the Discovery Phase.  This means everything in this repository should be considered exploratory, not production‑ready.
 
