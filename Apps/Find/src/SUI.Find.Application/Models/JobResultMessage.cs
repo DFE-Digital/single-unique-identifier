@@ -1,12 +1,14 @@
+using SUI.Find.Application.Enums;
+
 namespace SUI.Find.Application.Models;
 
 public record JobResultMessage
 {
     public required string JobId { get; init; }
 
-    public required string JobType { get; init; }
+    public required JobType JobType { get; init; }
 
-    public string? WorkItemType { get; init; }
+    public WorkItemType? WorkItemType { get; init; }
 
     public required string WorkItemId { get; init; }
 
