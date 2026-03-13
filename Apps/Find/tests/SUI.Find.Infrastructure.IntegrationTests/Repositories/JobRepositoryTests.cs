@@ -1,6 +1,6 @@
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging.Abstractions;
-using SUI.Find.Infrastructure.Enums;
+using SUI.Find.Application.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 
 namespace SUI.Find.Infrastructure.IntegrationTests.Repositories;

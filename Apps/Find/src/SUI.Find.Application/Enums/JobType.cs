@@ -1,4 +1,4 @@
-namespace SUI.Find.Infrastructure.Enums;
+namespace SUI.Find.Application.Enums;
 
 public enum JobType
 {

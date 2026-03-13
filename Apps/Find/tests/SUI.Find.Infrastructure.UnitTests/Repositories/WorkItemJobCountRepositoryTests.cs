@@ -2,7 +2,7 @@ using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using SUI.Find.Infrastructure.Enums;
+using SUI.Find.Application.Enums;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 
 namespace SUI.Find.Infrastructure.UnitTests.Repositories;
