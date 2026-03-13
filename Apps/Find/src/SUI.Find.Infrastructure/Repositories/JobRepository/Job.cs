@@ -14,7 +14,7 @@ public class Job
     public int AttemptCount { get; init; }
     public DateTimeOffset CreatedAtUtc { get; init; }
     public DateTimeOffset UpdatedAtUtc { get; init; }
-    public DateTimeOffset? CompletedAtUtc { get; init; }
+    public DateTimeOffset? CompletedAtUtc { get; set; }
     public required string PayloadJson { get; init; }
     public string? JobTraceParent { get; init; }
     public string? ETag { get; init; }

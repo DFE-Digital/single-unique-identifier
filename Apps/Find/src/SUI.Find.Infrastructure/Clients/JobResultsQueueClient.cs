@@ -30,10 +30,10 @@ public class JobResultsQueueClient(
         {
             logger.LogError(
                 ex,
-                "Failed to enqueue JobResultMessage for JobId {JobId}",
-                message.JobId
+                "Failed to enqueue JobResultMessage for JobId {JobId} with CustodianId {CustodianId}",
+                message.JobId,
+                message.CustodianId
             );
-            throw;
         }
     }
 }
