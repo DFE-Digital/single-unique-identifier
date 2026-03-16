@@ -12,6 +12,7 @@ using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Factories.Fhir;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
+using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Services;
@@ -58,7 +59,9 @@ public static class ServiceCollectionExtensions
         services.AddAzureTableServices();
 
         services.AddOptions<JobClaimConfig>().BindConfiguration(JobClaimConfig.SectionName);
+        services.AddSingleton<IJobRepository, JobRepository>();
         services.AddSingleton<IJobWindowStartService, JobWindowStartService>();
+        services.AddSingleton<IJobClaimService, JobClaimService>();
 
         return services;
     }

@@ -1,3 +1,4 @@
+using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Infrastructure.Enums;
@@ -22,6 +23,41 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
 
     public async Task UpsertAsync(Job job, CancellationToken cancellationToken = default)
     {
+        var entity = ToTableEntity(job);
+
+        try
+        {
+            await Table.UpsertEntityAsync(entity, TableUpdateMode.Replace, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to upsert Job {JobId} for Custodian {CustodianId}",
+                job.JobId,
+                job.CustodianId
+            );
+        }
+    }
+
+    public async Task UpdateAsync(
+        Job job,
+        string ifMatchETag,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var entity = ToTableEntity(job);
+
+        await Table.UpdateEntityAsync(
+            entity,
+            new ETag(ifMatchETag),
+            TableUpdateMode.Replace,
+            cancellationToken
+        );
+    }
+
+    private static TableEntity ToTableEntity(Job job)
+    {
         var partitionKey = JobKeys.PartitionKey(job.CustodianId);
         var rowKey = JobKeys.RowKey(job.CreatedAtUtc, job.JobId);
 
@@ -41,20 +77,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
             { "PayloadJson", job.PayloadJson },
             { "JobTraceParent", job.JobTraceParent },
         };
-
-        try
-        {
-            await Table.UpsertEntityAsync(entity, TableUpdateMode.Replace, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Failed to upsert Job {JobId} for Custodian {CustodianId}",
-                job.JobId,
-                job.CustodianId
-            );
-        }
+        return entity;
     }
 
     public async Task<IReadOnlyList<Job>> ListJobsByCustodianIdAsync(

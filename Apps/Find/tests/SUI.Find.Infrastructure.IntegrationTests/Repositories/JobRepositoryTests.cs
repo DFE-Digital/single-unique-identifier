@@ -1,4 +1,6 @@
+using Azure;
 using Azure.Data.Tables;
+using Azure.Data.Tables.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -56,6 +58,114 @@ public class JobRepositoryTests : IAsyncLifetime
         entity.GetString("WorkItemType").Should().Be(job.WorkItemType.ToString());
         entity.GetString("WorkItemId").Should().Be(job.WorkItemId);
         entity.GetDateTimeOffset("CompletedAtUtc").Should().Be(job.CompletedAtUtc);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_UpdatesExistingJob_AsExpected()
+    {
+        var createdAt = DateTimeOffset.UtcNow.AddMinutes(-10);
+
+        var custodianId = $"Custodian_{Guid.NewGuid()}";
+
+        var job = new Job
+        {
+            JobId = $"Job_{Guid.NewGuid()}",
+            CustodianId = custodianId,
+            JobType = JobType.CustodianLookup,
+            WorkItemType = WorkItemType.SearchExecution,
+            WorkItemId = $"WI_{Guid.NewGuid()}",
+            CreatedAtUtc = createdAt,
+            UpdatedAtUtc = createdAt,
+            PayloadJson = "{}",
+        };
+
+        await _sut.UpsertAsync(job);
+
+        var updateRequest = job with
+        {
+            LeaseId = "updated-LeaseId",
+            LeaseExpiresAtUtc = createdAt.AddMinutes(30),
+            AttemptCount = 1234,
+            UpdatedAtUtc = createdAt.AddMinutes(1),
+            CompletedAtUtc = createdAt.AddMinutes(2),
+            JobTraceParent = "updated-JobTraceParent",
+        };
+
+        // ACT
+        await _sut.UpdateAsync(updateRequest, ifMatchETag: "*");
+
+        // ASSERT
+        var entity = (
+            await TableStorageFixture
+                .Client.GetTableClient(InfrastructureConstants.StorageTableJobRepository.TableName)
+                .GetEntityAsync<TableEntity>(
+                    JobKeys.PartitionKey(job.CustodianId),
+                    JobKeys.RowKey(job.CreatedAtUtc, job.JobId)
+                )
+        ).Value;
+
+        entity.GetString("JobId").Should().Be(job.JobId);
+        entity.GetString("CustodianId").Should().Be(job.CustodianId);
+
+        entity.GetString("LeaseId").Should().Be("updated-LeaseId");
+        entity.GetDateTimeOffset("LeaseExpiresAtUtc").Should().Be(createdAt.AddMinutes(30));
+        entity.GetInt32("AttemptCount").Should().Be(1234);
+        entity.GetDateTimeOffset("UpdatedAtUtc").Should().Be(createdAt.AddMinutes(1));
+        entity.GetDateTimeOffset("CompletedAtUtc").Should().Be(createdAt.AddMinutes(2));
+        entity.GetString("JobTraceParent").Should().Be("updated-JobTraceParent");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ThrowsExpectedError_WhenTheJobIsUpdatedElsewhereConcurrently()
+    {
+        var job = new Job
+        {
+            JobId = $"Job_{Guid.NewGuid()}",
+            CustodianId = $"Custodian_{Guid.NewGuid()}",
+            JobType = JobType.CustodianLookup,
+            WorkItemType = WorkItemType.SearchExecution,
+            WorkItemId = $"WI_{Guid.NewGuid()}",
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            UpdatedAtUtc = DateTimeOffset.UtcNow,
+            PayloadJson = "{}",
+        };
+
+        await _sut.UpsertAsync(job);
+
+        var originalETag = (await GetEntityAsync()).ETag.ToString();
+        originalETag.Should().NotBe("*");
+
+        var updateRequest = job with { LeaseId = "updated-LeaseId", ETag = originalETag };
+
+        // Simulate a different invocation updating the Job concurrently
+        await _sut.UpdateAsync(updateRequest, ifMatchETag: originalETag);
+
+        // ACT & ASSERT
+        var action = async () => await _sut.UpdateAsync(updateRequest, ifMatchETag: originalETag);
+
+        (await action.Should().ThrowAsync<RequestFailedException>())
+            .And.Should()
+            .BeEquivalentTo(
+                new
+                {
+                    Status = 412,
+                    ErrorCode = TableErrorCode.UpdateConditionNotSatisfied.ToString(),
+                }
+            );
+
+        return;
+
+        async Task<TableEntity> GetEntityAsync() =>
+            (
+                await TableStorageFixture
+                    .Client.GetTableClient(
+                        InfrastructureConstants.StorageTableJobRepository.TableName
+                    )
+                    .GetEntityAsync<TableEntity>(
+                        JobKeys.PartitionKey(job.CustodianId),
+                        JobKeys.RowKey(job.CreatedAtUtc, job.JobId)
+                    )
+            ).Value;
     }
 
     [Fact]
