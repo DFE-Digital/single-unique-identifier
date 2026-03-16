@@ -142,7 +142,7 @@ public class SearchFunctionV2(
         response.Headers.Add("Pragma", "no-cache");
         response.Headers.Add("Expires", DateTime.MinValue.ToUniversalTime().ToString("R"));
         response.Headers.Add("Vary", "Authorization");
-        var searchResults = SearchJob.FromDto(result);
+        var searchResults = SearchJobV2.FromDto(result);
         await response.WriteAsJsonAsync(searchResults, cancellationToken);
         return response;
     }

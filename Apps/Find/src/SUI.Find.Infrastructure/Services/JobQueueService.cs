@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Enums;
-using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Interfaces;
@@ -12,13 +11,12 @@ namespace SUI.Find.Infrastructure.Services;
 
 public class JobQueueService(
     ILogger<JobQueueService> logger,
-    IQueueClientFactory queueClientFactory,
-    IHashService hashService
+    IQueueClientFactory queueClientFactory
 ) : IJobQueueService
 {
     public async Task<SearchJobDto> PostSearchJobAsync(
         SearchRequestMessage payload,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken = default
     )
     {
         var queueClient = queueClientFactory.GetSearchJobClient();
@@ -27,8 +25,6 @@ public class JobQueueService(
         var messageBytes = Encoding.UTF8.GetBytes(messageJson);
         var base64Message = Convert.ToBase64String(messageBytes);
 
-        var instanceId = $"{payload.PersonId}-{payload.RequestingCustodianId}";
-        var hashedInstanceId = hashService.HmacSha256Hash(instanceId);
         try
         {
             await queueClient.SendMessageAsync(base64Message, cancellationToken);

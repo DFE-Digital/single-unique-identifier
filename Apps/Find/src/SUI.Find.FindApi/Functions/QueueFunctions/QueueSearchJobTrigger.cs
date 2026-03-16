@@ -3,6 +3,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -46,17 +47,16 @@ public class QueueSearchJobTrigger(
 
         foreach (var custodian in custodians)
         {
-            dynamic jsonPayload = new
-            {
-                Sui = searchRequestMessage.PersonId,
-                RecordType = custodian.RecordType,
-            };
+            var custodianPayload = new CustodianLookupJobPayload(
+                searchRequestMessage.PersonId,
+                custodian.RecordType
+            );
             var job = new Job
             {
                 CustodianId = custodian.OrgId,
                 JobId = Guid.NewGuid().ToString(),
                 JobType = JobType.CustodianLookup,
-                PayloadJson = JsonSerializer.Serialize(jsonPayload),
+                PayloadJson = JsonSerializer.Serialize(custodianPayload),
                 WorkItemId = searchRequestMessage.WorkItemId.ToString(),
                 JobTraceParent = context.TraceContext.TraceParent,
                 WorkItemType = WorkItemType.SearchExecution,
@@ -67,7 +67,7 @@ public class QueueSearchJobTrigger(
             await jobRepository.UpsertAsync(job, token);
         }
 
-        dynamic jobCountPayload = new { Sui = searchRequestMessage.PersonId };
+        var jobCountPayload = new SearchWorkItemPayload(searchRequestMessage.PersonId);
         await workItemJobCountRepository.UpsertAsync(
             new WorkItemJobCount
             {

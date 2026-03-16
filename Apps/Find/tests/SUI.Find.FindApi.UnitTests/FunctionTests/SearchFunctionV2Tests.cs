@@ -18,6 +18,10 @@ namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
 public class SearchFunctionV2Tests
 {
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
     private readonly ILogger<SearchFunctionV2> _logger = Substitute.For<
         ILogger<SearchFunctionV2>
     >();
@@ -104,10 +108,7 @@ public class SearchFunctionV2Tests
         result.Body.Position = 0;
         using var reader = new StreamReader(result.Body);
         var responseBody = await reader.ReadToEndAsync();
-        var searchJob = JsonSerializer.Deserialize<SearchJob>(
-            responseBody,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-        );
+        var searchJob = JsonSerializer.Deserialize<SearchJob>(responseBody, _jsonOptions);
 
         Assert.NotNull(searchJob);
         Assert.Equal(expectedJobId, searchJob.JobId);

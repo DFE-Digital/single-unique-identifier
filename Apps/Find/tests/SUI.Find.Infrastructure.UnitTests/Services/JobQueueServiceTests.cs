@@ -25,14 +25,11 @@ public class JobQueueServiceTests
         Substitute.For<IQueueClientFactory>();
     private readonly ISearchJobQueueSender _searchJobQueueSender =
         Substitute.For<ISearchJobQueueSender>();
-    private readonly IHashService _hashService = Substitute.For<IHashService>();
 
     public JobQueueServiceTests()
     {
         _queueClientFactory.GetSearchJobClient().Returns(_searchJobQueueSender);
-        _hashService.HmacSha256Hash(Arg.Any<string>()).Returns("hashed-instance-id");
-
-        _jobQueueService = new JobQueueService(_logger, _queueClientFactory, _hashService);
+        _jobQueueService = new JobQueueService(_logger, _queueClientFactory);
     }
 
     [Fact]
