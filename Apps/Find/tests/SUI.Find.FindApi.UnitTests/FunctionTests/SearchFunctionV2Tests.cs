@@ -108,11 +108,11 @@ public class SearchFunctionV2Tests
         result.Body.Position = 0;
         using var reader = new StreamReader(result.Body);
         var responseBody = await reader.ReadToEndAsync();
-        var searchJob = JsonSerializer.Deserialize<SearchJob>(responseBody, _jsonOptions);
+        var searchJob = JsonSerializer.Deserialize<SearchJobV2>(responseBody, _jsonOptions);
 
         Assert.NotNull(searchJob);
         Assert.Equal(expectedJobId, searchJob.JobId);
-        Assert.Equal(SearchStatus.Queued, searchJob.Status);
+        Assert.Equal(searchJobDto.PersonId, searchJob.Suid);
     }
 
     [Fact]
