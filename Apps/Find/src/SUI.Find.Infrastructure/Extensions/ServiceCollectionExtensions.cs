@@ -12,8 +12,10 @@ using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Factories.Fhir;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
+using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
+using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Services.Fhir;
 using SUI.Find.Infrastructure.Utility;
@@ -44,6 +46,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFhirService, FhirService>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<ISecretService, AzureKeyVaultSecretService>();
+        services.AddSingleton<IJobRepository, JobRepository>();
+        services.AddSingleton<IWorkItemJobCountRepository, WorkItemJobCountRepository>();
 
         var useStubAuthTokenService = configuration.GetValue<bool>("UseStubAuthTokenService");
         if (useStubAuthTokenService)

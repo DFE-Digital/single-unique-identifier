@@ -85,7 +85,7 @@ public class SearchFunctionV2(
                 { "PersonId", searchRequest?.Suid ?? string.Empty },
                 { "RequestingCustodianId", authContext.ClientId },
                 { "TraceParent", context.TraceContext.TraceParent },
-                { "TraceId", context.TraceContext.TraceState },
+                { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
             }
         );

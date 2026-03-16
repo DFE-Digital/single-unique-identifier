@@ -1,12 +1,10 @@
 using System.Text;
 using System.Text.Json;
-using Azure.Storage.Queues;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SUI.Find.Application.Constants;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models;
 
@@ -14,23 +12,16 @@ namespace SUI.Find.Infrastructure.Services;
 
 public class JobQueueService(
     ILogger<JobQueueService> logger,
-    IConfiguration configuration,
+    IQueueClientFactory queueClientFactory,
     IHashService hashService
 ) : IJobQueueService
 {
-    private readonly string _connectionString =
-        configuration["AzureWebJobsStorage"]
-        ?? throw new InvalidOperationException("AzureWebJobsStorage is required");
-
     public async Task<SearchJobDto> PostSearchJobAsync(
         SearchRequestMessage payload,
         CancellationToken cancellationToken
     )
     {
-        var queueClient = new QueueClient(
-            _connectionString,
-            ApplicationConstants.SearchJobs.QueueName
-        );
+        var queueClient = queueClientFactory.GetSearchJobClient();
 
         var messageJson = JsonSerializer.Serialize(payload);
         var messageBytes = Encoding.UTF8.GetBytes(messageJson);
