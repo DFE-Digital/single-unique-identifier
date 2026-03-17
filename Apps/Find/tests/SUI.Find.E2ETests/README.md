@@ -28,6 +28,14 @@ To run the E2E tests against the dev environment, from your local machine:
 dotnet test -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ -e E2E__StubCustodiansBaseUrl=https://s270d01app-ukw-custodians01.azurewebsites.net/api/ -e E2E__SkipResetAzureTables=True
 ```
 
+To run just the smoke-test subset used by the secret-rotation workflow:
+
+```
+dotnet test --filter "Category=Smoke" -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ -e E2E__FindApiKey="{FindApiKey}"
+```
+
+Replacing `{FindApiKey}` with the current Find Match API key value for the target environment.
+
 To run the E2E tests against the dev environment, with a clean execution state, from your local machine:
 ```
 dotnet test -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ -e E2E__StubCustodiansBaseUrl=https://s270d01app-ukw-custodians01.azurewebsites.net/api/ -e E2E__FindApiStorageConnectionString="{StorageConnStr}"
