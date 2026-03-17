@@ -403,6 +403,23 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 var retry = status is "Queued" or "Running";
                 return retry;
             })
+            .Or<Exception>(ex =>
+            {
+                var exceptions = new List<Exception>([ex]);
+                while (ex.InnerException != null)
+                {
+                    exceptions.Add(ex.InnerException);
+                    ex = ex.InnerException;
+                }
+
+                var isTimeout = exceptions.OfType<TimeoutException>().Any();
+                if (isTimeout)
+                {
+                    status = "(timeout)";
+                }
+
+                return isTimeout; // i.e. retry if we ever receive a timeout
+            })
             .WaitAndRetryAsync(
                 retryCount,
                 retryAttempt =>
