@@ -7,7 +7,8 @@ using Xunit.Abstractions;
 namespace SUI.Find.E2ETests;
 
 [Collection("E2E")]
-[Trait("Category", "Smoke")]
+[Trait("Category", "E2E")]
+[Trait("Suite", "Smoke")]
 public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
     : E2ETestBase(fixture, testOutputHelper)
 {

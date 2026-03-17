@@ -91,7 +91,7 @@ The workflow never writes the secret value to logs or artifacts. Any secret valu
 
 Always review the workflow summary after an apply run.
 
-For the Find Match API key, the workflow currently runs the Find smoke-test subset from [`Apps/Find/tests/SUI.Find.E2ETests`](../../Apps/Find/tests/SUI.Find.E2ETests).
+For the Find Match API key, the workflow currently runs the Find smoke-test subset from [`Apps/Find/tests/SUI.Find.E2ETests`](../../Apps/Find/tests/SUI.Find.E2ETests), filtered with `Suite=Smoke`.
 
 Those smoke tests verify:
 
