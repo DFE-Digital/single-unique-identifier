@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -18,8 +19,8 @@ public class QueueSearchJobTrigger(
     ICustodianService custodianService
 )
 {
-    [Function(nameof(QueueAuditAccessFunction))]
-    public async Task QueueAuditAccessFunction(
+    [Function(nameof(QueueSearchJobFunction))]
+    public async Task QueueSearchJobFunction(
         [QueueTrigger(ApplicationConstants.SearchJobs.QueueName)]
             SearchRequestMessage searchRequestMessage,
         FunctionContext context,
@@ -33,7 +34,7 @@ public class QueueSearchJobTrigger(
                 { "PersonId", searchRequestMessage.PersonId },
                 { "RequestingCustodianId", searchRequestMessage.RequestingCustodianId },
                 { "TraceParent", context.TraceContext.TraceParent },
-                { "TraceId", context.TraceContext.TraceState },
+                { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
             }
         );

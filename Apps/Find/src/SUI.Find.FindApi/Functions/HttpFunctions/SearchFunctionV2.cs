@@ -133,7 +133,7 @@ public class SearchFunctionV2(
 
     private static async Task<HttpResponseData> CreateSuccessResponse(
         HttpRequestData req,
-        SearchJobDto result,
+        SearchWorkItemDto result,
         CancellationToken cancellationToken
     )
     {

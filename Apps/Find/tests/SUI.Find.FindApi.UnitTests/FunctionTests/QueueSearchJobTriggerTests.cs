@@ -65,11 +65,7 @@ public class QueueSearchJobTriggerTests
         _mockCustodianService.GetCustodiansAsync().Returns(custodians);
 
         // Act
-        await _trigger.QueueAuditAccessFunction(
-            requestMessage,
-            _mockContext,
-            CancellationToken.None
-        );
+        await _trigger.QueueSearchJobFunction(requestMessage, _mockContext, CancellationToken.None);
 
         // Assert
         await _mockJobRepository
@@ -130,11 +126,7 @@ public class QueueSearchJobTriggerTests
         _mockCustodianService.GetCustodiansAsync().Returns(new List<ProviderDefinition>());
 
         // Act
-        await _trigger.QueueAuditAccessFunction(
-            requestMessage,
-            _mockContext,
-            CancellationToken.None
-        );
+        await _trigger.QueueSearchJobFunction(requestMessage, _mockContext, CancellationToken.None);
 
         // Assert
         await _mockJobRepository

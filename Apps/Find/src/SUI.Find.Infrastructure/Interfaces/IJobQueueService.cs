@@ -5,7 +5,7 @@ namespace SUI.Find.Infrastructure.Interfaces;
 
 public interface IJobQueueService
 {
-    Task<SearchJobDto> PostSearchJobAsync(
+    Task<SearchWorkItemDto> PostSearchJobAsync(
         SearchRequestMessage payload,
         CancellationToken cancellationToken = default
     );

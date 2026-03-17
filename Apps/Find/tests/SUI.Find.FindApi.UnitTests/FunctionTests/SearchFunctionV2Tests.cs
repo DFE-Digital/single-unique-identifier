@@ -77,13 +77,11 @@ public class SearchFunctionV2Tests
         var context = CreateContextWithAuth("test-client");
 
         var expectedJobId = Guid.NewGuid().ToString();
-        var searchJobDto = new SearchJobDto
+        var searchJobDto = new SearchWorkItemDto
         {
-            JobId = expectedJobId,
+            WorkItemId = expectedJobId,
             PersonId = "9000000009",
-            Status = SearchStatus.Queued,
             CreatedAt = DateTime.UtcNow,
-            LastUpdatedAt = DateTime.UtcNow,
         };
 
         _findQueueService
@@ -111,7 +109,7 @@ public class SearchFunctionV2Tests
         var searchJob = JsonSerializer.Deserialize<SearchJobV2>(responseBody, _jsonOptions);
 
         Assert.NotNull(searchJob);
-        Assert.Equal(expectedJobId, searchJob.JobId);
+        Assert.Equal(expectedJobId, searchJob.WorkItemId);
         Assert.Equal(searchJobDto.PersonId, searchJob.Suid);
     }
 
@@ -127,13 +125,11 @@ public class SearchFunctionV2Tests
         var request = MockHttpRequestData.CreateJson(requestData);
         var context = CreateContextWithAuth("test-client");
 
-        var searchJobDto = new SearchJobDto
+        var searchJobDto = new SearchWorkItemDto
         {
-            JobId = Guid.NewGuid().ToString(),
+            WorkItemId = Guid.NewGuid().ToString(),
             PersonId = "Cy13hyZL-4LSIwVy50p-Hg",
-            Status = SearchStatus.Queued,
             CreatedAt = DateTime.UtcNow,
-            LastUpdatedAt = DateTime.UtcNow,
         };
 
         _findQueueService

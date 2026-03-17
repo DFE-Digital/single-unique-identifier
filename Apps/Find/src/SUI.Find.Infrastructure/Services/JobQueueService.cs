@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Interfaces;
@@ -14,7 +13,7 @@ public class JobQueueService(
     IQueueClientFactory queueClientFactory
 ) : IJobQueueService
 {
-    public async Task<SearchJobDto> PostSearchJobAsync(
+    public async Task<SearchWorkItemDto> PostSearchJobAsync(
         SearchRequestMessage payload,
         CancellationToken cancellationToken = default
     )
@@ -33,13 +32,11 @@ public class JobQueueService(
                 payload.WorkItemId.ToString()
             );
 
-            var searchJob = new SearchJobDto
+            var searchJob = new SearchWorkItemDto
             {
-                JobId = payload.WorkItemId.ToString(),
+                WorkItemId = payload.WorkItemId.ToString(),
                 PersonId = payload.PersonId,
-                Status = SearchStatus.Queued,
                 CreatedAt = DateTime.UtcNow,
-                LastUpdatedAt = DateTime.UtcNow,
             };
 
             return searchJob;

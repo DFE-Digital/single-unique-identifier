@@ -1,19 +1,12 @@
-using System;
-using System.Buffers.Text;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using SUI.Find.Application.Enums;
-using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Clients;
 using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Services;
-using Xunit;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
 
@@ -66,9 +59,8 @@ public class JobQueueServiceTests
             );
 
         Assert.NotNull(result);
-        Assert.Equal(requestMessage.WorkItemId.ToString(), result.JobId);
+        Assert.Equal(requestMessage.WorkItemId.ToString(), result.WorkItemId);
         Assert.Equal(requestMessage.PersonId, result.PersonId);
-        Assert.Equal(SearchStatus.Queued, result.Status);
     }
 
     [Fact]
