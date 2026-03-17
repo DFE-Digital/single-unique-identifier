@@ -29,23 +29,23 @@ if ($PSVersionTable.PSVersion.Major -ge 7) {
 
 $manifestPath = if ($env:MANIFEST_PATH) { $env:MANIFEST_PATH } else { '.github/rotate-keyvault-secret.manifest.json' }
 
-function Get-RequiredEnvironmentValue {
-    param([string]$Name)
+function Get-EnvironmentValue {
+    param(
+        [string]$Name,
+        [string]$Default = '',
+        [switch]$Required
+    )
 
     $value = [Environment]::GetEnvironmentVariable($Name)
     if ([string]::IsNullOrWhiteSpace($value)) {
-        throw "$Name is required."
+        if ($Required) {
+            throw "$Name is required."
+        }
+
+        return $Default
     }
 
     return $value
-}
-
-function Test-RequiredFilePath {
-    param([string]$Path)
-
-    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-        throw "Required file not found: $Path"
-    }
 }
 
 function Add-GitHubOutputValue {
@@ -71,24 +71,10 @@ function Add-GitHubOutputMultiline {
     Add-Content -LiteralPath $env:GITHUB_OUTPUT -Value $delimiter
 }
 
-function Get-EnvOrDefault {
-    param(
-        [string]$Name,
-        [string]$Default = ''
-    )
-
-    $value = [Environment]::GetEnvironmentVariable($Name)
-    if ([string]::IsNullOrEmpty($value)) {
-        return $Default
-    }
-
-    return $value
-}
-
 function Get-MultilineEnvItems {
     param([string]$Name)
 
-    $value = Get-EnvOrDefault -Name $Name
+    $value = Get-EnvironmentValue -Name $Name
     if ([string]::IsNullOrWhiteSpace($value)) {
         return @()
     }
@@ -135,54 +121,12 @@ function Join-Hashtable {
     return $merged
 }
 
-function ConvertTo-Hashtable {
-    param($InputObject)
-
-    if ($null -eq $InputObject) {
-        return @{}
-    }
-
-    if ($InputObject -is [hashtable]) {
-        $result = @{}
-        foreach ($key in $InputObject.Keys) {
-            $result[$key] = ConvertTo-Hashtable -InputObject $InputObject[$key]
-        }
-        return $result
-    }
-
-    if ($InputObject -is [System.Collections.IDictionary]) {
-        $result = @{}
-        foreach ($key in $InputObject.Keys) {
-            $result[[string]$key] = ConvertTo-Hashtable -InputObject $InputObject[$key]
-        }
-        return $result
-    }
-
-    if ($InputObject -is [System.Collections.IEnumerable] -and -not ($InputObject -is [string])) {
-        $items = @()
-        foreach ($item in $InputObject) {
-            $items += ,(ConvertTo-Hashtable -InputObject $item)
-        }
-        return $items
-    }
-
-    if ($InputObject -is [psobject]) {
-        $properties = $InputObject.PSObject.Properties
-        if ($properties.Count -gt 0) {
-            $result = @{}
-            foreach ($property in $properties) {
-                $result[$property.Name] = ConvertTo-Hashtable -InputObject $property.Value
-            }
-            return $result
-        }
-    }
-
-    return $InputObject
-}
-
 function Get-Manifest {
-    Test-RequiredFilePath -Path $manifestPath
-    return ConvertTo-Hashtable -InputObject (Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json -Depth 32)
+    if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+        throw "Required file not found: $manifestPath"
+    }
+
+    return Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json -AsHashtable -Depth 32
 }
 
 function Format-Template {
@@ -199,8 +143,8 @@ function Format-Template {
 }
 
 function Get-RotationMatrix {
-    Get-RequiredEnvironmentValue -Name 'GITHUB_EVENT_NAME' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'GITHUB_OUTPUT' | Out-Null
+    Get-EnvironmentValue -Name 'GITHUB_EVENT_NAME' -Required | Out-Null
+    Get-EnvironmentValue -Name 'GITHUB_OUTPUT' -Required | Out-Null
 
     $manifest = Get-Manifest
     $secrets = $manifest['secrets']
@@ -251,13 +195,13 @@ function Get-RotationMatrix {
 }
 
 function Get-RotationContext {
-    Get-RequiredEnvironmentValue -Name 'TARGET_SECRET_NAME' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'TARGET_ENVIRONMENT' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'SUBSCRIPTION_PREFIX' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'ENVIRONMENT_ID' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'REGION_SHORT' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'DESCRIPTOR' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'GITHUB_OUTPUT' | Out-Null
+    Get-EnvironmentValue -Name 'TARGET_SECRET_NAME' -Required | Out-Null
+    Get-EnvironmentValue -Name 'TARGET_ENVIRONMENT' -Required | Out-Null
+    Get-EnvironmentValue -Name 'SUBSCRIPTION_PREFIX' -Required | Out-Null
+    Get-EnvironmentValue -Name 'ENVIRONMENT_ID' -Required | Out-Null
+    Get-EnvironmentValue -Name 'REGION_SHORT' -Required | Out-Null
+    Get-EnvironmentValue -Name 'DESCRIPTOR' -Required | Out-Null
+    Get-EnvironmentValue -Name 'GITHUB_OUTPUT' -Required | Out-Null
 
     $manifest = Get-Manifest
     $secrets = $manifest['secrets']
@@ -329,13 +273,13 @@ function Get-RotationContext {
 }
 
 function Get-SecretMetadata {
-    Get-RequiredEnvironmentValue -Name 'KEY_VAULT_NAME' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'SECRET_NAME' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'ROTATION_WINDOW_DAYS' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'GITHUB_EVENT_NAME' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'GITHUB_OUTPUT' | Out-Null
+    Get-EnvironmentValue -Name 'KEY_VAULT_NAME' -Required | Out-Null
+    Get-EnvironmentValue -Name 'SECRET_NAME' -Required | Out-Null
+    Get-EnvironmentValue -Name 'ROTATION_WINDOW_DAYS' -Required | Out-Null
+    Get-EnvironmentValue -Name 'GITHUB_EVENT_NAME' -Required | Out-Null
+    Get-EnvironmentValue -Name 'GITHUB_OUTPUT' -Required | Out-Null
 
-    $scheduledEnabled = [System.Convert]::ToBoolean((Get-EnvOrDefault -Name 'SCHEDULED_ENABLED' -Default 'false'))
+    $scheduledEnabled = [System.Convert]::ToBoolean((Get-EnvironmentValue -Name 'SCHEDULED_ENABLED' -Default 'false'))
     $secretJson = & az keyvault secret show --vault-name $env:KEY_VAULT_NAME --name $env:SECRET_NAME -o json | ConvertFrom-Json -Depth 16
     $secretId = [string]$secretJson.id
     $secretVersion = ($secretId -split '/')[-1]
@@ -353,7 +297,7 @@ function Get-SecretMetadata {
     if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
         $shouldRotate = 'true'
     }
-    elseif ($scheduledEnabled -and $daysRemaining -le [int](Get-RequiredEnvironmentValue -Name 'ROTATION_WINDOW_DAYS')) {
+    elseif ($scheduledEnabled -and $daysRemaining -le [int](Get-EnvironmentValue -Name 'ROTATION_WINDOW_DAYS' -Required)) {
         $shouldRotate = 'true'
     }
 
@@ -364,9 +308,9 @@ function Get-SecretMetadata {
 }
 
 function Invoke-RotationPlan {
-    Get-RequiredEnvironmentValue -Name 'TF_ROOT' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'TFVARS_PATH' | Out-Null
-    Get-RequiredEnvironmentValue -Name 'PLAN_FILE' | Out-Null
+    Get-EnvironmentValue -Name 'TF_ROOT' -Required | Out-Null
+    Get-EnvironmentValue -Name 'TFVARS_PATH' -Required | Out-Null
+    Get-EnvironmentValue -Name 'PLAN_FILE' -Required | Out-Null
 
     $arguments = @(
         "-input=false"
@@ -387,16 +331,16 @@ function Invoke-RotationPlan {
 }
 
 function Update-DependentConfig {
-    $refreshMode = Get-EnvOrDefault -Name 'REFRESH_MODE'
-    $restartMode = Get-EnvOrDefault -Name 'RESTART_MODE'
-    $targetSecretName = Get-EnvOrDefault -Name 'TARGET_SECRET_NAME' -Default 'unknown'
+    $refreshMode = Get-EnvironmentValue -Name 'REFRESH_MODE'
+    $restartMode = Get-EnvironmentValue -Name 'RESTART_MODE'
+    $targetSecretName = Get-EnvironmentValue -Name 'TARGET_SECRET_NAME' -Default 'unknown'
 
     # Refresh/restart behavior is strategy-driven so future secret types can reuse
     # the same workflow shape without hardcoding app-specific branches into YAML.
     switch ($refreshMode) {
         'function_app_key_vault_reference' {
-            Get-RequiredEnvironmentValue -Name 'FUNCTION_APP_NAME' | Out-Null
-            Get-RequiredEnvironmentValue -Name 'RESOURCE_GROUP_NAME' | Out-Null
+            Get-EnvironmentValue -Name 'FUNCTION_APP_NAME' -Required | Out-Null
+            Get-EnvironmentValue -Name 'RESOURCE_GROUP_NAME' -Required | Out-Null
 
             $functionAppId = & az functionapp show `
                 --name $env:FUNCTION_APP_NAME `
@@ -419,8 +363,8 @@ function Update-DependentConfig {
 
     switch ($restartMode) {
         'function_app' {
-            Get-RequiredEnvironmentValue -Name 'FUNCTION_APP_NAME' | Out-Null
-            Get-RequiredEnvironmentValue -Name 'RESOURCE_GROUP_NAME' | Out-Null
+            Get-EnvironmentValue -Name 'FUNCTION_APP_NAME' -Required | Out-Null
+            Get-EnvironmentValue -Name 'RESOURCE_GROUP_NAME' -Required | Out-Null
 
             & az functionapp restart `
                 --name $env:FUNCTION_APP_NAME `
@@ -436,25 +380,25 @@ function Update-DependentConfig {
 }
 
 function Set-RotationSummary {
-    Get-RequiredEnvironmentValue -Name 'GITHUB_STEP_SUMMARY' | Out-Null
+    Get-EnvironmentValue -Name 'GITHUB_STEP_SUMMARY' -Required | Out-Null
 
-    $jobStatus = Get-EnvOrDefault -Name 'JOB_STATUS' -Default 'unknown'
-    $mode = if ((Get-EnvOrDefault -Name 'APPLY_ROTATION' -Default 'false') -eq 'true') { 'apply' } else { 'plan' }
+    $jobStatus = Get-EnvironmentValue -Name 'JOB_STATUS' -Default 'unknown'
+    $mode = if ((Get-EnvironmentValue -Name 'APPLY_ROTATION' -Default 'false') -eq 'true') { 'apply' } else { 'plan' }
     $statusIcon = if ($jobStatus -eq 'success') { '✅' } else { '❌' }
-    $shouldRotate = Get-EnvOrDefault -Name 'SHOULD_ROTATE' -Default 'false'
-    $functionAppName = Get-EnvOrDefault -Name 'FUNCTION_APP_NAME'
+    $shouldRotate = Get-EnvironmentValue -Name 'SHOULD_ROTATE' -Default 'false'
+    $functionAppName = Get-EnvironmentValue -Name 'FUNCTION_APP_NAME'
 
     $lines = @(
         "## $statusIcon Key Vault secret rotation"
         ''
-        "- **Environment:** ``$(Get-EnvOrDefault -Name 'TARGET_ENVIRONMENT' -Default 'unknown')``"
-        "- **Secret name:** ``$(Get-EnvOrDefault -Name 'TARGET_SECRET_NAME' -Default 'unknown')``"
-        "- **Reason:** ``$(Get-EnvOrDefault -Name 'ROTATION_REASON' -Default 'unknown')``"
+        "- **Environment:** ``$(Get-EnvironmentValue -Name 'TARGET_ENVIRONMENT' -Default 'unknown')``"
+        "- **Secret name:** ``$(Get-EnvironmentValue -Name 'TARGET_SECRET_NAME' -Default 'unknown')``"
+        "- **Reason:** ``$(Get-EnvironmentValue -Name 'ROTATION_REASON' -Default 'unknown')``"
         "- **Mode:** ``$mode``"
-        "- **Display name:** ``$(Get-EnvOrDefault -Name 'SECRET_DISPLAY_NAME' -Default 'unknown')``"
-        "- **Current version before run:** ``$(Get-EnvOrDefault -Name 'CURRENT_VERSION_BEFORE' -Default 'unknown')``"
-        "- **Current expiry before run:** ``$(Get-EnvOrDefault -Name 'CURRENT_EXPIRY_BEFORE' -Default 'unknown')``"
-        "- **Days remaining before run:** ``$(Get-EnvOrDefault -Name 'DAYS_REMAINING_BEFORE' -Default 'unknown')``"
+        "- **Display name:** ``$(Get-EnvironmentValue -Name 'SECRET_DISPLAY_NAME' -Default 'unknown')``"
+        "- **Current version before run:** ``$(Get-EnvironmentValue -Name 'CURRENT_VERSION_BEFORE' -Default 'unknown')``"
+        "- **Current expiry before run:** ``$(Get-EnvironmentValue -Name 'CURRENT_EXPIRY_BEFORE' -Default 'unknown')``"
+        "- **Days remaining before run:** ``$(Get-EnvironmentValue -Name 'DAYS_REMAINING_BEFORE' -Default 'unknown')``"
         "- **Rotation required:** ``$shouldRotate``"
     )
 
@@ -466,12 +410,12 @@ function Set-RotationSummary {
         $lines += '- **Scheduled action:** skipped'
     }
 
-    $currentVersionAfter = Get-EnvOrDefault -Name 'CURRENT_VERSION_AFTER'
+    $currentVersionAfter = Get-EnvironmentValue -Name 'CURRENT_VERSION_AFTER'
     if (-not [string]::IsNullOrWhiteSpace($currentVersionAfter)) {
         $lines += "- **Current version after rotation:** ``$currentVersionAfter``"
     }
 
-    $currentExpiryAfter = Get-EnvOrDefault -Name 'CURRENT_EXPIRY_AFTER'
+    $currentExpiryAfter = Get-EnvironmentValue -Name 'CURRENT_EXPIRY_AFTER'
     if (-not [string]::IsNullOrWhiteSpace($currentExpiryAfter)) {
         $lines += "- **Current expiry after rotation:** ``$currentExpiryAfter``"
     }
