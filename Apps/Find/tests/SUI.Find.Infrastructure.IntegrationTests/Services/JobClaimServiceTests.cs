@@ -1,10 +1,12 @@
-﻿using Azure;
+﻿using System.Text.Json;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Configuration;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -570,5 +572,33 @@ public class JobClaimServiceTests : IAsyncLifetime
         result.JobId.Should().Be($"job-{custodianId}");
         result.Sui.Should().BeNull();
         result.RecordType.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ClaimNextAvailableJobAsync_ExtractsSuiAndRecordTypeFromPayload_WhenJobTypeIs_CustodianLookup()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+
+        await UpsertJobsAsync(
+            new Job
+            {
+                JobId = $"job-{custodianId}",
+                WorkItemId = $"wi-{custodianId}",
+                CustodianId = custodianId,
+                JobType = JobType.CustodianLookup,
+                PayloadJson = JsonSerializer.Serialize(
+                    new CustodianLookupJobPayload("example-sui-123ABC", "example-record.type.xyz")
+                ),
+            }
+        );
+
+        // ACT
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result.JobId.Should().Be($"job-{custodianId}");
+        result.Sui.Should().Be("example-sui-123ABC");
+        result.RecordType.Should().Be("example-record.type.xyz");
     }
 }
