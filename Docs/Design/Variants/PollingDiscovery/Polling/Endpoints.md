@@ -668,7 +668,7 @@ components:
         leaseExpiresUtc:
           type: string
           format: date-time
-          description: UTC timestamp when the lease expires.
+          description: UTC timestamp when the renewed lease expires.
 
     WorkResultRequest:
       type: object
