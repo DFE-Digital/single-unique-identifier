@@ -1,10 +1,12 @@
-﻿using Azure;
+﻿using System.Text.Json;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Configuration;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -338,7 +340,7 @@ public class JobClaimServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ClaimNextAvailableJobAsync_WouldClaimSecondJobIfIrstJobIsClaimedByOtherConcurrentInvocation()
+    public async Task ClaimNextAvailableJobAsync_WouldClaimSecondJobIfFirstJobIsClaimedByOtherConcurrentInvocation()
     {
         var custodianId = $"custodian-{Guid.NewGuid()}";
 
@@ -570,5 +572,68 @@ public class JobClaimServiceTests : IAsyncLifetime
         result.JobId.Should().Be($"job-{custodianId}");
         result.Sui.Should().BeNull();
         result.RecordType.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ClaimNextAvailableJobAsync_ExtractsSuiAndRecordTypeFromPayload_WhenJobTypeIs_CustodianLookup()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+
+        await UpsertJobsAsync(
+            new Job
+            {
+                JobId = $"job-{custodianId}",
+                WorkItemId = $"wi-{custodianId}",
+                CustodianId = custodianId,
+                JobType = JobType.CustodianLookup,
+                PayloadJson = JsonSerializer.Serialize(
+                    new CustodianLookupJobPayload("example-sui-123ABC", "example-record.type.xyz")
+                ),
+            }
+        );
+
+        // ACT
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result.JobId.Should().Be($"job-{custodianId}");
+        result.Sui.Should().Be("example-sui-123ABC");
+        result.RecordType.Should().Be("example-record.type.xyz");
+    }
+
+    [Fact]
+    public async Task ClaimNextAvailableJobAsync_WouldClaimPreviouslyLeasedJob_IfLeaseHasNowExpired()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+
+        _mockTimeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _mockJobWindowStartService.GetWindowStart().Returns(DateTimeOffset.UtcNow.AddHours(-10));
+
+        var oldLeaseId = Guid.NewGuid().ToString();
+
+        await UpsertJobsAsync(
+            new Job
+            {
+                CreatedAtUtc = _mockJobWindowStartService.GetWindowStart().AddHours(1),
+                LeaseId = oldLeaseId,
+                LeaseExpiresAtUtc = _mockTimeProvider.GetUtcNow().AddMinutes(-1),
+                JobId = $"job-{custodianId}",
+                WorkItemId = $"wi-{custodianId}",
+                CustodianId = custodianId,
+                JobType = JobType.CustodianLookup,
+                PayloadJson = JsonSerializer.Serialize(
+                    new CustodianLookupJobPayload("example-sui-123ABC", "example-record.type.xyz")
+                ),
+            }
+        );
+
+        // ACT
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result.JobId.Should().Be($"job-{custodianId}");
+        result.LeaseId.Should().NotBe(oldLeaseId).And.NotBeNullOrWhiteSpace();
     }
 }

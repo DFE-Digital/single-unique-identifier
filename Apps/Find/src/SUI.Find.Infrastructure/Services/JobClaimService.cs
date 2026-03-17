@@ -1,9 +1,11 @@
-﻿using Azure;
+﻿using System.Text.Json;
+using Azure;
 using Azure.Data.Tables.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Configuration;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -89,13 +91,13 @@ public class JobClaimService(
 
     private static (string? sui, string? recordType) ExtractSuiAndRecordTypeFromPayload(Job job)
     {
-        if (job.JobType != JobType.CustodianLookup)
+        if (job.JobType != JobType.CustodianLookup || string.IsNullOrEmpty(job.PayloadJson))
         {
             return (null, null);
         }
 
-        // TODO: SUI-1545 - extract SUI & Record Type from Payload
-        return ("", "");
+        var payload = JsonSerializer.Deserialize<CustodianLookupJobPayload>(job.PayloadJson);
+        return (payload?.Sui, payload?.RecordType);
     }
 
     /// <summary>
