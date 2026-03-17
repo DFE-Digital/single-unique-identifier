@@ -168,6 +168,7 @@ jobs:
       - name: Run E2E Tests (against ephemeral environment)
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
+            --filter "Category=E2E&Suite=Standard" \
             --logger "console;verbosity=detailed" \
             --logger "trx;LogFileName=e2e-ephemeral.trx" \
             --results-directory TestResults \
@@ -211,6 +212,7 @@ jobs:
       - name: Run E2E Tests (against dev environment)
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
+            --filter "Category=E2E&Suite=Standard" \
             --logger "console;verbosity=detailed" \
             --logger "trx;LogFileName=e2e-dev.trx" \
             --results-directory TestResults \

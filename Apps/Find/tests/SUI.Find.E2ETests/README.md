@@ -31,7 +31,7 @@ dotnet test -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api
 To run just the smoke-test subset used by the secret-rotation workflow:
 
 ```
-dotnet test --filter "Category=Smoke" -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ -e E2E__FindApiKey="{FindApiKey}"
+dotnet test --filter "Suite=Smoke" -e E2E__BaseUrl=https://s270d01func-ukw-find01.azurewebsites.net/api/ -e E2E__FindApiKey="{FindApiKey}"
 ```
 
 Replacing `{FindApiKey}` with the current Find Match API key value for the target environment.

@@ -21,6 +21,7 @@ namespace SUI.Find.E2ETests;
 /// </summary>
 [Collection("E2E")]
 [Trait("Category", "E2E")]
+[Trait("Suite", "Standard")]
 public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
     : E2ETestBase(fixture, testOutputHelper),
         IAsyncLifetime
