@@ -1,3 +1,21 @@
+<#
+.SYNOPSIS
+Resolves configuration and executes helper commands for the `rotate-keyvault-secret` workflow.
+
+.DESCRIPTION
+This script is the single helper entrypoint for the secret-rotation workflow. It reads a
+manifest-driven definition of supported secrets, resolves environment-specific context,
+and performs the orchestration steps that would otherwise make the workflow YAML hard
+to maintain.
+
+The supported commands intentionally map to workflow phases:
+- `matrix`: decide which `{ environment, secret_name }` pairs the workflow should run
+- `context`: resolve manifest/profile data into concrete resource names and Terraform inputs
+- `inspect`: read current secret metadata and decide whether scheduled rotation is due
+- `plan`: build the targeted Terraform plan for the selected secret
+- `apply-config`: refresh dependent configuration and restart the app if required
+- `summary`: write a concise workflow summary without exposing secret values
+#>
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet('matrix', 'context', 'inspect', 'plan', 'apply-config', 'summary')]
@@ -204,6 +222,8 @@ function Get-RotationMatrix {
         return
     }
 
+    # Scheduled runs expand from the manifest so new scheduled secrets can be added
+    # without editing the workflow matrix in YAML.
     $matrix = @()
     foreach ($secretName in ($secrets.Keys | Sort-Object)) {
         $secretDefinition = $secrets[$secretName]
@@ -219,6 +239,7 @@ function Get-RotationMatrix {
     }
 
     if ($matrix.Count -eq 0) {
+        # GitHub still expects valid JSON output even when the workflow has nothing to do.
         $matrix = @(@{ environment = '__none__'; secret_name = '__none__'; skip = $true })
         Add-GitHubOutputValue -Name 'has_targets' -Value 'false'
     }
@@ -258,6 +279,8 @@ function Get-RotationContext {
         $profileDefinition = $profiles[$profileName]
     }
 
+    # Profiles hold shared defaults for an app/domain. Secret entries then override
+    # only the pieces that differ, which keeps the manifest small as support grows.
     $terraformDefinition = Join-Hashtable -Base $(if ($profileDefinition.ContainsKey('terraform')) { $profileDefinition['terraform'] } else { @{} }) -Override $(if ($secretDefinition.ContainsKey('terraform')) { $secretDefinition['terraform'] } else { @{} })
     $resourceDefinition = Join-Hashtable -Base $(if ($profileDefinition.ContainsKey('resources')) { $profileDefinition['resources'] } else { @{} }) -Override $(if ($secretDefinition.ContainsKey('resources')) { $secretDefinition['resources'] } else { @{} })
     $verificationDefinition = Join-Hashtable -Base $(if ($profileDefinition.ContainsKey('verification')) { $profileDefinition['verification'] } else { @{} }) -Override $(if ($secretDefinition.ContainsKey('verification')) { $secretDefinition['verification'] } else { @{} })
@@ -368,6 +391,8 @@ function Update-DependentConfig {
     $restartMode = Get-EnvOrDefault -Name 'RESTART_MODE'
     $targetSecretName = Get-EnvOrDefault -Name 'TARGET_SECRET_NAME' -Default 'unknown'
 
+    # Refresh/restart behavior is strategy-driven so future secret types can reuse
+    # the same workflow shape without hardcoding app-specific branches into YAML.
     switch ($refreshMode) {
         'function_app_key_vault_reference' {
             Get-RequiredEnvironmentValue -Name 'FUNCTION_APP_NAME' | Out-Null
@@ -458,6 +483,8 @@ function Set-RotationSummary {
     Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value $lines
 }
 
+# Keep the public command surface small and workflow-oriented. New behavior should
+# usually extend one of these phases rather than adding lots of one-off commands.
 switch ($Command) {
     'matrix' { Get-RotationMatrix }
     'context' { Get-RotationContext }
