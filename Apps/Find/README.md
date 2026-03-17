@@ -65,7 +65,8 @@ The MatchPerson function requires an `x-api-key` header for authentication. Conf
 This is the `x-api-key` for invoking our match endpoint. It is **not** the key for PDS Fhir.
 For local dev, the key is not important, and it is recommended to keep the value as `local-dev-key-change-me`.
 
-In Dev/Test/Prod environments, the key is automatically retrieved from Azure Key Vault (secret name: `find-api-key`).
+In Dev/Test/Prod environments, the key is automatically retrieved from Azure Key Vault (secret name: `find-match-api-key`).
+The operational rotation process for this secret is documented in [Docs/Developers/secret-rotation.md](../../Docs/Developers/secret-rotation.md).
 
 #### Run Azurite
 
