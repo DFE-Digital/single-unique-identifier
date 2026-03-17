@@ -15,6 +15,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
     public HttpClient StubCustodiansClient { get; }
 
     private readonly SemaphoreSlim _mutex = new(1, 1);
+    private Lazy<Task>? _findApiUpCheck;
     private Lazy<Task>? _upCheck;
 
     public FunctionTestFixture()
@@ -44,8 +45,31 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
 
     private record HealthCheckResponse(string? Value);
 
+    public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    {
+        Lazy<Task> upCheck;
+
+        await _mutex.WaitAsync();
+        try
+        {
+            _findApiUpCheck ??= new Lazy<Task>(() =>
+                EnsureServiceIsUpAsync("Find API", Client, testOutputHelper)
+            );
+
+            upCheck = _findApiUpCheck;
+        }
+        finally
+        {
+            _mutex.Release();
+        }
+
+        await upCheck.Value;
+    }
+
     public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
     {
+        Lazy<Task> upCheck;
+
         await _mutex.WaitAsync();
         try
         {
@@ -59,13 +83,14 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
                     )
                 )
             );
-
-            await _upCheck.Value;
+            upCheck = _upCheck;
         }
         finally
         {
             _mutex.Release();
         }
+
+        await upCheck.Value;
     }
 
     private static async Task EnsureServiceIsUpAsync(
