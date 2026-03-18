@@ -28,6 +28,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = $"Job_{Guid.NewGuid()}",
             CustodianId = $"Custodian_{Guid.NewGuid()}",
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             WorkItemId = $"WI_{Guid.NewGuid()}",
@@ -54,6 +55,7 @@ public class JobRepositoryTests : IAsyncLifetime
 
         entity.GetString("JobId").Should().Be(job.JobId);
         entity.GetString("CustodianId").Should().Be(job.CustodianId);
+        entity.GetString("SearchingOrganisationId").Should().Be(job.SearchingOrganisationId);
         entity.GetString("JobType").Should().Be(job.JobType.ToString());
         entity.GetString("WorkItemType").Should().Be(job.WorkItemType.ToString());
         entity.GetString("WorkItemId").Should().Be(job.WorkItemId);
@@ -71,6 +73,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = $"Job_{Guid.NewGuid()}",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             WorkItemId = $"WI_{Guid.NewGuid()}",
@@ -106,6 +109,7 @@ public class JobRepositoryTests : IAsyncLifetime
 
         entity.GetString("JobId").Should().Be(job.JobId);
         entity.GetString("CustodianId").Should().Be(job.CustodianId);
+        entity.GetString("SearchingOrganisationId").Should().Be(job.SearchingOrganisationId);
 
         entity.GetString("LeaseId").Should().Be("updated-LeaseId");
         entity.GetDateTimeOffset("LeaseExpiresAtUtc").Should().Be(createdAt.AddMinutes(30));
@@ -122,6 +126,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = $"Job_{Guid.NewGuid()}",
             CustodianId = $"Custodian_{Guid.NewGuid()}",
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             WorkItemId = $"WI_{Guid.NewGuid()}",
@@ -177,6 +182,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = "old-job",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             CreatedAtUtc = DateTimeOffset.UtcNow.AddHours(-2),
@@ -188,6 +194,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = "new-job",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             CreatedAtUtc = DateTimeOffset.UtcNow,
@@ -218,6 +225,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = "first-job",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             CreatedAtUtc = earlier,
@@ -229,6 +237,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = "second-job",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             CreatedAtUtc = later,
@@ -330,6 +339,7 @@ public class JobRepositoryTests : IAsyncLifetime
                 {
                     JobId = jobId,
                     CustodianId = custodianId,
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     JobType = JobType.CustodianLookup,
                     WorkItemType = WorkItemType.SearchExecution,
                     CreatedAtUtc = windowStart,

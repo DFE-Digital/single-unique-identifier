@@ -55,6 +55,7 @@ public class QueueSearchJobTrigger(
             var job = new Job
             {
                 CustodianId = custodian.OrgId,
+                SearchingOrganisationId = searchRequestMessage.RequestingCustodianId,
                 JobId = Guid.NewGuid().ToString(),
                 JobType = JobType.CustodianLookup,
                 PayloadJson = JsonSerializer.Serialize(custodianPayload),
