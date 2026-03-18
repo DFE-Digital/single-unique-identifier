@@ -16,6 +16,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
     <ProjectReference Include="..\..\src\SUI.Find.FindApi\SUI.Find.FindApi.csproj" />
   </ItemGroup>
 </Project>
