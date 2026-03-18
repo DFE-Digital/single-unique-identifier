@@ -27,7 +27,7 @@ public class SearchFunctionV2(
 {
     [OpenApiOperation(
         operationId: "searches-v2",
-        tags: ["Searches"],
+        tags: ["SearchesV2"],
         Summary = "Submit a new search request"
     )]
     [OpenApiRequestBody(

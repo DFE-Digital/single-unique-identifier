@@ -19,8 +19,8 @@ public class WorkAvailableFunction(
 {
     [OpenApiOperation(
         operationId: "work-available",
-        tags: ["Searches"],
-        Summary = "Check if work is available"
+        tags: ["Work"],
+        Summary = "Check if work is available. Optional, the claim endpoint remains authoritative."
     )]
     [RequiredScopes("work-item.read")]
     [Function(nameof(WorkAvailable))]
