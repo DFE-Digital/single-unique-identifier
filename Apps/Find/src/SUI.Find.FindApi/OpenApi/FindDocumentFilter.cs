@@ -30,6 +30,7 @@ public sealed class FindDocumentFilter : IDocumentFilter
                         { "fetch-record.read", "Retrieve records." },
                         { "fetch-record.write", "Share records." },
                         { "work-item.read", "Query the work item queue" },
+                        { "work-item.write", "Update the work item queue" },
                     },
                 },
             },

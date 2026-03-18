@@ -50,7 +50,11 @@ public class JobClaimService(
 
             try
             {
-                await jobRepository.UpdateAsync(claimedJob, nextAvailableJob.ETag);
+                await jobRepository.UpdateAsync(
+                    claimedJob,
+                    nextAvailableJob.ETag,
+                    cancellationToken
+                );
 
                 return new JobInfo
                 {
