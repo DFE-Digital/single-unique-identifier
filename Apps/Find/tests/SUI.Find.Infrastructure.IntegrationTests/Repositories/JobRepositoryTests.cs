@@ -28,6 +28,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = $"Job_{Guid.NewGuid()}",
             CustodianId = $"Custodian_{Guid.NewGuid()}",
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             WorkItemId = $"WI_{Guid.NewGuid()}",
@@ -71,6 +72,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = $"Job_{Guid.NewGuid()}",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             WorkItemId = $"WI_{Guid.NewGuid()}",
@@ -122,6 +124,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = $"Job_{Guid.NewGuid()}",
             CustodianId = $"Custodian_{Guid.NewGuid()}",
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             WorkItemId = $"WI_{Guid.NewGuid()}",
@@ -177,6 +180,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = "old-job",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             CreatedAtUtc = DateTimeOffset.UtcNow.AddHours(-2),
@@ -188,6 +192,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = "new-job",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             CreatedAtUtc = DateTimeOffset.UtcNow,
@@ -218,6 +223,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = "first-job",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             CreatedAtUtc = earlier,
@@ -229,6 +235,7 @@ public class JobRepositoryTests : IAsyncLifetime
         {
             JobId = "second-job",
             CustodianId = custodianId,
+            SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
             JobType = JobType.CustodianLookup,
             WorkItemType = WorkItemType.SearchExecution,
             CreatedAtUtc = later,
@@ -330,6 +337,7 @@ public class JobRepositoryTests : IAsyncLifetime
                 {
                     JobId = jobId,
                     CustodianId = custodianId,
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     JobType = JobType.CustodianLookup,
                     WorkItemType = WorkItemType.SearchExecution,
                     CreatedAtUtc = windowStart,

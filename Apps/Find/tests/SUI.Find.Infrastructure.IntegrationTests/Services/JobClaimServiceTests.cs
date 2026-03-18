@@ -82,6 +82,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                     CompletedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-1), // Job is completed
                     JobId = $"job-{i}-{custodianId}",
                     CustodianId = custodianId,
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     JobType = default,
                     PayloadJson = "",
                 })
@@ -106,6 +107,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 {
                     AttemptCount = _mockOptions.CurrentValue.MaxClaimAttemptsPerJob + i, // Job has been attempted maximum number of times
                     JobId = $"job-{i}-{custodianId}",
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     CustodianId = custodianId,
                     JobType = default,
                     PayloadJson = "",
@@ -133,6 +135,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 {
                     LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(10), // Job is still leased
                     JobId = $"job-{i}-{custodianId}",
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     CustodianId = custodianId,
                     JobType = default,
                     PayloadJson = "",
@@ -160,6 +163,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 {
                     CreatedAtUtc = _mockJobWindowStartService.GetWindowStart().AddMilliseconds(-1), // Job is too old, falls outside of window
                     JobId = $"job-{i}-{custodianId}",
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     CustodianId = custodianId,
                     JobType = default,
                     PayloadJson = "",
@@ -188,6 +192,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-a-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             },
@@ -197,6 +202,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-x-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             }
@@ -256,6 +262,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             }
@@ -351,6 +358,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-1-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             },
@@ -360,6 +368,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-2-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             }
@@ -452,6 +461,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-1-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             },
@@ -461,6 +471,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-2-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             },
@@ -470,6 +481,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-3-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             }
@@ -559,6 +571,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = JobType.Unknown,
                 PayloadJson = "",
             }
@@ -585,6 +598,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = JobType.CustodianLookup,
                 PayloadJson = JsonSerializer.Serialize(
                     new CustodianLookupJobPayload("example-sui-123ABC", "example-record.type.xyz")
@@ -621,6 +635,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = JobType.CustodianLookup,
                 PayloadJson = JsonSerializer.Serialize(
                     new CustodianLookupJobPayload("example-sui-123ABC", "example-record.type.xyz")
