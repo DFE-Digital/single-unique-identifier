@@ -19,6 +19,4 @@ public record JobResultMessage
     public required DateTimeOffset SubmittedAtUtc { get; init; }
 
     public required List<JobResultRecord> Records { get; init; }
-
-    //public string? TraceParent { get; init; }
 }
