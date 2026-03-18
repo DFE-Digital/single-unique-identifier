@@ -588,6 +588,46 @@ public class JobClaimServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task DoesCustodianHaveJobs_ReturnsTrue_When_JobsAreAvailable()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+
+        _mockTimeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _mockJobWindowStartService.GetWindowStart().Returns(DateTimeOffset.UtcNow.AddHours(-10));
+
+        await UpsertJobsAsync(
+            new Job
+            {
+                CreatedAtUtc = _mockJobWindowStartService.GetWindowStart().AddHours(1),
+                JobId = $"job-a-{custodianId}",
+                WorkItemId = $"wi-{custodianId}",
+                CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
+                JobType = default,
+                PayloadJson = "",
+            }
+        );
+
+        // ACT
+        var result = await _sut.DoesCustodianHaveJobs(custodianId, CancellationToken.None);
+
+        // ASSERT
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DoesCustodianHaveJobs_ReturnsFalse_When_NoJobsAreAvailable()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+
+        // ACT
+        var result = await _sut.DoesCustodianHaveJobs(custodianId, CancellationToken.None);
+
+        // ASSERT
+        result.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task ClaimNextAvailableJobAsync_ExtractsSuiAndRecordTypeFromPayload_WhenJobTypeIs_CustodianLookup()
     {
         var custodianId = $"custodian-{Guid.NewGuid()}";
