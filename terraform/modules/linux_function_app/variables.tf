@@ -23,6 +23,28 @@ variable "storage_account_name" {
   type        = string
 }
 
+variable "app_service_integration_subnet_id" {
+  description = "Subnet ID used for regional VNet integration and storage account network rules."
+  type        = string
+}
+
+variable "log_analytics_workspace_id" {
+  description = "Optional Log Analytics workspace ID used for storage account diagnostics."
+  type        = string
+  default     = null
+}
+
+variable "storage_account_replication_type" {
+  description = "Replication type for the storage account used by the function app."
+  type        = string
+  default     = "LRS"
+
+  validation {
+    condition = contains(["LRS", "GRS", "RAGRS", "GZRS", "RAGZRS"], var.storage_account_replication_type)
+    error_message = "storage_account_replication_type must be one of LRS, GRS, RAGRS, GZRS, or RAGZRS."
+  }
+}
+
 variable "https_only" {
   description = "Whether the function app enforces HTTPS-only."
   type        = bool

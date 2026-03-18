@@ -112,7 +112,9 @@ public class PolicyEnforcementService(
 
             var decision = await EvaluateAsync(request, dsaPolicy, destOrgType, cancellationToken);
 
-            results.Add(new SearchResultWithDecision(searchResultItem, sourceOrgId, decision));
+            results.Add(
+                new SearchResultWithDecision(searchResultItem, sourceOrgId, destOrgId, decision)
+            );
         }
 
         return results;

@@ -70,24 +70,30 @@ public class ClearDataFunction(
 
             await foreach (var tableEntityPage in tableEntities.AsPages())
             {
-                var transactionActions = tableEntityPage
-                    .Values.Select(entity => new TableTransactionAction(
-                        TableTransactionActionType.Delete,
-                        entity
-                    ))
-                    .ToList();
+                foreach (
+                    var partitionGrouping in tableEntityPage.Values.GroupBy(x => x.PartitionKey)
+                )
+                {
+                    var transactionActions = partitionGrouping
+                        .Select(entity => new TableTransactionAction(
+                            TableTransactionActionType.Delete,
+                            entity
+                        ))
+                        .ToList();
 
-                var transactionResponse = await tableClient.SubmitTransactionAsync(
-                    transactionActions,
-                    cancellationToken
-                );
+                    var transactionResponse = await tableClient.SubmitTransactionAsync(
+                        transactionActions,
+                        cancellationToken
+                    );
 
-                logger.LogInformation(
-                    "Batch of {Count} table entities successfully removed from table",
-                    transactionResponse.Value.Count(x => !x.IsError)
-                );
+                    logger.LogInformation(
+                        "Batch of {Count} table entities successfully removed from table. Partition key: {PartitionKey}",
+                        transactionResponse.Value.Count(x => !x.IsError),
+                        partitionGrouping.Key
+                    );
 
-                totalEntitiesRemoved += transactionResponse.Value.Count;
+                    totalEntitiesRemoved += transactionResponse.Value.Count;
+                }
             }
 
             if (totalEntitiesRemoved == 0)

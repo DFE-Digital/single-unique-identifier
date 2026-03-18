@@ -37,4 +37,9 @@ public static class ApplicationConstants
     {
         public const string Default = "DefaultSystem";
     }
+
+    public static class SearchJobs
+    {
+        public const string QueueName = "search-requests-inbound";
+    }
 }

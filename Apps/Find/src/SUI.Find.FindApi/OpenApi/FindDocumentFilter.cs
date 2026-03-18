@@ -140,6 +140,7 @@ public sealed class FindDocumentFilter : IDocumentFilter
         string[] findOrder =
         {
             "/api/v1/searches",
+            "/api/v2/searches",
             "/api/v1/searches/{jobId}",
             "/api/v1/searches/{jobId}/results",
         };

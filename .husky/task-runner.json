@@ -1,6 +1,16 @@
 {
    "tasks": [
       {
+         "name": "Run gitleaks",
+         "command": "dotnet",
+         "args": [
+            "pwsh",
+            "-NoProfile",
+            "-File",
+            "./scripts/security/run-gitleaks.ps1"
+         ]
+      },
+      {
          "name": "Run csharpier",
          "command": "dotnet",
          "args": [

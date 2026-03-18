@@ -1,0 +1,30 @@
+name: TruffleHog Deep Secret Scan
+
+on:
+  schedule:
+    - cron: "30 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deep-secret-scan:
+    name: TruffleHog deep secret scan
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog deep secret scan
+        uses: trufflesecurity/trufflehog@v3.93.8
+        with:
+          path: ./
+          base: ""
+          head: ${{ github.ref_name }}
+          version: 3.93.8
+          extra_args: --results=verified,unknown --exclude-paths=.github/trufflehog-exclude-paths.txt

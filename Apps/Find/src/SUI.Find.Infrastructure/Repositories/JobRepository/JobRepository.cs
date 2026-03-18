@@ -1,3 +1,4 @@
+using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Enums;
@@ -22,25 +23,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
 
     public async Task UpsertAsync(Job job, CancellationToken cancellationToken = default)
     {
-        var partitionKey = JobKeys.PartitionKey(job.CustodianId);
-        var rowKey = JobKeys.RowKey(job.CreatedAtUtc, job.JobId);
-
-        var entity = new TableEntity(partitionKey, rowKey)
-        {
-            { "JobId", job.JobId },
-            { "CustodianId", job.CustodianId },
-            { "JobType", job.JobType.ToString() },
-            { "WorkItemType", job.WorkItemType.ToString() },
-            { "WorkItemId", job.WorkItemId },
-            { "LeaseId", job.LeaseId },
-            { "LeaseExpiresAtUtc", job.LeaseExpiresAtUtc },
-            { "AttemptCount", job.AttemptCount },
-            { "CreatedAtUtc", job.CreatedAtUtc },
-            { "UpdatedAtUtc", job.UpdatedAtUtc },
-            { "CompletedAtUtc", job.CompletedAtUtc },
-            { "PayloadJson", job.PayloadJson },
-            { "JobTraceParent", job.JobTraceParent },
-        };
+        var entity = ToTableEntity(job);
 
         try
         {
@@ -55,6 +38,47 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
                 job.CustodianId
             );
         }
+    }
+
+    public async Task UpdateAsync(
+        Job job,
+        string ifMatchETag,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var entity = ToTableEntity(job);
+
+        await Table.UpdateEntityAsync(
+            entity,
+            new ETag(ifMatchETag),
+            TableUpdateMode.Replace,
+            cancellationToken
+        );
+    }
+
+    private static TableEntity ToTableEntity(Job job)
+    {
+        var partitionKey = JobKeys.PartitionKey(job.CustodianId);
+        var rowKey = JobKeys.RowKey(job.CreatedAtUtc, job.JobId);
+
+        var entity = new TableEntity(partitionKey, rowKey)
+        {
+            { "JobId", job.JobId },
+            { "CustodianId", job.CustodianId },
+            { "SearchingOrganisationId", job.SearchingOrganisationId },
+            { "JobType", job.JobType.ToString() },
+            { "WorkItemType", job.WorkItemType.ToString() },
+            { "WorkItemId", job.WorkItemId },
+            { "LeaseId", job.LeaseId },
+            { "LeaseExpiresAtUtc", job.LeaseExpiresAtUtc },
+            { "AttemptCount", job.AttemptCount },
+            { "CreatedAtUtc", job.CreatedAtUtc },
+            { "UpdatedAtUtc", job.UpdatedAtUtc },
+            { "CompletedAtUtc", job.CompletedAtUtc },
+            { "PayloadJson", job.PayloadJson },
+            { "JobTraceParent", job.JobTraceParent },
+        };
+        return entity;
     }
 
     public async Task<IReadOnlyList<Job>> ListJobsByCustodianIdAsync(
@@ -96,6 +120,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
                     {
                         JobId = entity.GetString("JobId"),
                         CustodianId = entity.GetString("CustodianId"),
+                        SearchingOrganisationId = entity.GetString("SearchingOrganisationId"),
                         JobType = jobType,
                         WorkItemType = workItemType,
                         WorkItemId = entity.GetString("WorkItemId"),

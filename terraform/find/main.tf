@@ -125,10 +125,19 @@ resource "random_password" "find_match_api_key" {
   special = true
 }
 
+resource "time_static" "find_match_api_key_expiry_base" {}
+
+# Accepted until Alpha while API key and auth decisions are still being worked through.
+#trivy:ignore:AZU-0017
 resource "azurerm_key_vault_secret" "find_match_api_key" {
-  name         = "find-match-api-key"
-  value        = random_password.find_match_api_key.result
-  key_vault_id = module.key_vault.id
+  name            = "find-match-api-key"
+  value           = random_password.find_match_api_key.result
+  key_vault_id    = module.key_vault.id
+  content_type    = "text/plain"
+  expiration_date = timeadd(
+    time_static.find_match_api_key_expiry_base.rfc3339,
+    format("%dh", var.find_match_api_key_ttl_days * 24),
+  )
 
   depends_on = [
     module.rbac_assignments_terraform_operator,
@@ -157,6 +166,8 @@ module "function_app" {
   service_plan_id     = data.terraform_remote_state.core.outputs.app_service_plan_id
 
   storage_account_name = local.function_storage_account_name
+  app_service_integration_subnet_id = data.terraform_remote_state.core.outputs.function_app_integration_subnet_id
+  log_analytics_workspace_id = data.terraform_remote_state.core.outputs.log_analytics_workspace_id
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -231,6 +242,8 @@ module "audit_processor_function_app" {
   service_plan_id     = data.terraform_remote_state.core.outputs.app_service_plan_id
 
   storage_account_name = local.audit_processor_storage_account_name
+  app_service_integration_subnet_id = data.terraform_remote_state.core.outputs.function_app_integration_subnet_id
+  log_analytics_workspace_id = data.terraform_remote_state.core.outputs.log_analytics_workspace_id
 
   environment_tag  = var.environment_tag
   product          = var.product

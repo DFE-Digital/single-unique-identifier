@@ -42,7 +42,7 @@ Rel(ClaimWorkEndpoint, JobsService, "Lease Job", $tags="Lease job")
 
 
 ' Submit results
-Component(SubmitResultEndpoint, "POST /v2/work/{workItemId}/result", "HTTP Trigger", "Submit result; accepted for async processing", $tags="HTTP Trigger")
+Component(SubmitResultEndpoint, "POST /v2/work/result", "HTTP Trigger", "Submit result; accepted for async processing", $tags="HTTP Trigger")
 ComponentQueue(JobResultsInboundQueue, "job-results-inbound", "Storage Queue", $tags="Storage Queue")
 Component(JobResultHandler, "JobResultHandler", "Queue Trigger", "Handles result processing. For search jobs, this will save to the 'Search Results' table", $tags="Queue Trigger")
 ComponentDb(SearchResultEntriesTable, "SearchResultEntries", "Storage Table", $tags="Storage Table")

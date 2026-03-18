@@ -31,8 +31,8 @@ It covers:
 | Endpoint | Purpose | Notes |
 |---|---|---|
 | `POST /work/claim` | Atomically claim the next available work item and obtain a lease | **Canonical** polling mechanism |
-| `POST /work/{workItemId}/result` | Submit the result for a leased work item (accepted for async processing) | Validates lease ownership and expiry; enqueues result |
-| `POST /work/{workItemId}/lease/renew` | Renew the lease for an in-progress work item | **Optional** capability |
+| `POST /work/result` | Submit the result for a leased work item (accepted for async processing) | Validates lease ownership and expiry; enqueues result |
+| `POST /work/lease/renew` | Renew the lease for an in-progress work item | **Optional** capability |
 | `HEAD /work/available` | Advisory signal that work is likely available | **Optional**, not relied upon for correctness |
 
 ---
@@ -85,9 +85,9 @@ Clients MUST honour `Retry-After` and apply jittered backoff.
 - `POST /work/claim` MUST be safe under retries:
   - A retry MAY return the same leased item if the server can correlate and deduplicate.
   - Otherwise, the server MUST ensure the caller cannot accidentally claim multiple concurrent items beyond its policy/limits.
-- `POST /work/{workItemId}/result` SHOULD be idempotent:
+- `POST /work/result` SHOULD be idempotent:
   - Repeated identical submissions for a completed work item SHOULD return `202 Accepted` (or `409 Conflict` if the server cannot safely treat it as idempotent).
-- `POST /work/{workItemId}/lease/renew` SHOULD be idempotent within a short window (renewing a valid lease multiple times results in the same or extended expiry).
+- `POST /work/lease/renew` SHOULD be idempotent within a short window (renewing a valid lease multiple times results in the same or extended expiry).
 
 ### 2.6 HTTP/2
 
@@ -120,6 +120,7 @@ No body required.
 {
   "workItemId": "abc123",
   "jobId": "job789",
+  "recordType": "childrens-services.details",
   "leaseId": "lease456",
   "sui": "9434765919",
   "leaseExpiresUtc": "2026-02-17T12:34:56Z"
@@ -128,7 +129,7 @@ No body required.
 
 ---
 
-### 3.2 `POST /work/{workItemId}/result` (Submit result; accepted for async processing)
+### 3.2 `POST /work/result` (Submit result; accepted for async processing)
 
 **Purpose**  
 Submit the result of processing a previously leased work item.
@@ -140,8 +141,8 @@ The API validates the lease and enqueues the result for asynchronous processing 
 
 Server MUST validate:
 
-- the work item exists,
-- the work item is currently leased,
+- the Job exists,
+- the Job is currently leased,
 - the lease is owned by the authenticated custodian,
 - the lease has not expired,
 - the submitted `leaseId` matches the current lease.
@@ -164,8 +165,8 @@ Result payloads vary by `JobType`.
   "resultType": "HasRecords",
   "records": [
     {
-      "systemId": "cust-123",
-      "recordType": "SAFEGUARDING_PTR",
+      "systemId": "sys-123",
+      "recordType": "childrens-services.details",
       "recordUrl": "https://custodian.example/records/xyz"
     }
   ]
@@ -183,7 +184,7 @@ Result payloads vary by `JobType`.
 
 ---
 
-### 3.3 `POST /work/{workItemId}/lease/renew` (Optional)
+### 3.3 `POST /work/lease/renew` (Optional)
 
 **Purpose**  
 Extend the lease for a work item that is still being processed.
@@ -250,16 +251,16 @@ sequenceDiagram
     loop Poll for work
         C->>F: POST /work/claim (Authorization, traceparent)
         alt Work available
-            F-->>C: 201 {workItemId, jobId, leaseId, sui, leaseExpiresUtc}<br/>Cache-Control:no-store...<br/>Vary:Authorization
+            F-->>C: 201 {workItemId, jobId, recordType, leaseId, sui, leaseExpiresUtc}<br/>Cache-Control:no-store...<br/>Vary:Authorization
             C->>S: Perform local lookup for SUI
             S-->>C: Result (records/no records/error)
 
             opt Processing exceeds lease duration (optional)
-                C->>F: POST /work/{workItemId}/lease/renew (Authorization, traceparent)
+                C->>F: POST /work/lease/renew (Authorization, traceparent)
                 F-->>C: 200 {workItemId, leaseExpiresUtc}<br/>Cache-Control:no-store...<br/>Vary:Authorization
             end
 
-            C->>F: POST /work/{workItemId}/result (Authorization, traceparent)
+            C->>F: POST /work/result (Authorization, traceparent)
             F-->>C: 202 Accepted<br/>Cache-Control:no-store...<br/>Vary:Authorization
         else No work
             F-->>C: 204 No Content<br/>Retry-After: N (optional)<br/>Cache-Control:no-store...<br/>Vary:Authorization
@@ -446,7 +447,7 @@ paths:
             Expires: { schema: { type: string } }
             Vary: { schema: { type: string } }
 
-  /work/{workItemId}/result:
+  /work/result:
     post:
       tags: [Work]
       summary: Submit result for a leased work item (accepted for async processing)
@@ -455,10 +456,6 @@ paths:
         On success, the result is enqueued for asynchronous processing and the request returns 202.
       operationId: submitWorkResult
       parameters:
-        - name: workItemId
-          in: path
-          required: true
-          schema: { type: string }
         - name: traceparent
           in: header
           required: false
@@ -529,7 +526,7 @@ paths:
             Expires: { schema: { type: string } }
             Vary: { schema: { type: string } }
 
-  /work/{workItemId}/lease/renew:
+  /work/lease/renew:
     post:
       tags: [Work]
       summary: Renew the lease for a work item (optional)
@@ -538,10 +535,6 @@ paths:
         The server validates lease ownership and expiry.
       operationId: renewWorkLease
       parameters:
-        - name: workItemId
-          in: path
-          required: true
-          schema: { type: string }
         - name: traceparent
           in: header
           required: false
@@ -626,7 +619,7 @@ components:
   schemas:
     WorkClaimResponse:
       type: object
-      required: [workItemId, jobId, leaseId, sui, leaseExpiresUtc]
+      required: [workItemId, jobId, recordType, leaseId, sui, leaseExpiresUtc]
       properties:
         workItemId:
           type: string
@@ -634,6 +627,9 @@ components:
         jobId:
           type: string
           description: Identifier of the discovery job this work item belongs to.
+        recordType:
+          type: string
+          description: Logical record type identifier of the record to find, if any.
         leaseId:
           type: string
           description: Lease identifier required for renew and result submission.
@@ -658,11 +654,17 @@ components:
 
     LeaseRenewResponse:
       type: object
-      required: [workItemId, leaseExpiresUtc]
+      required: [workItemId, jobId, leaseId, leaseExpiresUtc]
       properties:
         workItemId:
           type: string
           description: Unique identifier for the leased work item.
+        jobId:
+          type: string
+          description: Identifier of the discovery job this work item belongs to.
+        leaseId:
+          type: string
+          description: Lease identifier required for renew and result submission.
         leaseExpiresUtc:
           type: string
           format: date-time

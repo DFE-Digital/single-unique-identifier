@@ -20,6 +20,7 @@ public class SearchResultsServiceTests
         );
 
         const string sourceOrgId = "sourceOrgId";
+        const string destOrgId = "destOrgId";
         IReadOnlyList<SearchResultWithDecision> exampleSearchResults =
         [
             new(
@@ -32,6 +33,7 @@ public class SearchResultsServiceTests
                     "recordId1"
                 ),
                 sourceOrgId,
+                destOrgId,
                 new PolicyDecisionResult { IsAllowed = true, Reason = "example1" }
             ),
             new(
@@ -44,6 +46,7 @@ public class SearchResultsServiceTests
                     "recordId2"
                 ),
                 sourceOrgId,
+                destOrgId,
                 new PolicyDecisionResult { IsAllowed = false, Reason = "example2" }
             ),
         ];
@@ -78,6 +81,7 @@ public class SearchResultsServiceTests
                     && e.SubmittedAtUtc >= timeAtStart
                     && e.JobId == "example-JobId"
                     && e.WorkItemId == "example-WorkItemId"
+                    && e.SearchingOrganisationId == "destOrgId"
                 ),
                 CancellationToken.None
             );
