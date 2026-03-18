@@ -5,10 +5,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Configuration;
-using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Services;
 

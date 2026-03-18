@@ -117,6 +117,7 @@ public class JobResultHandler(
             var entry = new SearchResultEntry
             {
                 CustodianId = message.CustodianId,
+                SearchingOrganisationId = "placeholder",
                 CustodianName = custodian.Value?.OrgName ?? string.Empty,
                 WorkItemId = message.WorkItemId,
                 JobId = message.JobId,
