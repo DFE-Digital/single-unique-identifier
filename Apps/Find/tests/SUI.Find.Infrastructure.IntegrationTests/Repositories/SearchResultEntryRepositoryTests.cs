@@ -32,6 +32,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = DateTimeOffset.UtcNow,
             JobId = "job-1",
             WorkItemId = $"work_{Guid.NewGuid()}",
+            SearchingOrganisationId = $"searching-organisation-{Guid.NewGuid()}",
         };
 
         var partitionKey = SearchResultEntryKeys.PartitionKey(entry.WorkItemId);
@@ -61,6 +62,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         entity.GetString("RecordId").Should().Be(entry.RecordId);
         entity.GetString("JobId").Should().Be(entry.JobId);
         entity.GetString("WorkItemId").Should().Be(entry.WorkItemId);
+        entity.GetString("SearchingOrganisationId").Should().Be(entry.SearchingOrganisationId);
     }
 
     [Fact]
@@ -80,6 +82,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = submitted,
             JobId = "job",
             WorkItemId = workItemId,
+            SearchingOrganisationId = "CustodianB",
         };
 
         await _sut.UpsertAsync(entry, None);
@@ -96,11 +99,12 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = submitted,
             JobId = "job",
             WorkItemId = workItemId,
+            SearchingOrganisationId = "CustodianB",
         };
 
         await _sut.UpsertAsync(updatedEntry, None);
 
-        var results = await _sut.GetByWorkItemIdAsync(workItemId, None);
+        var results = await _sut.GetByWorkItemIdAsync(workItemId, "CustodianB", None);
 
         results.Should().HaveCount(1);
         results.Single().RecordUrl.Should().Be("updated-url");
@@ -122,6 +126,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = DateTimeOffset.UtcNow,
             JobId = "job",
             WorkItemId = workItemId,
+            SearchingOrganisationId = "CustodianB",
         };
 
         var second = new SearchResultEntry
@@ -135,12 +140,13 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = DateTimeOffset.UtcNow.AddSeconds(1),
             JobId = "job",
             WorkItemId = workItemId,
+            SearchingOrganisationId = "CustodianB",
         };
 
         await _sut.UpsertAsync(first, None);
         await _sut.UpsertAsync(second, None);
 
-        var results = await _sut.GetByWorkItemIdAsync(workItemId, None);
+        var results = await _sut.GetByWorkItemIdAsync(workItemId, "CustodianB", None);
 
         results.Should().HaveCount(2);
     }
@@ -164,6 +170,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = earlier,
             JobId = "job",
             WorkItemId = workItemId,
+            SearchingOrganisationId = "x",
         };
 
         var second = new SearchResultEntry
@@ -177,12 +184,13 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = later,
             JobId = "job",
             WorkItemId = workItemId,
+            SearchingOrganisationId = "x",
         };
 
         await _sut.UpsertAsync(second, None);
         await _sut.UpsertAsync(first, None);
 
-        var results = (await _sut.GetByWorkItemIdAsync(workItemId, None)).ToArray();
+        var results = (await _sut.GetByWorkItemIdAsync(workItemId, "x", None)).ToArray();
 
         results.First().RecordType.Should().Be("T1");
         results.Last().RecordType.Should().Be("T2");
@@ -205,8 +213,52 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
 
         await tableClient.UpsertEntityAsync(entity);
 
-        var results = await _sut.GetByWorkItemIdAsync(workItemId, None);
+        var results = await _sut.GetByWorkItemIdAsync(workItemId, "", None);
 
         results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetByWorkItemIdAsync_FiltersBy_SearchingOrganisationId()
+    {
+        var workItemId = $"work_{Guid.NewGuid()}";
+
+        var first = new SearchResultEntry
+        {
+            CustodianId = "A",
+            SystemId = "S",
+            CustodianName = "S",
+            RecordType = "T1",
+            RecordUrl = "url1",
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "X",
+        };
+
+        var second = new SearchResultEntry
+        {
+            CustodianId = "B",
+            SystemId = "S",
+            CustodianName = "S",
+            RecordType = "T2",
+            RecordUrl = "url2",
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "Y",
+        };
+
+        await _sut.UpsertAsync(second, None);
+        await _sut.UpsertAsync(first, None);
+
+        // ACT
+        var results = (await _sut.GetByWorkItemIdAsync(workItemId, "Y", None)).ToArray();
+
+        // ASSERT
+        results.Should().HaveCount(1);
+
+        var result = results.Single();
+
+        result.RecordUrl.Should().Be("url2");
+        result.SearchingOrganisationId.Should().Be("Y");
     }
 }

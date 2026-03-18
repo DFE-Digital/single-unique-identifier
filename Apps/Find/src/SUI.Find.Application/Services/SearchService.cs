@@ -87,11 +87,12 @@ public class SearchService(
                     ? SearchStatus.Running
                     : SearchStatus.Queued;
 
-            logger.LogInformation(
-                "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
-                originalJobId,
-                jobStatus
-            );
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation(
+                    "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
+                    originalJobId,
+                    jobStatus
+                );
 
             var originalJob = new SearchJobDto
             {
@@ -237,7 +238,8 @@ public class SearchService(
             );
             if (metaData is null)
             {
-                logger.LogInformation("Search job with ID {JobId} not found.", jobId);
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("Search job with ID {JobId} not found.", jobId);
                 return new NotFound();
             }
 
@@ -265,6 +267,7 @@ public class SearchService(
             {
                 var persistedItems = await searchResultEntryRepository.GetByWorkItemIdAsync(
                     jobId,
+                    clientId,
                     cancellationToken
                 );
 
