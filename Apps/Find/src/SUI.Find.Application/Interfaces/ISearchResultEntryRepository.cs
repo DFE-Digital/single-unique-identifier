@@ -8,6 +8,7 @@ public interface ISearchResultEntryRepository
 
     Task<IReadOnlyList<SearchResultEntry>> GetByWorkItemIdAsync(
         string workItemId,
+        string searchingOrganisationId,
         CancellationToken cancellationToken
     );
 }

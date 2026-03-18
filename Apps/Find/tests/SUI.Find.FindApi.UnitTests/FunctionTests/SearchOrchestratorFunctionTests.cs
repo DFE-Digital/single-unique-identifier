@@ -195,10 +195,12 @@ public class SearchOrchestratorFunctionsTests
 
     private SearchOrchestratorInput ArrangeSuccessfulSearchOrchestration()
     {
+        const string destOrgId = "test-client-1";
+
         var input = new SearchOrchestratorInput(
             Suid: "1234567890123456",
             Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
-            PolicyContext: new PolicyContext("test-client-1", "SAFEGUARDING", "LOCAL_AUTHORITY")
+            PolicyContext: new PolicyContext(destOrgId, "SAFEGUARDING", "LOCAL_AUTHORITY")
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
@@ -286,6 +288,7 @@ public class SearchOrchestratorFunctionsTests
             new(
                 queryResultOrg1[0],
                 sourceOrgId1,
+                destOrgId,
                 new PolicyDecisionResult() { IsAllowed = true, Reason = "Allowed" }
             ),
         };
@@ -294,6 +297,7 @@ public class SearchOrchestratorFunctionsTests
             new(
                 queryResultOrg2[0],
                 sourceOrgId2,
+                destOrgId,
                 new PolicyDecisionResult() { IsAllowed = true, Reason = "Allowed" }
             ),
         };

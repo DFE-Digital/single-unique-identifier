@@ -20,12 +20,10 @@ public class SearchResultsService(
         var submittedAtUtc = DateTimeOffset.UtcNow;
         var countOfRecordsPersisted = 0;
 
-        foreach (
-            var searchResultItem in searchResults
-                .Where(x => x.Decision.IsAllowed)
-                .Select(x => x.Item)
-        )
+        foreach (var searchResult in searchResults.Where(x => x.Decision.IsAllowed))
         {
+            var searchResultItem = searchResult.Item;
+
             await searchResultEntryRepository.UpsertAsync(
                 new SearchResultEntry
                 {
@@ -38,6 +36,7 @@ public class SearchResultsService(
                     SubmittedAtUtc = submittedAtUtc,
                     JobId = jobId,
                     WorkItemId = workItemId,
+                    SearchingOrganisationId = searchResult.DestOrgId,
                 },
                 cancellationToken
             );

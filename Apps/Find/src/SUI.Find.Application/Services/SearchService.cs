@@ -265,6 +265,7 @@ public class SearchService(
             {
                 var persistedItems = await searchResultEntryRepository.GetByWorkItemIdAsync(
                     jobId,
+                    clientId,
                     cancellationToken
                 );
 
