@@ -73,6 +73,7 @@ public class QueueSearchJobTriggerTests
             .UpsertAsync(
                 Arg.Is<Job>(j =>
                     (j.CustodianId == "org1" || j.CustodianId == "org2")
+                    && j.SearchingOrganisationId == requestMessage.RequestingCustodianId
                     && j.JobType == JobType.CustodianLookup
                     && j.WorkItemType == WorkItemType.SearchExecution
                     && j.WorkItemId == requestMessage.WorkItemId.ToString()

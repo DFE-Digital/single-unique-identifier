@@ -55,6 +55,7 @@ public class JobRepositoryTests : IAsyncLifetime
 
         entity.GetString("JobId").Should().Be(job.JobId);
         entity.GetString("CustodianId").Should().Be(job.CustodianId);
+        entity.GetString("SearchingOrganisationId").Should().Be(job.SearchingOrganisationId);
         entity.GetString("JobType").Should().Be(job.JobType.ToString());
         entity.GetString("WorkItemType").Should().Be(job.WorkItemType.ToString());
         entity.GetString("WorkItemId").Should().Be(job.WorkItemId);
@@ -108,6 +109,7 @@ public class JobRepositoryTests : IAsyncLifetime
 
         entity.GetString("JobId").Should().Be(job.JobId);
         entity.GetString("CustodianId").Should().Be(job.CustodianId);
+        entity.GetString("SearchingOrganisationId").Should().Be(job.SearchingOrganisationId);
 
         entity.GetString("LeaseId").Should().Be("updated-LeaseId");
         entity.GetDateTimeOffset("LeaseExpiresAtUtc").Should().Be(createdAt.AddMinutes(30));
