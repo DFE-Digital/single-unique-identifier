@@ -59,17 +59,32 @@ public class JobProcessorService(
         return job;
     }
 
-    public async Task MarkCompletedAsync(string jobId, CancellationToken cancellationToken)
+    public async Task<Job?> GetJobByIdAndCustodianIdAsync(
+        string jobId,
+        string custodianId,
+        CancellationToken cancellationToken
+    )
     {
         var windowStart = jobWindowStartService.GetWindowStart();
 
         var jobs = await jobRepository.ListJobsByCustodianIdAsync(
-            "",
+            custodianId,
             windowStart,
             cancellationToken
         );
 
         var job = jobs.FirstOrDefault(j => j.JobId == jobId);
+
+        return job;
+    }
+
+    public async Task MarkCompletedAsync(
+        string jobId,
+        string custodianId,
+        CancellationToken cancellationToken
+    )
+    {
+        var job = await GetJobByIdAndCustodianIdAsync(jobId, custodianId, cancellationToken);
 
         if (job is null)
         {

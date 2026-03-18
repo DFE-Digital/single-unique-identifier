@@ -6,6 +6,7 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
 using SUI.Find.Infrastructure.Interfaces;
+using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 
@@ -37,7 +38,11 @@ public class JobResultHandler(
                 message.JobType
             );
 
-            await jobService.MarkCompletedAsync(message.JobId, cancellationToken);
+            await jobService.MarkCompletedAsync(
+                message.JobId,
+                message.CustodianId,
+                cancellationToken
+            );
             return;
         }
 
@@ -47,7 +52,11 @@ public class JobResultHandler(
         {
             logger.LogInformation("No records submitted for JobId {JobId}", message.JobId);
 
-            await jobService.MarkCompletedAsync(message.JobId, cancellationToken);
+            await jobService.MarkCompletedAsync(
+                message.JobId,
+                message.CustodianId,
+                cancellationToken
+            );
             return;
         }
 
@@ -91,17 +100,17 @@ public class JobResultHandler(
             await idRegisterRepository.UpsertAsync(entry, cancellationToken);
         }
 
-        // Apply PEP filtering
-        logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
-
-        var filteredRecords = ApplyPepFiltering(records);
-
-        logger.LogInformation(
-            "{AllowedCount} records allowed after PEP filtering",
-            filteredRecords.Count
+        var job = await jobService.GetJobByIdAndCustodianIdAsync(
+            message.JobId,
+            message.CustodianId,
+            cancellationToken
         );
 
-        // Persist filtered records to SearchResultEntries
+        if (job is null)
+        {
+            logger.LogWarning("No job matching found for JobId: {JobId}.", message.JobId);
+        }
+
         var custodian = await custodianService.GetCustodianAsync(message.CustodianId);
 
         if (!custodian.Success || custodian.Value is null)
@@ -112,12 +121,40 @@ public class JobResultHandler(
             );
         }
 
+        var searchingOrganisation = await custodianService.GetCustodianAsync(
+            job?.SearchingOrganisationId!
+        );
+
+        if (!custodian.Success || custodian.Value is null)
+        {
+            logger.LogWarning(
+                "No custodian configuration found for SearchingOrganisationId: {SearchingOrganisationId}.",
+                job?.SearchingOrganisationId
+            );
+        }
+
+        // Apply PEP filtering
+        logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
+
+        var filteredRecords = await ApplyPepFiltering(
+            records,
+            custodian.Value!,
+            searchingOrganisation.Value!,
+            cancellationToken
+        );
+
+        logger.LogInformation(
+            "{AllowedCount} records allowed after PEP filtering",
+            filteredRecords.Count
+        );
+
+        // Persist filtered records to SearchResultEntries
         foreach (var record in filteredRecords)
         {
             var entry = new SearchResultEntry
             {
                 CustodianId = message.CustodianId,
-                SearchingOrganisationId = "placeholder",
+                SearchingOrganisationId = job?.SearchingOrganisationId ?? string.Empty,
                 CustodianName = custodian.Value?.OrgName ?? string.Empty,
                 WorkItemId = message.WorkItemId,
                 JobId = message.JobId,
@@ -132,38 +169,39 @@ public class JobResultHandler(
         }
 
         // Mark job as completed
-        await jobService.MarkCompletedAsync(message.JobId, cancellationToken);
+        await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, cancellationToken);
 
         logger.LogInformation("Marked JobId: {JobId} as completed", message.JobId);
     }
 
-    private IReadOnlyList<SearchResultWithDecision> ApplyPepFiltering(List<JobResultRecord> records)
+    private async Task<IReadOnlyList<SearchResultWithDecision>> ApplyPepFiltering(
+        List<JobResultRecord> records,
+        ProviderDefinition custodian,
+        ProviderDefinition searchingOrganisation,
+        CancellationToken cancellationToken
+    )
     {
-        // var pepInput = records
-        //     .Select(r => new CustodianSearchResultItem
-        //     {
-        //         RecordId = r.RecordId,
-        //         RecordType = r.RecordType,
-        //         RecordUrl = r.RecordUrl,
-        //         SystemId = r.SystemId
-        //     })
-        //     .ToList();
+        var pepInput = records
+            .Select(r => new CustodianSearchResultItem(
+                custodian.OrgId,
+                r.RecordType,
+                r.RecordUrl,
+                r.SystemId,
+                custodian.OrgName,
+                r.RecordId
+            ))
+            .ToList();
 
-        // 2️⃣ Call policy service
-        // var results = await pepFilteringService.FilterResultsAsync(
-        //     sourceOrgId,
-        //     destOrgId,
-        //     destOrgType,
-        //     pepInput,
-        //     dsaPolicy,
-        //     purpose,
-        //     cancellationToken);
+        var results = await pepFilteringService.FilterResultsAsync(
+            custodian.OrgId,
+            searchingOrganisation.OrgId,
+            searchingOrganisation.OrgType,
+            pepInput,
+            custodian.DsaPolicy,
+            "SAFEGUARDING",
+            cancellationToken
+        );
 
-        return [];
+        return results;
     }
-}
-
-public record SearchWorkItemPayload
-{
-    public required string Sui { get; init; }
 }

@@ -11,5 +11,11 @@ public interface IJobProcessorService
         CancellationToken cancellationToken
     );
 
-    Task MarkCompletedAsync(string jobId, CancellationToken cancellationToken);
+    Task<Job?> GetJobByIdAndCustodianIdAsync(
+        string jobId,
+        string custodianId,
+        CancellationToken cancellationToken
+    );
+
+    Task MarkCompletedAsync(string jobId, string custodianId, CancellationToken cancellationToken);
 }
