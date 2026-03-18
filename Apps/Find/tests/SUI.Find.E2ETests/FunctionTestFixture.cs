@@ -115,7 +115,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
                     testOutputHelper.WriteLine(
                         $"{serviceName} does not indicate healthy, waiting for {waitInterval.Seconds} seconds, then retrying, retry {retryAttempt} / {retryCount}..."
                     );
-                    return TimeSpan.FromSeconds(10);
+                    return waitInterval;
                 }
             );
 
