@@ -262,6 +262,7 @@ function Get-RotationContext {
         verification_project = if ($verificationDefinition.ContainsKey('project')) { [string]$verificationDefinition['project'] } else { '' }
         verification_filter = if ($verificationDefinition.ContainsKey('filter')) { [string]$verificationDefinition['filter'] } else { '' }
         verification_secret_env_name = if ($verificationDefinition.ContainsKey('secret_env_name')) { [string]$verificationDefinition['secret_env_name'] } else { '' }
+        verification_previous_secret_env_name = if ($verificationDefinition.ContainsKey('previous_secret_env_name')) { [string]$verificationDefinition['previous_secret_env_name'] } else { '' }
     }
 
     foreach ($name in $outputs.Keys) {
