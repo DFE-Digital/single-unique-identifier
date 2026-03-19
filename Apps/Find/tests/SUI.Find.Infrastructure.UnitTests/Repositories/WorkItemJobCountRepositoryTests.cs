@@ -36,6 +36,7 @@ public class WorkItemJobCountRepositoryExceptionTests
             ExpectedJobCount = 1,
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow,
+            SearchingOrganisationId = "SOID-1",
             PayloadJson = "{}",
         };
 

@@ -4,19 +4,19 @@ using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
 using SUI.Find.Application.Enums;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Configuration;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models;
-using SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 
 namespace SUI.Find.Infrastructure.Services;
 
 public class JobSearchService(
-    SearchResultEntryRepository searchResultsEntryRepository,
-    WorkItemJobCountRepository workItemJobCountRepository,
+    ISearchResultEntryRepository searchResultsEntryRepository,
+    IWorkItemJobCountRepository workItemJobCountRepository,
     TimeProvider timeProvider,
     IOptionsMonitor<JobClaimConfig> options,
     ILogger<JobSearchService> logger
@@ -24,7 +24,11 @@ public class JobSearchService(
 {
     public async Task<
         OneOf<SearchResultsV2Dto, NotFound, Unauthorized, Error>
-    > GetSearchResultsAsync(string workItemId, CancellationToken cancellationToken)
+    > GetSearchResultsAsync(
+        string workItemId,
+        string searchingOrganisationId,
+        CancellationToken cancellationToken
+    )
     {
         var workItemJobCountEntity =
             await workItemJobCountRepository.GetByWorkItemIdAndJobTypeAsync(
@@ -42,6 +46,16 @@ public class JobSearchService(
             return new NotFound();
         }
 
+        if (workItemJobCountEntity.SearchingOrganisationId != searchingOrganisationId)
+        {
+            logger.LogWarning(
+                "Searcher attempted to access an unauthorized work item. Searching ID: {searchingId}, expected ID: {expectedId}",
+                searchingOrganisationId,
+                workItemJobCountEntity.SearchingOrganisationId
+            );
+            return new Unauthorized();
+        }
+
         var totalJobs = workItemJobCountEntity.ExpectedJobCount;
 
         if (totalJobs == 0)
@@ -55,7 +69,7 @@ public class JobSearchService(
             cancellationToken
         );
 
-        var completenessPercentage = completedRecords.Count / totalJobs;
+        var completenessPercentage = (completedRecords.Count * 100 / totalJobs);
 
         var status = GetOverallJobStatus(completenessPercentage, workItemJobCountEntity);
 
@@ -70,6 +84,7 @@ public class JobSearchService(
             Suid = payload?.Sui ?? string.Empty,
             Status = status,
             Items = completedRecords,
+            CompletenessPercentage = completenessPercentage,
         };
 
         return result;
@@ -80,15 +95,14 @@ public class JobSearchService(
         WorkItemJobCount workItemJobCount
     )
     {
-        if (completenessPercentage < 100)
-            return SearchStatus.Running;
-
-        return
+        if (
             workItemJobCount.CreatedAtUtc
             < timeProvider
                 .GetUtcNow()
                 .AddHours(-1 * options.CurrentValue.AvailableJobWindowStartOffsetHours)
-            ? SearchStatus.Expired
-            : SearchStatus.Completed;
+        )
+            return SearchStatus.Expired;
+
+        return completenessPercentage < 100 ? SearchStatus.Running : SearchStatus.Completed;
     }
 }

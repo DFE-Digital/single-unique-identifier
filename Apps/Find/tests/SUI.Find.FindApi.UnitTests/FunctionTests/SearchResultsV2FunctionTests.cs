@@ -81,7 +81,11 @@ public class SearchResultsV2FunctionTests
             CompletenessPercentage = 100,
         };
         _jobSearchService
-            .GetSearchResultsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSearchResultsAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(dto);
 
         var response = await _sut.SearchResultsTrigger(
@@ -99,7 +103,11 @@ public class SearchResultsV2FunctionTests
     public async Task ReturnsNotFound_WhenJobNotFound()
     {
         _jobSearchService
-            .GetSearchResultsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSearchResultsAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new NotFound());
 
         var response = await _sut.SearchResultsTrigger(
@@ -117,7 +125,11 @@ public class SearchResultsV2FunctionTests
     public async Task ReturnsUnauthorized_WhenUnauthorized()
     {
         _jobSearchService
-            .GetSearchResultsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSearchResultsAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Unauthorized());
 
         var response = await _sut.SearchResultsTrigger(
@@ -135,7 +147,11 @@ public class SearchResultsV2FunctionTests
     public async Task ReturnsInternalServerError_OnError()
     {
         _jobSearchService
-            .GetSearchResultsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .GetSearchResultsAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Error());
 
         var response = await _sut.SearchResultsTrigger(

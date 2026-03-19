@@ -91,13 +91,17 @@ public class SearchResultsV2Function(
             {
                 ["InvocationId"] = context.InvocationId,
                 ["WorkItemId"] = workItemId,
-                ["RequestCustodianId"] = authContext.ClientId,
+                ["SearchingOrganisationId"] = authContext.ClientId,
                 ["TraceId"] = Activity.Current?.TraceId.ToString() ?? string.Empty,
                 ["TraceParent"] = context.TraceContext.TraceParent,
             }
         );
 
-        var result = await jobSearchService.GetSearchResultsAsync(workItemId, cancellationToken);
+        var result = await jobSearchService.GetSearchResultsAsync(
+            workItemId,
+            authContext.ClientId,
+            cancellationToken
+        );
 
         return await result.Match(
             async searchResult => await CreateSuccessResponse(req, searchResult, cancellationToken),

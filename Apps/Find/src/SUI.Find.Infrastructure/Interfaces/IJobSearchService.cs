@@ -8,6 +8,7 @@ public interface IJobSearchService
 {
     Task<OneOf<SearchResultsV2Dto, NotFound, Unauthorized, Error>> GetSearchResultsAsync(
         string workItemId,
+        string searchingOrganisationId,
         CancellationToken cancellationToken
     );
 }
