@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
@@ -176,7 +177,7 @@ public class JobResultHandler(
             context.SearchingOrganisation.OrgType,
             input,
             context.Custodian.DsaPolicy,
-            "SAFEGUARDING",
+            ApplicationConstants.PolicyEnforcement.Purpose,
             ct
         );
 

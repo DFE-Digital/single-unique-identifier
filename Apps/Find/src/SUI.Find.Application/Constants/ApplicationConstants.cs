@@ -23,6 +23,11 @@ public static class ApplicationConstants
         }
     }
 
+    public static class PolicyEnforcement
+    {
+        public const string Purpose = "SAFEGUARDING";
+    }
+
     public static class Queues
     {
         public const string JobResultsQueueName = "job-results-inbound";

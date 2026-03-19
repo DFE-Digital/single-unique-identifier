@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
 using SUI.Find.Application.Configurations;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
@@ -142,7 +143,7 @@ public class SearchService(
 
         var policyContext = new PolicyContext(
             clientId,
-            "SAFEGUARDING", // TODO: Hard coded for now. Review later. Potentially pull it through the endpoint as part of the query.
+            ApplicationConstants.PolicyEnforcement.Purpose,
             encryptDefinition.Value.OrgType
         );
 
