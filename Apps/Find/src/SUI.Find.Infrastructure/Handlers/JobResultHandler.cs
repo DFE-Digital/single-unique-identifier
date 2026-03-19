@@ -6,7 +6,6 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
 using SUI.Find.Infrastructure.Interfaces;
-using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 
@@ -18,11 +17,11 @@ public class JobResultHandler(
     IIdRegisterRepository idRegisterRepository,
     IWorkItemJobCountRepository workItemJobCountRepository,
     ICustodianService custodianService,
-    IPolicyEnforcementService pepFilteringService,
+    IPolicyEnforcementService pepService,
     ISearchResultEntryRepository searchResultRepository
 ) : IJobResultHandler
 {
-    public async Task HandleAsync(JobResultMessage message, CancellationToken cancellationToken)
+    public async Task HandleAsync(JobResultMessage message, CancellationToken ct)
     {
         logger.LogInformation(
             "Handling job results for JobId {JobId} WorkItemId {WorkItemId}",
@@ -30,65 +29,80 @@ public class JobResultHandler(
             message.WorkItemId
         );
 
-        // Processing behaviour determined by JobType
+        // JobType check
         if (message.JobType != JobType.CustodianLookup)
         {
-            logger.LogInformation(
-                "Skipping processing for unsupported JobType {JobType}",
-                message.JobType
-            );
-
-            await jobService.MarkCompletedAsync(
-                message.JobId,
-                message.CustodianId,
-                cancellationToken
-            );
+            logger.LogInformation("Skipping unsupported JobType {JobType}", message.JobType);
+            await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, ct);
             return;
         }
 
-        var records = message.Records;
-
-        if (records.Count == 0)
+        if (message.Records.Count == 0)
         {
             logger.LogInformation("No records submitted for JobId {JobId}", message.JobId);
-
-            await jobService.MarkCompletedAsync(
-                message.JobId,
-                message.CustodianId,
-                cancellationToken
-            );
+            await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, ct);
             return;
         }
 
-        // Update ID Register with ALL records before PEP filtering
-        logger.LogInformation(
-            "Upserting {Count} records into ID Register for WorkItemId {WorkItemId}",
-            records.Count,
-            message.WorkItemId
+        var payload = await GetWorkItemPayload(message, ct);
+        if (payload is null)
+            return;
+
+        await UpsertIdRegister(message, payload, ct);
+
+        var context = await BuildContext(message, ct);
+        if (context is null)
+            return;
+
+        var filtered = await ApplyPepFiltering(message.Records, context, ct);
+
+        await PersistSearchResults(filtered, message, context, ct);
+
+        await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, ct);
+
+        logger.LogInformation("Marked JobId {JobId} as completed", message.JobId);
+    }
+
+    // WorkItem Payload
+    private async Task<SearchWorkItemPayload?> GetWorkItemPayload(
+        JobResultMessage message,
+        CancellationToken ct
+    )
+    {
+        var jobCount = await workItemJobCountRepository.GetByWorkItemIdAndJobTypeAsync(
+            message.WorkItemId,
+            message.JobType,
+            ct
         );
 
-        var associatedWorkItemJobCount =
-            await workItemJobCountRepository.GetByWorkItemIdAndJobTypeAsync(
-                message.WorkItemId,
-                message.JobType,
-                cancellationToken
-            );
-
-        if (associatedWorkItemJobCount == null)
+        if (jobCount is null)
         {
-            logger.LogWarning("No a found for CustodianId: {CustodianId}.", message.CustodianId);
-            return; // Is this the correct approach?
+            logger.LogWarning(
+                "No WorkItemJobCount found for WorkItemId {WorkItemId}",
+                message.WorkItemId
+            );
+            return null;
         }
 
-        var workItemPayload = JsonSerializer.Deserialize<SearchWorkItemPayload>(
-            associatedWorkItemJobCount.PayloadJson
-        );
+        return JsonSerializer.Deserialize<SearchWorkItemPayload>(jobCount.PayloadJson);
+    }
+
+    // ID Register
+    private async Task UpsertIdRegister(
+        JobResultMessage message,
+        SearchWorkItemPayload payload,
+        CancellationToken ct
+    )
+    {
+        var records = message.Records;
+
+        logger.LogInformation("Upserting {Count} records into ID Register", records.Count);
 
         foreach (var record in records)
         {
             var entry = new IdRegisterEntry
             {
-                Sui = workItemPayload!.Sui,
+                Sui = payload.Sui,
                 CustodianId = message.CustodianId,
                 RecordType = record.RecordType,
                 SystemId = record.SystemId,
@@ -97,111 +111,116 @@ public class JobResultHandler(
                 LastIdDeliveredAtUtc = DateTimeOffset.UtcNow,
             };
 
-            await idRegisterRepository.UpsertAsync(entry, cancellationToken);
+            await idRegisterRepository.UpsertAsync(entry, ct);
         }
+    }
 
+    // Context (Job + Custodians)
+    private async Task<PepContext?> BuildContext(JobResultMessage message, CancellationToken ct)
+    {
         var job = await jobService.GetJobByIdAndCustodianIdAsync(
             message.JobId,
             message.CustodianId,
-            cancellationToken
+            ct
         );
 
         if (job is null)
         {
-            logger.LogWarning("No job matching found for JobId: {JobId}.", message.JobId);
+            logger.LogWarning("Job not found for JobId {JobId}", message.JobId);
+            return null;
         }
 
         var custodian = await custodianService.GetCustodianAsync(message.CustodianId);
-
         if (!custodian.Success || custodian.Value is null)
         {
-            logger.LogWarning(
-                "No custodian configuration found for CustodianId: {CustodianId}.",
-                message.CustodianId
-            );
+            logger.LogWarning("Custodian config not found for {CustodianId}", message.CustodianId);
+            return null;
         }
 
-        var searchingOrganisation = await custodianService.GetCustodianAsync(
-            job?.SearchingOrganisationId!
-        );
-
-        if (!custodian.Success || custodian.Value is null)
+        var searchingOrg = await custodianService.GetCustodianAsync(job.SearchingOrganisationId);
+        if (!searchingOrg.Success || searchingOrg.Value is null)
         {
             logger.LogWarning(
-                "No custodian configuration found for SearchingOrganisationId: {SearchingOrganisationId}.",
-                job?.SearchingOrganisationId
+                "Searching organisation config not found for {SearchingOrganisationId}",
+                job.SearchingOrganisationId
             );
+            return null;
         }
 
-        // Apply PEP filtering
-        logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
-
-        var filteredRecords = await ApplyPepFiltering(
-            records,
-            custodian.Value!,
-            searchingOrganisation.Value!,
-            cancellationToken
-        );
-
-        logger.LogInformation(
-            "{AllowedCount} records allowed after PEP filtering",
-            filteredRecords.Count
-        );
-
-        // Persist filtered records to SearchResultEntries
-        foreach (var record in filteredRecords)
-        {
-            var entry = new SearchResultEntry
-            {
-                CustodianId = message.CustodianId,
-                SearchingOrganisationId = job?.SearchingOrganisationId ?? string.Empty,
-                CustodianName = custodian.Value?.OrgName ?? string.Empty,
-                WorkItemId = message.WorkItemId,
-                JobId = message.JobId,
-                RecordId = record.Item.RecordId,
-                RecordType = record.Item.RecordType,
-                RecordUrl = record.Item.RecordUrl,
-                SystemId = record.Item.SystemId,
-                SubmittedAtUtc = message.SubmittedAtUtc,
-            };
-
-            await searchResultRepository.UpsertAsync(entry, cancellationToken);
-        }
-
-        // Mark job as completed
-        await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, cancellationToken);
-
-        logger.LogInformation("Marked JobId: {JobId} as completed", message.JobId);
+        return new PepContext(custodian.Value, searchingOrg.Value, job.SearchingOrganisationId);
     }
 
+    // PEP Filtering
     private async Task<IReadOnlyList<SearchResultWithDecision>> ApplyPepFiltering(
         List<JobResultRecord> records,
-        ProviderDefinition custodian,
-        ProviderDefinition searchingOrganisation,
-        CancellationToken cancellationToken
+        PepContext context,
+        CancellationToken ct
     )
     {
-        var pepInput = records
+        logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
+
+        var input = records
             .Select(r => new CustodianSearchResultItem(
-                custodian.OrgId,
+                context.Custodian.OrgId,
                 r.RecordType,
                 r.RecordUrl,
                 r.SystemId,
-                custodian.OrgName,
+                context.Custodian.OrgName,
                 r.RecordId
             ))
             .ToList();
 
-        var results = await pepFilteringService.FilterResultsAsync(
-            custodian.OrgId,
-            searchingOrganisation.OrgId,
-            searchingOrganisation.OrgType,
-            pepInput,
-            custodian.DsaPolicy,
+        var results = await pepService.FilterResultsAsync(
+            context.Custodian.OrgId,
+            context.SearchingOrganisation.OrgId,
+            context.SearchingOrganisation.OrgType,
+            input,
+            context.Custodian.DsaPolicy,
             "SAFEGUARDING",
-            cancellationToken
+            ct
+        );
+
+        logger.LogInformation(
+            "{AllowedCount} records allowed after PEP filtering",
+            results.Count(r => r.Decision.IsAllowed)
         );
 
         return results;
     }
+
+    // Persistence
+    private async Task PersistSearchResults(
+        IReadOnlyList<SearchResultWithDecision> results,
+        JobResultMessage message,
+        PepContext context,
+        CancellationToken ct
+    )
+    {
+        foreach (var result in results.Where(r => r.Decision.IsAllowed))
+        {
+            var item = result.Item;
+
+            var entry = new SearchResultEntry
+            {
+                CustodianId = message.CustodianId,
+                SearchingOrganisationId = context.SearchingOrganisationId,
+                CustodianName = context.Custodian.OrgName,
+                WorkItemId = message.WorkItemId,
+                JobId = message.JobId,
+                RecordId = item.RecordId,
+                RecordType = item.RecordType,
+                RecordUrl = item.RecordUrl,
+                SystemId = item.SystemId,
+                SubmittedAtUtc = message.SubmittedAtUtc,
+            };
+
+            await searchResultRepository.UpsertAsync(entry, ct);
+        }
+    }
+
+    private sealed record PepContext(
+        ProviderDefinition Custodian,
+        ProviderDefinition SearchingOrganisation,
+        string SearchingOrganisationId
+    );
 }
