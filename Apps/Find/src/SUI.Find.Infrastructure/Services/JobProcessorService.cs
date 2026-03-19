@@ -16,15 +16,7 @@ public class JobProcessorService(
         CancellationToken cancellationToken
     )
     {
-        var windowStart = jobWindowStartService.GetWindowStart();
-
-        var jobs = await jobRepository.ListJobsByCustodianIdAsync(
-            custodianId,
-            windowStart,
-            cancellationToken
-        );
-
-        var job = jobs.FirstOrDefault(j => j.JobId == jobId);
+        var job = await GetJobByIdAndCustodianIdAsync(jobId, custodianId, cancellationToken);
 
         // the work item exists
         if (job is null)
