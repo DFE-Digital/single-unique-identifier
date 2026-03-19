@@ -15,4 +15,6 @@ public record Config
     public bool UseEncryptedIds { get; set; } = false;
 
     public string? FindApiKey { get; init; }
+
+    public string? PreviousFindApiKey { get; init; }
 }
