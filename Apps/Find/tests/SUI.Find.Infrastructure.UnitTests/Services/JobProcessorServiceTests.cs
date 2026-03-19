@@ -112,6 +112,36 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
         }
 
         [Fact]
+        public async Task ValidateLeaseAsync_ShouldReturnNull_WhenLeaseAlmostExpired()
+        {
+            var job = CreateJob(leaseExpires: DateTimeOffset.UtcNow);
+            SetupRepo(job);
+
+            var result = await _service.ValidateLeaseAsync(
+                job.JobId,
+                job.LeaseId!,
+                job.CustodianId,
+                CancellationToken.None
+            );
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task ValidateLeaseAsync_ShouldReturnNull_WhenCustodianIdMismatch()
+        {
+            var job = CreateJob(custodianId: "correct-custodian");
+            SetupRepo(job);
+
+            var result = await _service.ValidateLeaseAsync(
+                job.JobId,
+                job.LeaseId!,
+                "wrong-custodian", // mismatched custodian
+                CancellationToken.None
+            );
+            Assert.Null(result);
+        }
+
+        [Fact]
         public async Task ValidateLeaseAsync_ShouldReturnJob_WhenValid()
         {
             var job = CreateJob(leaseExpires: DateTimeOffset.UtcNow.AddMinutes(5));
