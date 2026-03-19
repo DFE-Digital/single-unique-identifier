@@ -1,12 +1,10 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Infrastructure.Configuration;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models;
@@ -17,8 +15,7 @@ namespace SUI.Find.Infrastructure.Services;
 public class JobSearchService(
     ISearchResultEntryRepository searchResultsEntryRepository,
     IWorkItemJobCountRepository workItemJobCountRepository,
-    TimeProvider timeProvider,
-    IOptionsMonitor<JobClaimConfig> options,
+    IJobWindowStartService jobWindowStartService,
     ILogger<JobSearchService> logger
 ) : IJobSearchService
 {
@@ -95,14 +92,11 @@ public class JobSearchService(
         WorkItemJobCount workItemJobCount
     )
     {
-        if (
-            workItemJobCount.CreatedAtUtc
-            < timeProvider
-                .GetUtcNow()
-                .AddHours(-1 * options.CurrentValue.AvailableJobWindowStartOffsetHours)
-        )
-            return SearchStatus.Expired;
+        if (completenessPercentage >= 100)
+            return SearchStatus.Completed;
 
-        return completenessPercentage < 100 ? SearchStatus.Running : SearchStatus.Completed;
+        return workItemJobCount.CreatedAtUtc < jobWindowStartService.GetWindowStart()
+            ? SearchStatus.Expired
+            : SearchStatus.Running;
     }
 }

@@ -1,14 +1,11 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Infrastructure.Configuration;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
@@ -27,18 +24,16 @@ public class JobSearchServiceTests
     >();
     private readonly JobSearchService _sut;
     private readonly DateTime _dateTime = new(2026, 03, 01);
+    private readonly IJobWindowStartService _jobWindowStartService =
+        Substitute.For<IJobWindowStartService>();
 
     public JobSearchServiceTests()
     {
-        var options = Substitute.For<IOptionsMonitor<JobClaimConfig>>();
-        options.CurrentValue.Returns(
-            new JobClaimConfig { AvailableJobWindowStartOffsetHours = 72 }
-        );
+        _jobWindowStartService.GetWindowStart().Returns(_dateTime.AddHours(-72));
         _sut = new JobSearchService(
             _searchResultEntryRepository,
             _workItemJobCountRepository,
-            new FakeTimeProvider(new DateTimeOffset(_dateTime)),
-            options,
+            _jobWindowStartService,
             _logger
         );
     }
@@ -202,87 +197,7 @@ public class JobSearchServiceTests
     }
 
     [Fact]
-    public async Task GetSearchResults_CorrectlyReturnsFullExpiredResults()
-    {
-        var workItemId = "WID-1";
-        var payload = new CustodianLookupPayload { Sui = "SUI-1" };
-
-        var workItemJobCount = new WorkItemJobCount
-        {
-            WorkItemId = workItemId,
-            JobType = JobType.CustodianLookup,
-            SearchingOrganisationId = "SOID-1",
-            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
-            ExpectedJobCount = 3,
-            CreatedAtUtc = _dateTime.AddDays(-6),
-            UpdatedAtUtc = _dateTime.AddHours(-5),
-        };
-
-        _workItemJobCountRepository
-            .GetByWorkItemIdAndJobTypeAsync(
-                Arg.Any<string>(),
-                JobType.CustodianLookup,
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(workItemJobCount);
-
-        IReadOnlyList<SearchResultEntry> searchResults =
-        [
-            new()
-            {
-                CustodianId = "CUS-1",
-                SystemId = "SYSID-1",
-                CustodianName = "Custodian-1",
-                RecordType = "HEALTH",
-                RecordUrl = "URL-1",
-                JobId = "JOB-1",
-                WorkItemId = workItemId,
-                RecordId = "12345",
-            },
-            new()
-            {
-                CustodianId = "CUS-2",
-                SystemId = "SYSID-2",
-                CustodianName = "Custodian-2",
-                RecordType = "POLICE",
-                RecordUrl = "URL-2",
-                JobId = "JOB-2",
-                WorkItemId = workItemId,
-                RecordId = "56789",
-            },
-            new()
-            {
-                CustodianId = "CUS-3",
-                SystemId = "SYSID-3",
-                CustodianName = "Custodian-3",
-                RecordType = "EDUCATION",
-                RecordUrl = "URL-3",
-                JobId = "JOB-3",
-                WorkItemId = workItemId,
-                RecordId = "00000",
-            },
-        ];
-
-        _searchResultEntryRepository
-            .GetByWorkItemIdAsync(workItemId, Arg.Any<CancellationToken>())
-            .Returns(searchResults);
-
-        var results = await _sut.GetSearchResultsAsync(
-            workItemId,
-            "SOID-1",
-            CancellationToken.None
-        );
-
-        Assert.IsType<SearchResultsV2Dto>(results.Value);
-        Assert.Equal(100, results.AsT0.CompletenessPercentage);
-        Assert.Equal(SearchStatus.Expired, results.AsT0.Status);
-        Assert.Equal(payload.Sui, results.AsT0.Suid);
-        Assert.Equal(workItemId, results.AsT0.WorkItemId);
-        Assert.Equal(searchResults, results.AsT0.Items);
-    }
-
-    [Fact]
-    public async Task GetSearchResults_CorrectlyReturnsPartialExpiredResults()
+    public async Task GetSearchResults_CorrectlyReturnsExpiredResults()
     {
         var workItemId = "WID-1";
         var payload = new CustodianLookupPayload { Sui = "SUI-1" };
