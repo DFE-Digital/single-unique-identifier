@@ -164,7 +164,7 @@ public class SubmitJobResultsFunction(
     {
         response.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
         response.Headers.Add("Pragma", "no-cache");
-        response.Headers.Add("Expires", "0");
+        response.Headers.Add("Expires", DateTimeOffset.UnixEpoch.ToString("R"));
         response.Headers.Add("Vary", "Authorization");
     }
 }
