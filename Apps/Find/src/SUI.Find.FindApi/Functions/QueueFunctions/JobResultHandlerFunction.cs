@@ -30,6 +30,12 @@ public class JobResultHandlerFunction(
             }
         );
 
+        logger.LogInformation(
+            "Processing JobResultMessage for JobId {JobId} and WorkItemId {WorkItemId}",
+            message.JobId,
+            message.WorkItemId
+        );
+
         await handler.HandleAsync(message, cancellationToken);
     }
 }
