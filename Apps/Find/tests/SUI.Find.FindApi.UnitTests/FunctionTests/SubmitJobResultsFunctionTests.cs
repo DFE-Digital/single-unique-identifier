@@ -20,9 +20,7 @@ public class SubmitJobResultsFunctionTests
     private readonly ILogger<SubmitJobResultsFunction> _logger = Substitute.For<
         ILogger<SubmitJobResultsFunction>
     >();
-
     private readonly IJobProcessorService _jobService = Substitute.For<IJobProcessorService>();
-
     private readonly IJobResultsQueueClient _queueClient = Substitute.For<IJobResultsQueueClient>();
 
     private readonly SubmitJobResultsFunction _function;
@@ -98,6 +96,7 @@ public class SubmitJobResultsFunctionTests
             LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow,
+            CompletedAtUtc = null,
             PayloadJson = "{}",
         };
 
@@ -129,6 +128,46 @@ public class SubmitJobResultsFunctionTests
     }
 
     [Fact]
+    public async Task SubmitJobResults_ShouldReturnConflict_WhenJobAlreadyCompleted()
+    {
+        var requestData = CreateValidRequest();
+        var request = MockHttpRequestData.CreateJson(requestData);
+        var context = CreateContextWithAuth("cust-1");
+
+        var job = new Job
+        {
+            JobId = requestData.JobId,
+            SearchingOrganisationId = "searching-org-1",
+            CustodianId = "cust-1",
+            JobType = JobType.CustodianLookup,
+            WorkItemId = "work-123",
+            LeaseId = requestData.LeaseId,
+            LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            UpdatedAtUtc = DateTimeOffset.UtcNow,
+            CompletedAtUtc = DateTimeOffset.UtcNow, // key condition
+            PayloadJson = "{}",
+        };
+
+        _jobService
+            .ValidateLeaseAsync(
+                requestData.JobId,
+                requestData.LeaseId,
+                "cust-1",
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(job);
+
+        var result = await _function.SubmitJobResults(request, context, CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
+
+        await _queueClient
+            .DidNotReceive()
+            .SendAsync(Arg.Any<JobResultMessage>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task SubmitJobResults_ShouldAddNoCacheHeaders_WhenAccepted()
     {
         var requestData = CreateValidRequest();
@@ -146,6 +185,7 @@ public class SubmitJobResultsFunctionTests
             LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
             CreatedAtUtc = DateTimeOffset.UtcNow,
             UpdatedAtUtc = DateTimeOffset.UtcNow,
+            CompletedAtUtc = null,
             PayloadJson = "{}",
         };
 

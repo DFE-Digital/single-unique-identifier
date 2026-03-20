@@ -85,17 +85,17 @@ public class SubmitJobResultsFunction(
             );
         }
 
-        // if (job.CompletedAtUtc.HasValue)
-        // {
-        //     return await HttpResponseUtility.ProblemResponse(
-        //         req,
-        //         HttpStatusCode.Conflict,
-        //         "Invalid request",
-        //         "Job is already completed",
-        //         context.InvocationId,
-        //         cancellationToken
-        //     );
-        // }
+        if (job.CompletedAtUtc.HasValue)
+        {
+            return await HttpResponseUtility.ProblemResponse(
+                req,
+                HttpStatusCode.Conflict,
+                "Invalid request",
+                "Job is already completed",
+                context.InvocationId,
+                cancellationToken
+            );
+        }
 
         using var logScope = logger.BeginScope(
             new Dictionary<string, object?>
