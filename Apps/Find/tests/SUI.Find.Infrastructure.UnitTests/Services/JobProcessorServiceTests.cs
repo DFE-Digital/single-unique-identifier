@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
@@ -12,11 +13,14 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
         private readonly IJobWindowStartService _jobWindowStartService =
             Substitute.For<IJobWindowStartService>();
         private readonly JobProcessorService _service;
+        private readonly ILogger<JobProcessorService> _logger = Substitute.For<
+            ILogger<JobProcessorService>
+        >();
 
         public JobProcessorServiceTests()
         {
             _jobWindowStartService.GetWindowStart().Returns(DateTimeOffset.UtcNow.AddDays(-1));
-            _service = new JobProcessorService(_jobRepository, _jobWindowStartService);
+            _service = new JobProcessorService(_jobRepository, _logger, _jobWindowStartService);
         }
 
         private static Job CreateJob(
@@ -57,13 +61,25 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
         public async Task ValidateLeaseAsync_ShouldReturnNull_WhenJobNotFound()
         {
             SetupRepo(); // no jobs
+
             var result = await _service.ValidateLeaseAsync(
                 "missing",
                 "lease",
                 "cust1",
                 CancellationToken.None
             );
+
             Assert.Null(result);
+
+            _logger
+                .Received(1)
+                .Log(
+                    LogLevel.Warning,
+                    Arg.Any<EventId>(),
+                    Arg.Is<object>(v => v.ToString()!.Contains("Job missing")),
+                    Arg.Any<Exception?>(),
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
         }
 
         [Fact]
@@ -78,7 +94,18 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
                 job.CustodianId,
                 CancellationToken.None
             );
+
             Assert.Null(result);
+
+            _logger
+                .Received(1)
+                .Log(
+                    LogLevel.Warning,
+                    Arg.Any<EventId>(),
+                    Arg.Is<object>(v => v.ToString()!.Contains("no active lease")),
+                    Arg.Any<Exception?>(),
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
         }
 
         [Fact]
@@ -93,7 +120,18 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
                 job.CustodianId,
                 CancellationToken.None
             );
+
             Assert.Null(result);
+
+            _logger
+                .Received(1)
+                .Log(
+                    LogLevel.Warning,
+                    Arg.Any<EventId>(),
+                    Arg.Is<object>(v => v.ToString()!.Contains("LeaseId mismatch")),
+                    Arg.Any<Exception?>(),
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
         }
 
         [Fact]
@@ -108,7 +146,18 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
                 job.CustodianId,
                 CancellationToken.None
             );
+
             Assert.Null(result);
+
+            _logger
+                .Received(1)
+                .Log(
+                    LogLevel.Warning,
+                    Arg.Any<EventId>(),
+                    Arg.Is<object>(v => v.ToString()!.Contains("expired")),
+                    Arg.Any<Exception?>(),
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
         }
 
         [Fact]
@@ -123,7 +172,18 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
                 job.CustodianId,
                 CancellationToken.None
             );
+
             Assert.Null(result);
+
+            _logger
+                .Received(1)
+                .Log(
+                    LogLevel.Warning,
+                    Arg.Any<EventId>(),
+                    Arg.Is<object>(v => v.ToString()!.Contains("expired")),
+                    Arg.Any<Exception?>(),
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
         }
 
         [Fact]
@@ -138,7 +198,18 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
                 "wrong-custodian", // mismatched custodian
                 CancellationToken.None
             );
+
             Assert.Null(result);
+
+            _logger
+                .Received(1)
+                .Log(
+                    LogLevel.Warning,
+                    Arg.Any<EventId>(),
+                    Arg.Is<object>(v => v.ToString()!.Contains("Custodian mismatch")),
+                    Arg.Any<Exception?>(),
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
         }
 
         [Fact]
@@ -153,6 +224,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
                 job.CustodianId,
                 CancellationToken.None
             );
+
             Assert.NotNull(result);
             Assert.Equal(job.JobId, result.JobId);
             Assert.Equal(job.LeaseId, result.LeaseId);
@@ -174,6 +246,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
                 job.CustodianId,
                 CancellationToken.None
             );
+
             Assert.NotNull(result);
             Assert.Equal(job.JobId, result.JobId);
         }
@@ -182,11 +255,13 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
         public async Task GetJobByIdAndCustodianIdAsync_ShouldReturnNull_WhenNotFound()
         {
             SetupRepo(); // empty
+
             var result = await _service.GetJobByIdAndCustodianIdAsync(
                 "missing",
                 "cust1",
                 CancellationToken.None
             );
+
             Assert.Null(result);
         }
 
@@ -220,6 +295,16 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
             );
 
             Assert.Null(ex);
+
+            _logger
+                .Received(1)
+                .Log(
+                    LogLevel.Warning,
+                    Arg.Any<EventId>(),
+                    Arg.Is<object>(v => v.ToString()!.Contains("No job found")),
+                    Arg.Any<Exception?>(),
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
         }
 
         #endregion
