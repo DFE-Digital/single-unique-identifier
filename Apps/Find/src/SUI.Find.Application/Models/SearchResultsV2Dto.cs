@@ -9,5 +9,5 @@ public record SearchResultsV2Dto
     public string Suid { get; init; } = string.Empty;
     public SearchStatus Status { get; init; }
     public IReadOnlyList<SearchResultEntry> Items { get; init; } = [];
-    public int CompletenessPercentage { get; set; }
+    public int CompletenessPercentage { get; init; }
 }

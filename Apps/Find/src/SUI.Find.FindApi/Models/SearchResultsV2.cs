@@ -13,7 +13,7 @@ public record SearchResultsV2
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public required SearchStatus Status { get; set; }
 
-    public required double CompletenessPercentage { get; set; }
+    public required int CompletenessPercentage { get; set; }
     public required IReadOnlyList<SearchResultEntry> Items { get; set; } = [];
 
     public static SearchResultsV2 FromDto(SearchResultsV2Dto dto)

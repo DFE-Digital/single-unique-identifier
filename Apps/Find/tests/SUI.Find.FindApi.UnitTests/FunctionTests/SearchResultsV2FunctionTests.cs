@@ -88,7 +88,7 @@ public class SearchResultsV2FunctionTests
             )
             .Returns(dto);
 
-        var response = await _sut.SearchResultsTrigger(
+        var response = await _sut.SearchResultsV2Trigger(
             _httpRequestData,
             _client,
             _authFunctionContext,
@@ -110,7 +110,7 @@ public class SearchResultsV2FunctionTests
             )
             .Returns(new NotFound());
 
-        var response = await _sut.SearchResultsTrigger(
+        var response = await _sut.SearchResultsV2Trigger(
             _httpRequestData,
             _client,
             _authFunctionContext,
@@ -132,7 +132,7 @@ public class SearchResultsV2FunctionTests
             )
             .Returns(new Unauthorized());
 
-        var response = await _sut.SearchResultsTrigger(
+        var response = await _sut.SearchResultsV2Trigger(
             _httpRequestData,
             _client,
             _authFunctionContext,
@@ -154,7 +154,7 @@ public class SearchResultsV2FunctionTests
             )
             .Returns(new Error());
 
-        var response = await _sut.SearchResultsTrigger(
+        var response = await _sut.SearchResultsV2Trigger(
             _httpRequestData,
             _client,
             _authFunctionContext,
@@ -175,7 +175,7 @@ public class SearchResultsV2FunctionTests
             new Dictionary<string, StringValues> { { "workItemId", WorkItemId } }
         );
 
-        var response = await _sut.SearchResultsTrigger(
+        var response = await _sut.SearchResultsV2Trigger(
             httpRequestData,
             _client,
             context,
