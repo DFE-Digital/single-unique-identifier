@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
@@ -47,13 +48,17 @@ public class JobResultHandler(
 
         var payload = await GetWorkItemPayload(message, ct);
         if (payload is null)
+        {
             return;
+        }
 
         await UpsertIdRegister(message, payload, ct);
 
         var context = await BuildContext(message, ct);
         if (context is null)
+        {
             return;
+        }
 
         var filtered = await ApplyPepFiltering(message.Records, context, ct);
 
@@ -171,7 +176,7 @@ public class JobResultHandler(
             ))
             .ToList();
 
-        var results = await pepService.FilterResultsAsync(
+        var resultsWithDecision = await pepService.FilterResultsAsync(
             context.Custodian.OrgId,
             context.SearchingOrganisation.OrgId,
             context.SearchingOrganisation.OrgType,
@@ -181,10 +186,9 @@ public class JobResultHandler(
             ct
         );
 
-        logger.LogInformation(
-            "{AllowedCount} records allowed after PEP filtering",
-            results.Count(r => r.Decision.IsAllowed)
-        );
+        var results = resultsWithDecision.Where(r => r.Decision.IsAllowed).ToImmutableList();
+
+        logger.LogInformation("{AllowedCount} records allowed after PEP filtering", results.Count);
 
         return results;
     }
@@ -197,7 +201,7 @@ public class JobResultHandler(
         CancellationToken ct
     )
     {
-        foreach (var result in results.Where(r => r.Decision.IsAllowed))
+        foreach (var result in results)
         {
             var item = result.Item;
 
