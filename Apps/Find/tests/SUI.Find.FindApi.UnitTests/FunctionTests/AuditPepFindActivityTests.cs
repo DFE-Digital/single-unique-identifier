@@ -35,6 +35,7 @@ public class AuditPepFindActivityTests
                         "TestRecord 1"
                     ),
                     "org1",
+                    "org2",
                     new PolicyDecisionResult
                     {
                         IsAllowed = true,

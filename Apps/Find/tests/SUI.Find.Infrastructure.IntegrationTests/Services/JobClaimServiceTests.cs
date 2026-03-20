@@ -1,10 +1,12 @@
-﻿using Azure;
+﻿using System.Text.Json;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Configuration;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -80,6 +82,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                     CompletedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-1), // Job is completed
                     JobId = $"job-{i}-{custodianId}",
                     CustodianId = custodianId,
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     JobType = default,
                     PayloadJson = "",
                 })
@@ -104,6 +107,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 {
                     AttemptCount = _mockOptions.CurrentValue.MaxClaimAttemptsPerJob + i, // Job has been attempted maximum number of times
                     JobId = $"job-{i}-{custodianId}",
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     CustodianId = custodianId,
                     JobType = default,
                     PayloadJson = "",
@@ -131,6 +135,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 {
                     LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(10), // Job is still leased
                     JobId = $"job-{i}-{custodianId}",
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     CustodianId = custodianId,
                     JobType = default,
                     PayloadJson = "",
@@ -158,6 +163,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 {
                     CreatedAtUtc = _mockJobWindowStartService.GetWindowStart().AddMilliseconds(-1), // Job is too old, falls outside of window
                     JobId = $"job-{i}-{custodianId}",
+                    SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                     CustodianId = custodianId,
                     JobType = default,
                     PayloadJson = "",
@@ -186,6 +192,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-a-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             },
@@ -195,6 +202,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-x-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             }
@@ -254,6 +262,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             }
@@ -338,7 +347,7 @@ public class JobClaimServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ClaimNextAvailableJobAsync_WouldClaimSecondJobIfIrstJobIsClaimedByOtherConcurrentInvocation()
+    public async Task ClaimNextAvailableJobAsync_WouldClaimSecondJobIfFirstJobIsClaimedByOtherConcurrentInvocation()
     {
         var custodianId = $"custodian-{Guid.NewGuid()}";
 
@@ -349,6 +358,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-1-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             },
@@ -358,6 +368,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-2-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             }
@@ -450,6 +461,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-1-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             },
@@ -459,6 +471,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-2-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             },
@@ -468,6 +481,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-3-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
             }
@@ -557,6 +571,7 @@ public class JobClaimServiceTests : IAsyncLifetime
                 JobId = $"job-{custodianId}",
                 WorkItemId = $"wi-{custodianId}",
                 CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = JobType.Unknown,
                 PayloadJson = "",
             }
@@ -570,5 +585,110 @@ public class JobClaimServiceTests : IAsyncLifetime
         result.JobId.Should().Be($"job-{custodianId}");
         result.Sui.Should().BeNull();
         result.RecordType.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DoesCustodianHaveJobs_ReturnsTrue_When_JobsAreAvailable()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+
+        _mockTimeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _mockJobWindowStartService.GetWindowStart().Returns(DateTimeOffset.UtcNow.AddHours(-10));
+
+        await UpsertJobsAsync(
+            new Job
+            {
+                CreatedAtUtc = _mockJobWindowStartService.GetWindowStart().AddHours(1),
+                JobId = $"job-a-{custodianId}",
+                WorkItemId = $"wi-{custodianId}",
+                CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
+                JobType = default,
+                PayloadJson = "",
+            }
+        );
+
+        // ACT
+        var result = await _sut.DoesCustodianHaveJobs(custodianId, CancellationToken.None);
+
+        // ASSERT
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DoesCustodianHaveJobs_ReturnsFalse_When_NoJobsAreAvailable()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+
+        // ACT
+        var result = await _sut.DoesCustodianHaveJobs(custodianId, CancellationToken.None);
+
+        // ASSERT
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ClaimNextAvailableJobAsync_ExtractsSuiAndRecordTypeFromPayload_WhenJobTypeIs_CustodianLookup()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+
+        await UpsertJobsAsync(
+            new Job
+            {
+                JobId = $"job-{custodianId}",
+                WorkItemId = $"wi-{custodianId}",
+                CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
+                JobType = JobType.CustodianLookup,
+                PayloadJson = JsonSerializer.Serialize(
+                    new CustodianLookupJobPayload("example-sui-123ABC", "example-record.type.xyz")
+                ),
+            }
+        );
+
+        // ACT
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result.JobId.Should().Be($"job-{custodianId}");
+        result.Sui.Should().Be("example-sui-123ABC");
+        result.RecordType.Should().Be("example-record.type.xyz");
+    }
+
+    [Fact]
+    public async Task ClaimNextAvailableJobAsync_WouldClaimPreviouslyLeasedJob_IfLeaseHasNowExpired()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+
+        _mockTimeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+        _mockJobWindowStartService.GetWindowStart().Returns(DateTimeOffset.UtcNow.AddHours(-10));
+
+        var oldLeaseId = Guid.NewGuid().ToString();
+
+        await UpsertJobsAsync(
+            new Job
+            {
+                CreatedAtUtc = _mockJobWindowStartService.GetWindowStart().AddHours(1),
+                LeaseId = oldLeaseId,
+                LeaseExpiresAtUtc = _mockTimeProvider.GetUtcNow().AddMinutes(-1),
+                JobId = $"job-{custodianId}",
+                WorkItemId = $"wi-{custodianId}",
+                CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
+                JobType = JobType.CustodianLookup,
+                PayloadJson = JsonSerializer.Serialize(
+                    new CustodianLookupJobPayload("example-sui-123ABC", "example-record.type.xyz")
+                ),
+            }
+        );
+
+        // ACT
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result.JobId.Should().Be($"job-{custodianId}");
+        result.LeaseId.Should().NotBe(oldLeaseId).And.NotBeNullOrWhiteSpace();
     }
 }

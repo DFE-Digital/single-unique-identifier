@@ -48,6 +48,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
             { "SubmittedAtUtc", entry.SubmittedAtUtc },
             { "JobId", entry.JobId },
             { "WorkItemId", entry.WorkItemId },
+            { "SearchingOrganisationId", entry.SearchingOrganisationId },
         };
 
         try
@@ -67,6 +68,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
 
     public async Task<IReadOnlyList<SearchResultEntry>> GetByWorkItemIdAsync(
         string workItemId,
+        string searchingOrganisationId,
         CancellationToken cancellationToken
     )
     {
@@ -86,6 +88,12 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
                 var custodianId = entity.GetString("CustodianId");
                 var systemId = entity.GetString("SystemId");
                 var recordType = entity.GetString("RecordType");
+                var entitySearchingOrganisationId = entity.GetString("SearchingOrganisationId");
+
+                if (entitySearchingOrganisationId != searchingOrganisationId)
+                {
+                    continue;
+                }
 
                 results.Add(
                     new SearchResultEntry
@@ -99,6 +107,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
                         SubmittedAtUtc = entity.GetDateTimeOffset("SubmittedAtUtc")!.Value,
                         JobId = entity.GetString("JobId"),
                         WorkItemId = entity.GetString("WorkItemId"),
+                        SearchingOrganisationId = entitySearchingOrganisationId,
                     }
                 );
             }

@@ -13,7 +13,8 @@
         "find-record.read",
         "find-record.write",
         "fetch-record.read",
-        "fetch-record.write"
+        "fetch-record.write",
+        "work-item.read"
       ]
     },
     {
@@ -25,7 +26,8 @@
         "find-record.read",
         "find-record.write",
         "fetch-record.read",
-        "fetch-record.write"
+        "fetch-record.write",
+        "work-item.read"
       ]
     },
     {
@@ -37,7 +39,8 @@
         "find-record.read",
         "find-record.write",
         "fetch-record.read",
-        "fetch-record.write"
+        "fetch-record.write",
+        "work-item.read"
       ]
     },
     {
@@ -49,7 +52,8 @@
         "find-record.read",
         "find-record.write",
         "fetch-record.read",
-        "fetch-record.write"
+        "fetch-record.write",
+        "work-item.read"
       ]
     },
     {
@@ -61,7 +65,8 @@
         "find-record.read",
         "find-record.write",
         "fetch-record.read",
-        "fetch-record.write"
+        "fetch-record.write",
+        "work-item.read"
       ]
     }
   ]
