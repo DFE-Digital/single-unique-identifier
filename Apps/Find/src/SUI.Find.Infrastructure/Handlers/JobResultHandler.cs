@@ -23,7 +23,7 @@ public class JobResultHandler(
     ISearchResultEntryRepository searchResultRepository
 ) : IJobResultHandler
 {
-    public async Task HandleAsync(JobResultMessage message, CancellationToken ct)
+    public async Task HandleAsync(JobResultMessage message, CancellationToken cancellationToken)
     {
         logger.LogInformation(
             "Handling job results for JobId {JobId} WorkItemId {WorkItemId}",
@@ -35,36 +35,44 @@ public class JobResultHandler(
         if (message.JobType != JobType.CustodianLookup)
         {
             logger.LogInformation("Skipping unsupported JobType {JobType}", message.JobType);
-            await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, ct);
+            await jobService.MarkCompletedAsync(
+                message.JobId,
+                message.CustodianId,
+                cancellationToken
+            );
             return;
         }
 
         if (message.Records.Count == 0)
         {
             logger.LogInformation("No records submitted for JobId {JobId}", message.JobId);
-            await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, ct);
+            await jobService.MarkCompletedAsync(
+                message.JobId,
+                message.CustodianId,
+                cancellationToken
+            );
             return;
         }
 
-        var payload = await GetWorkItemPayload(message, ct);
+        var payload = await GetWorkItemPayload(message, cancellationToken);
         if (payload is null)
         {
             return;
         }
 
-        await UpsertIdRegister(message, payload, ct);
+        await UpsertIdRegister(message, payload, cancellationToken);
 
-        var context = await BuildContext(message, ct);
+        var context = await BuildContext(message, cancellationToken);
         if (context is null)
         {
             return;
         }
 
-        var filtered = await ApplyPepFiltering(message.Records, context, ct);
+        var filtered = await ApplyPepFiltering(message.Records, context, cancellationToken);
 
-        await PersistSearchResults(filtered, message, context, ct);
+        await PersistSearchResults(filtered, message, context, cancellationToken);
 
-        await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, ct);
+        await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, cancellationToken);
 
         logger.LogInformation("Marked JobId {JobId} as completed", message.JobId);
     }
@@ -72,13 +80,13 @@ public class JobResultHandler(
     // WorkItem Payload
     private async Task<SearchWorkItemPayload?> GetWorkItemPayload(
         JobResultMessage message,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         var jobCount = await workItemJobCountRepository.GetByWorkItemIdAndJobTypeAsync(
             message.WorkItemId,
             message.JobType,
-            ct
+            cancellationToken
         );
 
         if (jobCount is null)
@@ -97,7 +105,7 @@ public class JobResultHandler(
     private async Task UpsertIdRegister(
         JobResultMessage message,
         SearchWorkItemPayload payload,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         var records = message.Records;
@@ -117,17 +125,20 @@ public class JobResultHandler(
                 LastIdDeliveredAtUtc = DateTimeOffset.UtcNow,
             };
 
-            await idRegisterRepository.UpsertAsync(entry, ct);
+            await idRegisterRepository.UpsertAsync(entry, cancellationToken);
         }
     }
 
     // Context (Job + Custodians)
-    private async Task<PepContext?> BuildContext(JobResultMessage message, CancellationToken ct)
+    private async Task<PepContext?> BuildContext(
+        JobResultMessage message,
+        CancellationToken cancellationToken
+    )
     {
         var job = await jobService.GetJobByIdAndCustodianIdAsync(
             message.JobId,
             message.CustodianId,
-            ct
+            cancellationToken
         );
 
         if (job is null)
@@ -160,7 +171,7 @@ public class JobResultHandler(
     private async Task<IReadOnlyList<SearchResultWithDecision>> ApplyPepFiltering(
         List<JobResultRecord> records,
         PepContext context,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
@@ -183,7 +194,7 @@ public class JobResultHandler(
             input,
             context.Custodian.DsaPolicy,
             ApplicationConstants.PolicyEnforcement.Purpose,
-            ct
+            cancellationToken
         );
 
         var results = resultsWithDecision.Where(r => r.Decision.IsAllowed).ToImmutableList();
@@ -198,13 +209,11 @@ public class JobResultHandler(
         IReadOnlyList<SearchResultWithDecision> results,
         JobResultMessage message,
         PepContext context,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
-        foreach (var result in results)
+        foreach (var item in results.Select(r => r.Item))
         {
-            var item = result.Item;
-
             var entry = new SearchResultEntry
             {
                 CustodianId = message.CustodianId,
@@ -219,7 +228,7 @@ public class JobResultHandler(
                 SubmittedAtUtc = message.SubmittedAtUtc,
             };
 
-            await searchResultRepository.UpsertAsync(entry, ct);
+            await searchResultRepository.UpsertAsync(entry, cancellationToken);
         }
     }
 

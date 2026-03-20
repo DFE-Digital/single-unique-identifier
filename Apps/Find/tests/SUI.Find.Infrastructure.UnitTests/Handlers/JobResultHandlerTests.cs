@@ -153,7 +153,7 @@ public class JobResultHandlerTests
                         SearchingOrganisationId = "orgX",
                         CustodianId = message.CustodianId,
                         JobType = JobType.Unknown,
-                        PayloadJson = null,
+                        PayloadJson = "{}",
                     }
                 )
             );

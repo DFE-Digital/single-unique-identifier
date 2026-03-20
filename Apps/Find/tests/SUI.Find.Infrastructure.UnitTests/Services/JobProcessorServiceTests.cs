@@ -19,7 +19,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
             _service = new JobProcessorService(_jobRepository, _jobWindowStartService);
         }
 
-        private Job CreateJob(
+        private static Job CreateJob(
             string? jobId = null,
             string? leaseId = "lease1",
             string? custodianId = "cust1",
