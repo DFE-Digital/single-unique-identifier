@@ -26,7 +26,7 @@ public class SubmitJobResultsFunction(
     [RequiredScopes("work-item.write")]
     [OpenApiOperation(
         operationId: "SubmitJobResults",
-        tags: ["WorkItems"],
+        tags: ["Work"],
         Summary = "Submit results for a leased work item"
     )]
     [OpenApiRequestBody("application/json", typeof(SubmitJobResultsRequest), Required = true)]
