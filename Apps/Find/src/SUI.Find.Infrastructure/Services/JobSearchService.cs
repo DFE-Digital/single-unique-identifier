@@ -36,7 +36,7 @@ public class JobSearchService(
 
         if (workItemJobCountEntity == null || workItemJobCountEntity.ExpectedJobCount == 0)
         {
-            logger.LogInformation("No jobs found for work item ID {workItemId}", workItemId);
+            logger.LogInformation("No jobs found for work item ID {WorkItemId}", workItemId);
             return new NotFound();
         }
 
