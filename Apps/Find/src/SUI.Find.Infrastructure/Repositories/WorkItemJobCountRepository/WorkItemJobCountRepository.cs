@@ -62,6 +62,7 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
     public async Task<WorkItemJobCount?> GetByWorkItemIdAndJobTypeAsync(
         string workItemId,
         JobType jobType,
+        string searchingOrganisationId,
         CancellationToken cancellationToken = default
     )
     {
@@ -81,6 +82,9 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
             if (response.HasValue)
             {
                 TableEntity entity = response.Value!;
+
+                if (!entity.GetString("SearchingOrganisationId").Equals(searchingOrganisationId))
+                    return null;
 
                 var jobTypeString = entity.GetString("JobType");
 

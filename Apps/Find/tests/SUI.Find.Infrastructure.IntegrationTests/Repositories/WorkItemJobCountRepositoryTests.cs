@@ -49,7 +49,7 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         stored.Value.GetString("WorkItemId").Should().Be(workItemId);
         stored.Value.GetString("JobType").Should().Be(nameof(JobType.CustodianLookup));
-        stored.Value.GetString("SearcherOrganisationId").Should().Be(searcherOrganisationId);
+        stored.Value.GetString("SearchingOrganisationId").Should().Be(searcherOrganisationId);
         stored.Value.GetInt32("ExpectedJobCount").Should().Be(5);
         stored.Value.GetString("PayloadJson").Should().Be("{}");
     }
@@ -75,7 +75,11 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await _sut.UpsertAsync(entity);
 
-        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, jobType);
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(
+            workItemId,
+            jobType,
+            searcherOrganisationId
+        );
 
         result.Should().NotBeNull();
         result.ExpectedJobCount.Should().Be(3);
@@ -92,7 +96,8 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
     {
         var count = await _sut.GetByWorkItemIdAndJobTypeAsync(
             $"WI_{Guid.NewGuid()}",
-            JobType.CustodianLookup
+            JobType.CustodianLookup,
+            "SOID-1"
         );
 
         count.Should().BeNull();
@@ -132,7 +137,11 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await _sut.UpsertAsync(updated);
 
-        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, jobType);
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(
+            workItemId,
+            jobType,
+            searcherOrganisationId
+        );
 
         result.Should().NotBeNull();
         result.ExpectedJobCount.Should().Be(10);
@@ -167,7 +176,11 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await tableClient.AddEntityAsync(invalidEntity);
 
-        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, lookupJobType);
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(
+            workItemId,
+            lookupJobType,
+            searcherOrganisationId
+        );
 
         result.Should().NotBeNull();
         result.WorkItemId.Should().Be(workItemId);

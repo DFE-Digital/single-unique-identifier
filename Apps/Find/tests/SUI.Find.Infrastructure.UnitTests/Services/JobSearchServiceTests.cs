@@ -7,7 +7,6 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Enums;
-using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 using SUI.Find.Infrastructure.Services;
 
@@ -45,6 +44,7 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 Arg.Any<string>(),
                 JobType.CustodianLookup,
+                Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(null as WorkItemJobCount);
@@ -52,9 +52,7 @@ public class JobSearchServiceTests
         var result = await _sut.GetSearchResultsAsync("WID-1", "SOID-1", CancellationToken.None);
 
         Assert.IsType<NotFound>(result.Value);
-        _logger
-            .ReceivedWithAnyArgs(1)
-            .LogInformation("No work item job count found for work item ID WID-1");
+        _logger.ReceivedWithAnyArgs(1).LogInformation("No jobs found for work item ID WID-1");
     }
 
     [Fact]
@@ -64,6 +62,7 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 Arg.Any<string>(),
                 JobType.CustodianLookup,
+                Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(
@@ -80,53 +79,22 @@ public class JobSearchServiceTests
         var result = await _sut.GetSearchResultsAsync("WID-1", "SOID-1", CancellationToken.None);
 
         Assert.IsType<NotFound>(result.Value);
-        _logger
-            .ReceivedWithAnyArgs(1)
-            .LogInformation("No work item job count found for work item ID WID-1");
-    }
-
-    [Fact]
-    public async Task GetSearchResults_ReturnsUnauthorized_WhenOrganisationIdsDontMatch()
-    {
-        _workItemJobCountRepository
-            .GetByWorkItemIdAndJobTypeAsync(
-                Arg.Any<string>(),
-                JobType.CustodianLookup,
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(
-                new WorkItemJobCount
-                {
-                    WorkItemId = "WID-1",
-                    JobType = JobType.CustodianLookup,
-                    SearchingOrganisationId = "SOID-2",
-                    PayloadJson = string.Empty,
-                    ExpectedJobCount = 5,
-                }
-            );
-
-        var result = await _sut.GetSearchResultsAsync("WID-1", "SOID-1", CancellationToken.None);
-
-        Assert.IsType<Unauthorized>(result.Value);
-
-        _logger
-            .ReceivedWithAnyArgs(1)
-            .LogInformation(
-                "Searcher attempted to access an unauthorized work item. Searching ID: SOID-1, expected ID: SOID-2"
-            );
+        _logger.ReceivedWithAnyArgs(1).LogInformation("No jobs found for work item ID WID-1");
     }
 
     [Fact]
     public async Task GetSearchResults_CorrectlyReturnsCompletedResults()
     {
         var workItemId = "WID-1";
-        var payload = new CustodianLookupPayload { Sui = "SUI-1" };
+        var searchingOrganisationId = "SOID-1";
+
+        var payload = new CustodianLookupJobPayload("SUI-1", "Health");
 
         var workItemJobCount = new WorkItemJobCount
         {
             WorkItemId = workItemId,
             JobType = JobType.CustodianLookup,
-            SearchingOrganisationId = "SOID-1",
+            SearchingOrganisationId = searchingOrganisationId,
             PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
             ExpectedJobCount = 3,
             CreatedAtUtc = _dateTime.AddHours(-6),
@@ -137,6 +105,7 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 Arg.Any<string>(),
                 JobType.CustodianLookup,
+                Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -153,6 +122,7 @@ public class JobSearchServiceTests
                 JobId = "JOB-1",
                 WorkItemId = workItemId,
                 RecordId = "12345",
+                SearchingOrganisationId = searchingOrganisationId,
             },
             new()
             {
@@ -164,6 +134,7 @@ public class JobSearchServiceTests
                 JobId = "JOB-2",
                 WorkItemId = workItemId,
                 RecordId = "56789",
+                SearchingOrganisationId = searchingOrganisationId,
             },
             new()
             {
@@ -175,16 +146,17 @@ public class JobSearchServiceTests
                 JobId = "JOB-3",
                 WorkItemId = workItemId,
                 RecordId = "00000",
+                SearchingOrganisationId = searchingOrganisationId,
             },
         ];
 
         _searchResultEntryRepository
-            .GetByWorkItemIdAsync(workItemId, Arg.Any<CancellationToken>())
+            .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
         var results = await _sut.GetSearchResultsAsync(
             workItemId,
-            "SOID-1",
+            searchingOrganisationId,
             CancellationToken.None
         );
 
@@ -200,13 +172,15 @@ public class JobSearchServiceTests
     public async Task GetSearchResults_CorrectlyReturnsExpiredResults()
     {
         var workItemId = "WID-1";
-        var payload = new CustodianLookupPayload { Sui = "SUI-1" };
+        var searchingOrganisationId = "SOID-1";
+
+        var payload = new CustodianLookupJobPayload("SUI-1", "HEALTH") { Sui = "SUI-1" };
 
         var workItemJobCount = new WorkItemJobCount
         {
             WorkItemId = workItemId,
             JobType = JobType.CustodianLookup,
-            SearchingOrganisationId = "SOID-1",
+            SearchingOrganisationId = searchingOrganisationId,
             PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
             ExpectedJobCount = 5,
             CreatedAtUtc = _dateTime.AddDays(-6),
@@ -217,6 +191,7 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 Arg.Any<string>(),
                 JobType.CustodianLookup,
+                Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -233,6 +208,7 @@ public class JobSearchServiceTests
                 JobId = "JOB-1",
                 WorkItemId = workItemId,
                 RecordId = "12345",
+                SearchingOrganisationId = searchingOrganisationId,
             },
             new()
             {
@@ -244,6 +220,7 @@ public class JobSearchServiceTests
                 JobId = "JOB-2",
                 WorkItemId = workItemId,
                 RecordId = "56789",
+                SearchingOrganisationId = searchingOrganisationId,
             },
             new()
             {
@@ -255,16 +232,17 @@ public class JobSearchServiceTests
                 JobId = "JOB-3",
                 WorkItemId = workItemId,
                 RecordId = "00000",
+                SearchingOrganisationId = searchingOrganisationId,
             },
         ];
 
         _searchResultEntryRepository
-            .GetByWorkItemIdAsync(workItemId, Arg.Any<CancellationToken>())
+            .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
         var results = await _sut.GetSearchResultsAsync(
             workItemId,
-            "SOID-1",
+            searchingOrganisationId,
             CancellationToken.None
         );
 
@@ -280,13 +258,14 @@ public class JobSearchServiceTests
     public async Task GetSearchResults_CorrectlyReturnsPartialResults()
     {
         var workItemId = "WID-1";
-        var payload = new CustodianLookupPayload { Sui = "SUI-1" };
+        var searchingOrganisationId = "SOID-1";
+        var payload = new CustodianLookupJobPayload("SUI-1", "HEALTH");
 
         var workItemJobCount = new WorkItemJobCount
         {
             WorkItemId = workItemId,
             JobType = JobType.CustodianLookup,
-            SearchingOrganisationId = "SOID-1",
+            SearchingOrganisationId = searchingOrganisationId,
             PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
             ExpectedJobCount = 5,
             CreatedAtUtc = _dateTime.AddHours(-6),
@@ -297,6 +276,7 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 Arg.Any<string>(),
                 JobType.CustodianLookup,
+                Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -313,6 +293,7 @@ public class JobSearchServiceTests
                 JobId = "JOB-1",
                 WorkItemId = workItemId,
                 RecordId = "12345",
+                SearchingOrganisationId = searchingOrganisationId,
             },
             new()
             {
@@ -324,6 +305,7 @@ public class JobSearchServiceTests
                 JobId = "JOB-2",
                 WorkItemId = workItemId,
                 RecordId = "56789",
+                SearchingOrganisationId = searchingOrganisationId,
             },
             new()
             {
@@ -335,16 +317,17 @@ public class JobSearchServiceTests
                 JobId = "JOB-3",
                 WorkItemId = workItemId,
                 RecordId = "00000",
+                SearchingOrganisationId = searchingOrganisationId,
             },
         ];
 
         _searchResultEntryRepository
-            .GetByWorkItemIdAsync(workItemId, Arg.Any<CancellationToken>())
+            .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
         var results = await _sut.GetSearchResultsAsync(
             workItemId,
-            "SOID-1",
+            searchingOrganisationId,
             CancellationToken.None
         );
 
@@ -360,13 +343,14 @@ public class JobSearchServiceTests
     public async Task GetSearchResults_CorrectlyReturnsEmptyResults()
     {
         var workItemId = "WID-1";
-        var payload = new CustodianLookupPayload { Sui = "SUI-1" };
+        var searchingOrganisationId = "SOID-1";
+        var payload = new CustodianLookupJobPayload("SUI-1", "HEALTH");
 
         var workItemJobCount = new WorkItemJobCount
         {
             WorkItemId = workItemId,
             JobType = JobType.CustodianLookup,
-            SearchingOrganisationId = "SOID-1",
+            SearchingOrganisationId = searchingOrganisationId,
             PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
             ExpectedJobCount = 5,
             CreatedAtUtc = _dateTime.AddHours(-6),
@@ -377,6 +361,7 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 Arg.Any<string>(),
                 JobType.CustodianLookup,
+                Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -384,12 +369,12 @@ public class JobSearchServiceTests
         IReadOnlyList<SearchResultEntry> searchResults = [];
 
         _searchResultEntryRepository
-            .GetByWorkItemIdAsync(workItemId, Arg.Any<CancellationToken>())
+            .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
         var results = await _sut.GetSearchResultsAsync(
             workItemId,
-            "SOID-1",
+            searchingOrganisationId,
             CancellationToken.None
         );
 

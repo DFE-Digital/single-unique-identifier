@@ -7,7 +7,6 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Interfaces;
-using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 
 namespace SUI.Find.Infrastructure.Services;
@@ -31,21 +30,19 @@ public class JobSearchService(
             await workItemJobCountRepository.GetByWorkItemIdAndJobTypeAsync(
                 workItemId,
                 JobType.CustodianLookup,
+                searchingOrganisationId,
                 cancellationToken
             );
 
-        if (
-            !ValidateJobCountEntity(
-                workItemId,
-                searchingOrganisationId,
-                workItemJobCountEntity,
-                out var searchResultsAsync
-            )
-        )
-            return searchResultsAsync!.Value;
+        if (workItemJobCountEntity == null || workItemJobCountEntity.ExpectedJobCount == 0)
+        {
+            logger.LogInformation("No jobs found for work item ID {workItemId}", workItemId);
+            return new NotFound();
+        }
 
         var completedRecords = await searchResultsEntryRepository.GetByWorkItemIdAsync(
             workItemId,
+            searchingOrganisationId,
             cancellationToken
         );
 
@@ -54,7 +51,7 @@ public class JobSearchService(
 
         var status = GetOverallJobStatus(completenessPercentage, workItemJobCountEntity);
 
-        var payload = JsonSerializer.Deserialize<CustodianLookupPayload>(
+        var payload = JsonSerializer.Deserialize<CustodianLookupJobPayload>(
             workItemJobCountEntity.PayloadJson,
             JsonSerializerOptions.Web
         );
@@ -69,46 +66,6 @@ public class JobSearchService(
         };
 
         return result;
-    }
-
-    private bool ValidateJobCountEntity(
-        string workItemId,
-        string searchingOrganisationId,
-        WorkItemJobCount? workItemJobCountEntity,
-        out OneOf<SearchResultsV2Dto, NotFound, Unauthorized, Error>? searchResultsAsync
-    )
-    {
-        searchResultsAsync = null;
-
-        if (workItemJobCountEntity == null)
-        {
-            logger.LogInformation(
-                "No work item job count found for work item ID {workItemId}",
-                workItemId
-            );
-            searchResultsAsync = new NotFound();
-            return false;
-        }
-
-        if (workItemJobCountEntity.SearchingOrganisationId != searchingOrganisationId)
-        {
-            logger.LogWarning(
-                "Searcher attempted to access an unauthorized work item. Searching ID: {searchingId}, expected ID: {expectedId}",
-                searchingOrganisationId,
-                workItemJobCountEntity.SearchingOrganisationId
-            );
-            searchResultsAsync = new Unauthorized();
-            return false;
-        }
-
-        if (workItemJobCountEntity.ExpectedJobCount == 0)
-        {
-            logger.LogInformation("No jobs found for work item ID {workItemId}", workItemId);
-            searchResultsAsync = new NotFound();
-            return false;
-        }
-
-        return true;
     }
 
     private SearchStatus GetOverallJobStatus(

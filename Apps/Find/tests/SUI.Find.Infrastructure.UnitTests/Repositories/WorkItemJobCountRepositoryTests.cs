@@ -78,7 +78,11 @@ public class WorkItemJobCountRepositoryExceptionTests
         var repo = new WorkItemJobCountRepository(client, logger);
 
         // Act
-        var result = await repo.GetByWorkItemIdAndJobTypeAsync("WI-1", JobType.CustodianLookup);
+        var result = await repo.GetByWorkItemIdAndJobTypeAsync(
+            "WI-1",
+            JobType.CustodianLookup,
+            "SOID-1"
+        );
 
         // Assert
         Assert.Null(result);

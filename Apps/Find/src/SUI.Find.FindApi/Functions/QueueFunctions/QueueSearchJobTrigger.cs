@@ -79,6 +79,7 @@ public class QueueSearchJobTrigger(
                 CreatedAtUtc = DateTime.UtcNow,
                 UpdatedAtUtc = DateTime.UtcNow,
                 ExpectedJobCount = custodians.Count,
+                SearchingOrganisationId = searchRequestMessage.RequestingCustodianId,
             },
             token
         );

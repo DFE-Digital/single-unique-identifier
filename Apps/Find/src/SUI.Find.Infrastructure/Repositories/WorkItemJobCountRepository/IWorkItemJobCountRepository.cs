@@ -12,6 +12,7 @@ public interface IWorkItemJobCountRepository
     Task<WorkItemJobCount?> GetByWorkItemIdAndJobTypeAsync(
         string workItemId,
         JobType jobType,
+        string searchingOrganisationId,
         CancellationToken cancellationToken = default
     );
 }
