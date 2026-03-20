@@ -38,8 +38,8 @@ public class E2ETestBase
         AuthenticationHeaderValue clientCredentials
     )
     {
-        const int retryCount = 3;
-        var waitInterval = TimeSpan.FromSeconds(10);
+        const int retryCount = 12;
+        var waitInterval = TimeSpan.FromSeconds(15);
 
         var retryPolicy = Policy
             .Handle<Exception>(ex =>
