@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 @using SUI.UIHarness.Web.Components.Controls
 @using SUI.UIHarness.Web.Models
 @using SUI.UIHarness.Web.Models.Find
@@ -10,15 +12,8 @@
 
 <div class="" style="padding-top: 24px;">
     <div class="mb-3">
-        <label for="org" class="form-label">Simulate Custodian Organisation</label>
-        <select id="org" name="org" class="form-select" value="" @onchange="OnChangeCategory">
-            <option value="">Select…</option>
-            <option value="LOCAL-AUTHORITY-01">LOCAL-AUTHORITY-01</option>
-            <option value="EDUCATION-01">EDUCATION-01</option>
-            <option value="HEALTH-01">HEALTH-01</option>
-            <option value="POLICE-01">POLICE-01</option>
-            <option value="HOUSING-01">HOUSING-01</option>
-        </select>
+        <p><strong>Current Custodian:</strong> @_selectedOrg</p>
+        <p><strong>Architecture:</strong> @_architecture</p>
     </div>
     
     <ul class="nav nav-tabs mt-3" id="mainTabs" role="tablist">
@@ -37,7 +32,7 @@
             <EnrolTab SelectedOrg="@_selectedOrg" CurrentPersonChanged="HandleCurrentPersonChanged"></EnrolTab>
         </div>
         <div class="tab-pane fade show active" id="tab-find" role="tabpanel" hidden='@(_currentTab != "find")'>
-            <FindTab SelectedOrg="@_selectedOrg" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged"></FindTab>
+            <FindTab SelectedOrg="@_selectedOrg" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged"></FindTab>
         </div>
         <div class="tab-pane fade show active" id="tab-fetch" role="tabpanel" hidden='@(_currentTab != "fetch")'>
             <FetchTab SelectedOrg="@_selectedOrg" SelectedRecordUrl="@_selectedRecordUrl"></FetchTab>
@@ -46,17 +41,27 @@
 </div>
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
     private string _selectedOrg = string.Empty;
+    private string _architecture = string.Empty;
     private string _currentTab = "enrol";
     private LocalPerson? _currentPerson;
     private string _selectedRecordUrl = string.Empty;
     
     [Inject]
     public required IFindService FindService { get; set; }
-    
-    private void OnChangeCategory(ChangeEventArgs e)
+
+    protected override async Task OnInitializedAsync()
     {
-        _selectedOrg = e.Value?.ToString() ?? string.Empty;
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _selectedOrg = user.Identity.Name ?? string.Empty;
+            _architecture = user.FindFirst("Architecture")?.Value ?? string.Empty;
+        }
     }
 
     private void ChangeTabs(string tab)

@@ -53,7 +53,7 @@
                         <td>@p.Id</td>
                         <td>@p.Url</td>
                         <td>
-                            <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentRecord(p)">Fetch Records</button>
+                            <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentRecord(p)">Fetch Record</button>
                         </td>
                     </tr>
                 }
@@ -89,6 +89,9 @@
     public required string SelectedOrg { get; set; }
     
     [Parameter]
+    public required string Architecture { get; set; }
+    
+    [Parameter]
     public EventCallback<LocalRecord> CurrentRecordChanged { get; set; }
 
     private bool _showFindProgress;
@@ -110,7 +113,8 @@
         _foundRecordsFor = null;
         _findProgress = 0;
         _showFindProgress = true;
-        var searchJob = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber);
+        var usePolling = Architecture == "Polling";
+        var searchJob = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber, usePolling);
         var keepPolling = true;
         var pollingCount = 1;
         var percentToAdd = 10;
@@ -118,7 +122,7 @@
         {
             _findProgress += percentToAdd;
             StateHasChanged();
-            var result = await FindService.FindRecords(SelectedOrg, searchJob);
+            var result = await FindService.FindRecords(SelectedOrg, searchJob, usePolling);
             foreach (var resultItem in result.Items)
             {
                 var record = new LocalRecord(resultItem.RecordId ?? resultItem.RecordUrl, resultItem.RecordUrl, resultItem.RecordType, resultItem.CustodianName ?? string.Empty);
