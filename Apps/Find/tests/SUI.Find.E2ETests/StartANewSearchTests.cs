@@ -386,18 +386,24 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         var retryPolicy = Policy
             .HandleResult<HttpResponseMessage>(r =>
             {
+                if (!r.IsSuccessStatusCode)
+                {
+                    status = $"{r.StatusCode} - {r.Content.ReadAsStringAsync().Result}";
+                    return true; // i.e. retry
+                }
+
                 // Read response, if status is NOT "Completed", keep retrying
                 var content = r.Content.ReadFromJsonAsync<SearchStatusResponse>().Result;
                 status = content?.Status;
-                if (status == "Completed")
+                switch (status)
                 {
-                    isCompleted = true;
-                }
-
-                if (status == "Running")
-                {
-                    // Verify partial results are as expected while its in-progress (i.e. the status is Running)
-                    RunAndAssertPartialSearchResults(resultsUrl, testData).Wait();
+                    case "Completed":
+                        isCompleted = true;
+                        break;
+                    case "Running":
+                        // Verify partial results are as expected while its in-progress
+                        RunAndAssertPartialSearchResults(resultsUrl, testData).Wait();
+                        break;
                 }
 
                 var retry = status is "Queued" or "Running";
