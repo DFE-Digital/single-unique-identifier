@@ -193,7 +193,7 @@ public class JobResultHandler(
             context.SearchingOrganisation.OrgType,
             input,
             context.Custodian.DsaPolicy,
-            ApplicationConstants.PolicyEnforcement.Purpose,
+            ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
             cancellationToken
         );
 

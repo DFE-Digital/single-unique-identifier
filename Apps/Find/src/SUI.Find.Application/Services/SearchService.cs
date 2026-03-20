@@ -143,7 +143,7 @@ public class SearchService(
 
         var policyContext = new PolicyContext(
             clientId,
-            ApplicationConstants.PolicyEnforcement.Purpose,
+            ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
             encryptDefinition.Value.OrgType
         );
 

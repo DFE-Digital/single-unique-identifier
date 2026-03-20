@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 
@@ -13,7 +14,7 @@ public class JobResultHandlerFunction(
 {
     [Function(nameof(JobResultHandlerFunction))]
     public async Task Run(
-        [QueueTrigger("job-results-inbound")] JobResultMessage message,
+        [QueueTrigger(ApplicationConstants.Jobs.JobResultsQueueName)] JobResultMessage message,
         FunctionContext context,
         CancellationToken cancellationToken
     )

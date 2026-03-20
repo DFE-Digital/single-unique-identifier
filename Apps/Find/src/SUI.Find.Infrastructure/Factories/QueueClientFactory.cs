@@ -44,7 +44,7 @@ public class QueueClientFactory(IConfiguration config) : IQueueClientFactory
         return new AzureQueueSender(
             new QueueClient(
                 _submitJobResultsConnectionString,
-                ApplicationConstants.Queues.JobResultsQueueName
+                ApplicationConstants.Jobs.JobResultsQueueName
             )
         );
     }

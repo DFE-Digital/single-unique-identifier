@@ -292,7 +292,7 @@ public class JobResultHandlerTests
                 "TypeA",
                 Arg.Is<IReadOnlyList<CustodianSearchResultItem>>(x => x.Count == 2),
                 Arg.Any<DsaPolicyDefinition>(),
-                ApplicationConstants.PolicyEnforcement.Purpose,
+                ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
                 Arg.Any<CancellationToken>()
             );
     }
