@@ -19,10 +19,7 @@ public class QueueClientFactory(IConfiguration config) : IQueueClientFactory
     private readonly string _auditConnectionString =
         config["AuditProcessorConnectionString"] ?? throw new InvalidOperationException();
 
-    private readonly string _searchJobConnectionString =
-        config["AzureWebJobsStorage"] ?? throw new InvalidOperationException();
-
-    private readonly string _submitJobResultsConnectionString =
+    private readonly string _azureWebJobsStorageConnectionString =
         config["AzureWebJobsStorage"] ?? throw new InvalidOperationException();
 
     public IAuditQueueSender GetAuditClient()
@@ -35,7 +32,10 @@ public class QueueClientFactory(IConfiguration config) : IQueueClientFactory
     public ISearchJobQueueSender GetSearchJobClient()
     {
         return new AzureSearchJobQueueSender(
-            new QueueClient(_searchJobConnectionString, ApplicationConstants.SearchJobs.QueueName)
+            new QueueClient(
+                _azureWebJobsStorageConnectionString,
+                ApplicationConstants.SearchJobs.QueueName
+            )
         );
     }
 
@@ -43,7 +43,7 @@ public class QueueClientFactory(IConfiguration config) : IQueueClientFactory
     {
         return new AzureQueueSender(
             new QueueClient(
-                _submitJobResultsConnectionString,
+                _azureWebJobsStorageConnectionString,
                 ApplicationConstants.Jobs.JobResultsQueueName
             )
         );
