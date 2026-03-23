@@ -14,10 +14,6 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
 
     public HttpClient StubCustodiansClient { get; }
 
-    private readonly SemaphoreSlim _mutex = new(1, 1);
-    private Lazy<Task>? _findApiUpCheck;
-    private Lazy<Task>? _upCheck;
-
     public FunctionTestFixture()
     {
         var configurationRoot = new ConfigurationBuilder()
@@ -47,50 +43,15 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
 
     public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
-        Lazy<Task> upCheck;
-
-        await _mutex.WaitAsync();
-        try
-        {
-            _findApiUpCheck ??= new Lazy<Task>(() =>
-                EnsureServiceIsUpAsync("Find API", Client, testOutputHelper)
-            );
-
-            upCheck = _findApiUpCheck;
-        }
-        finally
-        {
-            _mutex.Release();
-        }
-
-        await upCheck.Value;
+        await EnsureServiceIsUpAsync("Find API", Client, testOutputHelper);
     }
 
     public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
     {
-        Lazy<Task> upCheck;
-
-        await _mutex.WaitAsync();
-        try
-        {
-            _upCheck ??= new Lazy<Task>(async () =>
-                await Task.WhenAll(
-                    EnsureServiceIsUpAsync("Find API", Client, testOutputHelper),
-                    EnsureServiceIsUpAsync(
-                        "StubCustodians API",
-                        StubCustodiansClient,
-                        testOutputHelper
-                    )
-                )
-            );
-            upCheck = _upCheck;
-        }
-        finally
-        {
-            _mutex.Release();
-        }
-
-        await upCheck.Value;
+        await Task.WhenAll(
+            EnsureServiceIsUpAsync("Find API", Client, testOutputHelper),
+            EnsureServiceIsUpAsync("StubCustodians API", StubCustodiansClient, testOutputHelper)
+        );
     }
 
     private static async Task EnsureServiceIsUpAsync(
@@ -105,7 +66,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         testOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
 
         // If health check does not indicate healthy, wait and then retry
-        const int retryCount = 3;
+        const int retryCount = 6;
         var retryPolicy = Policy
             .HandleResult<bool>(healthy => !healthy)
             .WaitAndRetryAsync(
