@@ -30,6 +30,7 @@ public sealed class FindDocumentFilter : IDocumentFilter
                         { "fetch-record.read", "Retrieve records." },
                         { "fetch-record.write", "Share records." },
                         { "work-item.read", "Query the work item queue" },
+                        { "work-item.write", "Update the work item queue" },
                     },
                 },
             },
@@ -138,41 +139,31 @@ public sealed class FindDocumentFilter : IDocumentFilter
             }
         }
 
-        string[] findOrder =
-        {
-            "/api/v1/searches",
-            "/api/v2/searches",
-            "/api/v1/searches/{jobId}",
-            "/api/v1/searches/{jobId}/results",
-        };
-
-        var orderedPaths = document
-            .Paths.OrderBy(p =>
-            {
-                var key = p.Key.ToLowerInvariant();
-
-                if (key == "/health")
-                    return 0;
-                if (key == "/api/v1/auth/token")
-                    return 1;
-
-                int findIndex = Array.FindIndex(
-                    findOrder,
-                    o => o.Equals(key, StringComparison.OrdinalIgnoreCase)
-                );
-
-                if (findIndex >= 0)
-                    return 10 + findIndex;
-                if (key.StartsWith("/api/v1/records"))
-                    return 20;
-
-                return 999;
-            })
-            .ToList();
+        var orderedPaths = document.Paths.OrderBy(p => p.Key).ToArray();
 
         var newPaths = new OpenApiPaths();
         foreach (var p in orderedPaths)
         {
+            p.Value.Operations = p
+                .Value.Operations.OrderBy(op =>
+                {
+                    var httpMethod = op.Key;
+
+                    return httpMethod switch
+                    {
+                        OperationType.Options => 0,
+                        OperationType.Put => 1,
+                        OperationType.Post => 2,
+                        OperationType.Patch => 3,
+                        OperationType.Get => 4,
+                        OperationType.Head => 5,
+                        OperationType.Delete => 6,
+                        OperationType.Trace => 7,
+                        _ => 50,
+                    };
+                })
+                .ToDictionary();
+
             newPaths.Add(p.Key, p.Value);
         }
 
@@ -183,8 +174,10 @@ public sealed class FindDocumentFilter : IDocumentFilter
             Tag("Health", "Service health check", 1),
             Tag("Auth", "Simulate an OAuth provider", 2),
             Tag("Match", "Locate the id for a person", 3),
-            Tag("Find", "Start, get or cancel a search", 4),
-            Tag("Fetch", "Fetch records from providers", 5),
+            Tag("Searches", "Start, get or cancel a search (Fan-out Architecture)", 4),
+            Tag("SearchesV2", "Start or get a search (Polling Architecture)", 5),
+            Tag("Work", "Check for and submit results to searches (Polling Architecture)", 6),
+            Tag("Fetch", "Fetch records from providers", 7),
         };
     }
 

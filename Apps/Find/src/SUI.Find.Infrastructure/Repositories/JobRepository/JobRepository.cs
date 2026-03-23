@@ -1,7 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
-using SUI.Find.Infrastructure.Enums;
+using SUI.Find.Application.Enums;
 using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Repositories.JobRepository;

@@ -5,6 +5,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
+using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
@@ -12,20 +13,27 @@ using SUI.Find.FindApi.Utility;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
-public class WorkAvailableFunction(
-    ILogger<WorkAvailableFunction> logger,
-    IJobClaimService jobClaimService
-)
+public class ClaimJobFunction(ILogger<ClaimJobFunction> logger, IJobClaimService jobClaimService)
 {
     [OpenApiOperation(
-        operationId: "work-available",
+        operationId: "claim-job",
         tags: ["Work"],
-        Summary = "Check if work is available. Optional, the claim endpoint remains authoritative."
+        Summary = "Check if work is available, and atomically lease the job for it if so."
     )]
-    [RequiredScopes("work-item.read")]
-    [Function(nameof(WorkAvailable))]
-    public async Task<HttpResponseData> WorkAvailable(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "head", Route = "v2/work/available")]
+    [OpenApiResponseWithBody(
+        statusCode: HttpStatusCode.Created,
+        contentType: "application/json",
+        bodyType: typeof(JobInfo),
+        Summary = "Information about the job that was leased."
+    )]
+    [OpenApiResponseWithoutBody(
+        statusCode: HttpStatusCode.NoContent,
+        Summary = "There are no jobs waiting to be worked on."
+    )]
+    [RequiredScopes("work-item.write")]
+    [Function(nameof(ClaimJob))]
+    public async Task<HttpResponseData> ClaimJob(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v2/work/claim")]
             HttpRequestData req,
         FunctionContext context,
         CancellationToken cancellationToken
@@ -46,10 +54,12 @@ public class WorkAvailableFunction(
             );
         }
 
+        var submittingCustodianId = authContext.ClientId;
+
         using var scope = logger.BeginScope(
             new Dictionary<string, object>
             {
-                { "SubmittingCustodianId", authContext.ClientId },
+                { "SubmittingCustodianId", submittingCustodianId },
                 { "TraceParent", context.TraceContext.TraceParent },
                 { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
@@ -57,25 +67,38 @@ public class WorkAvailableFunction(
         );
 
         logger.LogInformation(
-            "Checking if work is available for custodian: {id}",
-            authContext.ClientId
+            "Checking if job is available, and atomically leasing it if so, for custodian: {SubmittingCustodianId}",
+            submittingCustodianId
         );
 
-        var result = await jobClaimService.DoesCustodianHaveJobs(
-            authContext.ClientId,
+        var claimedJob = await jobClaimService.ClaimNextAvailableJobAsync(
+            submittingCustodianId,
             cancellationToken
         );
 
-        return CreateSuccessResponse(req, result);
+        return await CreateSuccessResponseAsync(req, claimedJob, cancellationToken);
     }
 
-    private static HttpResponseData CreateSuccessResponse(HttpRequestData req, bool hasWork)
+    private static async Task<HttpResponseData> CreateSuccessResponseAsync(
+        HttpRequestData req,
+        JobInfo? claimedJob,
+        CancellationToken cancellationToken
+    )
     {
-        var response = req.CreateResponse(hasWork ? HttpStatusCode.OK : HttpStatusCode.NoContent);
+        var response = req.CreateResponse(
+            claimedJob != null ? HttpStatusCode.Created : HttpStatusCode.NoContent
+        );
+
         response.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
         response.Headers.Add("Pragma", "no-cache");
         response.Headers.Add("Expires", DateTime.MinValue.ToUniversalTime().ToString("R"));
         response.Headers.Add("Vary", "Authorization");
+
+        if (claimedJob != null)
+        {
+            await response.WriteAsJsonAsync(claimedJob, cancellationToken);
+        }
+
         return response;
     }
 }

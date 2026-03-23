@@ -1,4 +1,4 @@
-using SUI.Find.Infrastructure.Enums;
+using SUI.Find.Application.Enums;
 
 namespace SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 

@@ -4,10 +4,10 @@ using Azure.Data.Tables.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Configuration;
-using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 
 namespace SUI.Find.Infrastructure.Services;
@@ -50,7 +50,11 @@ public class JobClaimService(
 
             try
             {
-                await jobRepository.UpdateAsync(claimedJob, nextAvailableJob.ETag);
+                await jobRepository.UpdateAsync(
+                    claimedJob,
+                    nextAvailableJob.ETag,
+                    cancellationToken
+                );
 
                 return new JobInfo
                 {

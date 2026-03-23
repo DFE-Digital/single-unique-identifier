@@ -23,6 +23,16 @@ public static class ApplicationConstants
         }
     }
 
+    public static class PolicyEnforcementPurposes
+    {
+        public const string Safeguarding = "SAFEGUARDING";
+    }
+
+    public static class Jobs
+    {
+        public const string JobResultsQueueName = "job-results-inbound";
+    }
+
     public static class Providers
     {
         public const string LoggingName = "providers";
