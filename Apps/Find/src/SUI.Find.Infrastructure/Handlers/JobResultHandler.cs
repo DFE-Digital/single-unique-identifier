@@ -86,6 +86,7 @@ public class JobResultHandler(
         var jobCount = await workItemJobCountRepository.GetByWorkItemIdAndJobTypeAsync(
             message.WorkItemId,
             message.JobType,
+            message.CustodianId,
             cancellationToken
         );
 
