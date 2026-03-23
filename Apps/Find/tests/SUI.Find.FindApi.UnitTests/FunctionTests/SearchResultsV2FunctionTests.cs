@@ -98,6 +98,16 @@ public class SearchResultsV2FunctionTests
         );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
+        Assert.Equal(
+            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            response.Headers.GetValues("Expires").Single()
+        );
+        Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());
+        Assert.Equal(
+            "no-store, must-revalidate, no-cache, max-age=0",
+            response.Headers.GetValues("Cache-Control").Single()
+        );
     }
 
     [Fact]
@@ -120,6 +130,16 @@ public class SearchResultsV2FunctionTests
         );
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
+        Assert.Equal(
+            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            response.Headers.GetValues("Expires").Single()
+        );
+        Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());
+        Assert.Equal(
+            "no-store, must-revalidate, no-cache, max-age=0",
+            response.Headers.GetValues("Cache-Control").Single()
+        );
     }
 
     [Fact]
@@ -142,6 +162,16 @@ public class SearchResultsV2FunctionTests
         );
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
+        Assert.Equal(
+            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            response.Headers.GetValues("Expires").Single()
+        );
+        Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());
+        Assert.Equal(
+            "no-store, must-revalidate, no-cache, max-age=0",
+            response.Headers.GetValues("Cache-Control").Single()
+        );
     }
 
     [Fact]
@@ -164,6 +194,16 @@ public class SearchResultsV2FunctionTests
         );
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
+        Assert.Equal(
+            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            response.Headers.GetValues("Expires").Single()
+        );
+        Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());
+        Assert.Equal(
+            "no-store, must-revalidate, no-cache, max-age=0",
+            response.Headers.GetValues("Cache-Control").Single()
+        );
     }
 
     [Fact]
@@ -185,5 +225,15 @@ public class SearchResultsV2FunctionTests
         );
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
+        Assert.Equal(
+            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            response.Headers.GetValues("Expires").Single()
+        );
+        Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());
+        Assert.Equal(
+            "no-store, must-revalidate, no-cache, max-age=0",
+            response.Headers.GetValues("Cache-Control").Single()
+        );
     }
 }

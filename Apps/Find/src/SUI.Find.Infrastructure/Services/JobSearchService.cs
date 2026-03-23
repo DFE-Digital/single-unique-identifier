@@ -47,7 +47,7 @@ public class JobSearchService(
         );
 
         var completenessPercentage =
-            completedRecords.Count * 100 / workItemJobCountEntity!.ExpectedJobCount;
+            completedRecords.Count * 100 / workItemJobCountEntity.ExpectedJobCount;
 
         var status = GetOverallJobStatus(completenessPercentage, workItemJobCountEntity);
 

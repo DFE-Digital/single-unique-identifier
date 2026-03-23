@@ -76,11 +76,8 @@ public class SearchResultsV2Function(
             || authObj is not AuthContext authContext
         )
         {
-            return await HttpResponseUtility.ProblemResponse(
+            return await HttpResponseUtility.UnauthorizedResponse(
                 req,
-                HttpStatusCode.Unauthorized,
-                "Unauthorized",
-                "",
                 context.InvocationId,
                 cancellationToken
             );
@@ -133,6 +130,10 @@ public class SearchResultsV2Function(
     )
     {
         var response = req.CreateResponse(HttpStatusCode.OK);
+        response.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
+        response.Headers.Add("Pragma", "no-cache");
+        response.Headers.Add("Expires", DateTime.MinValue.ToUniversalTime().ToString("R"));
+        response.Headers.Add("Vary", "Authorization");
         var searchResults = SearchResultsV2.FromDto(result);
         await response.WriteAsJsonAsync(searchResults, cancellationToken);
         return response;

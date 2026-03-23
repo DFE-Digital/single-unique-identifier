@@ -106,6 +106,7 @@ public class QueueSearchJobTriggerTests
                     && w.WorkItemId == requestMessage.WorkItemId.ToString()
                     && w.ExpectedJobCount == 2
                     && w.PayloadJson.Contains(requestMessage.PersonId)
+                    && w.SearchingOrganisationId == requestMessage.RequestingCustodianId
                 ),
                 Arg.Any<CancellationToken>()
             );

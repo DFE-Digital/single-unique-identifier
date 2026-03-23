@@ -103,9 +103,9 @@ public class JobSearchServiceTests
 
         _workItemJobCountRepository
             .GetByWorkItemIdAndJobTypeAsync(
-                Arg.Any<string>(),
+                workItemId,
                 JobType.CustodianLookup,
-                Arg.Any<string>(),
+                searchingOrganisationId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -189,9 +189,9 @@ public class JobSearchServiceTests
 
         _workItemJobCountRepository
             .GetByWorkItemIdAndJobTypeAsync(
-                Arg.Any<string>(),
+                workItemId,
                 JobType.CustodianLookup,
-                Arg.Any<string>(),
+                searchingOrganisationId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -274,9 +274,9 @@ public class JobSearchServiceTests
 
         _workItemJobCountRepository
             .GetByWorkItemIdAndJobTypeAsync(
-                Arg.Any<string>(),
+                workItemId,
                 JobType.CustodianLookup,
-                Arg.Any<string>(),
+                searchingOrganisationId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -359,9 +359,9 @@ public class JobSearchServiceTests
 
         _workItemJobCountRepository
             .GetByWorkItemIdAndJobTypeAsync(
-                Arg.Any<string>(),
+                workItemId,
                 JobType.CustodianLookup,
-                Arg.Any<string>(),
+                searchingOrganisationId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
