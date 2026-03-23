@@ -29,7 +29,6 @@ public class JobSearchService(
             await workItemJobCountRepository.GetByWorkItemIdAndJobTypeAsync(
                 workItemId,
                 JobType.CustodianLookup,
-                searchingOrganisationId,
                 cancellationToken
             );
 
@@ -37,6 +36,16 @@ public class JobSearchService(
         {
             logger.LogInformation("No jobs found for work item ID {WorkItemId}", workItemId);
             return new NotFound();
+        }
+
+        if (workItemJobCountEntity.SearchingOrganisationId != searchingOrganisationId)
+        {
+            logger.LogInformation(
+                "Searching organisation ID from request does not match organisation ID on work item. Searching ID: {SearchingId}, work item ID: {WorkItemId}",
+                searchingOrganisationId,
+                workItemId
+            );
+            return new Unauthorized();
         }
 
         var completedRecords = await searchResultsEntryRepository.GetByWorkItemIdAsync(

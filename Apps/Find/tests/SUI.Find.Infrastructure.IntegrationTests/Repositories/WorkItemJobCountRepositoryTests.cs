@@ -75,11 +75,7 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await _sut.UpsertAsync(entity);
 
-        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(
-            workItemId,
-            jobType,
-            searchingOrganisationId
-        );
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, jobType);
 
         result.Should().NotBeNull();
         result.ExpectedJobCount.Should().Be(3);
@@ -92,44 +88,11 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetByWorkItemIdAndJobTypeAsync_ReturnsNull_WhenSearchingOrganisationIdIsIncorrect()
-    {
-        var workItemId = $"WI_{Guid.NewGuid()}";
-        var searchingOrganisationId = $"SOID_{Guid.NewGuid()}";
-        var jobType = JobType.CustodianLookup;
-        var now = DateTimeOffset.UtcNow;
-
-        var entity = new WorkItemJobCount
-        {
-            WorkItemId = workItemId,
-            JobType = jobType,
-            ExpectedJobCount = 3,
-            CreatedAtUtc = now,
-            UpdatedAtUtc = now,
-            SearchingOrganisationId = searchingOrganisationId,
-            PayloadJson = "{}",
-        };
-
-        await _sut.UpsertAsync(entity);
-
-        var differentSearchingOrganisationId = $"SOID_{Guid.NewGuid()}";
-
-        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(
-            workItemId,
-            jobType,
-            differentSearchingOrganisationId
-        );
-
-        result.Should().BeNull();
-    }
-
-    [Fact]
     public async Task GetByWorkItemIdAndJobTypeAsync_ReturnsNull_WhenRecordDoesNotExist()
     {
         var count = await _sut.GetByWorkItemIdAndJobTypeAsync(
             $"WI_{Guid.NewGuid()}",
-            JobType.CustodianLookup,
-            "SOID-1"
+            JobType.CustodianLookup
         );
 
         count.Should().BeNull();
@@ -169,11 +132,7 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await _sut.UpsertAsync(updated);
 
-        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(
-            workItemId,
-            jobType,
-            searchingOrganisationId
-        );
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, jobType);
 
         result.Should().NotBeNull();
         result.ExpectedJobCount.Should().Be(10);
@@ -208,11 +167,7 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         await tableClient.AddEntityAsync(invalidEntity);
 
-        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(
-            workItemId,
-            lookupJobType,
-            searchingOrganisationId
-        );
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, lookupJobType);
 
         result.Should().NotBeNull();
         result.WorkItemId.Should().Be(workItemId);

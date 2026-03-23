@@ -39,16 +39,16 @@ public class JobSearchServiceTests
     [Fact]
     public async Task GetSearchResults_ReturnsNotFound_WhenNoWorkItemJobCountExists()
     {
+        var workItemId = "WID-1";
         _workItemJobCountRepository
             .GetByWorkItemIdAndJobTypeAsync(
-                Arg.Any<string>(),
+                workItemId,
                 JobType.CustodianLookup,
-                Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(null as WorkItemJobCount);
 
-        var result = await _sut.GetSearchResultsAsync("WID-1", "SOID-1", CancellationToken.None);
+        var result = await _sut.GetSearchResultsAsync(workItemId, "SOID-1", CancellationToken.None);
 
         Assert.IsType<NotFound>(result.Value);
         _logger.ReceivedWithAnyArgs(1).LogInformation("No jobs found for work item ID WID-1");
@@ -57,25 +57,31 @@ public class JobSearchServiceTests
     [Fact]
     public async Task GetSearchResults_ReturnsNotFound_WhenExpectedJobCountIsEmpty()
     {
+        var workItemId = "WID-1";
+        var searchingOrganisationId = "SOID-1";
+
         _workItemJobCountRepository
             .GetByWorkItemIdAndJobTypeAsync(
-                Arg.Any<string>(),
+                workItemId,
                 JobType.CustodianLookup,
-                Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(
                 new WorkItemJobCount
                 {
-                    WorkItemId = "WID-1",
+                    WorkItemId = workItemId,
                     JobType = JobType.CustodianLookup,
-                    SearchingOrganisationId = "SOID-1",
+                    SearchingOrganisationId = searchingOrganisationId,
                     PayloadJson = string.Empty,
                     ExpectedJobCount = 0,
                 }
             );
 
-        var result = await _sut.GetSearchResultsAsync("WID-1", "SOID-1", CancellationToken.None);
+        var result = await _sut.GetSearchResultsAsync(
+            workItemId,
+            searchingOrganisationId,
+            CancellationToken.None
+        );
 
         Assert.IsType<NotFound>(result.Value);
         _logger.ReceivedWithAnyArgs(1).LogInformation("No jobs found for work item ID WID-1");
@@ -104,7 +110,6 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 workItemId,
                 JobType.CustodianLookup,
-                searchingOrganisationId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -190,7 +195,6 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 workItemId,
                 JobType.CustodianLookup,
-                searchingOrganisationId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -275,7 +279,6 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 workItemId,
                 JobType.CustodianLookup,
-                searchingOrganisationId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);
@@ -360,7 +363,6 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAndJobTypeAsync(
                 workItemId,
                 JobType.CustodianLookup,
-                searchingOrganisationId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(workItemJobCount);

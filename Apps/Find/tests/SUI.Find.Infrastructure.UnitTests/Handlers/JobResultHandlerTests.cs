@@ -106,7 +106,6 @@ public class JobResultHandlerTests
             .GetByWorkItemIdAndJobTypeAsync(
                 message.WorkItemId,
                 message.JobType,
-                message.CustodianId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(Task.FromResult<WorkItemJobCount?>(null));
@@ -127,7 +126,6 @@ public class JobResultHandlerTests
             .GetByWorkItemIdAndJobTypeAsync(
                 message.WorkItemId,
                 message.JobType,
-                message.CustodianId,
                 Arg.Any<CancellationToken>()
             )!
             .Returns(
@@ -184,7 +182,6 @@ public class JobResultHandlerTests
             .GetByWorkItemIdAndJobTypeAsync(
                 message.WorkItemId,
                 message.JobType,
-                message.CustodianId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(
@@ -313,7 +310,6 @@ public class JobResultHandlerTests
             .GetByWorkItemIdAndJobTypeAsync(
                 message.WorkItemId,
                 message.JobType,
-                message.CustodianId,
                 Arg.Any<CancellationToken>()
             )
             .Returns(
