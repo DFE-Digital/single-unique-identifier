@@ -10,7 +10,7 @@
       "rollForward": false
     },
     "husky": {
-      "version": "0.8.0",
+      "version": "0.9.1",
       "commands": [
         "husky"
       ],
@@ -24,7 +24,7 @@
       "rollForward": false
     },
     "powershell": {
-      "version": "7.5.4",
+      "version": "7.6.0",
       "commands": [
         "pwsh"
       ],
