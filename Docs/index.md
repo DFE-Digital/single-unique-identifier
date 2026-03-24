@@ -13,6 +13,7 @@ This project is in the Discovery Phase. This means everything in this repository
 
 ### Design
 * [Polling API Design](./Design/Variants/PollingDiscovery/Polling/Endpoints.md)
+* [Authentication and API Edge Strategy](./Design/Authentication/Index.md)
 
 ### Development
 
