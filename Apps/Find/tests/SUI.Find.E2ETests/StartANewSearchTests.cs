@@ -195,8 +195,11 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         );
 
         var body = new StartSearchRequest(suid);
-        var stringContent = new StringContent(JsonSerializer.Serialize(body));
-        var newSearchJobResult = await Fixture.Client.PostAsync(startSearchUrl, stringContent);
+        using var stringContent = new StringContent(JsonSerializer.Serialize(body));
+        using var newSearchJobResult = await Fixture.Client.PostAsync(
+            startSearchUrl,
+            stringContent
+        );
 
         // We then want to assert the returned body and status code
         Assert.Equal(HttpStatusCode.Accepted, newSearchJobResult.StatusCode);
@@ -408,23 +411,6 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
                 var retry = status is "Queued" or "Running";
                 return retry;
-            })
-            .Or<Exception>(ex =>
-            {
-                var exceptions = new List<Exception>([ex]);
-                while (ex.InnerException != null)
-                {
-                    exceptions.Add(ex.InnerException);
-                    ex = ex.InnerException;
-                }
-
-                var isTimeout = exceptions.OfType<TimeoutException>().Any();
-                if (isTimeout)
-                {
-                    status = "(timeout)";
-                }
-
-                return isTimeout; // i.e. retry if we ever receive a timeout
             })
             .WaitAndRetryAsync(
                 retryCount,
