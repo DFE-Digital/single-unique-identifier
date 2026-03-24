@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
 using SUI.Find.Application.Configurations;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
@@ -87,11 +88,12 @@ public class SearchService(
                     ? SearchStatus.Running
                     : SearchStatus.Queued;
 
-            logger.LogInformation(
-                "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
-                originalJobId,
-                jobStatus
-            );
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation(
+                    "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
+                    originalJobId,
+                    jobStatus
+                );
 
             var originalJob = new SearchJobDto
             {
@@ -141,7 +143,7 @@ public class SearchService(
 
         var policyContext = new PolicyContext(
             clientId,
-            "SAFEGUARDING", // TODO: Hard coded for now. Review later. Potentially pull it through the endpoint as part of the query.
+            ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
             encryptDefinition.Value.OrgType
         );
 
@@ -237,7 +239,8 @@ public class SearchService(
             );
             if (metaData is null)
             {
-                logger.LogInformation("Search job with ID {JobId} not found.", jobId);
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("Search job with ID {JobId} not found.", jobId);
                 return new NotFound();
             }
 
@@ -265,6 +268,7 @@ public class SearchService(
             {
                 var persistedItems = await searchResultEntryRepository.GetByWorkItemIdAsync(
                     jobId,
+                    clientId,
                     cancellationToken
                 );
 

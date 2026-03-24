@@ -1,7 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
-using SUI.Find.Infrastructure.Enums;
+using SUI.Find.Application.Enums;
 using SUI.Find.Infrastructure.Interfaces;
 
 namespace SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -65,6 +65,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
         {
             { "JobId", job.JobId },
             { "CustodianId", job.CustodianId },
+            { "SearchingOrganisationId", job.SearchingOrganisationId },
             { "JobType", job.JobType.ToString() },
             { "WorkItemType", job.WorkItemType.ToString() },
             { "WorkItemId", job.WorkItemId },
@@ -119,6 +120,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
                     {
                         JobId = entity.GetString("JobId"),
                         CustodianId = entity.GetString("CustodianId"),
+                        SearchingOrganisationId = entity.GetString("SearchingOrganisationId"),
                         JobType = jobType,
                         WorkItemType = workItemType,
                         WorkItemId = entity.GetString("WorkItemId"),

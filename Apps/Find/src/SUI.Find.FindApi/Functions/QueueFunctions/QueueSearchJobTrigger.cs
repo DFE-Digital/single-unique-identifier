@@ -3,9 +3,9 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
-using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
@@ -32,16 +32,16 @@ public class QueueSearchJobTrigger(
             {
                 { "WorkItemId", searchRequestMessage.WorkItemId },
                 { "PersonId", searchRequestMessage.PersonId },
-                { "RequestingCustodianId", searchRequestMessage.RequestingCustodianId },
+                { "SearchingOrganisationId", searchRequestMessage.SearchingOrganisationId },
                 { "TraceParent", context.TraceContext.TraceParent },
                 { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
             }
         );
         logger.LogInformation(
-            "QueueSearchJobTrigger function processed: Work item ID:{WorkItemId} for Custodian ID: {CustodianId}",
+            "QueueSearchJobTrigger function processed: Work item ID: {WorkItemId} for Searching Organisation ID: {SearchingOrganisationId}",
             searchRequestMessage.WorkItemId,
-            searchRequestMessage.RequestingCustodianId
+            searchRequestMessage.SearchingOrganisationId
         );
 
         var custodians = await custodianService.GetCustodiansAsync();
@@ -55,6 +55,7 @@ public class QueueSearchJobTrigger(
             var job = new Job
             {
                 CustodianId = custodian.OrgId,
+                SearchingOrganisationId = searchRequestMessage.SearchingOrganisationId,
                 JobId = Guid.NewGuid().ToString(),
                 JobType = JobType.CustodianLookup,
                 PayloadJson = JsonSerializer.Serialize(custodianPayload),
@@ -78,6 +79,7 @@ public class QueueSearchJobTrigger(
                 CreatedAtUtc = DateTime.UtcNow,
                 UpdatedAtUtc = DateTime.UtcNow,
                 ExpectedJobCount = custodians.Count,
+                SearchingOrganisationId = searchRequestMessage.SearchingOrganisationId,
             },
             token
         );

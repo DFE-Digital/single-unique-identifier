@@ -4,10 +4,10 @@ using Azure.Data.Tables.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SUI.Find.Application.Dtos;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Configuration;
-using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 
 namespace SUI.Find.Infrastructure.Services;
@@ -22,12 +22,15 @@ public class JobClaimService(
 {
     private JobClaimConfig JobClaimConfig => options.CurrentValue;
 
-    public async Task<JobInfo?> ClaimNextAvailableJobAsync(string custodianId)
+    public async Task<JobInfo?> ClaimNextAvailableJobAsync(
+        string custodianId,
+        CancellationToken cancellationToken = default
+    )
     {
         var retryCount = 0;
         do
         {
-            var nextAvailableJob = await GetNextAvailableJobAsync(custodianId);
+            var nextAvailableJob = await GetNextAvailableJobAsync(custodianId, cancellationToken);
             if (nextAvailableJob == null)
             {
                 return null;
@@ -47,7 +50,11 @@ public class JobClaimService(
 
             try
             {
-                await jobRepository.UpdateAsync(claimedJob, nextAvailableJob.ETag);
+                await jobRepository.UpdateAsync(
+                    claimedJob,
+                    nextAvailableJob.ETag,
+                    cancellationToken
+                );
 
                 return new JobInfo
                 {
@@ -75,12 +82,30 @@ public class JobClaimService(
         return null;
     }
 
-    private async Task<Job?> GetNextAvailableJobAsync(string custodianId)
+    public async Task<bool> DoesCustodianHaveJobs(
+        string custodianId,
+        CancellationToken cancellationToken
+    )
+    {
+        var job = await GetNextAvailableJobAsync(custodianId, cancellationToken);
+        return job != null;
+    }
+
+    private async Task<Job?> GetNextAvailableJobAsync(
+        string custodianId,
+        CancellationToken cancellationToken
+    )
     {
         var utcNow = timeProvider.GetUtcNow();
         var windowStart = jobWindowStartService.GetWindowStart();
 
-        return (await jobRepository.ListJobsByCustodianIdAsync(custodianId, windowStart))
+        return (
+            await jobRepository.ListJobsByCustodianIdAsync(
+                custodianId,
+                windowStart,
+                cancellationToken
+            )
+        )
             .OrderBy(job => job.CreatedAtUtc)
             .FirstOrDefault(job =>
                 job.CompletedAtUtc == null

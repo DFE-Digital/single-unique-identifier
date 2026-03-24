@@ -33,7 +33,7 @@ public class JobQueueServiceTests
         {
             WorkItemId = Guid.NewGuid(),
             PersonId = "test-person",
-            RequestingCustodianId = "test-custodian",
+            SearchingOrganisationId = "test-searcher",
             TraceId = "trace-123",
             InvocationId = "inv-456",
         };
@@ -71,7 +71,7 @@ public class JobQueueServiceTests
         {
             WorkItemId = Guid.NewGuid(),
             PersonId = "test-person",
-            RequestingCustodianId = "test-custodian",
+            SearchingOrganisationId = "test-searcher",
             TraceId = "trace-123",
             InvocationId = "inv-456",
         };
@@ -119,7 +119,7 @@ public class JobQueueServiceTests
             return deserialized != null
                 && deserialized.WorkItemId == expectedMessage.WorkItemId
                 && deserialized.PersonId == expectedMessage.PersonId
-                && deserialized.RequestingCustodianId == expectedMessage.RequestingCustodianId;
+                && deserialized.SearchingOrganisationId == expectedMessage.SearchingOrganisationId;
         }
         catch
         {

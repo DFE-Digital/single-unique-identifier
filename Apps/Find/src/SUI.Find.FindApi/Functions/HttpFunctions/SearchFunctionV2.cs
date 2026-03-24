@@ -27,7 +27,7 @@ public class SearchFunctionV2(
 {
     [OpenApiOperation(
         operationId: "searches-v2",
-        tags: ["Searches"],
+        tags: ["SearchesV2"],
         Summary = "Submit a new search request"
     )]
     [OpenApiRequestBody(
@@ -83,7 +83,7 @@ public class SearchFunctionV2(
             {
                 { "WorkItemId", workItemId },
                 { "PersonId", searchRequest?.Suid ?? string.Empty },
-                { "RequestingCustodianId", authContext.ClientId },
+                { "SearchingOrganisationId", authContext.ClientId },
                 { "TraceParent", context.TraceContext.TraceParent },
                 { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
@@ -120,7 +120,7 @@ public class SearchFunctionV2(
         {
             WorkItemId = workItemId,
             PersonId = personId,
-            RequestingCustodianId = authContext.ClientId,
+            SearchingOrganisationId = authContext.ClientId,
             TraceParent = context.TraceContext.TraceParent,
             TraceId = Activity.Current?.TraceId.ToString() ?? string.Empty,
             InvocationId = context.InvocationId,

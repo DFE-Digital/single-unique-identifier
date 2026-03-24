@@ -20,4 +20,5 @@ public class SearchResultEntry
     public DateTimeOffset SubmittedAtUtc { get; init; }
     public required string JobId { get; init; }
     public required string WorkItemId { get; init; }
+    public required string SearchingOrganisationId { get; init; }
 }

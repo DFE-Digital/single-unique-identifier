@@ -16,6 +16,10 @@ public static class HttpResponseUtility
     )
     {
         var res = req.CreateResponse(code);
+        res.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
+        res.Headers.Add("Pragma", "no-cache");
+        res.Headers.Add("Expires", DateTime.MinValue.ToUniversalTime().ToString("R"));
+        res.Headers.Add("Vary", "Authorization");
         await res.WriteAsJsonAsync(
             new Problem("about:blank", title, (int)code, detail, instance),
             cancellationToken
@@ -29,18 +33,16 @@ public static class HttpResponseUtility
         CancellationToken cancellationToken = default
     )
     {
-        var res = req.CreateResponse(HttpStatusCode.Unauthorized);
-        await res.WriteAsJsonAsync(
-            new Problem(
-                "about:blank",
-                "Unauthorised",
-                401,
-                "Missing or invalid bearer token.",
-                $"urn:trace::{traceId}"
-            ),
+        var res = ProblemResponse(
+            req,
+            HttpStatusCode.Unauthorized,
+            "Unauthorised",
+            "Missing or invalid bearer token.",
+            $"urn:trace::{traceId}",
             cancellationToken
         );
-        return res;
+
+        return await res;
     }
 
     public static async Task<HttpResponseData> NotFoundResponse(

@@ -8,4 +8,5 @@ public enum SearchStatus
     Completed,
     Failed,
     Cancelled,
+    Expired,
 }

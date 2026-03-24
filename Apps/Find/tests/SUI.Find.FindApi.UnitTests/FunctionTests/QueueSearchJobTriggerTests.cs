@@ -1,10 +1,10 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Functions.QueueFunctions;
-using SUI.Find.Infrastructure.Enums;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
@@ -51,7 +51,7 @@ public class QueueSearchJobTriggerTests
         {
             WorkItemId = Guid.NewGuid(),
             PersonId = "test-person-id",
-            RequestingCustodianId = "requesting-custodian-id",
+            SearchingOrganisationId = "searching-custodian-id",
             TraceId = "test-trace-id",
             InvocationId = "test-invocation",
         };
@@ -73,6 +73,7 @@ public class QueueSearchJobTriggerTests
             .UpsertAsync(
                 Arg.Is<Job>(j =>
                     (j.CustodianId == "org1" || j.CustodianId == "org2")
+                    && j.SearchingOrganisationId == requestMessage.SearchingOrganisationId
                     && j.JobType == JobType.CustodianLookup
                     && j.WorkItemType == WorkItemType.SearchExecution
                     && j.WorkItemId == requestMessage.WorkItemId.ToString()
@@ -105,6 +106,7 @@ public class QueueSearchJobTriggerTests
                     && w.WorkItemId == requestMessage.WorkItemId.ToString()
                     && w.ExpectedJobCount == 2
                     && w.PayloadJson.Contains(requestMessage.PersonId)
+                    && w.SearchingOrganisationId == requestMessage.SearchingOrganisationId
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -118,7 +120,7 @@ public class QueueSearchJobTriggerTests
         {
             WorkItemId = Guid.NewGuid(),
             PersonId = "test-person-id",
-            RequestingCustodianId = "requesting-custodian-id",
+            SearchingOrganisationId = "searching-custodian-id",
             TraceId = "test-trace-id",
             InvocationId = "test-invocation",
         };
