@@ -88,6 +88,45 @@ public class JobSearchServiceTests
     }
 
     [Fact]
+    public async Task GetSearchResults_ReturnsUnauthorised_WhenSearchingOrganisationIdIsWrong()
+    {
+        var workItemId = "WID-1";
+        var searchingOrganisationId = "SOID-1";
+
+        _workItemJobCountRepository
+            .GetByWorkItemIdAndJobTypeAsync(
+                workItemId,
+                JobType.CustodianLookup,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                new WorkItemJobCount
+                {
+                    WorkItemId = workItemId,
+                    JobType = JobType.CustodianLookup,
+                    SearchingOrganisationId = searchingOrganisationId,
+                    PayloadJson = string.Empty,
+                    ExpectedJobCount = 3,
+                }
+            );
+
+        var differentSearchingOrganisationId = "SOID-2";
+
+        var result = await _sut.GetSearchResultsAsync(
+            workItemId,
+            differentSearchingOrganisationId,
+            CancellationToken.None
+        );
+
+        Assert.IsType<Unauthorized>(result.Value);
+        _logger
+            .ReceivedWithAnyArgs(1)
+            .LogWarning(
+                "Searching organisation ID (SOID-2) from request does not match organisation ID (SOID-1) on work item. Work item ID: WID-1"
+            );
+    }
+
+    [Fact]
     public async Task GetSearchResults_CorrectlyReturnsCompletedResults()
     {
         var workItemId = "WID-1";

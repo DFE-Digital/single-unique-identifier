@@ -40,9 +40,10 @@ public class JobSearchService(
 
         if (workItemJobCountEntity.SearchingOrganisationId != searchingOrganisationId)
         {
-            logger.LogInformation(
-                "Searching organisation ID from request does not match organisation ID on work item. Searching ID: {SearchingId}, work item ID: {WorkItemId}",
+            logger.LogWarning(
+                "Searching organisation ID ({SearchingOrganisationId}) from request does not match organisation ID ({ExpectedSearchingOrganisationId}) on work item. Work item ID: {WorkItemId}",
                 searchingOrganisationId,
+                workItemJobCountEntity.SearchingOrganisationId,
                 workItemId
             );
             return new Unauthorized();
