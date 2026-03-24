@@ -40,6 +40,7 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
             { "ExpectedJobCount", workItemJobCount.ExpectedJobCount },
             { "CreatedAtUtc", workItemJobCount.CreatedAtUtc },
             { "UpdatedAtUtc", workItemJobCount.UpdatedAtUtc },
+            { "SearchingOrganisationId", workItemJobCount.SearchingOrganisationId },
             { "PayloadJson", workItemJobCount.PayloadJson },
         };
 
@@ -95,6 +96,7 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
                     ExpectedJobCount = entity.GetInt32("ExpectedJobCount") ?? 0,
                     CreatedAtUtc = entity.GetDateTimeOffset("CreatedAtUtc")!.Value,
                     UpdatedAtUtc = entity.GetDateTimeOffset("UpdatedAtUtc")!.Value,
+                    SearchingOrganisationId = entity.GetString("SearchingOrganisationId"),
                     PayloadJson = entity.GetString("PayloadJson"),
                 };
             }

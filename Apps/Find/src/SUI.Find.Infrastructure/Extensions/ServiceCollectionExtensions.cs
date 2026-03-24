@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ISecretService, AzureKeyVaultSecretService>();
         services.AddSingleton<IJobRepository, JobRepository>();
         services.AddSingleton<IWorkItemJobCountRepository, WorkItemJobCountRepository>();
+        services.AddSingleton<IJobSearchService, JobSearchService>();
 
         var useStubAuthTokenService = configuration.GetValue<bool>("UseStubAuthTokenService");
         if (useStubAuthTokenService)

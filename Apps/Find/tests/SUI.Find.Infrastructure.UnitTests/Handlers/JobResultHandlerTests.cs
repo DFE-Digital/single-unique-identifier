@@ -135,6 +135,7 @@ public class JobResultHandlerTests
                         PayloadJson = JsonSerializer.Serialize(payload),
                         WorkItemId = message.WorkItemId,
                         JobType = message.JobType,
+                        SearchingOrganisationId = "searching-org-id",
                     }
                 )
             );
@@ -150,7 +151,7 @@ public class JobResultHandlerTests
                     new Job
                     {
                         JobId = message.JobId,
-                        SearchingOrganisationId = "orgX",
+                        SearchingOrganisationId = "searching-org-id",
                         CustodianId = message.CustodianId,
                         JobType = JobType.Unknown,
                         PayloadJson = "{}",
@@ -161,7 +162,7 @@ public class JobResultHandlerTests
         // Simulate missing custodian
         _custodianService
             .GetCustodianAsync(message.CustodianId)
-            .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Not found"));
+            .Returns(Result<ProviderDefinition>.Fail("Not found"));
 
         await _handler.HandleAsync(message, CancellationToken.None);
 
@@ -177,6 +178,8 @@ public class JobResultHandlerTests
         var message = CreateMessage(recordCount: 2);
         var payload = new SearchWorkItemPayload("sui1");
 
+        const string searchingOrganisationId = "searching-org-id";
+
         _jobCountRepo
             .GetByWorkItemIdAndJobTypeAsync(
                 message.WorkItemId,
@@ -189,6 +192,7 @@ public class JobResultHandlerTests
                     PayloadJson = JsonSerializer.Serialize(payload),
                     WorkItemId = message.WorkItemId,
                     JobType = message.JobType,
+                    SearchingOrganisationId = searchingOrganisationId,
                 }
             );
 
@@ -202,16 +206,26 @@ public class JobResultHandlerTests
                 new Job
                 {
                     JobId = message.JobId,
-                    SearchingOrganisationId = "orgX",
+                    SearchingOrganisationId = searchingOrganisationId,
                     CustodianId = message.CustodianId,
                     JobType = JobType.Unknown,
                     PayloadJson = "{}",
                 }
             );
 
-        var provider = new ProviderDefinition
+        var custodianOrg = new ProviderDefinition
         {
-            OrgId = "orgX",
+            OrgId = message.CustodianId,
+            OrgName = $"{message.CustodianId}Name",
+        };
+
+        _custodianService
+            .GetCustodianAsync(custodianOrg.OrgId)
+            .Returns(Result<ProviderDefinition>.Ok(custodianOrg));
+
+        var searchingOrg = new ProviderDefinition
+        {
+            OrgId = searchingOrganisationId,
             OrgName = "OrgX",
             OrgType = "TypeA",
             Encryption = new EncryptionDefinition { Key = "test-key" },
@@ -219,8 +233,8 @@ public class JobResultHandlerTests
         };
 
         _custodianService
-            .GetCustodianAsync(Arg.Any<string>())
-            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(provider));
+            .GetCustodianAsync(searchingOrganisationId)
+            .Returns(Result<ProviderDefinition>.Ok(searchingOrg));
 
         // Proper PEP mock (based on actual inputs)
         _pepService
@@ -287,8 +301,8 @@ public class JobResultHandlerTests
         await _pepService
             .Received(1)
             .FilterResultsAsync(
-                "orgX", // source (custodian)
-                "orgX", // destination (searching org)
+                message.CustodianId, // source (custodian)
+                searchingOrganisationId, // destination (searching org)
                 "TypeA",
                 Arg.Is<IReadOnlyList<CustodianSearchResultItem>>(x => x.Count == 2),
                 Arg.Any<DsaPolicyDefinition>(),
@@ -304,6 +318,8 @@ public class JobResultHandlerTests
         var message = CreateMessage(recordCount: 3);
         var payload = new SearchWorkItemPayload("sui1");
 
+        const string searchingOrganisationId = "searching-org-id";
+
         _jobCountRepo
             .GetByWorkItemIdAndJobTypeAsync(
                 message.WorkItemId,
@@ -316,6 +332,7 @@ public class JobResultHandlerTests
                     PayloadJson = JsonSerializer.Serialize(payload),
                     WorkItemId = message.WorkItemId,
                     JobType = message.JobType,
+                    SearchingOrganisationId = searchingOrganisationId,
                 }
             );
 
@@ -329,16 +346,26 @@ public class JobResultHandlerTests
                 new Job
                 {
                     JobId = message.JobId,
-                    SearchingOrganisationId = "orgX",
+                    SearchingOrganisationId = searchingOrganisationId,
                     CustodianId = message.CustodianId,
                     JobType = JobType.Unknown,
                     PayloadJson = "{}",
                 }
             );
 
-        var provider = new ProviderDefinition
+        var custodianOrg = new ProviderDefinition
         {
-            OrgId = "orgX",
+            OrgId = message.CustodianId,
+            OrgName = $"{message.CustodianId}Name",
+        };
+
+        _custodianService
+            .GetCustodianAsync(custodianOrg.OrgId)
+            .Returns(Result<ProviderDefinition>.Ok(custodianOrg));
+
+        var searchingOrg = new ProviderDefinition
+        {
+            OrgId = searchingOrganisationId,
             OrgName = "OrgX",
             OrgType = "TypeA",
             Encryption = new EncryptionDefinition { Key = "test-key" },
@@ -346,8 +373,8 @@ public class JobResultHandlerTests
         };
 
         _custodianService
-            .GetCustodianAsync(Arg.Any<string>())
-            .Returns(Result<ProviderDefinition>.Ok(provider));
+            .GetCustodianAsync(searchingOrganisationId)
+            .Returns(Result<ProviderDefinition>.Ok(searchingOrg));
 
         // Mixed PEP response (allow only first 2)
         _pepService
