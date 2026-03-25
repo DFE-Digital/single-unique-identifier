@@ -174,4 +174,35 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
         result.JobType.Should().Be(JobType.Unknown);
         result.ExpectedJobCount.Should().Be(5);
     }
+
+    [Fact]
+    public async Task SearchingOrganisationId_IsOptional()
+    {
+        var workItemId = $"WI_{Guid.NewGuid()}";
+        const JobType jobType = JobType.CustodianLookup;
+        var now = DateTimeOffset.UtcNow;
+
+        var entity = new WorkItemJobCount
+        {
+            SearchingOrganisationId = null,
+            WorkItemId = workItemId,
+            JobType = jobType,
+            ExpectedJobCount = 5,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+            PayloadJson = "{}",
+        };
+
+        await _sut.UpsertAsync(entity);
+
+        // ACT
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, jobType);
+
+        // ASSERT
+        result
+            .Should()
+            .BeEquivalentTo(
+                new { WorkItemId = workItemId, SearchingOrganisationId = (string?)null }
+            );
+    }
 }

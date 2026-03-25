@@ -63,7 +63,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         var custodianId = $"custodian-{Guid.NewGuid()}";
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().BeNull();
@@ -89,7 +89,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().BeNull();
@@ -115,7 +115,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().BeNull();
@@ -143,7 +143,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().BeNull();
@@ -171,7 +171,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().BeNull();
@@ -209,7 +209,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().NotBeNull();
@@ -317,7 +317,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().BeNull();
@@ -426,7 +426,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().NotBeNull();
@@ -536,7 +536,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().BeNull();
@@ -578,7 +578,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().NotBeNull();
@@ -647,7 +647,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().NotBeNull();
@@ -684,7 +684,7 @@ public class JobClaimServiceTests : IAsyncLifetime
         );
 
         // ACT
-        var result = await _sut.ClaimNextAvailableJobAsync(custodianId);
+        var result = await _sut.ClaimNextAvailableJobAsync(custodianId, CancellationToken.None);
 
         // ASSERT
         result.Should().NotBeNull();

@@ -24,7 +24,7 @@ public class JobClaimService(
 
     public async Task<JobInfo?> ClaimNextAvailableJobAsync(
         string custodianId,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken
     )
     {
         var retryCount = 0;
