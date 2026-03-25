@@ -9,5 +9,5 @@ public record FindSearchJobV2
     public DateTimeOffset CreatedAt { get; init; }
 
     [JsonPropertyName("_links")]
-    public Dictionary<string, HalLink> Links { get; init; }
+    public Dictionary<string, HalLink> Links { get; init; } = [];
 }

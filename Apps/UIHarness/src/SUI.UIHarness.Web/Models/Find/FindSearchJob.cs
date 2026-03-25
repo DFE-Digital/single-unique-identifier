@@ -13,5 +13,5 @@ public record FindSearchJob
     public DateTimeOffset LastUpdatedAt { get; init; }
 
     [JsonPropertyName("_links")]
-    public Dictionary<string, HalLink> Links { get; init; }
+    public Dictionary<string, HalLink> Links { get; init; } = [];
 }
