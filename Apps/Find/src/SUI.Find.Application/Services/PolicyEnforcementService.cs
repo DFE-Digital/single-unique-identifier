@@ -36,14 +36,15 @@ public class PolicyEnforcementService(
 
         if (matchedRule == null)
         {
-            logger.LogInformation(
-                "No matching rule found for {SourceOrg} -> {DestOrg}, recordType: {RecordType}, mode: {Mode}, purpose: {Purpose}. Denying by default.",
-                request.SourceOrgId,
-                request.DestinationOrgId,
-                recordType,
-                request.Mode,
-                request.Purpose
-            );
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation(
+                    "No matching rule found for {SourceOrg} -> {DestOrg}, recordType: {RecordType}, mode: {Mode}, purpose: {Purpose}. Denying by default.",
+                    request.SourceOrgId,
+                    request.DestinationOrgId,
+                    recordType,
+                    request.Mode,
+                    request.Purpose
+                );
             return Task.FromResult(
                 new PolicyDecisionResult
                 {
@@ -67,13 +68,14 @@ public class PolicyEnforcementService(
         var reason =
             $"Matched {ruleType} rule: effect={matchedRule.Effect}, recordType={recordType}";
 
-        logger.LogInformation(
-            "Policy decision for {SourceOrg} -> {DestOrg}: {Decision}. Reason: {Reason}",
-            request.SourceOrgId,
-            request.DestinationOrgId,
-            isAllowed ? "ALLOWED" : "DENIED",
-            reason
-        );
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation(
+                "Policy decision for {SourceOrg} -> {DestOrg}: {Decision}. Reason: {Reason}",
+                request.SourceOrgId,
+                request.DestinationOrgId,
+                isAllowed ? "ALLOWED" : "DENIED",
+                reason
+            );
 
         return Task.FromResult(
             new PolicyDecisionResult
