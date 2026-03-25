@@ -39,6 +39,8 @@ public class FetchRecordAsyncTests
 
     public FetchRecordAsyncTests()
     {
+        _mockLogger.IsEnabled(LogLevel.Information).Returns(true);
+
         _sut = new FetchRecordService(
             _mockLogger,
             _mockMaskUrlService,
