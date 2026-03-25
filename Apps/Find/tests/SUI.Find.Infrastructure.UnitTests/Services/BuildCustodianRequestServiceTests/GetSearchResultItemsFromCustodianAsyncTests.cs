@@ -118,7 +118,7 @@ public class GetSearchResultItemsFromCustodianAsyncTests
         await _mockHttpClient
             .Received(1)
             .SendAsync(httpRequestMessage, Arg.Any<CancellationToken>());
-        _mockEncryptionService.DidNotReceiveWithAnyArgs().EncryptNhsToPersonId(null, null);
+        _mockEncryptionService.DidNotReceiveWithAnyArgs().EncryptNhsToPersonId(null!, null!);
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public class GetSearchResultItemsFromCustodianAsyncTests
         Assert.Equal("Encryption failed", result.Error);
         await _mockAuthService
             .DidNotReceiveWithAnyArgs()
-            .GetAccessTokenAsync(null, CancellationToken.None);
+            .GetAccessTokenAsync(null!, CancellationToken.None);
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class GetSearchResultItemsFromCustodianAsyncTests
         // Assert
         Assert.False(result.Success);
         Assert.Equal("Auth error", result.Error);
-        _mockRequestBuilder.DidNotReceiveWithAnyArgs().BuildHttpRequest(null, null, null);
+        _mockRequestBuilder.DidNotReceiveWithAnyArgs().BuildHttpRequest(null!, null!, null);
     }
 
     [Fact]
