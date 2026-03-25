@@ -168,7 +168,7 @@ public class JobResultHandler(
     }
 
     // PEP Filtering
-    private async Task<IReadOnlyList<SearchResultWithDecision>> ApplyPepFiltering(
+    private async Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> ApplyPepFiltering(
         List<JobResultRecord> records,
         PepContext context,
         CancellationToken cancellationToken
@@ -187,7 +187,7 @@ public class JobResultHandler(
             ))
             .ToList();
 
-        var resultsWithDecision = await pepService.FilterResultsAsync(
+        var resultsWithDecision = await pepService.FilterItemsAsync(
             context.Custodian.OrgId,
             context.SearchingOrganisation.OrgId,
             context.SearchingOrganisation.OrgType,
@@ -206,7 +206,7 @@ public class JobResultHandler(
 
     // Persistence
     private async Task PersistSearchResults(
-        IReadOnlyList<SearchResultWithDecision> results,
+        IReadOnlyList<PepResultItem<CustodianSearchResultItem>> results,
         JobResultMessage message,
         PepContext context,
         CancellationToken cancellationToken

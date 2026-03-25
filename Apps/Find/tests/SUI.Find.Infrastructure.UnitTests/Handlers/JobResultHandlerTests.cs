@@ -238,7 +238,7 @@ public class JobResultHandlerTests
 
         // Proper PEP mock (based on actual inputs)
         _pepService
-            .FilterResultsAsync(
+            .FilterItemsAsync(
                 Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
@@ -254,7 +254,7 @@ public class JobResultHandlerTests
                 var items = callInfo.ArgAt<IReadOnlyList<CustodianSearchResultItem>>(3);
 
                 return items
-                    .Select(item => new SearchResultWithDecision(
+                    .Select(item => new PepResultItem<CustodianSearchResultItem>(
                         item,
                         sourceOrgId,
                         destOrgId,
@@ -300,7 +300,7 @@ public class JobResultHandlerTests
         // Verify PEP interaction
         await _pepService
             .Received(1)
-            .FilterResultsAsync(
+            .FilterItemsAsync(
                 message.CustodianId, // source (custodian)
                 searchingOrganisationId, // destination (searching org)
                 "TypeA",
@@ -378,7 +378,7 @@ public class JobResultHandlerTests
 
         // Mixed PEP response (allow only first 2)
         _pepService
-            .FilterResultsAsync(
+            .FilterItemsAsync(
                 Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
@@ -396,7 +396,7 @@ public class JobResultHandlerTests
                 return items
                     .Select(
                         (item, index) =>
-                            new SearchResultWithDecision(
+                            new PepResultItem<CustodianSearchResultItem>(
                                 item,
                                 sourceOrgId,
                                 destOrgId,
