@@ -94,7 +94,7 @@ public class PolicyEnforcementService(
         string sourceOrgId,
         string destOrgId,
         string destOrgType,
-        IReadOnlyList<TItem> searchResultItems,
+        IReadOnlyList<TItem> pepFilterableItems,
         DsaPolicyDefinition dsaPolicy,
         string purpose,
         CancellationToken cancellationToken = default
@@ -103,12 +103,12 @@ public class PolicyEnforcementService(
     {
         var results = new List<PepResultItem<TItem>>();
 
-        foreach (var searchResultItem in searchResultItems)
+        foreach (var pepFilterableItem in pepFilterableItems)
         {
             var request = new PolicyDecisionRequest(
                 sourceOrgId,
                 destOrgId,
-                searchResultItem.RecordType,
+                pepFilterableItem.RecordType,
                 ShareMode.Existence,
                 purpose
             );
@@ -116,7 +116,7 @@ public class PolicyEnforcementService(
             var decision = await EvaluateAsync(request, dsaPolicy, destOrgType, cancellationToken);
 
             results.Add(
-                new PepResultItem<TItem>(searchResultItem, sourceOrgId, destOrgId, decision)
+                new PepResultItem<TItem>(pepFilterableItem, sourceOrgId, destOrgId, decision)
             );
         }
 
