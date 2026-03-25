@@ -23,8 +23,8 @@ public class SearchResultsV2Function(
     #region OpenApi
 
     [OpenApiOperation(
-        operationId: "getSearchResults",
-        tags: ["Searches"],
+        operationId: "getSearchResultsV2",
+        tags: ["SearchesV2"],
         Summary = "Get search results",
         Description = "Returns the status for a Find a Record search work item, and the results if available."
     )]
@@ -61,7 +61,7 @@ public class SearchResultsV2Function(
     public async Task<HttpResponseData> SearchResultsV2Trigger(
         [HttpTrigger(
             AuthorizationLevel.Anonymous,
-            "post",
+            "get",
             Route = "v2/searches/{workItemId}/results"
         )]
             HttpRequestData req,
