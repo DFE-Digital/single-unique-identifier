@@ -120,9 +120,17 @@
         var percentToAdd = 10;
         while (keepPolling)
         {
-            _findProgress += percentToAdd;
-            StateHasChanged();
             var result = await FindService.FindRecords(SelectedOrg, searchJob, usePolling);
+            if (usePolling)
+            {
+                _findProgress = result.CompletenessPercentage;
+            }
+            else
+            {
+                _findProgress += percentToAdd;
+            }
+
+            StateHasChanged();
             foreach (var resultItem in result.Items)
             {
                 var record = new LocalRecord(resultItem.RecordId ?? resultItem.RecordUrl, resultItem.RecordUrl, resultItem.RecordType, resultItem.CustodianName ?? string.Empty);

@@ -104,7 +104,7 @@ public class FindService : IFindService
         return string.Empty;
     }
 
-    public async Task<FindSearchResults> FindRecords(string clientId, string jobId, bool usePolling)
+    public async Task<SearchResultsDto> FindRecords(string clientId, string jobId, bool usePolling)
     {
         await GetAuthTokenAsync(clientId, TestClientSecret, Scopes);
 
@@ -115,10 +115,31 @@ public class FindService : IFindService
             );
             if (result.IsSuccessStatusCode)
             {
-                var searchJob = await result.Content.ReadFromJsonAsync<FindSearchResults>();
-                if (searchJob != null)
+                if (usePolling)
                 {
-                    return searchJob;
+                    var searchJob = await result.Content.ReadFromJsonAsync<FindSearchResultsV2>();
+                    if (searchJob != null)
+                    {
+                        return new SearchResultsDto(
+                            searchJob.WorkItemId,
+                            searchJob.Status,
+                            searchJob.Items.ToArray(),
+                            searchJob.CompletenessPercentage
+                        );
+                    }
+                }
+                else
+                {
+                    var searchJob = await result.Content.ReadFromJsonAsync<FindSearchResults>();
+                    if (searchJob != null)
+                    {
+                        return new SearchResultsDto(
+                            searchJob.JobId,
+                            searchJob.Status,
+                            searchJob.Items,
+                            -1
+                        );
+                    }
                 }
             }
         }
