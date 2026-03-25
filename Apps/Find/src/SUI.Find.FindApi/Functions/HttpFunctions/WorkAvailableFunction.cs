@@ -57,7 +57,7 @@ public class WorkAvailableFunction(
         );
 
         logger.LogInformation(
-            "Checking if work is available for custodian: {id}",
+            "Checking if work is available for custodian: {SubmittingCustodianId}",
             authContext.ClientId
         );
 
