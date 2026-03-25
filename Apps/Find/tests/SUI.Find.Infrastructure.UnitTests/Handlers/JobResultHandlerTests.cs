@@ -36,6 +36,8 @@ public class JobResultHandlerTests
 
     public JobResultHandlerTests()
     {
+        _logger.IsEnabled(LogLevel.Information).Returns(true);
+
         _handler = new JobResultHandler(
             _logger,
             _jobService,

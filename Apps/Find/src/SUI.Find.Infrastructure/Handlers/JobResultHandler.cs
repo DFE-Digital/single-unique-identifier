@@ -25,16 +25,18 @@ public class JobResultHandler(
 {
     public async Task HandleAsync(JobResultMessage message, CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            "Handling job results for JobId {JobId} WorkItemId {WorkItemId}",
-            message.JobId,
-            message.WorkItemId
-        );
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation(
+                "Handling job results for JobId {JobId} WorkItemId {WorkItemId}",
+                message.JobId,
+                message.WorkItemId
+            );
 
         // JobType check
         if (message.JobType != JobType.CustodianLookup)
         {
-            logger.LogInformation("Skipping unsupported JobType {JobType}", message.JobType);
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("Skipping unsupported JobType {JobType}", message.JobType);
             await jobService.MarkCompletedAsync(
                 message.JobId,
                 message.CustodianId,
@@ -45,7 +47,8 @@ public class JobResultHandler(
 
         if (message.Records.Count == 0)
         {
-            logger.LogInformation("No records submitted for JobId {JobId}", message.JobId);
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("No records submitted for JobId {JobId}", message.JobId);
             await jobService.MarkCompletedAsync(
                 message.JobId,
                 message.CustodianId,
@@ -74,7 +77,8 @@ public class JobResultHandler(
 
         await jobService.MarkCompletedAsync(message.JobId, message.CustodianId, cancellationToken);
 
-        logger.LogInformation("Marked JobId {JobId} as completed", message.JobId);
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("Marked JobId {JobId} as completed", message.JobId);
     }
 
     // WorkItem Payload
@@ -110,7 +114,8 @@ public class JobResultHandler(
     {
         var records = message.Records;
 
-        logger.LogInformation("Upserting {Count} records into ID Register", records.Count);
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("Upserting {Count} records into ID Register", records.Count);
 
         foreach (var record in records)
         {
@@ -174,7 +179,8 @@ public class JobResultHandler(
         CancellationToken cancellationToken
     )
     {
-        logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
 
         var input = records
             .Select(r => new CustodianSearchResultItem(
@@ -199,7 +205,11 @@ public class JobResultHandler(
 
         var results = resultsWithDecision.Where(r => r.Decision.IsAllowed).ToImmutableList();
 
-        logger.LogInformation("{AllowedCount} records allowed after PEP filtering", results.Count);
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation(
+                "{AllowedCount} records allowed after PEP filtering",
+                results.Count
+            );
 
         return results;
     }

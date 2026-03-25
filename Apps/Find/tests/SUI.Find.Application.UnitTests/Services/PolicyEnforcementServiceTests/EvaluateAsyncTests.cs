@@ -16,6 +16,8 @@ public class EvaluateAsyncTests
     public EvaluateAsyncTests()
     {
         var logger = Substitute.For<ILogger<PolicyEnforcementService>>();
+        logger.IsEnabled(LogLevel.Information).Returns(true);
+
         _fakeClock.SetUtcNow(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
         _sut = new PolicyEnforcementService(logger, _fakeClock);
     }
