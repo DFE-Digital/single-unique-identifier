@@ -73,7 +73,7 @@ public static class HttpResponseUtility
         var res = ProblemResponse(
             req,
             HttpStatusCode.BadRequest,
-            "Bad Request",
+            title,
             detail,
             $"urn:trace:{traceId}",
             cancellationToken
