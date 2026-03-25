@@ -57,7 +57,7 @@ This project explores _how_ a safe, trusted, multi‑agency approach could be im
 * Organisations are agencies or public bodies involved in safeguarding and protecting children. Specifically, these include the
 police, local authorities, and health services. They also include organisations and agencies that provide placements for
 children, for example: foster and residential care, probation services, youth offending services, early education and childcare
-settings, schools, colleges and other education providers, and voluntary and third-sector organisations.
+settings, schools, colleges and other education providers.
 * In this codebase, Organisations are also referred to as Providers.
 
 ### Searcher
