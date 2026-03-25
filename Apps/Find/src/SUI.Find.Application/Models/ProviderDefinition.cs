@@ -2,7 +2,7 @@ using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Application.Models;
 
-public sealed class ProviderDefinition
+public sealed class ProviderDefinition : IPepFilterable
 {
     public string OrgId { get; init; } = string.Empty;
     public string OrgName { get; init; } = string.Empty;

@@ -7,7 +7,7 @@ public sealed record CustodianSearchResultItem(
     string SystemId,
     string CustodianName,
     string? RecordId
-)
+) : IPepFilterable
 {
     public static CustodianSearchResultItem Create(
         string custodianId,

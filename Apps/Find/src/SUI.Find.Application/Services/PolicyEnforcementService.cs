@@ -88,17 +88,18 @@ public class PolicyEnforcementService(
         );
     }
 
-    public async Task<IReadOnlyList<SearchResultWithDecision>> FilterResultsAsync(
+    public async Task<IReadOnlyList<PepResultItem<TItem>>> FilterItemsAsync<TItem>(
         string sourceOrgId,
         string destOrgId,
         string destOrgType,
-        IReadOnlyList<CustodianSearchResultItem> searchResultItems,
+        IReadOnlyList<TItem> searchResultItems,
         DsaPolicyDefinition dsaPolicy,
         string purpose,
         CancellationToken cancellationToken = default
     )
+        where TItem : IPepFilterable
     {
-        var results = new List<SearchResultWithDecision>();
+        var results = new List<PepResultItem<TItem>>();
 
         foreach (var searchResultItem in searchResultItems)
         {
@@ -113,12 +114,40 @@ public class PolicyEnforcementService(
             var decision = await EvaluateAsync(request, dsaPolicy, destOrgType, cancellationToken);
 
             results.Add(
-                new SearchResultWithDecision(searchResultItem, sourceOrgId, destOrgId, decision)
+                new PepResultItem<TItem>(searchResultItem, sourceOrgId, destOrgId, decision)
             );
         }
 
         return results;
     }
+
+    public async Task<IReadOnlyList<SearchResultWithDecision>> FilterResultsAsync(
+        string sourceOrgId,
+        string destOrgId,
+        string destOrgType,
+        IReadOnlyList<CustodianSearchResultItem> searchResultItems,
+        DsaPolicyDefinition dsaPolicy,
+        string purpose,
+        CancellationToken cancellationToken = default
+    ) =>
+        (
+            await FilterItemsAsync(
+                sourceOrgId,
+                destOrgId,
+                destOrgType,
+                searchResultItems,
+                dsaPolicy,
+                purpose,
+                cancellationToken
+            )
+        )
+            .Select(result => new SearchResultWithDecision(
+                result.Item,
+                result.SourceOrgId,
+                result.DestOrgId,
+                result.Decision
+            ))
+            .ToArray();
 
     private static bool RuleMatches(
         DsaRuleDefinition rule,
