@@ -17,4 +17,6 @@ public record Config
     public string? FindApiKey { get; init; }
 
     public string? PreviousFindApiKey { get; init; }
+
+    public bool UsePolling { get; init; } = true;
 }
