@@ -5,7 +5,7 @@ using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 
-namespace SUI.Find.FindApi.Functions.QueueTriggerFunctions;
+namespace SUI.Find.FindApi.Functions.QueueFunctions;
 
 public class JobResultHandlerFunction(
     ILogger<JobResultHandlerFunction> logger,

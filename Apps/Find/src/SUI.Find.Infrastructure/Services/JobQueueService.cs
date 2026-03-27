@@ -27,10 +27,12 @@ public class JobQueueService(
         try
         {
             await queueClient.SendMessageAsync(base64Message, cancellationToken);
-            logger.LogInformation(
-                "Search job posted to queue. WorkItemId: {WorkItemId}",
-                payload.WorkItemId.ToString()
-            );
+
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation(
+                    "Search message posted to queue. WorkItemId: {WorkItemId}",
+                    payload.WorkItemId.ToString()
+                );
 
             var searchJob = new SearchWorkItemDto
             {

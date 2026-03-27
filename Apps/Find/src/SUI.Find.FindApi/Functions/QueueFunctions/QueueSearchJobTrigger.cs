@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Enums;
+using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Models;
@@ -27,17 +28,20 @@ public class QueueSearchJobTrigger(
         CancellationToken token
     )
     {
-        using var scope = logger.BeginScope(
-            new Dictionary<string, object>
+        using var activity = logger.StartActivityWithTraceParent(
+            activityName: $"Handling_{nameof(SearchRequestMessage)}",
+            searchRequestMessage.TraceParent,
+            new Dictionary<string, object?>
             {
                 { "WorkItemId", searchRequestMessage.WorkItemId },
                 { "PersonId", searchRequestMessage.PersonId },
                 { "SearchingOrganisationId", searchRequestMessage.SearchingOrganisationId },
-                { "TraceParent", context.TraceContext.TraceParent },
+                { "TraceParent", searchRequestMessage.TraceParent },
                 { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
             }
         );
+
         logger.LogInformation(
             "QueueSearchJobTrigger function processed: Work item ID: {WorkItemId} for Searching Organisation ID: {SearchingOrganisationId}",
             searchRequestMessage.WorkItemId,
@@ -60,7 +64,7 @@ public class QueueSearchJobTrigger(
                 JobType = JobType.CustodianLookup,
                 PayloadJson = JsonSerializer.Serialize(custodianPayload),
                 WorkItemId = searchRequestMessage.WorkItemId.ToString(),
-                JobTraceParent = context.TraceContext.TraceParent,
+                JobTraceParent = searchRequestMessage.TraceParent,
                 WorkItemType = WorkItemType.SearchExecution,
                 CreatedAtUtc = DateTime.UtcNow,
                 UpdatedAtUtc = DateTime.UtcNow,
@@ -68,6 +72,8 @@ public class QueueSearchJobTrigger(
 
             await jobRepository.UpsertAsync(job, token);
         }
+
+        logger.LogInformation("Created {NumOfJobs} jobs", custodians.Count);
 
         var jobCountPayload = new SearchWorkItemPayload(searchRequestMessage.PersonId);
         await workItemJobCountRepository.UpsertAsync(
