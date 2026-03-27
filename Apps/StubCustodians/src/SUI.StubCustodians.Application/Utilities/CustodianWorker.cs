@@ -60,13 +60,10 @@ public class CustodianWorker : BackgroundService
                 using var scope = _services.CreateScope();
                 var manifestService = scope.ServiceProvider.GetRequiredService<IManifestService>();
 
-                while (true)
+                var job = await _client.ClaimAsync(token);
+
+                if (job != null)
                 {
-                    var job = await _client.ClaimAsync(token);
-
-                    if (job == null)
-                        break;
-
                     await ProcessJob(job, token, manifestService, stoppingToken);
                 }
             }
