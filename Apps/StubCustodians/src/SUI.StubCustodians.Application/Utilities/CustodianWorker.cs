@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SUI.StubCustodians.Application.Interfaces;
@@ -11,11 +12,10 @@ public class CustodianWorker : BackgroundService
     private readonly ILogger<CustodianWorker> _logger;
     private readonly TokenProvider _tokenProvider;
     private readonly FindApiClient _client;
-    private readonly IManifestService _manifestService;
     private readonly IConfiguration _config;
-    private readonly IRandomDelayService _delayService;
-
     private readonly Organisation _org;
+    private readonly IServiceProvider _services;
+
     private readonly string _clientId;
     private readonly string _clientSecret;
     private readonly int _intervalSeconds;
@@ -24,22 +24,19 @@ public class CustodianWorker : BackgroundService
         ILogger<CustodianWorker> logger,
         TokenProvider tokenProvider,
         FindApiClient client,
-        IManifestService manifestService,
         IConfiguration config,
         Organisation org,
-        IRandomDelayService delayService
+        IServiceProvider services
     )
     {
         _logger = logger;
         _tokenProvider = tokenProvider;
         _client = client;
-        _manifestService = manifestService;
         _config = config;
         _org = org;
-        _delayService = delayService;
+        _services = services;
 
         var auth = org.Records.First().Connection.Auth;
-
         _clientId = auth.ClientId;
         _clientSecret = auth.ClientSecret;
 
@@ -60,16 +57,18 @@ public class CustodianWorker : BackgroundService
             {
                 var token = await _tokenProvider.GetTokenAsync(_clientId, _clientSecret);
 
-                JobInfo? job;
-                do
-                {
-                    job = await _client.ClaimAsync(token);
+                using var scope = _services.CreateScope();
+                var manifestService = scope.ServiceProvider.GetRequiredService<IManifestService>();
 
-                    if (job != null)
-                    {
-                        await ProcessJob(job, token, stoppingToken);
-                    }
-                } while (job != null);
+                while (true)
+                {
+                    var job = await _client.ClaimAsync(token);
+
+                    if (job == null)
+                        break;
+
+                    await ProcessJob(job, token, manifestService, stoppingToken);
+                }
             }
             catch (Exception ex)
             {
@@ -80,7 +79,12 @@ public class CustodianWorker : BackgroundService
         }
     }
 
-    private async Task ProcessJob(JobInfo job, string token, CancellationToken ct)
+    private async Task ProcessJob(
+        JobInfo job,
+        string token,
+        IManifestService manifestService,
+        CancellationToken ct
+    )
     {
         using var scope = _logger.BeginScope(
             new Dictionary<string, object>
@@ -91,9 +95,6 @@ public class CustodianWorker : BackgroundService
             }
         );
 
-        // AC: random delay
-        await _delayService.DelayAsync(ct);
-
         if (string.IsNullOrWhiteSpace(job.Sui))
         {
             _logger.LogWarning("Job missing Sui");
@@ -102,7 +103,7 @@ public class CustodianWorker : BackgroundService
 
         var baseUrl = _config["StubCustodians:BaseUrl"]!;
 
-        var manifest = await _manifestService.GetManifestForOrganisation(
+        var manifest = await manifestService.GetManifestForOrganisation(
             _org.OrgId,
             job.Sui,
             baseUrl,

@@ -112,10 +112,9 @@ namespace SUI.StubCustodians.API
                     provider.GetRequiredService<ILogger<CustodianWorker>>(),
                     provider.GetRequiredService<TokenProvider>(),
                     provider.GetRequiredService<FindApiClient>(),
-                    provider.GetRequiredService<IManifestService>(),
                     provider.GetRequiredService<IConfiguration>(),
                     org,
-                    provider.GetRequiredService<IRandomDelayService>()
+                    provider // pass IServiceProvider for scoped services
                 ));
             }
         }
