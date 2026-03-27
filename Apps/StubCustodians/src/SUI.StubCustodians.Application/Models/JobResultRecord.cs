@@ -6,11 +6,7 @@ public record JobResultRecord
 
     public required string RecordUrl { get; init; }
 
-    public string SystemId
-    {
-        get;
-        init => field = string.IsNullOrWhiteSpace(value) ? "DEFAULT" : value;
-    } = "DEFAULT";
+    public string? SystemId { get; init; }
 
     public string? RecordId { get; init; }
 }
