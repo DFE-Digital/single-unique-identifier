@@ -17,7 +17,7 @@ public static class LoggerActivityExtensions
 
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation(
-                "Started activity {ActivityName} with trace-parent {TraceParent}",
+                "Started activity {ActivityName} with traceparent {TraceParent}",
                 activityName,
                 traceParent
             );
