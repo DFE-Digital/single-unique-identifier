@@ -15,3 +15,4 @@
 ^Apps/StubCustodians/src/SUI\.StubCustodians\.API/SUI\.StubCustodians\.API\.http$
 ^Apps/StubCustodians/tests/SUI\.StubCustodians\.API\.Unit\.Tests/AuthControllerTests\.cs$
 ^Apps/UIHarness/src/SUI\.UIHarness\.Web/Services/FindService\.cs$
+^Data/org-directory.json
