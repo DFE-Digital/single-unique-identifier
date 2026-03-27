@@ -47,6 +47,8 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 "ResultsUrlMappings",
                 "TestHubNameHistory",
                 "TestHubNameInstances",
+                "Jobs",
+                "WorkItemJobCounts",
             ]);
         }
     }
@@ -149,7 +151,24 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         "xUnit1045",
         Justification = "The `TestData` is a C# record, and the default string serialization of records provides distinct text for the purposes of test exploration, identification and results."
     )]
-    public async Task Should_PersistSearchData_When_OrchestrationCompletes(TestData testData)
+    public async Task Should_PersistSearchData_When_OrchestrationCompletesV1(TestData testData)
+    {
+        await RunTest(testData, false);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData))]
+    [SuppressMessage(
+        "Usage",
+        "xUnit1045",
+        Justification = "The `TestData` is a C# record, and the default string serialization of records provides distinct text for the purposes of test exploration, identification and results."
+    )]
+    public async Task Should_PersistSearchData_When_OrchestrationCompletesV2(TestData testData)
+    {
+        await RunTest(testData, true);
+    }
+
+    private async Task RunTest(TestData testData, bool usePolling)
     {
         var authToken = await GetAuthTokenAsync(
             testData.TestClientId,
@@ -162,21 +181,26 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         );
 
         // Step 1, start a new search
-        var newSearchJob = await RunAndAssertNewSearchEndpoint(
-            Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui
+        var searchJobLinks = await RunAndAssertNewSearchEndpoint(
+            Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui,
+            usePolling
         );
 
-        var hasStatusLink = newSearchJob.Links.TryGetValue("status", out var statusLink);
-        Assert.True(hasStatusLink);
+        var hasStatusLink = searchJobLinks.TryGetValue("status", out var statusLink);
+        if (!usePolling)
+        {
+            Assert.True(hasStatusLink);
+        }
 
-        var hasResultsLink = newSearchJob.Links.TryGetValue("results", out var resultsLink);
+        var hasResultsLink = searchJobLinks.TryGetValue("results", out var resultsLink);
         Assert.True(hasResultsLink);
 
         // Step 2, check the status
         var statusResult = await RunAndAwaitAndAssertSearchStatusCompletion(
-            statusLink!.Href,
+            statusLink != null ? statusLink.Href : resultsLink!.Href,
             resultsLink!.Href,
-            testData
+            testData,
+            usePolling
         );
         Assert.NotNull(statusResult);
 
@@ -186,9 +210,12 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         // Fin
     }
 
-    private async Task<SearchJob> RunAndAssertNewSearchEndpoint(string suid)
+    private async Task<Dictionary<string, HalLink>> RunAndAssertNewSearchEndpoint(
+        string suid,
+        bool usePolling
+    )
     {
-        const string startSearchUrl = "v1/searches";
+        var startSearchUrl = usePolling ? "v2/searches" : "v1/searches";
 
         TestOutputHelper.WriteLine(
             $"Starting new search to find records for SUI: {suid} ({Fixture.Client.BaseAddress}{startSearchUrl})"
@@ -204,8 +231,28 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         // We then want to assert the returned body and status code
         Assert.Equal(HttpStatusCode.Accepted, newSearchJobResult.StatusCode);
         var searchJobContent = await newSearchJobResult.Content.ReadAsStringAsync();
-        var searchJob = JsonSerializer.Deserialize<SearchJob>(searchJobContent);
-        Assert.False(string.IsNullOrEmpty(searchJob!.JobId));
+        var jobId = string.Empty;
+        var links = new Dictionary<string, HalLink>();
+        if (usePolling)
+        {
+            var searchJob = JsonSerializer.Deserialize<SearchJobV2>(searchJobContent);
+            if (searchJob != null)
+            {
+                jobId = searchJob.WorkItemId;
+                links = searchJob.Links;
+            }
+        }
+        else
+        {
+            var searchJob = JsonSerializer.Deserialize<SearchJob>(searchJobContent);
+            if (searchJob != null)
+            {
+                jobId = searchJob.JobId;
+                links = searchJob.Links;
+            }
+        }
+
+        Assert.False(string.IsNullOrEmpty(jobId));
 
         var traceId =
             (
@@ -221,9 +268,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     : null
             ) ?? "Unknown";
 
-        TestOutputHelper.WriteLine(
-            $"Search started: {new { traceId, invocationId, jobId = searchJob.JobId }}"
-        );
+        TestOutputHelper.WriteLine($"Search started: {new { traceId, invocationId, jobId }}");
 
         var observabilityLink = Fixture.Config.IsLocal
             ? $"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}"
@@ -233,10 +278,14 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         TestOutputHelper.WriteLine($"Trace observability: {observabilityLink}");
         TestOutputHelper.WriteLine("");
 
-        return searchJob;
+        return links;
     }
 
-    private async Task RunAndAssertPartialSearchResults(string url, TestData testData)
+    private async Task RunAndAssertPartialSearchResults(
+        string url,
+        TestData testData,
+        bool usePolling
+    )
     {
         url = RemoveLeadingSlashFromUrl(url);
 
@@ -246,7 +295,8 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
         var searchResults = await Fixture.Client.GetAsync(url);
         var searchResultContent = await searchResults.Content.ReadAsStringAsync();
-        var searchResultTypedContent = JsonSerializer.Deserialize<SearchResults>(
+
+        var searchResultTypedContent = JsonSerializer.Deserialize<SearchResultsBase>(
             searchResultContent
         );
 
@@ -369,10 +419,12 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     /// <param name="statusUrl">URL of the Search Status endpoint</param>
     /// <param name="resultsUrl">URL of the Search Results endpoint</param>
     /// <param name="testData">The test data for this search run</param>
+    /// <param name="usePolling">use the polling architecture or not</param>
     private async Task<SearchJob> RunAndAwaitAndAssertSearchStatusCompletion(
         string statusUrl,
         string resultsUrl,
-        TestData testData
+        TestData testData,
+        bool usePolling
     )
     {
         statusUrl = RemoveLeadingSlashFromUrl(statusUrl);
@@ -405,7 +457,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                         break;
                     case "Running":
                         // Verify partial results are as expected while its in-progress
-                        RunAndAssertPartialSearchResults(resultsUrl, testData).Wait();
+                        RunAndAssertPartialSearchResults(resultsUrl, testData, usePolling).Wait();
                         break;
                 }
 
