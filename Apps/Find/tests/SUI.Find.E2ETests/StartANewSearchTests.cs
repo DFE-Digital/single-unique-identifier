@@ -4,7 +4,6 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using Azure;
 using Azure.Data.Tables;
@@ -152,7 +151,24 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         "xUnit1045",
         Justification = "The `TestData` is a C# record, and the default string serialization of records provides distinct text for the purposes of test exploration, identification and results."
     )]
-    public async Task Should_PersistSearchData_When_OrchestrationCompletes(TestData testData)
+    public async Task Should_PersistSearchData_When_OrchestrationCompletesV1(TestData testData)
+    {
+        await RunTest(testData, false);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData))]
+    [SuppressMessage(
+        "Usage",
+        "xUnit1045",
+        Justification = "The `TestData` is a C# record, and the default string serialization of records provides distinct text for the purposes of test exploration, identification and results."
+    )]
+    public async Task Should_PersistSearchData_When_OrchestrationCompletesV2(TestData testData)
+    {
+        await RunTest(testData, true);
+    }
+
+    private async Task RunTest(TestData testData, bool usePolling)
     {
         var authToken = await GetAuthTokenAsync(
             testData.TestClientId,
@@ -167,11 +183,11 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         // Step 1, start a new search
         var searchJobLinks = await RunAndAssertNewSearchEndpoint(
             Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui,
-            Fixture.Config.UsePolling
+            usePolling
         );
 
         var hasStatusLink = searchJobLinks.TryGetValue("status", out var statusLink);
-        if (!Fixture.Config.UsePolling)
+        if (!usePolling)
         {
             Assert.True(hasStatusLink);
         }
@@ -184,7 +200,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             statusLink != null ? statusLink.Href : resultsLink!.Href,
             resultsLink!.Href,
             testData,
-            Fixture.Config.UsePolling
+            usePolling
         );
         Assert.NotNull(statusResult);
 
@@ -279,56 +295,29 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
         var searchResults = await Fixture.Client.GetAsync(url);
         var searchResultContent = await searchResults.Content.ReadAsStringAsync();
-        if (usePolling)
+
+        var searchResultTypedContent = JsonSerializer.Deserialize<SearchResultsBase>(
+            searchResultContent
+        );
+
+        Assert.NotNull(searchResultTypedContent);
+
+        if (searchResultTypedContent.Status != SearchStatus.Running)
         {
-            var searchResultTypedContent = JsonSerializer.Deserialize<SearchResultsV2>(
-                searchResultContent
-            );
-
-            Assert.NotNull(searchResultTypedContent);
-
-            if (searchResultTypedContent.Status != SearchStatus.Running)
-            {
-                return; // Early exit if the job is no longer running
-            }
-
-            // Verify that we haven't got more results than we should (verifies that previous search results for this SUI+Custodian aren't being included)
-            Assert.InRange(searchResultTypedContent.Items.Count, 0, testData.Records.Length);
-
-            // Verify that PEP filtering has been applied to the partial search results, by checking we only have the record types that we're expecting
-            var expectedRecordTypes = testData.Records.Select(r => r.RecordType).ToFrozenSet();
-            var actualRecordTypes = searchResultTypedContent
-                .Items.Select(item => item.RecordType)
-                .ToFrozenSet();
-
-            var invalidRecordTypes = actualRecordTypes.Except(expectedRecordTypes).ToArray();
-            Assert.Empty(invalidRecordTypes);
+            return; // Early exit if the job is no longer running
         }
-        else
-        {
-            var searchResultTypedContent = JsonSerializer.Deserialize<SearchResults>(
-                searchResultContent
-            );
 
-            Assert.NotNull(searchResultTypedContent);
+        // Verify that we haven't got more results than we should (verifies that previous search results for this SUI+Custodian aren't being included)
+        Assert.InRange(searchResultTypedContent.Items.Length, 0, testData.Records.Length);
 
-            if (searchResultTypedContent.Status != SearchStatus.Running)
-            {
-                return; // Early exit if the job is no longer running
-            }
+        // Verify that PEP filtering has been applied to the partial search results, by checking we only have the record types that we're expecting
+        var expectedRecordTypes = testData.Records.Select(r => r.RecordType).ToFrozenSet();
+        var actualRecordTypes = searchResultTypedContent
+            .Items.Select(item => item.RecordType)
+            .ToFrozenSet();
 
-            // Verify that we haven't got more results than we should (verifies that previous search results for this SUI+Custodian aren't being included)
-            Assert.InRange(searchResultTypedContent.Items.Length, 0, testData.Records.Length);
-
-            // Verify that PEP filtering has been applied to the partial search results, by checking we only have the record types that we're expecting
-            var expectedRecordTypes = testData.Records.Select(r => r.RecordType).ToFrozenSet();
-            var actualRecordTypes = searchResultTypedContent
-                .Items.Select(item => item.RecordType)
-                .ToFrozenSet();
-
-            var invalidRecordTypes = actualRecordTypes.Except(expectedRecordTypes).ToArray();
-            Assert.Empty(invalidRecordTypes);
-        }
+        var invalidRecordTypes = actualRecordTypes.Except(expectedRecordTypes).ToArray();
+        Assert.Empty(invalidRecordTypes);
     }
 
     private async Task RunAndAssertFetchEndpoints(string url, TestData testData)
