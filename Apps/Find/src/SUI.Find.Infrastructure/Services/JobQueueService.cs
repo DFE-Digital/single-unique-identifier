@@ -28,7 +28,7 @@ public class JobQueueService(
         {
             await queueClient.SendMessageAsync(base64Message, cancellationToken);
             logger.LogInformation(
-                "Search job posted to queue. WorkItemId: {WorkItemId}",
+                "Search message posted to queue. WorkItemId: {WorkItemId}",
                 payload.WorkItemId.ToString()
             );
 
