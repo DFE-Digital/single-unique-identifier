@@ -15,6 +15,10 @@ It is intentionally **not** an Architecture Decision Record (ADR). It is a desig
 
 This note should be read alongside [ADR-SUI-0011: Authentication and trust boundaries for SUI APIs](../../Architecture%20decisions/Systems%20landscape/0011-authentication-and-trust-boundaries-for-sui-apis.md), which defines the relevant trust boundaries and baseline machine-to-machine requirements.
 
+Related note:
+
+- [Authentication Baseline and Security Model](./BaselineSecurityModel.md)
+
 ---
 
 ## 1. Overview
