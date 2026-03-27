@@ -86,8 +86,10 @@ namespace SUI.StubCustodians.API
             services.AddSingleton<IDataProvider, FileDataProvider>();
             services.AddScoped<IManifestService, ManifestService>();
             services.AddScoped<IRecordService, RecordService>();
-
             services.AddSingleton<IOrgDirectoryProvider, OrgDirectoryProvider>();
+
+            services.AddHttpContextAccessor();
+            services.AddSingleton<IBaseUrlProvider, HttpContextBaseUrlProvider>();
 
             var baseUrl =
                 configuration["FindApi:BaseUrl"]
@@ -112,7 +114,7 @@ namespace SUI.StubCustodians.API
                     provider.GetRequiredService<ILogger<CustodianWorker>>(),
                     provider.GetRequiredService<TokenProvider>(),
                     provider.GetRequiredService<FindApiClient>(),
-                    provider.GetRequiredService<IConfiguration>(),
+                    provider.GetRequiredService<IBaseUrlProvider>(),
                     org,
                     provider // pass IServiceProvider for scoped services
                 ));

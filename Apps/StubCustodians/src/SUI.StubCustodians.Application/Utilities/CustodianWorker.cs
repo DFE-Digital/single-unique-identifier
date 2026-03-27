@@ -12,7 +12,7 @@ public class CustodianWorker : BackgroundService
     private readonly ILogger<CustodianWorker> _logger;
     private readonly TokenProvider _tokenProvider;
     private readonly FindApiClient _client;
-    private readonly IConfiguration _config;
+    private readonly IBaseUrlProvider _baseUrlProvider;
     private readonly Organisation _org;
     private readonly IServiceProvider _services;
 
@@ -24,7 +24,7 @@ public class CustodianWorker : BackgroundService
         ILogger<CustodianWorker> logger,
         TokenProvider tokenProvider,
         FindApiClient client,
-        IConfiguration config,
+        IBaseUrlProvider baseUrlProvider,
         Organisation org,
         IServiceProvider services
     )
@@ -32,7 +32,7 @@ public class CustodianWorker : BackgroundService
         _logger = logger;
         _tokenProvider = tokenProvider;
         _client = client;
-        _config = config;
+        _baseUrlProvider = baseUrlProvider;
         _org = org;
         _services = services;
 
@@ -98,7 +98,7 @@ public class CustodianWorker : BackgroundService
             return;
         }
 
-        var baseUrl = _config["StubCustodians:BaseUrl"]!;
+        var baseUrl = _baseUrlProvider.GetBaseUrl();
 
         var manifest = await manifestService.GetManifestForOrganisation(
             _org.OrgId,

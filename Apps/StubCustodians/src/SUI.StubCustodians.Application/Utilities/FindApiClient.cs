@@ -41,7 +41,9 @@ public class FindApiClient
         var res = await _http.SendAsync(req);
 
         if (res.StatusCode == HttpStatusCode.Conflict)
+        {
             return;
+        }
 
         res.EnsureSuccessStatusCode();
     }
