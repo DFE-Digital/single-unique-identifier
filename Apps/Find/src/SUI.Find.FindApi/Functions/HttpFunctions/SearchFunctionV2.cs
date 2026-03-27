@@ -83,7 +83,7 @@ public class SearchFunctionV2(
             {
                 { "WorkItemId", workItemId },
                 { "PersonId", searchRequest?.Suid ?? string.Empty },
-                { "RequestingCustodianId", authContext.ClientId },
+                { "SearchingOrganisationId", authContext.ClientId },
                 { "TraceParent", context.TraceContext.TraceParent },
                 { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
@@ -120,7 +120,7 @@ public class SearchFunctionV2(
         {
             WorkItemId = workItemId,
             PersonId = personId,
-            RequestingCustodianId = authContext.ClientId,
+            SearchingOrganisationId = authContext.ClientId,
             TraceParent = context.TraceContext.TraceParent,
             TraceId = Activity.Current?.TraceId.ToString() ?? string.Empty,
             InvocationId = context.InvocationId,

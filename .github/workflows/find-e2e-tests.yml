@@ -1,8 +1,10 @@
 name: Find E2E Tests
 run-name: >-
   Find E2E - ${{
-    github.event_name == 'workflow_run' &&
+    (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') &&
     format('dev:d01 (auto from {0} on {1})', github.event.workflow_run.name, github.event.workflow_run.head_branch) ||
+    github.event_name == 'workflow_run' &&
+    format('skipped (auto from {0} on {1})', github.event.workflow_run.name, github.event.workflow_run.head_branch) ||
     github.event_name == 'workflow_dispatch' &&
     format(
       'dev:{0} ephemeral:{1} (manual)',
@@ -46,6 +48,7 @@ on:
       - Terraform Custodians
       - 'Build, Test, Deploy: "Find" Solution'
       - 'Build, Test, Deploy: "Custodians" Solution'
+    branches: [main]
     types: [completed]
 
   push:
@@ -121,7 +124,7 @@ jobs:
           global-json-file: global.json
 
       - name: Setup Node.js (for Azurite and Functions tools)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
 

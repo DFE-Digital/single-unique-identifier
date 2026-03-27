@@ -360,7 +360,7 @@ public class MatchFunctionTests
                 new Metadata
                 {
                     RecordType = "Test RecordType",
-                    SystemId = null, // ← key scenario
+                    SystemId = null!, // ← key scenario
                     RecordId = "9999999999",
                 },
             ],

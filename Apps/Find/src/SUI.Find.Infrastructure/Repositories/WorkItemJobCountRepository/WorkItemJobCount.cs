@@ -9,5 +9,6 @@ public class WorkItemJobCount
     public int ExpectedJobCount { get; init; }
     public DateTimeOffset CreatedAtUtc { get; init; }
     public DateTimeOffset UpdatedAtUtc { get; init; }
+    public string? SearchingOrganisationId { get; init; }
     public required string PayloadJson { get; init; }
 }

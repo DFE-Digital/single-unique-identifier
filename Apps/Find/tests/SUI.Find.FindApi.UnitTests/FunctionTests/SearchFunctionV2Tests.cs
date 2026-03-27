@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Functions.HttpFunctions;
 using SUI.Find.FindApi.Models;
@@ -59,7 +58,7 @@ public class SearchFunctionV2Tests
         // Arrange
         var requestData = new StartSearchRequest(""); // Invalid SUID
         var request = MockHttpRequestData.CreateJson(requestData);
-        var context = CreateContextWithAuth("test-client");
+        var context = CreateContextWithAuth("test-searcher");
 
         // Act
         var result = await _function.SearchesV2(request, context, CancellationToken.None);
@@ -74,7 +73,7 @@ public class SearchFunctionV2Tests
         // Arrange
         var requestData = new StartSearchRequest("9000000009"); // Assuming valid NHS number
         var request = MockHttpRequestData.CreateJson(requestData);
-        var context = CreateContextWithAuth("test-client");
+        var context = CreateContextWithAuth("test-searcher");
 
         var expectedJobId = Guid.NewGuid().ToString();
         var searchJobDto = new SearchWorkItemDto
@@ -97,7 +96,7 @@ public class SearchFunctionV2Tests
             .Received(1)
             .PostSearchJobAsync(
                 Arg.Is<SearchRequestMessage>(m =>
-                    m.PersonId == "9000000009" && m.RequestingCustodianId == "test-client"
+                    m.PersonId == "9000000009" && m.SearchingOrganisationId == "test-searcher"
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -123,7 +122,7 @@ public class SearchFunctionV2Tests
 
         var requestData = new StartSearchRequest("Cy13hyZL-4LSIwVy50p-Hg");
         var request = MockHttpRequestData.CreateJson(requestData);
-        var context = CreateContextWithAuth("test-client");
+        var context = CreateContextWithAuth("test-searcher");
 
         var searchJobDto = new SearchWorkItemDto
         {
@@ -148,7 +147,7 @@ public class SearchFunctionV2Tests
                 Arg.Is<SearchRequestMessage>(m =>
                     m.PersonId == "Cy13hyZL-4LSIwVy50p-Hg"
                     && m.PersonId.Length > 0
-                    && m.RequestingCustodianId == "test-client"
+                    && m.SearchingOrganisationId == "test-searcher"
                 ),
                 Arg.Any<CancellationToken>()
             );

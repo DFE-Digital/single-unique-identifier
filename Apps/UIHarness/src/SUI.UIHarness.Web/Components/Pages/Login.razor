@@ -1,0 +1,38 @@
+@page "/login"
+
+<PageTitle>Login</PageTitle>
+
+<div class="container mt-5" style="max-width: 400px;">
+    <h2 class="mb-4 text-center">Login</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form action="/api/auth/login" method="post" data-enhance="false">
+                <div class="mb-3">
+                    <label for="custodianName" class="form-label">Custodian Name</label>
+                    <select id="custodianName" name="custodianName" class="form-select" required>
+                        <option value="">Select...</option>
+                        <option value="LOCAL-AUTHORITY-01">LOCAL-AUTHORITY-01</option>
+                        <option value="EDUCATION-01">EDUCATION-01</option>
+                        <option value="HEALTH-01">HEALTH-01</option>
+                        <option value="POLICE-01">POLICE-01</option>
+                        <option value="HOUSING-01">HOUSING-01</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label for="architecture" class="form-label">Architecture</label>
+                    <select id="architecture" name="architecture" class="form-select" required>
+                        <option value="Fanout">Fanout</option>
+                        <option value="Polling">Polling</option>
+                    </select>
+                </div>
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

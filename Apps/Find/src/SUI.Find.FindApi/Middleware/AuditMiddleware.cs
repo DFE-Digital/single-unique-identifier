@@ -19,6 +19,7 @@ public class AuditMiddleware(ILogger<AuditMiddleware> logger, IAuditQueueClient 
     private const string SwaggerPathSegment = "swagger";
     private const string TokenPathSegment = "auth/token";
     private const string ExactSearchesEndpoint = "/api/v1/searches";
+    private const string ExactSearchesV2Endpoint = "/api/v2/searches";
 
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
@@ -64,10 +65,15 @@ public class AuditMiddleware(ILogger<AuditMiddleware> logger, IAuditQueueClient 
                 Method = httpReq.Method,
             };
 
-            var isSearchRequest = httpReq.Url.AbsolutePath.Equals(
-                ExactSearchesEndpoint,
-                StringComparison.OrdinalIgnoreCase
-            );
+            var isSearchRequest =
+                httpReq.Url.AbsolutePath.Equals(
+                    ExactSearchesEndpoint,
+                    StringComparison.OrdinalIgnoreCase
+                )
+                || httpReq.Url.AbsolutePath.Equals(
+                    ExactSearchesV2Endpoint,
+                    StringComparison.OrdinalIgnoreCase
+                );
             if (isSearchRequest)
             {
                 var suid = await GetRequestSuid(httpReq);

@@ -63,7 +63,7 @@ public class FindService : IFindService
         return new FindMatchResult("Not Found");
     }
 
-    public async Task<string> StartSearch(string clientId, string suid)
+    public async Task<string> StartSearch(string clientId, string suid, bool usePolling)
     {
         await GetAuthTokenAsync(clientId, TestClientSecret, Scopes);
 
@@ -72,13 +72,27 @@ public class FindService : IFindService
             var request = new StartSearchRequest(suid);
             var json = JsonSerializer.Serialize(request, _serializerSettings);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-            var result = await _httpClient.PostAsync($"v1/searches", content);
+            var result = await _httpClient.PostAsync(
+                usePolling ? "v2/searches" : "v1/searches",
+                content
+            );
             if (result.IsSuccessStatusCode)
             {
-                var searchJob = await result.Content.ReadFromJsonAsync<FindSearchJob>();
-                if (searchJob != null)
+                if (usePolling)
                 {
-                    return searchJob.JobId;
+                    var searchJobV2 = await result.Content.ReadFromJsonAsync<FindSearchJobV2>();
+                    if (searchJobV2 != null)
+                    {
+                        return searchJobV2.WorkItemId;
+                    }
+                }
+                else
+                {
+                    var searchJob = await result.Content.ReadFromJsonAsync<FindSearchJob>();
+                    if (searchJob != null)
+                    {
+                        return searchJob.JobId;
+                    }
                 }
             }
         }
@@ -90,19 +104,42 @@ public class FindService : IFindService
         return string.Empty;
     }
 
-    public async Task<FindSearchResults> FindRecords(string clientId, string jobId)
+    public async Task<SearchResultsDto> FindRecords(string clientId, string jobId, bool usePolling)
     {
         await GetAuthTokenAsync(clientId, TestClientSecret, Scopes);
 
         try
         {
-            var result = await _httpClient.GetAsync($"v1/searches/{jobId}/results");
+            var result = await _httpClient.GetAsync(
+                usePolling ? $"v2/searches/{jobId}/results" : $"v1/searches/{jobId}/results"
+            );
             if (result.IsSuccessStatusCode)
             {
-                var searchJob = await result.Content.ReadFromJsonAsync<FindSearchResults>();
-                if (searchJob != null)
+                if (usePolling)
                 {
-                    return searchJob;
+                    var searchJob = await result.Content.ReadFromJsonAsync<FindSearchResultsV2>();
+                    if (searchJob != null)
+                    {
+                        return new SearchResultsDto(
+                            searchJob.WorkItemId,
+                            searchJob.Status,
+                            searchJob.Items.ToArray(),
+                            searchJob.CompletenessPercentage
+                        );
+                    }
+                }
+                else
+                {
+                    var searchJob = await result.Content.ReadFromJsonAsync<FindSearchResults>();
+                    if (searchJob != null)
+                    {
+                        return new SearchResultsDto(
+                            searchJob.JobId,
+                            searchJob.Status,
+                            searchJob.Items,
+                            -1
+                        );
+                    }
                 }
             }
         }

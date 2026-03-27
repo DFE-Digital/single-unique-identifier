@@ -93,7 +93,7 @@ jobs:
 
       - name: Setup Node.js (for Azurite and artifact upload)
         if: inputs.requires_azurite == true && inputs.skip_tests != true
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -215,7 +215,7 @@ jobs:
           sas_token: ${{ secrets.AZURE_ARTIFACTS_SAS }}
 
       - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         if: github.event_name == 'pull_request' && inputs.skip_tests != true
         with:
           recreate: true

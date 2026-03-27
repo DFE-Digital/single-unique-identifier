@@ -51,6 +51,28 @@ The Discovery phase therefore emphasises:
 This project explores _how_ a safe, trusted, multi‑agency approach could be implemented — not just the technology, but the standards and safeguards required.
 
 
+## Glossary of Terms
+
+### Organisation (a.k.a. Agency)
+* Organisations are agencies or public bodies involved in safeguarding and protecting children. Specifically, these include the
+police, local authorities, and health services. They also include organisations and agencies that provide placements for
+children, for example: foster and residential care, probation services, youth offending services, early education and childcare
+settings, schools, colleges and other education providers.
+* In this codebase, Organisations are also referred to as Providers.
+
+### Searcher
+* A Searcher is an Organisation that is performing a search for data to make decisions related to safeguarding and protecting
+children. A Searcher is always an Organisation, but is not necessarily a Custodian of a specific child's information.
+
+### Custodian
+* A Custodian is an Organisation that holds information, which may include data related to a specific child.
+
+### Supplier
+* In the context of multi-agency information sharing, a Supplier is a business that provides systems to Organisations.
+* In this codebase, a Supplier is not considered an Organisation, a Custodian, or a Searcher. However, Suppliers do take part in
+facilitating information sharing by providing systems, data storage and connectivity.
+
+
 ## Glossary of Components
 
 ### `MatchingService` (a.k.a. *`PDS Adapter`*)
