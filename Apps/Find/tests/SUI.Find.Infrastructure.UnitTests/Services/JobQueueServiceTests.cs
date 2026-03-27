@@ -21,6 +21,8 @@ public class JobQueueServiceTests
 
     public JobQueueServiceTests()
     {
+        _logger.IsEnabled(LogLevel.Information).Returns(true);
+
         _queueClientFactory.GetSearchJobClient().Returns(_searchJobQueueSender);
         _jobQueueService = new JobQueueService(_logger, _queueClientFactory);
     }
