@@ -1,0 +1,272 @@
+{
+  "organisations": [
+    {
+      "orgId": "LOCAL-AUTHORITY-01",
+      "orgName": "Example Local Authority",
+      "orgType": "LOCAL_AUTHORITY",
+      "records": [
+        {
+          "recordType": "childrens-services.details",
+          "connection": {
+            "method": "GET",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/local-authority-01/{personId}?recordType=childrens-services.details",
+            "personIdPosition": "path",
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
+        },
+        {
+          "recordType": "personal.details",
+          "connection": {
+            "method": "POST",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
+            "personIdPosition": "body",
+            "bodyTemplate": {
+              "recordType": "personal.details",
+              "personId": "{personId}",
+              "orgId": "local-authority-01"
+            },
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
+        }
+      ],
+      "dsaPolicy": {
+        "version": "2025-11-10T12:00:00Z",
+        "defaults": [
+          {
+            "effect": "allow",
+            "modes": [ "EXISTENCE" ],
+            "recordTypes": [ "childrens-services.details", "personal.details" ],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
+            "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
+            "validFrom": "2025-01-01T00:00:00Z"
+          },
+          {
+            "effect": "allow",
+            "modes": [ "CONTENT" ],
+            "recordTypes": [ "childrens-services.details", "personal.details" ],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE" ],
+            "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
+            "validFrom": "2025-01-01T00:00:00Z"
+          }
+        ],
+        "exceptions": []
+      },
+      "encryption": {
+        "algorithm": "AES-256-CBC",
+        "keyId": "LOCAL-AUTHORITY-01-KEY-1",
+        "key": "Kz4KY01cCpp1rvQ4Lj540n8Pp4EHBZ0HbNm6KvuzUaw="
+      }
+    },
+
+    {
+      "orgId": "EDUCATION-01",
+      "orgName": "Example Education Custodian",
+      "orgType": "EDUCATION",
+      "records": [
+        {
+          "recordType": "education.details",
+          "connection": {
+            "method": "POST",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
+            "personIdPosition": "body",
+            "bodyTemplate": {
+              "recordType": "education.details",
+              "personId": "{personId}",
+              "orgId": "education-01"
+            },
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
+        },
+        {
+          "recordType": "personal.details",
+          "connection": {
+            "method": "POST",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
+            "personIdPosition": "body",
+            "bodyTemplate": {
+              "recordType": "personal.details",
+              "personId": "{personId}",
+              "orgId": "education-01"
+            },
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
+        }
+      ],
+      "dsaPolicy": {
+        "version": "2025-11-10T12:00:00Z",
+        "defaults": [
+          {
+            "effect": "allow",
+            "modes": [ "EXISTENCE" ],
+            "recordTypes": [ "education.details" , "personal.details"],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
+            "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
+            "validFrom": "2025-01-01T00:00:00Z"
+          },
+          {
+            "effect": "allow",
+            "modes": [ "CONTENT" ],
+            "recordTypes": [ "education.details", "personal.details" ],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION" ],
+            "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
+            "validFrom": "2025-01-01T00:00:00Z"
+          }
+        ],
+        "exceptions": [
+          {
+            "effect": "deny",
+            "modes": [ "CONTENT" ],
+            "recordTypes": [ "education.details" ],
+            "destOrgTypes": [ "VOLUNTARY" ],
+            "purposes": [ "GENERAL_ENQUIRY" ]
+          }
+        ]
+      },
+      "encryption": {
+        "algorithm": "AES-256-CBC",
+        "keyId": "EDUCATION-01-KEY-1",
+        "key": "1hF0NhwSCLGSVD3Bzmy4ob/mHEai2DZFQsgK+f4TpXQ="
+      }
+    },
+
+    {
+      "orgId": "HEALTH-01",
+      "orgName": "Example Health Custodian",
+      "orgType": "HEALTH",
+      "records": [
+        {
+          "recordType": "health.details",
+          "connection": {
+            "method": "GET",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/health-01/{personId}?type=health.details",
+            "personIdPosition": "path",
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
+        }
+      ],
+      "dsaPolicy": {
+        "version": "2025-11-10T12:00:00Z",
+        "defaults": [
+          {
+            "effect": "allow",
+            "modes": [ "EXISTENCE" ],
+            "recordTypes": [ "health.details" ],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
+            "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
+            "validFrom": "2025-01-01T00:00:00Z"
+          },
+          {
+            "effect": "allow",
+            "modes": [ "CONTENT" ],
+            "recordTypes": [ "health.details" ],
+            "destOrgTypes": [ "HEALTH", "LOCAL_AUTHORITY", "EDUCATION" ],
+            "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
+            "validFrom": "2025-01-01T00:00:00Z"
+          }
+        ],
+        "exceptions": []
+      },
+      "encryption": {
+        "algorithm": "AES-256-CBC",
+        "keyId": "HEALTH-01-KEY-1",
+        "key": "LVth7FDlT7WJtSfnYH0fUbQlgN5IL45NHPxe2q/0cno="
+      }
+    },
+
+    {
+      "orgId": "POLICE-01",
+      "orgName": "Example Police Custodian",
+      "orgType": "POLICE",
+      "records": [
+        {
+          "recordType": "crime-justice.details",
+          "connection": {
+            "method": "POST",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/manifest",
+            "personIdPosition": "body",
+            "bodyTemplate": {
+              "recordType": "crime-justice.details",
+              "personId": "{personId}",
+              "orgId": "police-01"
+            },
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
+        }
+      ],
+      "dsaPolicy": {
+        "version": "2025-11-10T12:00:00Z",
+        "defaults": [
+          {
+            "effect": "allow",
+            "modes": [ "EXISTENCE" ],
+            "recordTypes": [ "crime-justice.details" ],
+            "destOrgTypes": [ "POLICE" ],
+            "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
+            "validFrom": "2025-01-01T00:00:00Z"
+          },
+          {
+            "effect": "allow",
+            "modes": [ "CONTENT" ],
+            "recordTypes": [ "crime-justice.details" ],
+            "destOrgTypes": [ "POLICE" ],
+            "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION", "CRIME_PREVENTION" ],
+            "validFrom": "2025-01-01T00:00:00Z"
+          }
+        ],
+        "exceptions": [
+          {
+            "effect": "allow",
+            "modes": [ "EXISTENCE", "CONTENT" ],
+            "recordTypes": [ "crime-justice.details" ],
+            "destOrgIds": [ "LOCAL-AUTHORITY-01" ],
+            "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
+            "validFrom": "2025-12-01T00:00:00Z",
+            "validUntil": "9999-03-01T00:00:00Z",
+            "reason": "Timeboxed multi-agency safeguarding operation."
+          }
+        ]
+      },
+      "encryption": {
+        "algorithm": "AES-256-CBC",
+        "keyId": "POLICE-01-KEY-1",
+        "key": "hVVOB+IwSa3VXQs9AD90XM6j4Q2wk1HJ5FdV5nbedlI="
+      }
+    }
+  ]
+}
