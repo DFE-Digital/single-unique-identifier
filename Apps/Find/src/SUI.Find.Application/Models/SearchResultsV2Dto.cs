@@ -1,5 +1,3 @@
-using SUI.Find.Application.Dtos;
-
 namespace SUI.Find.Application.Models;
 
 public record SearchResultsV2Dto : SearchResultsDto
