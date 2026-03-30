@@ -76,29 +76,11 @@ public class ClaimJobFunction(ILogger<ClaimJobFunction> logger, IJobClaimService
             cancellationToken
         );
 
-        return await CreateSuccessResponseAsync(req, claimedJob, cancellationToken);
-    }
-
-    private static async Task<HttpResponseData> CreateSuccessResponseAsync(
-        HttpRequestData req,
-        JobInfo? claimedJob,
-        CancellationToken cancellationToken
-    )
-    {
-        var response = req.CreateResponse(
-            claimedJob != null ? HttpStatusCode.Created : HttpStatusCode.NoContent
-        );
-
-        response.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
-        response.Headers.Add("Pragma", "no-cache");
-        response.Headers.Add("Expires", DateTime.MinValue.ToUniversalTime().ToString("R"));
-        response.Headers.Add("Vary", "Authorization");
-
         if (claimedJob != null)
         {
-            await response.WriteAsJsonAsync(claimedJob, cancellationToken);
+            return await HttpResponseUtility.CreatedResponse(req, claimedJob, cancellationToken);
         }
 
-        return response;
+        return HttpResponseUtility.NoContentResponse(req);
     }
 }

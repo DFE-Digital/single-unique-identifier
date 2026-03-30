@@ -101,7 +101,12 @@ public class SearchResultsV2Function(
         );
 
         return await result.Match(
-            async searchResult => await CreateSuccessResponse(req, searchResult, cancellationToken),
+            async searchResult =>
+                await HttpResponseUtility.OkResponse(
+                    req,
+                    SearchResultsV2.FromDto(searchResult),
+                    cancellationToken
+                ),
             async notFound =>
                 await HttpResponseUtility.NotFoundResponse(
                     req,
@@ -121,21 +126,5 @@ public class SearchResultsV2Function(
                     cancellationToken
                 )
         );
-    }
-
-    private static async Task<HttpResponseData> CreateSuccessResponse(
-        HttpRequestData req,
-        SearchResultsV2Dto result,
-        CancellationToken cancellationToken
-    )
-    {
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        response.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
-        response.Headers.Add("Pragma", "no-cache");
-        response.Headers.Add("Expires", DateTime.MinValue.ToUniversalTime().ToString("R"));
-        response.Headers.Add("Vary", "Authorization");
-        var searchResults = SearchResultsV2.FromDto(result);
-        await response.WriteAsJsonAsync(searchResults, cancellationToken);
-        return response;
     }
 }
