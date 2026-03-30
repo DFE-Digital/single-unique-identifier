@@ -95,12 +95,12 @@ namespace SUI.StubCustodians.API
                 configuration["FindApi:BaseUrl"]
                 ?? throw new InvalidOperationException("FindApi:BaseUrl configuration is missing");
 
-            services.AddHttpClient<TokenProvider>(c =>
+            services.AddHttpClient<ITokenProvider, TokenProvider>(c =>
             {
                 c.BaseAddress = new Uri(baseUrl);
             });
 
-            services.AddHttpClient<FindApiClient>(c =>
+            services.AddHttpClient<IFindApiClient, FindApiClient>(c =>
             {
                 c.BaseAddress = new Uri(baseUrl);
             });
@@ -112,8 +112,8 @@ namespace SUI.StubCustodians.API
             {
                 services.AddHostedService(provider => new CustodianWorker(
                     provider.GetRequiredService<ILogger<CustodianWorker>>(),
-                    provider.GetRequiredService<TokenProvider>(),
-                    provider.GetRequiredService<FindApiClient>(),
+                    provider.GetRequiredService<ITokenProvider>(),
+                    provider.GetRequiredService<IFindApiClient>(),
                     provider.GetRequiredService<IBaseUrlProvider>(),
                     org,
                     provider // pass IServiceProvider for scoped services

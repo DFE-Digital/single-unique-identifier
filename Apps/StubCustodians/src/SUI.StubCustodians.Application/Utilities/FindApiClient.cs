@@ -2,11 +2,12 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.Application.Utilities;
 
-public class FindApiClient
+public class FindApiClient : IFindApiClient
 {
     private readonly HttpClient _http;
 
@@ -23,7 +24,9 @@ public class FindApiClient
         var res = await _http.SendAsync(req);
 
         if (res.StatusCode == HttpStatusCode.NoContent)
+        {
             return null;
+        }
 
         res.EnsureSuccessStatusCode();
 

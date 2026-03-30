@@ -1,11 +1,12 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.Application.Utilities;
 
-public class TokenProvider
+public class TokenProvider : ITokenProvider
 {
     private readonly HttpClient _httpClient;
 

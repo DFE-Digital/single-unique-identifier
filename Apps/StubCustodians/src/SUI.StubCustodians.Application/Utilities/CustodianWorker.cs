@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,8 +9,8 @@ namespace SUI.StubCustodians.Application.Utilities;
 public class CustodianWorker : BackgroundService
 {
     private readonly ILogger<CustodianWorker> _logger;
-    private readonly TokenProvider _tokenProvider;
-    private readonly FindApiClient _client;
+    private readonly ITokenProvider _tokenProvider;
+    private readonly IFindApiClient _client;
     private readonly IBaseUrlProvider _baseUrlProvider;
     private readonly Organisation _org;
     private readonly IServiceProvider _services;
@@ -22,8 +21,8 @@ public class CustodianWorker : BackgroundService
 
     public CustodianWorker(
         ILogger<CustodianWorker> logger,
-        TokenProvider tokenProvider,
-        FindApiClient client,
+        ITokenProvider tokenProvider,
+        IFindApiClient client,
         IBaseUrlProvider baseUrlProvider,
         Organisation org,
         IServiceProvider services
