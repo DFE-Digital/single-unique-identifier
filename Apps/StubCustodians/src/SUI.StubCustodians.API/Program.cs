@@ -3,6 +3,7 @@ using Asp.Versioning.ApiExplorer;
 using SUI.StubCustodians.API.OpenApi;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Services;
+using SUI.StubCustodians.Application.Utilities;
 using SUI.StubCustodians.Infrastructure.Extensions;
 using SUI.StubCustodians.Infrastructure.Services;
 
@@ -47,7 +48,7 @@ namespace SUI.StubCustodians.API
                     setup.SubstituteApiVersionInUrl = true;
                 });
 
-            ConfigureServices(builder.Services);
+            ConfigureServices(builder.Services, builder.Configuration);
 
             var app = builder.Build();
 
@@ -76,12 +77,48 @@ namespace SUI.StubCustodians.API
             app.Run();
         }
 
-        private static void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(
+            IServiceCollection services,
+            IConfiguration configuration
+        )
         {
             services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(3, 10));
             services.AddSingleton<IDataProvider, FileDataProvider>();
             services.AddScoped<IManifestService, ManifestService>();
             services.AddScoped<IRecordService, RecordService>();
+            services.AddSingleton<IOrgDirectoryProvider, OrgDirectoryProvider>();
+
+            services.AddHttpContextAccessor();
+            services.AddSingleton<IBaseUrlProvider, HttpContextBaseUrlProvider>();
+
+            var baseUrl =
+                configuration["FindApi:BaseUrl"]
+                ?? throw new InvalidOperationException("FindApi:BaseUrl configuration is missing");
+
+            services.AddHttpClient<ITokenProvider, TokenProvider>(c =>
+            {
+                c.BaseAddress = new Uri(baseUrl);
+            });
+
+            services.AddHttpClient<IFindApiClient, FindApiClient>(c =>
+            {
+                c.BaseAddress = new Uri(baseUrl);
+            });
+
+            var sp = services.BuildServiceProvider();
+            var orgProvider = sp.GetRequiredService<IOrgDirectoryProvider>();
+
+            foreach (var org in orgProvider.GetOrganisations())
+            {
+                services.AddHostedService(provider => new CustodianWorker(
+                    provider.GetRequiredService<ILogger<CustodianWorker>>(),
+                    provider.GetRequiredService<ITokenProvider>(),
+                    provider.GetRequiredService<IFindApiClient>(),
+                    provider.GetRequiredService<IBaseUrlProvider>(),
+                    org,
+                    provider // pass IServiceProvider for scoped services
+                ));
+            }
         }
     }
 }

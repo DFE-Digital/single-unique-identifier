@@ -54,6 +54,7 @@ public class QueueSearchJobTriggerTests
             SearchingOrganisationId = "searching-custodian-id",
             TraceId = "test-trace-id",
             InvocationId = "test-invocation",
+            TraceParent = "original-search-request-trace-parent",
         };
 
         var custodians = new List<ProviderDefinition>
@@ -77,7 +78,7 @@ public class QueueSearchJobTriggerTests
                     && j.JobType == JobType.CustodianLookup
                     && j.WorkItemType == WorkItemType.SearchExecution
                     && j.WorkItemId == requestMessage.WorkItemId.ToString()
-                    && j.JobTraceParent == "test-trace-parent"
+                    && j.JobTraceParent == "original-search-request-trace-parent"
                     && j.PayloadJson.Contains(requestMessage.PersonId)
                     && (j.PayloadJson.Contains("type1") || j.PayloadJson.Contains("type2"))
                 ),
