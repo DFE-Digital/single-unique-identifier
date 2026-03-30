@@ -58,7 +58,15 @@ public class JobSearchServiceTests
 
         // ASSERT
         Assert.IsType<NotFound>(result.Value);
-        _logger.ReceivedWithAnyArgs(1).LogInformation("No jobs found for work item ID WID-1");
+        _logger
+            .Received(1)
+            .Log(
+                LogLevel.Information,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>((object x) => $"{x}" == "No jobs found for work item ID WID-1"),
+                null,
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
+            );
     }
 
     [Fact]
@@ -93,7 +101,15 @@ public class JobSearchServiceTests
 
         // ASSERT
         Assert.IsType<NotFound>(result.Value);
-        _logger.ReceivedWithAnyArgs(1).LogInformation("No jobs found for work item ID WID-1");
+        _logger
+            .Received(1)
+            .Log(
+                LogLevel.Information,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>((object x) => $"{x}" == "No jobs found for work item ID WID-1"),
+                null,
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
+            );
     }
 
     [Fact]
@@ -131,9 +147,17 @@ public class JobSearchServiceTests
         // ASSERT
         Assert.IsType<Unauthorized>(result.Value);
         _logger
-            .ReceivedWithAnyArgs(1)
-            .LogWarning(
-                "Searching organisation ID (SOID-2) from request does not match organisation ID (SOID-1) on work item. Work item ID: WID-1"
+            .Received(1)
+            .Log(
+                LogLevel.Warning,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>(
+                    (object x) =>
+                        $"{x}"
+                        == "Searching organisation ID (SOID-2) from request does not match organisation ID (SOID-1) on work item. Work item ID: WID-1"
+                ),
+                null,
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
             );
     }
 
