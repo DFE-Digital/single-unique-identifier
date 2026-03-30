@@ -8,7 +8,7 @@ public static class ConfigExtensions
     {
         var value = !string.IsNullOrWhiteSpace(config["UseEncryptedId"])
             ? config["UseEncryptedId"]
-            : "false";
-        return bool.Parse(value);
+            : null;
+        return bool.Parse(value ?? "false");
     }
 }

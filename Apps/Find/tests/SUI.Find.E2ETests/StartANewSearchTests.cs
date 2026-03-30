@@ -199,8 +199,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         var statusResult = await RunAndAwaitAndAssertSearchStatusCompletion(
             statusLink != null ? statusLink.Href : resultsLink!.Href,
             resultsLink!.Href,
-            testData,
-            usePolling
+            testData
         );
         Assert.NotNull(statusResult);
 
@@ -281,11 +280,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         return links;
     }
 
-    private async Task RunAndAssertPartialSearchResults(
-        string url,
-        TestData testData,
-        bool usePolling
-    )
+    private async Task RunAndAssertPartialSearchResults(string url, TestData testData)
     {
         url = RemoveLeadingSlashFromUrl(url);
 
@@ -419,12 +414,10 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     /// <param name="statusUrl">URL of the Search Status endpoint</param>
     /// <param name="resultsUrl">URL of the Search Results endpoint</param>
     /// <param name="testData">The test data for this search run</param>
-    /// <param name="usePolling">use the polling architecture or not</param>
     private async Task<SearchJob> RunAndAwaitAndAssertSearchStatusCompletion(
         string statusUrl,
         string resultsUrl,
-        TestData testData,
-        bool usePolling
+        TestData testData
     )
     {
         statusUrl = RemoveLeadingSlashFromUrl(statusUrl);
@@ -457,7 +450,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                         break;
                     case "Running":
                         // Verify partial results are as expected while its in-progress
-                        RunAndAssertPartialSearchResults(resultsUrl, testData, usePolling).Wait();
+                        RunAndAssertPartialSearchResults(resultsUrl, testData).Wait();
                         break;
                 }
 

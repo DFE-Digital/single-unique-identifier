@@ -1,17 +1,14 @@
 using System.Text.Json.Serialization;
-using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 
 namespace SUI.Find.FindApi.Models;
 
 public record SearchResults : SearchResultsBase
 {
-    public required string JobId { get; set; } = string.Empty;
+    public required string JobId { get; init; } = string.Empty;
 
     [JsonPropertyName("_links")]
-    public required Dictionary<string, HalLink> Links { get; set; } = [];
-
-    public required SearchResultItem[] Items { get; set; } = [];
+    public required Dictionary<string, HalLink> Links { get; init; } = [];
 
     public static SearchResults FromDto(SearchResultsDto dto)
     {
