@@ -145,7 +145,7 @@ public class CustodianWorkerTests
             .Log(
                 LogLevel.Warning,
                 Arg.Any<EventId>(),
-                Arg.Any<Arg.AnyType>(),
+                Arg.Is<Arg.AnyType>((object x) => x.ToString()!.Contains("Job missing Sui")),
                 null,
                 Arg.Any<Func<Arg.AnyType, Exception?, string>>()
             );
@@ -181,7 +181,7 @@ public class CustodianWorkerTests
             .Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
-                Arg.Any<Arg.AnyType>(),
+                Arg.Is<Arg.AnyType>((object x) => x.ToString()!.Contains("Polling failed")),
                 Arg.Is<Exception>(ex => ex.Message == "API Down"),
                 Arg.Any<Func<Arg.AnyType, Exception?, string>>()
             );
