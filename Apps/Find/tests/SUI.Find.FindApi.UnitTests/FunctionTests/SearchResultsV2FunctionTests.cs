@@ -100,7 +100,7 @@ public class SearchResultsV2FunctionTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
         Assert.Equal(
-            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            DateTimeOffset.UnixEpoch.ToString("R"),
             response.Headers.GetValues("Expires").Single()
         );
         Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());
@@ -132,7 +132,7 @@ public class SearchResultsV2FunctionTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
         Assert.Equal(
-            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            DateTimeOffset.UnixEpoch.ToString("R"),
             response.Headers.GetValues("Expires").Single()
         );
         Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());
@@ -164,7 +164,7 @@ public class SearchResultsV2FunctionTests
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
         Assert.Equal(
-            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            DateTimeOffset.UnixEpoch.ToString("R"),
             response.Headers.GetValues("Expires").Single()
         );
         Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());
@@ -196,7 +196,7 @@ public class SearchResultsV2FunctionTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
         Assert.Equal(
-            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            DateTimeOffset.UnixEpoch.ToString("R"),
             response.Headers.GetValues("Expires").Single()
         );
         Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());
@@ -227,7 +227,7 @@ public class SearchResultsV2FunctionTests
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
         Assert.Equal(
-            DateTime.MinValue.ToUniversalTime().ToString("R"),
+            DateTimeOffset.UnixEpoch.ToString("R"),
             response.Headers.GetValues("Expires").Single()
         );
         Assert.Equal("Authorization", response.Headers.GetValues("Vary").Single());

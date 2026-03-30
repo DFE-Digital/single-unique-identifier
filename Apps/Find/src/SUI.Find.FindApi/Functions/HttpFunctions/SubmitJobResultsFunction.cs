@@ -122,11 +122,7 @@ public class SubmitJobResultsFunction(
 
         await queueClient.SendAsync(queueMessage, cancellationToken);
 
-        var response = req.CreateResponse(HttpStatusCode.Accepted);
-
-        AddNoCacheHeaders(response);
-
-        return response;
+        return HttpResponseUtility.AcceptedResponse(req);
     }
 
     private bool TryGetRequestModel(
@@ -158,13 +154,5 @@ public class SubmitJobResultsFunction(
             logger.LogError(ex, "Failed to parse SubmitJobResults request: {Message}", ex.Message);
             return false;
         }
-    }
-
-    private static void AddNoCacheHeaders(HttpResponseData response)
-    {
-        response.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
-        response.Headers.Add("Pragma", "no-cache");
-        response.Headers.Add("Expires", DateTimeOffset.UnixEpoch.ToString("R"));
-        response.Headers.Add("Vary", "Authorization");
     }
 }
