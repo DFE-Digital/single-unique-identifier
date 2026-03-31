@@ -26,7 +26,7 @@ public class TokenProvider : ITokenProvider
             return entry.Token;
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "/v1/auth/token");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/token");
 
         var creds = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
 
@@ -40,7 +40,16 @@ public class TokenProvider : ITokenProvider
             }
         );
 
-        var response = await _httpClient.SendAsync(request);
+        using var response = await _httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"Get Access Token Failed: {(int)response.StatusCode} ({response.StatusCode}) - {errorBody}"
+            );
+        }
+
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();

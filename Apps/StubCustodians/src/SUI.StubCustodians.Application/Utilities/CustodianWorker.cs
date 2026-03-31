@@ -44,11 +44,12 @@ public class CustodianWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "Custodian {OrgId} started. Interval: {Interval}s",
-            _org.OrgId,
-            _intervalSeconds
-        );
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation(
+                "Custodian {OrgId} started. Interval: {Interval}s",
+                _org.OrgId,
+                _intervalSeconds
+            );
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -91,6 +92,17 @@ public class CustodianWorker : BackgroundService
             }
         );
 
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation(
+                "Processing job {JobDetails}",
+                new
+                {
+                    job.JobId,
+                    job.LeaseId,
+                    _org.OrgId,
+                }
+            );
+
         if (string.IsNullOrWhiteSpace(job.Sui))
         {
             _logger.LogWarning("Job missing Sui");
@@ -125,6 +137,7 @@ public class CustodianWorker : BackgroundService
 
         await _client.SubmitAsync(token, result);
 
-        _logger.LogInformation("Submitted {Count} records", result.Records.Count);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("Submitted {Count} records", result.Records.Count);
     }
 }

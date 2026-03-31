@@ -39,6 +39,8 @@ public class CustodianWorkerTests
             ],
         };
 
+        _logger.IsEnabled(LogLevel.Information).Returns(true);
+
         // Setup Service Provider Mocking Chain
         _serviceProvider.GetService(typeof(IServiceScopeFactory)).Returns(_scopeFactory);
         _scopeFactory.CreateScope().Returns(_serviceScope);
