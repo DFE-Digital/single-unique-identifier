@@ -93,7 +93,12 @@ public class SearchResultsFunction(
         );
 
         return await result.Match(
-            async searchResult => await CreateSuccessResponse(req, searchResult, cancellationToken),
+            async searchResult =>
+                await HttpResponseUtility.OkResponse(
+                    req,
+                    SearchResults.FromDto(searchResult),
+                    cancellationToken
+                ),
             async notFound =>
                 await HttpResponseUtility.NotFoundResponse(
                     req,
@@ -113,17 +118,5 @@ public class SearchResultsFunction(
                     cancellationToken
                 )
         );
-    }
-
-    private static async Task<HttpResponseData> CreateSuccessResponse(
-        HttpRequestData req,
-        SearchResultsDto result,
-        CancellationToken cancellationToken
-    )
-    {
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        var searchResults = SearchResults.FromDto(result);
-        await response.WriteAsJsonAsync(searchResults, cancellationToken);
-        return response;
     }
 }

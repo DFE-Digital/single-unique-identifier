@@ -128,22 +128,10 @@ public class SearchFunctionV2(
 
         var result = await findQueueService.PostSearchJobAsync(payload, cancellationToken);
 
-        return await CreateSuccessResponse(req, result, cancellationToken);
-    }
-
-    private static async Task<HttpResponseData> CreateSuccessResponse(
-        HttpRequestData req,
-        SearchWorkItemDto result,
-        CancellationToken cancellationToken
-    )
-    {
-        var response = req.CreateResponse(HttpStatusCode.Accepted);
-        response.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
-        response.Headers.Add("Pragma", "no-cache");
-        response.Headers.Add("Expires", DateTime.MinValue.ToUniversalTime().ToString("R"));
-        response.Headers.Add("Vary", "Authorization");
-        var searchResults = SearchJobV2.FromDto(result);
-        await response.WriteAsJsonAsync(searchResults, cancellationToken);
-        return response;
+        return await HttpResponseUtility.AcceptedResponse(
+            req,
+            SearchJobV2.FromDto(result),
+            cancellationToken
+        );
     }
 }

@@ -66,16 +66,8 @@ public class WorkAvailableFunction(
             cancellationToken
         );
 
-        return CreateSuccessResponse(req, result);
-    }
-
-    private static HttpResponseData CreateSuccessResponse(HttpRequestData req, bool hasWork)
-    {
-        var response = req.CreateResponse(hasWork ? HttpStatusCode.OK : HttpStatusCode.NoContent);
-        response.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
-        response.Headers.Add("Pragma", "no-cache");
-        response.Headers.Add("Expires", DateTime.MinValue.ToUniversalTime().ToString("R"));
-        response.Headers.Add("Vary", "Authorization");
-        return response;
+        return result
+            ? HttpResponseUtility.OkResponse(req)
+            : HttpResponseUtility.NoContentResponse(req);
     }
 }
