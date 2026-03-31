@@ -21,6 +21,10 @@ find_app_settings = {
   IdEncryption__EnablePersonIdEncryption                     = false
 }
 
+custodian_app_settings = {
+  FindApi__BaseUrl = "https://s270d01func-ukw-find01.azurewebsites.net"
+}
+
 tags = {
   # Additional tags can be added here
   # Environment, Product, and Service Offering will be added by default
