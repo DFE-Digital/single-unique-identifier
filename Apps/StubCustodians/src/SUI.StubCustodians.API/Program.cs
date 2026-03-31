@@ -110,14 +110,17 @@ namespace SUI.StubCustodians.API
 
             foreach (var org in orgProvider.GetOrganisations())
             {
-                services.AddHostedService(provider => new CustodianWorker(
-                    provider.GetRequiredService<ILogger<CustodianWorker>>(),
-                    provider.GetRequiredService<ITokenProvider>(),
-                    provider.GetRequiredService<IFindApiClient>(),
-                    provider.GetRequiredService<IBaseUrlProvider>(),
-                    org,
-                    provider // pass IServiceProvider for scoped services
-                ));
+                // Note that we cannot use `AddHostedService` extension, because our concrete type is the same, that extension methods only adds the first
+                services.AddSingleton<IHostedService, CustodianWorker>(
+                    provider => new CustodianWorker(
+                        provider.GetRequiredService<ILogger<CustodianWorker>>(),
+                        provider.GetRequiredService<ITokenProvider>(),
+                        provider.GetRequiredService<IFindApiClient>(),
+                        provider.GetRequiredService<IBaseUrlProvider>(),
+                        org,
+                        provider // pass IServiceProvider for scoped services
+                    )
+                );
             }
         }
     }
