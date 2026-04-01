@@ -2,11 +2,13 @@
 
 **Date:** `2026-03-26`  
 **Owner:** SUI Service Team  
-**Scope:** Baseline authentication and security model for the active `MATCH` / `FIND` scope, the custodian polling flow, and the minimum `FETCH` support needed to preserve existing end-to-end flows.
+**Scope:** Baseline authentication and security model for the active inbound `MATCH` / `FIND` scope, the custodian polling flow, and the minimum inbound-facing `FETCH` support needed to preserve existing end-to-end flows.
 
 This document builds on [Authentication and API Edge Strategy](./Index.md) and [ADR-SUI-0011: Authentication and trust boundaries for SUI APIs](../../Architecture%20decisions/Systems%20landscape/0011-authentication-and-trust-boundaries-for-sui-apis.md).
 
 It defines the current baseline needed to guide implementation and follow-on design work.
+
+In this note, `inbound` authentication means requests into the SUI service from searcher or custodian systems. `outbound` authentication means service-initiated calls from the SUI service to custodians or other external parties. This note defines the inbound baseline and does not attempt to define the outbound `SUI service -> Custodian` auth model.
 
 ---
 
@@ -27,14 +29,15 @@ This note is a baseline, not a final end-state design.
 
 ### 2.1 In scope
 
-- organisation-level authentication for the active `MATCH` and `FIND` boundaries
-- organisation-level authentication for custodian polling and work submission endpoints
-- the minimum `FETCH` support needed to preserve existing end-to-end flows
+- organisation-level authentication for the active inbound `MATCH` and `FIND` boundaries
+- organisation-level authentication for inbound custodian polling and work submission endpoints
+- the minimum inbound-facing `FETCH` support needed to preserve existing end-to-end flows
 - the baseline claims, permissions, and internal auth context needed by the services
 - the minimum security checks expected at the gateway and in the application
 
 ### 2.2 Out of scope
 
+- the outbound authentication model for `SUI service -> Custodian` interactions, including fan-out, proxied `FETCH` retrieval, and webhook delivery
 - the final long-term issuer choice
 - the final API edge choice
 - the final onboarding portal or administrator experience
@@ -51,6 +54,7 @@ This baseline currently assumes:
 - organisation-level identity is sufficient for the active `MATCH`, `FIND`, and custodian polling flows
 - a single organisation may legitimately hold both searcher and custodian permissions at the same time
 - at least one shared high-fidelity environment should use an `APIM`-shaped gateway model, but the application baseline must still work in cheaper dev/test and local or CI arrangements where JWT validation happens in the service itself
+- temporary mock or stub auth used only to preserve current `FETCH`-related harness or E2E flows does not define the target baseline
 - policy and DSA decisions consume the auth outcome, but are not fully encoded in the auth baseline itself
 
 ---
@@ -63,6 +67,7 @@ The baseline model is built around the following principles:
 - attended end-user authentication remains the responsibility of the consuming organisation and application
 - a single organisation may act as a searcher, a custodian, or both
 - authentication and policy enforcement are related but separate concerns
+- inbound and outbound auth are separate trust problems and should not be conflated in this baseline
 - the service should remain portable across more than one issuer or gateway option
 - defence in depth should apply, with checks at both the gateway and application layers
 
@@ -94,7 +99,16 @@ sequenceDiagram
 
 ## 4. Baseline Boundary Model
 
-### 4.1 End user -> Searcher application
+### 4.1 Inbound and outbound auth
+
+For this note:
+
+- `Inbound auth` means `Searcher application -> SUI service` and `Custodian -> SUI service` requests that the SUI service validates and authorises
+- `Outbound auth` means `SUI service -> Custodian` or other service-initiated calls where the SUI service must authenticate itself to another party
+
+The baseline defined here is primarily for inbound auth. Outbound auth for fan-out, proxied `FETCH`, webhook delivery, or custodian stubs remains follow-on work and should not be inferred from this note.
+
+### 4.2 End user -> Searcher application
 
 End-user authentication happens in the consuming application and remains outside direct control of the SUI service.
 
@@ -104,15 +118,15 @@ The service baseline should therefore assume:
 - user authentication and local role-based access control are handled by the consuming organisation
 - service-to-service operations must still work after the end user has left the flow
 
-### 4.2 Searcher application -> SUI service
+### 4.3 Searcher application -> SUI service
 
-The searcher-side boundary must support unattended operation for:
+The searcher-side inbound boundary must support unattended operation for:
 
 - `MATCH`
 - starting `FIND`
 - polling `FIND` status
 - retrieving `FIND` results
-- minimal `FETCH` support where needed to preserve the current end-to-end path
+- minimal inbound-facing `FETCH` support where needed to preserve the current end-to-end path
 
 The baseline at this boundary is:
 
@@ -126,9 +140,9 @@ Current implementation note:
 - the current `MATCH` endpoint also requires an `x-api-key` header in addition to bearer token authentication
 - that extra API key gate is a current implementation detail, not part of the desired long-term baseline for this boundary
 
-### 4.3 Custodian -> SUI service
+### 4.4 Custodian -> SUI service
 
-The custodian-side boundary is always unattended.
+The custodian-side inbound boundary is always unattended.
 
 The baseline at this boundary is:
 
@@ -137,14 +151,20 @@ The baseline at this boundary is:
 - permissions that allow polling, claiming work, and submitting results
 - enforcement that a custodian can only act as itself and only on its own work
 
-### 4.4 `FETCH`
+### 4.5 `FETCH`
 
 `FETCH` is not the main focus of the active work, but the baseline needs to preserve the current end-to-end path.
 
+For this note, `FETCH` has two different auth concerns:
+
+- the inbound `Searcher application -> SUI service` request boundary, which may still need minimal support to preserve current end-to-end flows
+- any outbound `SUI service -> Custodian` retrieval or notification step, which is a separate trust and credential problem
+
 For now, the baseline assumption is:
 
-- `FETCH` remains minimally supported
-- no expansion of the `FETCH` trust model is assumed in this note
+- minimal inbound `FETCH` support may remain where needed to preserve the current end-to-end path
+- outbound auth used by proxied `FETCH`, fan-out, or future notifications is not being standardised in this note
+- temporary mock or stub auth used only to keep current harness or E2E flows working is a continuity detail, not part of the target baseline
 - the long-term `FETCH` model remains a separate decision
 
 ---
@@ -356,7 +376,7 @@ Examples:
 
 - a searcher should only be able to read or cancel searches owned by its organisation unless a later design explicitly allows otherwise
 - a custodian should only be able to claim or complete work that is assigned to that custodian organisation
-- requests must not rely on client-supplied organisation identifiers where the caller identity can be derived from the token
+- requests must not rely on client-supplied non-authenticated organisation identifiers
 
 ---
 
@@ -387,6 +407,7 @@ This baseline deliberately leaves several points open:
 - whether user-aware auth is needed for any operations
 - whether `organisation_id` should eventually come from a dedicated token claim everywhere
 - whether the current permission names should be renamed
+- the outbound authentication model for service-initiated custodian calls
 - the final issuer and gateway choice
 - the long-term `FETCH` model
 
@@ -425,4 +446,5 @@ This note is intended to support:
 - environment strategy work
 - implementation hardening work in the active services
 - onboarding and governance work
+- later outbound-auth design work for service-initiated custodian calls such as proxied `FETCH`, fan-out, or future webhooks
 - later architecture decision records, if and when decisions become firm
