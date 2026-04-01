@@ -18,7 +18,11 @@ public class MockAuthStoreServiceTests
     public async Task GetAuthClient_ShouldReturnClient_WhenIdAndSecretMatch()
     {
         // Arrange
-        var realFilePath = Path.Combine(AppContext.BaseDirectory, "Data", "auth-clients.json");
+        var realFilePath = Path.Combine(
+            AppContext.BaseDirectory,
+            "Data",
+            "auth-clients-inbound.json"
+        );
         var fileContent = await File.ReadAllTextAsync(realFilePath);
         _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
 
