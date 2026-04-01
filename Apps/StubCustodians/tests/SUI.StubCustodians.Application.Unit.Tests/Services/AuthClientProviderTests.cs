@@ -3,11 +3,11 @@ using SUI.StubCustodians.Application.Services;
 
 namespace SUI.StubCustodians.Application.Unit.Tests.Services;
 
-public class OrgDirectoryProviderTests
+public class AuthClientProviderTests
 {
     private static string DataDirectory => Path.Combine(AppContext.BaseDirectory, "Data");
 
-    private static string FilePath => Path.Combine(DataDirectory, "org-directory.json");
+    private static string FilePath => Path.Combine(DataDirectory, "auth-clients-inbound.json");
 
     private static void WriteJson(string json)
     {
@@ -28,10 +28,15 @@ public class OrgDirectoryProviderTests
         {
             var json = """
                 {
-                  "organisations": [
+                  "clients": [
                     {
-                      "orgId": "ORG-1",
-                      "records": []
+                      "enabled": true,
+                      "clientId": "LOCAL-AUTHORITY-01",
+                      "clientSecret": "SUIProject",
+                      "allowedScopes": [
+                        "work-item.read",
+                        "work-item.write"
+                      ]
                     }
                   ]
                 }
@@ -39,12 +44,12 @@ public class OrgDirectoryProviderTests
 
             WriteJson(json);
 
-            var provider = new OrgDirectoryProvider();
+            var provider = new AuthClientProvider();
 
-            var orgs = provider.GetOrganisations();
+            var clients = provider.GetAuthClients();
 
-            Assert.Single(orgs);
-            Assert.Equal("ORG-1", orgs.First().OrgId);
+            Assert.Single(clients);
+            Assert.Equal("LOCAL-AUTHORITY-01", clients[0].ClientId);
         }
         finally
         {
@@ -59,18 +64,26 @@ public class OrgDirectoryProviderTests
         {
             var json = """
                 {
-                  "organisations": [
-                    { "orgId": "ORG-1", "records": [] }
+                  "clients": [
+                    {
+                      "enabled": true,
+                      "clientId": "LOCAL-AUTHORITY-01",
+                      "clientSecret": "SUIProject",
+                      "allowedScopes": [
+                        "work-item.read",
+                        "work-item.write"
+                      ]
+                    }
                   ]
                 }
                 """;
 
             WriteJson(json);
 
-            var provider = new OrgDirectoryProvider();
+            var provider = new AuthClientProvider();
 
-            var first = provider.GetOrganisations();
-            var second = provider.GetOrganisations();
+            var first = provider.GetAuthClients();
+            var second = provider.GetAuthClients();
 
             Assert.Same(first, second);
         }
@@ -85,11 +98,11 @@ public class OrgDirectoryProviderTests
     {
         Cleanup();
 
-        var provider = new OrgDirectoryProvider();
+        var provider = new AuthClientProvider();
 
-        var ex = Assert.Throws<InvalidOperationException>(() => provider.GetOrganisations());
+        var ex = Assert.Throws<InvalidOperationException>(() => provider.GetAuthClients());
 
-        Assert.Contains("org-directory.json not found", ex.Message);
+        Assert.Contains("auth-clients-inbound.json not found", ex.Message);
     }
 
     [Fact]
@@ -99,9 +112,9 @@ public class OrgDirectoryProviderTests
         {
             WriteJson("invalid-json");
 
-            var provider = new OrgDirectoryProvider();
+            var provider = new AuthClientProvider();
 
-            Assert.ThrowsAny<JsonException>(() => provider.GetOrganisations());
+            Assert.ThrowsAny<JsonException>(() => provider.GetAuthClients());
         }
         finally
         {
@@ -116,9 +129,9 @@ public class OrgDirectoryProviderTests
         {
             WriteJson("{}");
 
-            var provider = new OrgDirectoryProvider();
+            var provider = new AuthClientProvider();
 
-            var result = provider.GetOrganisations();
+            var result = provider.GetAuthClients();
 
             Assert.Empty(result);
         }
