@@ -78,7 +78,7 @@ namespace SUI.StubCustodians.API.Unit.Tests
             };
             var request = new AuthTokenFormRequest
             {
-                client_id = "SUI-SERVICE",
+                client_id = "LOCAL-AUTHORITY-01",
                 client_secret = "SUIProject",
                 grant_type = "client_credentials",
                 scope = "test",
@@ -100,7 +100,9 @@ namespace SUI.StubCustodians.API.Unit.Tests
         public void AuthToken_ShouldReturnOk_WhenCredentialsAreValid()
         {
             var features = new FeatureCollection();
-            var clientCredentials = Convert.ToBase64String("SUI-SERVICE:SUIProject"u8.ToArray());
+            var clientCredentials = Convert.ToBase64String(
+                "LOCAL-AUTHORITY-01:SUIProject"u8.ToArray()
+            );
             var headers = new HeaderDictionary
             {
                 { "Authorization", $"Basic {clientCredentials}" },
@@ -114,7 +116,7 @@ namespace SUI.StubCustodians.API.Unit.Tests
             };
             var request = new AuthTokenFormRequest
             {
-                client_id = "SUI-SERVICE",
+                client_id = "LOCAL-AUTHORITY-01",
                 client_secret = "SUIProject",
                 grant_type = "client_credentials",
                 scope = "find-record.read fetch-record.read",
@@ -135,7 +137,9 @@ namespace SUI.StubCustodians.API.Unit.Tests
         public void AuthToken_ShouldReturnProblem_WhenAuthHeaderDoesNotStartWithBasic()
         {
             var features = new FeatureCollection();
-            var clientCredentials = Convert.ToBase64String("SUI-SERVICE:SUIProject"u8.ToArray());
+            var clientCredentials = Convert.ToBase64String(
+                "LOCAL-AUTHORITY-01:SUIProject"u8.ToArray()
+            );
             var headers = new HeaderDictionary { { "Authorization", $"Test {clientCredentials}" } };
             var requestFeature = new HttpRequestFeature { Headers = headers };
             features.Set<IHeaderDictionary>(headers);
@@ -168,7 +172,9 @@ namespace SUI.StubCustodians.API.Unit.Tests
         public void AuthToken_ShouldReturnProblem_WhenAuthHeaderCredentialsAreWrong()
         {
             var features = new FeatureCollection();
-            var clientCredentials = Convert.ToBase64String("SUI-SERVICESUIProject"u8.ToArray());
+            var clientCredentials = Convert.ToBase64String(
+                "LOCAL-AUTHORITY-01SUIProject"u8.ToArray()
+            );
             var headers = new HeaderDictionary
             {
                 { "Authorization", $"Basic {clientCredentials}" },
