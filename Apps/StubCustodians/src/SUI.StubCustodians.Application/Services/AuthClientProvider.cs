@@ -17,18 +17,18 @@ public class AuthClientProvider : IAuthClientProvider
 
     private static IReadOnlyList<AuthClient> Load()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Data", "auth-clients.json");
+        var path = Path.Combine(AppContext.BaseDirectory, "Data", "auth-clients-inbound.json");
 
         if (!File.Exists(path))
         {
-            throw new InvalidOperationException($"auth-clients.json not found: {path}");
+            throw new InvalidOperationException($"auth-clients-inbound.json not found: {path}");
         }
 
         var json = File.ReadAllText(path);
 
         var data =
             JsonSerializer.Deserialize<AuthStore>(json, JsonSerializerOptions.Web)
-            ?? throw new InvalidOperationException("Invalid auth-clients.json");
+            ?? throw new InvalidOperationException("Invalid auth-clients-inbound.json");
 
         return data.Clients ?? [];
     }

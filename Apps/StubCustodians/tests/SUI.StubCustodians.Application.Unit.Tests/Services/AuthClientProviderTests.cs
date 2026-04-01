@@ -7,7 +7,7 @@ public class AuthClientProviderTests
 {
     private static string DataDirectory => Path.Combine(AppContext.BaseDirectory, "Data");
 
-    private static string FilePath => Path.Combine(DataDirectory, "auth-clients.json");
+    private static string FilePath => Path.Combine(DataDirectory, "auth-clients-inbound.json");
 
     private static void WriteJson(string json)
     {
@@ -63,20 +63,20 @@ public class AuthClientProviderTests
         try
         {
             var json = """
-                       {
-                         "clients": [
-                           {
-                             "enabled": true,
-                             "clientId": "LOCAL-AUTHORITY-01",
-                             "clientSecret": "SUIProject",
-                             "allowedScopes": [
-                               "work-item.read",
-                               "work-item.write"
-                             ]
-                           }
-                         ]
-                       }
-                       """;
+                {
+                  "clients": [
+                    {
+                      "enabled": true,
+                      "clientId": "LOCAL-AUTHORITY-01",
+                      "clientSecret": "SUIProject",
+                      "allowedScopes": [
+                        "work-item.read",
+                        "work-item.write"
+                      ]
+                    }
+                  ]
+                }
+                """;
 
             WriteJson(json);
 
@@ -102,7 +102,7 @@ public class AuthClientProviderTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => provider.GetAuthClients());
 
-        Assert.Contains("auth-clients.json not found", ex.Message);
+        Assert.Contains("auth-clients-inbound.json not found", ex.Message);
     }
 
     [Fact]
