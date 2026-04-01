@@ -18,12 +18,6 @@
     <ProjectReference Include="..\SUI.Custodians.Domain\SUI.Custodians.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\Data\org-directory.json">
-      <Link>Data\org-directory.json</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="..\..\..\..\Data\auth-clients.json">
       <Link>Data\auth-clients.json</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

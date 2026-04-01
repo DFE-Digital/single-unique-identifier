@@ -19,24 +19,16 @@ public class CustodianWorkerTests
     private readonly IServiceScope _serviceScope = Substitute.For<IServiceScope>();
     private readonly IServiceScopeFactory _scopeFactory = Substitute.For<IServiceScopeFactory>();
 
-    private readonly Organisation _testOrg;
+    private readonly AuthClient _testClient;
 
     public CustodianWorkerTests()
     {
-        _testOrg = new Organisation
+        _testClient = new AuthClient()
         {
-            OrgId = "test-org-123",
-            Records =
-            [
-                new RecordDefinition
-                {
-                    RecordType = "RT-1",
-                    Connection = new Connection
-                    {
-                        Auth = new AuthConfig() { ClientId = "client-id", ClientSecret = "secret" },
-                    },
-                },
-            ],
+            ClientId = "client-id",
+            ClientSecret = "secret",
+            Enabled = true,
+            AllowedScopes = ["test-scope"],
         };
 
         _logger.IsEnabled(LogLevel.Information).Returns(true);
@@ -74,7 +66,7 @@ public class CustodianWorkerTests
 
         _manifestService
             .GetManifestForOrganisation(
-                _testOrg.OrgId,
+                _testClient.ClientId,
                 job.Sui,
                 "https://api.test",
                 job.RecordType,
@@ -88,7 +80,7 @@ public class CustodianWorkerTests
             _tokenProvider,
             _client,
             _baseUrlProvider,
-            _testOrg,
+            _testClient,
             _serviceProvider
         );
         using var cts = new CancellationTokenSource();
@@ -131,7 +123,7 @@ public class CustodianWorkerTests
             _tokenProvider,
             _client,
             _baseUrlProvider,
-            _testOrg,
+            _testClient,
             _serviceProvider
         );
         using var cts = new CancellationTokenSource();
@@ -167,7 +159,7 @@ public class CustodianWorkerTests
             _tokenProvider,
             _client,
             _baseUrlProvider,
-            _testOrg,
+            _testClient,
             _serviceProvider
         );
         using var cts = new CancellationTokenSource();

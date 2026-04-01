@@ -86,7 +86,7 @@ namespace SUI.StubCustodians.API
             services.AddSingleton<IDataProvider, FileDataProvider>();
             services.AddScoped<IManifestService, ManifestService>();
             services.AddScoped<IRecordService, RecordService>();
-            services.AddSingleton<IOrgDirectoryProvider, OrgDirectoryProvider>();
+            services.AddSingleton<IAuthClientProvider, AuthClientProvider>();
 
             services.AddHttpContextAccessor();
             services.AddSingleton<IBaseUrlProvider, HttpContextBaseUrlProvider>();
@@ -106,9 +106,9 @@ namespace SUI.StubCustodians.API
             });
 
             var sp = services.BuildServiceProvider();
-            var orgProvider = sp.GetRequiredService<IOrgDirectoryProvider>();
+            var authClientProvider = sp.GetRequiredService<IAuthClientProvider>();
 
-            foreach (var org in orgProvider.GetOrganisations())
+            foreach (var authClient in authClientProvider.GetAuthClients())
             {
                 // Note that we cannot use `AddHostedService` extension, because our concrete type is the same, that extension methods only adds the first
                 services.AddSingleton<IHostedService, CustodianWorker>(
@@ -117,7 +117,7 @@ namespace SUI.StubCustodians.API
                         provider.GetRequiredService<ITokenProvider>(),
                         provider.GetRequiredService<IFindApiClient>(),
                         provider.GetRequiredService<IBaseUrlProvider>(),
-                        org,
+                        authClient,
                         provider // pass IServiceProvider for scoped services
                     )
                 );

@@ -12,7 +12,7 @@ public class CustodianWorker : BackgroundService
     private readonly ITokenProvider _tokenProvider;
     private readonly IFindApiClient _client;
     private readonly IBaseUrlProvider _baseUrlProvider;
-    private readonly Organisation _org;
+    private readonly AuthClient _authClient;
     private readonly IServiceProvider _services;
 
     private readonly string _clientId;
@@ -24,7 +24,7 @@ public class CustodianWorker : BackgroundService
         ITokenProvider tokenProvider,
         IFindApiClient client,
         IBaseUrlProvider baseUrlProvider,
-        Organisation org,
+        AuthClient authClient,
         IServiceProvider services
     )
     {
@@ -32,12 +32,11 @@ public class CustodianWorker : BackgroundService
         _tokenProvider = tokenProvider;
         _client = client;
         _baseUrlProvider = baseUrlProvider;
-        _org = org;
+        _authClient = authClient;
         _services = services;
 
-        var auth = org.Records.First().Connection.Auth;
-        _clientId = auth.ClientId;
-        _clientSecret = auth.ClientSecret;
+        _clientId = authClient.ClientId;
+        _clientSecret = authClient.ClientSecret;
 
         _intervalSeconds = Random.Shared.Next(30, 121);
     }
@@ -46,8 +45,8 @@ public class CustodianWorker : BackgroundService
     {
         if (_logger.IsEnabled(LogLevel.Information))
             _logger.LogInformation(
-                "Custodian {OrgId} started. Interval: {Interval}s",
-                _org.OrgId,
+                "Custodian {ClientId} started. Interval: {Interval}s",
+                _authClient.ClientId,
                 _intervalSeconds
             );
 
@@ -69,7 +68,7 @@ public class CustodianWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Polling failed for {OrgId}", _org.OrgId);
+                _logger.LogError(ex, "Polling failed for {ClientId}", _authClient.ClientId);
             }
 
             await Task.Delay(TimeSpan.FromSeconds(_intervalSeconds), stoppingToken);
@@ -88,7 +87,7 @@ public class CustodianWorker : BackgroundService
             {
                 ["JobId"] = job.JobId,
                 ["LeaseId"] = job.LeaseId,
-                ["OrgId"] = _org.OrgId,
+                ["OrgId"] = _authClient.ClientId,
             }
         );
 
@@ -99,7 +98,7 @@ public class CustodianWorker : BackgroundService
                 {
                     job.JobId,
                     job.LeaseId,
-                    _org.OrgId,
+                    _authClient.ClientId,
                 }
             );
 
@@ -112,7 +111,7 @@ public class CustodianWorker : BackgroundService
         var baseUrl = _baseUrlProvider.GetBaseUrl();
 
         var manifest = await manifestService.GetManifestForOrganisation(
-            _org.OrgId,
+            _authClient.ClientId,
             job.Sui,
             baseUrl,
             job.RecordType,
@@ -138,6 +137,8 @@ public class CustodianWorker : BackgroundService
         await _client.SubmitAsync(token, result);
 
         if (_logger.IsEnabled(LogLevel.Information))
+        {
             _logger.LogInformation("Submitted {Count} records", result.Records.Count);
+        }
     }
 }
