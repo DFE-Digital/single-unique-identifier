@@ -46,9 +46,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFhirService, FhirService>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<ISecretService, AzureKeyVaultSecretService>();
-        services.AddSingleton<IJobRepository, JobRepository>();
-        services.AddSingleton<IWorkItemJobCountRepository, WorkItemJobCountRepository>();
-        services.AddSingleton<IJobSearchService, JobSearchService>();
 
         var useStubAuthTokenService = configuration.GetValue<bool>("UseStubAuthTokenService");
         if (useStubAuthTokenService)
@@ -64,8 +61,12 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<JobClaimConfig>().BindConfiguration(JobClaimConfig.SectionName);
         services.AddSingleton<IJobRepository, JobRepository>();
+        services.AddSingleton<IWorkItemJobCountRepository, WorkItemJobCountRepository>();
+        services.AddSingleton<IJobSearchService, JobSearchService>();
         services.AddSingleton<IJobWindowStartService, JobWindowStartService>();
         services.AddSingleton<IJobClaimService, JobClaimService>();
+        services.AddSingleton<IJobProcessorService, JobProcessorService>();
+        services.AddSingleton<IJobResultsQueueClient, JobResultsQueueClient>();
 
         return services;
     }

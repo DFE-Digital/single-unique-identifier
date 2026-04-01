@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -13,31 +14,25 @@ public class CustodianWorkerTests
     private readonly ILogger<CustodianWorker> _logger = Substitute.For<ILogger<CustodianWorker>>();
     private readonly ITokenProvider _tokenProvider = Substitute.For<ITokenProvider>();
     private readonly IFindApiClient _client = Substitute.For<IFindApiClient>();
-    private readonly IBaseUrlProvider _baseUrlProvider = Substitute.For<IBaseUrlProvider>();
+    private readonly IConfiguration _config = Substitute.For<IConfiguration>();
     private readonly IManifestService _manifestService = Substitute.For<IManifestService>();
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
     private readonly IServiceScope _serviceScope = Substitute.For<IServiceScope>();
     private readonly IServiceScopeFactory _scopeFactory = Substitute.For<IServiceScopeFactory>();
 
-    private readonly Organisation _testOrg;
+    private readonly AuthClient _testClient;
 
     public CustodianWorkerTests()
     {
-        _testOrg = new Organisation
+        _testClient = new AuthClient()
         {
-            OrgId = "test-org-123",
-            Records =
-            [
-                new RecordDefinition
-                {
-                    RecordType = "RT-1",
-                    Connection = new Connection
-                    {
-                        Auth = new AuthConfig() { ClientId = "client-id", ClientSecret = "secret" },
-                    },
-                },
-            ],
+            ClientId = "client-id",
+            ClientSecret = "secret",
+            Enabled = true,
+            AllowedScopes = ["test-scope"],
         };
+
+        _logger.IsEnabled(LogLevel.Information).Returns(true);
 
         // Setup Service Provider Mocking Chain
         _serviceProvider.GetService(typeof(IServiceScopeFactory)).Returns(_scopeFactory);
@@ -68,11 +63,11 @@ public class CustodianWorkerTests
 
         _tokenProvider.GetTokenAsync("client-id", "secret").Returns(token);
         _client.ClaimAsync(token).Returns(job);
-        _baseUrlProvider.GetBaseUrl().Returns("https://api.test");
+        _config["StubCustodians:BaseUrl"].Returns("https://api.test");
 
         _manifestService
             .GetManifestForOrganisation(
-                _testOrg.OrgId,
+                _testClient.ClientId,
                 job.Sui,
                 "https://api.test",
                 job.RecordType,
@@ -85,8 +80,8 @@ public class CustodianWorkerTests
             _logger,
             _tokenProvider,
             _client,
-            _baseUrlProvider,
-            _testOrg,
+            _config,
+            _testClient,
             _serviceProvider
         );
         using var cts = new CancellationTokenSource();
@@ -128,8 +123,8 @@ public class CustodianWorkerTests
             _logger,
             _tokenProvider,
             _client,
-            _baseUrlProvider,
-            _testOrg,
+            _config,
+            _testClient,
             _serviceProvider
         );
         using var cts = new CancellationTokenSource();
@@ -164,8 +159,8 @@ public class CustodianWorkerTests
             _logger,
             _tokenProvider,
             _client,
-            _baseUrlProvider,
-            _testOrg,
+            _config,
+            _testClient,
             _serviceProvider
         );
         using var cts = new CancellationTokenSource();

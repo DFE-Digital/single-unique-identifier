@@ -2,7 +2,7 @@ using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.Application.Interfaces;
 
-public interface IOrgDirectoryProvider
+public interface IAuthClientProvider
 {
-    IReadOnlyList<Organisation> GetOrganisations();
+    IReadOnlyList<AuthClient> GetAuthClients();
 }
