@@ -25,6 +25,12 @@ public class JobResultsQueueClient(
         try
         {
             await queueClient.SendMessageAsync(base64, cancellationToken);
+
+            logger.LogInformation(
+                "Job results posted to queue for JobId {JobId} by CustodianId {CustodianId}",
+                message.JobId,
+                message.CustodianId
+            );
         }
         catch (Exception ex)
         {
