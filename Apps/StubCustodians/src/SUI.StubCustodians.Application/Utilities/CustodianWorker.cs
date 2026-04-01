@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,8 +11,8 @@ public class CustodianWorker : BackgroundService
 {
     private readonly ILogger<CustodianWorker> _logger;
     private readonly ITokenProvider _tokenProvider;
-    private readonly IFindApiClient _client;
-    private readonly IBaseUrlProvider _baseUrlProvider;
+    private readonly IFindApiClient _findApiClient;
+    private readonly IConfiguration _config;
     private readonly AuthClient _authClient;
     private readonly IServiceProvider _services;
 
@@ -22,16 +23,16 @@ public class CustodianWorker : BackgroundService
     public CustodianWorker(
         ILogger<CustodianWorker> logger,
         ITokenProvider tokenProvider,
-        IFindApiClient client,
-        IBaseUrlProvider baseUrlProvider,
+        IFindApiClient findApiClient,
+        IConfiguration config,
         AuthClient authClient,
         IServiceProvider services
     )
     {
         _logger = logger;
         _tokenProvider = tokenProvider;
-        _client = client;
-        _baseUrlProvider = baseUrlProvider;
+        _findApiClient = findApiClient;
+        _config = config;
         _authClient = authClient;
         _services = services;
 
@@ -59,7 +60,7 @@ public class CustodianWorker : BackgroundService
                 using var scope = _services.CreateScope();
                 var manifestService = scope.ServiceProvider.GetRequiredService<IManifestService>();
 
-                var job = await _client.ClaimAsync(token);
+                var job = await _findApiClient.ClaimAsync(token);
 
                 if (job != null)
                 {
@@ -108,7 +109,7 @@ public class CustodianWorker : BackgroundService
             return;
         }
 
-        var baseUrl = _baseUrlProvider.GetBaseUrl();
+        var baseUrl = _config["StubCustodians:BaseUrl"]!;
 
         var manifest = await manifestService.GetManifestForOrganisation(
             _authClient.ClientId,
@@ -134,7 +135,7 @@ public class CustodianWorker : BackgroundService
                 .ToList(),
         };
 
-        await _client.SubmitAsync(token, result);
+        await _findApiClient.SubmitAsync(token, result);
 
         if (_logger.IsEnabled(LogLevel.Information))
         {

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -13,7 +14,7 @@ public class CustodianWorkerTests
     private readonly ILogger<CustodianWorker> _logger = Substitute.For<ILogger<CustodianWorker>>();
     private readonly ITokenProvider _tokenProvider = Substitute.For<ITokenProvider>();
     private readonly IFindApiClient _client = Substitute.For<IFindApiClient>();
-    private readonly IBaseUrlProvider _baseUrlProvider = Substitute.For<IBaseUrlProvider>();
+    private readonly IConfiguration _config = Substitute.For<IConfiguration>();
     private readonly IManifestService _manifestService = Substitute.For<IManifestService>();
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
     private readonly IServiceScope _serviceScope = Substitute.For<IServiceScope>();
@@ -62,7 +63,7 @@ public class CustodianWorkerTests
 
         _tokenProvider.GetTokenAsync("client-id", "secret").Returns(token);
         _client.ClaimAsync(token).Returns(job);
-        _baseUrlProvider.GetBaseUrl().Returns("https://api.test");
+        _config["StubCustodians:BaseUrl"].Returns("https://api.test");
 
         _manifestService
             .GetManifestForOrganisation(
@@ -79,7 +80,7 @@ public class CustodianWorkerTests
             _logger,
             _tokenProvider,
             _client,
-            _baseUrlProvider,
+            _config,
             _testClient,
             _serviceProvider
         );
@@ -122,7 +123,7 @@ public class CustodianWorkerTests
             _logger,
             _tokenProvider,
             _client,
-            _baseUrlProvider,
+            _config,
             _testClient,
             _serviceProvider
         );
@@ -158,7 +159,7 @@ public class CustodianWorkerTests
             _logger,
             _tokenProvider,
             _client,
-            _baseUrlProvider,
+            _config,
             _testClient,
             _serviceProvider
         );

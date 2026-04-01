@@ -116,7 +116,7 @@ namespace SUI.StubCustodians.API
                         provider.GetRequiredService<ILogger<CustodianWorker>>(),
                         provider.GetRequiredService<ITokenProvider>(),
                         provider.GetRequiredService<IFindApiClient>(),
-                        provider.GetRequiredService<IBaseUrlProvider>(),
+                        provider.GetRequiredService<IConfiguration>(),
                         authClient,
                         provider // pass IServiceProvider for scoped services
                     )
