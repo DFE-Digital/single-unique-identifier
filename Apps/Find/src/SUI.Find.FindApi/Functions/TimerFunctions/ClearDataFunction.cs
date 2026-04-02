@@ -68,9 +68,7 @@ public class ClearDataFunction(
 
             var totalEntitiesRemoved = 0;
 
-            await foreach (
-                var tableEntityPage in tableEntities.AsPages().WithCancellation(cancellationToken)
-            )
+            await foreach (var tableEntityPage in tableEntities.AsPages())
             {
                 foreach (
                     var partitionGrouping in tableEntityPage.Values.GroupBy(x => x.PartitionKey)
