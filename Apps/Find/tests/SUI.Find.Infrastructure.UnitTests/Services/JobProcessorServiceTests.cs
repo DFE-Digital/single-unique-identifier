@@ -3,6 +3,7 @@ using NSubstitute;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
+using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services
@@ -10,6 +11,8 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
     public class JobProcessorServiceTests
     {
         private readonly IJobRepository _jobRepository = Substitute.For<IJobRepository>();
+        private readonly IWorkItemJobCountRepository _workItemJobCountRepository =
+            Substitute.For<IWorkItemJobCountRepository>();
         private readonly IJobWindowStartService _jobWindowStartService =
             Substitute.For<IJobWindowStartService>();
         private readonly JobProcessorService _service;
@@ -20,7 +23,12 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
         public JobProcessorServiceTests()
         {
             _jobWindowStartService.GetWindowStart().Returns(DateTimeOffset.UtcNow.AddDays(-1));
-            _service = new JobProcessorService(_jobRepository, _logger, _jobWindowStartService);
+            _service = new JobProcessorService(
+                _jobRepository,
+                _workItemJobCountRepository,
+                _logger,
+                _jobWindowStartService
+            );
         }
 
         private static Job CreateJob(
@@ -304,6 +312,35 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
                     Arg.Is<object>(v => v.ToString()!.Contains("No job found")),
                     Arg.Any<Exception?>(),
                     Arg.Any<Func<object, Exception?, string>>()
+                );
+        }
+
+        [Fact]
+        public async Task MarkCompletedAsync_Should_MarkJobCompleted_On_WorkItemJobCount()
+        {
+            var job = new Job
+            {
+                WorkItemId = Guid.NewGuid().ToString(),
+                JobId = Guid.NewGuid().ToString(),
+                JobType = JobType.CustodianLookup,
+                CustodianId = Guid.NewGuid().ToString(),
+                SearchingOrganisationId = "anything",
+                PayloadJson = "{}",
+            };
+
+            SetupRepo(job);
+
+            // ACT
+            await _service.MarkCompletedAsync(job.JobId, job.CustodianId, CancellationToken.None);
+
+            // ASSERT
+            await _workItemJobCountRepository
+                .Received(1)
+                .MarkJobCompletedAsync(
+                    workItemId: job.WorkItemId,
+                    jobType: JobType.CustodianLookup,
+                    jobId: job.JobId,
+                    Arg.Any<CancellationToken>()
                 );
         }
 

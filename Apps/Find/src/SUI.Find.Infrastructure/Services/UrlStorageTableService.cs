@@ -34,6 +34,7 @@ public class UrlStorageTableService(
             RequestingOrgId = request.RequestingOrg,
             RecordType = request.RecordType,
             JobId = request.JobId,
+            WorkItemId = request.WorkItemId,
         };
 
         await tableClient.AddEntityAsync(entity, ct);
