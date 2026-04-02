@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -50,8 +51,10 @@ public class JobSearchServiceTests
             )
             .Returns(null as WorkItemJobCount);
 
+        // ACT
         var result = await _sut.GetSearchResultsAsync(workItemId, "SOID-1", CancellationToken.None);
 
+        // ASSERT
         Assert.IsType<NotFound>(result.Value);
         _logger.ReceivedWithAnyArgs(1).LogInformation("No jobs found for work item ID WID-1");
     }
@@ -79,12 +82,14 @@ public class JobSearchServiceTests
                 }
             );
 
+        // ACT
         var result = await _sut.GetSearchResultsAsync(
             workItemId,
             searchingOrganisationId,
             CancellationToken.None
         );
 
+        // ASSERT
         Assert.IsType<NotFound>(result.Value);
         _logger.ReceivedWithAnyArgs(1).LogInformation("No jobs found for work item ID WID-1");
     }
@@ -114,12 +119,14 @@ public class JobSearchServiceTests
 
         var differentSearchingOrganisationId = "SOID-2";
 
+        // ACT
         var result = await _sut.GetSearchResultsAsync(
             workItemId,
             differentSearchingOrganisationId,
             CancellationToken.None
         );
 
+        // ASSERT
         Assert.IsType<Unauthorized>(result.Value);
         _logger
             .ReceivedWithAnyArgs(1)
@@ -135,25 +142,6 @@ public class JobSearchServiceTests
         var searchingOrganisationId = "SOID-1";
 
         var payload = new CustodianLookupJobPayload("SUI-1", "Health");
-
-        var workItemJobCount = new WorkItemJobCount
-        {
-            WorkItemId = workItemId,
-            JobType = JobType.CustodianLookup,
-            SearchingOrganisationId = searchingOrganisationId,
-            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
-            ExpectedJobCount = 3,
-            CreatedAtUtc = _dateTime.AddHours(-6),
-            UpdatedAtUtc = _dateTime.AddHours(-2),
-        };
-
-        _workItemJobCountRepository
-            .GetByWorkItemIdAndJobTypeAsync(
-                workItemId,
-                JobType.CustodianLookup,
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(workItemJobCount);
 
         IReadOnlyList<SearchResultEntry> searchResults =
         [
@@ -199,12 +187,34 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
+        var workItemJobCount = new WorkItemJobCount
+        {
+            WorkItemId = workItemId,
+            JobType = JobType.CustodianLookup,
+            SearchingOrganisationId = searchingOrganisationId,
+            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
+            ExpectedJobCount = 3,
+            CreatedAtUtc = _dateTime.AddHours(-6),
+            UpdatedAtUtc = _dateTime.AddHours(-2),
+            CompletedJobIds = searchResults.Select(x => x.JobId).ToFrozenSet(),
+        };
+
+        _workItemJobCountRepository
+            .GetByWorkItemIdAndJobTypeAsync(
+                workItemId,
+                JobType.CustodianLookup,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(workItemJobCount);
+
+        // ACT
         var results = await _sut.GetSearchResultsAsync(
             workItemId,
             searchingOrganisationId,
             CancellationToken.None
         );
 
+        // ASSERT
         Assert.IsType<SearchResultsV2Dto>(results.Value);
         Assert.Equal(100, results.AsT0.CompletenessPercentage);
         Assert.Equal(SearchStatus.Completed, results.AsT0.Status);
@@ -220,25 +230,6 @@ public class JobSearchServiceTests
         var searchingOrganisationId = $"so-{Guid.NewGuid()}";
 
         var payload = new CustodianLookupJobPayload("SUI-1", "Health");
-
-        var workItemJobCount = new WorkItemJobCount
-        {
-            WorkItemId = workItemId,
-            JobType = JobType.CustodianLookup,
-            SearchingOrganisationId = searchingOrganisationId,
-            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
-            ExpectedJobCount = 2,
-            CreatedAtUtc = _dateTime.AddHours(-6),
-            UpdatedAtUtc = _dateTime.AddHours(-2),
-        };
-
-        _workItemJobCountRepository
-            .GetByWorkItemIdAndJobTypeAsync(
-                workItemId,
-                JobType.CustodianLookup,
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(workItemJobCount);
 
         IReadOnlyList<SearchResultEntry> searchResults =
         [
@@ -284,12 +275,34 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
+        var workItemJobCount = new WorkItemJobCount
+        {
+            WorkItemId = workItemId,
+            JobType = JobType.CustodianLookup,
+            SearchingOrganisationId = searchingOrganisationId,
+            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
+            ExpectedJobCount = 2,
+            CreatedAtUtc = _dateTime.AddHours(-6),
+            UpdatedAtUtc = _dateTime.AddHours(-2),
+            CompletedJobIds = searchResults.Select(x => x.JobId).ToFrozenSet(),
+        };
+
+        _workItemJobCountRepository
+            .GetByWorkItemIdAndJobTypeAsync(
+                workItemId,
+                JobType.CustodianLookup,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(workItemJobCount);
+
+        // ACT
         var results = await _sut.GetSearchResultsAsync(
             workItemId,
             searchingOrganisationId,
             CancellationToken.None
         );
 
+        // ASSERT
         var resultsDto = Assert.IsType<SearchResultsV2Dto>(results.Value);
         resultsDto.CompletenessPercentage.ShouldBe(50);
         resultsDto.Status.ShouldBe(SearchStatus.Running);
@@ -305,25 +318,6 @@ public class JobSearchServiceTests
 
         var payload = new CustodianLookupJobPayload("SUI-1", "HEALTH") { Sui = "SUI-1" };
 
-        var workItemJobCount = new WorkItemJobCount
-        {
-            WorkItemId = workItemId,
-            JobType = JobType.CustodianLookup,
-            SearchingOrganisationId = searchingOrganisationId,
-            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
-            ExpectedJobCount = 5,
-            CreatedAtUtc = _dateTime.AddDays(-6),
-            UpdatedAtUtc = _dateTime.AddHours(-5),
-        };
-
-        _workItemJobCountRepository
-            .GetByWorkItemIdAndJobTypeAsync(
-                workItemId,
-                JobType.CustodianLookup,
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(workItemJobCount);
-
         IReadOnlyList<SearchResultEntry> searchResults =
         [
             new()
@@ -368,12 +362,34 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
+        var workItemJobCount = new WorkItemJobCount
+        {
+            WorkItemId = workItemId,
+            JobType = JobType.CustodianLookup,
+            SearchingOrganisationId = searchingOrganisationId,
+            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
+            ExpectedJobCount = 5,
+            CreatedAtUtc = _dateTime.AddDays(-6),
+            UpdatedAtUtc = _dateTime.AddHours(-5),
+            CompletedJobIds = searchResults.Select(x => x.JobId).ToFrozenSet(),
+        };
+
+        _workItemJobCountRepository
+            .GetByWorkItemIdAndJobTypeAsync(
+                workItemId,
+                JobType.CustodianLookup,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(workItemJobCount);
+
+        // ACT
         var results = await _sut.GetSearchResultsAsync(
             workItemId,
             searchingOrganisationId,
             CancellationToken.None
         );
 
+        // ASSERT
         Assert.IsType<SearchResultsV2Dto>(results.Value);
         Assert.Equal(60, results.AsT0.CompletenessPercentage);
         Assert.Equal(SearchStatus.Expired, results.AsT0.Status);
@@ -389,25 +405,6 @@ public class JobSearchServiceTests
         var searchingOrganisationId = "SOID-1";
         var payload = new CustodianLookupJobPayload("SUI-1", "HEALTH");
 
-        var workItemJobCount = new WorkItemJobCount
-        {
-            WorkItemId = workItemId,
-            JobType = JobType.CustodianLookup,
-            SearchingOrganisationId = searchingOrganisationId,
-            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
-            ExpectedJobCount = 5,
-            CreatedAtUtc = _dateTime.AddHours(-6),
-            UpdatedAtUtc = _dateTime.AddHours(-2),
-        };
-
-        _workItemJobCountRepository
-            .GetByWorkItemIdAndJobTypeAsync(
-                workItemId,
-                JobType.CustodianLookup,
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(workItemJobCount);
-
         IReadOnlyList<SearchResultEntry> searchResults =
         [
             new()
@@ -452,12 +449,34 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
+        var workItemJobCount = new WorkItemJobCount
+        {
+            WorkItemId = workItemId,
+            JobType = JobType.CustodianLookup,
+            SearchingOrganisationId = searchingOrganisationId,
+            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
+            ExpectedJobCount = 5,
+            CreatedAtUtc = _dateTime.AddHours(-6),
+            UpdatedAtUtc = _dateTime.AddHours(-2),
+            CompletedJobIds = searchResults.Select(x => x.JobId).ToFrozenSet(),
+        };
+
+        _workItemJobCountRepository
+            .GetByWorkItemIdAndJobTypeAsync(
+                workItemId,
+                JobType.CustodianLookup,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(workItemJobCount);
+
+        // ACT
         var results = await _sut.GetSearchResultsAsync(
             workItemId,
             searchingOrganisationId,
             CancellationToken.None
         );
 
+        // ASSERT
         Assert.IsType<SearchResultsV2Dto>(results.Value);
         Assert.Equal(60, results.AsT0.CompletenessPercentage);
         Assert.Equal(SearchStatus.Running, results.AsT0.Status);
@@ -498,12 +517,14 @@ public class JobSearchServiceTests
             .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
             .Returns(searchResults);
 
+        // ACT
         var results = await _sut.GetSearchResultsAsync(
             workItemId,
             searchingOrganisationId,
             CancellationToken.None
         );
 
+        // ASSERT
         Assert.IsType<SearchResultsV2Dto>(results.Value);
         Assert.Equal(0, results.AsT0.CompletenessPercentage);
         Assert.Equal(SearchStatus.Running, results.AsT0.Status);
