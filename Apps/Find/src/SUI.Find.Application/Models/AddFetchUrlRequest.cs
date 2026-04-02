@@ -9,4 +9,5 @@ public record AddFetchUrlRequest
     public required string RequestingOrg { get; set; }
     public required string RecordType { get; set; }
     public required TimeSpan Ttl { get; set; }
+    public required string? WorkItemId { get; set; }
 }

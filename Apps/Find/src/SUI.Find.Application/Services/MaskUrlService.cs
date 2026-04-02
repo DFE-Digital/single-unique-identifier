@@ -35,6 +35,7 @@ public class MaskUrlService(
                     RequestingOrg = input.RequestingOrg,
                     RecordType = item.RecordType,
                     Ttl = ttl,
+                    WorkItemId = input.WorkItemId,
                 };
                 await fetchUrlStorageService.AddAsync(dto, ct);
 
