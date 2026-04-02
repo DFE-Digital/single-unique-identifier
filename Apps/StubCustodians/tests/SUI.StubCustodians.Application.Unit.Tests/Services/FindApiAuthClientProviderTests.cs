@@ -22,7 +22,7 @@ public class FindApiAuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldLoadOrganisations_FromJsonFile()
+    public void GetAuthClients_ShouldLoadOrganisations_FromJsonFile()
     {
         try
         {
@@ -58,7 +58,7 @@ public class FindApiAuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldCacheResult_WhenCalledMultipleTimes()
+    public void GetAuthClients_ShouldCacheResult_WhenCalledMultipleTimes()
     {
         try
         {
@@ -94,7 +94,7 @@ public class FindApiAuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldThrow_WhenFileMissing()
+    public void GetAuthClients_ShouldThrow_WhenFileMissing()
     {
         Cleanup();
 
@@ -106,7 +106,7 @@ public class FindApiAuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldThrow_WhenJsonInvalid()
+    public void GetAuthClients_ShouldThrow_WhenJsonInvalid()
     {
         try
         {
@@ -123,7 +123,7 @@ public class FindApiAuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldReturnEmptyList_WhenJsonHasNoOrganisations()
+    public void GetAuthClients_ShouldReturnEmptyList_WhenJsonHasNoOrganisations()
     {
         try
         {
