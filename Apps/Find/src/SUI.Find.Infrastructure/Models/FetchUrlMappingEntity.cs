@@ -20,4 +20,6 @@ public sealed class FetchUrlMappingEntity : ITableEntity
     public string RecordType { get; set; } = string.Empty;
 
     public string JobId { get; set; } = string.Empty;
+
+    public string? WorkItemId { get; set; } = null;
 }
