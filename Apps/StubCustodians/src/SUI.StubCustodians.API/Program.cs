@@ -87,6 +87,7 @@ namespace SUI.StubCustodians.API
             services.AddScoped<IManifestService, ManifestService>();
             services.AddScoped<IRecordService, RecordService>();
             services.AddSingleton<IFindApiAuthClientProvider, FindApiAuthClientProvider>();
+            services.AddSingleton<IDelayService, SystemDelayService>();
 
             services.AddHttpContextAccessor();
             services.AddSingleton<IBaseUrlProvider, HttpContextBaseUrlProvider>();
@@ -118,7 +119,8 @@ namespace SUI.StubCustodians.API
                         provider.GetRequiredService<IFindApiClient>(),
                         provider.GetRequiredService<IConfiguration>(),
                         authClient,
-                        provider // pass IServiceProvider for scoped services
+                        provider, // pass IServiceProvider for scoped services
+                        provider.GetRequiredService<IDelayService>()
                     )
                 );
             }
