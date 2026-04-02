@@ -18,10 +18,10 @@ public class FindApiClient : IFindApiClient
 
     public async Task<JobInfo?> ClaimAsync(string token)
     {
-        var req = new HttpRequestMessage(HttpMethod.Post, "/v2/work/claim");
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v2/work/claim");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var res = await _http.SendAsync(req);
+        using var res = await _http.SendAsync(req);
 
         if (res.StatusCode == HttpStatusCode.NoContent)
         {
@@ -37,11 +37,15 @@ public class FindApiClient : IFindApiClient
 
     public async Task SubmitAsync(string token, SubmitJobResultsRequest request)
     {
-        var req = new HttpRequestMessage(HttpMethod.Post, "/v2/work/result");
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v2/work/result");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        req.Content = JsonContent.Create(request);
 
-        var res = await _http.SendAsync(req);
+        using var content = JsonContent.Create(request);
+        await content.LoadIntoBufferAsync(); // Local only concern, stops the HTTP client using chunked transfer encoding, which is not supported by the receiving end (Azure Functions Core Tools local dev host)
+
+        req.Content = content;
+
+        using var res = await _http.SendAsync(req);
 
         if (res.StatusCode == HttpStatusCode.Conflict)
         {

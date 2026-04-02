@@ -3,11 +3,11 @@ using SUI.StubCustodians.Application.Services;
 
 namespace SUI.StubCustodians.Application.Unit.Tests.Services;
 
-public class AuthClientProviderTests
+public class FindApiAuthClientProviderTests
 {
     private static string DataDirectory => Path.Combine(AppContext.BaseDirectory, "Data");
 
-    private static string FilePath => Path.Combine(DataDirectory, "auth-clients.json");
+    private static string FilePath => Path.Combine(DataDirectory, "auth-clients-inbound.json");
 
     private static void WriteJson(string json)
     {
@@ -22,7 +22,7 @@ public class AuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldLoadOrganisations_FromJsonFile()
+    public void GetAuthClients_ShouldLoadOrganisations_FromJsonFile()
     {
         try
         {
@@ -44,7 +44,7 @@ public class AuthClientProviderTests
 
             WriteJson(json);
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             var clients = provider.GetAuthClients();
 
@@ -58,29 +58,29 @@ public class AuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldCacheResult_WhenCalledMultipleTimes()
+    public void GetAuthClients_ShouldCacheResult_WhenCalledMultipleTimes()
     {
         try
         {
             var json = """
-                       {
-                         "clients": [
-                           {
-                             "enabled": true,
-                             "clientId": "LOCAL-AUTHORITY-01",
-                             "clientSecret": "SUIProject",
-                             "allowedScopes": [
-                               "work-item.read",
-                               "work-item.write"
-                             ]
-                           }
-                         ]
-                       }
-                       """;
+                {
+                  "clients": [
+                    {
+                      "enabled": true,
+                      "clientId": "LOCAL-AUTHORITY-01",
+                      "clientSecret": "SUIProject",
+                      "allowedScopes": [
+                        "work-item.read",
+                        "work-item.write"
+                      ]
+                    }
+                  ]
+                }
+                """;
 
             WriteJson(json);
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             var first = provider.GetAuthClients();
             var second = provider.GetAuthClients();
@@ -94,25 +94,25 @@ public class AuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldThrow_WhenFileMissing()
+    public void GetAuthClients_ShouldThrow_WhenFileMissing()
     {
         Cleanup();
 
-        var provider = new AuthClientProvider();
+        var provider = new FindApiAuthClientProvider();
 
         var ex = Assert.Throws<InvalidOperationException>(() => provider.GetAuthClients());
 
-        Assert.Contains("auth-clients.json not found", ex.Message);
+        Assert.Contains("auth-clients-inbound.json not found", ex.Message);
     }
 
     [Fact]
-    public void GetOrganisations_ShouldThrow_WhenJsonInvalid()
+    public void GetAuthClients_ShouldThrow_WhenJsonInvalid()
     {
         try
         {
             WriteJson("invalid-json");
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             Assert.ThrowsAny<JsonException>(() => provider.GetAuthClients());
         }
@@ -123,13 +123,13 @@ public class AuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldReturnEmptyList_WhenJsonHasNoOrganisations()
+    public void GetAuthClients_ShouldReturnEmptyList_WhenJsonHasNoOrganisations()
     {
         try
         {
             WriteJson("{}");
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             var result = provider.GetAuthClients();
 

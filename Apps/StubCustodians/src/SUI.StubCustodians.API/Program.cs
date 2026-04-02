@@ -86,7 +86,8 @@ namespace SUI.StubCustodians.API
             services.AddSingleton<IDataProvider, FileDataProvider>();
             services.AddScoped<IManifestService, ManifestService>();
             services.AddScoped<IRecordService, RecordService>();
-            services.AddSingleton<IAuthClientProvider, AuthClientProvider>();
+            services.AddSingleton<IFindApiAuthClientProvider, FindApiAuthClientProvider>();
+            services.AddSingleton<IDelayService, SystemDelayService>();
 
             services.AddHttpContextAccessor();
             services.AddSingleton<IBaseUrlProvider, HttpContextBaseUrlProvider>();
@@ -106,7 +107,7 @@ namespace SUI.StubCustodians.API
             });
 
             var sp = services.BuildServiceProvider();
-            var authClientProvider = sp.GetRequiredService<IAuthClientProvider>();
+            var authClientProvider = sp.GetRequiredService<IFindApiAuthClientProvider>();
 
             foreach (var authClient in authClientProvider.GetAuthClients())
             {
@@ -118,7 +119,8 @@ namespace SUI.StubCustodians.API
                         provider.GetRequiredService<IFindApiClient>(),
                         provider.GetRequiredService<IConfiguration>(),
                         authClient,
-                        provider // pass IServiceProvider for scoped services
+                        provider, // pass IServiceProvider for scoped services
+                        provider.GetRequiredService<IDelayService>()
                     )
                 );
             }

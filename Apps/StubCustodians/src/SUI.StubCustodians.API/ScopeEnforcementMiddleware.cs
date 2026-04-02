@@ -159,7 +159,7 @@ public class ScopeEnforcementMiddleware
     private static AuthStore LoadAuthStore()
     {
         var baseDir = AppContext.BaseDirectory;
-        var filePath = Path.Combine(baseDir, "Data", "auth-clients.json");
+        var filePath = Path.Combine(baseDir, "Data", "auth-clients-outbound.json");
 
         if (!File.Exists(filePath))
         {

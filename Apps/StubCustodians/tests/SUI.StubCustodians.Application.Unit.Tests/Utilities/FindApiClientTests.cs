@@ -23,7 +23,7 @@ public class FindApiClientTests
 
         var handler = new FakeHandler(req =>
         {
-            Assert.Equal("/v2/work/claim", req.RequestUri!.AbsolutePath);
+            Assert.Equal("/api/v2/work/claim", req.RequestUri!.AbsolutePath);
             Assert.Equal("Bearer", req.Headers.Authorization!.Scheme);
             Assert.Equal("token", req.Headers.Authorization.Parameter);
 
@@ -82,7 +82,7 @@ public class FindApiClientTests
     {
         var handler = new FakeHandler(req =>
         {
-            Assert.Equal("/v2/work/result", req.RequestUri!.AbsolutePath);
+            Assert.Equal("/api/v2/work/result", req.RequestUri!.AbsolutePath);
             Assert.Equal("Bearer", req.Headers.Authorization!.Scheme);
             Assert.Equal("token", req.Headers.Authorization.Parameter);
 

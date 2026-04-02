@@ -10,6 +10,7 @@ using SUI.Find.Infrastructure.Clients;
 using SUI.Find.Infrastructure.Configuration;
 using SUI.Find.Infrastructure.Factories;
 using SUI.Find.Infrastructure.Factories.Fhir;
+using SUI.Find.Infrastructure.Handlers;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -67,6 +68,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IJobClaimService, JobClaimService>();
         services.AddSingleton<IJobProcessorService, JobProcessorService>();
         services.AddSingleton<IJobResultsQueueClient, JobResultsQueueClient>();
+        services.AddSingleton<IJobResultHandler, JobResultHandler>();
 
         return services;
     }
