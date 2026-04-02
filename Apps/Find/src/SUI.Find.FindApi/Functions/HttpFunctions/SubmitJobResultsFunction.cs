@@ -7,6 +7,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
+using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Attributes;
@@ -97,13 +98,16 @@ public class SubmitJobResultsFunction(
             );
         }
 
-        using var logScope = logger.BeginScope(
+        using var activity = logger.StartActivityWithTraceParent(
+            activityName: "JobResultsSubmitted",
+            job.JobTraceParent,
             new Dictionary<string, object?>
             {
                 ["LeaseId"] = request.LeaseId,
                 ["JobId"] = job.JobId,
                 ["SubmittingCustodianId"] = custodianId,
-                ["TraceParent"] = context.TraceContext.TraceParent,
+                ["OriginalTraceParent"] = context.TraceContext.TraceParent,
+                ["TraceParent"] = job.JobTraceParent,
                 ["TraceId"] = Activity.Current?.TraceId.ToString() ?? string.Empty,
                 ["InvocationId"] = context.InvocationId,
             }
@@ -118,6 +122,7 @@ public class SubmitJobResultsFunction(
             SubmittedAtUtc = DateTimeOffset.UtcNow,
             JobType = job.JobType,
             Records = request.Records,
+            JobTraceParent = job.JobTraceParent,
         };
 
         await queueClient.SendAsync(queueMessage, cancellationToken);

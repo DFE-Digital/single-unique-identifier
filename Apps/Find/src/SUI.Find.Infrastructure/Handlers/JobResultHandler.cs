@@ -119,7 +119,7 @@ public class JobResultHandler(
         var queryProviderInput = new QueryProviderInput(
             RequestingOrg: context.SearchingOrganisationId,
             JobId: message.JobId,
-            InvocationId: "", // TODO: SUI-1625: use `message.JobTraceParent` once that is available
+            InvocationId: message.JobTraceParent ?? string.Empty,
             Suid: payload.Sui,
             Provider: context.Custodian
         )

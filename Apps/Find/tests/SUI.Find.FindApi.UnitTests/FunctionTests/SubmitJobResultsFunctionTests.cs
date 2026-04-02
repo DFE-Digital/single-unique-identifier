@@ -85,20 +85,7 @@ public class SubmitJobResultsFunctionTests
         var request = MockHttpRequestData.CreateJson(requestData);
         var context = CreateContextWithAuth("cust-1");
 
-        var job = new Job
-        {
-            JobId = requestData.JobId,
-            SearchingOrganisationId = "searching-org-1",
-            CustodianId = "cust-1",
-            JobType = JobType.CustodianLookup,
-            WorkItemId = "work-123",
-            LeaseId = requestData.LeaseId,
-            LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
-            CreatedAtUtc = DateTimeOffset.UtcNow,
-            UpdatedAtUtc = DateTimeOffset.UtcNow,
-            CompletedAtUtc = null,
-            PayloadJson = "{}",
-        };
+        var job = CreateValidJob(requestData);
 
         _jobService
             .ValidateLeaseAsync(
@@ -122,6 +109,7 @@ public class SubmitJobResultsFunctionTests
                     && m.CustodianId == "cust-1"
                     && m.LeaseId == requestData.LeaseId
                     && m.Records.Count == requestData.Records.Count
+                    && m.JobTraceParent == job.JobTraceParent
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -134,20 +122,8 @@ public class SubmitJobResultsFunctionTests
         var request = MockHttpRequestData.CreateJson(requestData);
         var context = CreateContextWithAuth("cust-1");
 
-        var job = new Job
-        {
-            JobId = requestData.JobId,
-            SearchingOrganisationId = "searching-org-1",
-            CustodianId = "cust-1",
-            JobType = JobType.CustodianLookup,
-            WorkItemId = "work-123",
-            LeaseId = requestData.LeaseId,
-            LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
-            CreatedAtUtc = DateTimeOffset.UtcNow,
-            UpdatedAtUtc = DateTimeOffset.UtcNow,
-            CompletedAtUtc = DateTimeOffset.UtcNow, // key condition
-            PayloadJson = "{}",
-        };
+        var job = CreateValidJob(requestData);
+        job.CompletedAtUtc = DateTimeOffset.UtcNow;
 
         _jobService
             .ValidateLeaseAsync(
@@ -174,20 +150,7 @@ public class SubmitJobResultsFunctionTests
         var request = MockHttpRequestData.CreateJson(requestData);
         var context = CreateContextWithAuth("cust-1");
 
-        var job = new Job
-        {
-            JobId = requestData.JobId,
-            SearchingOrganisationId = "searching-org-1",
-            CustodianId = "cust-1",
-            JobType = JobType.CustodianLookup,
-            WorkItemId = "work-123",
-            LeaseId = requestData.LeaseId,
-            LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
-            CreatedAtUtc = DateTimeOffset.UtcNow,
-            UpdatedAtUtc = DateTimeOffset.UtcNow,
-            CompletedAtUtc = null,
-            PayloadJson = "{}",
-        };
+        var job = CreateValidJob(requestData);
 
         _jobService
             .ValidateLeaseAsync(
@@ -217,6 +180,47 @@ public class SubmitJobResultsFunctionTests
         Assert.Equal("Authorization", result.Headers.GetValues("Vary").First());
     }
 
+    [Fact]
+    public async Task SubmitJobResults_ShouldPropagateJobTraceParent_ToQueueMessage()
+    {
+        // Arrange
+        var requestData = CreateValidRequest();
+        var request = MockHttpRequestData.CreateJson(requestData);
+        var context = CreateContextWithAuth("cust-1");
+
+        // Set traceparent for testing
+        var expectedTraceParent = "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01";
+
+        // Use helper to create job with init-only JobTraceParent
+        var job = CreateValidJob(requestData, expectedTraceParent);
+
+        _jobService
+            .ValidateLeaseAsync(
+                requestData.JobId,
+                requestData.LeaseId,
+                "cust-1",
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(job);
+
+        // Act
+        await _function.SubmitJobResults(request, context, CancellationToken.None);
+
+        // Assert: JobTraceParent on queue message matches job
+        await _queueClient
+            .Received(1)
+            .SendAsync(
+                Arg.Is<JobResultMessage>(m =>
+                    m.JobTraceParent == expectedTraceParent
+                    && m.JobId == job.JobId
+                    && m.WorkItemId == job.WorkItemId
+                    && m.CustodianId == job.CustodianId
+                    && m.LeaseId == job.LeaseId
+                ),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
     // Helpers
     private static SubmitJobResultsRequest CreateValidRequest()
     {
@@ -237,6 +241,26 @@ public class SubmitJobResultsFunctionTests
             ],
         };
     }
+
+    private static Job CreateValidJob(
+        SubmitJobResultsRequest request,
+        string? jobTraceParent = null
+    ) =>
+        new()
+        {
+            JobId = request.JobId,
+            SearchingOrganisationId = "searching-org-1",
+            CustodianId = "cust-1",
+            JobType = JobType.CustodianLookup,
+            WorkItemId = "work-123",
+            LeaseId = request.LeaseId,
+            LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            UpdatedAtUtc = DateTimeOffset.UtcNow,
+            CompletedAtUtc = null,
+            PayloadJson = "{}",
+            JobTraceParent = jobTraceParent ?? "00-defaulttraceparent",
+        };
 
     private static FunctionContext CreateContextWithAuth(string clientId)
     {

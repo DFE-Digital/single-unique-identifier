@@ -25,24 +25,11 @@ public class JobResultHandlerFunctionTests
     [Fact]
     public async Task Run_ShouldInvokeHandler_WithCorrectMessage()
     {
-        // Arrange
-        var message = new JobResultMessage
-        {
-            JobId = "job-123",
-            WorkItemId = "work-123",
-            CustodianId = "cust-1",
-            LeaseId = "lease-1",
-            SubmittedAtUtc = DateTimeOffset.UtcNow,
-            JobType = Application.Enums.JobType.CustodianLookup,
-            Records = [],
-        };
-
+        var message = CreateMessage();
         var context = CreateFunctionContext();
 
-        // Act
         await _function.Run(message, context, CancellationToken.None);
 
-        // Assert
         await _handler
             .Received(1)
             .HandleAsync(
@@ -56,25 +43,12 @@ public class JobResultHandlerFunctionTests
     [Fact]
     public async Task Run_ShouldPassCancellationToken()
     {
-        // Arrange
-        var message = new JobResultMessage
-        {
-            JobId = "job-123",
-            WorkItemId = "work-123",
-            CustodianId = "cust-1",
-            LeaseId = "lease-1",
-            SubmittedAtUtc = DateTimeOffset.UtcNow,
-            JobType = Application.Enums.JobType.CustodianLookup,
-            Records = [],
-        };
-
+        var message = CreateMessage();
         var context = CreateFunctionContext();
         var cts = new CancellationTokenSource();
 
-        // Act
         await _function.Run(message, context, cts.Token);
 
-        // Assert
         await _handler
             .Received(1)
             .HandleAsync(
@@ -83,7 +57,19 @@ public class JobResultHandlerFunctionTests
             );
     }
 
-    // Helpers
+    private static JobResultMessage CreateMessage() =>
+        new()
+        {
+            JobId = "job-123",
+            WorkItemId = "work-123",
+            CustodianId = "cust-1",
+            LeaseId = "lease-1",
+            SubmittedAtUtc = DateTimeOffset.UtcNow,
+            JobType = Application.Enums.JobType.CustodianLookup,
+            JobTraceParent = "00-a79f009d81f57b385d70d5e1202185d8-68e6fb3a378f6fe3-01",
+            Records = [],
+        };
+
     private static FunctionContext CreateFunctionContext()
     {
         var context = Substitute.For<FunctionContext>();
