@@ -195,6 +195,7 @@ public class ScopeEnforcementMiddleware
         string detail
     )
     {
+        context.Response.StatusCode = (int)code;
         await context.Response.WriteAsJsonAsync(
             TypedResults.Problem(detail, null, (int)code, title)
         );
