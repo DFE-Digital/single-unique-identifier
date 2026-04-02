@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using OneOf.Types;
+using Shouldly;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
@@ -27,6 +28,7 @@ public class JobSearchServiceTests
 
     public JobSearchServiceTests()
     {
+        _logger.IsEnabled(LogLevel.Information).Returns(true);
         _jobWindowStartService.GetWindowStart().Returns(_dateTime.AddHours(-72));
         _sut = new JobSearchService(
             _searchResultEntryRepository,
@@ -209,6 +211,90 @@ public class JobSearchServiceTests
         Assert.Equal(payload.Sui, results.AsT0.Suid);
         Assert.Equal(workItemId, results.AsT0.WorkItemId);
         Assert.Equal(searchResults, results.AsT0.Items);
+    }
+
+    [Fact]
+    public async Task GetSearchResults_UsesDistinctJobCount_ToDeriveCompletenessPercentage()
+    {
+        var workItemId = $"wi-{Guid.NewGuid()}";
+        var searchingOrganisationId = $"so-{Guid.NewGuid()}";
+
+        var payload = new CustodianLookupJobPayload("SUI-1", "Health");
+
+        var workItemJobCount = new WorkItemJobCount
+        {
+            WorkItemId = workItemId,
+            JobType = JobType.CustodianLookup,
+            SearchingOrganisationId = searchingOrganisationId,
+            PayloadJson = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web),
+            ExpectedJobCount = 2,
+            CreatedAtUtc = _dateTime.AddHours(-6),
+            UpdatedAtUtc = _dateTime.AddHours(-2),
+        };
+
+        _workItemJobCountRepository
+            .GetByWorkItemIdAndJobTypeAsync(
+                workItemId,
+                JobType.CustodianLookup,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(workItemJobCount);
+
+        IReadOnlyList<SearchResultEntry> searchResults =
+        [
+            new()
+            {
+                CustodianId = "CUS-1",
+                CustodianName = "Custodian-1",
+                JobId = "JOB-1",
+                WorkItemId = workItemId,
+                RecordType = "HEALTH",
+                SystemId = "SYS-1",
+                RecordUrl = "URL-1",
+                RecordId = "12345",
+                SearchingOrganisationId = searchingOrganisationId,
+            },
+            new()
+            {
+                CustodianId = "CUS-1",
+                CustodianName = "Custodian-1",
+                JobId = "JOB-1",
+                WorkItemId = workItemId,
+                RecordType = "HEALTH",
+                SystemId = "SYS-2",
+                RecordUrl = "URL-2",
+                RecordId = "xyz",
+                SearchingOrganisationId = searchingOrganisationId,
+            },
+            new()
+            {
+                CustodianId = "CUS-1",
+                CustodianName = "Custodian-1",
+                JobId = "JOB-1",
+                WorkItemId = workItemId,
+                RecordType = "HEALTH",
+                SystemId = "SYS-3",
+                RecordUrl = "URL-3",
+                RecordId = "efg",
+                SearchingOrganisationId = searchingOrganisationId,
+            },
+        ];
+
+        _searchResultEntryRepository
+            .GetByWorkItemIdAsync(workItemId, searchingOrganisationId, Arg.Any<CancellationToken>())
+            .Returns(searchResults);
+
+        var results = await _sut.GetSearchResultsAsync(
+            workItemId,
+            searchingOrganisationId,
+            CancellationToken.None
+        );
+
+        var resultsDto = Assert.IsType<SearchResultsV2Dto>(results.Value);
+        resultsDto.CompletenessPercentage.ShouldBe(50);
+        resultsDto.Status.ShouldBe(SearchStatus.Running);
+        resultsDto.WorkItemId.ShouldBe(workItemId);
+        resultsDto.Suid.ShouldBe("SUI-1");
     }
 
     [Fact]
