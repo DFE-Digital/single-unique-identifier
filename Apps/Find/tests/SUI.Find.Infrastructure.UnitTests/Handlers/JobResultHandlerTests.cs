@@ -145,9 +145,9 @@ public class JobResultHandlerTests
                 message.WorkItemId,
                 message.JobType,
                 Arg.Any<CancellationToken>()
-            )!
+            )
             .Returns(
-                Task.FromResult(
+                Task.FromResult<WorkItemJobCount?>(
                     new WorkItemJobCount
                     {
                         PayloadJson = JsonSerializer.Serialize(payload),

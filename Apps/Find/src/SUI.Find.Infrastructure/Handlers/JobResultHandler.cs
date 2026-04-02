@@ -124,7 +124,7 @@ public class JobResultHandler(
             Provider: context.Custodian
         )
         {
-            WorkItemId = message.JobId,
+            WorkItemId = message.WorkItemId,
         };
 
         var input = MapRecordsToResultItems(message.Records, context);
