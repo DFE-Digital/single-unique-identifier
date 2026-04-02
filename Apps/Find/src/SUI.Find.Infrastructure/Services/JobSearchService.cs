@@ -73,7 +73,7 @@ public class JobSearchService(
             WorkItemId = workItemId,
             Suid = payload?.Sui ?? string.Empty,
             Status = status,
-            Items = completedRecords,
+            Items = completedRecords.Select(SearchResultItem (x) => x).ToArray(),
             CompletenessPercentage = completenessPercentage,
         };
 

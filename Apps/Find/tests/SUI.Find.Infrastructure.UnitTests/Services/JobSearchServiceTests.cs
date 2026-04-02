@@ -30,7 +30,9 @@ public class JobSearchServiceTests
     public JobSearchServiceTests()
     {
         _logger.IsEnabled(LogLevel.Information).Returns(true);
+
         _jobWindowStartService.GetWindowStart().Returns(_dateTime.AddHours(-72));
+
         _sut = new JobSearchService(
             _searchResultEntryRepository,
             _workItemJobCountRepository,
