@@ -334,7 +334,13 @@ public class JobResultHandlerTests
             .Received(1)
             .CreateAsync(
                 Arg.Is<List<CustodianSearchResultItem>>(x => x.Count == 2),
-                Arg.Any<QueryProviderInput>(),
+                Arg.Is<QueryProviderInput>(x =>
+                    x.WorkItemId == message.WorkItemId
+                    && x.RequestingOrg == searchingOrganisationId
+                    && x.JobId == message.JobId
+                    && x.Suid == "sui1"
+                    && x.Provider.OrgId == message.CustodianId
+                ),
                 Arg.Any<CancellationToken>()
             );
     }
