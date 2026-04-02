@@ -40,11 +40,37 @@ public class JobResultsQueueClientTests
 
         // Assert
         _queueClientFactory.Received(1).GetJobResultsClient();
+
         await _queueSender
             .Received(1)
             .SendMessageAsync(
                 Arg.Is<string>(s => Base64.IsValid(s) && Convert.FromBase64String(s).Length > 1),
                 Arg.Any<CancellationToken>()
+            );
+    }
+
+    [Fact]
+    public async Task SendAsync_ShouldLogInformation_WhenMessageSentSuccessfully()
+    {
+        // Arrange
+        var message = GetMockJobResultMessage();
+
+        _queueSender
+            .SendMessageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _client.SendAsync(message, CancellationToken.None);
+
+        // Assert
+        _logger
+            .Received(1)
+            .Log(
+                LogLevel.Information,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o => o.ToString()!.Contains("Job results posted to queue")),
+                null,
+                Arg.Any<Func<object, Exception?, string>>()
             );
     }
 
@@ -88,6 +114,7 @@ public class JobResultsQueueClientTests
             CustodianId = "test-custodian",
             SubmittedAtUtc = DateTimeOffset.UtcNow,
             JobType = JobType.CustodianLookup,
+            JobTraceParent = "00-a79f009d81f57b385d70d5e1202185d8-68e6fb3a378f6fe3-01",
             Records =
             [
                 new()
