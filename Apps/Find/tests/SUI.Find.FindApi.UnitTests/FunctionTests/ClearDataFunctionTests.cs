@@ -13,6 +13,9 @@ using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
+// Ignore "Evaluation of this argument may be expensive and unnecessary if logging is disabled" - these are tests!
+#pragma warning disable CA1873
+
 public class ClearDataFunctionTests
 {
     private readonly ILogger<ClearDataFunction> _mockLogger = Substitute.For<
@@ -116,9 +119,19 @@ public class ClearDataFunctionTests
                 Arg.Any<CancellationToken>()
             );
 
+        _mockLogger.ReceivedWithAnyArgs(3).LogInformation("*");
+
         _mockLogger
-            .ReceivedWithAnyArgs(3)
-            .LogInformation("1 entities deleted from instance history");
+            .Received()
+            .Log(
+                LogLevel.Information,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>(
+                    (object x) => $"{x}" == "1 entities deleted from instance history"
+                ),
+                null,
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
+            );
     }
 
     [Fact]
@@ -207,10 +220,18 @@ public class ClearDataFunctionTests
             );
 
         _mockLogger
-            .ReceivedWithAnyArgs(1)
-            .LogError(
-                Arg.Any<RequestFailedException?>(),
-                "Error querying or clearing table. Table server failed the request."
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>(
+                    (object x) =>
+                        $"{x}".Contains(
+                            "Error querying or clearing table. Table server failed the request."
+                        )
+                ),
+                Arg.Any<RequestFailedException>(),
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
             );
 
         await _tableClient
@@ -269,10 +290,18 @@ public class ClearDataFunctionTests
             );
 
         _mockLogger
-            .ReceivedWithAnyArgs(1)
-            .LogError(
-                Arg.Any<TableTransactionFailedException?>(),
-                "Error querying or clearing table. Table server failed the request."
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>(
+                    (object x) =>
+                        $"{x}".Contains(
+                            "One of the batch delete transactions failed. Table server failed the request."
+                        )
+                ),
+                Arg.Any<TableTransactionFailedException>(),
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
             );
 
         await _tableClient
