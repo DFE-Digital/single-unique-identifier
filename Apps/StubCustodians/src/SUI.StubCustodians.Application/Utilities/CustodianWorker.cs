@@ -15,6 +15,7 @@ public class CustodianWorker : BackgroundService
     private readonly IConfiguration _config;
     private readonly AuthClient _authClient;
     private readonly IServiceProvider _services;
+    private readonly IDelayService _delayService;
 
     private readonly string _clientId;
     private readonly string _clientSecret;
@@ -26,7 +27,8 @@ public class CustodianWorker : BackgroundService
         IFindApiClient findApiClient,
         IConfiguration config,
         AuthClient authClient,
-        IServiceProvider services
+        IServiceProvider services,
+        IDelayService delayService
     )
     {
         _logger = logger;
@@ -35,6 +37,7 @@ public class CustodianWorker : BackgroundService
         _config = config;
         _authClient = authClient;
         _services = services;
+        _delayService = delayService;
 
         _clientId = authClient.ClientId;
         _clientSecret = authClient.ClientSecret;
@@ -53,6 +56,8 @@ public class CustodianWorker : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            bool sleep;
+
             try
             {
                 var token = await _tokenProvider.GetTokenAsync(_clientId, _clientSecret);
@@ -62,6 +67,8 @@ public class CustodianWorker : BackgroundService
 
                 var job = await _findApiClient.ClaimAsync(token);
 
+                sleep = job == null; // i.e. do not sleep if we have just claimed a job, because there may be more to claim straight away. Only sleep if there was nothing to claim.
+
                 if (job != null)
                 {
                     await ProcessJob(job, token, manifestService, stoppingToken);
@@ -70,9 +77,16 @@ public class CustodianWorker : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Polling failed for {ClientId}", _authClient.ClientId);
+                sleep = true;
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(_intervalSeconds), stoppingToken);
+            if (sleep)
+            {
+                await _delayService.DelayAsync(
+                    TimeSpan.FromSeconds(_intervalSeconds),
+                    stoppingToken
+                );
+            }
         }
     }
 
