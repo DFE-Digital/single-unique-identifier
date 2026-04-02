@@ -205,4 +205,53 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
                 new { WorkItemId = workItemId, SearchingOrganisationId = (string?)null }
             );
     }
+
+    [Fact]
+    public async Task MarkJobCompletedAsync_CanAtomically_Update_CompletedJobIds_HashSet()
+    {
+        var workItemId = $"WI_{Guid.NewGuid()}";
+        var searchingOrganisationId = $"SOID_{Guid.NewGuid()}";
+        const JobType jobType = JobType.CustodianLookup;
+        var now = DateTimeOffset.UtcNow;
+
+        var entity = new WorkItemJobCount
+        {
+            WorkItemId = workItemId,
+            JobType = jobType,
+            ExpectedJobCount = 3,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+            SearchingOrganisationId = searchingOrganisationId,
+            PayloadJson = "{}",
+        };
+
+        await _sut.UpsertAsync(entity);
+
+        var testCompletedJobIds = Enumerable
+            .Range(0, 100)
+            .Select(_ => Guid.NewGuid().ToString())
+            .ToArray();
+
+        // ACT
+        await Parallel.ForEachAsync(
+            testCompletedJobIds,
+            async (completedJobId, cancellationToken) =>
+            {
+                await _sut.MarkJobCompletedAsync(
+                    workItemId,
+                    jobType,
+                    completedJobId,
+                    cancellationToken
+                );
+            }
+        );
+
+        // ASSERT
+        var result = await _sut.GetByWorkItemIdAndJobTypeAsync(workItemId, jobType);
+
+        result.Should().NotBeNull();
+        result.WorkItemId.Should().Be(workItemId);
+        result.CompletedJobIds.Should().HaveCount(100);
+        result.CompletedJobIds.Should().BeEquivalentTo(testCompletedJobIds);
+    }
 }

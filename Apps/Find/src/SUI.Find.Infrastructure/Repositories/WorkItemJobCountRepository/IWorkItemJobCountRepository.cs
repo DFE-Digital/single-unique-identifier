@@ -9,6 +9,13 @@ public interface IWorkItemJobCountRepository
         CancellationToken cancellationToken = default
     );
 
+    Task MarkJobCompletedAsync(
+        string workItemId,
+        JobType jobType,
+        string jobId,
+        CancellationToken cancellationToken = default
+    );
+
     Task<WorkItemJobCount?> GetByWorkItemIdAndJobTypeAsync(
         string workItemId,
         JobType jobType,

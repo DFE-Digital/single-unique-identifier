@@ -56,7 +56,7 @@ public class JobSearchService(
             cancellationToken
         );
 
-        var completedJobCount = completedRecords.DistinctBy(record => record.JobId).Count();
+        var completedJobCount = workItemJobCountEntity.CompletedJobIds.Count;
 
         var completenessPercentage =
             completedJobCount * 100 / workItemJobCountEntity.ExpectedJobCount;
