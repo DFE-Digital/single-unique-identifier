@@ -51,7 +51,7 @@ public class MockAuthStoreService(IFileSystem fileSystem) : IAuthStoreService
     private async Task<AuthStore> GetStore()
     {
         var baseDir = AppContext.BaseDirectory;
-        var filePath = Path.Combine(baseDir, "Data", "auth-clients.json");
+        var filePath = Path.Combine(baseDir, "Data", "auth-clients-inbound.json");
 
         if (!File.Exists(filePath))
         {
