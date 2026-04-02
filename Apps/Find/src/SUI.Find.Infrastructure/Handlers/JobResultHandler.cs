@@ -16,6 +16,7 @@ namespace SUI.Find.Infrastructure.Handlers;
 public class JobResultHandler(
     ILogger<JobResultHandler> logger,
     IJobProcessorService jobService,
+    IMaskUrlService maskUrlService,
     IIdRegisterRepository idRegisterRepository,
     IWorkItemJobCountRepository workItemJobCountRepository,
     ICustodianService custodianService,
@@ -63,15 +64,17 @@ public class JobResultHandler(
             return;
         }
 
-        await UpsertIdRegister(message, payload, cancellationToken);
-
         var context = await BuildContext(message, cancellationToken);
         if (context is null)
         {
             return;
         }
 
-        var filtered = await ApplyPepFiltering(message.Records, context, cancellationToken);
+        var records = await MaskUrlsAsync(message, context, payload, cancellationToken);
+
+        await UpsertIdRegister(message, payload, cancellationToken);
+
+        var filtered = await ApplyPepFiltering(records, context, cancellationToken);
 
         await PersistSearchResults(filtered, message, context, cancellationToken);
 
@@ -105,6 +108,30 @@ public class JobResultHandler(
         return JsonSerializer.Deserialize<SearchWorkItemPayload>(jobCount.PayloadJson);
     }
 
+    // Mask URLs
+    private async Task<IReadOnlyList<CustodianSearchResultItem>> MaskUrlsAsync(
+        JobResultMessage message,
+        JobContext context,
+        SearchWorkItemPayload payload,
+        CancellationToken cancellationToken
+    )
+    {
+        var queryProviderInput = new QueryProviderInput(
+            RequestingOrg: context.SearchingOrganisationId,
+            JobId: message.JobId,
+            InvocationId: "", // TODO: SUI-1625: use `message.JobTraceParent` once that is available
+            Suid: payload.Sui,
+            Provider: context.Custodian
+        )
+        {
+            WorkItemId = message.JobId,
+        };
+
+        var input = MapRecordsToResultItems(message.Records, context);
+
+        return await maskUrlService.CreateAsync(input, queryProviderInput, cancellationToken);
+    }
+
     // ID Register
     private async Task UpsertIdRegister(
         JobResultMessage message,
@@ -135,7 +162,7 @@ public class JobResultHandler(
     }
 
     // Context (Job + Custodians)
-    private async Task<PepContext?> BuildContext(
+    private async Task<JobContext?> BuildContext(
         JobResultMessage message,
         CancellationToken cancellationToken
     )
@@ -169,35 +196,24 @@ public class JobResultHandler(
             return null;
         }
 
-        return new PepContext(custodian.Value, searchingOrg.Value, job.SearchingOrganisationId);
+        return new JobContext(custodian.Value, searchingOrg.Value, job.SearchingOrganisationId);
     }
 
     // PEP Filtering
     private async Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> ApplyPepFiltering(
-        List<JobResultRecord> records,
-        PepContext context,
+        IReadOnlyList<CustodianSearchResultItem> records,
+        JobContext context,
         CancellationToken cancellationToken
     )
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
 
-        var input = records
-            .Select(r => new CustodianSearchResultItem(
-                context.Custodian.OrgId,
-                r.RecordType,
-                r.RecordUrl,
-                r.SystemId,
-                context.Custodian.OrgName,
-                r.RecordId
-            ))
-            .ToList();
-
         var resultsWithDecision = await pepService.FilterItemsAsync(
             context.Custodian.OrgId,
             context.SearchingOrganisation.OrgId,
             context.SearchingOrganisation.OrgType,
-            input,
+            records,
             context.Custodian.DsaPolicy,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
             cancellationToken
@@ -218,7 +234,7 @@ public class JobResultHandler(
     private async Task PersistSearchResults(
         IReadOnlyList<PepResultItem<CustodianSearchResultItem>> results,
         JobResultMessage message,
-        PepContext context,
+        JobContext context,
         CancellationToken cancellationToken
     )
     {
@@ -242,9 +258,24 @@ public class JobResultHandler(
         }
     }
 
-    private sealed record PepContext(
+    private sealed record JobContext(
         ProviderDefinition Custodian,
         ProviderDefinition SearchingOrganisation,
         string SearchingOrganisationId
     );
+
+    private static List<CustodianSearchResultItem> MapRecordsToResultItems(
+        List<JobResultRecord> records,
+        JobContext context
+    ) =>
+        records
+            .Select(r => new CustodianSearchResultItem(
+                context.Custodian.OrgId,
+                r.RecordType,
+                r.RecordUrl,
+                r.SystemId,
+                context.Custodian.OrgName,
+                r.RecordId
+            ))
+            .ToList();
 }

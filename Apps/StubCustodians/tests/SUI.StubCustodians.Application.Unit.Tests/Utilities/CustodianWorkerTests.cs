@@ -17,6 +17,7 @@ public class CustodianWorkerTests
     private readonly IConfiguration _config = Substitute.For<IConfiguration>();
     private readonly IManifestService _manifestService = Substitute.For<IManifestService>();
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
+    private readonly IDelayService _delayService = Substitute.For<IDelayService>();
     private readonly IServiceScope _serviceScope = Substitute.For<IServiceScope>();
     private readonly IServiceScopeFactory _scopeFactory = Substitute.For<IServiceScopeFactory>();
 
@@ -34,6 +35,11 @@ public class CustodianWorkerTests
 
         _logger.IsEnabled(LogLevel.Information).Returns(true);
 
+        // Ensure delay does not actually wait during tests
+        _delayService
+            .DelayAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
         // Setup Service Provider Mocking Chain
         _serviceProvider.GetService(typeof(IServiceScopeFactory)).Returns(_scopeFactory);
         _scopeFactory.CreateScope().Returns(_serviceScope);
@@ -46,6 +52,7 @@ public class CustodianWorkerTests
     {
         // Arrange
         var token = "fake-jwt-token";
+
         var job = new JobInfo
         {
             JobId = "job-abc",
@@ -75,19 +82,21 @@ public class CustodianWorkerTests
             )
             .Returns(manifestItems);
 
-        // Act
         var worker = new CustodianWorker(
             _logger,
             _tokenProvider,
             _client,
             _config,
             _testClient,
-            _serviceProvider
+            _serviceProvider,
+            _delayService
         );
+
         using var cts = new CancellationTokenSource();
 
+        // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100, cts.Token); // Allow the worker loop to run at least once
+        await Task.Delay(100);
         await cts.CancelAsync();
         await task;
 
@@ -116,21 +125,24 @@ public class CustodianWorkerTests
         };
 
         _tokenProvider.GetTokenAsync(Arg.Any<string>(), Arg.Any<string>()).Returns("token");
+
         _client.ClaimAsync("token").Returns(job);
 
-        // Act
         var worker = new CustodianWorker(
             _logger,
             _tokenProvider,
             _client,
             _config,
             _testClient,
-            _serviceProvider
+            _serviceProvider,
+            _delayService
         );
+
         using var cts = new CancellationTokenSource();
 
+        // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100, cts.Token);
+        await Task.Delay(100);
         await cts.CancelAsync();
         await task;
 
@@ -154,19 +166,21 @@ public class CustodianWorkerTests
             .GetTokenAsync(Arg.Any<string>(), Arg.Any<string>())
             .Throws(new Exception("API Down"));
 
-        // Act
         var worker = new CustodianWorker(
             _logger,
             _tokenProvider,
             _client,
             _config,
             _testClient,
-            _serviceProvider
+            _serviceProvider,
+            _delayService
         );
+
         using var cts = new CancellationTokenSource();
 
+        // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100, cts.Token);
+        await Task.Delay(100);
         await cts.CancelAsync();
         await task;
 
@@ -180,5 +194,93 @@ public class CustodianWorkerTests
                 Arg.Is<Exception>(ex => ex.Message == "API Down"),
                 Arg.Any<Func<Arg.AnyType, Exception?, string>>()
             );
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldSleep_WhenNoJobReturned()
+    {
+        // Arrange
+        _tokenProvider.GetTokenAsync(Arg.Any<string>(), Arg.Any<string>()).Returns("token");
+
+        _client.ClaimAsync("token").Returns((JobInfo?)null);
+
+        var worker = new CustodianWorker(
+            _logger,
+            _tokenProvider,
+            _client,
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
+        );
+
+        using var cts = new CancellationTokenSource();
+
+        // Act
+        var task = worker.StartAsync(cts.Token);
+        await Task.Delay(100);
+        await cts.CancelAsync();
+        await task;
+
+        // Assert
+        await _delayService
+            .Received()
+            .DelayAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldNotSleep_WhenJobIsReturned()
+    {
+        // Arrange
+        var token = "token";
+
+        var job = new JobInfo
+        {
+            JobId = "job-1",
+            LeaseId = "lease-1",
+            CustodianId = "cust-1",
+            LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
+            Sui = "SUI-123",
+            RecordType = "Document",
+        };
+
+        _tokenProvider.GetTokenAsync(Arg.Any<string>(), Arg.Any<string>()).Returns(token);
+
+        _client.ClaimAsync(token).Returns(job);
+
+        _config["StubCustodians:BaseUrl"].Returns("https://api.test");
+
+        _manifestService
+            .GetManifestForOrganisation(
+                _testClient.ClientId,
+                job.Sui,
+                "https://api.test",
+                job.RecordType,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new List<SearchResultItem>());
+
+        var worker = new CustodianWorker(
+            _logger,
+            _tokenProvider,
+            _client,
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
+        );
+
+        using var cts = new CancellationTokenSource();
+
+        // Act
+        var task = worker.StartAsync(cts.Token);
+        await Task.Delay(100);
+        await cts.CancelAsync();
+        await task;
+
+        // Assert
+        await _delayService
+            .DidNotReceive()
+            .DelayAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>());
     }
 }

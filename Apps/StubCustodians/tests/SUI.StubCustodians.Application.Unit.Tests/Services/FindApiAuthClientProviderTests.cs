@@ -3,7 +3,7 @@ using SUI.StubCustodians.Application.Services;
 
 namespace SUI.StubCustodians.Application.Unit.Tests.Services;
 
-public class AuthClientProviderTests
+public class FindApiAuthClientProviderTests
 {
     private static string DataDirectory => Path.Combine(AppContext.BaseDirectory, "Data");
 
@@ -22,7 +22,7 @@ public class AuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldLoadOrganisations_FromJsonFile()
+    public void GetAuthClients_ShouldLoadOrganisations_FromJsonFile()
     {
         try
         {
@@ -44,7 +44,7 @@ public class AuthClientProviderTests
 
             WriteJson(json);
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             var clients = provider.GetAuthClients();
 
@@ -58,7 +58,7 @@ public class AuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldCacheResult_WhenCalledMultipleTimes()
+    public void GetAuthClients_ShouldCacheResult_WhenCalledMultipleTimes()
     {
         try
         {
@@ -80,7 +80,7 @@ public class AuthClientProviderTests
 
             WriteJson(json);
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             var first = provider.GetAuthClients();
             var second = provider.GetAuthClients();
@@ -94,11 +94,11 @@ public class AuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldThrow_WhenFileMissing()
+    public void GetAuthClients_ShouldThrow_WhenFileMissing()
     {
         Cleanup();
 
-        var provider = new AuthClientProvider();
+        var provider = new FindApiAuthClientProvider();
 
         var ex = Assert.Throws<InvalidOperationException>(() => provider.GetAuthClients());
 
@@ -106,13 +106,13 @@ public class AuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldThrow_WhenJsonInvalid()
+    public void GetAuthClients_ShouldThrow_WhenJsonInvalid()
     {
         try
         {
             WriteJson("invalid-json");
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             Assert.ThrowsAny<JsonException>(() => provider.GetAuthClients());
         }
@@ -123,13 +123,13 @@ public class AuthClientProviderTests
     }
 
     [Fact]
-    public void GetOrganisations_ShouldReturnEmptyList_WhenJsonHasNoOrganisations()
+    public void GetAuthClients_ShouldReturnEmptyList_WhenJsonHasNoOrganisations()
     {
         try
         {
             WriteJson("{}");
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             var result = provider.GetAuthClients();
 

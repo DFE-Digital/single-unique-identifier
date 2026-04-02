@@ -4,11 +4,11 @@ using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.Application.Services;
 
-public class AuthClientProvider : IAuthClientProvider
+public class FindApiAuthClientProvider : IFindApiAuthClientProvider
 {
     private readonly Lazy<IReadOnlyList<AuthClient>> _authClients;
 
-    public AuthClientProvider()
+    public FindApiAuthClientProvider()
     {
         _authClients = new Lazy<IReadOnlyList<AuthClient>>(Load);
     }
