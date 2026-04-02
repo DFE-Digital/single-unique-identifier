@@ -3,7 +3,7 @@ using SUI.StubCustodians.Application.Services;
 
 namespace SUI.StubCustodians.Application.Unit.Tests.Services;
 
-public class AuthClientProviderTests
+public class FindApiAuthClientProviderTests
 {
     private static string DataDirectory => Path.Combine(AppContext.BaseDirectory, "Data");
 
@@ -44,7 +44,7 @@ public class AuthClientProviderTests
 
             WriteJson(json);
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             var clients = provider.GetAuthClients();
 
@@ -80,7 +80,7 @@ public class AuthClientProviderTests
 
             WriteJson(json);
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             var first = provider.GetAuthClients();
             var second = provider.GetAuthClients();
@@ -98,7 +98,7 @@ public class AuthClientProviderTests
     {
         Cleanup();
 
-        var provider = new AuthClientProvider();
+        var provider = new FindApiAuthClientProvider();
 
         var ex = Assert.Throws<InvalidOperationException>(() => provider.GetAuthClients());
 
@@ -112,7 +112,7 @@ public class AuthClientProviderTests
         {
             WriteJson("invalid-json");
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             Assert.ThrowsAny<JsonException>(() => provider.GetAuthClients());
         }
@@ -129,7 +129,7 @@ public class AuthClientProviderTests
         {
             WriteJson("{}");
 
-            var provider = new AuthClientProvider();
+            var provider = new FindApiAuthClientProvider();
 
             var result = provider.GetAuthClients();
 
