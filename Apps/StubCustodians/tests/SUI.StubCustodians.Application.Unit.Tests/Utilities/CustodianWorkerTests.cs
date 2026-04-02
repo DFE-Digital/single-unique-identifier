@@ -227,4 +227,60 @@ public class CustodianWorkerTests
             .Received()
             .DelayAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldNotSleep_WhenJobIsReturned()
+    {
+        // Arrange
+        var token = "token";
+
+        var job = new JobInfo
+        {
+            JobId = "job-1",
+            LeaseId = "lease-1",
+            CustodianId = "cust-1",
+            LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
+            Sui = "SUI-123",
+            RecordType = "Document",
+        };
+
+        _tokenProvider.GetTokenAsync(Arg.Any<string>(), Arg.Any<string>()).Returns(token);
+
+        _client.ClaimAsync(token).Returns(job);
+
+        _config["StubCustodians:BaseUrl"].Returns("https://api.test");
+
+        _manifestService
+            .GetManifestForOrganisation(
+                _testClient.ClientId,
+                job.Sui,
+                "https://api.test",
+                job.RecordType,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new List<SearchResultItem>());
+
+        var worker = new CustodianWorker(
+            _logger,
+            _tokenProvider,
+            _client,
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
+        );
+
+        using var cts = new CancellationTokenSource();
+
+        // Act
+        var task = worker.StartAsync(cts.Token);
+        await Task.Delay(100);
+        await cts.CancelAsync();
+        await task;
+
+        // Assert
+        await _delayService
+            .DidNotReceive()
+            .DelayAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>());
+    }
 }
