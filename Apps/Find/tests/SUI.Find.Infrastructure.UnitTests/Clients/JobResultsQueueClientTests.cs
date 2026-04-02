@@ -55,6 +55,8 @@ public class JobResultsQueueClientTests
         // Arrange
         var message = GetMockJobResultMessage();
 
+        _logger.IsEnabled(LogLevel.Information).Returns(true);
+
         _queueSender
             .SendMessageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);

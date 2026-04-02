@@ -26,11 +26,14 @@ public class JobResultsQueueClient(
         {
             await queueClient.SendMessageAsync(base64, cancellationToken);
 
-            logger.LogInformation(
-                "Job results posted to queue for JobId {JobId} by CustodianId {CustodianId}",
-                message.JobId,
-                message.CustodianId
-            );
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation(
+                    "Job results posted to queue for JobId {JobId} by CustodianId {CustodianId}",
+                    message.JobId,
+                    message.CustodianId
+                );
+            }
         }
         catch (Exception ex)
         {
