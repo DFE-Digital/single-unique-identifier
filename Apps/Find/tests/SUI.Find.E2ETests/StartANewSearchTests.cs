@@ -267,10 +267,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     : null
             ) ?? "Unknown";
 
+        var topLevelTaskName = usePolling ? "workItemId" : "jobId";
         TestOutputHelper.WriteLine(
-            usePolling
-                ? $"Search started: {new { traceId, invocationId, workItemId = searchId }}"
-                : $"Search started: {new { traceId, invocationId, jobId = searchId }}"
+            $"Search started: traceId={traceId}, invocationId={invocationId}, {topLevelTaskName}={searchId}"
         );
 
         var observabilityLink = Fixture.Config.IsLocal
