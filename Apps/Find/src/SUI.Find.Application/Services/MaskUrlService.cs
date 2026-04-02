@@ -23,7 +23,7 @@ public class MaskUrlService(
         {
             try
             {
-                var ttl = TimeSpan.FromMinutes(10);
+                var ttl = TimeSpan.FromMinutes(60); // The Polling Architecture needs longer because it is inherently slower
                 var fetchId = Guid.NewGuid().ToString("N");
                 var expiresAt = DateTimeOffset.UtcNow.Add(ttl);
                 var dto = new AddFetchUrlRequest
