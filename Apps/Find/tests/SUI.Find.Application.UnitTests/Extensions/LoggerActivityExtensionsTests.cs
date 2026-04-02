@@ -6,6 +6,9 @@ using SUI.Find.Application.Extensions;
 
 namespace SUI.Find.Application.UnitTests.Extensions;
 
+// Ignore "Evaluation of this argument may be expensive and unnecessary if logging is disabled" - these are tests!
+#pragma warning disable CA1873
+
 public class LoggerActivityExtensionsTests
 {
     [Fact]

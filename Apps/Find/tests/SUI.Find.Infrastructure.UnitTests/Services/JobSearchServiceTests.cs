@@ -13,6 +13,9 @@ using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
 
+// Ignore "Evaluation of this argument may be expensive and unnecessary if logging is disabled" - these are tests!
+#pragma warning disable CA1873
+
 public class JobSearchServiceTests
 {
     private readonly IWorkItemJobCountRepository _workItemJobCountRepository =

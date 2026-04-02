@@ -13,6 +13,9 @@ using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
+// Ignore "Evaluation of this argument may be expensive and unnecessary if logging is disabled" - these are tests!
+#pragma warning disable CA1873
+
 public class ClearDataFunctionTests
 {
     private readonly ILogger<ClearDataFunction> _mockLogger = Substitute.For<
