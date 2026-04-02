@@ -428,7 +428,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     {
         statusUrl = RemoveLeadingSlashFromUrl(statusUrl);
 
-        const int retryCount = 150;
+        var timeout = TimeSpan.FromMinutes(usePolling ? 10 : 5);
+        var retryDelay = TimeSpan.FromSeconds(2);
+        var retryCount = (int)Math.Round(timeout / retryDelay);
 
         var isCompleted = false;
         var statusMessage = "unknown";
@@ -477,7 +479,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     TestOutputHelper.WriteLine(
                         $"Still checking for search completion, status was {statusMessage}, retry {retryAttempt} / {retryCount}..."
                     );
-                    return TimeSpan.FromSeconds(2);
+                    return retryDelay;
                 }
             );
 
