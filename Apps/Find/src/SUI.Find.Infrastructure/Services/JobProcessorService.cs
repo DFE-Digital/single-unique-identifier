@@ -2,11 +2,13 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
+using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 
 namespace SUI.Find.Infrastructure.Services;
 
 public class JobProcessorService(
     IJobRepository jobRepository,
+    IWorkItemJobCountRepository workItemJobCountRepository,
     ILogger<JobProcessorService> logger,
     IJobWindowStartService jobWindowStartService
 ) : IJobProcessorService
@@ -116,5 +118,15 @@ public class JobProcessorService(
         job.CompletedAtUtc = DateTimeOffset.UtcNow;
 
         await jobRepository.UpsertAsync(job, cancellationToken);
+
+        if (job.WorkItemId != null)
+        {
+            await workItemJobCountRepository.MarkJobCompletedAsync(
+                job.WorkItemId,
+                job.JobType,
+                jobId,
+                cancellationToken
+            );
+        }
     }
 }
