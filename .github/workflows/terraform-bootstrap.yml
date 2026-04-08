@@ -73,7 +73,7 @@ jobs:
 
       - name: Create backend state RG/storage (${{ steps.env_config.outputs.state_rg }})
         if: inputs.apply == true
-        uses: azure/powershell@v2
+        uses: azure/powershell@v3
         with:
           inlineScript: |
             $tags = @{

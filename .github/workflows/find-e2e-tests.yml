@@ -182,7 +182,7 @@ jobs:
       - name: Publish E2E test summary (ephemeral)
         if: always()
         continue-on-error: true
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         with:
           name: Find E2E (ephemeral)
           path: TestResults/e2e-ephemeral.trx
@@ -226,7 +226,7 @@ jobs:
       - name: Publish E2E test summary (dev)
         if: always()
         continue-on-error: true
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         with:
           name: Find E2E (dev)
           path: TestResults/e2e-dev.trx
