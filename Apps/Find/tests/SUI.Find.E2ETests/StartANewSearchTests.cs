@@ -142,6 +142,13 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     new TestRecord { RecordType = "health.details", TestValue = "Dr E Green" },
                 ],
             },
+            new()
+            {
+                EncryptedSui = "DcYc-jumZgryOtz3iFh7cw",
+                Sui = "9693821998",
+                TestClientId = "LOCAL-AUTHORITY-01",
+                Records = [],
+            },
         ];
 
     [Theory]
