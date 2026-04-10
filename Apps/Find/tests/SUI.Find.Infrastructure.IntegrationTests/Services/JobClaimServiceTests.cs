@@ -715,6 +715,7 @@ public class JobClaimServiceTests : IAsyncLifetime
     public async Task ExtendJobLeaseAsync_ReturnsNull_When_JobHasNoLease()
     {
         var custodianId = $"custodian-{Guid.NewGuid()}";
+        var jobId = $"job-{custodianId}";
         var workItemId = $"wi-{Guid.NewGuid()}";
         var leaseId = Guid.NewGuid().ToString();
 
@@ -723,20 +724,21 @@ public class JobClaimServiceTests : IAsyncLifetime
         await UpsertJobsAsync(
             new Job
             {
-                JobId = $"job-{custodianId}",
+                JobId = jobId,
                 WorkItemId = workItemId,
                 CustodianId = custodianId,
                 SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
                 LeaseExpiresAtUtc = null, // No lease
+                CreatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
             }
         );
 
         // ACT
         var result = await _sut.ExtendJobLeaseAsync(
             custodianId,
-            workItemId,
+            jobId,
             leaseId,
             CancellationToken.None
         );
@@ -749,38 +751,40 @@ public class JobClaimServiceTests : IAsyncLifetime
     public async Task ExtendJobLeaseAsync_ExtendsLease_When_JobIsFound()
     {
         var custodianId = $"custodian-{Guid.NewGuid()}";
+        var jobId = $"job-{custodianId}";
         var workItemId = $"wi-{Guid.NewGuid()}";
-        var oldLeaseId = Guid.NewGuid().ToString();
-        var newLeaseId = Guid.NewGuid().ToString();
+        var leaseId = Guid.NewGuid().ToString();
         var initialLeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(10);
 
         _mockJobWindowStartService.GetWindowStart().Returns(DateTimeOffset.UtcNow.AddHours(-10));
+        _mockTimeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
 
         await UpsertJobsAsync(
             new Job
             {
-                JobId = $"job-{custodianId}",
+                JobId = jobId,
                 WorkItemId = workItemId,
                 CustodianId = custodianId,
                 SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
                 JobType = default,
                 PayloadJson = "",
-                LeaseId = oldLeaseId,
+                LeaseId = leaseId,
                 LeaseExpiresAtUtc = initialLeaseExpiresAtUtc,
+                CreatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
             }
         );
 
         // ACT
         var result = await _sut.ExtendJobLeaseAsync(
             custodianId,
-            workItemId,
-            newLeaseId,
+            jobId,
+            leaseId,
             CancellationToken.None
         );
 
         // ASSERT
         result.Should().NotBeNull();
-        result.LeaseId.Should().Be(newLeaseId);
+        result.LeaseId.Should().Be(leaseId);
         result
             .LeaseExpiresAtUtc.Should()
             .Be(
