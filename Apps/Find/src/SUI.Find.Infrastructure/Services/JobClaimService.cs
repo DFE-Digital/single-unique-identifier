@@ -91,6 +91,59 @@ public class JobClaimService(
         return job != null;
     }
 
+    public async Task<JobInfo?> ExtendJobLeaseAsync(
+        string custodianId,
+        string jobId,
+        string leaseId,
+        CancellationToken cancellationToken
+    )
+    {
+        var job = await GetCurrentLeasedJobForCustodian(custodianId, jobId, cancellationToken);
+        var utcNow = timeProvider.GetUtcNow();
+
+        if (
+            job == null
+            || job.LeaseId != leaseId
+            || job.LeaseExpiresAtUtc == null
+            || job.LeaseExpiresAtUtc <= utcNow
+        )
+        {
+            return null;
+        }
+
+        job.LeaseExpiresAtUtc = job.LeaseExpiresAtUtc.Value.AddMinutes(
+            JobClaimConfig.LeaseDurationMinutes
+        );
+        job.UpdatedAtUtc = utcNow;
+
+        await jobRepository.UpdateAsync(job, job.ETag, cancellationToken);
+
+        return new JobInfo
+        {
+            JobId = job.JobId,
+            CustodianId = custodianId,
+            LeaseExpiresAtUtc = job.LeaseExpiresAtUtc.Value,
+            LeaseId = job.LeaseId,
+            WorkItemId = job.WorkItemId,
+        };
+    }
+
+    private async Task<Job?> GetCurrentLeasedJobForCustodian(
+        string custodianId,
+        string jobId,
+        CancellationToken cancellationToken
+    )
+    {
+        var windowStart = jobWindowStartService.GetWindowStart();
+        var jobs = await jobRepository.ListJobsByCustodianIdAsync(
+            custodianId,
+            windowStart,
+            cancellationToken
+        );
+
+        return jobs.FirstOrDefault(j => j.JobId == jobId);
+    }
+
     private async Task<Job?> GetNextAvailableJobAsync(
         string custodianId,
         CancellationToken cancellationToken

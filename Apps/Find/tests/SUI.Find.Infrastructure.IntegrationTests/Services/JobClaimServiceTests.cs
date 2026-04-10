@@ -691,4 +691,111 @@ public class JobClaimServiceTests : IAsyncLifetime
         result.JobId.Should().Be($"job-{custodianId}");
         result.LeaseId.Should().NotBe(oldLeaseId).And.NotBeNullOrWhiteSpace();
     }
+
+    [Fact]
+    public async Task ExtendJobLeaseAsync_ReturnsNull_When_NoJobFound()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+        var jobId = $"job-{Guid.NewGuid()}";
+        var leaseId = Guid.NewGuid().ToString();
+
+        // ACT
+        var result = await _sut.ExtendJobLeaseAsync(
+            custodianId,
+            jobId,
+            leaseId,
+            CancellationToken.None
+        );
+
+        // ASSERT
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ExtendJobLeaseAsync_ReturnsNull_When_JobHasNoLease()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+        var jobId = $"job-{custodianId}";
+        var workItemId = $"wi-{Guid.NewGuid()}";
+        var leaseId = Guid.NewGuid().ToString();
+
+        _mockJobWindowStartService.GetWindowStart().Returns(DateTimeOffset.UtcNow.AddHours(-10));
+
+        await UpsertJobsAsync(
+            new Job
+            {
+                JobId = jobId,
+                WorkItemId = workItemId,
+                CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
+                JobType = default,
+                PayloadJson = "",
+                LeaseExpiresAtUtc = null, // No lease
+                CreatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
+            }
+        );
+
+        // ACT
+        var result = await _sut.ExtendJobLeaseAsync(
+            custodianId,
+            jobId,
+            leaseId,
+            CancellationToken.None
+        );
+
+        // ASSERT
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ExtendJobLeaseAsync_ExtendsLease_When_JobIsFound()
+    {
+        var custodianId = $"custodian-{Guid.NewGuid()}";
+        var jobId = $"job-{custodianId}";
+        var workItemId = $"wi-{Guid.NewGuid()}";
+        var leaseId = Guid.NewGuid().ToString();
+        var initialLeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(10);
+
+        _mockJobWindowStartService.GetWindowStart().Returns(DateTimeOffset.UtcNow.AddHours(-10));
+        _mockTimeProvider.GetUtcNow().Returns(DateTimeOffset.UtcNow);
+
+        await UpsertJobsAsync(
+            new Job
+            {
+                JobId = jobId,
+                WorkItemId = workItemId,
+                CustodianId = custodianId,
+                SearchingOrganisationId = $"SearchingOrganisation_{Guid.NewGuid()}",
+                JobType = default,
+                PayloadJson = "",
+                LeaseId = leaseId,
+                LeaseExpiresAtUtc = initialLeaseExpiresAtUtc,
+                CreatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-5),
+            }
+        );
+
+        // ACT
+        var result = await _sut.ExtendJobLeaseAsync(
+            custodianId,
+            jobId,
+            leaseId,
+            CancellationToken.None
+        );
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result.LeaseId.Should().Be(leaseId);
+        result
+            .LeaseExpiresAtUtc.Should()
+            .Be(
+                initialLeaseExpiresAtUtc.AddMinutes(_mockOptions.CurrentValue.LeaseDurationMinutes)
+            );
+
+        var dbJobs = await _jobRepository.ListJobsByCustodianIdAsync(
+            custodianId,
+            DateTimeOffset.MinValue
+        );
+        var job = dbJobs.Single(j => j.WorkItemId == workItemId);
+        job.LeaseExpiresAtUtc.Should().Be(result.LeaseExpiresAtUtc);
+    }
 }
