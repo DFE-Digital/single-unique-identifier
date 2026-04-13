@@ -117,7 +117,7 @@ public class MatchFunction(
                                 Sui = id.Value,
                                 CustodianId = authContext.ClientId,
                                 RecordType = entry.RecordType,
-                                SystemId = entry.SystemId ?? string.Empty,
+                                SystemId = entry.SystemId,
                                 CustodianSubjectId = entry.RecordId,
                                 Provenance = Provenance.AlreadyHeldByCustodian,
                                 LastIdDeliveredAtUtc = DateTimeOffset.UtcNow,
@@ -127,7 +127,11 @@ public class MatchFunction(
                     }
                 }
 
-                return await CreateOkResponse(req, id);
+                return await HttpResponseUtility.OkResponse(
+                    req,
+                    new PersonMatch(id.Value),
+                    cancellationToken
+                );
             },
             async dataValidationResult =>
                 await HttpResponseUtility.BadRequestResponse(
@@ -178,17 +182,6 @@ public class MatchFunction(
             logger.LogError(ex, "Failed to parse Match request: {ExMessage}", ex.Message);
             return false;
         }
-    }
-
-    private static async Task<HttpResponseData> CreateOkResponse(
-        HttpRequestData req,
-        PersonIdValue encryptedPersonId
-    )
-    {
-        var res = req.CreateResponse(HttpStatusCode.OK);
-        var responseBody = new PersonMatch(encryptedPersonId.Value);
-        await res.WriteAsJsonAsync(responseBody);
-        return res;
     }
 
     private bool VerifyApiKey(HttpRequestData req)

@@ -45,7 +45,7 @@ module "web_app" {
       APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
     },
-    var.app_settings,
+    var.custodian_app_settings,
   )
   tags           = var.tags
 }

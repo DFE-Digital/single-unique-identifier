@@ -34,19 +34,21 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 PersonId = personId,
                 RecordType = recordType,
                 Version = version,
-                ContactDetails = new ContactDetails
-                {
-                    Name = "John Doe",
-                    Description = "John Doe",
-                    Email = "test@test.com",
-                    Address = "1 test street",
-                    Telephone = "0123456789",
-                },
-                RecordLink = new RecordLink
-                {
-                    Title = "Test Link",
-                    Url = "https://www.example.gov.uk/",
-                },
+                ContactDetails =
+                [
+                    new ContactDetail
+                    {
+                        Name = "John Doe",
+                        Description = "John Doe",
+                        Email = "test@test.com",
+                        Address = "1 test street",
+                        Telephone = "0123456789",
+                    },
+                ],
+                RecordLinks =
+                [
+                    new RecordLink { Title = "Test Link", Url = "https://www.example.gov.uk/" },
+                ],
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -72,22 +74,30 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 result.Value as RecordEnvelope<ChildrensServicesDetailsRecord>;
 
             Assert.NotNull(childrensServicesRecord);
+            Assert.NotNull(childrensServicesRecord.RecordLinks);
+            Assert.NotNull(childrensServicesRecord.ContactDetails);
             Assert.Equal(record.SchemaUri, childrensServicesRecord.SchemaUri);
-            Assert.Equal(record.RecordLink.Title, childrensServicesRecord.RecordLink.Title);
-            Assert.Equal(record.RecordLink.Url, childrensServicesRecord.RecordLink.Url);
-            Assert.Equal(record.ContactDetails.Name, childrensServicesRecord.ContactDetails.Name);
+            Assert.Equal(record.RecordLinks[0].Title, childrensServicesRecord.RecordLinks[0].Title);
+            Assert.Equal(record.RecordLinks[0].Url, childrensServicesRecord.RecordLinks[0].Url);
             Assert.Equal(
-                record.ContactDetails.Address,
-                childrensServicesRecord.ContactDetails.Address
+                record.ContactDetails[0].Name,
+                childrensServicesRecord.ContactDetails[0].Name
             );
             Assert.Equal(
-                record.ContactDetails.Description,
-                childrensServicesRecord.ContactDetails.Description
+                record.ContactDetails[0].Address,
+                childrensServicesRecord.ContactDetails[0].Address
             );
-            Assert.Equal(record.ContactDetails.Email, childrensServicesRecord.ContactDetails.Email);
             Assert.Equal(
-                record.ContactDetails.Telephone,
-                childrensServicesRecord.ContactDetails.Telephone
+                record.ContactDetails[0].Description,
+                childrensServicesRecord.ContactDetails[0].Description
+            );
+            Assert.Equal(
+                record.ContactDetails[0].Email,
+                childrensServicesRecord.ContactDetails[0].Email
+            );
+            Assert.Equal(
+                record.ContactDetails[0].Telephone,
+                childrensServicesRecord.ContactDetails[0].Telephone
             );
             Assert.Equal(record.Payload.KeyWorker, childrensServicesRecord.Payload.KeyWorker);
         }
@@ -106,19 +116,21 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
-                ContactDetails = new ContactDetails
-                {
-                    Name = "John Doe",
-                    Description = "John Doe",
-                    Email = "test@test.com",
-                    Address = "1 test street",
-                    Telephone = "0123456789",
-                },
-                RecordLink = new RecordLink
-                {
-                    Title = "Test Link",
-                    Url = "https://www.example.gov.uk/",
-                },
+                ContactDetails =
+                [
+                    new ContactDetail
+                    {
+                        Name = "John Doe",
+                        Description = "John Doe",
+                        Email = "test@test.com",
+                        Address = "1 test street",
+                        Telephone = "0123456789",
+                    },
+                ],
+                RecordLinks =
+                [
+                    new RecordLink { Title = "Test Link", Url = "https://www.example.gov.uk/" },
+                ],
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -161,19 +173,21 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
-                ContactDetails = new ContactDetails
-                {
-                    Name = "John Doe",
-                    Description = "John Doe",
-                    Email = "test@test.com",
-                    Address = "1 test street",
-                    Telephone = "0123456789",
-                },
-                RecordLink = new RecordLink
-                {
-                    Title = "Test Link",
-                    Url = "https://www.example.gov.uk/",
-                },
+                ContactDetails =
+                [
+                    new ContactDetail
+                    {
+                        Name = "John Doe",
+                        Description = "John Doe",
+                        Email = "test@test.com",
+                        Address = "1 test street",
+                        Telephone = "0123456789",
+                    },
+                ],
+                RecordLinks =
+                [
+                    new RecordLink { Title = "Test Link", Url = "https://www.example.gov.uk/" },
+                ],
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -220,19 +234,21 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
-                ContactDetails = new ContactDetails
-                {
-                    Name = "John Doe",
-                    Description = "John Doe",
-                    Email = "test@test.com",
-                    Address = "1 test street",
-                    Telephone = "0123456789",
-                },
-                RecordLink = new RecordLink
-                {
-                    Title = "Test Link",
-                    Url = "https://www.example.gov.uk/",
-                },
+                ContactDetails =
+                [
+                    new ContactDetail
+                    {
+                        Name = "John Doe",
+                        Description = "John Doe",
+                        Email = "test@test.com",
+                        Address = "1 test street",
+                        Telephone = "0123456789",
+                    },
+                ],
+                RecordLinks =
+                [
+                    new RecordLink { Title = "Test Link", Url = "https://www.example.gov.uk/" },
+                ],
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -275,19 +291,21 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
-                ContactDetails = new ContactDetails
-                {
-                    Name = "John Doe",
-                    Description = "John Doe",
-                    Email = "test@test.com",
-                    Address = "1 test street",
-                    Telephone = "0123456789",
-                },
-                RecordLink = new RecordLink
-                {
-                    Title = "Test Link",
-                    Url = "https://www.example.gov.uk/",
-                },
+                ContactDetails =
+                [
+                    new ContactDetail
+                    {
+                        Name = "John Doe",
+                        Description = "John Doe",
+                        Email = "test@test.com",
+                        Address = "1 test street",
+                        Telephone = "0123456789",
+                    },
+                ],
+                RecordLinks =
+                [
+                    new RecordLink { Title = "Test Link", Url = "https://www.example.gov.uk/" },
+                ],
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),
@@ -329,19 +347,21 @@ namespace SUI.StubCustodians.API.Unit.Tests
                 RecordId = recordId,
                 RecordType = recordType,
                 Version = version,
-                ContactDetails = new ContactDetails
-                {
-                    Name = "John Doe",
-                    Description = "John Doe",
-                    Email = "test@test.com",
-                    Address = "1 test street",
-                    Telephone = "0123456789",
-                },
-                RecordLink = new RecordLink
-                {
-                    Title = "Test Link",
-                    Url = "https://www.example.gov.uk/",
-                },
+                ContactDetails =
+                [
+                    new ContactDetail
+                    {
+                        Name = "John Doe",
+                        Description = "John Doe",
+                        Email = "test@test.com",
+                        Address = "1 test street",
+                        Telephone = "0123456789",
+                    },
+                ],
+                RecordLinks =
+                [
+                    new RecordLink { Title = "Test Link", Url = "https://www.example.gov.uk/" },
+                ],
                 SchemaUri = new Uri(
                     "https://schemas.example.gov.uk/sui/childrens-services.details.v1.json"
                 ),

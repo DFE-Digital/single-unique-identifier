@@ -95,7 +95,12 @@ public class SearchStatusFunction(
         );
 
         return await jobStatus.Match<Task<HttpResponseData>>(
-            async dto => await CreateSuccessResponse(req, dto, cancellationToken),
+            async dto =>
+                await HttpResponseUtility.OkResponse(
+                    req,
+                    SearchJob.FromDto(dto),
+                    cancellationToken
+                ),
             async unauthorized =>
                 await HttpResponseUtility.UnauthorizedResponse(
                     req,
@@ -115,17 +120,5 @@ public class SearchStatusFunction(
                     cancellationToken
                 )
         );
-    }
-
-    private static async Task<HttpResponseData> CreateSuccessResponse(
-        HttpRequestData req,
-        SearchJobDto result,
-        CancellationToken cancellationToken
-    )
-    {
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        var searchResults = SearchJob.FromDto(result);
-        await response.WriteAsJsonAsync(searchResults, cancellationToken);
-        return response;
     }
 }

@@ -23,6 +23,28 @@ variable "storage_account_name" {
   type        = string
 }
 
+variable "app_service_integration_subnet_id" {
+  description = "Subnet ID used for regional VNet integration and storage account network rules."
+  type        = string
+}
+
+variable "log_analytics_workspace_id" {
+  description = "Optional Log Analytics workspace ID used for storage account diagnostics."
+  type        = string
+  default     = null
+}
+
+variable "storage_account_replication_type" {
+  description = "Replication type for the storage account used by the function app."
+  type        = string
+  default     = "LRS"
+
+  validation {
+    condition = contains(["LRS", "GRS", "RAGRS", "GZRS", "RAGZRS"], var.storage_account_replication_type)
+    error_message = "storage_account_replication_type must be one of LRS, GRS, RAGRS, GZRS, or RAGZRS."
+  }
+}
+
 variable "https_only" {
   description = "Whether the function app enforces HTTPS-only."
   type        = bool
@@ -81,4 +103,10 @@ variable "application_insights_connection_string" {
   description = "Optional. Specifies the connection string that the function app should use to connect to Application Insights for telemetry and logging."
   type        = string
   default     = null
+}
+
+variable "health_check_path" {
+  description = "The URI path to the endpoint to use for health checks. Should return 200 OK if the API is up and healthy."
+  type        = string
+  default     = "/api/health"
 }

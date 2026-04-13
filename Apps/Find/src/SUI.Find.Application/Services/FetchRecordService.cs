@@ -201,13 +201,13 @@ public class FetchRecordService(
             );
         }
 
-        // TODO: Replace with Audit logger
-        logger.LogInformation(
-            "PEP allowed CONTENT access for {RequestingOrg} to {TargetOrg} record type {RecordType}",
-            resolvedMapping.RequestingOrgId,
-            resolvedMapping.TargetOrgId,
-            resolvedMapping.RecordType
-        );
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation(
+                "PEP allowed CONTENT access for {RequestingOrg} to {TargetOrg} record type {RecordType}",
+                resolvedMapping.RequestingOrgId,
+                resolvedMapping.TargetOrgId,
+                resolvedMapping.RecordType
+            );
 
         var tokenResult = await outboundAuthService.GetAccessTokenAsync(
             provider.Value,

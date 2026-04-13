@@ -1,0 +1,83 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@using SUI.UIHarness.Web.Components.Controls
+@using SUI.UIHarness.Web.Models
+@using SUI.UIHarness.Web.Models.Find
+@using SUI.UIHarness.Web.Services
+
+<PageTitle>SUI Test Harness</PageTitle>
+
+<h1>SUI Test Harness</h1>
+
+<div class="" style="padding-top: 24px;">
+    <div class="mb-3">
+        <p><strong>Current Custodian:</strong> @_selectedOrg</p>
+        <p><strong>Architecture:</strong> @_architecture</p>
+    </div>
+    
+    <ul class="nav nav-tabs mt-3" id="mainTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(_currentTab == "enrol" ? "active" : "")" id="tab-enrol-tab" type="button" role="tab" @onclick='_ => ChangeTabs("enrol")'>Enrol</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(_currentTab == "find" ? "active" : "")" id="tab-find-tab" type="button" role="tab" @onclick='_ => ChangeTabs("find")'>Find Records</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(_currentTab == "fetch" ? "active" : "")" id="tab-fetch-tab" type="button" role="tab" @onclick='_ => ChangeTabs("fetch")'>Fetch a record</button>
+        </li>
+    </ul>
+    <div class="tab-content border border-top-0 p-3" id="mainTabsContent">
+        <div class="tab-pane fade show active" id="tab-enrol" role="tabpanel" hidden='@(_currentTab != "enrol")'>
+            <EnrolTab SelectedOrg="@_selectedOrg" CurrentPersonChanged="HandleCurrentPersonChanged"></EnrolTab>
+        </div>
+        <div class="tab-pane fade show active" id="tab-find" role="tabpanel" hidden='@(_currentTab != "find")'>
+            <FindTab SelectedOrg="@_selectedOrg" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged"></FindTab>
+        </div>
+        <div class="tab-pane fade show active" id="tab-fetch" role="tabpanel" hidden='@(_currentTab != "fetch")'>
+            <FetchTab SelectedOrg="@_selectedOrg" SelectedRecordUrl="@_selectedRecordUrl"></FetchTab>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    private string _selectedOrg = string.Empty;
+    private string _architecture = string.Empty;
+    private string _currentTab = "enrol";
+    private LocalPerson? _currentPerson;
+    private string _selectedRecordUrl = string.Empty;
+    
+    [Inject]
+    public required IFindService FindService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _selectedOrg = user.Identity.Name ?? string.Empty;
+            _architecture = user.FindFirst("Architecture")?.Value ?? string.Empty;
+        }
+    }
+
+    private void ChangeTabs(string tab)
+    {
+        _currentTab = tab;
+    }
+
+    private void HandleCurrentPersonChanged(LocalPerson localPerson)
+    {
+        _currentPerson = localPerson;
+        ChangeTabs("find");
+    }
+
+    private void HandleCurrentRecordChanged(LocalRecord localRecord)
+    {
+        _selectedRecordUrl = localRecord.Url;
+        ChangeTabs("fetch");
+    }
+}

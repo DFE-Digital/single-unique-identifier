@@ -38,4 +38,16 @@
     <ProjectReference Include="..\SUI.Find.Application\SUI.Find.Application.csproj" />
     <ProjectReference Include="..\SUI.Find.Domain\SUI.Find.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\Data\org-directory.json">
+      <Link>Data\org-directory.json</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\Data\auth-clients-inbound.json">
+      <Link>Data\auth-clients-inbound.json</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

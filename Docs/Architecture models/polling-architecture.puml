@@ -1,0 +1,71 @@
+@startuml polling-architecture
+title Polling Architecture - High-Level Component Diagram\n<size:12>Note: lower-level services and repositories are not shown</size>
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+
+AddElementTag("HTTP Trigger", $bgColor="#48c982", $borderColor="#000", $fontColor="#000")
+AddElementTag("Queue Trigger", $bgColor="#3ad4e9", $borderColor="#000", $fontColor="#000")
+AddElementTag("Storage Queue", $bgColor="#de8aff", $borderColor="#000", $fontColor="#000")
+AddElementTag("Storage Table", $bgColor="#fd7b7b", $borderColor="#000", $fontColor="#000")
+AddElementTag("Class-level Service", $bgColor="#fdc07b", $borderColor="#000", $fontColor="#000")
+
+AddRelTag("Lease job", $textColor="#974242", $lineColor="#974242")
+AddRelTag("Check lease", $textColor="#2a4291", $lineColor="#2a4291")
+AddRelTag("Job Creation", $textColor="#21693f", $lineColor="#21693f")
+AddRelTag("Get Job status", $textColor="#4f2169", $lineColor="#4f2169")
+
+
+' Jobs Provider/Service
+Component(JobsService, "JobService", "Class-level Service", $tags="Class-level Service")
+ComponentDb(JobsTable, "Jobs", "Storage Table", $tags="Storage Table")
+ComponentDb(WorkItemJobCountTable, "WorkItemJobCounts", "Storage Table", $tags="Storage Table")
+
+Rel(JobsService, JobsTable, "Reads and Upserts")
+Rel(JobsService, WorkItemJobCountTable, "Reads and Upserts")
+
+
+' Request a new search related:
+Component(StartSearchEndpoint, "POST /v2/searches", "HTTP Trigger", "Request a new search", $tags="HTTP Trigger")
+ComponentQueue(SearchRequestsQueue, "search-requests-inbound", "Storage Queue", $tags="Storage Queue")
+Component(SearchRequestHandler, "SearchRequestHandler", "Queue Trigger", "Creates a job for each Custodian", $tags="Queue Trigger")
+
+Rel(StartSearchEndpoint, SearchRequestsQueue, "Sends: SearchRequestMessage")
+Rel(SearchRequestsQueue, SearchRequestHandler, "Handles: SearchRequestMessage")
+Rel(SearchRequestHandler, JobsService, "Create Jobs\nCreate Work Item Job Count", $tags="Job Creation")
+
+
+' Lease related:
+Component(ClaimWorkEndpoint, "POST /v2/work/claim", "HTTP Trigger", "a.k.a. 'Lease endpoint'", $tags="HTTP Trigger")
+
+Rel(ClaimWorkEndpoint, JobsService, "Lease Job", $tags="Lease job")
+
+
+' Submit results
+Component(SubmitResultEndpoint, "POST /v2/work/result", "HTTP Trigger", "Submit result; accepted for async processing", $tags="HTTP Trigger")
+ComponentQueue(JobResultsInboundQueue, "job-results-inbound", "Storage Queue", $tags="Storage Queue")
+Component(JobResultHandler, "JobResultHandler", "Queue Trigger", "Handles result processing. For search jobs, this will save to the 'Search Results' table", $tags="Queue Trigger")
+ComponentDb(SearchResultEntriesTable, "SearchResultEntries", "Storage Table", $tags="Storage Table")
+
+Rel(SubmitResultEndpoint, JobResultsInboundQueue, "Sends: JobResultMessage")
+Rel(JobResultsInboundQueue, JobResultHandler, "Handles: JobResultMessage")
+Rel(SubmitResultEndpoint, JobsService, "Check lease has not expired", $tags="Check lease")
+Rel(JobResultHandler, SearchResultEntriesTable, "Upserts Search Result Entries")
+
+
+' Search results
+Component(GetSearchResultsEndpoint, "GET /v2/searches/{workItemId}/results", "HTTP Trigger", "Get search results", $tags="HTTP Trigger")
+Rel(GetSearchResultsEndpoint, JobsService, "Get Job status & percentage completeness", $tags="Get Job status")
+Rel(GetSearchResultsEndpoint, SearchResultEntriesTable, "Get Search Result Entries")
+
+
+' Layout hints
+Lay_L(SearchRequestHandler, GetSearchResultsEndpoint)
+
+
+' Legend
+SHOW_FLOATING_LEGEND()
+Lay_Distance(LEGEND(), SubmitResultEndpoint, 1)
+
+
+@enduml

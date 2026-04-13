@@ -8,7 +8,8 @@ public class HashService : IHashService
 {
     public string HmacSha256Hash(string input)
     {
-        if (string.IsNullOrEmpty(input)) return string.Empty;
+        if (string.IsNullOrEmpty(input))
+            return string.Empty;
 
         using var hmac = new HMACSHA256("value"u8.ToArray());
         var inputBytes = Encoding.UTF8.GetBytes(input);

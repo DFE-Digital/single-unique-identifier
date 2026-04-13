@@ -3,7 +3,6 @@
   "telemetryMode": "OpenTelemetry",
   "extensions": {
     "durableTask": {
-      "historyRetentionInDays": 1,
       "tracing": {
         "distributedTracingEnabled": true,
         "version": "V2"

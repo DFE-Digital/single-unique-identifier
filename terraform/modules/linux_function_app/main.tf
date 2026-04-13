@@ -20,14 +20,33 @@ locals {
   )
 }
 
+# Accepted until Alpha while the DR posture for Function App storage is still under review.
+#trivy:ignore:AZU-0058
 resource "azurerm_storage_account" "this" {
-  name                     = var.storage_account_name
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                               = var.storage_account_name
+  resource_group_name                = var.resource_group_name
+  location                           = var.location
+  account_tier                       = "Standard"
+  account_replication_type           = var.storage_account_replication_type
+  infrastructure_encryption_enabled = true
 
   allow_nested_items_to_be_public = false
+
+  network_rules {
+    default_action             = "Deny"
+    bypass                     = ["AzureServices"]
+    virtual_network_subnet_ids = [var.app_service_integration_subnet_id]
+  }
+
+  queue_properties {
+    logging {
+      delete                = true
+      read                  = true
+      write                 = true
+      version               = "1.0"
+      retention_policy_days = 30
+    }
+  }
 
   tags = merge(
     local.base_tags,
@@ -35,11 +54,42 @@ resource "azurerm_storage_account" "this" {
   )
 }
 
+resource "azurerm_monitor_diagnostic_setting" "storage_service" {
+  for_each = var.log_analytics_workspace_id == null ? {} : {
+    blob  = "${azurerm_storage_account.this.id}/blobServices/default"
+    file  = "${azurerm_storage_account.this.id}/fileServices/default"
+    queue = "${azurerm_storage_account.this.id}/queueServices/default"
+    table = "${azurerm_storage_account.this.id}/tableServices/default"
+  }
+
+  name                       = "${var.storage_account_name}-${each.key}-diag"
+  target_resource_id         = each.value
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category = "StorageRead"
+  }
+
+  enabled_log {
+    category = "StorageWrite"
+  }
+
+  enabled_log {
+    category = "StorageDelete"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}
+
 resource "azurerm_linux_function_app" "this" {
-  name                = var.name
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  service_plan_id     = var.service_plan_id
+  name                      = var.name
+  resource_group_name       = var.resource_group_name
+  location                  = var.location
+  service_plan_id           = var.service_plan_id
+  virtual_network_subnet_id = var.app_service_integration_subnet_id
 
   storage_account_name       = azurerm_storage_account.this.name
   storage_account_access_key = azurerm_storage_account.this.primary_access_key
@@ -54,10 +104,15 @@ resource "azurerm_linux_function_app" "this" {
   }
 
   site_config {
-    ftps_state = var.ftps_state
+    always_on              = true
+    ftps_state             = var.ftps_state
+    vnet_route_all_enabled = true
+
+    health_check_path                 = var.health_check_path
+    health_check_eviction_time_in_min = var.health_check_path == null ? null : 5
 
     application_stack {
-      dotnet_version = var.dotnet_version
+      dotnet_version               = var.dotnet_version
       use_dotnet_isolated_runtime = true
     }
 

@@ -45,7 +45,14 @@ public class QueryProvidersFunctionTests
 
         var expectedItems = new List<CustodianSearchResultItem>
         {
-            new("test-custodian", "Type1", "/v1/records/original-id", "SystemA", "TestRecord"),
+            new(
+                "test-custodian",
+                "Type1",
+                "/v1/records/original-id",
+                "SystemA",
+                "test org",
+                "TestRecord"
+            ),
         };
         var expectedResult = Result<IReadOnlyList<CustodianSearchResultItem>>.Ok(expectedItems);
 
@@ -56,11 +63,12 @@ public class QueryProvidersFunctionTests
         // Act
         var result = await _sut.QueryProvider(_mockContext, input, CancellationToken.None);
 
-        // Assert
+        // Assert - QueryProvidersService called
         await _mockQueryProvidersService
             .Received(1)
             .QueryProvidersAsync(input, Arg.Any<CancellationToken>());
 
+        // Assert - ID Register called for each item
         await _mockIdRegisterRepository
             .Received(expectedItems.Count)
             .UpsertAsync(
@@ -74,6 +82,10 @@ public class QueryProvidersFunctionTests
                 ),
                 Arg.Any<CancellationToken>()
             );
+
+        // Assert - returned items
+        Assert.Equal(expectedItems.Count, result.Count);
+        Assert.Equal(expectedItems, result);
 
         Assert.Single(result);
         Assert.Equal(expectedItems, result);

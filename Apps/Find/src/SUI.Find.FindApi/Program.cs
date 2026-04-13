@@ -20,6 +20,7 @@ using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Startup;
 using SUI.Find.Infrastructure.Extensions;
+using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models.Fhir;
 using SUI.Find.Infrastructure.Services;
 
@@ -75,8 +76,10 @@ builder.Services.AddSingleton<ISearchService, SearchService>();
 builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
 builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
 builder.Services.AddSingleton<IPolicyEnforcementService, PolicyEnforcementService>();
+builder.Services.AddSingleton<ISearchResultsService, SearchResultsService>();
 builder.Services.AddSingleton<IMatchPersonOrchestrationService, MatchPersonOrchestrationService>();
 builder.Services.AddSingleton<IMatchingService, MatchingService>();
+builder.Services.AddSingleton<IJobQueueService, JobQueueService>();
 builder.Services.AddPdsSearchStrategies();
 
 // Use mock services for all environments for now while in prototype
@@ -88,6 +91,7 @@ builder.Services.AddSingleton<IOutboundAuthService, OutboundAuthService>();
 
 // Add this after other service registrations
 builder.Services.AddHostedService<AzureStorageTableStartup>();
+builder.Services.AddHostedService<AzureStorageQueueStartup>();
 
 builder.UseMiddleware<JwtAuthMiddleware>();
 builder.UseMiddleware<AuditMiddleware>();

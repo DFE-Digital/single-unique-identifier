@@ -3,6 +3,7 @@ using Asp.Versioning.ApiExplorer;
 using SUI.StubCustodians.API.OpenApi;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Services;
+using SUI.StubCustodians.Application.Utilities;
 using SUI.StubCustodians.Infrastructure.Extensions;
 using SUI.StubCustodians.Infrastructure.Services;
 
@@ -47,7 +48,7 @@ namespace SUI.StubCustodians.API
                     setup.SubstituteApiVersionInUrl = true;
                 });
 
-            ConfigureServices(builder.Services);
+            ConfigureServices(builder.Services, builder.Configuration);
 
             var app = builder.Build();
 
@@ -69,19 +70,66 @@ namespace SUI.StubCustodians.API
                     }
                 });
             }
+
             app.UseMiddleware<ScopeEnforcementMiddleware>();
-            app.UseHttpsRedirection();
+
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
         }
 
-        private static void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(
+            IServiceCollection services,
+            IConfiguration configuration
+        )
         {
             services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(3, 10));
             services.AddSingleton<IDataProvider, FileDataProvider>();
             services.AddScoped<IManifestService, ManifestService>();
             services.AddScoped<IRecordService, RecordService>();
+            services.AddSingleton<IFindApiAuthClientProvider, FindApiAuthClientProvider>();
+            services.AddSingleton<IDelayService, SystemDelayService>();
+
+            services.AddHttpContextAccessor();
+            services.AddSingleton<IBaseUrlProvider, HttpContextBaseUrlProvider>();
+
+            var baseUrl =
+                configuration["FindApi:BaseUrl"]
+                ?? throw new InvalidOperationException("FindApi:BaseUrl configuration is missing");
+
+            services.AddHttpClient<ITokenProvider, TokenProvider>(c =>
+            {
+                c.BaseAddress = new Uri(baseUrl);
+            });
+
+            services.AddHttpClient<IFindApiClient, FindApiClient>(c =>
+            {
+                c.BaseAddress = new Uri(baseUrl);
+            });
+
+            var sp = services.BuildServiceProvider();
+            var authClientProvider = sp.GetRequiredService<IFindApiAuthClientProvider>();
+
+            foreach (var authClient in authClientProvider.GetAuthClients())
+            {
+                // Note that we cannot use `AddHostedService` extension, because our concrete type is the same, that extension methods only adds the first
+                services.AddSingleton<IHostedService, CustodianWorker>(
+                    provider => new CustodianWorker(
+                        provider.GetRequiredService<ILogger<CustodianWorker>>(),
+                        provider.GetRequiredService<ITokenProvider>(),
+                        provider.GetRequiredService<IFindApiClient>(),
+                        provider.GetRequiredService<IConfiguration>(),
+                        authClient,
+                        provider, // pass IServiceProvider for scoped services
+                        provider.GetRequiredService<IDelayService>()
+                    )
+                );
+            }
         }
     }
 }

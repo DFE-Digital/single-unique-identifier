@@ -37,8 +37,11 @@ public class SearchJobTests
         Assert.Contains(links.Values, link => link.Href.Contains(jobId));
     }
 
+    /// <remarks>
+    /// The results endpoint returns partial results, so it should be included even when the job is running.
+    /// </remarks>
     [Fact]
-    public void ShouldNotCreateResultsLinkWhenNotCompleted()
+    public void ShouldCreateResultsLinkEvenWhenNotCompleted()
     {
         // Arrange
         var jobId = "test-job-id";
@@ -48,10 +51,10 @@ public class SearchJobTests
         var links = searchJob.Links;
 
         // Assert
-        Assert.Equal(3, links.Count);
+        Assert.Equal(4, links.Count);
         Assert.True(links.ContainsKey("self"));
         Assert.True(links.ContainsKey("status"));
         Assert.True(links.ContainsKey("cancel"));
-        Assert.False(links.ContainsKey("results"));
+        Assert.True(links.ContainsKey("results"));
     }
 }

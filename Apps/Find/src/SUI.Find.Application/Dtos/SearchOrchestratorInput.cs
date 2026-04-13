@@ -7,3 +7,9 @@ public record SearchOrchestratorInput(
     SearchJobMetadata Metadata,
     PolicyContext PolicyContext
 );
+
+public record SearchProviderSubOrchestratorInput(
+    string JobId,
+    SearchOrchestratorInput SearchInput,
+    ProviderDefinition QueryProvider
+);

@@ -608,7 +608,7 @@
         },
         "additionalProperties": false
       },
-      "ContactDetails": {
+      "ContactDetail": {
         "type": "object",
         "properties": {
           "name": {
@@ -737,7 +737,7 @@
           "recordType",
           "version",
           "contactDetails",
-          "recordLink",
+          "recordLinks",
           "payload"
         ],
         "type": "object",
@@ -771,24 +771,24 @@
             "format": "int32"
           },
           "contactDetails": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ContactDetails"
-              }
-            ]
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ContactDetail"
+            },
+            "additionalProperties": false
           },
-          "recordLink": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/RecordLink"
-              }
-            ]
+          "recordLinks": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RecordLink"
+            },
+            "additionalProperties": false
           },
           "payload": {
             "$ref": "#/components/schemas/SuiRecord"

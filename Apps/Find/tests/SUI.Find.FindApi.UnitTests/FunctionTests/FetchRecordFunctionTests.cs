@@ -51,15 +51,18 @@ public class FetchRecordFunctionTests
             PersonId = "person-456",
             SchemaUri = "schema-uri",
             Payload = JsonSerializer.Deserialize<JsonElement>("{}"),
-            ContactDetails = new ContactDetails
-            {
-                Name = "contact-name",
-                Email = "contact-email",
-                Address = "contact-address",
-                Telephone = "contact-telephone",
-                Description = "contact-description",
-            },
-            RecordLink = new RecordLink { Title = "record-link-title", Url = "record-link-url" },
+            ContactDetails =
+            [
+                new ContactDetails
+                {
+                    Name = "contact-name",
+                    Email = "contact-email",
+                    Address = "contact-address",
+                    Telephone = "contact-telephone",
+                    Description = "contact-description",
+                },
+            ],
+            RecordLinks = [new RecordLink { Title = "record-link-title", Url = "record-link-url" }],
         };
 
         _mockService
@@ -84,7 +87,7 @@ public class FetchRecordFunctionTests
         Assert.Equal(expectedResult.SchemaUri, responseBody.SchemaUri);
         Assert.Equal(expectedResult.PersonId, responseBody.PersonId);
         Assert.Equivalent(expectedResult.ContactDetails, responseBody.ContactDetails);
-        Assert.Equivalent(expectedResult.RecordLink, responseBody.RecordLink);
+        Assert.Equivalent(expectedResult.RecordLinks, responseBody.RecordLinks);
     }
 
     [Fact]

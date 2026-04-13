@@ -33,13 +33,14 @@ public class QueryProvidersFunction(
 
         foreach (var searchResultItem in result.Value)
         {
+            // Upsert into ID Register
             await idRegisterRepository.UpsertAsync(
-                new IdRegisterEntry()
+                new IdRegisterEntry
                 {
                     Sui = data.Suid,
                     CustodianId = data.Provider.OrgId,
                     RecordType = searchResultItem.RecordType,
-                    SystemId = searchResultItem.SystemId ?? string.Empty,
+                    SystemId = searchResultItem.SystemId,
                     CustodianSubjectId = searchResultItem.RecordId,
                     Provenance = Provenance.DiscoveredViaFanout,
                     LastIdDeliveredAtUtc = null,

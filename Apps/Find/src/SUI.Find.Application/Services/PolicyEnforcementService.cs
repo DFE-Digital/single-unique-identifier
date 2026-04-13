@@ -36,14 +36,15 @@ public class PolicyEnforcementService(
 
         if (matchedRule == null)
         {
-            logger.LogInformation(
-                "No matching rule found for {SourceOrg} -> {DestOrg}, recordType: {RecordType}, mode: {Mode}, purpose: {Purpose}. Denying by default.",
-                request.SourceOrgId,
-                request.DestinationOrgId,
-                recordType,
-                request.Mode,
-                request.Purpose
-            );
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation(
+                    "No matching rule found for {SourceOrg} -> {DestOrg}, recordType: {RecordType}, mode: {Mode}, purpose: {Purpose}. Denying by default.",
+                    request.SourceOrgId,
+                    request.DestinationOrgId,
+                    recordType,
+                    request.Mode,
+                    request.Purpose
+                );
             return Task.FromResult(
                 new PolicyDecisionResult
                 {
@@ -67,13 +68,14 @@ public class PolicyEnforcementService(
         var reason =
             $"Matched {ruleType} rule: effect={matchedRule.Effect}, recordType={recordType}";
 
-        logger.LogInformation(
-            "Policy decision for {SourceOrg} -> {DestOrg}: {Decision}. Reason: {Reason}",
-            request.SourceOrgId,
-            request.DestinationOrgId,
-            isAllowed ? "ALLOWED" : "DENIED",
-            reason
-        );
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation(
+                "Policy decision for {SourceOrg} -> {DestOrg}: {Decision}. Reason: {Reason}",
+                request.SourceOrgId,
+                request.DestinationOrgId,
+                isAllowed ? "ALLOWED" : "DENIED",
+                reason
+            );
 
         return Task.FromResult(
             new PolicyDecisionResult
@@ -88,6 +90,39 @@ public class PolicyEnforcementService(
         );
     }
 
+    public async Task<IReadOnlyList<PepResultItem<TItem>>> FilterItemsAsync<TItem>(
+        string sourceOrgId,
+        string destOrgId,
+        string destOrgType,
+        IReadOnlyList<TItem> pepFilterableItems,
+        DsaPolicyDefinition dsaPolicy,
+        string purpose,
+        CancellationToken cancellationToken = default
+    )
+        where TItem : IPepFilterable
+    {
+        var results = new List<PepResultItem<TItem>>();
+
+        foreach (var pepFilterableItem in pepFilterableItems)
+        {
+            var request = new PolicyDecisionRequest(
+                sourceOrgId,
+                destOrgId,
+                pepFilterableItem.RecordType,
+                ShareMode.Existence,
+                purpose
+            );
+
+            var decision = await EvaluateAsync(request, dsaPolicy, destOrgType, cancellationToken);
+
+            results.Add(
+                new PepResultItem<TItem>(pepFilterableItem, sourceOrgId, destOrgId, decision)
+            );
+        }
+
+        return results;
+    }
+
     public async Task<IReadOnlyList<SearchResultWithDecision>> FilterResultsAsync(
         string sourceOrgId,
         string destOrgId,
@@ -96,27 +131,25 @@ public class PolicyEnforcementService(
         DsaPolicyDefinition dsaPolicy,
         string purpose,
         CancellationToken cancellationToken = default
-    )
-    {
-        var results = new List<SearchResultWithDecision>();
-
-        foreach (var searchResultItem in searchResultItems)
-        {
-            var request = new PolicyDecisionRequest(
+    ) =>
+        (
+            await FilterItemsAsync(
                 sourceOrgId,
                 destOrgId,
-                searchResultItem.RecordType,
-                ShareMode.Existence,
-                purpose
-            );
-
-            var decision = await EvaluateAsync(request, dsaPolicy, destOrgType, cancellationToken);
-
-            results.Add(new SearchResultWithDecision(searchResultItem, sourceOrgId, decision));
-        }
-
-        return results;
-    }
+                destOrgType,
+                searchResultItems,
+                dsaPolicy,
+                purpose,
+                cancellationToken
+            )
+        )
+            .Select(result => new SearchResultWithDecision(
+                result.Item,
+                result.SourceOrgId,
+                result.DestOrgId,
+                result.Decision
+            ))
+            .ToArray();
 
     private static bool RuleMatches(
         DsaRuleDefinition rule,

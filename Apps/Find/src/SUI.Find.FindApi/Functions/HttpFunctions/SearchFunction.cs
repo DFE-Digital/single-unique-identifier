@@ -107,14 +107,18 @@ public class SearchFunction(
         var searchJob = await searchService.StartSearchAsync(
             personId,
             authContext.ClientId,
-            authContext.Scopes.ToArray(),
             client,
             context.InvocationId,
             cancellationToken
         );
 
         return await searchJob.Match<Task<HttpResponseData>>(
-            async dto => await CreateSuccessResponse(req, dto, cancellationToken),
+            async dto =>
+                await HttpResponseUtility.AcceptedResponse(
+                    req,
+                    SearchJob.FromDto(dto),
+                    cancellationToken
+                ),
             async _ =>
                 await HttpResponseUtility.InternalServerErrorResponse(
                     req,
@@ -122,17 +126,5 @@ public class SearchFunction(
                     cancellationToken
                 )
         );
-    }
-
-    private static async Task<HttpResponseData> CreateSuccessResponse(
-        HttpRequestData req,
-        SearchJobDto result,
-        CancellationToken cancellationToken
-    )
-    {
-        var response = req.CreateResponse(HttpStatusCode.Accepted);
-        var searchResults = SearchJob.FromDto(result);
-        await response.WriteAsJsonAsync(searchResults, cancellationToken);
-        return response;
     }
 }

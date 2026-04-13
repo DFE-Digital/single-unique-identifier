@@ -1,0 +1,264 @@
+using Azure.Data.Tables;
+using Microsoft.Extensions.Logging.Abstractions;
+using SUI.Find.Application.Dtos;
+using SUI.Find.Infrastructure.Repositories.SearchResultEntryStorage;
+using static System.Threading.CancellationToken;
+
+namespace SUI.Find.Infrastructure.IntegrationTests.Repositories;
+
+public class SearchResultEntryRepositoryTests : IAsyncLifetime
+{
+    private readonly SearchResultEntryRepository _sut = new(
+        TableStorageFixture.Client,
+        NullLogger<SearchResultEntryRepository>.Instance
+    );
+
+    public async Task InitializeAsync() => await _sut.EnsureTableExistsAsync(None);
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    [Fact]
+    public async Task UpsertAsync_CreatesNewEntry_AsExpected()
+    {
+        // ARRANGE
+        var entry = new SearchResultEntry
+        {
+            CustodianId = $"Custodian_{Guid.NewGuid()}",
+            SystemId = $"System_{Guid.NewGuid()}",
+            CustodianName = $"System_{Guid.NewGuid()}",
+            RecordType = $"RecordType_{Guid.NewGuid()}",
+            RecordUrl = "http://example.com",
+            RecordId = "123",
+            SubmittedAtUtc = DateTimeOffset.UtcNow,
+            JobId = "job-1",
+            WorkItemId = $"work_{Guid.NewGuid()}",
+            SearchingOrganisationId = $"searching-organisation-{Guid.NewGuid()}",
+        };
+
+        var partitionKey = SearchResultEntryKeys.PartitionKey(entry.WorkItemId);
+        var rowKey = SearchResultEntryKeys.RowKey(
+            entry.SubmittedAtUtc,
+            entry.CustodianId,
+            entry.RecordType,
+            entry.SystemId
+        );
+
+        // ACT
+        await _sut.UpsertAsync(entry, None);
+
+        // ASSERT
+        var entity = (
+            await TableStorageFixture
+                .Client.GetTableClient(
+                    InfrastructureConstants.StorageTableSearchResultEntries.TableName
+                )
+                .GetEntityAsync<TableEntity>(partitionKey, rowKey)
+        ).Value;
+
+        entity.GetString("CustodianId").Should().Be(entry.CustodianId);
+        entity.GetString("SystemId").Should().Be(entry.SystemId);
+        entity.GetString("RecordType").Should().Be(entry.RecordType);
+        entity.GetString("RecordUrl").Should().Be(entry.RecordUrl);
+        entity.GetString("RecordId").Should().Be(entry.RecordId);
+        entity.GetString("JobId").Should().Be(entry.JobId);
+        entity.GetString("WorkItemId").Should().Be(entry.WorkItemId);
+        entity.GetString("SearchingOrganisationId").Should().Be(entry.SearchingOrganisationId);
+    }
+
+    [Fact]
+    public async Task UpsertAsync_SameRow_ReplacesEntity()
+    {
+        var workItemId = $"work_{Guid.NewGuid()}";
+        var submitted = DateTimeOffset.UtcNow;
+
+        var entry = new SearchResultEntry
+        {
+            CustodianId = "CustodianA",
+            SystemId = "SystemA",
+            CustodianName = "SystemA",
+            RecordType = "Type1",
+            RecordUrl = "url1",
+            RecordId = "1",
+            SubmittedAtUtc = submitted,
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "CustodianB",
+        };
+
+        await _sut.UpsertAsync(entry, None);
+
+        // Change URL
+        var updatedEntry = new SearchResultEntry
+        {
+            CustodianId = "CustodianA",
+            SystemId = "SystemA",
+            CustodianName = "SystemA",
+            RecordType = "Type1",
+            RecordUrl = "updated-url",
+            RecordId = "1",
+            SubmittedAtUtc = submitted,
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "CustodianB",
+        };
+
+        await _sut.UpsertAsync(updatedEntry, None);
+
+        var results = await _sut.GetByWorkItemIdAsync(workItemId, "CustodianB", None);
+
+        results.Should().HaveCount(1);
+        results.Single().RecordUrl.Should().Be("updated-url");
+    }
+
+    [Fact]
+    public async Task GetByWorkItemIdAsync_DoesNotDeDuplicateRecords()
+    {
+        var workItemId = $"work_{Guid.NewGuid()}";
+
+        var first = new SearchResultEntry
+        {
+            CustodianId = "CustodianA",
+            SystemId = "SystemA",
+            CustodianName = "SystemA",
+            RecordType = "Type1",
+            RecordUrl = "url1",
+            RecordId = "1",
+            SubmittedAtUtc = DateTimeOffset.UtcNow,
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "CustodianB",
+        };
+
+        var second = new SearchResultEntry
+        {
+            CustodianId = "CustodianA",
+            SystemId = "SystemA",
+            CustodianName = "SystemA",
+            RecordType = "Type1",
+            RecordUrl = "url2",
+            RecordId = "2",
+            SubmittedAtUtc = DateTimeOffset.UtcNow.AddSeconds(1),
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "CustodianB",
+        };
+
+        await _sut.UpsertAsync(first, None);
+        await _sut.UpsertAsync(second, None);
+
+        var results = await _sut.GetByWorkItemIdAsync(workItemId, "CustodianB", None);
+
+        results.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetByWorkItemIdAsync_ReturnsChronologicalOrder()
+    {
+        var workItemId = $"work_{Guid.NewGuid()}";
+
+        var earlier = new DateTimeOffset(2024, 01, 01, 10, 00, 00, TimeSpan.Zero);
+        var later = new DateTimeOffset(2024, 01, 01, 10, 05, 00, TimeSpan.Zero);
+
+        var first = new SearchResultEntry
+        {
+            CustodianId = "A",
+            SystemId = "S",
+            CustodianName = "S",
+            RecordType = "T1",
+            RecordUrl = "url1",
+            RecordId = "1",
+            SubmittedAtUtc = earlier,
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "x",
+        };
+
+        var second = new SearchResultEntry
+        {
+            CustodianId = "B",
+            SystemId = "S",
+            CustodianName = "S",
+            RecordType = "T2",
+            RecordUrl = "url2",
+            RecordId = "2",
+            SubmittedAtUtc = later,
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "x",
+        };
+
+        await _sut.UpsertAsync(second, None);
+        await _sut.UpsertAsync(first, None);
+
+        var results = (await _sut.GetByWorkItemIdAsync(workItemId, "x", None)).ToArray();
+
+        results.First().RecordType.Should().Be("T1");
+        results.Last().RecordType.Should().Be("T2");
+    }
+
+    [Fact]
+    public async Task GetByWorkItemIdAsync_SkipsInvalidRows()
+    {
+        var workItemId = $"work_{Guid.NewGuid()}";
+        var partitionKey = SearchResultEntryKeys.PartitionKey(workItemId);
+
+        var tableClient = TableStorageFixture.Client.GetTableClient(
+            InfrastructureConstants.StorageTableSearchResultEntries.TableName
+        );
+
+        var entity = new TableEntity(partitionKey, "bad-row")
+        {
+            { "CustodianId", null }, // corrupt
+        };
+
+        await tableClient.UpsertEntityAsync(entity);
+
+        var results = await _sut.GetByWorkItemIdAsync(workItemId, "", None);
+
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetByWorkItemIdAsync_FiltersBy_SearchingOrganisationId()
+    {
+        var workItemId = $"work_{Guid.NewGuid()}";
+
+        var first = new SearchResultEntry
+        {
+            CustodianId = "A",
+            SystemId = "S",
+            CustodianName = "S",
+            RecordType = "T1",
+            RecordUrl = "url1",
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "X",
+        };
+
+        var second = new SearchResultEntry
+        {
+            CustodianId = "B",
+            SystemId = "S",
+            CustodianName = "S",
+            RecordType = "T2",
+            RecordUrl = "url2",
+            JobId = "job",
+            WorkItemId = workItemId,
+            SearchingOrganisationId = "Y",
+        };
+
+        await _sut.UpsertAsync(second, None);
+        await _sut.UpsertAsync(first, None);
+
+        // ACT
+        var results = (await _sut.GetByWorkItemIdAsync(workItemId, "Y", None)).ToArray();
+
+        // ASSERT
+        results.Should().HaveCount(1);
+
+        var result = results.Single();
+
+        result.RecordUrl.Should().Be("url2");
+        result.SearchingOrganisationId.Should().Be("Y");
+    }
+}

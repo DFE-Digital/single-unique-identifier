@@ -15,14 +15,6 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         [OrchestrationTrigger] TaskOrchestrationContext context
     )
     {
-        var options = TaskOptions.FromRetryPolicy(
-            new RetryPolicy(
-                maxNumberOfAttempts: 5,
-                firstRetryInterval: TimeSpan.FromSeconds(5),
-                backoffCoefficient: 2.0
-            )
-        );
-
         var data = context.GetInput<SearchOrchestratorInput>();
 
         if (
@@ -35,15 +27,18 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             throw new ArgumentException("Invalid input in Search Orchestrator");
         }
 
+        var jobId = context.InstanceId;
+
         using var logScope = logger.BeginScope(
-            "CorrelationId: {CorrelationId}",
-            data.Metadata.InvocationId
+            "CorrelationId: {CorrelationId}, JobId: {JobId}",
+            data.Metadata.InvocationId,
+            jobId
         );
 
         logger.LogInformation("Search Orchestrator started");
 
         var availableProviders = await context.CallActivityAsync<IReadOnlyList<ProviderDefinition>>(
-            "GetProvidersFunction",
+            nameof(GetProvidersFunction),
             data.Suid
         );
 
@@ -51,96 +46,125 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         {
             logger.LogWarning("No available providers found");
 
-            return new List<CustodianSearchResultItem>();
+            return [];
         }
 
-        var queryProviderTasks = new List<Task<IReadOnlyList<CustodianSearchResultItem>>>(
-            availableProviders.Count
-        );
-
-        foreach (var provider in availableProviders)
-        {
-            queryProviderTasks.Add(
-                context.CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
-                    "QueryProvidersFunction",
-                    new QueryProviderInput(
-                        data.PolicyContext.ClientId,
-                        context.InstanceId,
-                        data.Metadata.InvocationId,
-                        data.Suid,
-                        provider
-                    ),
-                    options
+        // Query Providers and apply PEP, via sub-orchestration to ultimately enable partial feedback of results, and the durable way to handle data dependencies for individual work items in a parallel batch.
+        var pepFilterTasks = availableProviders
+            .Select(provider =>
+                context.CallSubOrchestratorAsync<IReadOnlyList<SearchResultWithDecision>>(
+                    nameof(SearchProviderSubOrchestrator),
+                    new SearchProviderSubOrchestratorInput(jobId, data, provider)
                 )
-            );
-        }
-
-        var queryProviderTaskResultsList = await Task.WhenAll(queryProviderTasks);
-
-        var aggregatedQueryProviderResults = queryProviderTaskResultsList
-            .SelectMany(r => r)
+            )
             .ToList();
-
-        logger.LogInformation(
-            "Aggregated {Count} results before PEP filtering",
-            aggregatedQueryProviderResults.Count
-        );
-
-        var pepFilterTasks = new List<Task<IReadOnlyList<SearchResultWithDecision>>>();
-
-        foreach (var provider in availableProviders)
-        {
-            var providerResults = aggregatedQueryProviderResults
-                .Where(r =>
-                    string.Equals(
-                        r.CustodianId,
-                        provider.ProviderSystem,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                    && string.Equals(
-                        r.RecordType,
-                        provider.RecordType,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                )
-                .ToList();
-
-            if (providerResults.Count == 0)
-                continue;
-
-            var filterInput = new FilterResultsInput(
-                provider.OrgId,
-                data.PolicyContext.ClientId,
-                data.PolicyContext.OrgType,
-                providerResults,
-                provider.DsaPolicy,
-                data.PolicyContext.Purpose
-            );
-
-            pepFilterTasks.Add(
-                context.CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
-                    "FilterResultsByPolicyFunction",
-                    filterInput,
-                    options
-                )
-            );
-        }
 
         var pepResultsTaskList = await Task.WhenAll(pepFilterTasks);
         var pepResults = pepResultsTaskList.SelectMany(r => r).ToList();
 
         logger.LogInformation(
-            "Filtered to {Count} results after PEP enforcement",
-            pepResults.Count
+            "{CountOfResults} results after querying all {CountOfProviders} providers and PEP enforcement ({AllowedCount} allowed, {DeniedCount} denied)",
+            pepResults.Count,
+            availableProviders.Count,
+            pepResults.Count(x => x.Decision.IsAllowed),
+            pepResults.Count(x => !x.Decision.IsAllowed)
         );
 
         // Audit PEP decisions
         await context.CallActivityAsync(
             nameof(AuditPepFindActivity),
             new AuditPepFindInput(data.PolicyContext, data.Metadata, pepResults),
-            options
+            BuildTaskOptions()
         );
 
         return pepResults.Where(x => x.Decision.IsAllowed).Select(x => x.Item).ToList();
     }
+
+    [Function(nameof(SearchProviderSubOrchestrator))]
+    public async Task<IReadOnlyList<SearchResultWithDecision>> SearchProviderSubOrchestrator(
+        [OrchestrationTrigger] TaskOrchestrationContext context
+    )
+    {
+        var input = context.GetInput<SearchProviderSubOrchestratorInput>();
+        ArgumentNullException.ThrowIfNull(input);
+
+        var (jobId, data, provider) = input;
+        var requestingOrdId = data.PolicyContext.ClientId;
+        var sourceOrgId = provider.OrgId;
+
+        using var logScope = logger.BeginScope(
+            "CorrelationId: {CorrelationId}, JobId: {JobId}, RequestingOrdId: {RequestingOrdId}, SourceOrgId: {SourceOrgId}",
+            input.SearchInput.Metadata.InvocationId,
+            jobId,
+            requestingOrdId,
+            sourceOrgId
+        );
+
+        var options = BuildTaskOptions();
+
+        // Activity One: Query the provider for record pointers
+        var providerResults = await context.CallActivityAsync<
+            IReadOnlyList<CustodianSearchResultItem>
+        >(
+            nameof(QueryProvidersFunction),
+            new QueryProviderInput(
+                requestingOrdId,
+                jobId,
+                data.Metadata.InvocationId,
+                data.Suid,
+                provider
+            ),
+            options
+        );
+
+        logger.LogInformation("{Count} results before PEP filtering", providerResults.Count);
+
+        // Activity Two: filter the provider's results based on the requesting provider's data sharing policies (PEP Policy Enforcement Point)
+        var filterInput = new FilterResultsInput(
+            sourceOrgId,
+            requestingOrdId,
+            data.PolicyContext.OrgType,
+            providerResults,
+            provider.DsaPolicy,
+            data.PolicyContext.Purpose
+        );
+
+        var pepResults = await context.CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+            nameof(FilterResultsByPolicyFunction),
+            filterInput,
+            options
+        );
+
+        logger.LogInformation(
+            "{Count} results after querying provider and PEP enforcement ({AllowedCount} allowed, {DeniedCount} denied)",
+            pepResults.Count,
+            pepResults.Count(x => x.Decision.IsAllowed),
+            pepResults.Count(x => !x.Decision.IsAllowed)
+        );
+
+        // Activity Three: Persist the PEP filtered provider's results
+        await context.CallActivityAsync(
+            nameof(PersistSearchResultsFunction),
+            new PersistSearchResultsInput(
+                pepResults,
+                WorkItemId: jobId, // In this context (fan-out architecture), WorkItemId is the same as JobId.
+                InvocationId: data.Metadata.InvocationId,
+                JobId: jobId,
+                RequestingOrdId: requestingOrdId,
+                SourceOrgId: sourceOrgId
+            ),
+            options
+        );
+
+        return pepResults;
+    }
+
+    private static TaskOptions BuildTaskOptions() =>
+        TaskOptions.FromRetryPolicy(
+            new RetryPolicy(
+                maxNumberOfAttempts: 5,
+                firstRetryInterval: TimeSpan.FromSeconds(5),
+                backoffCoefficient: 2.0
+            )
+        );
 }

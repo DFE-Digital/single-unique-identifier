@@ -64,12 +64,26 @@ Required inputs when running manually:
 1. Add a new `*-build-and-deploy.yml` in [`.github/workflows`](../../.github/workflows).
 2. Call `build-test-dotnet.yml` with `project_names`, `directory_name`, and `artifact_store`.
 3. Call the appropriate deploy workflow and pass the artifact name from `build-test-dotnet.yml` outputs.
-4. Keep `runs-on` consistent with the self-hosted runner labels.
+4. Keep `runs-on` consistent with the `RUNNER_LABELS` variable (JSON array). Default is `["ubuntu-latest"]`.
 
 ## Troubleshooting
 
 - If Azure uploads fail with missing inputs, ensure secrets/vars are set at the repo level (not just environment scope).
 - If deployments fail due to artifacts not found, verify the artifact names and storage backend match across build and deploy jobs.
+
+## Security scanning
+
+The repo now uses separate workflows for infrastructure checks and secret scanning:
+
+- [`trivy-iac.yml`](../../.github/workflows/trivy-iac.yml) blocks PRs and pushes to `main` when Trivy finds `HIGH` or `CRITICAL` IaC misconfigurations.
+- [`trufflehog.yml`](../../.github/workflows/trufflehog.yml) blocks PRs and pushes to `main` on new verified or unknown secrets.
+- [`trivy.yml`](../../.github/workflows/trivy.yml) runs a broader non-blocking repository scan on a schedule or via manual dispatch.
+- [`trufflehog-deep-scan.yml`](../../.github/workflows/trufflehog-deep-scan.yml) runs a deeper scheduled/manual scan across the current branch history.
+
+If you configure GitHub branch protection for `main`, set these required checks:
+
+- `Trivy IaC Scan / Trivy IaC scan`
+- `TruffleHog Secret Scan / TruffleHog secret scan`
 
 ## Artifact cleanup
 

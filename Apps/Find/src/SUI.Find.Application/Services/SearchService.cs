@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
 using SUI.Find.Application.Configurations;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
@@ -20,7 +21,6 @@ public interface ISearchService
     Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
         string inputPersonId,
         string clientId,
-        string[] scopes,
         DurableTaskClient client,
         string correlationId,
         CancellationToken cancellationToken
@@ -54,13 +54,13 @@ public class SearchService(
     IPersonIdEncryptionService encryptionService,
     ICustodianService custodianService,
     IHashService hashService,
-    IOptions<EncryptionConfiguration> encryptionConfig
+    IOptions<EncryptionConfiguration> encryptionConfig,
+    ISearchResultEntryRepository searchResultEntryRepository
 ) : ISearchService
 {
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
         string inputPersonId,
         string clientId,
-        string[] scopes,
         DurableTaskClient client,
         string correlationId,
         CancellationToken cancellationToken
@@ -88,11 +88,12 @@ public class SearchService(
                     ? SearchStatus.Running
                     : SearchStatus.Queued;
 
-            logger.LogInformation(
-                "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
-                originalJobId,
-                jobStatus
-            );
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation(
+                    "Duplicate Search Request for existing JobId: {JobId} with Status: {Status}. Returning existing job.",
+                    originalJobId,
+                    jobStatus
+                );
 
             var originalJob = new SearchJobDto
             {
@@ -142,8 +143,7 @@ public class SearchService(
 
         var policyContext = new PolicyContext(
             clientId,
-            scopes,
-            "SAFEGUARDING", // TODO: Hard coded for now. Review later. Potentially pull it through the endpoint as part of the query.
+            ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
             encryptDefinition.Value.OrgType
         );
 
@@ -239,7 +239,8 @@ public class SearchService(
             );
             if (metaData is null)
             {
-                logger.LogInformation("Search job with ID {JobId} not found.", jobId);
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("Search job with ID {JobId} not found.", jobId);
                 return new NotFound();
             }
 
@@ -260,35 +261,50 @@ public class SearchService(
                 return new Unauthorized();
             }
 
+            SearchResultItem[] finalItems;
+
+            // If job is still running → return partial persisted results
             if (metaData.IsRunning)
             {
-                return new SearchResultsDto
-                {
-                    JobId = jobId,
-                    Suid = meta.Suid,
-                    Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    Items = [],
-                };
-            }
+                var persistedItems = await searchResultEntryRepository.GetByWorkItemIdAsync(
+                    jobId,
+                    clientId,
+                    cancellationToken
+                );
 
-            if (string.IsNullOrEmpty(metaData.SerializedOutput))
-            {
-                return new SearchResultsDto
-                {
-                    JobId = jobId,
-                    Suid = meta.Suid,
-                    Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                    Items = [],
-                };
+                finalItems = persistedItems
+                    .Where(r => r.SubmittedAtUtc >= metaData.CreatedAt)
+                    .Select(r => new SearchResultItem
+                    {
+                        RecordType = r.RecordType,
+                        RecordId = r.RecordId,
+                        RecordUrl = r.RecordUrl,
+                        SystemId = r.SystemId,
+                        CustodianName = r.CustodianName,
+                    })
+                    .ToArray();
             }
-            var items = JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput);
+            else
+            {
+                // Completed / Failed / Terminated → return orchestrator output (existing behaviour)
+                if (!string.IsNullOrEmpty(metaData.SerializedOutput))
+                {
+                    finalItems =
+                        JsonSerializer.Deserialize<SearchResultItem[]>(metaData.SerializedOutput)
+                        ?? Array.Empty<SearchResultItem>();
+                }
+                else
+                {
+                    finalItems = Array.Empty<SearchResultItem>();
+                }
+            }
 
             return new SearchResultsDto
             {
                 JobId = jobId,
                 Suid = meta.Suid,
                 Status = metaData.RuntimeStatus.ToSuiSearchStatus(),
-                Items = items ?? [],
+                Items = finalItems,
             };
         }
         catch (Exception ex)

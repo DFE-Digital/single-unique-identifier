@@ -1,8 +1,22 @@
+using SUI.Find.Application.Constants;
+
 namespace SUI.Find.Application.Models;
 
-public sealed record SearchResultItem(
-    string RecordType,
-    string RecordUrl,
-    string? SystemId,
-    string? RecordId
-);
+public record SearchResultItem
+{
+    public required string RecordType { get; init; }
+    public required string RecordUrl { get; init; }
+
+    public string SystemId
+    {
+        get;
+        init =>
+            field = string.IsNullOrWhiteSpace(value)
+                ? ApplicationConstants.SystemIds.Default
+                : value;
+    } = ApplicationConstants.SystemIds.Default;
+
+    public string CustodianName { get; init; } = "Unknown";
+
+    public string? RecordId { get; init; }
+}

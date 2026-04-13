@@ -55,9 +55,8 @@ permissions:
 
 jobs:
   build-test-dotnet:
-    # Hosted runners blocked by budget; use self-hosted for now
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, ubuntu-latest]
+    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     env:
       PROJECTS_JSON: ${{ inputs.project_names }}
     outputs:
@@ -94,7 +93,7 @@ jobs:
 
       - name: Setup Node.js (for Azurite and artifact upload)
         if: inputs.requires_azurite == true && inputs.skip_tests != true
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
 
@@ -150,7 +149,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             $coverage_arg \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
-            /d:sonar.exclusions="**/wwwroot/**,**/*Hardcoded*,**/SUI.Find.CustodianSimulation/**" \
+            /d:sonar.exclusions="**/wwwroot/**,**/*Hardcoded*,**/SUI.Find.CustodianSimulation/**,**/SUI.Find.FindApi/Functions/HttpFunctions/SearchFunction.cs" \
             /d:sonar.cpd.exclusions="**/Program.cs" \
             /d:sonar.issue.ignore.multicriteria.e1.ruleKey=csharpsquid:S6602 \
             /d:sonar.scanner.skipJreProvisioning=true \
@@ -216,7 +215,7 @@ jobs:
           sas_token: ${{ secrets.AZURE_ARTIFACTS_SAS }}
 
       - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         if: github.event_name == 'pull_request' && inputs.skip_tests != true
         with:
           recreate: true

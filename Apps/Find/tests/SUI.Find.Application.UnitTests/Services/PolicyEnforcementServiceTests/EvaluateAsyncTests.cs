@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
@@ -15,6 +16,8 @@ public class EvaluateAsyncTests
     public EvaluateAsyncTests()
     {
         var logger = Substitute.For<ILogger<PolicyEnforcementService>>();
+        logger.IsEnabled(LogLevel.Information).Returns(true);
+
         _fakeClock.SetUtcNow(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
         _sut = new PolicyEnforcementService(logger, _fakeClock);
     }
@@ -210,5 +213,159 @@ public class EvaluateAsyncTests
         var result = await _sut.EvaluateAsync(request, policy, "LOCAL_AUTHORITY");
         Assert.False(result.IsAllowed);
         Assert.Contains("No matching rule", result.Reason);
+    }
+
+    [Fact]
+    public async Task FilterResultsAsync_DoesEvaluateAsExpected()
+    {
+        // Arrange - HEALTH-01's policy allows LOCAL_AUTHORITY org types to see health records
+        var policy = new DsaPolicyDefinition
+        {
+            Defaults =
+            [
+                new DsaRuleDefinition
+                {
+                    Effect = "allow",
+                    Modes = ["EXISTENCE"],
+                    RecordTypes = ["health.details"],
+                    DestOrgTypes = ["LOCAL_AUTHORITY", "HEALTH", "POLICE"],
+                    Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
+                    ValidFrom = DateTimeOffset.Parse(input: "2025-01-01T00:00:00Z"),
+                },
+            ],
+        };
+
+        const string sourceOrgId = "HEALTH-01";
+
+        CustodianSearchResultItem[] searchResultItems =
+        [
+            new(sourceOrgId, "health.details", "record-1", "", "", null),
+            new(sourceOrgId, "other.details", "record-2", "", "", null),
+        ];
+
+        const string destOrgId = "LOCAL-AUTHORITY-01";
+
+        // Act
+        var result = await _sut.FilterResultsAsync(
+            sourceOrgId: sourceOrgId,
+            destOrgId: destOrgId,
+            destOrgType: "LOCAL_AUTHORITY",
+            searchResultItems,
+            policy,
+            purpose: "SAFEGUARDING",
+            CancellationToken.None
+        );
+
+        // Assert
+        result
+            .Should()
+            .BeEquivalentTo([
+                new
+                {
+                    SourceOrgId = sourceOrgId,
+                    DestOrgId = destOrgId,
+                    Decision = new { IsAllowed = true },
+                    Item = new
+                    {
+                        CustodianId = sourceOrgId,
+                        RecordType = "health.details",
+                        RecordUrl = "record-1",
+                    },
+                },
+                new
+                {
+                    SourceOrgId = sourceOrgId,
+                    DestOrgId = destOrgId,
+                    Decision = new { IsAllowed = false },
+                    Item = new
+                    {
+                        CustodianId = sourceOrgId,
+                        RecordType = "other.details",
+                        RecordUrl = "record-2",
+                    },
+                },
+            ]);
+    }
+
+    [Fact]
+    public async Task FilterItemsAsync_DoesEvaluateAsExpected()
+    {
+        // Arrange - HEALTH-01's policy allows LOCAL_AUTHORITY org types to see health records
+        var policy = new DsaPolicyDefinition
+        {
+            Defaults =
+            [
+                new DsaRuleDefinition
+                {
+                    Effect = "allow",
+                    Modes = ["EXISTENCE"],
+                    RecordTypes = ["health.details"],
+                    DestOrgTypes = ["LOCAL_AUTHORITY", "HEALTH", "POLICE"],
+                    Purposes = ["SAFEGUARDING", "CHILD_PROTECTION"],
+                    ValidFrom = DateTimeOffset.Parse(input: "2025-01-01T00:00:00Z"),
+                },
+            ],
+        };
+
+        const string sourceOrgId = "HEALTH-01";
+
+        ProviderDefinition[] providerDefinitions =
+        [
+            new()
+            {
+                OrgId = sourceOrgId,
+                RecordType = "health.details",
+                ProviderSystem = "system-a",
+            },
+            new()
+            {
+                OrgId = sourceOrgId,
+                RecordType = "other.details",
+                ProviderSystem = "system-b",
+            },
+        ];
+
+        const string destOrgId = "LOCAL-AUTHORITY-01";
+
+        // Act
+        var result = await _sut.FilterItemsAsync(
+            sourceOrgId: sourceOrgId,
+            destOrgId: destOrgId,
+            destOrgType: "LOCAL_AUTHORITY",
+            providerDefinitions,
+            policy,
+            purpose: "SAFEGUARDING",
+            CancellationToken.None
+        );
+
+        // Assert
+        result
+            .Should()
+            .BeEquivalentTo([
+                new
+                {
+                    SourceOrgId = sourceOrgId,
+                    DestOrgId = destOrgId,
+                    Decision = new { IsAllowed = true },
+                    Item = new
+                    {
+                        OrgId = sourceOrgId,
+                        RecordType = "health.details",
+                        ProviderSystem = "system-a",
+                    },
+                },
+                new
+                {
+                    SourceOrgId = sourceOrgId,
+                    DestOrgId = destOrgId,
+                    Decision = new { IsAllowed = false },
+                    Item = new
+                    {
+                        OrgId = sourceOrgId,
+                        RecordType = "other.details",
+                        ProviderSystem = "system-b",
+                    },
+                },
+            ]);
     }
 }

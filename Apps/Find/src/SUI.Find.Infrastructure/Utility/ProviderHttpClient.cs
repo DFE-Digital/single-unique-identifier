@@ -7,9 +7,16 @@ using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Infrastructure.Utility;
 
-public class ProviderHttpClient(IHttpClientFactory httpClientFactory, ILogger<ProviderHttpClient> logger) : IProviderHttpClient
+public class ProviderHttpClient(
+    IHttpClientFactory httpClientFactory,
+    ILogger<ProviderHttpClient> logger
+) : IProviderHttpClient
 {
-    public async Task<Result<string>> GetAsync(string url, string? bearerToken, CancellationToken ct)
+    public async Task<Result<string>> GetAsync(
+        string url,
+        string? bearerToken,
+        CancellationToken ct
+    )
     {
         var client = httpClientFactory.CreateClient(ApplicationConstants.Providers.LoggingName);
 
@@ -22,12 +29,18 @@ public class ProviderHttpClient(IHttpClientFactory httpClientFactory, ILogger<Pr
 
         return await SendRequestAsync(client, request, ct);
     }
+
     public async Task<Result<string>> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
         var client = httpClientFactory.CreateClient(ApplicationConstants.Providers.LoggingName);
         return await SendRequestAsync(client, request, ct);
     }
-    private async Task<Result<string>> SendRequestAsync(HttpClient client, HttpRequestMessage request, CancellationToken ct)
+
+    private async Task<Result<string>> SendRequestAsync(
+        HttpClient client,
+        HttpRequestMessage request,
+        CancellationToken ct
+    )
     {
         try
         {

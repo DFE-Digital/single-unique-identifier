@@ -1,0 +1,28 @@
+title = "SUI GitLeaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Tracked fixtures and local development examples with placeholder credentials"
+paths = [
+  '''^Apps/Find/README\.md$''',
+  '''^Apps/Find/src/SUI\.Find\.FindApi/example\.local\.settings\.json$''',
+  '''^Apps/Find/src/SUI\.Find\.FindApi/local\.settings\.json$''',
+  '''^Apps/Find/src/SUI\.Find\.Infrastructure/Data/auth-clients-inbound\.json$''',
+  '''^Apps/Find/src/SUI\.Find\.Infrastructure/Data/org-directory\.json$''',
+  '''^Apps/Find/tests/SUI\.Find\.E2ETests/StartANewSearchTests\.cs$''',
+  '''^Apps/Find/tests/SUI\.Find\.E2ETests/TestOutboundAuthService\.cs$''',
+  '''^Apps/Find/tests/SUI\.Find\.FindApi\.UnitTests/FunctionTests/AuthTokenFunctionTests\.cs$''',
+  '''^Apps/Find/tests/SUI\.Find\.Infrastructure\.UnitTests/Data/auth-clients-inbound\.json$''',
+  '''^Apps/Find/tests/SUI\.Find\.Infrastructure\.UnitTests/Data/org-directory\.json$''',
+  '''^Apps/Find/tests/SUI\.Find\.Infrastructure\.UnitTests/Services/MockAuthStoreServiceTests\.cs$''',
+  '''^Apps/Find/tests/SUI\.Find\.Infrastructure\.UnitTests/Services/MockCustodianServiceTests\.cs$''',
+  '''^Apps/Find/tests/SUI\.Find\.Infrastructure\.UnitTests/Utility/BuildCustodianHttpRequestTests\.cs$''',
+  '''^Apps/StubCustodians/src/SUI\.StubCustodians\.API/Data/auth-clients-outbound\.json$''',
+  '''^Apps/StubCustodians/src/SUI\.StubCustodians\.API/SUI\.StubCustodians\.API\.http$''',
+  '''^Apps/StubCustodians/tests/SUI\.StubCustodians\.API\.Unit\.Tests/AuthControllerTests\.cs$''',
+  '''^Apps/UIHarness/src/SUI\.UIHarness\.Web/Services/FindService\.cs$''',
+  '''^Data/org-directory\.json$''',
+  '''^Data/auth-clients-inbound\.json$'''
+]

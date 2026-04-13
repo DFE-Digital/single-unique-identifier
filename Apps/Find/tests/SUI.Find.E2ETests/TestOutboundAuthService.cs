@@ -16,6 +16,7 @@ namespace SUI.Find.E2ETests;
 
 [Collection("E2E")]
 [Trait("Category", "E2E")]
+[Trait("Suite", "Standard")]
 public class TestOutboundAuthService(
     FunctionTestFixture fixture,
     ITestOutputHelper testOutputHelper

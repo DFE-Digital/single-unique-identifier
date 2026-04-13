@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Http;
 using Polly;
 using Xunit.Abstractions;
 
@@ -14,9 +15,6 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
 
     public HttpClient StubCustodiansClient { get; }
 
-    private readonly SemaphoreSlim _mutex = new(1, 1);
-    private Lazy<Task>? _upCheck;
-
     public FunctionTestFixture()
     {
         var configurationRoot = new ConfigurationBuilder()
@@ -26,9 +24,17 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
 
         Config = configurationRoot.GetSection("E2E").Get<Config>() ?? new Config();
 
-        Client = new HttpClient { BaseAddress = new Uri(Config.BaseUrl) };
+        // For our HTTP clients, retry a small number of times if we ever receive a timeout, with a small wait in between
+        var retryPolicy = Policy<HttpResponseMessage>
+            .Handle<Exception>(IsTimeoutError)
+            .WaitAndRetryAsync(retryCount: 3, sleepDurationProvider: _ => TimeSpan.FromSeconds(2));
 
-        StubCustodiansClient = new HttpClient
+        var policyHandler = new PolicyHttpMessageHandler(retryPolicy);
+        policyHandler.InnerHandler = new HttpClientHandler();
+
+        Client = new HttpClient(policyHandler) { BaseAddress = new Uri(Config.BaseUrl) };
+
+        StubCustodiansClient = new HttpClient(policyHandler)
         {
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
@@ -44,28 +50,17 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
 
     private record HealthCheckResponse(string? Value);
 
+    public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    {
+        await EnsureServiceIsUpAsync("Find API", Client, testOutputHelper);
+    }
+
     public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
     {
-        await _mutex.WaitAsync();
-        try
-        {
-            _upCheck ??= new Lazy<Task>(async () =>
-                await Task.WhenAll(
-                    EnsureServiceIsUpAsync("Find API", Client, testOutputHelper),
-                    EnsureServiceIsUpAsync(
-                        "StubCustodians API",
-                        StubCustodiansClient,
-                        testOutputHelper
-                    )
-                )
-            );
-
-            await _upCheck.Value;
-        }
-        finally
-        {
-            _mutex.Release();
-        }
+        await Task.WhenAll(
+            EnsureServiceIsUpAsync("Find API", Client, testOutputHelper),
+            EnsureServiceIsUpAsync("StubCustodians API", StubCustodiansClient, testOutputHelper)
+        );
     }
 
     private static async Task EnsureServiceIsUpAsync(
@@ -80,7 +75,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         testOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
 
         // If health check does not indicate healthy, wait and then retry
-        const int retryCount = 3;
+        const int retryCount = 6;
         var retryPolicy = Policy
             .HandleResult<bool>(healthy => !healthy)
             .WaitAndRetryAsync(
@@ -90,7 +85,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
                     testOutputHelper.WriteLine(
                         $"{serviceName} does not indicate healthy, waiting for {waitInterval.Seconds} seconds, then retrying, retry {retryAttempt} / {retryCount}..."
                     );
-                    return TimeSpan.FromSeconds(10);
+                    return waitInterval;
                 }
             );
 
@@ -105,8 +100,9 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
             catch (Exception ex)
             {
                 testOutputHelper.WriteLine(
-                    $"Warning: health check exception ({serviceName}): {ex.Message}"
+                    $"Warning: health check exception ({serviceName}): {ex.GetType().Name}: {ex.Message}"
                 );
+
                 return false;
             }
         });
@@ -114,6 +110,33 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         Assert.True(healthy, $"The {serviceName} does not appear to be up and healthy");
 
         testOutputHelper.WriteLine($"{serviceName} is up 👍");
+    }
+
+    private static bool IsTimeoutError(Exception? ex)
+    {
+        if (ex == null)
+        {
+            return false;
+        }
+
+        if (ex is AggregateException agg)
+        {
+            return agg.InnerExceptions.Any(IsTimeoutError);
+        }
+
+        var exceptions = new List<Exception>([ex]);
+        while (ex.InnerException != null)
+        {
+            exceptions.Add(ex.InnerException);
+            ex = ex.InnerException;
+        }
+
+        // Note it is fine to use TaskCanceledException in these e2e tests, because cancellation tokens aren't being used to actually cancel tests.
+        // However, this approach should not be copied in to production code.
+        var isTimeout =
+            exceptions.OfType<TimeoutException>().Any()
+            || exceptions.OfType<TaskCanceledException>().Any();
+        return isTimeout;
     }
 }
 

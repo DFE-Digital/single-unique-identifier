@@ -44,8 +44,8 @@ variable "tags" {
   default     = {}
 }
 
-variable "app_settings" {
-  description = "Additional app settings to apply to the web app."
+variable "custodian_app_settings" {
+  description = "Additional app settings to apply to the Custodian web app."
   type        = map(string)
   default     = {}
 }

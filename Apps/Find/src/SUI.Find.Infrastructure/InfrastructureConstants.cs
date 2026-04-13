@@ -19,4 +19,19 @@ public static class InfrastructureConstants
     {
         public const string TableName = "SuiCustodianRegister";
     }
+
+    public static class StorageTableSearchResultEntries
+    {
+        public const string TableName = "SearchResultEntries";
+    }
+
+    public static class StorageTableJobRepository
+    {
+        public const string TableName = "Jobs";
+    }
+
+    public static class StorageTableWorkItemJobCountRepository
+    {
+        public const string TableName = "WorkItemJobCounts";
+    }
 }

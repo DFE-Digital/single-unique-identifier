@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using OneOf.Types;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Enums.Matching;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
@@ -337,5 +338,56 @@ public class MatchFunctionTests
         await _idRegisterRepository
             .DidNotReceive()
             .UpsertAsync(Arg.Any<IdRegisterEntry>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ShouldUseDefaultSystem_WhenMetadataSystemIdIsNull()
+    {
+        // Arrange
+        var function = CreateFunction();
+        var context = CreateContextWithAuth();
+
+        var request = new MatchRequest
+        {
+            PersonSpecification = new PersonSpecification
+            {
+                Given = "John",
+                Family = "Doe",
+                BirthDate = DateOnly.Parse("1990-01-01"),
+            },
+            Metadata =
+            [
+                new Metadata
+                {
+                    RecordType = "Test RecordType",
+                    SystemId = null!, // ← key scenario
+                    RecordId = "9999999999",
+                },
+            ],
+        };
+
+        var headers = CreateHeadersWithApiKey();
+        var req = MockHttpRequestData.CreateJson(request, headers: headers);
+
+        var encryptedPersonId = new EncryptedSuidPersonId("some-encrypted-id");
+
+        _matchPersonOrchestrationService
+            .FindPersonIdAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(encryptedPersonId);
+
+        // Act
+        await function.MatchPerson(req, context, CancellationToken.None);
+
+        // Assert
+        await _idRegisterRepository
+            .Received(1)
+            .UpsertAsync(
+                Arg.Is<IdRegisterEntry>(e => e.SystemId == ApplicationConstants.SystemIds.Default),
+                Arg.Any<CancellationToken>()
+            );
     }
 }

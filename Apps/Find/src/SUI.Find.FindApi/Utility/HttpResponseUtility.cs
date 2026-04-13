@@ -16,6 +16,7 @@ public static class HttpResponseUtility
     )
     {
         var res = req.CreateResponse(code);
+        res.AddNoCacheHeaders();
         await res.WriteAsJsonAsync(
             new Problem("about:blank", title, (int)code, detail, instance),
             cancellationToken
@@ -29,18 +30,16 @@ public static class HttpResponseUtility
         CancellationToken cancellationToken = default
     )
     {
-        var res = req.CreateResponse(HttpStatusCode.Unauthorized);
-        await res.WriteAsJsonAsync(
-            new Problem(
-                "about:blank",
-                "Unauthorised",
-                401,
-                "Missing or invalid bearer token.",
-                $"urn:trace::{traceId}"
-            ),
+        var res = ProblemResponse(
+            req,
+            HttpStatusCode.Unauthorized,
+            "Unauthorised",
+            "Missing or invalid bearer token.",
+            $"urn:trace::{traceId}",
             cancellationToken
         );
-        return res;
+
+        return await res;
     }
 
     public static async Task<HttpResponseData> NotFoundResponse(
@@ -71,7 +70,7 @@ public static class HttpResponseUtility
         var res = ProblemResponse(
             req,
             HttpStatusCode.BadRequest,
-            "Bad Request",
+            title,
             detail,
             $"urn:trace:{traceId}",
             cancellationToken
@@ -96,6 +95,18 @@ public static class HttpResponseUtility
         return await res;
     }
 
+    public static async Task<HttpResponseData> CreatedResponse<T>(
+        HttpRequestData req,
+        T body,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var res = req.CreateResponse(HttpStatusCode.Created);
+        res.AddNoCacheHeaders();
+        await res.WriteAsJsonAsync(body, cancellationToken);
+        return res;
+    }
+
     public static async Task<HttpResponseData> AcceptedResponse<T>(
         HttpRequestData req,
         T body,
@@ -103,7 +114,15 @@ public static class HttpResponseUtility
     )
     {
         var res = req.CreateResponse(HttpStatusCode.Accepted);
+        res.AddNoCacheHeaders();
         await res.WriteAsJsonAsync(body, cancellationToken);
+        return res;
+    }
+
+    public static HttpResponseData AcceptedResponse(HttpRequestData req)
+    {
+        var res = req.CreateResponse(HttpStatusCode.Accepted);
+        res.AddNoCacheHeaders();
         return res;
     }
 
@@ -114,7 +133,30 @@ public static class HttpResponseUtility
     )
     {
         var res = req.CreateResponse(HttpStatusCode.OK);
+        res.AddNoCacheHeaders();
         await res.WriteAsJsonAsync(body, cancellationToken);
         return res;
+    }
+
+    public static HttpResponseData OkResponse(HttpRequestData req)
+    {
+        var res = req.CreateResponse(HttpStatusCode.OK);
+        res.AddNoCacheHeaders();
+        return res;
+    }
+
+    public static HttpResponseData NoContentResponse(HttpRequestData req)
+    {
+        var res = req.CreateResponse(HttpStatusCode.NoContent);
+        res.AddNoCacheHeaders();
+        return res;
+    }
+
+    private static void AddNoCacheHeaders(this HttpResponseData response)
+    {
+        response.Headers.Add("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
+        response.Headers.Add("Pragma", "no-cache");
+        response.Headers.Add("Expires", DateTimeOffset.UnixEpoch.ToString("R"));
+        response.Headers.Add("Vary", "Authorization");
     }
 }

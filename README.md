@@ -1,40 +1,104 @@
 # Single Unique Identifier
 
 This repository is a mono repo that contains multiple .NET solutions, each organised under its own directory.
-.NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring separation of concerns, maintainability and testability.
+The .NET solutions follow the [Clean Architecture](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures#clean-architecture) principle ensuring separation of concerns, maintainability and testability.
 
-To view our documentation, please visit the [Docs](./Docs/index.md) directory.
+To view our technical documentation, please visit the [Docs](./Docs/index.md) directory.
+
+Looking to getting started with local development? Skip to [Getting Started](#getting-started).
 
 | Directory/File                    | Description                                                                                                 |
 |-----------------------------------|-------------------------------------------------------------------------------------------------------------|
 | [Apps](./Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
 | [Docs](./Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
 | [SystemTests](./SystemTests)      | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
-| [LICENCE](./LICENCE)              | Standard DfE software licence <!-- Yes, that is spelled correctly. -->, applying to the entire system.      |
-| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing                                    |
+| [LICENCE](./LICENCE)              | Standard DfE software licence<!-- Yes, that is spelled correctly. -->, applying to the entire system.       |
+| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing.                                   |
+
 
 ## What is 'Single Unique Identifier'?
 
-Single Unique Identifier is a proposed set of systems and standards to facilitate information
-sharing between multiple agencies for the improved safeguarding and welfare of children.
+Today, information about a child is distributed across many independent systems — in education, health, children’s social care, police, youth justice, early years and more. When these systems cannot communicate or reliably match records, important details can be missed, duplicated, or delayed.
+
+This project investigates the technical foundations required to help practitioners improve safeguarding and welfare of children by accessing the right information at the right time, while maintaining strong standards of privacy, security, and data minimisation.
+
+This project is in the Discovery Phase.  This means everything in this repository should be considered exploratory, not production‑ready.
+
+### What This Discovery Phase Is Exploring
+
+This Discovery phase is focused on learning, prototyping, and testing.  It does **not** create a final service — it explores what could work.
+
+Key areas of exploration include:
+
+1. Improving Identity Matching ("Match")
+2. Finding Who Holds Information ("Find")
+3. Understanding Future Data Exchange ("Fetch")
+
+The Discovery phase aims to understand needs, test technical feasibility, explore architectural options, identify risks, engage system suppliers, produce evidence to inform future Alpha and Beta phases, and validate whether the approach could support a future national service.
+
+### Security, Trust, and Privacy
+
+A core principle of this work is that **safeguarding information must be protected**.  
+The Discovery phase therefore emphasises:
+
+- Data minimisation
+- Clear audit logging
+- Strong authentication and role‑based access
+- Privacy‑by‑design throughout the architecture
+- No central store of case data
+- Only the minimum metadata required to support safe decision‑making
+
+This project explores _how_ a safe, trusted, multi‑agency approach could be implemented — not just the technology, but the standards and safeguards required.
+
+
+## Glossary of Terms
+
+### Organisation (a.k.a. Agency)
+* Organisations are agencies or public bodies involved in safeguarding and protecting children. Specifically, these include the
+police, local authorities, and health services. They also include organisations and agencies that provide placements for
+children, for example: foster and residential care, probation services, youth offending services, early education and childcare
+settings, schools, colleges and other education providers.
+* In this codebase, Organisations are also referred to as Providers.
+
+### Searcher
+* A Searcher is an Organisation that is performing a search for data to make decisions related to safeguarding and protecting
+children. A Searcher is always an Organisation, but is not necessarily a Custodian of a specific child's information.
+
+### Custodian
+* A Custodian is an Organisation that holds information, which may include data related to a specific child.
+
+### Supplier
+* In the context of multi-agency information sharing, a Supplier is a business that provides systems to Organisations.
+* In this codebase, a Supplier is not considered an Organisation, a Custodian, or a Searcher. However, Suppliers do take part in
+facilitating information sharing by providing systems, data storage and connectivity.
+
 
 ## Glossary of Components
 
-* **`Matching Service`** (a.k.a. *`PDS Adapter`*) \
-  Match a PDS record (and NHS Number), given some demographic data.
+### `MatchingService` (a.k.a. *`PDS Adapter`*)
+* Match a PDS record and return the NHS Number, given some demographic information about a child.
 
-* **`MatchFunction`** (*"I know of this person, what is their ID"*) \
-  Enables Custodians to tell us that they have a record.
-  Invokes Matching Service (above), and updates the ID register; given some demographic data and some metadata about the data (record) they hold.
+### `MatchFunction` (a.k.a. *`Get-an-Identifier`*)
+* A service that takes basic demographic information (name, date of birth, address) and determines the most accurate identifier for a child.  
+* This service also enables agencies (custodians) to tell us that they have a record about the provided demographic information.  
+* This helps link records across multiple organisations with higher confidence.  
+* This service invokes the `MatchingService` (above), and updates the ID register. Only the SUI and custodian metadata is stored.
 
-* **`SearchFunction`** (a.k.a. *`Find-a-record`*) \
-  Find record pointers for a given SUI.
+### `SearchFunction` (a.k.a. *`Find-a-record`*)
+* A mechanism to identify which custodians have a record relating to a child, **without sharing any case data**.  
+* This gives practitioners a starting point for collaboration.  
+* Returns record pointers for a given SUI.
 
-* **`FetchRecordFunction`** (a.k.a. *`Fetch-a-record`* or *`Fetch`*) \
-  Resolve and return the actual data for a given record pointer.
+### `FetchRecordFunction` (a.k.a. *`Fetch-a-record`*)
+* Resolves and returns the record for a given record pointer.  
+* This may include a summary of the record, a link to a custodian system where authorised users can view the full details, or both.  
+* Some custodians may provide contact details only.  
+* This explores secure, controlled sharing of small agreed‑upon information packets between systems.  
+* This is not part of Discovery, but Discovery lays the groundwork for understanding whether and how this could be feasible.
 
-* **`StubCustodians`** (a.k.a. *`Stubs`*) \
-  Stub API that simulates real Custodians, to provide example data to Find and Fetch for testing purposes.
+### `StubCustodians` (a.k.a. *`Stubs`*)
+* Stub API that simulates real custodians, to provide example data for testing purposes.
+
 
 ## Record Types Reference
 
@@ -46,12 +110,14 @@ sharing between multiple agencies for the improved safeguarding and welfare of c
 | `HealthDataRecord`               | health.details             | https://schemas.example.gov.uk/sui/HealthDataRecordV1.json                |
 | `PersonalDetailsRecord`          | personal.details           | https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json           |
 
+
 ## Getting Started
 
 ### Prerequisites
 
 - [.NET SDK](https://dotnet.microsoft.com/download) version 10.0.102 or later
 - [.NET runtime](https://dotnet.microsoft.com/download/dotnet/9.0) 9.0.x (required for `dotnet pwsh` and other local tools until PowerShell 7.6 is released with .NET 10 support)
+- Container runtime for local dependencies (suggested: [Rancher Desktop](https://rancherdesktop.io) with the Docker Engine option enabled. Recommended if you need a GUI for Docker)
 
 ### Setup
 
@@ -64,19 +130,56 @@ dotnet husky install
 
 This will install the tools specified in `.config/dotnet-tools.json`, including CSharpier for code formatting and Husky.Net for pre-commit hooks to ensure consistent code style.
 
+Commits also run a GitLeaks pre-commit scan via Husky. The hook will use a pinned GitLeaks `8.30.0` binary and download it into a user cache directory if it is not already available on your machine. The auto-install path currently supports macOS and Linux on x64 and arm64, plus Windows on x64.
+
+If you need to refresh the repository baseline for tracked fixtures, run:
+
+```bash
+dotnet pwsh ./scripts/security/run-gitleaks.ps1 -Mode Baseline
+```
+
+If GitLeaks blocks a commit and you are certain the finding is expected, update `.gitleaks.toml` or regenerate `.gitleaks.baseline.json`. For urgent one-off commits only, you can bypass the local scan with:
+
+```bash
+SUI_SKIP_GITLEAKS=1 git commit
+```
+
+Also, ensure the .NET self-signed certificate is installed (to enable HTTPS use locally):
+```bash
+dotnet dev-certs https --trust
+```
+If encountering problems with the .NET dev certificate, run `dotnet dev-certs https --clean` first, then run `dotnet dev-certs https --trust`.
+
+
+## Quick Run
+
+1. Complete the Getting Started steps above.
+2. Start local dependencies (Azurite) from the repo root:
+    ```bash
+    docker compose up -d
+    ```
+    To include an observability stack, use a profile (this also starts Azurite):
+    ```bash
+    docker compose --profile aspire up -d
+    docker compose --profile grafana up -d
+    ```
+3. Follow the app-specific README to run locally (for example, `Apps/Find/README.md`).
+
 ### Local OpenTelemetry
 
-To view local traces and logs from any app, run the Grafana otel-lgtm stack:
+To view local traces and logs from any app, start one of the observability profiles:
 
 ```bash
-docker run -d --rm -p 3000:3000 -p 4317:4317 -p 4318:4318 -ti --name sui-grafana grafana/otel-lgtm
+docker compose --profile grafana up -d
 ```
 
-Alternatively, you can use Aspire Dashboard to view traces and logs:
+Or:
 
 ```bash
-docker run -d --rm -p 18888:18888 -p 4317:18889 -ti --env ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true --name sui-aspire-dashboard mcr.microsoft.com/dotnet/aspire-dashboard:latest
+docker compose --profile aspire up -d
 ```
+
+Note: both profiles bind host port 4317 for OTLP gRPC, so run one at a time unless you change the port mapping in `compose.yaml`.
 
 Point your app at the local collector by specifying the values in the `local.settings.json` file:
 
@@ -91,9 +194,17 @@ OTEL_SERVICE_NAME=Your.App.Name
 Open `http://localhost:3000` (admin/admin) and use Explore to view logs and traces.
 If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
+
 ## CI workflows
 
 Workflow structure and inputs are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md). Self-hosted runner and Azure artifact storage details (including the rate-limit workaround and switchback flags) are in [Docs/Developers/ci-self-hosted-runner.md](./Docs/Developers/ci-self-hosted-runner.md).
+
+Security scanning is layered:
+
+- `Trivy IaC Scan` blocks pull requests and pushes to `main` on `HIGH` and `CRITICAL` infrastructure-as-code findings.
+- `TruffleHog Secret Scan` blocks pull requests and pushes to `main` on new verified or unknown secret findings.
+- `Trivy Repository Scan` and `TruffleHog Deep Secret Scan` run as broader scheduled/manual hygiene scans.
+
 
 ## Repository structure
 
@@ -108,6 +219,7 @@ Apps/AppOrComponentName/
     YourCsTestProject.Integration.Tests/
 ```
 
+
 ## Clean architecture
 
 Each solution is structured according to Clean Architecture principles
@@ -116,6 +228,7 @@ Each solution is structured according to Clean Architecture principles
 - Application - Application logic
 - Infrastructure - External concerns (e.g. database, third party API calls)
 - Presentation/API - UI, API/Endpoints
+
 
 ## Run tests and collect coverage locally
 
@@ -128,11 +241,10 @@ All required tools (PowerShell 7.5.4, ReportGenerator, etc.) are installed as lo
     ```
 2. Run the test and coverage scripts (You can run the wrapper script for each solution i.e.: `dotnet pwsh <relative path to the solution scoped script>`)
     ```
-    dotnet pwsh ./Apps/Transfer/test_and_cover_transfer.ps1
-    dotnet pwsh ./Apps/SingleView/test_and_cover_singleview.ps1
-    dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
     dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
+    dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
     ```
+
 
 ## Set up Private Nuget Feed
 
