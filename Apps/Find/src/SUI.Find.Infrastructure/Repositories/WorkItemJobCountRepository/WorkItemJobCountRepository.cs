@@ -15,7 +15,7 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
         .StorageTableWorkItemJobCountRepository
         .TableName;
 
-    private const string JobCompletedPrefix = "_job-completed-";
+    private const string JobCompletedPrefix = "__job_completed_";
 
     public WorkItemJobCountRepository(
         TableServiceClient client,
@@ -74,7 +74,7 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
 
         var entity = new TableEntity(partitionKey, rowKey)
         {
-            { $"{JobCompletedPrefix}{jobId}", DateTimeOffset.UtcNow },
+            { $"{JobCompletedPrefix}{jobId.Replace("-", "_")}", DateTimeOffset.UtcNow },
         };
 
         await Table.UpsertEntityAsync(entity, TableUpdateMode.Merge, cancellationToken);
@@ -112,7 +112,7 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
 
                 var completedJobIds = entity
                     .Keys.Where(key => key.StartsWith(JobCompletedPrefix))
-                    .Select(key => key[JobCompletedPrefix.Length..])
+                    .Select(key => key[JobCompletedPrefix.Length..].Replace("_", "-"))
                     .ToFrozenSet();
 
                 result = new WorkItemJobCount
