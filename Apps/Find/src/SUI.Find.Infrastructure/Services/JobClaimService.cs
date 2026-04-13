@@ -102,12 +102,27 @@ public class JobClaimService(
         var utcNow = timeProvider.GetUtcNow();
 
         if (
-            job == null
+            job?.LeaseId == null
             || job.LeaseId != leaseId
             || job.LeaseExpiresAtUtc == null
             || job.LeaseExpiresAtUtc <= utcNow
         )
         {
+            if (logger.IsEnabled(LogLevel.Warning))
+            {
+                logger.LogWarning(
+                    "Failed to extend lease for Job {JobId} (Custodian: {CustodianId}, WorkItem: {WorkItemId}). "
+                        + "Either the job was not found, the lease expired, or the RequestedLeaseId {RequestedLeaseId} did not match. "
+                        + "Current LeaseId: {CurrentLeaseId}, Expires: {LeaseExpiresAtUtc}",
+                    jobId,
+                    custodianId,
+                    job?.WorkItemId,
+                    leaseId,
+                    job?.LeaseId,
+                    job?.LeaseExpiresAtUtc
+                );
+            }
+
             return null;
         }
 
