@@ -186,6 +186,15 @@ public class JobResultHandler(
             return null;
         }
 
+        if (job.SearchingOrganisationId is null)
+        {
+            logger.LogWarning(
+                $"Job has no {nameof(job.SearchingOrganisationId)} for JobId {{JobId}}",
+                message.JobId
+            );
+            return null;
+        }
+
         var searchingOrg = await custodianService.GetCustodianAsync(job.SearchingOrganisationId);
         if (!searchingOrg.Success || searchingOrg.Value is null)
         {

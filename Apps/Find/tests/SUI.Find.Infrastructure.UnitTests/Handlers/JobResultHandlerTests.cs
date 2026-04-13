@@ -190,6 +190,79 @@ public class JobResultHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ShouldReturn_WhenSearchingOrganisationIdNull()
+    {
+        var message = CreateMessage();
+
+        _jobCountRepo
+            .GetByWorkItemIdAndJobTypeAsync(
+                message.WorkItemId,
+                message.JobType,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                Task.FromResult<WorkItemJobCount?>(
+                    new WorkItemJobCount
+                    {
+                        WorkItemId = message.WorkItemId,
+                        JobType = JobType.Unknown,
+                        PayloadJson = "{}",
+                    }
+                )
+            );
+
+        _custodianService
+            .GetCustodianAsync(message.CustodianId)
+            .Returns(
+                Result<ProviderDefinition>.Ok(
+                    new ProviderDefinition { OrgId = message.CustodianId }
+                )
+            );
+
+        _jobService
+            .GetJobByIdAndCustodianIdAsync(
+                message.JobId,
+                message.CustodianId,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                Task.FromResult<Job?>(
+                    new Job
+                    {
+                        JobId = message.JobId,
+                        SearchingOrganisationId = null, // null input here is the case under test
+                        CustodianId = message.CustodianId,
+                        JobType = JobType.Unknown,
+                        PayloadJson = "{}",
+                    }
+                )
+            );
+
+        // ACT
+        await _handler.HandleAsync(message, CancellationToken.None);
+
+        // ASSERT
+        await _jobService
+            .DidNotReceiveWithAnyArgs()
+            .MarkCompletedAsync("", "", Arg.Any<CancellationToken>());
+
+        _logger
+            .Received(1)
+            .Log(
+                LogLevel.Warning,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>(
+                    (object x) =>
+                        $"{x}".Equals(
+                            "Job has no SearchingOrganisationId for JobId " + message.JobId
+                        )
+                ),
+                null,
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
+            );
+    }
+
+    [Fact]
     public async Task HandleAsync_ShouldUpsertRecords_WhenValid()
     {
         // ARRANGE
