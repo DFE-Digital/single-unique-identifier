@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
@@ -13,6 +14,11 @@ using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 
 namespace SUI.Find.Infrastructure.Handlers;
 
+[SuppressMessage(
+    "brain-overload",
+    "S107:Methods should not have too many parameters",
+    Justification = "This method is a constructor, still of reasonable size; and there is not a sensible way to decompose the class for this constructor."
+)]
 public class JobResultHandler(
     ILogger<JobResultHandler> logger,
     IJobProcessorService jobService,
@@ -183,6 +189,15 @@ public class JobResultHandler(
         if (!custodian.Success || custodian.Value is null)
         {
             logger.LogWarning("Custodian config not found for {CustodianId}", message.CustodianId);
+            return null;
+        }
+
+        if (job.SearchingOrganisationId is null)
+        {
+            logger.LogWarning(
+                $"Job has no {nameof(job.SearchingOrganisationId)} for JobId {{JobId}}",
+                message.JobId
+            );
             return null;
         }
 

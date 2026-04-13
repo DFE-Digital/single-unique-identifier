@@ -6,10 +6,10 @@ public record Job
 {
     public required string JobId { get; init; }
     public required string CustodianId { get; init; }
-    public required string SearchingOrganisationId { get; init; }
     public required JobType JobType { get; init; }
     public WorkItemType? WorkItemType { get; init; }
     public string? WorkItemId { get; init; }
+    public string? SearchingOrganisationId { get; init; }
     public string? LeaseId { get; init; }
     public DateTimeOffset? LeaseExpiresAtUtc { get; init; }
     public int AttemptCount { get; init; }
