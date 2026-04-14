@@ -43,7 +43,7 @@ public class HealthCheck(
                 env.EnvironmentName,
                 NowUtc = DateTimeOffset.UtcNow,
                 NowLocal = DateTimeOffset.Now,
-                BuildTimestampUtility.BuildTimestamp,
+                BuildNumberUtility.BuildNumber,
             }
         );
     }

@@ -5,25 +5,25 @@ using Xunit.Abstractions;
 
 namespace SUI.Find.FindApi.UnitTests.Utility;
 
-public class BuildTimestampUtilityTests(ITestOutputHelper testOutputHelper)
+public class BuildNumberUtilityTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
-    public void BuildTimestamp_Should_BeAGeneratedDateTime()
+    public void BuildNumber_Should_BeAGeneratedDateTime()
     {
-        BuildTimestampUtility.BuildTimestamp.ShouldNotContain("unknown");
+        BuildNumberUtility.BuildNumber.ShouldNotBeNull();
 
         DateTime
             .TryParseExact(
-                BuildTimestampUtility.BuildTimestamp,
+                BuildNumberUtility.BuildNumber,
                 "O",
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AdjustToUniversal,
-                out var buildTimestampParsed
+                out var buildNumberParsed
             )
             .ShouldBe(true);
 
         testOutputHelper.WriteLine(
-            $"BuildTimestamp: {BuildTimestampUtility.BuildTimestamp} -> {buildTimestampParsed}"
+            $"BuildNumber: {BuildNumberUtility.BuildNumber} -> {buildNumberParsed}"
         );
     }
 }

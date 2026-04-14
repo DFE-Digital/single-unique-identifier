@@ -48,7 +48,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         GC.SuppressFinalize(this);
     }
 
-    private record HealthCheckResponse(string? Value, string? BuildTimestamp);
+    private record HealthCheckResponse(string? Value, string? BuildNumber);
 
     public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
@@ -59,7 +59,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
             timeout: Config.UseExtendedHealthCheckTimeout
                 ? TimeSpan.FromMinutes(10)
                 : TimeSpan.FromSeconds(60),
-            checkBuildTimestamp: FindApi.Utility.BuildTimestampUtility.BuildTimestamp
+            checkBuildNumber: FindApi.Utility.BuildNumberUtility.BuildNumber
         );
     }
 
@@ -86,7 +86,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         HttpClient client,
         ITestOutputHelper testOutputHelper,
         TimeSpan timeout,
-        string? checkBuildTimestamp = null
+        string? checkBuildNumber = null
     )
     {
         const string url = "health";
@@ -117,17 +117,17 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
                 var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
 
                 return content?.Value == "Healthy"
-                    && (checkBuildTimestamp == null || BuildTimestampMatches());
+                    && (checkBuildNumber == null || BuildNumberMatches());
 
-                bool BuildTimestampMatches()
+                bool BuildNumberMatches()
                 {
-                    var buildTimestampMatches = content.BuildTimestamp == checkBuildTimestamp;
+                    var buildNumberMatches = content.BuildNumber == checkBuildNumber;
                     testOutputHelper.WriteLine(
-                        buildTimestampMatches
-                            ? $"{serviceName} build timestamp matches ({checkBuildTimestamp})"
-                            : $"{serviceName} build timestamp does not yet match ({content.BuildTimestamp} != {checkBuildTimestamp})"
+                        buildNumberMatches
+                            ? $"{serviceName} build number matches ({checkBuildNumber})"
+                            : $"{serviceName} build number does not yet match ({content.BuildNumber} != {checkBuildNumber})"
                     );
-                    return buildTimestampMatches;
+                    return buildNumberMatches;
                 }
             }
             catch (Exception ex)
