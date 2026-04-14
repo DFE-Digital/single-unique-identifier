@@ -71,6 +71,20 @@ public class CustodianWorker : BackgroundService
 
                 if (job != null)
                 {
+                    var extendedLease = await _findApiClient.ExtendLeaseAsync(
+                        token,
+                        new RenewJobLeaseRequest { JobId = job.JobId, LeaseId = job.LeaseId }
+                    );
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.LogInformation(
+                            extendedLease?.LeaseExpiresUtc > job.LeaseExpiresAtUtc
+                                ? "Lease extended for job: {JobId}"
+                                : "Lease not extended for job: {JobId}",
+                            extendedLease?.JobId
+                        );
+                    }
+
                     await ProcessJob(job, token, manifestService, stoppingToken);
                 }
             }
