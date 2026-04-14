@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging.Abstractions;
 using SUI.Find.Application.Enums;
@@ -5,7 +6,7 @@ using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 
 namespace SUI.Find.Infrastructure.IntegrationTests.Repositories;
 
-public class WorkItemJobCountRepositoryTests : IAsyncLifetime
+public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
 {
     private readonly WorkItemJobCountRepository _sut = new(
         TableStorageFixture.Client,
@@ -253,5 +254,26 @@ public class WorkItemJobCountRepositoryTests : IAsyncLifetime
         result.WorkItemId.Should().Be(workItemId);
         result.CompletedJobIds.Should().HaveCount(100);
         result.CompletedJobIds.Should().BeEquivalentTo(testCompletedJobIds);
+
+        // Verify that all the properties of the storage entry have valid names
+        var partitionKey = WorkItemJobCountKeys.PartitionKey(workItemId);
+        var rowKey = WorkItemJobCountKeys.RowKey(jobType);
+        var tableClient = TableStorageFixture.Client.GetTableClient(
+            InfrastructureConstants.StorageTableWorkItemJobCountRepository.TableName
+        );
+        var stored = await tableClient.GetEntityAsync<TableEntity>(partitionKey, rowKey);
+
+        stored
+            .Value.Keys.Where(key => !key.StartsWith("odata"))
+            .Should()
+            .AllSatisfy(key =>
+                ValidIdentifierRegex()
+                    .IsMatch(key)
+                    .Should()
+                    .BeTrue($"the storage property name {key} should be a valid identifier")
+            );
     }
+
+    [GeneratedRegex(@"^[a-zA-Z_]\w+$")]
+    private static partial Regex ValidIdentifierRegex();
 }
