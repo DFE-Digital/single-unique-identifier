@@ -48,25 +48,45 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         GC.SuppressFinalize(this);
     }
 
-    private record HealthCheckResponse(string? Value);
+    private record HealthCheckResponse(string? Value, string? BuildTimestamp);
 
     public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
-        await EnsureServiceIsUpAsync("Find API", Client, testOutputHelper);
+        await EnsureServiceIsUpAsync(
+            "Find API",
+            Client,
+            testOutputHelper,
+            timeout: Config.UseExtendedHealthCheckTimeout
+                ? TimeSpan.FromMinutes(10)
+                : TimeSpan.FromSeconds(60),
+            checkBuildTimestamp: FindApi.Utility.BuildTimestampUtility.BuildTimestamp
+        );
+    }
+
+    public async Task EnsureStubCustodiansApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    {
+        await EnsureServiceIsUpAsync(
+            "StubCustodians API",
+            StubCustodiansClient,
+            testOutputHelper,
+            timeout: TimeSpan.FromSeconds(60)
+        );
     }
 
     public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
     {
         await Task.WhenAll(
-            EnsureServiceIsUpAsync("Find API", Client, testOutputHelper),
-            EnsureServiceIsUpAsync("StubCustodians API", StubCustodiansClient, testOutputHelper)
+            EnsureFindApiIsUpAsync(testOutputHelper),
+            EnsureStubCustodiansApiIsUpAsync(testOutputHelper)
         );
     }
 
     private static async Task EnsureServiceIsUpAsync(
         string serviceName,
         HttpClient client,
-        ITestOutputHelper testOutputHelper
+        ITestOutputHelper testOutputHelper,
+        TimeSpan timeout,
+        string? checkBuildTimestamp = null
     )
     {
         const string url = "health";
@@ -75,7 +95,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         testOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
 
         // If health check does not indicate healthy, wait and then retry
-        const int retryCount = 6;
+        var retryCount = (int)Math.Round(timeout / waitInterval);
         var retryPolicy = Policy
             .HandleResult<bool>(healthy => !healthy)
             .WaitAndRetryAsync(
@@ -95,7 +115,20 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
             {
                 using var response = await client.GetAsync(url);
                 var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
-                return content?.Value == "Healthy";
+
+                return content?.Value == "Healthy"
+                    && (checkBuildTimestamp == null || BuildTimestampMatches());
+
+                bool BuildTimestampMatches()
+                {
+                    var buildTimestampMatches = content.BuildTimestamp == checkBuildTimestamp;
+                    testOutputHelper.WriteLine(
+                        buildTimestampMatches
+                            ? $"{serviceName} build timestamp matches ({checkBuildTimestamp})"
+                            : $"{serviceName} build timestamp does not yet match ({content.BuildTimestamp} != {checkBuildTimestamp})"
+                    );
+                    return buildTimestampMatches;
+                }
             }
             catch (Exception ex)
             {

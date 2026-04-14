@@ -178,6 +178,7 @@ jobs:
             -e E2E__BaseUrl=http://localhost:7182/api/ \
             -e E2E__StubCustodiansBaseUrl=http://localhost:5193/api/ \
             -e E2E__SkipResetAzureTables=False
+            -e E2E__UseExtendedHealthCheckTimeout=False
 
       - name: Publish E2E test summary (ephemeral)
         if: always()
@@ -222,6 +223,7 @@ jobs:
             -e E2E__BaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}func-${{ steps.env_config.outputs.region_short }}-find01.azurewebsites.net/api/ \
             -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
             -e E2E__SkipResetAzureTables=True
+            -e E2E__UseExtendedHealthCheckTimeout=True
 
       - name: Publish E2E test summary (dev)
         if: always()

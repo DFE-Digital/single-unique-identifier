@@ -12,9 +12,11 @@ public record Config
 
     public string? FindApiStorageConnectionString { get; init; } = "UseDevelopmentStorage=true";
 
-    public bool UseEncryptedIds { get; set; } = false;
+    public bool UseEncryptedIds { get; init; } = false;
 
     public string? FindApiKey { get; init; }
 
     public string? PreviousFindApiKey { get; init; }
+
+    public bool UseExtendedHealthCheckTimeout { get; init; } = false;
 }

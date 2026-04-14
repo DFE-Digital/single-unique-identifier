@@ -27,4 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />
   </ItemGroup>
+  <PropertyGroup>
+    <SourceRevisionId>build_timestamp_$([System.DateTime]::UtcNow.ToString("O"))</SourceRevisionId>
+  </PropertyGroup>
 </Project>
