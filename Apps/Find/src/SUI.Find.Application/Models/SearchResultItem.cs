@@ -2,7 +2,7 @@ using SUI.Find.Application.Constants;
 
 namespace SUI.Find.Application.Models;
 
-public sealed record SearchResultItem
+public record SearchResultItem
 {
     public required string RecordType { get; init; }
     public required string RecordUrl { get; init; }

@@ -30,6 +30,7 @@ public class UrlStorageTableServiceTests : IAsyncLifetime
             RecordType = "SomeType",
             JobId = "Job123",
             Ttl = TimeSpan.FromMinutes(5),
+            WorkItemId = null,
         };
 
         var expectedPartitionKey = request.RequestingOrg[..5];
@@ -69,6 +70,7 @@ public class UrlStorageTableServiceTests : IAsyncLifetime
                 RecordType = "SomeType",
                 JobId = "Job123",
                 Ttl = TimeSpan.FromMinutes(5),
+                WorkItemId = "wi-xyz",
             },
             CancellationToken.None
         );
@@ -135,6 +137,7 @@ public class UrlStorageTableServiceTests : IAsyncLifetime
                 RecordType = "SomeType",
                 JobId = "Job123",
                 Ttl = TimeSpan.FromMinutes(5),
+                WorkItemId = "wi-xyz",
             },
             CancellationToken.None
         );
@@ -176,6 +179,7 @@ public class UrlStorageTableServiceTests : IAsyncLifetime
             RecordType = "SomeType",
             JobId = "Job123",
             Ttl = TimeSpan.FromMinutes(5),
+            WorkItemId = "wi-xyz",
         };
 
         var expectedPartitionKey = "ABCDE"; // explicitly assert slicing logic
@@ -208,6 +212,7 @@ public class UrlStorageTableServiceTests : IAsyncLifetime
             RecordType = "SomeType",
             JobId = "Job123",
             Ttl = TimeSpan.FromMinutes(5),
+            WorkItemId = "wi-xyz",
         };
 
         // ACT

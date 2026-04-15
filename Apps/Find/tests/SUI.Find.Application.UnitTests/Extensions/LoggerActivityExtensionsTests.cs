@@ -6,6 +6,9 @@ using SUI.Find.Application.Extensions;
 
 namespace SUI.Find.Application.UnitTests.Extensions;
 
+// Ignore "Evaluation of this argument may be expensive and unnecessary if logging is disabled" - these are tests!
+#pragma warning disable CA1873
+
 public class LoggerActivityExtensionsTests
 {
     [Fact]
@@ -56,9 +59,17 @@ public class LoggerActivityExtensionsTests
                 .And.NotBeNullOrWhiteSpace();
 
             mockLogger
-                .ReceivedWithAnyArgs()
-                .LogInformation(
-                    "Started activity TestActivityName with trace-parent 00-c8248340542c3d82ade91f0cf45473b2-a974f0b90d1628e6-01"
+                .Received()
+                .Log(
+                    LogLevel.Information,
+                    Arg.Any<EventId>(),
+                    Arg.Is<Arg.AnyType>(
+                        (object x) =>
+                            $"{x}"
+                            == "Started activity TestActivityName with traceparent 00-c8248340542c3d82ade91f0cf45473b2-a974f0b90d1628e6-01"
+                    ),
+                    null,
+                    Arg.Any<Func<Arg.AnyType, Exception?, string>>()
                 );
 
             mockLogger.Received().BeginScope(exampleLogMetadata);

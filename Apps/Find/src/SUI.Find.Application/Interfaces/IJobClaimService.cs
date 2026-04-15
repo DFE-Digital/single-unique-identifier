@@ -10,4 +10,11 @@ public interface IJobClaimService
     );
 
     Task<bool> DoesCustodianHaveJobs(string custodianId, CancellationToken cancellationToken);
+
+    Task<JobInfo?> ExtendJobLeaseAsync(
+        string custodianId,
+        string jobId,
+        string leaseId,
+        CancellationToken cancellationToken
+    );
 }

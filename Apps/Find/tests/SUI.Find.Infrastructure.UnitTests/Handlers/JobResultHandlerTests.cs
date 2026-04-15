@@ -22,6 +22,7 @@ public class JobResultHandlerTests
         ILogger<JobResultHandler>
     >();
     private readonly IJobProcessorService _jobService = Substitute.For<IJobProcessorService>();
+    private readonly IMaskUrlService _maskUrlService = Substitute.For<IMaskUrlService>();
     private readonly IIdRegisterRepository _idRegisterRepo =
         Substitute.For<IIdRegisterRepository>();
     private readonly IWorkItemJobCountRepository _jobCountRepo =
@@ -39,9 +40,24 @@ public class JobResultHandlerTests
     {
         _logger.IsEnabled(LogLevel.Information).Returns(true);
 
+        _maskUrlService
+            .CreateAsync(
+                Arg.Any<List<CustodianSearchResultItem>>(),
+                Arg.Any<QueryProviderInput>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(callInfo =>
+            {
+                var input = callInfo.Arg<List<CustodianSearchResultItem>>();
+                return input
+                    .Select(item => item with { RecordUrl = $"masked_{item.RecordUrl}" })
+                    .ToList();
+            });
+
         _handler = new JobResultHandler(
             _logger,
             _jobService,
+            _maskUrlService,
             _idRegisterRepo,
             _jobCountRepo,
             _custodianService,
@@ -130,9 +146,9 @@ public class JobResultHandlerTests
                 message.WorkItemId,
                 message.JobType,
                 Arg.Any<CancellationToken>()
-            )!
+            )
             .Returns(
-                Task.FromResult(
+                Task.FromResult<WorkItemJobCount?>(
                     new WorkItemJobCount
                     {
                         PayloadJson = JsonSerializer.Serialize(payload),
@@ -172,6 +188,79 @@ public class JobResultHandlerTests
         await _searchResultRepo
             .DidNotReceive()
             .UpsertAsync(Arg.Any<SearchResultEntry>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task HandleAsync_ShouldReturn_WhenSearchingOrganisationIdNull()
+    {
+        var message = CreateMessage();
+
+        _jobCountRepo
+            .GetByWorkItemIdAndJobTypeAsync(
+                message.WorkItemId,
+                message.JobType,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                Task.FromResult<WorkItemJobCount?>(
+                    new WorkItemJobCount
+                    {
+                        WorkItemId = message.WorkItemId,
+                        JobType = JobType.Unknown,
+                        PayloadJson = "{}",
+                    }
+                )
+            );
+
+        _custodianService
+            .GetCustodianAsync(message.CustodianId)
+            .Returns(
+                Result<ProviderDefinition>.Ok(
+                    new ProviderDefinition { OrgId = message.CustodianId }
+                )
+            );
+
+        _jobService
+            .GetJobByIdAndCustodianIdAsync(
+                message.JobId,
+                message.CustodianId,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                Task.FromResult<Job?>(
+                    new Job
+                    {
+                        JobId = message.JobId,
+                        SearchingOrganisationId = null, // null input here is the case under test
+                        CustodianId = message.CustodianId,
+                        JobType = JobType.Unknown,
+                        PayloadJson = "{}",
+                    }
+                )
+            );
+
+        // ACT
+        await _handler.HandleAsync(message, CancellationToken.None);
+
+        // ASSERT
+        await _jobService
+            .DidNotReceiveWithAnyArgs()
+            .MarkCompletedAsync("", "", Arg.Any<CancellationToken>());
+
+        _logger
+            .Received(1)
+            .Log(
+                LogLevel.Warning,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>(
+                    (object x) =>
+                        $"{x}".Equals(
+                            "Job has no SearchingOrganisationId for JobId " + message.JobId
+                        )
+                ),
+                null,
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
+            );
     }
 
     [Fact]
@@ -281,7 +370,7 @@ public class JobResultHandlerTests
                 Arg.Any<CancellationToken>()
             );
 
-        // Search results persisted (only allowed ones)
+        // Search results persisted (only allowed ones), with masking applied
         await _searchResultRepo
             .Received(2)
             .UpsertAsync(
@@ -289,6 +378,7 @@ public class JobResultHandlerTests
                     x.JobId == message.JobId
                     && x.WorkItemId == message.WorkItemId
                     && x.CustodianId == message.CustodianId
+                    && x.RecordUrl.StartsWith("masked_")
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -306,6 +396,21 @@ public class JobResultHandlerTests
                 Arg.Is<List<CustodianSearchResultItem>>(x => x.Count == 2),
                 Arg.Any<string>(),
                 ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
+                Arg.Any<CancellationToken>()
+            );
+
+        // Verify URL masking interaction
+        await _maskUrlService
+            .Received(1)
+            .CreateAsync(
+                Arg.Is<List<CustodianSearchResultItem>>(x => x.Count == 2),
+                Arg.Is<QueryProviderInput>(x =>
+                    x.WorkItemId == message.WorkItemId
+                    && x.RequestingOrg == searchingOrganisationId
+                    && x.JobId == message.JobId
+                    && x.Suid == "sui1"
+                    && x.Provider.OrgId == message.CustodianId
+                ),
                 Arg.Any<CancellationToken>()
             );
     }

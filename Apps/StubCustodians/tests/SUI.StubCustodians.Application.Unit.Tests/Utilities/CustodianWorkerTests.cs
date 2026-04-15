@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -13,31 +14,31 @@ public class CustodianWorkerTests
     private readonly ILogger<CustodianWorker> _logger = Substitute.For<ILogger<CustodianWorker>>();
     private readonly ITokenProvider _tokenProvider = Substitute.For<ITokenProvider>();
     private readonly IFindApiClient _client = Substitute.For<IFindApiClient>();
-    private readonly IBaseUrlProvider _baseUrlProvider = Substitute.For<IBaseUrlProvider>();
+    private readonly IConfiguration _config = Substitute.For<IConfiguration>();
     private readonly IManifestService _manifestService = Substitute.For<IManifestService>();
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
+    private readonly IDelayService _delayService = Substitute.For<IDelayService>();
     private readonly IServiceScope _serviceScope = Substitute.For<IServiceScope>();
     private readonly IServiceScopeFactory _scopeFactory = Substitute.For<IServiceScopeFactory>();
 
-    private readonly Organisation _testOrg;
+    private readonly AuthClient _testClient;
 
     public CustodianWorkerTests()
     {
-        _testOrg = new Organisation
+        _testClient = new AuthClient()
         {
-            OrgId = "test-org-123",
-            Records =
-            [
-                new RecordDefinition
-                {
-                    RecordType = "RT-1",
-                    Connection = new Connection
-                    {
-                        Auth = new AuthConfig() { ClientId = "client-id", ClientSecret = "secret" },
-                    },
-                },
-            ],
+            ClientId = "client-id",
+            ClientSecret = "secret",
+            Enabled = true,
+            AllowedScopes = ["test-scope"],
         };
+
+        _logger.IsEnabled(LogLevel.Information).Returns(true);
+
+        // Ensure delay does not actually wait during tests
+        _delayService
+            .DelayAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
 
         // Setup Service Provider Mocking Chain
         _serviceProvider.GetService(typeof(IServiceScopeFactory)).Returns(_scopeFactory);
@@ -51,6 +52,7 @@ public class CustodianWorkerTests
     {
         // Arrange
         var token = "fake-jwt-token";
+
         var job = new JobInfo
         {
             JobId = "job-abc",
@@ -68,11 +70,22 @@ public class CustodianWorkerTests
 
         _tokenProvider.GetTokenAsync("client-id", "secret").Returns(token);
         _client.ClaimAsync(token).Returns(job);
-        _baseUrlProvider.GetBaseUrl().Returns("https://api.test");
+        _client
+            .ExtendLeaseAsync(token, Arg.Any<RenewJobLeaseRequest>())
+            .Returns(
+                new RenewJobLeaseResponse
+                {
+                    JobId = job.JobId,
+                    LeaseId = job.LeaseId,
+                    WorkItemId = "work-1",
+                    LeaseExpiresUtc = job.LeaseExpiresAtUtc.AddMinutes(1),
+                }
+            );
+        _config["StubCustodians:BaseUrl"].Returns("https://api.test");
 
         _manifestService
             .GetManifestForOrganisation(
-                _testOrg.OrgId,
+                _testClient.ClientId,
                 job.Sui,
                 "https://api.test",
                 job.RecordType,
@@ -80,25 +93,34 @@ public class CustodianWorkerTests
             )
             .Returns(manifestItems);
 
-        // Act
         var worker = new CustodianWorker(
             _logger,
             _tokenProvider,
             _client,
-            _baseUrlProvider,
-            _testOrg,
-            _serviceProvider
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
         );
+
         using var cts = new CancellationTokenSource();
 
+        // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100, cts.Token); // Allow the worker loop to run at least once
+        await Task.Delay(100);
         await cts.CancelAsync();
         await task;
 
         // Assert
         await _client
-            .Received() // There is a slight possibility of execution speed where the count can vary
+            .Received()
+            .ExtendLeaseAsync(
+                token,
+                Arg.Is<RenewJobLeaseRequest>(r => r.JobId == job.JobId && r.LeaseId == job.LeaseId)
+            );
+
+        await _client
+            .Received()
             .SubmitAsync(
                 token,
                 Arg.Is<SubmitJobResultsRequest>(r =>
@@ -121,25 +143,40 @@ public class CustodianWorkerTests
         };
 
         _tokenProvider.GetTokenAsync(Arg.Any<string>(), Arg.Any<string>()).Returns("token");
-        _client.ClaimAsync("token").Returns(job);
 
-        // Act
+        _client.ClaimAsync("token").Returns(job);
+        _client
+            .ExtendLeaseAsync("token", Arg.Any<RenewJobLeaseRequest>())
+            .Returns(
+                new RenewJobLeaseResponse
+                {
+                    JobId = job.JobId,
+                    LeaseId = job.LeaseId,
+                    WorkItemId = "W",
+                    LeaseExpiresUtc = job.LeaseExpiresAtUtc.AddMinutes(1),
+                }
+            );
+
         var worker = new CustodianWorker(
             _logger,
             _tokenProvider,
             _client,
-            _baseUrlProvider,
-            _testOrg,
-            _serviceProvider
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
         );
+
         using var cts = new CancellationTokenSource();
 
+        // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100, cts.Token);
+        await Task.Delay(100);
         await cts.CancelAsync();
         await task;
 
         // Assert
+        await _client.Received().ExtendLeaseAsync("token", Arg.Any<RenewJobLeaseRequest>());
         _logger
             .Received()
             .Log(
@@ -159,19 +196,21 @@ public class CustodianWorkerTests
             .GetTokenAsync(Arg.Any<string>(), Arg.Any<string>())
             .Throws(new Exception("API Down"));
 
-        // Act
         var worker = new CustodianWorker(
             _logger,
             _tokenProvider,
             _client,
-            _baseUrlProvider,
-            _testOrg,
-            _serviceProvider
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
         );
+
         using var cts = new CancellationTokenSource();
 
+        // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100, cts.Token);
+        await Task.Delay(100);
         await cts.CancelAsync();
         await task;
 
@@ -183,6 +222,218 @@ public class CustodianWorkerTests
                 Arg.Any<EventId>(),
                 Arg.Is<Arg.AnyType>((object x) => x.ToString()!.Contains("Polling failed")),
                 Arg.Is<Exception>(ex => ex.Message == "API Down"),
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
+            );
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldSleep_WhenNoJobReturned()
+    {
+        // Arrange
+        _tokenProvider.GetTokenAsync(Arg.Any<string>(), Arg.Any<string>()).Returns("token");
+
+        _client.ClaimAsync("token").Returns((JobInfo?)null);
+
+        var worker = new CustodianWorker(
+            _logger,
+            _tokenProvider,
+            _client,
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
+        );
+
+        using var cts = new CancellationTokenSource();
+
+        // Act
+        var task = worker.StartAsync(cts.Token);
+        await Task.Delay(100);
+        await cts.CancelAsync();
+        await task;
+
+        // Assert
+        await _delayService
+            .Received()
+            .DelayAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldNotSleep_WhenJobIsReturned()
+    {
+        // Arrange
+        var token = "token";
+
+        var job = new JobInfo
+        {
+            JobId = "job-1",
+            LeaseId = "lease-1",
+            CustodianId = "cust-1",
+            LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
+            Sui = "SUI-123",
+            RecordType = "Document",
+        };
+
+        _tokenProvider.GetTokenAsync(Arg.Any<string>(), Arg.Any<string>()).Returns(token);
+
+        _client.ClaimAsync(token).Returns(job);
+        _client
+            .ExtendLeaseAsync(token, Arg.Any<RenewJobLeaseRequest>())
+            .Returns(
+                new RenewJobLeaseResponse
+                {
+                    JobId = job.JobId,
+                    LeaseId = job.LeaseId,
+                    WorkItemId = "W",
+                    LeaseExpiresUtc = job.LeaseExpiresAtUtc.AddMinutes(1),
+                }
+            );
+
+        _config["StubCustodians:BaseUrl"].Returns("https://api.test");
+
+        _manifestService
+            .GetManifestForOrganisation(
+                _testClient.ClientId,
+                job.Sui,
+                "https://api.test",
+                job.RecordType,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(new List<SearchResultItem>());
+
+        var worker = new CustodianWorker(
+            _logger,
+            _tokenProvider,
+            _client,
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
+        );
+
+        using var cts = new CancellationTokenSource();
+
+        // Act
+        var task = worker.StartAsync(cts.Token);
+        await Task.Delay(100);
+        await cts.CancelAsync();
+        await task;
+
+        // Assert
+        await _client.Received().ExtendLeaseAsync(token, Arg.Any<RenewJobLeaseRequest>());
+        await _delayService
+            .DidNotReceive()
+            .DelayAsync(Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldLogLeaseExtended_WhenLeaseIsSuccessfullyExtended()
+    {
+        // Arrange
+        var token = "token";
+        var job = new JobInfo
+        {
+            JobId = "job-1",
+            LeaseId = "lease-1",
+            CustodianId = "cust-1",
+            LeaseExpiresAtUtc = DateTimeOffset.UtcNow,
+            Sui = "SUI-123",
+        };
+        var extendedLease = new RenewJobLeaseResponse
+        {
+            JobId = job.JobId,
+            LeaseId = job.LeaseId,
+            WorkItemId = "W",
+            LeaseExpiresUtc = job.LeaseExpiresAtUtc.AddMinutes(1),
+        };
+
+        _tokenProvider.GetTokenAsync(Arg.Any<string>(), Arg.Any<string>()).Returns(token);
+        _client.ClaimAsync(token).Returns(job);
+        _client.ExtendLeaseAsync(token, Arg.Any<RenewJobLeaseRequest>()).Returns(extendedLease);
+
+        var worker = new CustodianWorker(
+            _logger,
+            _tokenProvider,
+            _client,
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
+        );
+
+        using var cts = new CancellationTokenSource();
+
+        // Act
+        var task = worker.StartAsync(cts.Token);
+        await Task.Delay(100);
+        await cts.CancelAsync();
+        await task;
+
+        // Assert
+        _logger
+            .Received()
+            .Log(
+                LogLevel.Information,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>((object v) => v.ToString()!.Contains("Lease extended for job")),
+                null,
+                Arg.Any<Func<Arg.AnyType, Exception?, string>>()
+            );
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldLogLeaseNotExtended_WhenLeaseExpirationIsNotIncreased()
+    {
+        // Arrange
+        var token = "token";
+        var job = new JobInfo
+        {
+            JobId = "job-1",
+            LeaseId = "lease-1",
+            CustodianId = "cust-1",
+            LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(5),
+            Sui = "SUI-123",
+        };
+        var extendedLease = new RenewJobLeaseResponse
+        {
+            JobId = job.JobId,
+            LeaseId = job.LeaseId,
+            WorkItemId = "W",
+            LeaseExpiresUtc = job.LeaseExpiresAtUtc, // Not increased
+        };
+
+        _tokenProvider.GetTokenAsync(Arg.Any<string>(), Arg.Any<string>()).Returns(token);
+        _client.ClaimAsync(token).Returns(job);
+        _client.ExtendLeaseAsync(token, Arg.Any<RenewJobLeaseRequest>()).Returns(extendedLease);
+
+        var worker = new CustodianWorker(
+            _logger,
+            _tokenProvider,
+            _client,
+            _config,
+            _testClient,
+            _serviceProvider,
+            _delayService
+        );
+
+        using var cts = new CancellationTokenSource();
+
+        // Act
+        var task = worker.StartAsync(cts.Token);
+        await Task.Delay(100);
+        await cts.CancelAsync();
+        await task;
+
+        // Assert
+        _logger
+            .Received()
+            .Log(
+                LogLevel.Information,
+                Arg.Any<EventId>(),
+                Arg.Is<Arg.AnyType>(
+                    (object v) => v.ToString()!.Contains("Lease not extended for job")
+                ),
+                null,
                 Arg.Any<Func<Arg.AnyType, Exception?, string>>()
             );
     }

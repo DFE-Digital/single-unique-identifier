@@ -1,20 +1,12 @@
-using System.Text.Json.Serialization;
-using SUI.Find.Application.Dtos;
-using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 
 namespace SUI.Find.FindApi.Models;
 
-public record SearchResultsV2
+public record SearchResultsV2 : SearchResultsBase
 {
     public required string WorkItemId { get; set; } = string.Empty;
-    public required string Suid { get; set; } = string.Empty;
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required SearchStatus Status { get; set; }
 
     public required int CompletenessPercentage { get; set; }
-    public required IReadOnlyList<SearchResultEntry> Items { get; set; } = [];
 
     public static SearchResultsV2 FromDto(SearchResultsV2Dto dto)
     {

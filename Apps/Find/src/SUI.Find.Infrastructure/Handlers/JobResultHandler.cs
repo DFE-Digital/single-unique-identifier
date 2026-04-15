@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
@@ -13,9 +14,15 @@ using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
 
 namespace SUI.Find.Infrastructure.Handlers;
 
+[SuppressMessage(
+    "brain-overload",
+    "S107:Methods should not have too many parameters",
+    Justification = "This method is a constructor, still of reasonable size; and there is not a sensible way to decompose the class for this constructor."
+)]
 public class JobResultHandler(
     ILogger<JobResultHandler> logger,
     IJobProcessorService jobService,
+    IMaskUrlService maskUrlService,
     IIdRegisterRepository idRegisterRepository,
     IWorkItemJobCountRepository workItemJobCountRepository,
     ICustodianService custodianService,
@@ -67,20 +74,17 @@ public class JobResultHandler(
             return;
         }
 
-        await UpsertIdRegister(message, payload, cancellationToken);
-
         var context = await BuildContext(message, cancellationToken);
         if (context is null)
         {
             return;
         }
 
-        var filtered = await ApplyPepFiltering(
-            message.Records,
-            context,
-            invocationId,
-            cancellationToken
-        );
+        var records = await MaskUrlsAsync(message, context, payload, cancellationToken);
+
+        await UpsertIdRegister(message, payload, cancellationToken);
+
+        var filtered = await ApplyPepFiltering(records, context, invocationId, cancellationToken);
 
         await PersistSearchResults(filtered, message, context, cancellationToken);
 
@@ -114,6 +118,30 @@ public class JobResultHandler(
         return JsonSerializer.Deserialize<SearchWorkItemPayload>(jobCount.PayloadJson);
     }
 
+    // Mask URLs
+    private async Task<IReadOnlyList<CustodianSearchResultItem>> MaskUrlsAsync(
+        JobResultMessage message,
+        JobContext context,
+        SearchWorkItemPayload payload,
+        CancellationToken cancellationToken
+    )
+    {
+        var queryProviderInput = new QueryProviderInput(
+            RequestingOrg: context.SearchingOrganisationId,
+            JobId: message.JobId,
+            InvocationId: message.JobTraceParent ?? string.Empty,
+            Suid: payload.Sui,
+            Provider: context.Custodian
+        )
+        {
+            WorkItemId = message.WorkItemId,
+        };
+
+        var input = MapRecordsToResultItems(message.Records, context);
+
+        return await maskUrlService.CreateAsync(input, queryProviderInput, cancellationToken);
+    }
+
     // ID Register
     private async Task UpsertIdRegister(
         JobResultMessage message,
@@ -144,7 +172,7 @@ public class JobResultHandler(
     }
 
     // Context (Job + Custodians)
-    private async Task<PepContext?> BuildContext(
+    private async Task<JobContext?> BuildContext(
         JobResultMessage message,
         CancellationToken cancellationToken
     )
@@ -168,6 +196,15 @@ public class JobResultHandler(
             return null;
         }
 
+        if (job.SearchingOrganisationId is null)
+        {
+            logger.LogWarning(
+                $"Job has no {nameof(job.SearchingOrganisationId)} for JobId {{JobId}}",
+                message.JobId
+            );
+            return null;
+        }
+
         var searchingOrg = await custodianService.GetCustodianAsync(job.SearchingOrganisationId);
         if (!searchingOrg.Success || searchingOrg.Value is null)
         {
@@ -178,13 +215,13 @@ public class JobResultHandler(
             return null;
         }
 
-        return new PepContext(custodian.Value, searchingOrg.Value, job.SearchingOrganisationId);
+        return new JobContext(custodian.Value, searchingOrg.Value, job.SearchingOrganisationId);
     }
 
     // PEP Filtering
     private async Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> ApplyPepFiltering(
-        List<JobResultRecord> records,
-        PepContext context,
+        IReadOnlyList<CustodianSearchResultItem> records,
+        JobContext context,
         string invocationId,
         CancellationToken cancellationToken
     )
@@ -192,20 +229,9 @@ public class JobResultHandler(
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
 
-        var input = records
-            .Select(r => new CustodianSearchResultItem(
-                context.Custodian.OrgId,
-                r.RecordType,
-                r.RecordUrl,
-                r.SystemId,
-                context.Custodian.OrgName,
-                r.RecordId
-            ))
-            .ToList();
-
         var resultsWithDecision = await pepAuditService.FilterItemsAndAuditAsync(
             context,
-            input,
+            records,
             invocationId,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
             cancellationToken
@@ -226,7 +252,7 @@ public class JobResultHandler(
     private async Task PersistSearchResults(
         IReadOnlyList<PepResultItem<CustodianSearchResultItem>> results,
         JobResultMessage message,
-        PepContext context,
+        JobContext context,
         CancellationToken cancellationToken
     )
     {
@@ -249,4 +275,25 @@ public class JobResultHandler(
             await searchResultRepository.UpsertAsync(entry, cancellationToken);
         }
     }
+
+    private sealed record JobContext(
+        ProviderDefinition Custodian,
+        ProviderDefinition SearchingOrganisation,
+        string SearchingOrganisationId
+    );
+
+    private static List<CustodianSearchResultItem> MapRecordsToResultItems(
+        List<JobResultRecord> records,
+        JobContext context
+    ) =>
+        records
+            .Select(r => new CustodianSearchResultItem(
+                context.Custodian.OrgId,
+                r.RecordType,
+                r.RecordUrl,
+                r.SystemId,
+                context.Custodian.OrgName,
+                r.RecordId
+            ))
+            .ToList();
 }

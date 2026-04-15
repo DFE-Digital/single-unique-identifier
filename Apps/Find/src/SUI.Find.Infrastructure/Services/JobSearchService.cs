@@ -34,7 +34,8 @@ public class JobSearchService(
 
         if (workItemJobCountEntity == null || workItemJobCountEntity.ExpectedJobCount == 0)
         {
-            logger.LogInformation("No jobs found for work item ID {WorkItemId}", workItemId);
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("No jobs found for work item ID {WorkItemId}", workItemId);
             return new NotFound();
         }
 
@@ -55,8 +56,10 @@ public class JobSearchService(
             cancellationToken
         );
 
+        var completedJobCount = workItemJobCountEntity.CompletedJobIds.Count;
+
         var completenessPercentage =
-            completedRecords.Count * 100 / workItemJobCountEntity.ExpectedJobCount;
+            completedJobCount * 100 / workItemJobCountEntity.ExpectedJobCount;
 
         var status = GetOverallJobStatus(completenessPercentage, workItemJobCountEntity);
 
@@ -70,7 +73,7 @@ public class JobSearchService(
             WorkItemId = workItemId,
             Suid = payload?.Sui ?? string.Empty,
             Status = status,
-            Items = completedRecords,
+            Items = completedRecords.Select(SearchResultItem (x) => x).ToArray(),
             CompletenessPercentage = completenessPercentage,
         };
 

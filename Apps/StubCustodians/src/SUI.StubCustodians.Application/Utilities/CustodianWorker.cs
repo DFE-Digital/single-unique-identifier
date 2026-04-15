@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,10 +11,11 @@ public class CustodianWorker : BackgroundService
 {
     private readonly ILogger<CustodianWorker> _logger;
     private readonly ITokenProvider _tokenProvider;
-    private readonly IFindApiClient _client;
-    private readonly IBaseUrlProvider _baseUrlProvider;
-    private readonly Organisation _org;
+    private readonly IFindApiClient _findApiClient;
+    private readonly IConfiguration _config;
+    private readonly AuthClient _authClient;
     private readonly IServiceProvider _services;
+    private readonly IDelayService _delayService;
 
     private readonly string _clientId;
     private readonly string _clientSecret;
@@ -22,36 +24,40 @@ public class CustodianWorker : BackgroundService
     public CustodianWorker(
         ILogger<CustodianWorker> logger,
         ITokenProvider tokenProvider,
-        IFindApiClient client,
-        IBaseUrlProvider baseUrlProvider,
-        Organisation org,
-        IServiceProvider services
+        IFindApiClient findApiClient,
+        IConfiguration config,
+        AuthClient authClient,
+        IServiceProvider services,
+        IDelayService delayService
     )
     {
         _logger = logger;
         _tokenProvider = tokenProvider;
-        _client = client;
-        _baseUrlProvider = baseUrlProvider;
-        _org = org;
+        _findApiClient = findApiClient;
+        _config = config;
+        _authClient = authClient;
         _services = services;
+        _delayService = delayService;
 
-        var auth = org.Records.First().Connection.Auth;
-        _clientId = auth.ClientId;
-        _clientSecret = auth.ClientSecret;
+        _clientId = authClient.ClientId;
+        _clientSecret = authClient.ClientSecret;
 
         _intervalSeconds = Random.Shared.Next(30, 121);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "Custodian {OrgId} started. Interval: {Interval}s",
-            _org.OrgId,
-            _intervalSeconds
-        );
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation(
+                "Custodian {ClientId} started. Interval: {Interval}s",
+                _authClient.ClientId,
+                _intervalSeconds
+            );
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            bool sleep;
+
             try
             {
                 var token = await _tokenProvider.GetTokenAsync(_clientId, _clientSecret);
@@ -59,19 +65,42 @@ public class CustodianWorker : BackgroundService
                 using var scope = _services.CreateScope();
                 var manifestService = scope.ServiceProvider.GetRequiredService<IManifestService>();
 
-                var job = await _client.ClaimAsync(token);
+                var job = await _findApiClient.ClaimAsync(token);
+
+                sleep = job == null; // i.e. do not sleep if we have just claimed a job, because there may be more to claim straight away. Only sleep if there was nothing to claim.
 
                 if (job != null)
                 {
+                    var extendedLease = await _findApiClient.ExtendLeaseAsync(
+                        token,
+                        new RenewJobLeaseRequest { JobId = job.JobId, LeaseId = job.LeaseId }
+                    );
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.LogInformation(
+                            extendedLease?.LeaseExpiresUtc > job.LeaseExpiresAtUtc
+                                ? "Lease extended for job: {JobId}"
+                                : "Lease not extended for job: {JobId}",
+                            extendedLease?.JobId
+                        );
+                    }
+
                     await ProcessJob(job, token, manifestService, stoppingToken);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Polling failed for {OrgId}", _org.OrgId);
+                _logger.LogError(ex, "Polling failed for {ClientId}", _authClient.ClientId);
+                sleep = true;
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(_intervalSeconds), stoppingToken);
+            if (sleep)
+            {
+                await _delayService.DelayAsync(
+                    TimeSpan.FromSeconds(_intervalSeconds),
+                    stoppingToken
+                );
+            }
         }
     }
 
@@ -87,9 +116,20 @@ public class CustodianWorker : BackgroundService
             {
                 ["JobId"] = job.JobId,
                 ["LeaseId"] = job.LeaseId,
-                ["OrgId"] = _org.OrgId,
+                ["OrgId"] = _authClient.ClientId,
             }
         );
+
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation(
+                "Processing job {JobDetails}",
+                new
+                {
+                    job.JobId,
+                    job.LeaseId,
+                    _authClient.ClientId,
+                }
+            );
 
         if (string.IsNullOrWhiteSpace(job.Sui))
         {
@@ -97,10 +137,10 @@ public class CustodianWorker : BackgroundService
             return;
         }
 
-        var baseUrl = _baseUrlProvider.GetBaseUrl();
+        var baseUrl = _config["StubCustodians:BaseUrl"]!;
 
         var manifest = await manifestService.GetManifestForOrganisation(
-            _org.OrgId,
+            _authClient.ClientId,
             job.Sui,
             baseUrl,
             job.RecordType,
@@ -123,8 +163,11 @@ public class CustodianWorker : BackgroundService
                 .ToList(),
         };
 
-        await _client.SubmitAsync(token, result);
+        await _findApiClient.SubmitAsync(token, result);
 
-        _logger.LogInformation("Submitted {Count} records", result.Records.Count);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("Submitted {Count} records", result.Records.Count);
+        }
     }
 }

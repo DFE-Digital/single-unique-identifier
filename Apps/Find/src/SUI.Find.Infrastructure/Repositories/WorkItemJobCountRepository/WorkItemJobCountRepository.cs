@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Enums;
@@ -13,6 +14,8 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
     private const string TableName = InfrastructureConstants
         .StorageTableWorkItemJobCountRepository
         .TableName;
+
+    private const string JobCompletedPrefix = "__job_completed_";
 
     public WorkItemJobCountRepository(
         TableServiceClient client,
@@ -59,6 +62,24 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
         }
     }
 
+    public async Task MarkJobCompletedAsync(
+        string workItemId,
+        JobType jobType,
+        string jobId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var partitionKey = WorkItemJobCountKeys.PartitionKey(workItemId);
+        var rowKey = WorkItemJobCountKeys.RowKey(jobType);
+
+        var entity = new TableEntity(partitionKey, rowKey)
+        {
+            { $"{JobCompletedPrefix}{jobId.Replace("-", "_")}", DateTimeOffset.UtcNow },
+        };
+
+        await Table.UpsertEntityAsync(entity, TableUpdateMode.Merge, cancellationToken);
+    }
+
     public async Task<WorkItemJobCount?> GetByWorkItemIdAndJobTypeAsync(
         string workItemId,
         JobType jobType,
@@ -89,6 +110,11 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
                     parsedJobType = JobType.Unknown;
                 }
 
+                var completedJobIds = entity
+                    .Keys.Where(key => key.StartsWith(JobCompletedPrefix))
+                    .Select(key => key[JobCompletedPrefix.Length..].Replace("_", "-"))
+                    .ToFrozenSet();
+
                 result = new WorkItemJobCount
                 {
                     WorkItemId = entity.GetString("WorkItemId"),
@@ -98,6 +124,7 @@ public class WorkItemJobCountRepository : IWorkItemJobCountRepository, ITableSer
                     UpdatedAtUtc = entity.GetDateTimeOffset("UpdatedAtUtc")!.Value,
                     SearchingOrganisationId = entity.GetString("SearchingOrganisationId"),
                     PayloadJson = entity.GetString("PayloadJson"),
+                    CompletedJobIds = completedJobIds,
                 };
             }
         }

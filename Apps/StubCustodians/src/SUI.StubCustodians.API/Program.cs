@@ -70,8 +70,14 @@ namespace SUI.StubCustodians.API
                     }
                 });
             }
+
             app.UseMiddleware<ScopeEnforcementMiddleware>();
-            app.UseHttpsRedirection();
+
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
@@ -86,7 +92,8 @@ namespace SUI.StubCustodians.API
             services.AddSingleton<IDataProvider, FileDataProvider>();
             services.AddScoped<IManifestService, ManifestService>();
             services.AddScoped<IRecordService, RecordService>();
-            services.AddSingleton<IOrgDirectoryProvider, OrgDirectoryProvider>();
+            services.AddSingleton<IFindApiAuthClientProvider, FindApiAuthClientProvider>();
+            services.AddSingleton<IDelayService, SystemDelayService>();
 
             services.AddHttpContextAccessor();
             services.AddSingleton<IBaseUrlProvider, HttpContextBaseUrlProvider>();
@@ -106,18 +113,22 @@ namespace SUI.StubCustodians.API
             });
 
             var sp = services.BuildServiceProvider();
-            var orgProvider = sp.GetRequiredService<IOrgDirectoryProvider>();
+            var authClientProvider = sp.GetRequiredService<IFindApiAuthClientProvider>();
 
-            foreach (var org in orgProvider.GetOrganisations())
+            foreach (var authClient in authClientProvider.GetAuthClients())
             {
-                services.AddHostedService(provider => new CustodianWorker(
-                    provider.GetRequiredService<ILogger<CustodianWorker>>(),
-                    provider.GetRequiredService<ITokenProvider>(),
-                    provider.GetRequiredService<IFindApiClient>(),
-                    provider.GetRequiredService<IBaseUrlProvider>(),
-                    org,
-                    provider // pass IServiceProvider for scoped services
-                ));
+                // Note that we cannot use `AddHostedService` extension, because our concrete type is the same, that extension methods only adds the first
+                services.AddSingleton<IHostedService, CustodianWorker>(
+                    provider => new CustodianWorker(
+                        provider.GetRequiredService<ILogger<CustodianWorker>>(),
+                        provider.GetRequiredService<ITokenProvider>(),
+                        provider.GetRequiredService<IFindApiClient>(),
+                        provider.GetRequiredService<IConfiguration>(),
+                        authClient,
+                        provider, // pass IServiceProvider for scoped services
+                        provider.GetRequiredService<IDelayService>()
+                    )
+                );
             }
         }
     }
