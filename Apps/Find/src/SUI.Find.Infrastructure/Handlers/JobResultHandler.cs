@@ -276,12 +276,6 @@ public class JobResultHandler(
         }
     }
 
-    private sealed record JobContext(
-        ProviderDefinition Custodian,
-        ProviderDefinition SearchingOrganisation,
-        string SearchingOrganisationId
-    );
-
     private static List<CustodianSearchResultItem> MapRecordsToResultItems(
         List<JobResultRecord> records,
         JobContext context

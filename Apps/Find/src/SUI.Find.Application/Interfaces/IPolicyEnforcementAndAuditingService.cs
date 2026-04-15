@@ -6,8 +6,8 @@ namespace SUI.Find.Application.Interfaces;
 public interface IPolicyEnforcementAndAuditingService
 {
     Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> FilterItemsAndAuditAsync(
-        PepContext context,
-        List<CustodianSearchResultItem> input,
+        JobContext context,
+        IReadOnlyList<CustodianSearchResultItem> input,
         string invocationId,
         string purpose,
         CancellationToken cancellationToken = default

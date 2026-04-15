@@ -240,7 +240,7 @@ public class JobResultHandlerTests
             );
 
         // ACT
-        await _handler.HandleAsync(message, CancellationToken.None);
+        await _handler.HandleAsync(message, InvocationId, CancellationToken.None);
 
         // ASSERT
         await _jobService
@@ -331,7 +331,7 @@ public class JobResultHandlerTests
         // Proper PEP mock (based on actual inputs)
         _pepService
             .FilterItemsAndAuditAsync(
-                Arg.Any<PepContext>(),
+                Arg.Any<JobContext>(),
                 Arg.Any<List<CustodianSearchResultItem>>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
@@ -392,7 +392,7 @@ public class JobResultHandlerTests
         await _pepService
             .Received(1)
             .FilterItemsAndAuditAsync(
-                Arg.Any<PepContext>(),
+                Arg.Any<JobContext>(),
                 Arg.Is<List<CustodianSearchResultItem>>(x => x.Count == 2),
                 Arg.Any<string>(),
                 ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
@@ -483,7 +483,7 @@ public class JobResultHandlerTests
         // Mixed PEP response (allow only first 2)
         _pepService
             .FilterItemsAndAuditAsync(
-                Arg.Any<PepContext>(),
+                Arg.Any<JobContext>(),
                 Arg.Any<List<CustodianSearchResultItem>>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
