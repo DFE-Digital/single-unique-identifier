@@ -97,6 +97,7 @@ jobs:
           echo "github.event.workflow_run.event: ${{ github.event.workflow_run.event || '(no value)' }}"
           echo "github.event.workflow_run.conclusion: ${{ github.event.workflow_run.conclusion || '(no value)' }}"
           echo "github.event.workflow_run.head_branch: ${{ github.event.workflow_run.head_branch || '(no value)' }}"
+          echo "github.event.workflow_run.run_started_at: ${{ github.event.workflow_run.run_started_at || '(no value)' }}"
           echo "inputs.environment: ${{ inputs.environment || '(no value)' }}"
           echo "inputs.manual_run_ephemeral: ${{ inputs.manual_run_ephemeral || '(no value)' }}"
           echo "inputs.manual_run_dev: ${{ inputs.manual_run_dev || '(no value)' }}"
@@ -177,8 +178,10 @@ jobs:
             --results-directory TestResults \
             -e E2E__BaseUrl=http://localhost:7182/api/ \
             -e E2E__StubCustodiansBaseUrl=http://localhost:5193/api/ \
-            -e E2E__SkipResetAzureTables=False
-            -e E2E__UseExtendedHealthCheckTimeout=False
+            -e E2E__SkipResetAzureTables=False \
+            -e E2E__UseExtendedFindApiHealthCheckTimeout=False \
+            # This threshold check is not necessary for ephemeral e2e tests, but is included to verify the threshold behaviour at pull request stage \
+            -e E2E__CheckFindApiBuildTimestampThreshold=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
       - name: Publish E2E test summary (ephemeral)
         if: always()
@@ -222,8 +225,11 @@ jobs:
             --results-directory TestResults \
             -e E2E__BaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}func-${{ steps.env_config.outputs.region_short }}-find01.azurewebsites.net/api/ \
             -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
-            -e E2E__SkipResetAzureTables=True
-            -e E2E__UseExtendedHealthCheckTimeout=True
+            -e E2E__SkipResetAzureTables=True \
+            -e E2E__UseExtendedFindApiHealthCheckTimeout=True \
+            # We pass the run_started_at value so that we ensure the FindAPI has restarted with the latest version. \
+            # Note that this will pass null if this pipeline was not trigerred by a workflow_run, but that is fine and desired in that case (because we only need the check when this pipeline is immediately trigerred by the workflow_run after deployment) \
+            -e E2E__CheckFindApiBuildTimestampThreshold=${{ github.event.workflow_run.run_started_at }}
 
       - name: Publish E2E test summary (dev)
         if: always()

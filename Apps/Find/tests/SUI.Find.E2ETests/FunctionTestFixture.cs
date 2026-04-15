@@ -48,7 +48,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         GC.SuppressFinalize(this);
     }
 
-    private record HealthCheckResponse(string? Value, string? BuildNumber);
+    private record HealthCheckResponse(string? Value, DateTimeOffset? BuildTimestamp);
 
     public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
@@ -56,10 +56,10 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
             "Find API",
             Client,
             testOutputHelper,
-            timeout: Config.UseExtendedHealthCheckTimeout
+            timeout: Config.UseExtendedFindApiHealthCheckTimeout
                 ? TimeSpan.FromMinutes(10)
                 : TimeSpan.FromSeconds(60),
-            checkBuildNumber: FindApi.Utility.BuildNumberUtility.BuildNumber
+            checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
         );
     }
 
@@ -86,7 +86,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         HttpClient client,
         ITestOutputHelper testOutputHelper,
         TimeSpan timeout,
-        string? checkBuildNumber = null
+        DateTimeOffset? checkBuildTimestampThreshold = null
     )
     {
         const string url = "health";
@@ -117,17 +117,19 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
                 var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
 
                 return content?.Value == "Healthy"
-                    && (checkBuildNumber == null || BuildNumberMatches());
+                    && (checkBuildTimestampThreshold == null || CheckBuildTimestampThreshold());
 
-                bool BuildNumberMatches()
+                // rs-todo: comment
+                bool CheckBuildTimestampThreshold()
                 {
-                    var buildNumberMatches = content.BuildNumber == checkBuildNumber;
+                    var isBuiltSinceThreshold =
+                        content.BuildTimestamp >= checkBuildTimestampThreshold;
                     testOutputHelper.WriteLine(
-                        buildNumberMatches
-                            ? $"{serviceName} build number matches ({checkBuildNumber})"
-                            : $"{serviceName} build number does not yet match ({content.BuildNumber} != {checkBuildNumber})"
+                        isBuiltSinceThreshold
+                            ? $"{serviceName} build timestamp satisfies threshold (build timestamp {content.BuildTimestamp:O} is on or after threshold {checkBuildTimestampThreshold:O})"
+                            : $"{serviceName} build timestamp does not satisfy threshold (build timestamp {content.BuildTimestamp:O} is NOT on or after threshold {checkBuildTimestampThreshold:O})"
                     );
-                    return buildNumberMatches;
+                    return isBuiltSinceThreshold;
                 }
             }
             catch (Exception ex)

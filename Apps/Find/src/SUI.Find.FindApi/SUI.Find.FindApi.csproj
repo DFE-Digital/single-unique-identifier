@@ -28,6 +28,6 @@
     <ProjectReference Include="..\SUI.Find.Infrastructure\SUI.Find.Infrastructure.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <SourceRevisionId>$([System.DateTime]::UtcNow.ToString("O"))</SourceRevisionId>
+    <SourceRevisionId>timestamp_$([System.DateTime]::UtcNow.ToString("O"))</SourceRevisionId>
   </PropertyGroup>
 </Project>
