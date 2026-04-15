@@ -22,7 +22,7 @@ public static partial class BuildTimestampUtility
         return DateTimeOffset.ParseExact(
             match.Groups["timestamp"].Value,
             "O",
-            CultureInfo.CurrentCulture,
+            CultureInfo.InvariantCulture,
             DateTimeStyles.AdjustToUniversal
         );
     }

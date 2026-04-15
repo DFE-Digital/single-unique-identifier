@@ -119,7 +119,8 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
                 return content?.Value == "Healthy"
                     && (checkBuildTimestampThreshold == null || CheckBuildTimestampThreshold());
 
-                // rs-todo: comment
+                // When used, this check causes the tests to wait until the API responds with a build timestamp which is on or after a known point in time that confirms the latest version is in use.
+                // This resolves false failures which can occur when the e2e tests are triggered immediately after deployment.
                 bool CheckBuildTimestampThreshold()
                 {
                     var isBuiltSinceThreshold =
