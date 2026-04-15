@@ -182,7 +182,7 @@ jobs:
             -e E2E__StubCustodiansBaseUrl=http://localhost:5193/api/ \
             -e E2E__SkipResetAzureTables=False \
             -e E2E__UseExtendedFindApiHealthCheckTimeout=False \
-            -e E2E__CheckFindApiBuildTimestampThreshold=$JOB_START_TIME # This threshold check is not necessary for ephemeral e2e tests, but is included to verify the threshold behaviour at pull request stage
+            -e E2E__CheckFindApiBuildTimestampThreshold=${{ needs.eval-workflow-setup.outputs.job_start_time }} # This threshold check is not necessary for ephemeral e2e tests, but is included to verify the threshold behaviour at pull request stage
 
       - name: Publish E2E test summary (ephemeral)
         if: always()
