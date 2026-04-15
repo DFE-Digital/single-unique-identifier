@@ -92,6 +92,8 @@ jobs:
           echo "run_ephemeral=$RUN_EPHEMERAL" >> "$GITHUB_OUTPUT"
           echo "run_dev=$RUN_DEV" >> "$GITHUB_OUTPUT"
 
+          echo "JOB_START_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+
           echo "---- GitHub Context Info: ----"
           echo "github.event_name: ${{ github.event_name || '(no value)' }}"
           echo "github.event.workflow_run.event: ${{ github.event.workflow_run.event || '(no value)' }}"
@@ -105,6 +107,7 @@ jobs:
           echo "---- Evaluated Workflow Setup: ----"
           echo "RUN_EPHEMERAL: $RUN_EPHEMERAL"
           echo "RUN_DEV: $RUN_DEV"
+          echo "JOB_START_TIME: $JOB_START_TIME"
     outputs:
       run_ephemeral: ${{ steps.eval.outputs.run_ephemeral }}
       run_dev: ${{ steps.eval.outputs.run_dev }}
@@ -180,7 +183,7 @@ jobs:
             -e E2E__StubCustodiansBaseUrl=http://localhost:5193/api/ \
             -e E2E__SkipResetAzureTables=False \
             -e E2E__UseExtendedFindApiHealthCheckTimeout=False \
-            -e E2E__CheckFindApiBuildTimestampThreshold=$(date -u +'%Y-%m-%dT%H:%M:%SZ') # This threshold check is not necessary for ephemeral e2e tests, but is included to verify the threshold behaviour at pull request stage
+            -e E2E__CheckFindApiBuildTimestampThreshold=$JOB_START_TIME # This threshold check is not necessary for ephemeral e2e tests, but is included to verify the threshold behaviour at pull request stage
 
       - name: Publish E2E test summary (ephemeral)
         if: always()
