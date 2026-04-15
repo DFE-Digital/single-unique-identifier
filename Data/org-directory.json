@@ -273,19 +273,7 @@
       "orgId": "OTHER-01",
       "orgName": "Example Third Party Organisation",
       "orgType": "OTHER",
-      "records": [
-        {
-          "connection": {
-            "auth": {
-              "type": "oauth2_client_credentials",
-              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
-              "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
-              "clientSecret": "SUIProject"
-            }
-          }
-        }
-      ],
+      "records": [],
       "dsaPolicy": {
         "version": "2026-04-13T12:00:00Z",
         "defaults": [],

@@ -149,13 +149,13 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records = [],
             },
-            new()
-            {
-                EncryptedSui = "ZBLNLdIppgMge_MmzVImmA",
-                Sui = "9691292211",
-                TestClientId = "OTHER-01",
-                Records = [],
-            },
+            // new()
+            // {
+            //     EncryptedSui = "ZBLNLdIppgMge_MmzVImmA",
+            //     Sui = "9691292211",
+            //     TestClientId = "OTHER-01",
+            //     Records = [],
+            // },
         ];
 
     [Theory]
