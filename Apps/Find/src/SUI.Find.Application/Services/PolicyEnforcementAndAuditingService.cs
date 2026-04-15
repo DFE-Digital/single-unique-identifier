@@ -20,7 +20,7 @@ public class PolicyEnforcementAndAuditingService(
         IReadOnlyList<PepResultItem<CustodianSearchResultItem>>
     > FilterItemsAndAuditAsync(
         JobContext context,
-        IReadOnlyList<CustodianSearchResultItem> input,
+        IReadOnlyList<CustodianSearchResultItem> records,
         string invocationId,
         string purpose,
         CancellationToken cancellationToken = default
@@ -30,7 +30,7 @@ public class PolicyEnforcementAndAuditingService(
             context.Custodian.OrgId,
             context.SearchingOrganisation.OrgId,
             context.SearchingOrganisation.OrgType,
-            input,
+            records,
             context.Custodian.DsaPolicy,
             purpose,
             cancellationToken

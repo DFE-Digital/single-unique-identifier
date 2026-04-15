@@ -7,7 +7,7 @@ public interface IPolicyEnforcementAndAuditingService
 {
     Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> FilterItemsAndAuditAsync(
         JobContext context,
-        IReadOnlyList<CustodianSearchResultItem> input,
+        IReadOnlyList<CustodianSearchResultItem> records,
         string invocationId,
         string purpose,
         CancellationToken cancellationToken = default

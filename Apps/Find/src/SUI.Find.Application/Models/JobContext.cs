@@ -1,4 +1,4 @@
-namespace SUI.Find.Application.Models.Pep;
+namespace SUI.Find.Application.Models;
 
 public sealed record JobContext(
     ProviderDefinition Custodian,
