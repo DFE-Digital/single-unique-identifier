@@ -123,7 +123,7 @@ public class PolicyEnforcementService(
         return results;
     }
 
-    public async Task<IReadOnlyList<SearchResultWithDecision>> FilterResultsAsync(
+    public async Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> FilterResultsAsync(
         string sourceOrgId,
         string destOrgId,
         string destOrgType,
@@ -143,7 +143,7 @@ public class PolicyEnforcementService(
                 cancellationToken
             )
         )
-            .Select(result => new SearchResultWithDecision(
+            .Select(result => new PepResultItem<CustodianSearchResultItem>(
                 result.Item,
                 result.SourceOrgId,
                 result.DestOrgId,

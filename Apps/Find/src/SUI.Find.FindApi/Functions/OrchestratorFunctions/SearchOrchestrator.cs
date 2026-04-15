@@ -52,7 +52,9 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         // Query Providers and apply PEP, via sub-orchestration to ultimately enable partial feedback of results, and the durable way to handle data dependencies for individual work items in a parallel batch.
         var pepFilterTasks = availableProviders
             .Select(provider =>
-                context.CallSubOrchestratorAsync<IReadOnlyList<SearchResultWithDecision>>(
+                context.CallSubOrchestratorAsync<
+                    IReadOnlyList<PepResultItem<CustodianSearchResultItem>>
+                >(
                     nameof(SearchProviderSubOrchestrator),
                     new SearchProviderSubOrchestratorInput(jobId, data, provider)
                 )
@@ -81,9 +83,9 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
     }
 
     [Function(nameof(SearchProviderSubOrchestrator))]
-    public async Task<IReadOnlyList<SearchResultWithDecision>> SearchProviderSubOrchestrator(
-        [OrchestrationTrigger] TaskOrchestrationContext context
-    )
+    public async Task<
+        IReadOnlyList<PepResultItem<CustodianSearchResultItem>>
+    > SearchProviderSubOrchestrator([OrchestrationTrigger] TaskOrchestrationContext context)
     {
         var input = context.GetInput<SearchProviderSubOrchestratorInput>();
         ArgumentNullException.ThrowIfNull(input);
@@ -129,11 +131,9 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             data.PolicyContext.Purpose
         );
 
-        var pepResults = await context.CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
-            nameof(FilterResultsByPolicyFunction),
-            filterInput,
-            options
-        );
+        var pepResults = await context.CallActivityAsync<
+            IReadOnlyList<PepResultItem<CustodianSearchResultItem>>
+        >(nameof(FilterResultsByPolicyFunction), filterInput, options);
 
         logger.LogInformation(
             "{Count} results after querying provider and PEP enforcement ({AllowedCount} allowed, {DeniedCount} denied)",

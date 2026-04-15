@@ -37,6 +37,6 @@ public class JobResultHandlerFunction(
             message.WorkItemId
         );
 
-        await handler.HandleAsync(message, cancellationToken);
+        await handler.HandleAsync(message, context.InvocationId, cancellationToken);
     }
 }

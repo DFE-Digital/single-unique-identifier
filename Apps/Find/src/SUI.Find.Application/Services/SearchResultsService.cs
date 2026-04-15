@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
 
 namespace SUI.Find.Application.Services;
@@ -13,7 +14,7 @@ public class SearchResultsService(
     public async Task<int> PersistSearchResultsAsync(
         string workItemId,
         string jobId,
-        IReadOnlyCollection<SearchResultWithDecision> searchResults,
+        IReadOnlyCollection<PepResultItem<CustodianSearchResultItem>> searchResults,
         CancellationToken cancellationToken
     )
     {
