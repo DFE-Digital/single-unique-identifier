@@ -48,25 +48,45 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         GC.SuppressFinalize(this);
     }
 
-    private record HealthCheckResponse(string? Value);
+    private record HealthCheckResponse(string? Value, DateTimeOffset? BuildTimestamp);
 
     public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
-        await EnsureServiceIsUpAsync("Find API", Client, testOutputHelper);
+        await EnsureServiceIsUpAsync(
+            "Find API",
+            Client,
+            testOutputHelper,
+            timeout: Config.UseExtendedFindApiHealthCheckTimeout
+                ? TimeSpan.FromMinutes(10)
+                : TimeSpan.FromSeconds(60),
+            checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
+        );
+    }
+
+    public async Task EnsureStubCustodiansApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    {
+        await EnsureServiceIsUpAsync(
+            "StubCustodians API",
+            StubCustodiansClient,
+            testOutputHelper,
+            timeout: TimeSpan.FromSeconds(60)
+        );
     }
 
     public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
     {
         await Task.WhenAll(
-            EnsureServiceIsUpAsync("Find API", Client, testOutputHelper),
-            EnsureServiceIsUpAsync("StubCustodians API", StubCustodiansClient, testOutputHelper)
+            EnsureFindApiIsUpAsync(testOutputHelper),
+            EnsureStubCustodiansApiIsUpAsync(testOutputHelper)
         );
     }
 
     private static async Task EnsureServiceIsUpAsync(
         string serviceName,
         HttpClient client,
-        ITestOutputHelper testOutputHelper
+        ITestOutputHelper testOutputHelper,
+        TimeSpan timeout,
+        DateTimeOffset? checkBuildTimestampThreshold = null
     )
     {
         const string url = "health";
@@ -75,7 +95,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         testOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
 
         // If health check does not indicate healthy, wait and then retry
-        const int retryCount = 6;
+        var retryCount = (int)Math.Round(timeout / waitInterval);
         var retryPolicy = Policy
             .HandleResult<bool>(healthy => !healthy)
             .WaitAndRetryAsync(
@@ -95,7 +115,23 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
             {
                 using var response = await client.GetAsync(url);
                 var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
-                return content?.Value == "Healthy";
+
+                return content?.Value == "Healthy"
+                    && (checkBuildTimestampThreshold == null || CheckBuildTimestampThreshold());
+
+                // When used, this check causes the tests to wait until the API responds with a build timestamp which is on or after a known point in time that confirms the latest version is in use.
+                // This resolves false failures which can occur when the e2e tests are triggered immediately after deployment.
+                bool CheckBuildTimestampThreshold()
+                {
+                    var isBuiltSinceThreshold =
+                        content.BuildTimestamp >= checkBuildTimestampThreshold;
+                    testOutputHelper.WriteLine(
+                        isBuiltSinceThreshold
+                            ? $"{serviceName} build timestamp satisfies threshold (build timestamp {content.BuildTimestamp:O} is on or after threshold {checkBuildTimestampThreshold:O})"
+                            : $"{serviceName} build timestamp does not satisfy threshold (build timestamp {content.BuildTimestamp:O} is NOT on or after threshold {checkBuildTimestampThreshold:O})"
+                    );
+                    return isBuiltSinceThreshold;
+                }
             }
             catch (Exception ex)
             {
