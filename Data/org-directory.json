@@ -267,6 +267,23 @@
         "keyId": "POLICE-01-KEY-1",
         "key": "hVVOB+IwSa3VXQs9AD90XM6j4Q2wk1HJ5FdV5nbedlI="
       }
+    },
+
+    {
+      "orgId": "OTHER-01",
+      "orgName": "Example Third Party Organisation",
+      "orgType": "OTHER",
+      "records": [],
+      "dsaPolicy": {
+        "version": "2026-04-13T12:00:00Z",
+        "defaults": [],
+        "exceptions": []
+      },
+      "encryption": {
+        "algorithm": "AES-256-CBC",
+        "keyId": "OTHER-01-KEY-1",
+        "key": "bUdQfUlY7h81Pn8+TOSGCBkAXgxgVUOaLU1lka3leQM="
+      }
     }
   ]
 }

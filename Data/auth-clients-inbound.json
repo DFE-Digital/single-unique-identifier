@@ -73,6 +73,20 @@
         "work-item.read",
         "work-item.write"
       ]
+    },
+    {
+      "enabled": true,
+      "clientId": "OTHER-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write",
+        "work-item.read",
+        "work-item.write"
+      ]
     }
   ]
 }
