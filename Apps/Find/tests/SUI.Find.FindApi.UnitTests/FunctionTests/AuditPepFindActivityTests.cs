@@ -5,6 +5,7 @@ using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.AuditPayloads;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.Domain.Events.Audit;
 using SUI.Find.FindApi.Functions.ActivityFunctions;
 
@@ -17,9 +18,14 @@ public class AuditPepFindActivityTests
     {
         // Arrange
         var mockAuditClient = Substitute.For<IAuditQueueClient>();
-        var mockTimeProvider = TimeProvider.System;
         var logger = Substitute.For<ILogger<AuditPepFindActivity>>();
-        var auditActivity = new AuditPepFindActivity(logger, mockAuditClient, mockTimeProvider);
+        var mockPepService = new PolicyEnforcementAndAuditingService(
+            Substitute.For<IPolicyEnforcementService>(),
+            mockAuditClient,
+            Substitute.For<TimeProvider>(),
+            Substitute.For<ILogger<PolicyEnforcementAndAuditingService>>()
+        );
+        var auditActivity = new AuditPepFindActivity(logger, mockPepService);
 
         var input = new AuditPepFindInput(
             new PolicyContext("client-1", "SAFEGUARDING", "LOCAL_AUTHORITY"),
@@ -62,7 +68,7 @@ public class AuditPepFindActivityTests
     private static bool ValidateAuditEventInputs(
         AuditEvent auditEvent,
         AuditPepFindInput input,
-        SearchResultWithDecision expected
+        PepResultItem<CustodianSearchResultItem> expected
     )
     {
         var payload = ReadAuditPayloadFromEvent(auditEvent);

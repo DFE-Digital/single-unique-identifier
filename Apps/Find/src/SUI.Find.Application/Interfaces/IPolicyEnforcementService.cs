@@ -47,7 +47,7 @@ public interface IPolicyEnforcementService
     /// <param name="purpose">The reason why the Searcher performed the search, and why they need to see the data.</param>
     /// <param name="cancellationToken">The cancellation token for the async context.</param>
     /// <returns>The specified search results with associated data sharing decision.</returns>
-    Task<IReadOnlyList<SearchResultWithDecision>> FilterResultsAsync(
+    Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> FilterResultsAsync(
         string sourceOrgId,
         string destOrgId,
         string destOrgType,

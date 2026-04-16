@@ -250,10 +250,10 @@ public class EvaluateAsyncTests
             sourceOrgId: sourceOrgId,
             destOrgId: destOrgId,
             destOrgType: "LOCAL_AUTHORITY",
-            searchResultItems,
-            policy,
+            searchResultItems: searchResultItems,
+            dsaPolicy: policy,
             purpose: "SAFEGUARDING",
-            CancellationToken.None
+            cancellationToken: CancellationToken.None
         );
 
         // Assert

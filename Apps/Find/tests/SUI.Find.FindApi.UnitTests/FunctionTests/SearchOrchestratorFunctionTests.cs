@@ -65,7 +65,7 @@ public class SearchOrchestratorFunctionsTests
 
         await _mockContext
             .Received(2)
-            .CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+            .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
                 Arg.Any<FilterResultsInput>(),
                 Arg.Any<TaskOptions>()
@@ -95,7 +95,7 @@ public class SearchOrchestratorFunctionsTests
 
         await _mockContext
             .Received(1)
-            .CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+            .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
                 Arg.Is<FilterResultsInput>(x =>
                     x.DestOrgId == "test-client-1" && x.SourceOrgId == "org1"
@@ -243,7 +243,7 @@ public class SearchOrchestratorFunctionsTests
 
         // Pass on the call to the sub-orchestrator like for real, so we get an end-to-end test of the main `SearchOrchestrator`
         _mockContext
-            .CallSubOrchestratorAsync<IReadOnlyList<SearchResultWithDecision>>(
+            .CallSubOrchestratorAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "SearchProviderSubOrchestrator",
                 Arg.Any<SearchProviderSubOrchestratorInput>()
             )
@@ -283,7 +283,7 @@ public class SearchOrchestratorFunctionsTests
             .Returns(queryResultOrg2);
 
         // Filtered results with decisions
-        var filteredResultOrg1 = new List<SearchResultWithDecision>
+        var filteredResultOrg1 = new List<PepResultItem<CustodianSearchResultItem>>
         {
             new(
                 queryResultOrg1[0],
@@ -292,7 +292,7 @@ public class SearchOrchestratorFunctionsTests
                 new PolicyDecisionResult() { IsAllowed = true, Reason = "Allowed" }
             ),
         };
-        var filteredResultOrg2 = new List<SearchResultWithDecision>
+        var filteredResultOrg2 = new List<PepResultItem<CustodianSearchResultItem>>
         {
             new(
                 queryResultOrg2[0],
@@ -303,7 +303,7 @@ public class SearchOrchestratorFunctionsTests
         };
 
         _mockContext
-            .CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+            .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
                 Arg.Is<FilterResultsInput>(i =>
                     i.SourceOrgId == sourceOrgId1 && i.Items.Count == 1
@@ -313,7 +313,7 @@ public class SearchOrchestratorFunctionsTests
             .Returns(filteredResultOrg1);
 
         _mockContext
-            .CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
+            .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
                 Arg.Is<FilterResultsInput>(i =>
                     i.SourceOrgId == sourceOrgId2 && i.Items.Count == 1

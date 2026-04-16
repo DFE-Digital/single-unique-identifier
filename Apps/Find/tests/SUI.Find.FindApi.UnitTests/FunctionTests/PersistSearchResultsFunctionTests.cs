@@ -1,7 +1,7 @@
-﻿using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
 using SUI.Find.FindApi.Functions.ActivityFunctions;
 
@@ -18,7 +18,7 @@ public class PersistSearchResultsFunctionTests
             Substitute.For<ILogger<PersistSearchResultsFunction>>()
         );
 
-        IReadOnlyList<SearchResultWithDecision> exampleSearchResults = [];
+        IReadOnlyList<PepResultItem<CustodianSearchResultItem>> exampleSearchResults = [];
 
         var input = new PersistSearchResultsInput(
             exampleSearchResults,

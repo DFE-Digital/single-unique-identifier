@@ -28,12 +28,13 @@ public class JobResultHandlerTests
     private readonly IWorkItemJobCountRepository _jobCountRepo =
         Substitute.For<IWorkItemJobCountRepository>();
     private readonly ICustodianService _custodianService = Substitute.For<ICustodianService>();
-    private readonly IPolicyEnforcementService _pepService =
-        Substitute.For<IPolicyEnforcementService>();
+    private readonly IPolicyEnforcementAndAuditingService _pepService =
+        Substitute.For<IPolicyEnforcementAndAuditingService>();
     private readonly ISearchResultEntryRepository _searchResultRepo =
         Substitute.For<ISearchResultEntryRepository>();
 
     private readonly JobResultHandler _handler;
+    private const string InvocationId = "TestInvocationId";
 
     public JobResultHandlerTests()
     {
@@ -96,7 +97,7 @@ public class JobResultHandlerTests
     {
         var message = CreateMessage(jobType: JobType.Unknown);
 
-        await _handler.HandleAsync(message, CancellationToken.None);
+        await _handler.HandleAsync(message, InvocationId, CancellationToken.None);
 
         await _jobService
             .Received(1)
@@ -108,7 +109,7 @@ public class JobResultHandlerTests
     {
         var message = CreateMessage(recordCount: 0);
 
-        await _handler.HandleAsync(message, CancellationToken.None);
+        await _handler.HandleAsync(message, InvocationId, CancellationToken.None);
 
         await _jobService
             .Received(1)
@@ -128,7 +129,7 @@ public class JobResultHandlerTests
             )
             .Returns(Task.FromResult<WorkItemJobCount?>(null));
 
-        await _handler.HandleAsync(message, CancellationToken.None);
+        await _handler.HandleAsync(message, InvocationId, CancellationToken.None);
 
         await _jobService
             .DidNotReceive()
@@ -182,7 +183,7 @@ public class JobResultHandlerTests
             .GetCustodianAsync(message.CustodianId)
             .Returns(Result<ProviderDefinition>.Fail("Not found"));
 
-        await _handler.HandleAsync(message, CancellationToken.None);
+        await _handler.HandleAsync(message, InvocationId, CancellationToken.None);
 
         await _searchResultRepo
             .DidNotReceive()
@@ -239,7 +240,7 @@ public class JobResultHandlerTests
             );
 
         // ACT
-        await _handler.HandleAsync(message, CancellationToken.None);
+        await _handler.HandleAsync(message, InvocationId, CancellationToken.None);
 
         // ASSERT
         await _jobService
@@ -329,20 +330,18 @@ public class JobResultHandlerTests
 
         // Proper PEP mock (based on actual inputs)
         _pepService
-            .FilterItemsAsync(
+            .FilterItemsAndAuditAsync(
+                Arg.Any<JobContext>(),
+                Arg.Any<List<CustodianSearchResultItem>>(),
                 Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Any<IReadOnlyList<CustodianSearchResultItem>>(),
-                Arg.Any<DsaPolicyDefinition>(),
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(callInfo =>
             {
-                var sourceOrgId = callInfo.ArgAt<string>(0);
-                var destOrgId = callInfo.ArgAt<string>(1);
-                var items = callInfo.ArgAt<IReadOnlyList<CustodianSearchResultItem>>(3);
+                var sourceOrgId = callInfo.ArgAt<string>(2);
+                var destOrgId = callInfo.ArgAt<string>(3);
+                var items = callInfo.ArgAt<IReadOnlyList<CustodianSearchResultItem>>(1);
 
                 return items
                     .Select(item => new PepResultItem<CustodianSearchResultItem>(
@@ -355,7 +354,7 @@ public class JobResultHandlerTests
             });
 
         // ACT
-        await _handler.HandleAsync(message, CancellationToken.None);
+        await _handler.HandleAsync(message, InvocationId, CancellationToken.None);
 
         // ASSERT
 
@@ -392,12 +391,10 @@ public class JobResultHandlerTests
         // Verify PEP interaction
         await _pepService
             .Received(1)
-            .FilterItemsAsync(
-                message.CustodianId, // source (custodian)
-                searchingOrganisationId, // destination (searching org)
-                "TypeA",
-                Arg.Is<IReadOnlyList<CustodianSearchResultItem>>(x => x.Count == 2),
-                Arg.Any<DsaPolicyDefinition>(),
+            .FilterItemsAndAuditAsync(
+                Arg.Any<JobContext>(),
+                Arg.Is<List<CustodianSearchResultItem>>(x => x.Count == 2),
+                Arg.Any<string>(),
                 ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
                 Arg.Any<CancellationToken>()
             );
@@ -485,20 +482,18 @@ public class JobResultHandlerTests
 
         // Mixed PEP response (allow only first 2)
         _pepService
-            .FilterItemsAsync(
+            .FilterItemsAndAuditAsync(
+                Arg.Any<JobContext>(),
+                Arg.Any<List<CustodianSearchResultItem>>(),
                 Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Any<IReadOnlyList<CustodianSearchResultItem>>(),
-                Arg.Any<DsaPolicyDefinition>(),
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(callInfo =>
             {
-                var sourceOrgId = callInfo.ArgAt<string>(0);
-                var destOrgId = callInfo.ArgAt<string>(1);
-                var items = callInfo.ArgAt<IReadOnlyList<CustodianSearchResultItem>>(3);
+                var sourceOrgId = callInfo.ArgAt<string>(2);
+                var destOrgId = callInfo.ArgAt<string>(3);
+                var items = callInfo.ArgAt<IReadOnlyList<CustodianSearchResultItem>>(1);
 
                 return items
                     .Select(
@@ -518,7 +513,7 @@ public class JobResultHandlerTests
             });
 
         // ACT
-        await _handler.HandleAsync(message, CancellationToken.None);
+        await _handler.HandleAsync(message, InvocationId, CancellationToken.None);
 
         // ASSERT
 

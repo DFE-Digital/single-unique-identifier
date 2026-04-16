@@ -26,11 +26,15 @@ public class JobResultHandler(
     IIdRegisterRepository idRegisterRepository,
     IWorkItemJobCountRepository workItemJobCountRepository,
     ICustodianService custodianService,
-    IPolicyEnforcementService pepService,
+    IPolicyEnforcementAndAuditingService pepAuditService,
     ISearchResultEntryRepository searchResultRepository
 ) : IJobResultHandler
 {
-    public async Task HandleAsync(JobResultMessage message, CancellationToken cancellationToken)
+    public async Task HandleAsync(
+        JobResultMessage message,
+        string invocationId,
+        CancellationToken cancellationToken
+    )
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation(
@@ -80,7 +84,7 @@ public class JobResultHandler(
 
         await UpsertIdRegister(message, payload, cancellationToken);
 
-        var filtered = await ApplyPepFiltering(records, context, cancellationToken);
+        var filtered = await ApplyPepFiltering(records, context, invocationId, cancellationToken);
 
         await PersistSearchResults(filtered, message, context, cancellationToken);
 
@@ -218,18 +222,17 @@ public class JobResultHandler(
     private async Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> ApplyPepFiltering(
         IReadOnlyList<CustodianSearchResultItem> records,
         JobContext context,
+        string invocationId,
         CancellationToken cancellationToken
     )
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
 
-        var resultsWithDecision = await pepService.FilterItemsAsync(
-            context.Custodian.OrgId,
-            context.SearchingOrganisation.OrgId,
-            context.SearchingOrganisation.OrgType,
+        var resultsWithDecision = await pepAuditService.FilterItemsAndAuditAsync(
+            context,
             records,
-            context.Custodian.DsaPolicy,
+            invocationId,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
             cancellationToken
         );
@@ -272,12 +275,6 @@ public class JobResultHandler(
             await searchResultRepository.UpsertAsync(entry, cancellationToken);
         }
     }
-
-    private sealed record JobContext(
-        ProviderDefinition Custodian,
-        ProviderDefinition SearchingOrganisation,
-        string SearchingOrganisationId
-    );
 
     private static List<CustodianSearchResultItem> MapRecordsToResultItems(
         List<JobResultRecord> records,
