@@ -24,8 +24,8 @@ public class FetchRecordAsyncTests
         Substitute.For<IProviderHttpClient>();
     private readonly IOutboundAuthService _mockOutboundAuthService =
         Substitute.For<IOutboundAuthService>();
-    private readonly IPolicyEnforcementService _mockPolicyEnforcementService =
-        Substitute.For<IPolicyEnforcementService>();
+    private readonly IPolicyEnforcementAndAuditingService _mockPolicyEnforcementService =
+        Substitute.For<IPolicyEnforcementAndAuditingService>();
     private readonly IAuditQueueClient _mockAuditService = Substitute.For<IAuditQueueClient>();
     private readonly FetchRecordService _sut;
     private AuditEvent? _capturedAuditEvent;

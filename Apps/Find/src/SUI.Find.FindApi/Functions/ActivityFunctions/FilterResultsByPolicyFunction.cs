@@ -9,7 +9,7 @@ namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 
 public class FilterResultsByPolicyFunction(
     ILogger<FilterResultsByPolicyFunction> logger,
-    IPolicyEnforcementService policyEnforcementService
+    IPolicyEnforcementAndAuditingService policyEnforcementService
 )
 {
     [Function(nameof(FilterResultsByPolicyFunction))]

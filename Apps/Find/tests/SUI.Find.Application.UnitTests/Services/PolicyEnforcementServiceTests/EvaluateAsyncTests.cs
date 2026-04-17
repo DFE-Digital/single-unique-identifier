@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using SUI.Find.Application.Enums;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 
@@ -10,16 +11,17 @@ namespace SUI.Find.Application.UnitTests.Services.PolicyEnforcementServiceTests;
 
 public class EvaluateAsyncTests
 {
-    private readonly PolicyEnforcementService _sut;
-    private readonly FakeTimeProvider _fakeClock = new();
+    private readonly PolicyEnforcementAndAuditingService _sut;
+    private readonly FakeTimeProvider _fakeTimeProvider = new();
 
     public EvaluateAsyncTests()
     {
-        var logger = Substitute.For<ILogger<PolicyEnforcementService>>();
+        var logger = Substitute.For<ILogger<PolicyEnforcementAndAuditingService>>();
         logger.IsEnabled(LogLevel.Information).Returns(true);
 
-        _fakeClock.SetUtcNow(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
-        _sut = new PolicyEnforcementService(logger, _fakeClock);
+        var queueClient = Substitute.For<IAuditQueueClient>();
+        _fakeTimeProvider.SetUtcNow(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
+        _sut = new PolicyEnforcementAndAuditingService(queueClient, _fakeTimeProvider, logger);
     }
 
     [Fact]

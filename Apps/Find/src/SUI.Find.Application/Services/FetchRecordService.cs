@@ -19,7 +19,7 @@ public class FetchRecordService(
     ICustodianService custodianService,
     IProviderHttpClient providerClient,
     IOutboundAuthService outboundAuthService,
-    IPolicyEnforcementService policyEnforcementService,
+    IPolicyEnforcementAndAuditingService policyEnforcementService,
     IAuditQueueClient auditClient,
     TimeProvider timeProvider
 ) : IFetchRecordService
