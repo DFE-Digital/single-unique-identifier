@@ -153,7 +153,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             {
                 EncryptedSui = "ZBLNLdIppgMge_MmzVImmA",
                 Sui = "9691292211",
-                TestClientId = "OTHER-01",
+                TestClientId = "FAUX-01",
                 Records = [],
             },
         ];

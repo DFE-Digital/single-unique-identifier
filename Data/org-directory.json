@@ -48,7 +48,7 @@
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
             "recordTypes": [ "childrens-services.details", "personal.details" ],
-            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING"],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
           },
@@ -123,7 +123,7 @@
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
             "recordTypes": [ "education.details" , "personal.details"],
-            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING"],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
           },
@@ -181,7 +181,7 @@
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
             "recordTypes": [ "health.details" ],
-            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING"],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
           },
@@ -270,15 +270,15 @@
     },
 
     {
-      "orgId": "OTHER-01",
+      "orgId": "FAUX-01",
       "orgName": "Example Third Party Organisation",
-      "orgType": "OTHER",
+      "orgType": "FAUX",
       "records": [
         {
           "recordType": "personal.details",
           "connection": {
             "method": "GET",
-            "url": "{StubCustodiansBaseUrl}/api/v1/find/other-01/{personId}?recordType=personal.details",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/faux-01/{personId}?recordType=personal.details",
             "personIdPosition": "path",
             "auth": {
               "type": "oauth2_client_credentials",
@@ -297,7 +297,7 @@
       },
       "encryption": {
         "algorithm": "AES-256-CBC",
-        "keyId": "OTHER-01-KEY-1",
+        "keyId": "FAUX-01-KEY-1",
         "key": "bUdQfUlY7h81Pn8+TOSGCBkAXgxgVUOaLU1lka3leQM="
       }
     }
