@@ -271,7 +271,7 @@
 
     {
       "orgId": "FAUX-01",
-      "orgName": "Example Third Party Organisation",
+      "orgName": "Faux Organisation for Negative Testing",
       "orgType": "FAUX",
       "records": [
         {
