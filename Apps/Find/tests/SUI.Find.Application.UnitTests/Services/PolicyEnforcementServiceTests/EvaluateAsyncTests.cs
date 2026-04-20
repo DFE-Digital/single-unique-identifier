@@ -248,11 +248,11 @@ public class EvaluateAsyncTests
         const string destOrgId = "LOCAL-AUTHORITY-01";
 
         // Act
-        var result = await _sut.FilterResultsAsync(
+        var result = await _sut.FilterItemsAsync(
             sourceOrgId: sourceOrgId,
             destOrgId: destOrgId,
             destOrgType: "LOCAL_AUTHORITY",
-            searchResultItems: searchResultItems,
+            pepFilterableItems: searchResultItems,
             dsaPolicy: policy,
             purpose: "SAFEGUARDING",
             cancellationToken: CancellationToken.None

@@ -225,34 +225,6 @@ public class PolicyEnforcementAndAuditingService(
         return results;
     }
 
-    public async Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> FilterResultsAsync(
-        string sourceOrgId,
-        string destOrgId,
-        string destOrgType,
-        IReadOnlyList<CustodianSearchResultItem> searchResultItems,
-        DsaPolicyDefinition dsaPolicy,
-        string purpose,
-        CancellationToken cancellationToken = default
-    ) =>
-        (
-            await FilterItemsAsync(
-                sourceOrgId,
-                destOrgId,
-                destOrgType,
-                searchResultItems,
-                dsaPolicy,
-                purpose,
-                cancellationToken
-            )
-        )
-            .Select(result => new PepResultItem<CustodianSearchResultItem>(
-                result.Item,
-                result.SourceOrgId,
-                result.DestOrgId,
-                result.Decision
-            ))
-            .ToArray();
-
     private static bool RuleMatches(
         DsaRuleDefinition rule,
         PolicyDecisionRequest request,

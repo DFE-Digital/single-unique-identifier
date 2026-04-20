@@ -25,7 +25,7 @@ public class FilterResultsByPolicyFunction(
             input.DestOrgId
         );
 
-        var decisionResults = await policyEnforcementService.FilterResultsAsync(
+        var decisionResults = await policyEnforcementService.FilterItemsAsync(
             input.SourceOrgId,
             input.DestOrgId,
             input.DestOrgType,
