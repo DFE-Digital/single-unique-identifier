@@ -267,6 +267,39 @@
         "keyId": "POLICE-01-KEY-1",
         "key": "hVVOB+IwSa3VXQs9AD90XM6j4Q2wk1HJ5FdV5nbedlI="
       }
+    },
+
+    {
+      "orgId": "FAUX-01",
+      "orgName": "Faux Organisation for Negative Testing",
+      "orgType": "FAUX",
+      "records": [
+        {
+          "recordType": "personal.details",
+          "connection": {
+            "method": "GET",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/faux-01/{personId}?recordType=personal.details",
+            "personIdPosition": "path",
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
+        }
+      ],
+      "dsaPolicy": {
+        "version": "2026-04-13T12:00:00Z",
+        "defaults": [],
+        "exceptions": []
+      },
+      "encryption": {
+        "algorithm": "AES-256-CBC",
+        "keyId": "FAUX-01-KEY-1",
+        "key": "bUdQfUlY7h81Pn8+TOSGCBkAXgxgVUOaLU1lka3leQM="
+      }
     }
   ]
 }
