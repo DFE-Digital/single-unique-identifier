@@ -48,7 +48,7 @@
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
             "recordTypes": [ "childrens-services.details", "personal.details" ],
-            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING"],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
           },
@@ -123,7 +123,7 @@
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
             "recordTypes": [ "education.details" , "personal.details"],
-            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING"],
             "purposes": [ "SAFEGUARDING", "EDUCATION_MONITORING" ],
             "validFrom": "2025-01-01T00:00:00Z"
           },
@@ -181,7 +181,7 @@
             "effect": "allow",
             "modes": [ "EXISTENCE" ],
             "recordTypes": [ "health.details" ],
-            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING", "OTHER" ],
+            "destOrgTypes": [ "LOCAL_AUTHORITY", "EDUCATION", "HEALTH", "POLICE", "HOUSING"],
             "purposes": [ "SAFEGUARDING", "CHILD_PROTECTION" ],
             "validFrom": "2025-01-01T00:00:00Z"
           },
@@ -273,7 +273,20 @@
       "orgId": "OTHER-01",
       "orgName": "Example Third Party Organisation",
       "orgType": "OTHER",
-      "records": [],
+      "records": [
+        {
+          "recordType": "personal.details",
+          "connection": {
+            "auth": {
+              "type": "oauth2_client_credentials",
+              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "scopes": [ "find-record.read fetch-record.read" ],
+              "clientId": "SUI-SERVICE",
+              "clientSecret": "SUIProject"
+            }
+          }
+        }
+      ],
       "dsaPolicy": {
         "version": "2026-04-13T12:00:00Z",
         "defaults": [],
