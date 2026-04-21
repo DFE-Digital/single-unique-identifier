@@ -179,8 +179,7 @@ public class FetchRecordService(
                 Purpose: "SAFEGUARDING" // TODO: Default for now for purpose of Fetch operations
             ),
             provider.Value.DsaPolicy,
-            requestingOrg.Value.OrgType,
-            cancellationToken
+            requestingOrg.Value.OrgType
         );
 
         if (!pepDecision.IsAllowed)

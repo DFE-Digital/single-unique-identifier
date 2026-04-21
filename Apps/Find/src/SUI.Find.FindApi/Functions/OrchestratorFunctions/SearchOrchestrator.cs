@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Functions.ActivityFunctions;
 
 namespace SUI.Find.FindApi.Functions.OrchestratorFunctions;
@@ -122,13 +123,14 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         logger.LogInformation("{Count} results before PEP filtering", providerResults.Count);
 
         // Activity Two: filter the provider's results based on the requesting provider's data sharing policies (PEP Policy Enforcement Point)
-        var filterInput = new FilterResultsInput(
+        var filterInput = new PepFilterAndAuditInput<CustodianSearchResultItem>(
             sourceOrgId,
             requestingOrdId,
             data.PolicyContext.OrgType,
             providerResults,
             provider.DsaPolicy,
-            data.PolicyContext.Purpose
+            data.PolicyContext.Purpose,
+            data.Metadata.InvocationId
         );
 
         var pepResults = await context.CallActivityAsync<

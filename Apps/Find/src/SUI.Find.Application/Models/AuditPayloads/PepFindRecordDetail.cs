@@ -4,7 +4,7 @@ public record PepFindRecordDetail
 {
     // What record and how it mapped
     public required string SourceOrgId { get; init; } // Who owned the record
-    public required string RecordUrl { get; init; } // The un-masked URL of the record
+    public string? RecordUrl { get; init; } // The un-masked URL of the record (if available)
     public required string RecordType { get; init; }
 
     // Policy decision snapshot

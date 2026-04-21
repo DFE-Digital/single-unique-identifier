@@ -8,6 +8,7 @@ using NSubstitute;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Functions.ActivityFunctions;
 using SUI.Find.FindApi.Functions.OrchestratorFunctions;
 
@@ -67,7 +68,7 @@ public class SearchOrchestratorFunctionsTests
             .Received(2)
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Any<FilterResultsInput>(),
+                Arg.Any<PepFilterAndAuditInput<CustodianSearchResultItem>>(),
                 Arg.Any<TaskOptions>()
             );
 
@@ -97,7 +98,7 @@ public class SearchOrchestratorFunctionsTests
             .Received(1)
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Is<FilterResultsInput>(x =>
+                Arg.Is<PepFilterAndAuditInput<CustodianSearchResultItem>>(x =>
                     x.DestOrgId == "test-client-1" && x.SourceOrgId == "org1"
                 ),
                 Arg.Any<TaskOptions>()
@@ -305,7 +306,7 @@ public class SearchOrchestratorFunctionsTests
         _mockContext
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Is<FilterResultsInput>(i =>
+                Arg.Is<PepFilterAndAuditInput<CustodianSearchResultItem>>(i =>
                     i.SourceOrgId == sourceOrgId1 && i.Items.Count == 1
                 ),
                 Arg.Any<TaskOptions>()
@@ -315,7 +316,7 @@ public class SearchOrchestratorFunctionsTests
         _mockContext
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Is<FilterResultsInput>(i =>
+                Arg.Is<PepFilterAndAuditInput<CustodianSearchResultItem>>(i =>
                     i.SourceOrgId == sourceOrgId2 && i.Items.Count == 1
                 ),
                 Arg.Any<TaskOptions>()

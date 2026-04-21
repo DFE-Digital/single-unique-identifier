@@ -247,14 +247,19 @@ public class EvaluateAsyncTests
 
         const string destOrgId = "LOCAL-AUTHORITY-01";
 
+        var filterInput = new PepFilterAndAuditInput<CustodianSearchResultItem>(
+            sourceOrgId,
+            destOrgId,
+            "LOCAL_AUTHORITY",
+            searchResultItems,
+            policy,
+            "SAFEGUARDING",
+            "INV-ID-01"
+        );
+
         // Act
-        var result = await _sut.FilterItemsAsync(
-            sourceOrgId: sourceOrgId,
-            destOrgId: destOrgId,
-            destOrgType: "LOCAL_AUTHORITY",
-            pepFilterableItems: searchResultItems,
-            dsaPolicy: policy,
-            purpose: "SAFEGUARDING",
+        var result = await _sut.FilterItemsAndAuditAsync(
+            filterInput,
             cancellationToken: CancellationToken.None
         );
 
@@ -329,16 +334,18 @@ public class EvaluateAsyncTests
 
         const string destOrgId = "LOCAL-AUTHORITY-01";
 
-        // Act
-        var result = await _sut.FilterItemsAsync(
-            sourceOrgId: sourceOrgId,
-            destOrgId: destOrgId,
-            destOrgType: "LOCAL_AUTHORITY",
+        var filterInput = new PepFilterAndAuditInput<ProviderDefinition>(
+            sourceOrgId,
+            destOrgId,
+            "LOCAL_AUTHORITY",
             providerDefinitions,
             policy,
-            purpose: "SAFEGUARDING",
-            CancellationToken.None
+            "SAFEGUARDING",
+            "INV-ID-01"
         );
+
+        // Act
+        var result = await _sut.FilterItemsAndAuditAsync(filterInput, CancellationToken.None);
 
         // Assert
         result

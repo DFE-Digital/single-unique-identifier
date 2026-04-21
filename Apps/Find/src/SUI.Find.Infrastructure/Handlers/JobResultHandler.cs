@@ -8,6 +8,7 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
@@ -229,11 +230,18 @@ public class JobResultHandler(
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
 
-        var resultsWithDecision = await pepAuditService.FilterItemsAndAuditAsync(
-            context,
+        var filterInput = new PepFilterAndAuditInput<CustodianSearchResultItem>(
+            context.Custodian.OrgId,
+            context.SearchingOrganisation.OrgId,
+            context.SearchingOrganisation.OrgType,
             records,
-            invocationId,
+            context.Custodian.DsaPolicy,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
+            invocationId
+        );
+
+        var resultsWithDecision = await pepAuditService.FilterItemsAndAuditAsync(
+            filterInput,
             cancellationToken
         );
 

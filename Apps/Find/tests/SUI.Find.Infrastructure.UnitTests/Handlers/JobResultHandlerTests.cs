@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Handlers;
 using SUI.Find.Infrastructure.Interfaces;
@@ -331,10 +331,7 @@ public class JobResultHandlerTests
         // Proper PEP mock (based on actual inputs)
         _pepService
             .FilterItemsAndAuditAsync(
-                Arg.Any<JobContext>(),
-                Arg.Any<List<CustodianSearchResultItem>>(),
-                Arg.Any<string>(),
-                Arg.Any<string>(),
+                Arg.Any<PepFilterAndAuditInput<CustodianSearchResultItem>>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(callInfo =>
@@ -392,10 +389,7 @@ public class JobResultHandlerTests
         await _pepService
             .Received(1)
             .FilterItemsAndAuditAsync(
-                Arg.Any<JobContext>(),
-                Arg.Is<List<CustodianSearchResultItem>>(x => x.Count == 2),
-                Arg.Any<string>(),
-                ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
+                Arg.Any<PepFilterAndAuditInput<CustodianSearchResultItem>>(),
                 Arg.Any<CancellationToken>()
             );
 
@@ -483,10 +477,7 @@ public class JobResultHandlerTests
         // Mixed PEP response (allow only first 2)
         _pepService
             .FilterItemsAndAuditAsync(
-                Arg.Any<JobContext>(),
-                Arg.Any<List<CustodianSearchResultItem>>(),
-                Arg.Any<string>(),
-                Arg.Any<string>(),
+                Arg.Any<PepFilterAndAuditInput<CustodianSearchResultItem>>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(callInfo =>
