@@ -336,9 +336,15 @@ public class JobResultHandlerTests
             )
             .Returns(callInfo =>
             {
-                var sourceOrgId = callInfo.ArgAt<string>(2);
-                var destOrgId = callInfo.ArgAt<string>(3);
-                var items = callInfo.ArgAt<IReadOnlyList<CustodianSearchResultItem>>(1);
+                var sourceOrgId = callInfo
+                    .ArgAt<PepFilterAndAuditInput<CustodianSearchResultItem>>(0)
+                    .SourceOrgId;
+                var destOrgId = callInfo
+                    .ArgAt<PepFilterAndAuditInput<CustodianSearchResultItem>>(0)
+                    .DestOrgId;
+                var items = callInfo
+                    .ArgAt<PepFilterAndAuditInput<CustodianSearchResultItem>>(0)
+                    .Items;
 
                 return items
                     .Select(item => new PepResultItem<CustodianSearchResultItem>(
@@ -482,9 +488,15 @@ public class JobResultHandlerTests
             )
             .Returns(callInfo =>
             {
-                var sourceOrgId = callInfo.ArgAt<string>(2);
-                var destOrgId = callInfo.ArgAt<string>(3);
-                var items = callInfo.ArgAt<IReadOnlyList<CustodianSearchResultItem>>(1);
+                var sourceOrgId = callInfo
+                    .ArgAt<PepFilterAndAuditInput<CustodianSearchResultItem>>(0)
+                    .SourceOrgId;
+                var destOrgId = callInfo
+                    .ArgAt<PepFilterAndAuditInput<CustodianSearchResultItem>>(0)
+                    .DestOrgId;
+                var items = callInfo
+                    .ArgAt<PepFilterAndAuditInput<CustodianSearchResultItem>>(0)
+                    .Items;
 
                 return items
                     .Select(
