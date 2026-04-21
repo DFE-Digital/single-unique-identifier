@@ -71,8 +71,8 @@ Two current limitations matter for this strategy:
 | --- | --- | --- | --- | --- | --- |
 | Local development | Direct service access by default; optional local reverse proxy only for targeted gateway tests | Repo-managed sandbox issuer | `Find` validates JWTs in-app; application enforces scopes, ownership, and policy hooks | Repo-managed synthetic fixtures, including org directory and auth clients | Fast development and debugging |
 | CI ephemeral | Direct self-contained service startup; no `APIM` dependency | Same sandbox issuer contract as local | Same in-app JWT validation and endpoint protection as local | Same synthetic fixtures, resettable on every run | Repeatable automated regression and E2E testing |
-| Cheaper shared non-prod | Direct service access by default; optional low-cost ingress later, but no `APIM` requirement | Environment-owned sandbox or test issuer preserving the same JWT contract | Application-level JWT validation remains authoritative | Same synthetic org and client catalogue, but shared-environment secrets should come from environment-managed secret storage | Hosted integration testing and lower-cost shared regression |
-| Shared high-fidelity | `APIM` as mandatory ingress | Standards-compliant shared issuer, preferably `Entra` where governance allows | `APIM` performs coarse token checks; application still enforces permissions, ownership, and policy, and should continue JWT validation until a trusted gateway-forwarded auth path exists | Same synthetic participants may still be used for learning, but onboarding, credentials, and signing material should be environment-managed | Operational learning on issuer, gateway, onboarding, and auth support model |
+| Cheaper shared non-prod | Direct service access by default; optional low-cost ingress later, but no `APIM` requirement | Environment-owned sandbox or test issuer preserving the same JWT contract | Application-level JWT validation remains authoritative | Same synthetic org and client catalogue, but shared-environment secrets should come from environment-managed secret storage | Hosted regression testing and lower-cost shared validation |
+| Shared high-fidelity | `APIM` as mandatory ingress | Standards-compliant shared issuer, preferably `Entra` where governance allows | `APIM` performs coarse token checks; application still enforces permissions, ownership, and policy, and should continue JWT validation | Same synthetic participants may still be used for learning, but onboarding, credentials, and signing material should be environment-managed | Operational learning on issuer, gateway, onboarding, and auth support model |
 
 ### 4.2 Local development
 
@@ -105,7 +105,7 @@ The cheaper shared non-prod target shape is:
 - keep JWT validation and scope enforcement inside the application
 - preserve the same token and scope contract used locally and in CI
 
-Current `d01` and `d02` fit this bucket more naturally than the high-fidelity bucket. They are useful for hosted regression and integration testing, but they are not yet sufficient for learning the final issuer and gateway operating model.
+Currently `d01` and `d02` fit this bucket more naturally than the high-fidelity bucket. They are useful for hosted regression and shared validation, but they are not yet sufficient for learning the final issuer and gateway operating model.
 
 ### 4.5 Shared high-fidelity environment
 
@@ -117,6 +117,8 @@ The target shape for that environment is:
 - a standards-compliant shared issuer such as `Entra`, subject to governance availability
 - realistic routing, token validation, diagnostics, and operational ownership
 - no dependence on repo-managed static signing keys or repo-managed shared non-prod secrets
+
+In this note, `shared issuer` means an issuer that is centrally managed for a deployed shared environment, rather than the repo-managed sandbox issuer used to keep local and CI flows self-contained.
 
 This environment exists to learn the parts that local and cheaper non-prod cannot prove well:
 
@@ -212,7 +214,7 @@ That fixture set should cover at least:
 
 The recommended model is:
 
-- local, CI, and ephemeral environments can continue using repo-managed synthetic auth data
+- local, CI, and ephemeral environments can continue using repo-managed synthetic auth data, including repo-managed synthetic credentials and signing material where needed to keep those environments self-contained
 - cheaper shared non-prod and high-fidelity environments should keep the same non-secret fixture identities and scope model
 - shared-environment secrets, signing keys, and client secrets should come from environment-managed secret storage or issuer configuration rather than from repo-shipped shared secrets
 
@@ -270,9 +272,9 @@ The current recommended target is:
 - local development uses direct service access, sandbox token issuance, and application-level JWT validation
 - CI and ephemeral environments use the same auth contract and avoid test-only bypass paths
 - current shared `d01` and `d02` environments continue to act as cheaper shared non-prod environments, not as the primary high-fidelity auth environment
-- at least one shared high-fidelity environment should be introduced or designated for `APIM` plus shared-issuer learning
+- at least one shared high-fidelity environment should be introduced or designated for `APIM` plus a centrally managed shared issuer
 - seeded auth data should be tightened to model searcher-only, custodian-only, dual-role, and negative-test clients more realistically
-- shared-environment secret material should move out of repo-managed shared fixtures and into environment-managed secret storage or issuer-managed configuration
+- shared-environment secret material should move out of repo-managed shared fixtures and into environment-managed secret storage or issuer-managed configuration, while local and CI remain repo-self-contained
 
 ---
 
