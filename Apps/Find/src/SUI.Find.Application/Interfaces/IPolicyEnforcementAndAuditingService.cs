@@ -12,10 +12,14 @@ public interface IPolicyEnforcementAndAuditingService
     )
         where TItem : IPepFilterable;
 
-    Task CreateAndSendAuditMessageAsync(
-        AuditPepFindInput input,
+    Task CreateAndSendAuditMessageAsync<TItem>(
+        IReadOnlyList<PepResultItem<TItem>> resultsWithDecision,
+        string destinationOrgId,
+        string invocationId,
+        string purpose,
         CancellationToken cancellationToken
-    );
+    )
+        where TItem : IPepFilterable;
 
     Task<PolicyDecisionResult> EvaluateAsync(
         PolicyDecisionRequest request,

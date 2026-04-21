@@ -1,9 +1,16 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Interfaces;
+using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
 
 namespace SUI.Find.FindApi.Functions.ActivityFunctions;
+
+public record AuditPepFindInput(
+    PolicyContext PolicyContext,
+    SearchJobMetadata Metadata,
+    List<PepResultItem<CustodianSearchResultItem>> SearchResultsWithDecisions
+);
 
 public class AuditPepFindActivity(
     ILogger<AuditPepFindActivity> logger,
@@ -21,7 +28,10 @@ public class AuditPepFindActivity(
         );
 
         await policyEnforcementAndAuditingService.CreateAndSendAuditMessageAsync(
-            input,
+            input.SearchResultsWithDecisions,
+            input.PolicyContext.ClientId,
+            input.Metadata.InvocationId,
+            input.PolicyContext.Purpose,
             cancellationToken
         );
     }
