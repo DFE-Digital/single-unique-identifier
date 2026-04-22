@@ -11,17 +11,17 @@ namespace SUI.Find.Application.UnitTests.Services.PolicyEnforcementServiceTests;
 
 public class EvaluateAsyncTests
 {
-    private readonly PolicyEnforcementAndAuditingService _sut;
+    private readonly PolicyEnforcementService _sut;
     private readonly FakeTimeProvider _fakeTimeProvider = new();
 
     public EvaluateAsyncTests()
     {
-        var logger = Substitute.For<ILogger<PolicyEnforcementAndAuditingService>>();
+        var logger = Substitute.For<ILogger<PolicyEnforcementService>>();
         logger.IsEnabled(LogLevel.Information).Returns(true);
 
         var queueClient = Substitute.For<IAuditQueueClient>();
         _fakeTimeProvider.SetUtcNow(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
-        _sut = new PolicyEnforcementAndAuditingService(queueClient, _fakeTimeProvider, logger);
+        _sut = new PolicyEnforcementService(queueClient, _fakeTimeProvider, logger);
     }
 
     [Fact]
@@ -247,7 +247,7 @@ public class EvaluateAsyncTests
 
         const string destOrgId = "LOCAL-AUTHORITY-01";
 
-        var filterInput = new PepFilterAndAuditInput<CustodianSearchResultItem>(
+        var filterInput = new PepFilterInput<CustodianSearchResultItem>(
             sourceOrgId,
             destOrgId,
             "LOCAL_AUTHORITY",
@@ -334,7 +334,7 @@ public class EvaluateAsyncTests
 
         const string destOrgId = "LOCAL-AUTHORITY-01";
 
-        var filterInput = new PepFilterAndAuditInput<ProviderDefinition>(
+        var filterInput = new PepFilterInput<ProviderDefinition>(
             sourceOrgId,
             destOrgId,
             "LOCAL_AUTHORITY",

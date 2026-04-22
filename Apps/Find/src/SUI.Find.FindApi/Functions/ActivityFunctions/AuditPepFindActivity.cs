@@ -14,7 +14,7 @@ public record AuditPepFindInput(
 
 public class AuditPepFindActivity(
     ILogger<AuditPepFindActivity> logger,
-    IPolicyEnforcementAndAuditingService policyEnforcementAndAuditingService
+    IPolicyEnforcementService policyEnforcementService
 )
 {
     [Function(nameof(AuditPepFindActivity))]
@@ -27,7 +27,7 @@ public class AuditPepFindActivity(
             new Dictionary<string, object> { ["CorrelationId"] = input.Metadata.InvocationId }
         );
 
-        await policyEnforcementAndAuditingService.CreateAndSendAuditMessageAsync(
+        await policyEnforcementService.CreateAndSendAuditMessageAsync(
             input.SearchResultsWithDecisions,
             input.PolicyContext.ClientId,
             input.Metadata.InvocationId,

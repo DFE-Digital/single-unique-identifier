@@ -10,14 +10,14 @@ using SUI.Find.Domain.Events.Audit;
 
 namespace SUI.Find.Application.Services;
 
-public class PolicyEnforcementAndAuditingService(
+public class PolicyEnforcementService(
     IAuditQueueClient auditQueueClient,
     TimeProvider timeProvider,
-    ILogger<PolicyEnforcementAndAuditingService> logger
-) : IPolicyEnforcementAndAuditingService
+    ILogger<PolicyEnforcementService> logger
+) : IPolicyEnforcementService
 {
     public async Task<IReadOnlyList<PepResultItem<TItem>>> FilterItemsAndAuditAsync<TItem>(
-        PepFilterAndAuditInput<TItem> input,
+        PepFilterInput<TItem> input,
         CancellationToken cancellationToken
     )
         where TItem : IPepFilterable
@@ -34,7 +34,7 @@ public class PolicyEnforcementAndAuditingService(
         await CreateAndSendAuditMessageAsync(
             resultsWithDecision,
             input.DestOrgId,
-            input.InvocationId,
+            input.CorrelationId,
             input.Purpose,
             cancellationToken
         );
@@ -45,7 +45,7 @@ public class PolicyEnforcementAndAuditingService(
     public async Task CreateAndSendAuditMessageAsync<TItem>(
         IReadOnlyList<PepResultItem<TItem>> resultsWithDecision,
         string destinationOrgId,
-        string invocationId,
+        string correlationId,
         string purpose,
         CancellationToken cancellationToken
     )
@@ -89,7 +89,7 @@ public class PolicyEnforcementAndAuditingService(
             Actor = new AuditActor { ActorId = destinationOrgId, ActorRole = "Organisation" },
             Payload = JsonSerializer.SerializeToElement(payload),
             Timestamp = timeProvider.GetUtcNow().DateTime,
-            CorrelationId = invocationId,
+            CorrelationId = correlationId,
         };
 
         await auditQueueClient.SendAuditEventAsync(auditMessage, cancellationToken);

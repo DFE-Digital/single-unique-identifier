@@ -9,12 +9,12 @@ namespace SUI.Find.FindApi.Functions.ActivityFunctions;
 
 public class FilterResultsByPolicyFunction(
     ILogger<FilterResultsByPolicyFunction> logger,
-    IPolicyEnforcementAndAuditingService policyEnforcementService
+    IPolicyEnforcementService policyEnforcementService
 )
 {
     [Function(nameof(FilterResultsByPolicyFunction))]
     public async Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> FilterResults(
-        [ActivityTrigger] PepFilterAndAuditInput<CustodianSearchResultItem> input,
+        [ActivityTrigger] PepFilterInput<CustodianSearchResultItem> input,
         CancellationToken cancellationToken
     )
     {

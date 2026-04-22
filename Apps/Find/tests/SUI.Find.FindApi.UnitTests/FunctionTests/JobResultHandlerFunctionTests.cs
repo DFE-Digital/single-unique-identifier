@@ -36,7 +36,6 @@ public class JobResultHandlerFunctionTests
                 Arg.Is<JobResultMessage>(m =>
                     m.JobId == "job-123" && m.WorkItemId == "work-123" && m.CustodianId == "cust-1"
                 ),
-                Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             );
     }
@@ -54,7 +53,6 @@ public class JobResultHandlerFunctionTests
             .Received(1)
             .HandleAsync(
                 Arg.Any<JobResultMessage>(),
-                Arg.Any<string>(),
                 Arg.Is<CancellationToken>(t => t == cts.Token)
             );
     }

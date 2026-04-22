@@ -68,7 +68,7 @@ public class SearchOrchestratorFunctionsTests
             .Received(2)
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Any<PepFilterAndAuditInput<CustodianSearchResultItem>>(),
+                Arg.Any<PepFilterInput<CustodianSearchResultItem>>(),
                 Arg.Any<TaskOptions>()
             );
 
@@ -98,7 +98,7 @@ public class SearchOrchestratorFunctionsTests
             .Received(1)
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Is<PepFilterAndAuditInput<CustodianSearchResultItem>>(x =>
+                Arg.Is<PepFilterInput<CustodianSearchResultItem>>(x =>
                     x.DestOrgId == "test-client-1" && x.SourceOrgId == "org1"
                 ),
                 Arg.Any<TaskOptions>()
@@ -306,7 +306,7 @@ public class SearchOrchestratorFunctionsTests
         _mockContext
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Is<PepFilterAndAuditInput<CustodianSearchResultItem>>(i =>
+                Arg.Is<PepFilterInput<CustodianSearchResultItem>>(i =>
                     i.SourceOrgId == sourceOrgId1 && i.Items.Count == 1
                 ),
                 Arg.Any<TaskOptions>()
@@ -316,7 +316,7 @@ public class SearchOrchestratorFunctionsTests
         _mockContext
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
-                Arg.Is<PepFilterAndAuditInput<CustodianSearchResultItem>>(i =>
+                Arg.Is<PepFilterInput<CustodianSearchResultItem>>(i =>
                     i.SourceOrgId == sourceOrgId2 && i.Items.Count == 1
                 ),
                 Arg.Any<TaskOptions>()

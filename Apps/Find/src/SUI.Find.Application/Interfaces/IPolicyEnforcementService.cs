@@ -4,10 +4,10 @@ using SUI.Find.Application.Services;
 
 namespace SUI.Find.Application.Interfaces;
 
-public interface IPolicyEnforcementAndAuditingService
+public interface IPolicyEnforcementService
 {
     Task<IReadOnlyList<PepResultItem<TItem>>> FilterItemsAndAuditAsync<TItem>(
-        PepFilterAndAuditInput<TItem> input,
+        PepFilterInput<TItem> input,
         CancellationToken cancellationToken
     )
         where TItem : IPepFilterable;
@@ -15,7 +15,7 @@ public interface IPolicyEnforcementAndAuditingService
     Task CreateAndSendAuditMessageAsync<TItem>(
         IReadOnlyList<PepResultItem<TItem>> resultsWithDecision,
         string destinationOrgId,
-        string invocationId,
+        string correlationId,
         string purpose,
         CancellationToken cancellationToken
     )

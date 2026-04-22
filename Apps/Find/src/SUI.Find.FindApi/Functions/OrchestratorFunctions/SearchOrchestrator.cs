@@ -123,7 +123,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         logger.LogInformation("{Count} results before PEP filtering", providerResults.Count);
 
         // Activity Two: filter the provider's results based on the requesting provider's data sharing policies (PEP Policy Enforcement Point)
-        var filterInput = new PepFilterAndAuditInput<CustodianSearchResultItem>(
+        var filterInput = new PepFilterInput<CustodianSearchResultItem>(
             sourceOrgId,
             requestingOrdId,
             data.PolicyContext.OrgType,

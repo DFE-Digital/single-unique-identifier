@@ -27,15 +27,11 @@ public class JobResultHandler(
     IIdRegisterRepository idRegisterRepository,
     IWorkItemJobCountRepository workItemJobCountRepository,
     ICustodianService custodianService,
-    IPolicyEnforcementAndAuditingService pepAuditService,
+    IPolicyEnforcementService pepService,
     ISearchResultEntryRepository searchResultRepository
 ) : IJobResultHandler
 {
-    public async Task HandleAsync(
-        JobResultMessage message,
-        string invocationId,
-        CancellationToken cancellationToken
-    )
+    public async Task HandleAsync(JobResultMessage message, CancellationToken cancellationToken)
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation(
@@ -85,7 +81,12 @@ public class JobResultHandler(
 
         await UpsertIdRegister(message, payload, cancellationToken);
 
-        var filtered = await ApplyPepFiltering(records, context, invocationId, cancellationToken);
+        var filtered = await ApplyPepFiltering(
+            records,
+            context,
+            message.WorkItemId,
+            cancellationToken
+        );
 
         await PersistSearchResults(filtered, message, context, cancellationToken);
 
@@ -223,24 +224,24 @@ public class JobResultHandler(
     private async Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> ApplyPepFiltering(
         IReadOnlyList<CustodianSearchResultItem> records,
         JobContext context,
-        string invocationId,
+        string workItemId,
         CancellationToken cancellationToken
     )
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
 
-        var filterInput = new PepFilterAndAuditInput<CustodianSearchResultItem>(
+        var filterInput = new PepFilterInput<CustodianSearchResultItem>(
             context.Custodian.OrgId,
             context.SearchingOrganisation.OrgId,
             context.SearchingOrganisation.OrgType,
             records,
             context.Custodian.DsaPolicy,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
-            invocationId
+            workItemId
         );
 
-        var resultsWithDecision = await pepAuditService.FilterItemsAndAuditAsync(
+        var resultsWithDecision = await pepService.FilterItemsAndAuditAsync(
             filterInput,
             cancellationToken
         );
@@ -283,6 +284,12 @@ public class JobResultHandler(
             await searchResultRepository.UpsertAsync(entry, cancellationToken);
         }
     }
+
+    private sealed record JobContext(
+        ProviderDefinition Custodian,
+        ProviderDefinition SearchingOrganisation,
+        string SearchingOrganisationId
+    );
 
     private static List<CustodianSearchResultItem> MapRecordsToResultItems(
         List<JobResultRecord> records,

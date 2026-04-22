@@ -19,10 +19,10 @@ public class AuditPepFindActivityTests
         // Arrange
         var mockAuditClient = Substitute.For<IAuditQueueClient>();
         var logger = Substitute.For<ILogger<AuditPepFindActivity>>();
-        var mockPepService = new PolicyEnforcementAndAuditingService(
+        var mockPepService = new PolicyEnforcementService(
             mockAuditClient,
             Substitute.For<TimeProvider>(),
-            Substitute.For<ILogger<PolicyEnforcementAndAuditingService>>()
+            Substitute.For<ILogger<PolicyEnforcementService>>()
         );
         var auditActivity = new AuditPepFindActivity(logger, mockPepService);
 

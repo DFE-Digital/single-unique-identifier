@@ -12,14 +12,14 @@ namespace SUI.Find.Application.Services;
 /// <param name="Items">The items that represent the data being shared from the Source Organization to the Destination Organization.</param>
 /// <param name="DsaPolicy">The Data Sharing Agreement policy belonging to the Source Organization.</param>
 /// <param name="Purpose">The reason why the Searcher/Requestor requested the data, and why they need to see the data.</param>
-/// <param name="InvocationId">ID used to correlate this action to the other steps in this search process.</param>
-public record PepFilterAndAuditInput<TItem>(
+/// <param name="CorrelationId">ID used to correlate this action to the other steps in this search process.</param>
+public record PepFilterInput<TItem>(
     string SourceOrgId,
     string DestOrgId,
     string DestOrgType,
     IReadOnlyList<TItem> Items,
     DsaPolicyDefinition DsaPolicy,
     string Purpose,
-    string InvocationId
+    string CorrelationId
 )
     where TItem : IPepFilterable;

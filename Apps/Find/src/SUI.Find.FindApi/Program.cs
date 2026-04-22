@@ -75,10 +75,7 @@ builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
 builder.Services.AddSingleton<ISearchService, SearchService>();
 builder.Services.AddSingleton<IFetchRecordService, FetchRecordService>();
 builder.Services.AddSingleton<IQueryProvidersService, QueryProvidersService>();
-builder.Services.AddSingleton<
-    IPolicyEnforcementAndAuditingService,
-    PolicyEnforcementAndAuditingService
->();
+builder.Services.AddSingleton<IPolicyEnforcementService, PolicyEnforcementService>();
 builder.Services.AddSingleton<ISearchResultsService, SearchResultsService>();
 builder.Services.AddSingleton<IMatchPersonOrchestrationService, MatchPersonOrchestrationService>();
 builder.Services.AddSingleton<IMatchingService, MatchingService>();
