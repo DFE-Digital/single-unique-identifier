@@ -50,17 +50,13 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
 
     private record HealthCheckResponse(string? Value, DateTimeOffset? BuildTimestamp);
 
-    private TimeSpan HealthCheckTimeout =>
-        Config.UseExtendedHealthCheckTimeout ? TimeSpan.FromMinutes(10) : TimeSpan.FromSeconds(60);
-
     public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
         await EnsureServiceIsUpAsync(
             "Find API",
             Client,
             testOutputHelper,
-            timeout: HealthCheckTimeout,
-            checkBuildTimestampThreshold: Config.CheckBuildTimestampThreshold
+            checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
         );
     }
 
@@ -70,8 +66,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
             "StubCustodians API",
             StubCustodiansClient,
             testOutputHelper,
-            timeout: HealthCheckTimeout,
-            checkBuildTimestampThreshold: Config.CheckBuildTimestampThreshold
+            checkBuildTimestampThreshold: Config.CheckStubCustodiansApiBuildTimestampThreshold
         );
     }
 
@@ -87,7 +82,6 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         string serviceName,
         HttpClient client,
         ITestOutputHelper testOutputHelper,
-        TimeSpan timeout,
         DateTimeOffset? checkBuildTimestampThreshold = null
     )
     {
@@ -95,6 +89,9 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         var waitInterval = TimeSpan.FromSeconds(10);
 
         testOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
+
+        var useExtendedTimeout = checkBuildTimestampThreshold != null;
+        var timeout = useExtendedTimeout ? TimeSpan.FromMinutes(10) : TimeSpan.FromSeconds(60);
 
         // If health check does not indicate healthy, wait and then retry
         var retryCount = (int)Math.Round(timeout / waitInterval);

@@ -18,7 +18,7 @@ public record Config
 
     public string? PreviousFindApiKey { get; init; }
 
-    public bool UseExtendedHealthCheckTimeout { get; init; } = false;
+    public DateTimeOffset? CheckFindApiBuildTimestampThreshold { get; init; }
 
-    public DateTimeOffset? CheckBuildTimestampThreshold { get; init; }
+    public DateTimeOffset? CheckStubCustodiansApiBuildTimestampThreshold { get; init; }
 }
