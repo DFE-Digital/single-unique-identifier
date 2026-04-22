@@ -250,11 +250,11 @@ public class EvaluateAsyncTests
         var filterInput = new PepFilterInput<CustodianSearchResultItem>(
             sourceOrgId,
             destOrgId,
-            "LOCAL_AUTHORITY",
+            DestOrgType: "LOCAL_AUTHORITY",
             searchResultItems,
             policy,
-            "SAFEGUARDING",
-            "INV-ID-01"
+            Purpose: "SAFEGUARDING",
+            CorrelationId: "INV-ID-01"
         );
 
         // Act
@@ -337,11 +337,11 @@ public class EvaluateAsyncTests
         var filterInput = new PepFilterInput<ProviderDefinition>(
             sourceOrgId,
             destOrgId,
-            "LOCAL_AUTHORITY",
+            DestOrgType: "LOCAL_AUTHORITY",
             providerDefinitions,
             policy,
-            "SAFEGUARDING",
-            "INV-ID-01"
+            Purpose: "SAFEGUARDING",
+            CorrelationId: "INV-ID-01"
         );
 
         // Act

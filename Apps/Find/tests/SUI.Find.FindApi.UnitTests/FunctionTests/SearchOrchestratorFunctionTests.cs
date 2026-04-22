@@ -16,6 +16,9 @@ namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
 public class SearchOrchestratorFunctionsTests
 {
+    private const string DestOrgId = "test-client-1";
+    private const string SourceOrgId1 = "org1";
+    private const string SourceOrgId2 = "org2";
     private readonly TaskOrchestrationContext _mockContext;
     private readonly ILogger<SearchOrchestrator> _mockLogger = Substitute.For<
         ILogger<SearchOrchestrator>
@@ -41,11 +44,11 @@ public class SearchOrchestratorFunctionsTests
         Assert.Equal(2, result.Count);
         Assert.Contains(
             result,
-            r => r is { CustodianId: "org1", RecordUrl: "http://url1", SystemId: "System A" }
+            r => r is { CustodianId: SourceOrgId1, RecordUrl: "http://url1", SystemId: "System A" }
         );
         Assert.Contains(
             result,
-            r => r is { CustodianId: "org2", RecordUrl: "http://url2", SystemId: "System B" }
+            r => r is { CustodianId: SourceOrgId2, RecordUrl: "http://url2", SystemId: "System B" }
         );
 
         await _mockContext
@@ -87,9 +90,9 @@ public class SearchOrchestratorFunctionsTests
                 "QueryProvidersFunction",
                 Arg.Is<QueryProviderInput>(x =>
                     x.JobId == "instance-123"
-                    && x.RequestingOrg == "test-client-1"
+                    && x.RequestingOrg == DestOrgId
                     && x.Suid == "1234567890123456"
-                    && x.Provider.OrgId == "org1"
+                    && x.Provider.OrgId == SourceOrgId1
                 ),
                 Arg.Any<TaskOptions>()
             );
@@ -99,7 +102,25 @@ public class SearchOrchestratorFunctionsTests
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
                 Arg.Is<PepFilterInput<CustodianSearchResultItem>>(x =>
-                    x.DestOrgId == "test-client-1" && x.SourceOrgId == "org1"
+                    x.DestOrgId == DestOrgId
+                    && x.SourceOrgId == SourceOrgId1
+                    && x.DestOrgType == input.PolicyContext.OrgType
+                    && x.Purpose == input.PolicyContext.Purpose
+                    && x.CorrelationId == input.Metadata.InvocationId
+                ),
+                Arg.Any<TaskOptions>()
+            );
+
+        await _mockContext
+            .Received(1)
+            .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
+                "FilterResultsByPolicyFunction",
+                Arg.Is<PepFilterInput<CustodianSearchResultItem>>(x =>
+                    x.DestOrgId == DestOrgId
+                    && x.SourceOrgId == SourceOrgId2
+                    && x.DestOrgType == input.PolicyContext.OrgType
+                    && x.Purpose == input.PolicyContext.Purpose
+                    && x.CorrelationId == input.Metadata.InvocationId
                 ),
                 Arg.Any<TaskOptions>()
             );
@@ -111,8 +132,8 @@ public class SearchOrchestratorFunctionsTests
                 Arg.Is<PersistSearchResultsInput>(x =>
                     x.WorkItemId == "instance-123"
                     && x.JobId == "instance-123"
-                    && x.RequestingOrdId == "test-client-1"
-                    && x.SourceOrgId == "org1"
+                    && x.RequestingOrdId == DestOrgId
+                    && x.SourceOrgId == SourceOrgId1
                 ),
                 Arg.Any<TaskOptions>()
             );
@@ -125,7 +146,7 @@ public class SearchOrchestratorFunctionsTests
         var input = new SearchOrchestratorInput(
             Suid: "1234567890123456",
             Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
-            PolicyContext: new PolicyContext("test-client-1", "SAFEGUARDING", "LOCAL_AUTHORITY")
+            PolicyContext: new PolicyContext(DestOrgId, "SAFEGUARDING", "LOCAL_AUTHORITY")
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
@@ -160,7 +181,7 @@ public class SearchOrchestratorFunctionsTests
         var input = new SearchOrchestratorInput(
             Suid: "",
             Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
-            PolicyContext: new PolicyContext("test-client-1", "SAFEGUARDING", "LOCAL_AUTHORITY")
+            PolicyContext: new PolicyContext(DestOrgId, "SAFEGUARDING", "LOCAL_AUTHORITY")
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
@@ -173,25 +194,20 @@ public class SearchOrchestratorFunctionsTests
 
     private SearchOrchestratorInput ArrangeSuccessfulSearchOrchestration()
     {
-        const string destOrgId = "test-client-1";
-
         var input = new SearchOrchestratorInput(
             Suid: "1234567890123456",
             Metadata: new SearchJobMetadata("person-123", DateTime.UtcNow, "invocation-123"),
-            PolicyContext: new PolicyContext(destOrgId, "SAFEGUARDING", "LOCAL_AUTHORITY")
+            PolicyContext: new PolicyContext(DestOrgId, "SAFEGUARDING", "LOCAL_AUTHORITY")
         );
 
         _mockContext.GetInput<SearchOrchestratorInput>().Returns(input);
         _mockContext.InstanceId.Returns("instance-123");
 
-        const string sourceOrgId1 = "org1";
-        const string sourceOrgId2 = "org2";
-
         IReadOnlyList<ProviderDefinition> providers = new List<ProviderDefinition>
         {
             new()
             {
-                OrgId = sourceOrgId1,
+                OrgId = SourceOrgId1,
                 OrgName = "Provider 1",
                 OrgType = "Type A",
                 ProviderSystem = "System A",
@@ -201,7 +217,7 @@ public class SearchOrchestratorFunctionsTests
             },
             new()
             {
-                OrgId = sourceOrgId2,
+                OrgId = SourceOrgId2,
                 OrgName = "Provider 2",
                 OrgType = "Type B",
                 ProviderSystem = "System B",
@@ -237,17 +253,17 @@ public class SearchOrchestratorFunctionsTests
         // Unfiltered query results per provider
         var queryResultOrg1 = new List<CustodianSearchResultItem>
         {
-            new(sourceOrgId1, "RecordA", "http://url1", "System A", "test org 1", "TestRecord 1"),
+            new(SourceOrgId1, "RecordA", "http://url1", "System A", "test org 1", "TestRecord 1"),
         };
         var queryResultOrg2 = new List<CustodianSearchResultItem>
         {
-            new(sourceOrgId2, "RecordB", "http://url2", "System B", "test org 2", "TestRecord 2"),
+            new(SourceOrgId2, "RecordB", "http://url2", "System B", "test org 2", "TestRecord 2"),
         };
 
         _mockContext
             .CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
                 "QueryProvidersFunction",
-                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == sourceOrgId1),
+                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == SourceOrgId1),
                 Arg.Any<TaskOptions>()
             )
             .Returns(queryResultOrg1);
@@ -255,7 +271,7 @@ public class SearchOrchestratorFunctionsTests
         _mockContext
             .CallActivityAsync<IReadOnlyList<CustodianSearchResultItem>>(
                 "QueryProvidersFunction",
-                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == sourceOrgId2),
+                Arg.Is<QueryProviderInput>(i => i.Provider.OrgId == SourceOrgId2),
                 Arg.Any<TaskOptions>()
             )
             .Returns(queryResultOrg2);
@@ -265,8 +281,8 @@ public class SearchOrchestratorFunctionsTests
         {
             new(
                 queryResultOrg1[0],
-                sourceOrgId1,
-                destOrgId,
+                SourceOrgId1,
+                DestOrgId,
                 new PolicyDecisionResult() { IsAllowed = true, Reason = "Allowed" }
             ),
         };
@@ -274,8 +290,8 @@ public class SearchOrchestratorFunctionsTests
         {
             new(
                 queryResultOrg2[0],
-                sourceOrgId2,
-                destOrgId,
+                SourceOrgId2,
+                DestOrgId,
                 new PolicyDecisionResult() { IsAllowed = true, Reason = "Allowed" }
             ),
         };
@@ -284,7 +300,7 @@ public class SearchOrchestratorFunctionsTests
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
                 Arg.Is<PepFilterInput<CustodianSearchResultItem>>(i =>
-                    i.SourceOrgId == sourceOrgId1 && i.Items.Count == 1
+                    i.SourceOrgId == SourceOrgId1 && i.Items.Count == 1
                 ),
                 Arg.Any<TaskOptions>()
             )
@@ -294,7 +310,7 @@ public class SearchOrchestratorFunctionsTests
             .CallActivityAsync<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>>(
                 "FilterResultsByPolicyFunction",
                 Arg.Is<PepFilterInput<CustodianSearchResultItem>>(i =>
-                    i.SourceOrgId == sourceOrgId2 && i.Items.Count == 1
+                    i.SourceOrgId == SourceOrgId2 && i.Items.Count == 1
                 ),
                 Arg.Any<TaskOptions>()
             )

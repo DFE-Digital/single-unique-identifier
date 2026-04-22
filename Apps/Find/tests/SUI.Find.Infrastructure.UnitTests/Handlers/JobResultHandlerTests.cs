@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
@@ -392,7 +393,14 @@ public class JobResultHandlerTests
         await _pepService
             .Received(1)
             .FilterItemsAndAuditAsync(
-                Arg.Any<PepFilterInput<CustodianSearchResultItem>>(),
+                Arg.Is<PepFilterInput<CustodianSearchResultItem>>(x =>
+                    x.CorrelationId == message.WorkItemId
+                    && x.SourceOrgId == custodianOrg.OrgId
+                    && x.DestOrgId == searchingOrganisationId
+                    && x.DestOrgType == searchingOrg.OrgType
+                    && x.Purpose == ApplicationConstants.PolicyEnforcementPurposes.Safeguarding
+                    && x.Items.Count == 2
+                ),
                 Arg.Any<CancellationToken>()
             );
 
@@ -520,6 +528,21 @@ public class JobResultHandlerTests
             .Received(3)
             .UpsertAsync(
                 Arg.Is<IdRegisterEntry>(x => x.Sui == payload.Sui),
+                Arg.Any<CancellationToken>()
+            );
+
+        // Verify PEP interaction
+        await _pepService
+            .Received(1)
+            .FilterItemsAndAuditAsync(
+                Arg.Is<PepFilterInput<CustodianSearchResultItem>>(x =>
+                    x.CorrelationId == message.WorkItemId
+                    && x.SourceOrgId == custodianOrg.OrgId
+                    && x.DestOrgId == searchingOrganisationId
+                    && x.DestOrgType == searchingOrg.OrgType
+                    && x.Purpose == ApplicationConstants.PolicyEnforcementPurposes.Safeguarding
+                    && x.Items.Count == 3
+                ),
                 Arg.Any<CancellationToken>()
             );
 
