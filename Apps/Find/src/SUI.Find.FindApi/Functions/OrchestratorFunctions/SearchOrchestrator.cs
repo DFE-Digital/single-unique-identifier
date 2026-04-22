@@ -73,13 +73,6 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             pepResults.Count(x => !x.Decision.IsAllowed)
         );
 
-        // Audit PEP decisions
-        await context.CallActivityAsync(
-            nameof(AuditPepFindActivity),
-            new AuditPepFindInput(data.PolicyContext, data.Metadata, pepResults),
-            BuildTaskOptions()
-        );
-
         return pepResults.Where(x => x.Decision.IsAllowed).Select(x => x.Item).ToList();
     }
 

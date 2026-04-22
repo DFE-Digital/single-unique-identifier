@@ -119,29 +119,6 @@ public class SearchOrchestratorFunctionsTests
     }
 
     [Fact]
-    public async Task ShouldCallPepAuditActivity_WhenResultsArePresent()
-    {
-        // Arrange
-        var input = ArrangeSuccessfulSearchOrchestration();
-
-        // Act
-        await _orchestrator.RunOrchestrator(_mockContext);
-
-        // Assert
-        await _mockContext
-            .Received(1)
-            .CallActivityAsync(
-                nameof(AuditPepFindActivity),
-                Arg.Is<AuditPepFindInput>(i =>
-                    i.PolicyContext == input.PolicyContext
-                    && i.Metadata == input.Metadata
-                    && i.SearchResultsWithDecisions.Count == 2
-                ),
-                Arg.Any<TaskOptions>()
-            );
-    }
-
-    [Fact]
     public async Task RunOrchestrator_NoProvidersFound_ReturnsEmptyListAndLogsWarning()
     {
         // Arrange

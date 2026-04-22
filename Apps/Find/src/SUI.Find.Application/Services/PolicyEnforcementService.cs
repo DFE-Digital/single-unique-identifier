@@ -42,7 +42,7 @@ public class PolicyEnforcementService(
         return resultsWithDecision;
     }
 
-    public async Task CreateAndSendAuditMessageAsync<TItem>(
+    private async Task CreateAndSendAuditMessageAsync<TItem>(
         IReadOnlyList<PepResultItem<TItem>> resultsWithDecision,
         string destinationOrgId,
         string correlationId,

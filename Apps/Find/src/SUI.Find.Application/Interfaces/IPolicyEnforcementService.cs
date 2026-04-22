@@ -12,15 +12,6 @@ public interface IPolicyEnforcementService
     )
         where TItem : IPepFilterable;
 
-    Task CreateAndSendAuditMessageAsync<TItem>(
-        IReadOnlyList<PepResultItem<TItem>> resultsWithDecision,
-        string destinationOrgId,
-        string correlationId,
-        string purpose,
-        CancellationToken cancellationToken
-    )
-        where TItem : IPepFilterable;
-
     Task<PolicyDecisionResult> EvaluateAsync(
         PolicyDecisionRequest request,
         DsaPolicyDefinition dsaPolicy,
