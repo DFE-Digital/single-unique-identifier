@@ -50,16 +50,17 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
 
     private record HealthCheckResponse(string? Value, DateTimeOffset? BuildTimestamp);
 
+    private TimeSpan HealthCheckTimeout =>
+        Config.UseExtendedHealthCheckTimeout ? TimeSpan.FromMinutes(10) : TimeSpan.FromSeconds(60);
+
     public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
         await EnsureServiceIsUpAsync(
             "Find API",
             Client,
             testOutputHelper,
-            timeout: Config.UseExtendedFindApiHealthCheckTimeout
-                ? TimeSpan.FromMinutes(10)
-                : TimeSpan.FromSeconds(60),
-            checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
+            timeout: HealthCheckTimeout,
+            checkBuildTimestampThreshold: Config.CheckBuildTimestampThreshold
         );
     }
 
@@ -69,7 +70,8 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
             "StubCustodians API",
             StubCustodiansClient,
             testOutputHelper,
-            timeout: TimeSpan.FromSeconds(60)
+            timeout: HealthCheckTimeout,
+            checkBuildTimestampThreshold: Config.CheckBuildTimestampThreshold
         );
     }
 
