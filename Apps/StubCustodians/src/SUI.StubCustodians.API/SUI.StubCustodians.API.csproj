@@ -25,4 +25,7 @@
     <ProjectReference Include="..\SUI.Custodians.Domain\SUI.Custodians.Domain.csproj" />
     <ProjectReference Include="..\SUI.StubCustodians.Infrastructure\SUI.StubCustodians.Infrastructure.csproj" />
   </ItemGroup>
+  <PropertyGroup>
+    <SourceRevisionId>timestamp_$([System.DateTimeOffset]::UtcNow.ToString("O"))</SourceRevisionId>
+  </PropertyGroup>
 </Project>
