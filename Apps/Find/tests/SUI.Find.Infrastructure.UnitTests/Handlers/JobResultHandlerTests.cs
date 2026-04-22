@@ -7,6 +7,7 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Handlers;
 using SUI.Find.Infrastructure.Interfaces;
@@ -329,20 +330,19 @@ public class JobResultHandlerTests
 
         // Proper PEP mock (based on actual inputs)
         _pepService
-            .FilterItemsAsync(
-                Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Any<IReadOnlyList<CustodianSearchResultItem>>(),
-                Arg.Any<DsaPolicyDefinition>(),
-                Arg.Any<string>(),
+            .FilterItemsAndAuditAsync(
+                Arg.Any<PepFilterInput<CustodianSearchResultItem>>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(callInfo =>
             {
-                var sourceOrgId = callInfo.ArgAt<string>(0);
-                var destOrgId = callInfo.ArgAt<string>(1);
-                var items = callInfo.ArgAt<IReadOnlyList<CustodianSearchResultItem>>(3);
+                var sourceOrgId = callInfo
+                    .ArgAt<PepFilterInput<CustodianSearchResultItem>>(0)
+                    .SourceOrgId;
+                var destOrgId = callInfo
+                    .ArgAt<PepFilterInput<CustodianSearchResultItem>>(0)
+                    .DestOrgId;
+                var items = callInfo.ArgAt<PepFilterInput<CustodianSearchResultItem>>(0).Items;
 
                 return items
                     .Select(item => new PepResultItem<CustodianSearchResultItem>(
@@ -392,13 +392,15 @@ public class JobResultHandlerTests
         // Verify PEP interaction
         await _pepService
             .Received(1)
-            .FilterItemsAsync(
-                message.CustodianId, // source (custodian)
-                searchingOrganisationId, // destination (searching org)
-                "TypeA",
-                Arg.Is<IReadOnlyList<CustodianSearchResultItem>>(x => x.Count == 2),
-                Arg.Any<DsaPolicyDefinition>(),
-                ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
+            .FilterItemsAndAuditAsync(
+                Arg.Is<PepFilterInput<CustodianSearchResultItem>>(x =>
+                    x.CorrelationId == message.WorkItemId
+                    && x.SourceOrgId == custodianOrg.OrgId
+                    && x.DestOrgId == searchingOrganisationId
+                    && x.DestOrgType == searchingOrg.OrgType
+                    && x.Purpose == ApplicationConstants.PolicyEnforcementPurposes.Safeguarding
+                    && x.Items.Count == 2
+                ),
                 Arg.Any<CancellationToken>()
             );
 
@@ -485,20 +487,19 @@ public class JobResultHandlerTests
 
         // Mixed PEP response (allow only first 2)
         _pepService
-            .FilterItemsAsync(
-                Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Any<string>(),
-                Arg.Any<IReadOnlyList<CustodianSearchResultItem>>(),
-                Arg.Any<DsaPolicyDefinition>(),
-                Arg.Any<string>(),
+            .FilterItemsAndAuditAsync(
+                Arg.Any<PepFilterInput<CustodianSearchResultItem>>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(callInfo =>
             {
-                var sourceOrgId = callInfo.ArgAt<string>(0);
-                var destOrgId = callInfo.ArgAt<string>(1);
-                var items = callInfo.ArgAt<IReadOnlyList<CustodianSearchResultItem>>(3);
+                var sourceOrgId = callInfo
+                    .ArgAt<PepFilterInput<CustodianSearchResultItem>>(0)
+                    .SourceOrgId;
+                var destOrgId = callInfo
+                    .ArgAt<PepFilterInput<CustodianSearchResultItem>>(0)
+                    .DestOrgId;
+                var items = callInfo.ArgAt<PepFilterInput<CustodianSearchResultItem>>(0).Items;
 
                 return items
                     .Select(
@@ -527,6 +528,21 @@ public class JobResultHandlerTests
             .Received(3)
             .UpsertAsync(
                 Arg.Is<IdRegisterEntry>(x => x.Sui == payload.Sui),
+                Arg.Any<CancellationToken>()
+            );
+
+        // Verify PEP interaction
+        await _pepService
+            .Received(1)
+            .FilterItemsAndAuditAsync(
+                Arg.Is<PepFilterInput<CustodianSearchResultItem>>(x =>
+                    x.CorrelationId == message.WorkItemId
+                    && x.SourceOrgId == custodianOrg.OrgId
+                    && x.DestOrgId == searchingOrganisationId
+                    && x.DestOrgType == searchingOrg.OrgType
+                    && x.Purpose == ApplicationConstants.PolicyEnforcementPurposes.Safeguarding
+                    && x.Items.Count == 3
+                ),
                 Arg.Any<CancellationToken>()
             );
 

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using SUI.Find.Application.Enums;
+using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 
@@ -11,15 +12,16 @@ namespace SUI.Find.Application.UnitTests.Services.PolicyEnforcementServiceTests;
 public class EvaluateAsyncTests
 {
     private readonly PolicyEnforcementService _sut;
-    private readonly FakeTimeProvider _fakeClock = new();
+    private readonly FakeTimeProvider _fakeTimeProvider = new();
 
     public EvaluateAsyncTests()
     {
         var logger = Substitute.For<ILogger<PolicyEnforcementService>>();
         logger.IsEnabled(LogLevel.Information).Returns(true);
 
-        _fakeClock.SetUtcNow(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
-        _sut = new PolicyEnforcementService(logger, _fakeClock);
+        var queueClient = Substitute.For<IAuditQueueClient>();
+        _fakeTimeProvider.SetUtcNow(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
+        _sut = new PolicyEnforcementService(queueClient, _fakeTimeProvider, logger);
     }
 
     [Fact]
@@ -245,15 +247,20 @@ public class EvaluateAsyncTests
 
         const string destOrgId = "LOCAL-AUTHORITY-01";
 
-        // Act
-        var result = await _sut.FilterResultsAsync(
-            sourceOrgId: sourceOrgId,
-            destOrgId: destOrgId,
-            destOrgType: "LOCAL_AUTHORITY",
+        var filterInput = new PepFilterInput<CustodianSearchResultItem>(
+            sourceOrgId,
+            destOrgId,
+            DestOrgType: "LOCAL_AUTHORITY",
             searchResultItems,
             policy,
-            purpose: "SAFEGUARDING",
-            CancellationToken.None
+            Purpose: "SAFEGUARDING",
+            CorrelationId: "INV-ID-01"
+        );
+
+        // Act
+        var result = await _sut.FilterItemsAndAuditAsync(
+            filterInput,
+            cancellationToken: CancellationToken.None
         );
 
         // Assert
@@ -327,16 +334,18 @@ public class EvaluateAsyncTests
 
         const string destOrgId = "LOCAL-AUTHORITY-01";
 
-        // Act
-        var result = await _sut.FilterItemsAsync(
-            sourceOrgId: sourceOrgId,
-            destOrgId: destOrgId,
-            destOrgType: "LOCAL_AUTHORITY",
+        var filterInput = new PepFilterInput<ProviderDefinition>(
+            sourceOrgId,
+            destOrgId,
+            DestOrgType: "LOCAL_AUTHORITY",
             providerDefinitions,
             policy,
-            purpose: "SAFEGUARDING",
-            CancellationToken.None
+            Purpose: "SAFEGUARDING",
+            CorrelationId: "INV-ID-01"
         );
+
+        // Act
+        var result = await _sut.FilterItemsAndAuditAsync(filterInput, CancellationToken.None);
 
         // Assert
         result

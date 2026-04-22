@@ -68,8 +68,7 @@ public class FetchRecordAsyncTests
             .EvaluateAsync(
                 Arg.Any<PolicyDecisionRequest>(),
                 Arg.Any<DsaPolicyDefinition>(),
-                Arg.Any<string>(),
-                Arg.Any<CancellationToken>()
+                Arg.Any<string>()
             )
             .Returns(
                 Task.FromResult(
@@ -326,8 +325,7 @@ public class FetchRecordAsyncTests
             .EvaluateAsync(
                 Arg.Any<PolicyDecisionRequest>(),
                 Arg.Any<DsaPolicyDefinition>(),
-                Arg.Any<string>(),
-                Arg.Any<CancellationToken>()
+                Arg.Any<string>()
             )
             .Returns(
                 Task.FromResult(

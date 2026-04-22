@@ -20,7 +20,7 @@ public class FetchRecordService(
     IProviderHttpClient providerClient,
     IOutboundAuthService outboundAuthService,
     IPolicyEnforcementService policyEnforcementService,
-    IAuditQueueClient auditService,
+    IAuditQueueClient auditClient,
     TimeProvider timeProvider
 ) : IFetchRecordService
 {
@@ -108,7 +108,7 @@ public class FetchRecordService(
                 endTime,
                 receivedByteCount
             );
-            await auditService.SendAuditEventAsync(auditPayload, cancellationToken);
+            await auditClient.SendAuditEventAsync(auditPayload, cancellationToken);
         }
 
         return result;
@@ -179,8 +179,7 @@ public class FetchRecordService(
                 Purpose: "SAFEGUARDING" // TODO: Default for now for purpose of Fetch operations
             ),
             provider.Value.DsaPolicy,
-            requestingOrg.Value.OrgType,
-            cancellationToken
+            requestingOrg.Value.OrgType
         );
 
         if (!pepDecision.IsAllowed)
