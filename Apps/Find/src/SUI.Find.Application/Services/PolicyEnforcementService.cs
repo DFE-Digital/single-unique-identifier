@@ -210,7 +210,7 @@ public class PolicyEnforcementService(
         PolicyDecisionRequest request,
         string destOrgType,
         string modeString,
-        string recordType,
+        string? recordType,
         DateTimeOffset now
     )
     {
@@ -219,7 +219,10 @@ public class PolicyEnforcementService(
             return false;
         }
 
-        if (!rule.RecordTypes.Contains(recordType, StringComparer.OrdinalIgnoreCase))
+        if (
+            recordType != null
+            && !rule.RecordTypes.Contains(recordType, StringComparer.OrdinalIgnoreCase)
+        )
         {
             return false;
         }

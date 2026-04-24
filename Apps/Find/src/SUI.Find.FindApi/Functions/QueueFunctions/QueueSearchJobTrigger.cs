@@ -17,7 +17,8 @@ public class QueueSearchJobTrigger(
     ILogger<QueueSearchJobTrigger> logger,
     IJobRepository jobRepository,
     IWorkItemJobCountRepository workItemJobCountRepository,
-    ICustodianService custodianService
+    ICustodianService custodianService,
+    IPolicyEnforcementService policyEnforcementService
 )
 {
     [Function(nameof(QueueSearchJobFunction))]
@@ -49,9 +50,36 @@ public class QueueSearchJobTrigger(
         );
 
         var custodians = await custodianService.GetCustodiansAsync();
+        var requestingOrg = custodians.First(s =>
+            s.OrgId == searchRequestMessage.SearchingOrganisationId
+        );
+        var createdJobs = 0;
 
         foreach (var custodian in custodians)
         {
+            var pepDecision = await policyEnforcementService.EvaluateAsync(
+                new PolicyDecisionRequest(
+                    SourceOrgId: custodian.OrgId,
+                    DestinationOrgId: requestingOrg.OrgId,
+                    RecordType: null,
+                    Mode: ShareMode.Existence,
+                    Purpose: "SAFEGUARDING"
+                ),
+                custodian.DsaPolicy,
+                requestingOrg.OrgType
+            );
+
+            if (!pepDecision.IsAllowed)
+            {
+                logger.LogWarning(
+                    "PEP denied EXISTENCE access for {RequestingOrg} to {TargetOrg}. Reason: {Reason}",
+                    requestingOrg.OrgId,
+                    custodian.OrgId,
+                    pepDecision.Reason
+                );
+                continue;
+            }
+
             var custodianPayload = new CustodianLookupJobPayload(
                 searchRequestMessage.PersonId,
                 custodian.RecordType
@@ -71,23 +99,27 @@ public class QueueSearchJobTrigger(
             };
 
             await jobRepository.UpsertAsync(job, token);
+            createdJobs++;
         }
 
-        logger.LogInformation("Created {NumOfJobs} jobs", custodians.Count);
+        logger.LogInformation("Created {NumOfJobs} jobs", createdJobs);
 
-        var jobCountPayload = new SearchWorkItemPayload(searchRequestMessage.PersonId);
-        await workItemJobCountRepository.UpsertAsync(
-            new WorkItemJobCount
-            {
-                JobType = JobType.CustodianLookup,
-                WorkItemId = searchRequestMessage.WorkItemId.ToString(),
-                PayloadJson = JsonSerializer.Serialize(jobCountPayload),
-                CreatedAtUtc = DateTime.UtcNow,
-                UpdatedAtUtc = DateTime.UtcNow,
-                ExpectedJobCount = custodians.Count,
-                SearchingOrganisationId = searchRequestMessage.SearchingOrganisationId,
-            },
-            token
-        );
+        if (createdJobs > 0)
+        {
+            var jobCountPayload = new SearchWorkItemPayload(searchRequestMessage.PersonId);
+            await workItemJobCountRepository.UpsertAsync(
+                new WorkItemJobCount
+                {
+                    JobType = JobType.CustodianLookup,
+                    WorkItemId = searchRequestMessage.WorkItemId.ToString(),
+                    PayloadJson = JsonSerializer.Serialize(jobCountPayload),
+                    CreatedAtUtc = DateTime.UtcNow,
+                    UpdatedAtUtc = DateTime.UtcNow,
+                    ExpectedJobCount = createdJobs,
+                    SearchingOrganisationId = searchRequestMessage.SearchingOrganisationId,
+                },
+                token
+            );
+        }
     }
 }

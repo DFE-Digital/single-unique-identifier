@@ -377,4 +377,104 @@ public class EvaluateAsyncTests
                 },
             ]);
     }
+
+    [Fact]
+    public async Task NullRecordType_ReturnsAllowed_WhenAtLeastOneRecordTypeIsAllowed()
+    {
+        // Arrange
+        var policy = new DsaPolicyDefinition
+        {
+            Defaults =
+            [
+                new DsaRuleDefinition
+                {
+                    Effect = "allow",
+                    Modes = ["EXISTENCE"],
+                    RecordTypes = ["health.details"], // Allowed for LOCAL_AUTHORITY
+                    DestOrgTypes = ["LOCAL_AUTHORITY"],
+                    Purposes = ["SAFEGUARDING"],
+                },
+                new DsaRuleDefinition
+                {
+                    Effect = "allow",
+                    Modes = ["EXISTENCE"],
+                    RecordTypes = ["crime.details"], // Not allowed for LOCAL_AUTHORITY
+                    DestOrgTypes = ["POLICE"],
+                    Purposes = ["SAFEGUARDING"],
+                },
+            ],
+        };
+
+        var request = new PolicyDecisionRequest(
+            SourceOrgId: "MULTIPLE-01",
+            DestinationOrgId: "LOCAL-AUTHORITY-01",
+            RecordType: null,
+            Mode: ShareMode.Existence,
+            Purpose: "SAFEGUARDING"
+        );
+
+        // Act
+        var result = await _sut.EvaluateAsync(request, policy, "LOCAL_AUTHORITY");
+
+        // Assert
+        Assert.True(result.IsAllowed);
+        Assert.Contains("Matched default rule: effect=allow", result.Reason);
+    }
+
+    [Fact]
+    public async Task NullRecordType_ReturnsDenied_WhenNoRecordTypesAreAllowed()
+    {
+        // Arrange
+        var policy = new DsaPolicyDefinition
+        {
+            Defaults =
+            [
+                new DsaRuleDefinition
+                {
+                    Effect = "allow",
+                    Modes = ["EXISTENCE"],
+                    RecordTypes = ["crime.details", "health.details"],
+                    DestOrgTypes = ["POLICE"], // Only POLICE, so LOCAL_AUTHORITY will be denied
+                    Purposes = ["SAFEGUARDING"],
+                },
+            ],
+        };
+
+        var request = new PolicyDecisionRequest(
+            SourceOrgId: "MULTIPLE-01",
+            DestinationOrgId: "LOCAL-AUTHORITY-01",
+            RecordType: null,
+            Mode: ShareMode.Existence,
+            Purpose: "SAFEGUARDING"
+        );
+
+        // Act
+        var result = await _sut.EvaluateAsync(request, policy, "LOCAL_AUTHORITY");
+
+        // Assert
+        Assert.False(result.IsAllowed);
+        Assert.Contains("No matching rule found - denied by default", result.Reason);
+    }
+
+    [Fact]
+    public async Task NullRecordType_ReturnsDenied_WhenPolicyHasNoRecordTypes()
+    {
+        // Arrange
+        var policy = new DsaPolicyDefinition { Defaults = [], Exceptions = [] };
+
+        var request = new PolicyDecisionRequest(
+            SourceOrgId: "EMPTY-01",
+            DestinationOrgId: "LOCAL-AUTHORITY-01",
+            RecordType: null,
+            Mode: ShareMode.Existence,
+            Purpose: "SAFEGUARDING"
+        );
+
+        // Act
+        var result = await _sut.EvaluateAsync(request, policy, "LOCAL_AUTHORITY");
+
+        // Assert
+        Assert.False(result.IsAllowed);
+        Assert.Contains("No matching rule found - denied by default", result.Reason);
+    }
 }
