@@ -22,6 +22,14 @@ public class WorkAvailableFunction(
         tags: ["Work"],
         Summary = "Check if work is available. Optional, the claim endpoint remains authoritative."
     )]
+    [OpenApiResponseWithoutBody(
+        statusCode: HttpStatusCode.OK,
+        Summary = "Work is available. There is at least one job waiting to be worked on."
+    )]
+    [OpenApiResponseWithoutBody(
+        statusCode: HttpStatusCode.NoContent,
+        Summary = "No work available. There are no jobs waiting to be worked on."
+    )]
     [RequiredScopes("work-item.read")]
     [Function(nameof(WorkAvailable))]
     public async Task<HttpResponseData> WorkAvailable(
@@ -61,12 +69,12 @@ public class WorkAvailableFunction(
             authContext.ClientId
         );
 
-        var result = await jobClaimService.DoesCustodianHaveJobs(
+        var hasJobs = await jobClaimService.DoesCustodianHaveJobs(
             authContext.ClientId,
             cancellationToken
         );
 
-        return result
+        return hasJobs
             ? HttpResponseUtility.OkResponse(req)
             : HttpResponseUtility.NoContentResponse(req);
     }
