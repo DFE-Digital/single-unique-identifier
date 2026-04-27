@@ -63,13 +63,13 @@ public class QueueSearchJobTrigger(
             pepFilteredCustodians.AddRange(
                 await policyEnforcementService.FilterItemsAndAuditAsync(
                     new PepFilterInput<ProviderDefinition>(
-                        custodian.OrgId,
-                        requestingOrg.OrgId,
-                        requestingOrg.OrgType,
-                        [custodian],
-                        custodian.DsaPolicy,
+                        SourceOrgId: custodian.OrgId,
+                        DestOrgId: requestingOrg.OrgId,
+                        DestOrgType: requestingOrg.OrgType,
+                        Items: [custodian],
+                        DsaPolicy: custodian.DsaPolicy,
                         Purpose: "SAFEGUARDING",
-                        searchRequestMessage.WorkItemId.ToString()
+                        CorrelationId: searchRequestMessage.WorkItemId.ToString()
                     ),
                     token
                 )
