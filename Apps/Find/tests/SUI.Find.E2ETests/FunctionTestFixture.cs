@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using Azure;
+using Azure.Data.Tables;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http;
 using Polly;
@@ -7,13 +9,16 @@ using Xunit.Abstractions;
 namespace SUI.Find.E2ETests;
 
 // ReSharper disable once ClassNeverInstantiated.Global - class is instantiated by XUnit
-public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDisposable
+public class FunctionTestFixture : IDisposable
 {
     public Config Config { get; }
 
     public HttpClient Client { get; }
 
     public HttpClient StubCustodiansClient { get; }
+
+    private static bool _tablesReset = false;
+    private static readonly SemaphoreSlim _resetLock = new(1, 1);
 
     public FunctionTestFixture()
     {
@@ -79,6 +84,50 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
             EnsureFindApiIsUpAsync(testOutputHelper),
             EnsureStubCustodiansApiIsUpAsync(testOutputHelper)
         );
+    }
+
+    public async Task EnsureTablesResetAsync(ITestOutputHelper output)
+    {
+        if (_tablesReset)
+            return;
+
+        await _resetLock.WaitAsync();
+
+        try
+        {
+            if (_tablesReset)
+                return;
+
+            var service = new TableServiceClient(Config.FindApiStorageConnectionString);
+
+            var tableNames = new[]
+            {
+                "ResultsUrlMappings",
+                "TestHubNameHistory",
+                "TestHubNameInstances",
+                "Jobs",
+                "WorkItemJobCounts",
+            };
+
+            foreach (var table in tableNames)
+            {
+                try
+                {
+                    await service.DeleteTableAsync(table);
+                }
+                catch (RequestFailedException ex) when (ex.Status == 404) { }
+
+                await service.CreateTableIfNotExistsAsync(table);
+            }
+
+            output.WriteLine($"Reset Azure Tables complete: {string.Join(", ", tableNames)}");
+
+            _tablesReset = true;
+        }
+        finally
+        {
+            _resetLock.Release();
+        }
     }
 
     private static async Task EnsureServiceIsUpAsync(
@@ -175,6 +224,3 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
         return isTimeout;
     }
 }
-
-[CollectionDefinition("E2E")]
-public class FunctionTestCollectionFixture : ICollectionFixture<FunctionTestFixture> { }
