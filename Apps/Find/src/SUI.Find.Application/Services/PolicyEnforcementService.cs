@@ -210,7 +210,7 @@ public class PolicyEnforcementService(
         PolicyDecisionRequest request,
         string destOrgType,
         string modeString,
-        string? recordType,
+        string recordType,
         DateTimeOffset now
     )
     {
