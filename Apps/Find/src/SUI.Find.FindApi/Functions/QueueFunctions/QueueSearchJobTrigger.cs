@@ -52,8 +52,9 @@ public class QueueSearchJobTrigger(
         );
 
         var custodians = await custodianService.GetCustodiansAsync();
-        var requestingOrg = custodians.First(s =>
-            s.OrgId == searchRequestMessage.SearchingOrganisationId
+        var requestingOrg = custodianService.GetCustodian(
+            searchRequestMessage.SearchingOrganisationId,
+            custodians
         );
         var createdJobs = 0;
         var pepFilteredCustodians = new List<PepResultItem<ProviderDefinition>>();

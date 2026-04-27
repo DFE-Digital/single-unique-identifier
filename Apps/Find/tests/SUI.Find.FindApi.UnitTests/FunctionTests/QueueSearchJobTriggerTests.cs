@@ -10,6 +10,7 @@ using SUI.Find.FindApi.Functions.QueueFunctions;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
+using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
@@ -46,6 +47,15 @@ public class QueueSearchJobTriggerTests
             _mockCustodianService,
             _mockPolicyEnforcementService
         );
+
+        _mockCustodianService
+            .GetCustodian(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<ProviderDefinition>>())
+            .Returns(callInfo =>
+            {
+                var orgId = callInfo.Arg<string>();
+                var custodians = callInfo.Arg<IReadOnlyCollection<ProviderDefinition>>();
+                return custodians.First(s => s.OrgId == orgId);
+            });
     }
 
     [Fact]
