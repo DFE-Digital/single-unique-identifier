@@ -7,6 +7,8 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
@@ -54,32 +56,28 @@ public class QueueSearchJobTrigger(
             s.OrgId == searchRequestMessage.SearchingOrganisationId
         );
         var createdJobs = 0;
+        var pepFilteredCustodians = new List<PepResultItem<ProviderDefinition>>();
 
         foreach (var custodian in custodians)
         {
-            var pepDecision = await policyEnforcementService.EvaluateAsync(
-                new PolicyDecisionRequest(
-                    SourceOrgId: custodian.OrgId,
-                    DestinationOrgId: requestingOrg.OrgId,
-                    RecordType: null,
-                    Mode: ShareMode.Existence,
-                    Purpose: "SAFEGUARDING"
-                ),
-                custodian.DsaPolicy,
-                requestingOrg.OrgType
+            pepFilteredCustodians.AddRange(
+                await policyEnforcementService.FilterItemsAndAuditAsync(
+                    new PepFilterInput<ProviderDefinition>(
+                        custodian.OrgId,
+                        requestingOrg.OrgId,
+                        requestingOrg.OrgType,
+                        [custodian],
+                        custodian.DsaPolicy,
+                        Purpose: "SAFEGUARDING",
+                        searchRequestMessage.WorkItemId.ToString()
+                    ),
+                    token
+                )
             );
+        }
 
-            if (!pepDecision.IsAllowed)
-            {
-                logger.LogWarning(
-                    "PEP denied EXISTENCE access for {RequestingOrg} to {TargetOrg}. Reason: {Reason}",
-                    requestingOrg.OrgId,
-                    custodian.OrgId,
-                    pepDecision.Reason
-                );
-                continue;
-            }
-
+        foreach (var custodian in pepFilteredCustodians.Select(x => x.Item))
+        {
             var custodianPayload = new CustodianLookupJobPayload(
                 searchRequestMessage.PersonId,
                 custodian.RecordType
@@ -104,22 +102,19 @@ public class QueueSearchJobTrigger(
 
         logger.LogInformation("Created {NumOfJobs} jobs", createdJobs);
 
-        if (createdJobs > 0)
-        {
-            var jobCountPayload = new SearchWorkItemPayload(searchRequestMessage.PersonId);
-            await workItemJobCountRepository.UpsertAsync(
-                new WorkItemJobCount
-                {
-                    JobType = JobType.CustodianLookup,
-                    WorkItemId = searchRequestMessage.WorkItemId.ToString(),
-                    PayloadJson = JsonSerializer.Serialize(jobCountPayload),
-                    CreatedAtUtc = DateTime.UtcNow,
-                    UpdatedAtUtc = DateTime.UtcNow,
-                    ExpectedJobCount = createdJobs,
-                    SearchingOrganisationId = searchRequestMessage.SearchingOrganisationId,
-                },
-                token
-            );
-        }
+        var jobCountPayload = new SearchWorkItemPayload(searchRequestMessage.PersonId);
+        await workItemJobCountRepository.UpsertAsync(
+            new WorkItemJobCount
+            {
+                JobType = JobType.CustodianLookup,
+                WorkItemId = searchRequestMessage.WorkItemId.ToString(),
+                PayloadJson = JsonSerializer.Serialize(jobCountPayload),
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                ExpectedJobCount = createdJobs,
+                SearchingOrganisationId = searchRequestMessage.SearchingOrganisationId,
+            },
+            token
+        );
     }
 }

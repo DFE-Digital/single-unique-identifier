@@ -5,6 +5,7 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Functions.QueueFunctions;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
@@ -76,14 +77,23 @@ public class QueueSearchJobTriggerTests
         _mockCustodianService.GetCustodiansAsync().Returns(custodians);
 
         _mockPolicyEnforcementService
-            .EvaluateAsync(
-                Arg.Any<PolicyDecisionRequest>(),
-                Arg.Any<DsaPolicyDefinition>(),
-                Arg.Any<string>()
+            .FilterItemsAndAuditAsync(
+                Arg.Any<PepFilterInput<ProviderDefinition>>(),
+                Arg.Any<CancellationToken>()
             )
-            .Returns(
-                Task.FromResult(new PolicyDecisionResult { IsAllowed = true, Reason = "Allowed" })
-            );
+            .Returns(callInfo =>
+            {
+                var input = callInfo.Arg<PepFilterInput<ProviderDefinition>>();
+                var list = input
+                    .Items.Select(item => new PepResultItem<ProviderDefinition>(
+                        item,
+                        input.SourceOrgId,
+                        input.DestOrgId,
+                        new PolicyDecisionResult { IsAllowed = true, Reason = "Allowed" }
+                    ))
+                    .ToList();
+                return Task.FromResult<IReadOnlyList<PepResultItem<ProviderDefinition>>>(list);
+            });
 
         // Act
         await _trigger.QueueSearchJobFunction(requestMessage, _mockContext, CancellationToken.None);
@@ -137,7 +147,7 @@ public class QueueSearchJobTriggerTests
     }
 
     [Fact]
-    public async Task QueueSearchJobFunction_ShouldNotUpsertJobWhenNoCustodians()
+    public async Task QueueSearchJobFunction_ShouldNotCreateJobsWhenNoCustodians()
     {
         // Arrange
         var requestMessage = new SearchRequestMessage
@@ -156,13 +166,14 @@ public class QueueSearchJobTriggerTests
 
         _mockCustodianService.GetCustodiansAsync().Returns(custodians);
         _mockPolicyEnforcementService
-            .EvaluateAsync(
-                Arg.Any<PolicyDecisionRequest>(),
-                Arg.Any<DsaPolicyDefinition>(),
-                Arg.Any<string>()
+            .FilterItemsAndAuditAsync(
+                Arg.Any<PepFilterInput<ProviderDefinition>>(),
+                Arg.Any<CancellationToken>()
             )
             .Returns(
-                Task.FromResult(new PolicyDecisionResult { IsAllowed = false, Reason = "Denied" })
+                Task.FromResult<IReadOnlyList<PepResultItem<ProviderDefinition>>>(
+                    new List<PepResultItem<ProviderDefinition>>()
+                )
             );
 
         // Act
@@ -174,7 +185,7 @@ public class QueueSearchJobTriggerTests
             .UpsertAsync(Arg.Any<Job>(), Arg.Any<CancellationToken>());
 
         await _mockWorkItemJobCountRepository
-            .DidNotReceive()
+            .Received(1)
             .UpsertAsync(
                 Arg.Is<WorkItemJobCount>(w =>
                     w.JobType == JobType.CustodianLookup
@@ -215,24 +226,34 @@ public class QueueSearchJobTriggerTests
         _mockCustodianService.GetCustodiansAsync().Returns(custodians);
 
         _mockPolicyEnforcementService
-            .EvaluateAsync(
-                Arg.Is<PolicyDecisionRequest>(req => req.SourceOrgId == "org1"),
-                Arg.Any<DsaPolicyDefinition>(),
-                Arg.Any<string>()
+            .FilterItemsAndAuditAsync(
+                Arg.Is<PepFilterInput<ProviderDefinition>>(req => req.SourceOrgId == "org1"),
+                Arg.Any<CancellationToken>()
             )
             .Returns(
-                Task.FromResult(new PolicyDecisionResult { IsAllowed = false, Reason = "Denied" })
+                Task.FromResult<IReadOnlyList<PepResultItem<ProviderDefinition>>>(
+                    new List<PepResultItem<ProviderDefinition>>()
+                )
             );
 
         _mockPolicyEnforcementService
-            .EvaluateAsync(
-                Arg.Is<PolicyDecisionRequest>(req => req.SourceOrgId != "org1"),
-                Arg.Any<DsaPolicyDefinition>(),
-                Arg.Any<string>()
+            .FilterItemsAndAuditAsync(
+                Arg.Is<PepFilterInput<ProviderDefinition>>(req => req.SourceOrgId != "org1"),
+                Arg.Any<CancellationToken>()
             )
-            .Returns(
-                Task.FromResult(new PolicyDecisionResult { IsAllowed = true, Reason = "Allowed" })
-            );
+            .Returns(callInfo =>
+            {
+                var input = callInfo.Arg<PepFilterInput<ProviderDefinition>>();
+                var list = input
+                    .Items.Select(item => new PepResultItem<ProviderDefinition>(
+                        item,
+                        input.SourceOrgId,
+                        input.DestOrgId,
+                        new PolicyDecisionResult { IsAllowed = true, Reason = "Allowed" }
+                    ))
+                    .ToList();
+                return Task.FromResult<IReadOnlyList<PepResultItem<ProviderDefinition>>>(list);
+            });
 
         // Act
         await _trigger.QueueSearchJobFunction(requestMessage, _mockContext, CancellationToken.None);

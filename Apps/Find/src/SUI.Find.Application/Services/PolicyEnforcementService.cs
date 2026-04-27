@@ -219,10 +219,7 @@ public class PolicyEnforcementService(
             return false;
         }
 
-        if (
-            recordType != null
-            && !rule.RecordTypes.Contains(recordType, StringComparer.OrdinalIgnoreCase)
-        )
+        if (!rule.RecordTypes.Contains(recordType, StringComparer.OrdinalIgnoreCase))
         {
             return false;
         }
