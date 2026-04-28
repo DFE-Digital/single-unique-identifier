@@ -119,20 +119,28 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
         return providers;
     }
 
-    public async Task<Result<ProviderDefinition>> GetCustodianAsync(string orgId)
-    {
-        var custodians = await GetCustodiansAsync();
-
-        var custodian = custodians.FirstOrDefault(p =>
+    private static ProviderDefinition? GetCustodianById(
+        string orgId,
+        IReadOnlyCollection<ProviderDefinition> custodians
+    ) =>
+        custodians.FirstOrDefault(p =>
             string.Equals(p.OrgId, orgId, StringComparison.OrdinalIgnoreCase)
         );
-        if (custodian == null)
-        {
-            return Result<ProviderDefinition>.Fail($"Custodian with OrgId '{orgId}' not found.");
-        }
 
-        return Result<ProviderDefinition>.Ok(custodian);
+    public async Task<Result<ProviderDefinition>> GetCustodianAsync(string orgId)
+    {
+        var custodian = GetCustodianById(orgId, await GetCustodiansAsync());
+        return custodian == null
+            ? Result<ProviderDefinition>.Fail($"Custodian with OrgId '{orgId}' not found.")
+            : Result<ProviderDefinition>.Ok(custodian);
     }
+
+    public ProviderDefinition GetCustodian(
+        string orgId,
+        IReadOnlyCollection<ProviderDefinition> custodians
+    ) =>
+        GetCustodianById(orgId, custodians)
+        ?? throw new InvalidOperationException($"Custodian with OrgId '{orgId}' not found.");
 
     // Only used for deserializing the mock org-directory.json, so it can exist locally
     private sealed class MockOrgDirectory
