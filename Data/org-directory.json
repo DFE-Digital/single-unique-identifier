@@ -270,7 +270,7 @@
     },
 
     {
-      "orgId": "FAUX-01",
+      "orgId": "NO-DSA-01",
       "orgName": "Faux Organisation for Negative Testing",
       "orgType": "FAUX",
       "records": [
@@ -278,7 +278,7 @@
           "recordType": "personal.details",
           "connection": {
             "method": "GET",
-            "url": "{StubCustodiansBaseUrl}/api/v1/find/faux-01/{personId}?recordType=personal.details",
+            "url": "{StubCustodiansBaseUrl}/api/v1/find/no-dsa-01/{personId}?recordType=personal.details",
             "personIdPosition": "path",
             "auth": {
               "type": "oauth2_client_credentials",
@@ -297,7 +297,7 @@
       },
       "encryption": {
         "algorithm": "AES-256-CBC",
-        "keyId": "FAUX-01-KEY-1",
+        "keyId": "NO-DSA-01-KEY-1",
         "key": "bUdQfUlY7h81Pn8+TOSGCBkAXgxgVUOaLU1lka3leQM="
       }
     }

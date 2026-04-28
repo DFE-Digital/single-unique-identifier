@@ -24,6 +24,7 @@ builder.Services.AddHttpClient(
     client => client.BaseAddress = new Uri(builder.Configuration["BaseUrl"] + "api/")
 );
 builder.Services.AddScoped<IFindService, FindService>();
+builder.Services.AddScoped<IFindApiAuthClientProvider, FindApiAuthClientProvider>();
 
 var app = builder.Build();
 

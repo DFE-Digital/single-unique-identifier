@@ -1,4 +1,6 @@
 @page "/login"
+@using SUI.UIHarness.Web.Services
+@inject IFindApiAuthClientProvider FindApiAuthClientProvider
 
 <PageTitle>Login</PageTitle>
 
@@ -12,11 +14,10 @@
                     <label for="custodianName" class="form-label">Custodian Name</label>
                     <select id="custodianName" name="custodianName" class="form-select" required>
                         <option value="">Select...</option>
-                        <option value="LOCAL-AUTHORITY-01">LOCAL-AUTHORITY-01</option>
-                        <option value="EDUCATION-01">EDUCATION-01</option>
-                        <option value="HEALTH-01">HEALTH-01</option>
-                        <option value="POLICE-01">POLICE-01</option>
-                        <option value="HOUSING-01">HOUSING-01</option>
+                        @foreach (var authClient in FindApiAuthClientProvider.GetAuthClients().Where(x => x.Enabled))
+                        {
+                            <option key="@authClient.ClientId" value="@authClient.ClientId">@authClient.ClientId</option>
+                        }
                     </select>
                 </div>
                 <div class="mb-3">
