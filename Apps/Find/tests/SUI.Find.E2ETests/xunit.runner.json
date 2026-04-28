@@ -3,6 +3,5 @@
   "showLiveOutput": true,
   "diagnosticMessages": true,
   "parallelizeAssembly": true,
-  "parallelizeTestCollections": true,
-  "maxParallelThreads": 2
+  "maxParallelThreads": -1
 }

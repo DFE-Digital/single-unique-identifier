@@ -2,11 +2,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using SUI.Find.Application.Models.Matching;
-using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
-[Collection("E2E")]
 [Trait("Category", "E2E")]
 [Trait("Suite", "Smoke")]
 public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)

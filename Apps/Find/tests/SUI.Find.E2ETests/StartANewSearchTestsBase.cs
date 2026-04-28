@@ -5,13 +5,10 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Azure;
-using Azure.Data.Tables;
 using Polly;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Models;
-using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
@@ -19,7 +16,6 @@ namespace SUI.Find.E2ETests;
 /// These tests are designed around the mock data files we use in dev/test environments.
 /// <para>See Data/auth-clients-inbound.json for details</para>
 /// </summary>
-//[Collection("E2E")]
 [Trait("Category", "E2E")]
 [Trait("Suite", "Standard")]
 public abstract class StartANewSearchTestsBase(
@@ -40,7 +36,7 @@ public abstract class StartANewSearchTestsBase(
 
     private record SearchStatusResponse(string? Status, int? CompletenessPercentage);
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await Fixture.EnsureServicesAreUpAsync(TestOutputHelper);
 
@@ -50,32 +46,11 @@ public abstract class StartANewSearchTestsBase(
         }
     }
 
-    public Task DisposeAsync() => Task.CompletedTask;
-
-    private async Task ResetAzureTablesAsync(string[] tableNames)
-    {
-        var service = new TableServiceClient(Fixture.Config.FindApiStorageConnectionString);
-
-        foreach (var table in tableNames)
-        {
-            try
-            {
-                await service.DeleteTableAsync(table);
-            }
-            catch (RequestFailedException ex) when (ex.Status == 404)
-            {
-                // Table didn't exist; ignore
-            }
-
-            await service.CreateTableIfNotExistsAsync(table);
-        }
-
-        TestOutputHelper.WriteLine($"Reset Azure Tables complete: {string.Join(", ", tableNames)}");
-    }
+    public ValueTask DisposeAsync() => new ValueTask(Task.CompletedTask);
 
     public static TheoryData<TestData> TestData =>
         [
-            new()
+            new TestData()
             {
                 EncryptedSui = "gkITssvF1IAbNgpcMv2lyA",
                 Sui = "9691292211",
@@ -103,7 +78,7 @@ public abstract class StartANewSearchTestsBase(
                     },
                 ],
             },
-            new()
+            new TestData()
             {
                 EncryptedSui = "vehNMF2ySUU23P206A6BYA",
                 Sui = "9691292211",
@@ -121,14 +96,14 @@ public abstract class StartANewSearchTestsBase(
                     new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
                 ],
             },
-            new()
+            new TestData()
             {
                 EncryptedSui = "-hg7DkXLL7oqmKzPwAfxGA",
                 Sui = "9449306613",
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records = [new TestRecord { RecordType = "personal.details", TestValue = "Briar" }],
             },
-            new()
+            new TestData()
             {
                 EncryptedSui = "Gwy1RFyGF4b_sSbbPZExtQ",
                 Sui = "9449306494",
@@ -139,14 +114,14 @@ public abstract class StartANewSearchTestsBase(
                     new TestRecord { RecordType = "health.details", TestValue = "Dr E Green" },
                 ],
             },
-            new()
+            new TestData()
             {
                 EncryptedSui = "DcYc-jumZgryOtz3iFh7cw",
                 Sui = "9693821998",
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records = [],
             },
-            new()
+            new TestData()
             {
                 EncryptedSui = "ZBLNLdIppgMge_MmzVImmA",
                 Sui = "9691292211",

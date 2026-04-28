@@ -4,19 +4,12 @@ using Azure.Data.Tables;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http;
 using Polly;
-using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
 // ReSharper disable once ClassNeverInstantiated.Global - class is instantiated by XUnit
 public class FunctionTestFixture : IDisposable
 {
-    public Config Config { get; }
-
-    public HttpClient Client { get; }
-
-    public HttpClient StubCustodiansClient { get; }
-
     private static bool _tablesReset = false;
     private static readonly SemaphoreSlim _resetLock = new(1, 1);
 
@@ -44,6 +37,12 @@ public class FunctionTestFixture : IDisposable
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
     }
+
+    public Config Config { get; }
+
+    public HttpClient Client { get; }
+
+    public HttpClient StubCustodiansClient { get; }
 
     public void Dispose()
     {
