@@ -114,12 +114,20 @@
         _foundRecordsFor = null;
         _findProgressPercentage = 0;
         _showFindProgress = true;
+        var currentNhsNumber = CurrentPerson.NhsNumber;
         var usePolling = Architecture == "Polling";
         var searchJob = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber, usePolling);
         var keepPolling = true;
         const int percentToAdd = 10;
+        while (keepPolling && !HasCurrentNhsNumberChanged())
         {
             var result = await FindService.FindRecords(SelectedOrg, searchJob, usePolling);
+
+            if (HasCurrentNhsNumberChanged())
+            {
+                break;
+            }
+
             if (usePolling)
             {
                 _findProgressPercentage = result.CompletenessPercentage;
@@ -156,6 +164,9 @@
         }
 
         _showFindProgress = false;
+        return;
+
+        bool HasCurrentNhsNumberChanged() => currentNhsNumber != CurrentPerson?.NhsNumber;
     }
 
     private async Task SetCurrentRecord(LocalRecord localRecord)
