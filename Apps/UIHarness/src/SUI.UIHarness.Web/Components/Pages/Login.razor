@@ -7,6 +7,7 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <form action="/api/auth/login" method="post" data-enhance="false">
+                <AntiforgeryToken />
                 <div class="mb-3">
                     <label for="custodianName" class="form-label">Custodian Name</label>
                     <select id="custodianName" name="custodianName" class="form-select" required>

@@ -50,9 +50,17 @@ app.MapPost(
             [FromForm] string custodianName,
             [FromForm] string password,
             [FromForm] string architecture,
+            [FromServices] IConfiguration configuration,
             HttpContext httpContext
         ) =>
         {
+            var expectedPassword =
+                configuration.GetValue<string>("UI_TEST_HARNESS_PASSWORD") ?? "local-dev-only";
+            if (password != expectedPassword)
+            {
+                return Results.Unauthorized();
+            }
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, custodianName),
