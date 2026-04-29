@@ -1,10 +1,7 @@
 namespace SUI.Find.E2ETests;
 
-[Collection("E2Ev1")]
-public class StartANewSearchTestsV1 : StartANewSearchTestsBase
+public class StartANewSearchTestsV1(FunctionTestFixture fixture, ITestOutputHelper output)
+    : StartANewSearchTestsBase(fixture, output)
 {
     protected override bool UsePolling => false;
-
-    public StartANewSearchTestsV1(FunctionTestFixture fixture, ITestOutputHelper output)
-        : base(fixture, output) { }
 }
