@@ -1,6 +1,6 @@
 namespace SUI.Find.E2ETests;
 
-[Collection("E2Ev2")]
+[Collection("E2Ev1")]
 public class StartANewSearchTestsV1 : StartANewSearchTestsBase
 {
     protected override bool UsePolling => false;
