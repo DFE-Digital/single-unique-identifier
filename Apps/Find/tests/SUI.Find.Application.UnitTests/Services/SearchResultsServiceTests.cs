@@ -21,7 +21,7 @@ public class SearchResultsServiceTests
 
         const string sourceOrgId = "sourceOrgId";
         const string destOrgId = "destOrgId";
-        IReadOnlyList<SearchResultWithDecision> exampleSearchResults =
+        IReadOnlyList<PepResultItem<CustodianSearchResultItem>> exampleSearchResults =
         [
             new(
                 new CustodianSearchResultItem(

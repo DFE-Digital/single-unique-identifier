@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Functions.ActivityFunctions;
 
 namespace SUI.Find.FindApi.Functions.OrchestratorFunctions;
@@ -52,7 +53,9 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         // Query Providers and apply PEP, via sub-orchestration to ultimately enable partial feedback of results, and the durable way to handle data dependencies for individual work items in a parallel batch.
         var pepFilterTasks = availableProviders
             .Select(provider =>
-                context.CallSubOrchestratorAsync<IReadOnlyList<SearchResultWithDecision>>(
+                context.CallSubOrchestratorAsync<
+                    IReadOnlyList<PepResultItem<CustodianSearchResultItem>>
+                >(
                     nameof(SearchProviderSubOrchestrator),
                     new SearchProviderSubOrchestratorInput(jobId, data, provider)
                 )
@@ -70,20 +73,13 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             pepResults.Count(x => !x.Decision.IsAllowed)
         );
 
-        // Audit PEP decisions
-        await context.CallActivityAsync(
-            nameof(AuditPepFindActivity),
-            new AuditPepFindInput(data.PolicyContext, data.Metadata, pepResults),
-            BuildTaskOptions()
-        );
-
         return pepResults.Where(x => x.Decision.IsAllowed).Select(x => x.Item).ToList();
     }
 
     [Function(nameof(SearchProviderSubOrchestrator))]
-    public async Task<IReadOnlyList<SearchResultWithDecision>> SearchProviderSubOrchestrator(
-        [OrchestrationTrigger] TaskOrchestrationContext context
-    )
+    public async Task<
+        IReadOnlyList<PepResultItem<CustodianSearchResultItem>>
+    > SearchProviderSubOrchestrator([OrchestrationTrigger] TaskOrchestrationContext context)
     {
         var input = context.GetInput<SearchProviderSubOrchestratorInput>();
         ArgumentNullException.ThrowIfNull(input);
@@ -120,20 +116,19 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         logger.LogInformation("{Count} results before PEP filtering", providerResults.Count);
 
         // Activity Two: filter the provider's results based on the requesting provider's data sharing policies (PEP Policy Enforcement Point)
-        var filterInput = new FilterResultsInput(
+        var filterInput = new PepFilterInput<CustodianSearchResultItem>(
             sourceOrgId,
             requestingOrdId,
             data.PolicyContext.OrgType,
             providerResults,
             provider.DsaPolicy,
-            data.PolicyContext.Purpose
+            data.PolicyContext.Purpose,
+            data.Metadata.InvocationId
         );
 
-        var pepResults = await context.CallActivityAsync<IReadOnlyList<SearchResultWithDecision>>(
-            nameof(FilterResultsByPolicyFunction),
-            filterInput,
-            options
-        );
+        var pepResults = await context.CallActivityAsync<
+            IReadOnlyList<PepResultItem<CustodianSearchResultItem>>
+        >(nameof(FilterResultsByPolicyFunction), filterInput, options);
 
         logger.LogInformation(
             "{Count} results after querying provider and PEP enforcement ({AllowedCount} allowed, {DeniedCount} denied)",

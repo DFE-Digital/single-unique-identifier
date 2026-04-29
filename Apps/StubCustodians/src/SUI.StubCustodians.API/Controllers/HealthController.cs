@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SUI.StubCustodians.API.Utility;
 
 namespace SUI.StubCustodians.API.Controllers;
 
@@ -24,6 +25,7 @@ public class HealthController(IHostEnvironment env, ILogger<AuthController> logg
             env.EnvironmentName,
             nowUtc = DateTimeOffset.UtcNow,
             nowLocal = DateTimeOffset.Now,
+            BuildTimestampUtility.BuildTimestamp,
         };
     }
 }

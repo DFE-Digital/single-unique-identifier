@@ -25,6 +25,22 @@ public class RenewLeaseFunction(
         tags: ["Work"],
         Summary = "Renew the lease on a job"
     )]
+    [OpenApiResponseWithBody(
+        statusCode: HttpStatusCode.OK,
+        contentType: "application/json",
+        bodyType: typeof(RenewJobLeaseResponse),
+        Summary = "Lease was successfully extended."
+    )]
+    [OpenApiResponseWithoutBody(
+        statusCode: HttpStatusCode.NoContent,
+        Summary = "Lease was not extended. Either the job does not exist, or it is completed, or its lease has already expired, or the requested Lease ID did not match."
+    )]
+    [OpenApiResponseWithBody(
+        statusCode: HttpStatusCode.BadRequest,
+        contentType: "application/json",
+        bodyType: typeof(Problem),
+        Summary = "Invalid request. The request body is missing or malformed."
+    )]
     [RequiredScopes("work-item.write")]
     [Function(nameof(RenewLease))]
     public async Task<HttpResponseData> RenewLease(

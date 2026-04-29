@@ -8,6 +8,7 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
@@ -80,7 +81,12 @@ public class JobResultHandler(
 
         await UpsertIdRegister(message, payload, cancellationToken);
 
-        var filtered = await ApplyPepFiltering(records, context, cancellationToken);
+        var filtered = await ApplyPepFiltering(
+            records,
+            context,
+            message.WorkItemId,
+            cancellationToken
+        );
 
         await PersistSearchResults(filtered, message, context, cancellationToken);
 
@@ -218,19 +224,25 @@ public class JobResultHandler(
     private async Task<IReadOnlyList<PepResultItem<CustodianSearchResultItem>>> ApplyPepFiltering(
         IReadOnlyList<CustodianSearchResultItem> records,
         JobContext context,
+        string workItemId,
         CancellationToken cancellationToken
     )
     {
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation("Applying PEP filtering to {Count} records", records.Count);
 
-        var resultsWithDecision = await pepService.FilterItemsAsync(
+        var filterInput = new PepFilterInput<CustodianSearchResultItem>(
             context.Custodian.OrgId,
             context.SearchingOrganisation.OrgId,
             context.SearchingOrganisation.OrgType,
             records,
             context.Custodian.DsaPolicy,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
+            workItemId
+        );
+
+        var resultsWithDecision = await pepService.FilterItemsAndAuditAsync(
+            filterInput,
             cancellationToken
         );
 

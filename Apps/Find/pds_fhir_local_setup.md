@@ -42,6 +42,22 @@
 6. On the API portal, create a new API key, and copy the _Key_ value. You do not need the secret. Then run the following command, using your Key value between the quotation marks.
     1. `API_KEY="YourKeyHere"`
 7. Create the `.env` file by running the following commands:
+    * The recommended location for the `.env` file is in the same directory as the `.csproj` file for the host application, for example: `Apps/Find/src/SUI.Find.FindApi/.env`
     1. `echo "export NhsAuthConfig__NHS_DIGITAL_PRIVATE_KEY=\"$(openssl rsa -in $KID.pem -traditional -out -)\"" > .env`
     2. `echo "export NhsAuthConfig__NHS_DIGITAL_KID=\"$KID\"" >> .env`
     3. `echo "export NhsAuthConfig__NHS_DIGITAL_CLIENT_ID=\"$API_KEY\"" >> .env`
+
+## Troubleshooting
+
+If you experience intermittent errors because these config values aren't loading correctly,
+especially when using Azure Functions locally, check that the same config values are **not**
+in your Azure Function App's `local.settings.json` file.
+
+For example, check your `Apps/Find/src/SUI.Find.FindApi/local.settings.json` file,
+and **remove** these lines:
+```
+// REMOVE these lines from local.settings.json:
+"NhsAuthConfig:NHS_DIGITAL_CLIENT_ID": "",
+"NhsAuthConfig:NHS_DIGITAL_KID": "",
+"NhsAuthConfig:NHS_DIGITAL_PRIVATE_KEY": "",
+```

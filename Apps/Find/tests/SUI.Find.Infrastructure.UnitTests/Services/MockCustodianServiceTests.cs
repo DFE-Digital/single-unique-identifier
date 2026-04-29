@@ -1,6 +1,7 @@
 using System.IO.Abstractions;
 using Microsoft.Extensions.Configuration;
 using NSubstitute;
+using SUI.Find.Application.Models;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
@@ -103,7 +104,7 @@ public class MockCustodianServiceTests
     }
 
     [Fact]
-    public async Task GetCustodianAsync_ThrowsKeyNotFound_WhenNotFound()
+    public async Task GetCustodianAsync_ReturnsNotFound_WhenNotFound()
     {
         // Arrange
         var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "org-directory.json");
@@ -118,6 +119,46 @@ public class MockCustodianServiceTests
         // Assert
         Assert.False(result.Success);
         Assert.Contains(targetOrgId, result.Error);
+    }
+
+    [Fact]
+    public void GetCustodian_ReturnsCustodian_WhenFound()
+    {
+        const string targetOrgId = "org2";
+
+        // Act
+        var result = _sut.GetCustodian(
+            targetOrgId,
+            [
+                new ProviderDefinition { OrgId = "org1", OrgName = "Other Org" },
+                new ProviderDefinition { OrgId = targetOrgId, OrgName = "Expected Org" },
+                new ProviderDefinition { OrgId = "org3", OrgName = "Another Org" },
+            ]
+        );
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(targetOrgId, result.OrgId);
+        Assert.Equal("Expected Org", result.OrgName);
+    }
+
+    [Fact]
+    public void GetCustodian_ThrowsNotFound_WhenNotFound()
+    {
+        const string targetOrgId = "orgX";
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            _sut.GetCustodian(
+                targetOrgId,
+                [
+                    new ProviderDefinition { OrgId = "org1", OrgName = "Other Org" },
+                    new ProviderDefinition { OrgId = "org3", OrgName = "Another Org" },
+                ]
+            )
+        );
+
+        Assert.Equal("Custodian with OrgId 'orgX' not found.", ex.Message);
     }
 
     [Fact]

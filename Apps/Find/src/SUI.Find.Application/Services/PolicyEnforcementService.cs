@@ -1,21 +1,136 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using SUI.Find.Application.Constants;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.AuditPayloads;
 using SUI.Find.Application.Models.Pep;
+using SUI.Find.Domain.Events.Audit;
 
 namespace SUI.Find.Application.Services;
 
 public class PolicyEnforcementService(
-    ILogger<PolicyEnforcementService> logger,
-    TimeProvider timeProvider
+    IAuditQueueClient auditQueueClient,
+    TimeProvider timeProvider,
+    ILogger<PolicyEnforcementService> logger
 ) : IPolicyEnforcementService
 {
+    public async Task<IReadOnlyList<PepResultItem<TItem>>> FilterItemsAndAuditAsync<TItem>(
+        PepFilterInput<TItem> input,
+        CancellationToken cancellationToken
+    )
+        where TItem : IPepFilterable
+    {
+        var resultsWithDecision = await FilterItemsAsync(
+            input.SourceOrgId,
+            input.DestOrgId,
+            input.DestOrgType,
+            input.Items,
+            input.DsaPolicy,
+            input.Purpose
+        );
+
+        await CreateAndSendAuditMessageAsync(
+            resultsWithDecision,
+            input.DestOrgId,
+            input.CorrelationId,
+            input.Purpose,
+            cancellationToken
+        );
+
+        return resultsWithDecision;
+    }
+
+    private async Task CreateAndSendAuditMessageAsync<TItem>(
+        IReadOnlyList<PepResultItem<TItem>> resultsWithDecision,
+        string destinationOrgId,
+        string correlationId,
+        string purpose,
+        CancellationToken cancellationToken
+    )
+        where TItem : IPepFilterable
+    {
+        logger.LogInformation(
+            "Creating PEP audit log for {Count} results",
+            resultsWithDecision.Count
+        );
+
+        var payload = new PepFindPayload
+        {
+            DestinationOrgId = destinationOrgId,
+            Purpose = purpose,
+            Mode = "EXISTENCE", // Currently hardcoded - all Find requests use Existence mode,
+            Records = resultsWithDecision
+                .Select(r => new PepFindRecordDetail
+                {
+                    SourceOrgId = r.SourceOrgId,
+                    RecordUrl = r.Item is IPepFilterableRecord record ? record.RecordUrl : null,
+                    RecordType = r.Item.RecordType,
+
+                    IsSharedAllowed = r.Decision.IsAllowed,
+                    RuleType = r.Decision.RuleType ?? "unknown",
+                    RuleEffect = r.Decision.RuleEffect ?? "unknown",
+                    RuleValidFrom = r.Decision.ValidFrom,
+                    RuleValidUntil = r.Decision.ValidUntil,
+                    DecisionReason = r.Decision.Reason,
+                })
+                .ToArray(),
+
+            TotalRecordsFound = resultsWithDecision.Count,
+            TotalRecordsShared = resultsWithDecision.Count(r => r.Decision.IsAllowed),
+        };
+
+        var auditMessage = new AuditEvent
+        {
+            EventId = Guid.NewGuid().ToString(),
+            EventName = ApplicationConstants.Audit.PolicyEnforcementPoint.FindEventName,
+            ServiceName = "PolicyEnforcementPoint",
+            Actor = new AuditActor { ActorId = destinationOrgId, ActorRole = "Organisation" },
+            Payload = JsonSerializer.SerializeToElement(payload),
+            Timestamp = timeProvider.GetUtcNow().DateTime,
+            CorrelationId = correlationId,
+        };
+
+        await auditQueueClient.SendAuditEventAsync(auditMessage, cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<PepResultItem<TItem>>> FilterItemsAsync<TItem>(
+        string sourceOrgId,
+        string destOrgId,
+        string destOrgType,
+        IReadOnlyList<TItem> pepFilterableItems,
+        DsaPolicyDefinition dsaPolicy,
+        string purpose
+    )
+        where TItem : IPepFilterable
+    {
+        var results = new List<PepResultItem<TItem>>();
+
+        foreach (var pepFilterableItem in pepFilterableItems)
+        {
+            var request = new PolicyDecisionRequest(
+                sourceOrgId,
+                destOrgId,
+                pepFilterableItem.RecordType,
+                ShareMode.Existence,
+                purpose
+            );
+
+            var decision = await EvaluateAsync(request, dsaPolicy, destOrgType);
+
+            results.Add(
+                new PepResultItem<TItem>(pepFilterableItem, sourceOrgId, destOrgId, decision)
+            );
+        }
+
+        return results;
+    }
+
     public Task<PolicyDecisionResult> EvaluateAsync(
         PolicyDecisionRequest request,
         DsaPolicyDefinition dsaPolicy,
-        string destOrgType,
-        CancellationToken cancellationToken = default
+        string destOrgType
     )
     {
         var now = timeProvider.GetUtcNow();
@@ -89,67 +204,6 @@ public class PolicyEnforcementService(
             }
         );
     }
-
-    public async Task<IReadOnlyList<PepResultItem<TItem>>> FilterItemsAsync<TItem>(
-        string sourceOrgId,
-        string destOrgId,
-        string destOrgType,
-        IReadOnlyList<TItem> pepFilterableItems,
-        DsaPolicyDefinition dsaPolicy,
-        string purpose,
-        CancellationToken cancellationToken = default
-    )
-        where TItem : IPepFilterable
-    {
-        var results = new List<PepResultItem<TItem>>();
-
-        foreach (var pepFilterableItem in pepFilterableItems)
-        {
-            var request = new PolicyDecisionRequest(
-                sourceOrgId,
-                destOrgId,
-                pepFilterableItem.RecordType,
-                ShareMode.Existence,
-                purpose
-            );
-
-            var decision = await EvaluateAsync(request, dsaPolicy, destOrgType, cancellationToken);
-
-            results.Add(
-                new PepResultItem<TItem>(pepFilterableItem, sourceOrgId, destOrgId, decision)
-            );
-        }
-
-        return results;
-    }
-
-    public async Task<IReadOnlyList<SearchResultWithDecision>> FilterResultsAsync(
-        string sourceOrgId,
-        string destOrgId,
-        string destOrgType,
-        IReadOnlyList<CustodianSearchResultItem> searchResultItems,
-        DsaPolicyDefinition dsaPolicy,
-        string purpose,
-        CancellationToken cancellationToken = default
-    ) =>
-        (
-            await FilterItemsAsync(
-                sourceOrgId,
-                destOrgId,
-                destOrgType,
-                searchResultItems,
-                dsaPolicy,
-                purpose,
-                cancellationToken
-            )
-        )
-            .Select(result => new SearchResultWithDecision(
-                result.Item,
-                result.SourceOrgId,
-                result.DestOrgId,
-                result.Decision
-            ))
-            .ToArray();
 
     private static bool RuleMatches(
         DsaRuleDefinition rule,

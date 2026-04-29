@@ -7,6 +7,8 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
@@ -17,7 +19,8 @@ public class QueueSearchJobTrigger(
     ILogger<QueueSearchJobTrigger> logger,
     IJobRepository jobRepository,
     IWorkItemJobCountRepository workItemJobCountRepository,
-    ICustodianService custodianService
+    ICustodianService custodianService,
+    IPolicyEnforcementService policyEnforcementService
 )
 {
     [Function(nameof(QueueSearchJobFunction))]
@@ -49,8 +52,32 @@ public class QueueSearchJobTrigger(
         );
 
         var custodians = await custodianService.GetCustodiansAsync();
+        var requestingOrg = custodianService.GetCustodian(
+            searchRequestMessage.SearchingOrganisationId,
+            custodians
+        );
+        var createdJobs = 0;
+        var pepFilteredCustodians = new List<PepResultItem<ProviderDefinition>>();
 
         foreach (var custodian in custodians)
+        {
+            pepFilteredCustodians.AddRange(
+                await policyEnforcementService.FilterItemsAndAuditAsync(
+                    new PepFilterInput<ProviderDefinition>(
+                        SourceOrgId: custodian.OrgId,
+                        DestOrgId: requestingOrg.OrgId,
+                        DestOrgType: requestingOrg.OrgType,
+                        Items: [custodian],
+                        DsaPolicy: custodian.DsaPolicy,
+                        Purpose: "SAFEGUARDING",
+                        CorrelationId: searchRequestMessage.WorkItemId.ToString()
+                    ),
+                    token
+                )
+            );
+        }
+
+        foreach (var custodian in pepFilteredCustodians.Select(x => x.Item))
         {
             var custodianPayload = new CustodianLookupJobPayload(
                 searchRequestMessage.PersonId,
@@ -71,9 +98,10 @@ public class QueueSearchJobTrigger(
             };
 
             await jobRepository.UpsertAsync(job, token);
+            createdJobs++;
         }
 
-        logger.LogInformation("Created {NumOfJobs} jobs", custodians.Count);
+        logger.LogInformation("Created {NumOfJobs} jobs", createdJobs);
 
         var jobCountPayload = new SearchWorkItemPayload(searchRequestMessage.PersonId);
         await workItemJobCountRepository.UpsertAsync(
@@ -84,7 +112,7 @@ public class QueueSearchJobTrigger(
                 PayloadJson = JsonSerializer.Serialize(jobCountPayload),
                 CreatedAtUtc = DateTime.UtcNow,
                 UpdatedAtUtc = DateTime.UtcNow,
-                ExpectedJobCount = custodians.Count,
+                ExpectedJobCount = createdJobs,
                 SearchingOrganisationId = searchRequestMessage.SearchingOrganisationId,
             },
             token

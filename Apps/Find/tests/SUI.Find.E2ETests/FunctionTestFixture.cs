@@ -23,7 +23,7 @@ public class FunctionTestFixture : IAsyncLifetime
     {
         var configurationRoot = new ConfigurationBuilder()
             .AddEnvironmentVariables()
-            .AddUserSecrets("SUI.E2E.Tests")
+            .AddUserSecrets<FunctionTestFixture>()
             .Build();
 
         Config = configurationRoot.GetSection("E2E").Get<Config>() ?? new Config();
@@ -55,6 +55,7 @@ public class FunctionTestFixture : IAsyncLifetime
 
     public ValueTask DisposeAsync()
     {
+        // MAYBE: Delete everything in storage as a cleanup operation?
         Client.Dispose();
         StubCustodiansClient.Dispose();
         return new ValueTask(Task.CompletedTask);
@@ -67,9 +68,6 @@ public class FunctionTestFixture : IAsyncLifetime
         await EnsureServiceIsUpAsync(
             "Find API",
             Client,
-            timeout: Config.UseExtendedFindApiHealthCheckTimeout
-                ? TimeSpan.FromMinutes(10)
-                : TimeSpan.FromSeconds(60),
             checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
         );
     }
@@ -79,7 +77,7 @@ public class FunctionTestFixture : IAsyncLifetime
         await EnsureServiceIsUpAsync(
             "StubCustodians API",
             StubCustodiansClient,
-            timeout: TimeSpan.FromSeconds(60)
+            checkBuildTimestampThreshold: Config.CheckStubCustodiansApiBuildTimestampThreshold
         );
     }
 
@@ -122,7 +120,6 @@ public class FunctionTestFixture : IAsyncLifetime
     private static async Task EnsureServiceIsUpAsync(
         string serviceName,
         HttpClient client,
-        TimeSpan timeout,
         DateTimeOffset? checkBuildTimestampThreshold = null
     )
     {
@@ -132,6 +129,9 @@ public class FunctionTestFixture : IAsyncLifetime
         TestContext.Current.SendDiagnosticMessage(
             $"Checking {serviceName} is up: {client.BaseAddress}{url}"
         );
+
+        var useExtendedTimeout = checkBuildTimestampThreshold != null;
+        var timeout = useExtendedTimeout ? TimeSpan.FromMinutes(10) : TimeSpan.FromSeconds(60);
 
         // If health check does not indicate healthy, wait and then retry
         var retryCount = (int)Math.Round(timeout / waitInterval);
@@ -214,3 +214,6 @@ public class FunctionTestFixture : IAsyncLifetime
         return isTimeout;
     }
 }
+
+[CollectionDefinition("E2E")]
+public class FunctionTestCollectionFixture : ICollectionFixture<FunctionTestFixture> { }

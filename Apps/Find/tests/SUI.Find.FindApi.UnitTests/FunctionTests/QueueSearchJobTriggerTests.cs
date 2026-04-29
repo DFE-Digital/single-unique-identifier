@@ -4,10 +4,13 @@ using NSubstitute;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
+using SUI.Find.Application.Models.Pep;
+using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Functions.QueueFunctions;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Repositories.JobRepository;
 using SUI.Find.Infrastructure.Repositories.WorkItemJobCountRepository;
+using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
@@ -17,6 +20,7 @@ public class QueueSearchJobTriggerTests
     private readonly IJobRepository _mockJobRepository;
     private readonly IWorkItemJobCountRepository _mockWorkItemJobCountRepository;
     private readonly ICustodianService _mockCustodianService;
+    private readonly IPolicyEnforcementService _mockPolicyEnforcementService;
     private readonly FunctionContext _mockContext;
     private readonly TraceContext _mockTraceContext;
     private readonly QueueSearchJobTrigger _trigger;
@@ -27,6 +31,7 @@ public class QueueSearchJobTriggerTests
         _mockJobRepository = Substitute.For<IJobRepository>();
         _mockWorkItemJobCountRepository = Substitute.For<IWorkItemJobCountRepository>();
         _mockCustodianService = Substitute.For<ICustodianService>();
+        _mockPolicyEnforcementService = Substitute.For<IPolicyEnforcementService>();
 
         _mockContext = Substitute.For<FunctionContext>();
         _mockTraceContext = Substitute.For<TraceContext>();
@@ -39,12 +44,22 @@ public class QueueSearchJobTriggerTests
             _mockLogger,
             _mockJobRepository,
             _mockWorkItemJobCountRepository,
-            _mockCustodianService
+            _mockCustodianService,
+            _mockPolicyEnforcementService
         );
+
+        _mockCustodianService
+            .GetCustodian(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<ProviderDefinition>>())
+            .Returns(callInfo =>
+            {
+                var orgId = callInfo.Arg<string>();
+                var custodians = callInfo.Arg<IReadOnlyCollection<ProviderDefinition>>();
+                return custodians.First(s => s.OrgId == orgId);
+            });
     }
 
     [Fact]
-    public async Task QueueAuditAccessFunction_ShouldUpsertJobForEveryCustodian()
+    public async Task QueueSearchJobFunction_ShouldUpsertJobForEveryAllowedCustodian()
     {
         // Arrange
         var requestMessage = new SearchRequestMessage
@@ -59,28 +74,56 @@ public class QueueSearchJobTriggerTests
 
         var custodians = new List<ProviderDefinition>
         {
+            new()
+            {
+                OrgId = "searching-custodian-id",
+                OrgType = "typeA",
+                RecordType = "type0",
+            },
             new() { OrgId = "org1", RecordType = "type1" },
             new() { OrgId = "org2", RecordType = "type2" },
         };
 
         _mockCustodianService.GetCustodiansAsync().Returns(custodians);
 
+        _mockPolicyEnforcementService
+            .FilterItemsAndAuditAsync(
+                Arg.Any<PepFilterInput<ProviderDefinition>>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(callInfo =>
+            {
+                var input = callInfo.Arg<PepFilterInput<ProviderDefinition>>();
+                var list = input
+                    .Items.Select(item => new PepResultItem<ProviderDefinition>(
+                        item,
+                        input.SourceOrgId,
+                        input.DestOrgId,
+                        new PolicyDecisionResult { IsAllowed = true, Reason = "Allowed" }
+                    ))
+                    .ToList();
+                return Task.FromResult<IReadOnlyList<PepResultItem<ProviderDefinition>>>(list);
+            });
+
         // Act
         await _trigger.QueueSearchJobFunction(requestMessage, _mockContext, CancellationToken.None);
 
         // Assert
         await _mockJobRepository
-            .Received(2)
+            .Received(3)
             .UpsertAsync(
                 Arg.Is<Job>(j =>
-                    (j.CustodianId == "org1" || j.CustodianId == "org2")
+                    (
+                        j.CustodianId == "org1"
+                        || j.CustodianId == "org2"
+                        || j.CustodianId == "searching-custodian-id"
+                    )
                     && j.SearchingOrganisationId == requestMessage.SearchingOrganisationId
                     && j.JobType == JobType.CustodianLookup
                     && j.WorkItemType == WorkItemType.SearchExecution
                     && j.WorkItemId == requestMessage.WorkItemId.ToString()
                     && j.JobTraceParent == "original-search-request-trace-parent"
                     && j.PayloadJson.Contains(requestMessage.PersonId)
-                    && (j.PayloadJson.Contains("type1") || j.PayloadJson.Contains("type2"))
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -105,7 +148,7 @@ public class QueueSearchJobTriggerTests
                 Arg.Is<WorkItemJobCount>(w =>
                     w.JobType == JobType.CustodianLookup
                     && w.WorkItemId == requestMessage.WorkItemId.ToString()
-                    && w.ExpectedJobCount == 2
+                    && w.ExpectedJobCount == 3
                     && w.PayloadJson.Contains(requestMessage.PersonId)
                     && w.SearchingOrganisationId == requestMessage.SearchingOrganisationId
                 ),
@@ -114,7 +157,7 @@ public class QueueSearchJobTriggerTests
     }
 
     [Fact]
-    public async Task QueueAuditAccessFunction_ShouldNotUpsertJobWhenNoCustodians()
+    public async Task QueueSearchJobFunction_ShouldNotCreateJobsWhenNoCustodians()
     {
         // Arrange
         var requestMessage = new SearchRequestMessage
@@ -126,7 +169,22 @@ public class QueueSearchJobTriggerTests
             InvocationId = "test-invocation",
         };
 
-        _mockCustodianService.GetCustodiansAsync().Returns(new List<ProviderDefinition>());
+        var custodians = new List<ProviderDefinition>
+        {
+            new() { OrgId = "searching-custodian-id" },
+        };
+
+        _mockCustodianService.GetCustodiansAsync().Returns(custodians);
+        _mockPolicyEnforcementService
+            .FilterItemsAndAuditAsync(
+                Arg.Any<PepFilterInput<ProviderDefinition>>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                Task.FromResult<IReadOnlyList<PepResultItem<ProviderDefinition>>>(
+                    new List<PepResultItem<ProviderDefinition>>()
+                )
+            );
 
         // Act
         await _trigger.QueueSearchJobFunction(requestMessage, _mockContext, CancellationToken.None);
@@ -144,6 +202,95 @@ public class QueueSearchJobTriggerTests
                     && w.WorkItemId == requestMessage.WorkItemId.ToString()
                     && w.ExpectedJobCount == 0
                     && w.PayloadJson.Contains(requestMessage.PersonId)
+                ),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    [Fact]
+    public async Task QueueSearchJobFunction_ShouldSkipJobsWhenPepDenies()
+    {
+        // Arrange
+        var requestMessage = new SearchRequestMessage
+        {
+            WorkItemId = Guid.NewGuid(),
+            PersonId = "test-person-id",
+            SearchingOrganisationId = "searching-custodian-id",
+            TraceId = "test-trace-id",
+            InvocationId = "test-invocation",
+            TraceParent = "original-search-request-trace-parent",
+        };
+
+        var custodians = new List<ProviderDefinition>
+        {
+            new()
+            {
+                OrgId = "searching-custodian-id",
+                OrgType = "typeA",
+                RecordType = "type0",
+            },
+            new() { OrgId = "org1", RecordType = "type1" },
+            new() { OrgId = "org2", RecordType = "type2" },
+        };
+
+        _mockCustodianService.GetCustodiansAsync().Returns(custodians);
+
+        _mockPolicyEnforcementService
+            .FilterItemsAndAuditAsync(
+                Arg.Is<PepFilterInput<ProviderDefinition>>(req => req.SourceOrgId == "org1"),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                Task.FromResult<IReadOnlyList<PepResultItem<ProviderDefinition>>>(
+                    new List<PepResultItem<ProviderDefinition>>()
+                )
+            );
+
+        _mockPolicyEnforcementService
+            .FilterItemsAndAuditAsync(
+                Arg.Is<PepFilterInput<ProviderDefinition>>(req => req.SourceOrgId != "org1"),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(callInfo =>
+            {
+                var input = callInfo.Arg<PepFilterInput<ProviderDefinition>>();
+                var list = input
+                    .Items.Select(item => new PepResultItem<ProviderDefinition>(
+                        item,
+                        input.SourceOrgId,
+                        input.DestOrgId,
+                        new PolicyDecisionResult { IsAllowed = true, Reason = "Allowed" }
+                    ))
+                    .ToList();
+                return Task.FromResult<IReadOnlyList<PepResultItem<ProviderDefinition>>>(list);
+            });
+
+        // Act
+        await _trigger.QueueSearchJobFunction(requestMessage, _mockContext, CancellationToken.None);
+
+        // Assert
+        // Should only upsert for searching-custodian-id and org2
+        await _mockJobRepository
+            .Received(2)
+            .UpsertAsync(Arg.Any<Job>(), Arg.Any<CancellationToken>());
+
+        await _mockJobRepository
+            .DidNotReceive()
+            .UpsertAsync(Arg.Is<Job>(j => j.CustodianId == "org1"), Arg.Any<CancellationToken>());
+
+        await _mockJobRepository
+            .Received(1)
+            .UpsertAsync(Arg.Is<Job>(j => j.CustodianId == "org2"), Arg.Any<CancellationToken>());
+
+        await _mockWorkItemJobCountRepository
+            .Received(1)
+            .UpsertAsync(
+                Arg.Is<WorkItemJobCount>(w =>
+                    w.JobType == JobType.CustodianLookup
+                    && w.WorkItemId == requestMessage.WorkItemId.ToString()
+                    && w.ExpectedJobCount == 2
+                    && w.PayloadJson.Contains(requestMessage.PersonId)
+                    && w.SearchingOrganisationId == requestMessage.SearchingOrganisationId
                 ),
                 Arg.Any<CancellationToken>()
             );
