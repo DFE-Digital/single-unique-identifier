@@ -8,12 +8,18 @@ using Polly;
 namespace SUI.Find.E2ETests;
 
 // ReSharper disable once ClassNeverInstantiated.Global - class is instantiated by XUnit
-public class FunctionTestFixture : IDisposable
+public class FunctionTestFixture : IAsyncLifetime
 {
     private static bool _tablesReset = false;
     private static readonly SemaphoreSlim _resetLock = new(1, 1);
 
-    public FunctionTestFixture()
+    public Config Config { get; private set; }
+
+    public HttpClient Client { get; private set; }
+
+    public HttpClient StubCustodiansClient { get; private set; }
+
+    public async ValueTask InitializeAsync()
     {
         var configurationRoot = new ConfigurationBuilder()
             .AddEnvironmentVariables()
@@ -36,30 +42,31 @@ public class FunctionTestFixture : IDisposable
         {
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
+
+        // 1. Check Health globally
+        await EnsureServicesAreUpAsync();
+
+        // 2. Reset Tables globally
+        if (!Config.SkipResetAzureTables)
+        {
+            await EnsureTablesResetAsync();
+        }
     }
 
-    public Config Config { get; }
-
-    public HttpClient Client { get; }
-
-    public HttpClient StubCustodiansClient { get; }
-
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
-        // MAYBE: Delete everything in storage as a cleanup operation?
         Client.Dispose();
         StubCustodiansClient.Dispose();
-        GC.SuppressFinalize(this);
+        return new ValueTask(Task.CompletedTask);
     }
 
     private record HealthCheckResponse(string? Value, DateTimeOffset? BuildTimestamp);
 
-    public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    public async Task EnsureFindApiIsUpAsync()
     {
         await EnsureServiceIsUpAsync(
             "Find API",
             Client,
-            testOutputHelper,
             timeout: Config.UseExtendedFindApiHealthCheckTimeout
                 ? TimeSpan.FromMinutes(10)
                 : TimeSpan.FromSeconds(60),
@@ -67,72 +74,54 @@ public class FunctionTestFixture : IDisposable
         );
     }
 
-    public async Task EnsureStubCustodiansApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    public async Task EnsureStubCustodiansApiIsUpAsync()
     {
         await EnsureServiceIsUpAsync(
             "StubCustodians API",
             StubCustodiansClient,
-            testOutputHelper,
             timeout: TimeSpan.FromSeconds(60)
         );
     }
 
-    public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
+    public async Task EnsureServicesAreUpAsync()
     {
-        await Task.WhenAll(
-            EnsureFindApiIsUpAsync(testOutputHelper),
-            EnsureStubCustodiansApiIsUpAsync(testOutputHelper)
+        TestContext.Current.SendDiagnosticMessage(
+            "Checking Find API and StubCustodians API health..."
         );
+
+        await Task.WhenAll(EnsureFindApiIsUpAsync(), EnsureStubCustodiansApiIsUpAsync());
     }
 
-    public async Task EnsureTablesResetAsync(ITestOutputHelper output)
+    public async Task EnsureTablesResetAsync()
     {
-        if (_tablesReset)
-            return;
-
-        await _resetLock.WaitAsync();
-
-        try
+        var service = new TableServiceClient(Config.FindApiStorageConnectionString);
+        var tableNames = new[]
         {
-            if (_tablesReset)
-                return;
+            "ResultsUrlMappings",
+            "TestHubNameHistory",
+            "TestHubNameInstances",
+            "Jobs",
+            "WorkItemJobCounts",
+        };
 
-            var service = new TableServiceClient(Config.FindApiStorageConnectionString);
+        TestContext.Current.SendDiagnosticMessage(
+            $"Resetting Azure Tables: {string.Join(", ", tableNames)}"
+        );
 
-            var tableNames = new[]
+        foreach (var table in tableNames)
+        {
+            try
             {
-                "ResultsUrlMappings",
-                "TestHubNameHistory",
-                "TestHubNameInstances",
-                "Jobs",
-                "WorkItemJobCounts",
-            };
-
-            foreach (var table in tableNames)
-            {
-                try
-                {
-                    await service.DeleteTableAsync(table);
-                }
-                catch (RequestFailedException ex) when (ex.Status == 404) { }
-
-                await service.CreateTableIfNotExistsAsync(table);
+                await service.DeleteTableAsync(table);
             }
-
-            output.WriteLine($"Reset Azure Tables complete: {string.Join(", ", tableNames)}");
-
-            _tablesReset = true;
-        }
-        finally
-        {
-            _resetLock.Release();
+            catch (RequestFailedException ex) when (ex.Status == 404) { }
+            await service.CreateTableIfNotExistsAsync(table);
         }
     }
 
     private static async Task EnsureServiceIsUpAsync(
         string serviceName,
         HttpClient client,
-        ITestOutputHelper testOutputHelper,
         TimeSpan timeout,
         DateTimeOffset? checkBuildTimestampThreshold = null
     )
@@ -140,7 +129,9 @@ public class FunctionTestFixture : IDisposable
         const string url = "health";
         var waitInterval = TimeSpan.FromSeconds(10);
 
-        testOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
+        TestContext.Current.SendDiagnosticMessage(
+            $"Checking {serviceName} is up: {client.BaseAddress}{url}"
+        );
 
         // If health check does not indicate healthy, wait and then retry
         var retryCount = (int)Math.Round(timeout / waitInterval);
@@ -150,7 +141,7 @@ public class FunctionTestFixture : IDisposable
                 retryCount,
                 retryAttempt =>
                 {
-                    testOutputHelper.WriteLine(
+                    TestContext.Current.SendDiagnosticMessage(
                         $"{serviceName} does not indicate healthy, waiting for {waitInterval.Seconds} seconds, then retrying, retry {retryAttempt} / {retryCount}..."
                     );
                     return waitInterval;
@@ -173,7 +164,7 @@ public class FunctionTestFixture : IDisposable
                 {
                     var isBuiltSinceThreshold =
                         content.BuildTimestamp >= checkBuildTimestampThreshold;
-                    testOutputHelper.WriteLine(
+                    TestContext.Current.SendDiagnosticMessage(
                         isBuiltSinceThreshold
                             ? $"{serviceName} build timestamp satisfies threshold (build timestamp {content.BuildTimestamp:O} is on or after threshold {checkBuildTimestampThreshold:O})"
                             : $"{serviceName} build timestamp does not satisfy threshold (build timestamp {content.BuildTimestamp:O} is NOT on or after threshold {checkBuildTimestampThreshold:O})"
@@ -183,7 +174,7 @@ public class FunctionTestFixture : IDisposable
             }
             catch (Exception ex)
             {
-                testOutputHelper.WriteLine(
+                TestContext.Current.SendDiagnosticMessage(
                     $"Warning: health check exception ({serviceName}): {ex.GetType().Name}: {ex.Message}"
                 );
 
@@ -193,7 +184,7 @@ public class FunctionTestFixture : IDisposable
 
         Assert.True(healthy, $"The {serviceName} does not appear to be up and healthy");
 
-        testOutputHelper.WriteLine($"{serviceName} is up 👍");
+        TestContext.Current.SendDiagnosticMessage($"{serviceName} is up 👍");
     }
 
     private static bool IsTimeoutError(Exception? ex)

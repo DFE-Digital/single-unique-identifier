@@ -18,15 +18,8 @@ namespace SUI.Find.E2ETests;
 public class TestOutboundAuthService(
     FunctionTestFixture fixture,
     ITestOutputHelper testOutputHelper
-) : IAsyncLifetime
+)
 {
-    public async ValueTask InitializeAsync()
-    {
-        await fixture.EnsureServicesAreUpAsync(testOutputHelper);
-    }
-
-    public ValueTask DisposeAsync() => new ValueTask(Task.CompletedTask);
-
     [Fact]
     public async Task TestOutboundAuth_RealService_ReturnsToken()
     {

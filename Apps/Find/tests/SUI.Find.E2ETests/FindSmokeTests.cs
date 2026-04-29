@@ -19,14 +19,12 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
     [Fact]
     public async Task Should_ReportHealthy()
     {
-        await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
+        await Fixture.EnsureFindApiIsUpAsync();
     }
 
     [Fact]
     public async Task Should_IssueAuthToken_ForKnownClientCredentials()
     {
-        await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
-
         var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, MatchReadScopes);
 
         Assert.False(string.IsNullOrWhiteSpace(authToken));
@@ -35,8 +33,6 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
     [Fact]
     public async Task Should_MatchPerson_WithConfiguredApiKey()
     {
-        await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
-
         Assert.False(
             string.IsNullOrWhiteSpace(Fixture.Config.FindApiKey),
             "Smoke tests require E2E__FindApiKey to be set."
@@ -183,12 +179,21 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
         bool logRequestBody = false
     )
     {
-        Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            authToken
-        );
-        Fixture.Client.DefaultRequestHeaders.Remove("x-api-key");
-        Fixture.Client.DefaultRequestHeaders.Add("x-api-key", apiKey ?? Fixture.Config.FindApiKey);
+        // Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+        //     "Bearer",
+        //     authToken
+        // );
+        // Fixture.Client.DefaultRequestHeaders.Remove("x-api-key");
+        // Fixture.Client.DefaultRequestHeaders.Add("x-api-key", apiKey ?? Fixture.Config.FindApiKey);
+        //
+        // var requestJson = JsonSerializer.Serialize(requestBody);
+        // if (logRequestBody)
+        // {
+        //     TestOutputHelper.WriteLine("MatchPerson request payload: {0}", requestJson);
+        // }
+        //
+        // var stringContent = new StringContent(requestJson);
+        // return await Fixture.Client.PostAsync("v1/matchperson", stringContent);
 
         var requestJson = JsonSerializer.Serialize(requestBody);
         if (logRequestBody)
@@ -196,8 +201,17 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
             TestOutputHelper.WriteLine("MatchPerson request payload: {0}", requestJson);
         }
 
-        var stringContent = new StringContent(requestJson);
-        return await Fixture.Client.PostAsync("v1/matchperson", stringContent);
+        // THREAD-SAFE FIX: Create a specific request, do not touch DefaultRequestHeaders
+        using var request = new HttpRequestMessage(HttpMethod.Post, "v1/matchperson");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+        request.Headers.Add("x-api-key", apiKey ?? Fixture.Config.FindApiKey);
+        request.Content = new StringContent(
+            requestJson,
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
+
+        return await Fixture.Client.SendAsync(request);
     }
 
     private static MatchRequest CreateValidMatchRequest() =>
