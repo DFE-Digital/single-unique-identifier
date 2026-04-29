@@ -25,6 +25,8 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
     [Fact]
     public async Task Should_IssueAuthToken_ForKnownClientCredentials()
     {
+        await Fixture.EnsureFindApiIsUpAsync();
+
         var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, MatchReadScopes);
 
         Assert.False(string.IsNullOrWhiteSpace(authToken));
@@ -33,6 +35,8 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
     [Fact]
     public async Task Should_MatchPerson_WithConfiguredApiKey()
     {
+        await Fixture.EnsureFindApiIsUpAsync();
+
         Assert.False(
             string.IsNullOrWhiteSpace(Fixture.Config.FindApiKey),
             "Smoke tests require E2E__FindApiKey to be set."

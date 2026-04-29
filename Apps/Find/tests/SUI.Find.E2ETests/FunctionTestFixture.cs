@@ -10,9 +10,6 @@ namespace SUI.Find.E2ETests;
 // ReSharper disable once ClassNeverInstantiated.Global - class is instantiated by XUnit
 public class FunctionTestFixture : IAsyncLifetime
 {
-    private static bool _tablesReset = false;
-    private static readonly SemaphoreSlim _resetLock = new(1, 1);
-
     public Config Config { get; private set; }
 
     public HttpClient Client { get; private set; }

@@ -23,6 +23,8 @@ public class TestOutboundAuthService(
     [Fact]
     public async Task TestOutboundAuth_RealService_ReturnsToken()
     {
+        await fixture.EnsureServicesAreUpAsync();
+
         // Arrange
         var logger = Substitute.For<ILogger<OutboundAuthService>>();
         using var httpClient = new HttpClient();
