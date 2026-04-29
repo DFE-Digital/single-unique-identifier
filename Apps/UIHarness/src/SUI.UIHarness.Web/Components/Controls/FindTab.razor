@@ -28,7 +28,7 @@
             <span id="findRecordsProgressText" class="text-muted"></span>
         </div>
         <div class="progress" role="progressbar" aria-label="Find records progress">
-            <div id="findRecordsProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:@(_findProgress)%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="findRecordsProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:@(_findProgressPercentage)%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
     </div>
 }
@@ -96,7 +96,7 @@
     public EventCallback<LocalRecord> CurrentRecordChanged { get; set; }
 
     private bool _showFindProgress;
-    private int _findProgress;
+    private int _findProgressPercentage;
     private readonly List<LocalRecord> _foundRecords = [];
     private (string? Org, string? NhsNumber)? _foundRecordsFor;
     
@@ -109,26 +109,24 @@
         {
             return;
         }
-        
+
         _foundRecords.Clear();
         _foundRecordsFor = null;
-        _findProgress = 0;
+        _findProgressPercentage = 0;
         _showFindProgress = true;
         var usePolling = Architecture == "Polling";
         var searchJob = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber, usePolling);
         var keepPolling = true;
-        var pollingCount = 1;
-        var percentToAdd = 10;
-        while (keepPolling)
+        const int percentToAdd = 10;
         {
             var result = await FindService.FindRecords(SelectedOrg, searchJob, usePolling);
             if (usePolling)
             {
-                _findProgress = result.CompletenessPercentage;
+                _findProgressPercentage = result.CompletenessPercentage;
             }
             else
             {
-                _findProgress += percentToAdd;
+                _findProgressPercentage += percentToAdd;
             }
 
             StateHasChanged();
@@ -147,13 +145,14 @@
                 StateHasChanged();
             }
             
-            pollingCount++;
-            if (pollingCount >= 10 || result.Status == FindSearchStatus.Completed)
+            if (_findProgressPercentage >= 100 || result.Status == FindSearchStatus.Completed)
             {
                 keepPolling = false;
             }
-            
-            await Task.Delay(2000);
+            else
+            {
+                await Task.Delay(2000);
+            }
         }
 
         _showFindProgress = false;
