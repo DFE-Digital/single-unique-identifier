@@ -405,6 +405,7 @@ public abstract class StartANewSearchTestsBase(
     /// <param name="resultsUrl">URL of the Search Results endpoint</param>
     /// <param name="testData">The test data for this search run</param>
     /// <param name="usePolling">If true, specifies the tests are being run for the Polling Architecture, rather than Fan-out.</param>
+    /// <param name="authToken">AuthToken for this search run</param>
     private async Task RunAndAwaitAndAssertSearchStatusCompletion(
         string statusUrl,
         string resultsUrl,
