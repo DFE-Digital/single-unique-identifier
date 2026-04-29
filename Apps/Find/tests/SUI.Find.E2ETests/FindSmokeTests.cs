@@ -51,7 +51,9 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
             authToken!,
             logRequestBody: true
         );
-        var responseBody = await response.Content.ReadAsStringAsync();
+        var responseBody = await response.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken
+        );
 
         Assert.True(
             response.StatusCode == HttpStatusCode.OK,
@@ -183,22 +185,6 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
         bool logRequestBody = false
     )
     {
-        // Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-        //     "Bearer",
-        //     authToken
-        // );
-        // Fixture.Client.DefaultRequestHeaders.Remove("x-api-key");
-        // Fixture.Client.DefaultRequestHeaders.Add("x-api-key", apiKey ?? Fixture.Config.FindApiKey);
-        //
-        // var requestJson = JsonSerializer.Serialize(requestBody);
-        // if (logRequestBody)
-        // {
-        //     TestOutputHelper.WriteLine("MatchPerson request payload: {0}", requestJson);
-        // }
-        //
-        // var stringContent = new StringContent(requestJson);
-        // return await Fixture.Client.PostAsync("v1/matchperson", stringContent);
-
         var requestJson = JsonSerializer.Serialize(requestBody);
         if (logRequestBody)
         {

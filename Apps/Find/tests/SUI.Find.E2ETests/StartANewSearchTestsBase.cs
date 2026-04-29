@@ -21,7 +21,7 @@ namespace SUI.Find.E2ETests;
 public abstract class StartANewSearchTestsBase(
     FunctionTestFixture fixture,
     ITestOutputHelper testOutputHelper
-) : E2ETestBase(fixture, testOutputHelper) // Note: IAsyncLifetime removed, handled globally by Fixture now
+) : E2ETestBase(fixture, testOutputHelper), IAsyncLifetime
 {
     protected abstract bool UsePolling { get; }
 
@@ -35,6 +35,17 @@ public abstract class StartANewSearchTestsBase(
     ];
 
     private record SearchStatusResponse(string? Status, int? CompletenessPercentage);
+
+    /// <summary>
+    /// Runs before each individual test
+    /// </summary>
+    public async ValueTask InitializeAsync() => await Fixture.EnsureServicesAreUpAsync();
+
+    public ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
+    }
 
     public static TheoryData<TestData> TestData =>
         [
@@ -347,19 +358,19 @@ public abstract class StartANewSearchTestsBase(
 
             TestOutputHelper.WriteLine("Fetch verified ok");
 
+            var payload = fetchResultTypedContent.Payload!.Value;
+
             switch (fetchResultTypedContent.RecordType)
             {
                 case "health.details":
-                    var registeredGpName = fetchResultTypedContent.Payload.Value.GetProperty(
-                        "registeredGPName"
-                    );
+                    var registeredGpName = payload.GetProperty("registeredGPName");
                     Assert.Equal(
                         testData.Records.First(x => x.RecordType == "health.details").TestValue,
                         registeredGpName.GetString()
                     );
                     break;
                 case "childrens-services.details":
-                    var keyWorker = fetchResultTypedContent.Payload.Value.GetProperty("keyWorker");
+                    var keyWorker = payload.GetProperty("keyWorker");
                     Assert.Equal(
                         testData
                             .Records.First(x => x.RecordType == "childrens-services.details")
@@ -368,25 +379,21 @@ public abstract class StartANewSearchTestsBase(
                     );
                     break;
                 case "education.details":
-                    var educationSettingName = fetchResultTypedContent.Payload.Value.GetProperty(
-                        "educationSettingName"
-                    );
+                    var educationSettingName = payload.GetProperty("educationSettingName");
                     Assert.Equal(
                         testData.Records.First(x => x.RecordType == "education.details").TestValue,
                         educationSettingName.GetString()
                     );
                     break;
                 case "personal.details":
-                    var firstName = fetchResultTypedContent.Payload.Value.GetProperty("firstName");
+                    var firstName = payload.GetProperty("firstName");
                     Assert.Equal(
                         testData.Records.First(x => x.RecordType == "personal.details").TestValue,
                         firstName.GetString()
                     );
                     break;
                 case "crime-justice.details":
-                    var policeMarkerDetails = fetchResultTypedContent.Payload.Value.GetProperty(
-                        "policeMarkerDetails"
-                    );
+                    var policeMarkerDetails = payload.GetProperty("policeMarkerDetails");
                     Assert.Contains(
                         policeMarkerDetails.GetString(),
                         testData

@@ -15,16 +15,18 @@ namespace SUI.Find.E2ETests;
 
 [Trait("Category", "E2E")]
 [Trait("Suite", "Standard")]
-public class TestOutboundAuthService(
-    FunctionTestFixture fixture,
-    ITestOutputHelper testOutputHelper
-)
+public sealed class TestOutboundAuthService(FunctionTestFixture fixture) : IAsyncLifetime
 {
+    /// <summary>
+    /// Runs before each individual test
+    /// </summary>
+    public async ValueTask InitializeAsync() => await fixture.EnsureServicesAreUpAsync();
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
     [Fact]
     public async Task TestOutboundAuth_RealService_ReturnsToken()
     {
-        await fixture.EnsureServicesAreUpAsync();
-
         // Arrange
         var logger = Substitute.For<ILogger<OutboundAuthService>>();
         using var httpClient = new HttpClient();

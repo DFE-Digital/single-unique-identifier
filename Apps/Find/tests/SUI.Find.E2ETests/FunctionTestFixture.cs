@@ -10,11 +10,11 @@ namespace SUI.Find.E2ETests;
 // ReSharper disable once ClassNeverInstantiated.Global - class is instantiated by XUnit
 public class FunctionTestFixture : IAsyncLifetime
 {
-    public Config Config { get; private set; }
+    public Config Config { get; private set; } = null!; // This is initialized immediately by XUnit when InitializeAsync is run
 
-    public HttpClient Client { get; private set; }
+    public HttpClient Client { get; private set; } = null!; // This is initialized immediately by XUnit when InitializeAsync is run
 
-    public HttpClient StubCustodiansClient { get; private set; }
+    public HttpClient StubCustodiansClient { get; private set; } = null!; // This is initialized immediately by XUnit when InitializeAsync is run
 
     public async ValueTask InitializeAsync()
     {
@@ -40,10 +40,7 @@ public class FunctionTestFixture : IAsyncLifetime
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
 
-        // 1. Check Health globally
-        await EnsureServicesAreUpAsync();
-
-        // 2. Reset Tables globally
+        // Reset Tables globally
         if (!Config.SkipResetAzureTables)
         {
             await EnsureTablesResetAsync();
@@ -55,7 +52,8 @@ public class FunctionTestFixture : IAsyncLifetime
         // MAYBE: Delete everything in storage as a cleanup operation?
         Client.Dispose();
         StubCustodiansClient.Dispose();
-        return new ValueTask(Task.CompletedTask);
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
     }
 
     private record HealthCheckResponse(string? Value, DateTimeOffset? BuildTimestamp);
@@ -87,7 +85,7 @@ public class FunctionTestFixture : IAsyncLifetime
         await Task.WhenAll(EnsureFindApiIsUpAsync(), EnsureStubCustodiansApiIsUpAsync());
     }
 
-    public async Task EnsureTablesResetAsync()
+    private async Task EnsureTablesResetAsync()
     {
         var service = new TableServiceClient(Config.FindApiStorageConnectionString);
         var tableNames = new[]
@@ -109,9 +107,17 @@ public class FunctionTestFixture : IAsyncLifetime
             {
                 await service.DeleteTableAsync(table);
             }
-            catch (RequestFailedException ex) when (ex.Status == 404) { }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                // Table didn't exist; ignore
+            }
+
             await service.CreateTableIfNotExistsAsync(table);
         }
+
+        TestContext.Current.SendDiagnosticMessage(
+            $"Reset Azure Tables complete: {string.Join(", ", tableNames)}"
+        );
     }
 
     private static async Task EnsureServiceIsUpAsync(
@@ -211,6 +217,3 @@ public class FunctionTestFixture : IAsyncLifetime
         return isTimeout;
     }
 }
-
-[CollectionDefinition("E2E")]
-public class FunctionTestCollectionFixture : ICollectionFixture<FunctionTestFixture> { }
