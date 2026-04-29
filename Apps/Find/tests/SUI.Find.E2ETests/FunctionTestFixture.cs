@@ -10,13 +10,16 @@ namespace SUI.Find.E2ETests;
 // ReSharper disable once ClassNeverInstantiated.Global - class is instantiated by XUnit
 public class FunctionTestFixture : IAsyncLifetime
 {
-    public Config Config { get; private set; } = null!; // This is initialized immediately by XUnit when InitializeAsync is run
+    private bool _tableResetComplete;
+    private readonly SemaphoreSlim _resetTablesMutex = new(1, 1);
 
-    public HttpClient Client { get; private set; } = null!; // This is initialized immediately by XUnit when InitializeAsync is run
+    public Config Config { get; }
 
-    public HttpClient StubCustodiansClient { get; private set; } = null!; // This is initialized immediately by XUnit when InitializeAsync is run
+    public HttpClient Client { get; }
 
-    public async ValueTask InitializeAsync()
+    public HttpClient StubCustodiansClient { get; }
+
+    public FunctionTestFixture()
     {
         var configurationRoot = new ConfigurationBuilder()
             .AddEnvironmentVariables()
@@ -39,13 +42,9 @@ public class FunctionTestFixture : IAsyncLifetime
         {
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
-
-        // Reset Tables globally
-        if (!Config.SkipResetAzureTables)
-        {
-            await EnsureTablesResetAsync();
-        }
     }
+
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
     public ValueTask DisposeAsync()
     {
@@ -58,80 +57,109 @@ public class FunctionTestFixture : IAsyncLifetime
 
     private record HealthCheckResponse(string? Value, DateTimeOffset? BuildTimestamp);
 
-    public async Task EnsureFindApiIsUpAsync()
+    public async Task EnsureFindApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
+        await EnsureTablesResetOneTimeInitAsync(testOutputHelper);
+
         await EnsureServiceIsUpAsync(
             "Find API",
             Client,
+            testOutputHelper,
             checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
         );
     }
 
-    public async Task EnsureStubCustodiansApiIsUpAsync()
+    public async Task EnsureStubCustodiansApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
         await EnsureServiceIsUpAsync(
             "StubCustodians API",
             StubCustodiansClient,
+            testOutputHelper,
             checkBuildTimestampThreshold: Config.CheckStubCustodiansApiBuildTimestampThreshold
         );
     }
 
-    public async Task EnsureServicesAreUpAsync()
+    public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
     {
         TestContext.Current.SendDiagnosticMessage(
             "Checking Find API and StubCustodians API health..."
         );
 
-        await Task.WhenAll(EnsureFindApiIsUpAsync(), EnsureStubCustodiansApiIsUpAsync());
+        await Task.WhenAll(
+            EnsureFindApiIsUpAsync(testOutputHelper),
+            EnsureStubCustodiansApiIsUpAsync(testOutputHelper)
+        );
     }
 
-    private async Task EnsureTablesResetAsync()
+    private async Task EnsureTablesResetOneTimeInitAsync(ITestOutputHelper testOutputHelper)
     {
-        var service = new TableServiceClient(Config.FindApiStorageConnectionString);
-        var tableNames = new[]
+        if (Config.SkipResetAzureTables)
         {
-            "ResultsUrlMappings",
-            "TestHubNameHistory",
-            "TestHubNameInstances",
-            "Jobs",
-            "WorkItemJobCounts",
-        };
-
-        TestContext.Current.SendDiagnosticMessage(
-            $"Resetting Azure Tables: {string.Join(", ", tableNames)}"
-        );
-
-        foreach (var table in tableNames)
-        {
-            try
-            {
-                await service.DeleteTableAsync(table);
-            }
-            catch (RequestFailedException ex) when (ex.Status == 404)
-            {
-                // Table didn't exist; ignore
-            }
-
-            await service.CreateTableIfNotExistsAsync(table);
+            return;
         }
 
-        TestContext.Current.SendDiagnosticMessage(
-            $"Reset Azure Tables complete: {string.Join(", ", tableNames)}"
-        );
+        if (_tableResetComplete)
+        {
+            return;
+        }
+
+        await _resetTablesMutex.WaitAsync();
+        try
+        {
+            if (_tableResetComplete)
+            {
+                return;
+            }
+
+            var service = new TableServiceClient(Config.FindApiStorageConnectionString);
+            var tableNames = new[]
+            {
+                "ResultsUrlMappings",
+                "TestHubNameHistory",
+                "TestHubNameInstances",
+                "Jobs",
+                "WorkItemJobCounts",
+            };
+
+            testOutputHelper.WriteLine($"Resetting Azure Tables: {string.Join(", ", tableNames)}");
+
+            foreach (var table in tableNames)
+            {
+                try
+                {
+                    await service.DeleteTableAsync(table);
+                }
+                catch (RequestFailedException ex) when (ex.Status == 404)
+                {
+                    // Table didn't exist; ignore
+                }
+
+                await service.CreateTableIfNotExistsAsync(table);
+            }
+
+            testOutputHelper.WriteLine(
+                $"Reset Azure Tables complete: {string.Join(", ", tableNames)}"
+            );
+
+            _tableResetComplete = true;
+        }
+        finally
+        {
+            _resetTablesMutex.Release();
+        }
     }
 
     private static async Task EnsureServiceIsUpAsync(
         string serviceName,
         HttpClient client,
+        ITestOutputHelper testOutputHelper,
         DateTimeOffset? checkBuildTimestampThreshold = null
     )
     {
         const string url = "health";
         var waitInterval = TimeSpan.FromSeconds(10);
 
-        TestContext.Current.SendDiagnosticMessage(
-            $"Checking {serviceName} is up: {client.BaseAddress}{url}"
-        );
+        testOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
 
         var useExtendedTimeout = checkBuildTimestampThreshold != null;
         var timeout = useExtendedTimeout ? TimeSpan.FromMinutes(10) : TimeSpan.FromSeconds(60);
@@ -144,7 +172,7 @@ public class FunctionTestFixture : IAsyncLifetime
                 retryCount,
                 retryAttempt =>
                 {
-                    TestContext.Current.SendDiagnosticMessage(
+                    testOutputHelper.WriteLine(
                         $"{serviceName} does not indicate healthy, waiting for {waitInterval.Seconds} seconds, then retrying, retry {retryAttempt} / {retryCount}..."
                     );
                     return waitInterval;
@@ -167,7 +195,7 @@ public class FunctionTestFixture : IAsyncLifetime
                 {
                     var isBuiltSinceThreshold =
                         content.BuildTimestamp >= checkBuildTimestampThreshold;
-                    TestContext.Current.SendDiagnosticMessage(
+                    testOutputHelper.WriteLine(
                         isBuiltSinceThreshold
                             ? $"{serviceName} build timestamp satisfies threshold (build timestamp {content.BuildTimestamp:O} is on or after threshold {checkBuildTimestampThreshold:O})"
                             : $"{serviceName} build timestamp does not satisfy threshold (build timestamp {content.BuildTimestamp:O} is NOT on or after threshold {checkBuildTimestampThreshold:O})"
@@ -177,7 +205,7 @@ public class FunctionTestFixture : IAsyncLifetime
             }
             catch (Exception ex)
             {
-                TestContext.Current.SendDiagnosticMessage(
+                testOutputHelper.WriteLine(
                     $"Warning: health check exception ({serviceName}): {ex.GetType().Name}: {ex.Message}"
                 );
 
@@ -187,7 +215,7 @@ public class FunctionTestFixture : IAsyncLifetime
 
         Assert.True(healthy, $"The {serviceName} does not appear to be up and healthy");
 
-        TestContext.Current.SendDiagnosticMessage($"{serviceName} is up 👍");
+        testOutputHelper.WriteLine($"{serviceName} is up 👍");
     }
 
     private static bool IsTimeoutError(Exception? ex)

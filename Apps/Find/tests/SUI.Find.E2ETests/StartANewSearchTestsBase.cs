@@ -39,7 +39,8 @@ public abstract class StartANewSearchTestsBase(
     /// <summary>
     /// Runs before each individual test
     /// </summary>
-    public async ValueTask InitializeAsync() => await Fixture.EnsureServicesAreUpAsync();
+    public async ValueTask InitializeAsync() =>
+        await Fixture.EnsureServicesAreUpAsync(TestOutputHelper);
 
     public ValueTask DisposeAsync()
     {

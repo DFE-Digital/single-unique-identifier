@@ -19,13 +19,13 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
     [Fact]
     public async Task Should_ReportHealthy()
     {
-        await Fixture.EnsureFindApiIsUpAsync();
+        await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
     }
 
     [Fact]
     public async Task Should_IssueAuthToken_ForKnownClientCredentials()
     {
-        await Fixture.EnsureFindApiIsUpAsync();
+        await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
 
         var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, MatchReadScopes);
 
@@ -35,7 +35,7 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
     [Fact]
     public async Task Should_MatchPerson_WithConfiguredApiKey()
     {
-        await Fixture.EnsureFindApiIsUpAsync();
+        await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
 
         Assert.False(
             string.IsNullOrWhiteSpace(Fixture.Config.FindApiKey),
