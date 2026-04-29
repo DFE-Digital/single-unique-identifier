@@ -19,7 +19,7 @@ public class FunctionTestFixture : ICollectionFixture<FunctionTestFixture>, IDis
     {
         var configurationRoot = new ConfigurationBuilder()
             .AddEnvironmentVariables()
-            .AddUserSecrets("SUI.E2E.Tests")
+            .AddUserSecrets<FunctionTestFixture>()
             .Build();
 
         Config = configurationRoot.GetSection("E2E").Get<Config>() ?? new Config();
