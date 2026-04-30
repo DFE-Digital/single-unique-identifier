@@ -20,6 +20,7 @@ public record PepFilterInput<TItem>(
     IReadOnlyList<TItem> Items,
     DsaPolicyDefinition DsaPolicy,
     string Purpose,
-    string CorrelationId
+    string CorrelationId,
+    string? TraceParent
 )
     where TItem : IPepFilterable;

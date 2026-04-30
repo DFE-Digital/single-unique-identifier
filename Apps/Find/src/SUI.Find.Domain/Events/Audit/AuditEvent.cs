@@ -11,4 +11,5 @@ public class AuditEvent
     public required JsonElement Payload { get; set; }
     public required DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public required string CorrelationId { get; set; }
+    public string? TraceParent { get; set; }
 }

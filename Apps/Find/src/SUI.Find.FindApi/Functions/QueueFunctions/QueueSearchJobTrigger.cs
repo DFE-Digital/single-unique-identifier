@@ -70,7 +70,8 @@ public class QueueSearchJobTrigger(
                         Items: [custodian],
                         DsaPolicy: custodian.DsaPolicy,
                         Purpose: "SAFEGUARDING",
-                        CorrelationId: searchRequestMessage.WorkItemId.ToString()
+                        CorrelationId: searchRequestMessage.WorkItemId.ToString(),
+                        searchRequestMessage.TraceParent
                     ),
                     token
                 )

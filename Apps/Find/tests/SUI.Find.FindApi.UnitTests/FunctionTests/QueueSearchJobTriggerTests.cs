@@ -88,7 +88,9 @@ public class QueueSearchJobTriggerTests
 
         _mockPolicyEnforcementService
             .FilterItemsAndAuditAsync(
-                Arg.Any<PepFilterInput<ProviderDefinition>>(),
+                Arg.Is<PepFilterInput<ProviderDefinition>>(input =>
+                    input.TraceParent == requestMessage.TraceParent
+                ),
                 Arg.Any<CancellationToken>()
             )
             .Returns(callInfo =>
@@ -167,6 +169,7 @@ public class QueueSearchJobTriggerTests
             SearchingOrganisationId = "searching-custodian-id",
             TraceId = "test-trace-id",
             InvocationId = "test-invocation",
+            TraceParent = "original-search-request-trace-parent",
         };
 
         var custodians = new List<ProviderDefinition>
@@ -177,7 +180,9 @@ public class QueueSearchJobTriggerTests
         _mockCustodianService.GetCustodiansAsync().Returns(custodians);
         _mockPolicyEnforcementService
             .FilterItemsAndAuditAsync(
-                Arg.Any<PepFilterInput<ProviderDefinition>>(),
+                Arg.Is<PepFilterInput<ProviderDefinition>>(input =>
+                    input.TraceParent == requestMessage.TraceParent
+                ),
                 Arg.Any<CancellationToken>()
             )
             .Returns(
@@ -237,7 +242,9 @@ public class QueueSearchJobTriggerTests
 
         _mockPolicyEnforcementService
             .FilterItemsAndAuditAsync(
-                Arg.Is<PepFilterInput<ProviderDefinition>>(req => req.SourceOrgId == "org1"),
+                Arg.Is<PepFilterInput<ProviderDefinition>>(req =>
+                    req.SourceOrgId == "org1" && req.TraceParent == requestMessage.TraceParent
+                ),
                 Arg.Any<CancellationToken>()
             )
             .Returns(
@@ -248,7 +255,9 @@ public class QueueSearchJobTriggerTests
 
         _mockPolicyEnforcementService
             .FilterItemsAndAuditAsync(
-                Arg.Is<PepFilterInput<ProviderDefinition>>(req => req.SourceOrgId != "org1"),
+                Arg.Is<PepFilterInput<ProviderDefinition>>(req =>
+                    req.SourceOrgId != "org1" && req.TraceParent == requestMessage.TraceParent
+                ),
                 Arg.Any<CancellationToken>()
             )
             .Returns(callInfo =>
