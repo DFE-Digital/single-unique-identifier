@@ -19,7 +19,7 @@ public class CustodianWorker : BackgroundService
 
     private readonly string _clientId;
     private readonly string _clientSecret;
-    private readonly int _intervalSeconds;
+    private readonly double _intervalSeconds;
 
     public CustodianWorker(
         ILogger<CustodianWorker> logger,
@@ -42,7 +42,26 @@ public class CustodianWorker : BackgroundService
         _clientId = authClient.ClientId;
         _clientSecret = authClient.ClientSecret;
 
-        _intervalSeconds = Random.Shared.Next(30, 121);
+        var min = config.GetValue<double>("CustodianWorkerRandomIntervalMinSeconds", 1);
+        var max = config.GetValue<double>("CustodianWorkerRandomIntervalMaxSeconds", 3);
+
+        if (min <= 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(min),
+                "CustodianWorkerRandomIntervalMinSeconds must be greater than zero."
+            );
+        if (max <= 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(max),
+                "CustodianWorkerRandomIntervalMaxSeconds must be greater than zero."
+            );
+        if (max < min)
+            throw new ArgumentOutOfRangeException(
+                nameof(max),
+                "CustodianWorkerRandomIntervalMaxSeconds must be greater than or equal to CustodianWorkerRandomIntervalMinSeconds."
+            );
+
+        _intervalSeconds = min + (Random.Shared.NextDouble() * (max - min));
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
