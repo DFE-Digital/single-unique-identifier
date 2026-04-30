@@ -9,15 +9,14 @@ public sealed class RandomDelayService : IRandomDelayService
     private readonly int _minMs;
     private readonly int _maxMs;
 
-    public RandomDelayService(int minSeconds, int maxSeconds)
+    public RandomDelayService(float minSeconds, float maxSeconds)
     {
-        if (minSeconds < 0)
-            throw new ArgumentOutOfRangeException(nameof(minSeconds));
-        if (maxSeconds < minSeconds)
-            throw new ArgumentOutOfRangeException(nameof(maxSeconds));
+        ArgumentOutOfRangeException.ThrowIfNegative(minSeconds);
 
-        _minMs = minSeconds * 1000;
-        _maxMs = maxSeconds * 1000;
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxSeconds, minSeconds);
+
+        _minMs = (int)(minSeconds * 1000);
+        _maxMs = (int)(maxSeconds * 1000);
     }
 
     public Task DelayAsync(CancellationToken ct)

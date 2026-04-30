@@ -88,7 +88,9 @@ namespace SUI.StubCustodians.API
             IConfiguration configuration
         )
         {
-            services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(3, 10));
+            var min = configuration.GetValue("RandomDelayMinSeconds", 0.1f);
+            var max = configuration.GetValue("RandomDelayMaxSeconds", 0.3f);
+            services.AddSingleton<IRandomDelayService>(_ => new RandomDelayService(min, max));
             services.AddSingleton<IDataProvider, FileDataProvider>();
             services.AddScoped<IManifestService, ManifestService>();
             services.AddScoped<IRecordService, RecordService>();

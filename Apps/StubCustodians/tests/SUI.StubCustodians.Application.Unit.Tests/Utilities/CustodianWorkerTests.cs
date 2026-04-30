@@ -45,6 +45,14 @@ public class CustodianWorkerTests
         _scopeFactory.CreateScope().Returns(_serviceScope);
         _serviceScope.ServiceProvider.Returns(_serviceProvider);
         _serviceProvider.GetService(typeof(IManifestService)).Returns(_manifestService);
+
+        var minSection = Substitute.For<IConfigurationSection>();
+        minSection.Value.Returns("1");
+        _config.GetSection("CustodianWorkerRandomIntervalMinSeconds").Returns(minSection);
+
+        var maxSection = Substitute.For<IConfigurationSection>();
+        maxSection.Value.Returns("3");
+        _config.GetSection("CustodianWorkerRandomIntervalMaxSeconds").Returns(maxSection);
     }
 
     [Fact]
@@ -107,7 +115,7 @@ public class CustodianWorkerTests
 
         // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await cts.CancelAsync();
         await task;
 
@@ -171,7 +179,7 @@ public class CustodianWorkerTests
 
         // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await cts.CancelAsync();
         await task;
 
@@ -210,7 +218,7 @@ public class CustodianWorkerTests
 
         // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await cts.CancelAsync();
         await task;
 
@@ -248,7 +256,7 @@ public class CustodianWorkerTests
 
         // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await cts.CancelAsync();
         await task;
 
@@ -315,7 +323,7 @@ public class CustodianWorkerTests
 
         // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await cts.CancelAsync();
         await task;
 
@@ -365,7 +373,7 @@ public class CustodianWorkerTests
 
         // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await cts.CancelAsync();
         await task;
 
@@ -420,7 +428,7 @@ public class CustodianWorkerTests
 
         // Act
         var task = worker.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await cts.CancelAsync();
         await task;
 
