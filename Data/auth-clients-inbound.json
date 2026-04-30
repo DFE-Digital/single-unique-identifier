@@ -76,7 +76,7 @@
     },
     {
       "enabled": true,
-      "clientId": "FAUX-01",
+      "clientId": "NO-DSA-01",
       "clientSecret": "SUIProject",
       "allowedScopes": [
         "match-record.read",

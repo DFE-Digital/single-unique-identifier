@@ -9,9 +9,9 @@ public class FindService : IFindService
 {
     private readonly JsonSerializerOptions _serializerSettings = new(JsonSerializerDefaults.Web);
     private readonly HttpClient _httpClient;
+    private readonly IFindApiAuthClientProvider _authClientProvider;
     private readonly ILogger<FindService> _logger;
     private const string? FindApiKey = "local-dev-key-change-me";
-    private const string TestClientSecret = "SUIProject";
     private static readonly string[] Scopes =
     [
         "match-record.read",
@@ -21,15 +21,20 @@ public class FindService : IFindService
         "fetch-record.read",
     ];
 
-    public FindService(IHttpClientFactory httpClientFactory, ILogger<FindService> logger)
+    public FindService(
+        IHttpClientFactory httpClientFactory,
+        IFindApiAuthClientProvider authClientProvider,
+        ILogger<FindService> logger
+    )
     {
         _httpClient = httpClientFactory.CreateClient(nameof(FindService));
+        _authClientProvider = authClientProvider;
         _logger = logger;
     }
 
     public async Task<FindMatchResult> MatchRecord(LocalPerson person, string clientId)
     {
-        await GetAuthTokenAsync(clientId, TestClientSecret, Scopes);
+        await GetAuthTokenAsync(clientId, Scopes);
         var request = new FindMatchRequest
         {
             Metadata = [],
@@ -57,7 +62,7 @@ public class FindService : IFindService
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, exception.Message);
+            _logger.LogError(exception, "MatchRecord failed: {Message}", exception.Message);
         }
 
         return new FindMatchResult("Not Found");
@@ -65,7 +70,7 @@ public class FindService : IFindService
 
     public async Task<string> StartSearch(string clientId, string suid, bool usePolling)
     {
-        await GetAuthTokenAsync(clientId, TestClientSecret, Scopes);
+        await GetAuthTokenAsync(clientId, Scopes);
 
         try
         {
@@ -98,7 +103,7 @@ public class FindService : IFindService
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, exception.Message);
+            _logger.LogError(exception, "StartSearch failed: {Message}", exception.Message);
         }
 
         return string.Empty;
@@ -106,7 +111,7 @@ public class FindService : IFindService
 
     public async Task<SearchResultsDto> FindRecords(string clientId, string jobId, bool usePolling)
     {
-        await GetAuthTokenAsync(clientId, TestClientSecret, Scopes);
+        await GetAuthTokenAsync(clientId, Scopes);
 
         try
         {
@@ -145,15 +150,15 @@ public class FindService : IFindService
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, exception.Message);
+            _logger.LogError(exception, "FindRecords failed: {Message}", exception.Message);
         }
 
-        return null;
+        return new SearchResultsDto("FindRecords failed", FindSearchStatus.Failed, [], 0);
     }
 
     public async Task<FindCustodianRecord?> FetchRecord(string clientId, string recordId)
     {
-        await GetAuthTokenAsync(clientId, TestClientSecret, Scopes);
+        await GetAuthTokenAsync(clientId, Scopes);
 
         try
         {
@@ -169,13 +174,13 @@ public class FindService : IFindService
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, exception.Message);
+            _logger.LogError(exception, "FetchRecord failed: {Message}", exception.Message);
         }
 
         return null;
     }
 
-    private async Task GetAuthTokenAsync(string clientId, string clientSecret, string[] scopes)
+    private async Task GetAuthTokenAsync(string clientId, string[] scopes)
     {
         var formData = new Dictionary<string, string>
         {
@@ -189,6 +194,11 @@ public class FindService : IFindService
         {
             Content = content,
         };
+
+        var clientSecret = _authClientProvider
+            .GetAuthClients()
+            .First(x => x.ClientId == clientId)
+            .ClientSecret;
 
         var authString = $"{clientId}:{clientSecret}";
         var base64Auth = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(authString));

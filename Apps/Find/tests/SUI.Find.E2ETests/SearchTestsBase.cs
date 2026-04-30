@@ -128,7 +128,7 @@ public abstract class SearchTestsBase(
             {
                 EncryptedSui = "ZBLNLdIppgMge_MmzVImmA",
                 Sui = "9691292211",
-                TestClientId = "FAUX-01",
+                TestClientId = "NO-DSA-01",
                 Records = [],
             },
         ];

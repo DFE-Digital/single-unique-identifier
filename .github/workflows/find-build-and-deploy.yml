@@ -45,11 +45,13 @@ on:
       - main
     paths:
       - "Apps/Find/**"
+      - "Data/**"
   pull_request:
     branches:
       - main
     paths:
       - "Apps/Find/**"
+      - "Data/**"
 
 jobs:
   build-and-test-Find:
