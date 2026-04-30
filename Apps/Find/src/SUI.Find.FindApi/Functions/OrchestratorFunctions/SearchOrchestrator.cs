@@ -124,7 +124,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             provider.DsaPolicy,
             data.PolicyContext.Purpose,
             data.Metadata.InvocationId,
-            null
+            TraceParent: null
         );
 
         var pepResults = await context.CallActivityAsync<
