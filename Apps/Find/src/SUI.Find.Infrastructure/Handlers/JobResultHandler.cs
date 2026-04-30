@@ -85,6 +85,7 @@ public class JobResultHandler(
             records,
             context,
             message.WorkItemId,
+            message.JobTraceParent,
             cancellationToken
         );
 
@@ -225,6 +226,7 @@ public class JobResultHandler(
         IReadOnlyList<CustodianSearchResultItem> records,
         JobContext context,
         string workItemId,
+        string? traceParent,
         CancellationToken cancellationToken
     )
     {
@@ -238,7 +240,8 @@ public class JobResultHandler(
             records,
             context.Custodian.DsaPolicy,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
-            workItemId
+            workItemId,
+            traceParent
         );
 
         var resultsWithDecision = await pepService.FilterItemsAndAuditAsync(

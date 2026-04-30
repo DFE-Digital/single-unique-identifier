@@ -36,6 +36,7 @@ public class PolicyEnforcementService(
             input.DestOrgId,
             input.CorrelationId,
             input.Purpose,
+            input.TraceParent,
             cancellationToken
         );
 
@@ -47,6 +48,7 @@ public class PolicyEnforcementService(
         string destinationOrgId,
         string correlationId,
         string purpose,
+        string? traceParent,
         CancellationToken cancellationToken
     )
         where TItem : IPepFilterable
@@ -90,6 +92,7 @@ public class PolicyEnforcementService(
             Payload = JsonSerializer.SerializeToElement(payload),
             Timestamp = timeProvider.GetUtcNow().DateTime,
             CorrelationId = correlationId,
+            TraceParent = traceParent,
         };
 
         await auditQueueClient.SendAuditEventAsync(auditMessage, cancellationToken);

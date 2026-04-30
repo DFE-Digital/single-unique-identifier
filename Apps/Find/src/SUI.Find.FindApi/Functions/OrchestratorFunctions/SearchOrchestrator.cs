@@ -123,7 +123,8 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             providerResults,
             provider.DsaPolicy,
             data.PolicyContext.Purpose,
-            data.Metadata.InvocationId
+            data.Metadata.InvocationId,
+            TraceParent: null
         );
 
         var pepResults = await context.CallActivityAsync<

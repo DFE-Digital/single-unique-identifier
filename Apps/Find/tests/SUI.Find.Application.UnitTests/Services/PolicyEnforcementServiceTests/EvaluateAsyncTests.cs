@@ -6,6 +6,7 @@ using SUI.Find.Application.Enums;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
+using SUI.Find.Domain.Events.Audit;
 
 namespace SUI.Find.Application.UnitTests.Services.PolicyEnforcementServiceTests;
 
@@ -13,15 +14,16 @@ public class EvaluateAsyncTests
 {
     private readonly PolicyEnforcementService _sut;
     private readonly FakeTimeProvider _fakeTimeProvider = new();
+    private readonly IAuditQueueClient _queueClient;
 
     public EvaluateAsyncTests()
     {
         var logger = Substitute.For<ILogger<PolicyEnforcementService>>();
         logger.IsEnabled(LogLevel.Information).Returns(true);
 
-        var queueClient = Substitute.For<IAuditQueueClient>();
+        _queueClient = Substitute.For<IAuditQueueClient>();
         _fakeTimeProvider.SetUtcNow(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
-        _sut = new PolicyEnforcementService(queueClient, _fakeTimeProvider, logger);
+        _sut = new PolicyEnforcementService(_queueClient, _fakeTimeProvider, logger);
     }
 
     [Fact]
@@ -254,7 +256,8 @@ public class EvaluateAsyncTests
             searchResultItems,
             policy,
             Purpose: "SAFEGUARDING",
-            CorrelationId: "INV-ID-01"
+            CorrelationId: "INV-ID-01",
+            TraceParent: "test-trace-parent"
         );
 
         // Act
@@ -292,6 +295,13 @@ public class EvaluateAsyncTests
                     },
                 },
             ]);
+
+        await _queueClient
+            .Received(1)
+            .SendAuditEventAsync(
+                Arg.Is<AuditEvent>(e => e.TraceParent == "test-trace-parent"),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]
@@ -341,7 +351,8 @@ public class EvaluateAsyncTests
             providerDefinitions,
             policy,
             Purpose: "SAFEGUARDING",
-            CorrelationId: "INV-ID-01"
+            CorrelationId: "INV-ID-01",
+            TraceParent: "test-trace-parent"
         );
 
         // Act
@@ -376,5 +387,12 @@ public class EvaluateAsyncTests
                     },
                 },
             ]);
+
+        await _queueClient
+            .Received(1)
+            .SendAuditEventAsync(
+                Arg.Is<AuditEvent>(e => e.TraceParent == "test-trace-parent"),
+                Arg.Any<CancellationToken>()
+            );
     }
 }

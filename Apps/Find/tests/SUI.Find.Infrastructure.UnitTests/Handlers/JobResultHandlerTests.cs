@@ -89,6 +89,7 @@ public class JobResultHandlerTests
                     RecordUrl = $"url{i}",
                 })
                 .ToList(),
+            JobTraceParent = "test-job-trace-parent",
         };
     }
 
@@ -400,6 +401,7 @@ public class JobResultHandlerTests
                     && x.DestOrgType == searchingOrg.OrgType
                     && x.Purpose == ApplicationConstants.PolicyEnforcementPurposes.Safeguarding
                     && x.Items.Count == 2
+                    && x.TraceParent == message.JobTraceParent
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -542,6 +544,7 @@ public class JobResultHandlerTests
                     && x.DestOrgType == searchingOrg.OrgType
                     && x.Purpose == ApplicationConstants.PolicyEnforcementPurposes.Safeguarding
                     && x.Items.Count == 3
+                    && x.TraceParent == message.JobTraceParent
                 ),
                 Arg.Any<CancellationToken>()
             );

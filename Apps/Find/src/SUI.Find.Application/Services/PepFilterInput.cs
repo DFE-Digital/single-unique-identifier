@@ -13,6 +13,7 @@ namespace SUI.Find.Application.Services;
 /// <param name="DsaPolicy">The Data Sharing Agreement policy belonging to the Source Organization.</param>
 /// <param name="Purpose">The reason why the Searcher/Requestor requested the data, and why they need to see the data.</param>
 /// <param name="CorrelationId">ID used to correlate this action to the other steps in this search process.</param>
+/// <param name="TraceParent">Optional Trace Parent (W3C Trace Context) used for distributed tracing and correlation, to help with diagnosing problems.</param>
 public record PepFilterInput<TItem>(
     string SourceOrgId,
     string DestOrgId,
@@ -20,6 +21,7 @@ public record PepFilterInput<TItem>(
     IReadOnlyList<TItem> Items,
     DsaPolicyDefinition DsaPolicy,
     string Purpose,
-    string CorrelationId
+    string CorrelationId,
+    string? TraceParent
 )
     where TItem : IPepFilterable;
