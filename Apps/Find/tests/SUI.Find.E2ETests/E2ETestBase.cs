@@ -2,7 +2,6 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Polly;
-using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
@@ -77,9 +76,7 @@ public class E2ETestBase
             request.Headers.Authorization = clientCredentials;
 
             TestOutputHelper.WriteLine(
-                "Requesting access token from: {0}{1}",
-                Fixture.Client.BaseAddress,
-                request.RequestUri
+                $"Requesting access token from: {Fixture.Client.BaseAddress}{request.RequestUri}"
             );
 
             var response = await Fixture.Client.SendAsync(request);

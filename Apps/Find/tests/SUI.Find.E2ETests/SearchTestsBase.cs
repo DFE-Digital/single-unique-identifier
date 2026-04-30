@@ -1,17 +1,13 @@
 using System.Collections.Frozen;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Azure;
-using Azure.Data.Tables;
 using Polly;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Models;
-using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
@@ -19,13 +15,15 @@ namespace SUI.Find.E2ETests;
 /// These tests are designed around the mock data files we use in dev/test environments.
 /// <para>See Data/auth-clients-inbound.json for details</para>
 /// </summary>
-[Collection("E2E")]
 [Trait("Category", "E2E")]
 [Trait("Suite", "Standard")]
-public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
-    : E2ETestBase(fixture, testOutputHelper),
-        IAsyncLifetime
+public abstract class SearchTestsBase(
+    FunctionTestFixture fixture,
+    ITestOutputHelper testOutputHelper
+) : E2ETestBase(fixture, testOutputHelper), IAsyncLifetime
 {
+    protected abstract bool UsePolling { get; }
+
     private const string TestClientSecret = "SUIProject";
     private static readonly string[] TestScopes =
     [
@@ -37,48 +35,21 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
     private record SearchStatusResponse(string? Status, int? CompletenessPercentage);
 
-    public async Task InitializeAsync()
-    {
+    /// <summary>
+    /// Runs before each individual test
+    /// </summary>
+    public async ValueTask InitializeAsync() =>
         await Fixture.EnsureServicesAreUpAsync(TestOutputHelper);
 
-        if (!Fixture.Config.SkipResetAzureTables)
-        {
-            await ResetAzureTablesAsync([
-                "ResultsUrlMappings",
-                "TestHubNameHistory",
-                "TestHubNameInstances",
-                "Jobs",
-                "WorkItemJobCounts",
-            ]);
-        }
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
-
-    private async Task ResetAzureTablesAsync(string[] tableNames)
+    public ValueTask DisposeAsync()
     {
-        var service = new TableServiceClient(Fixture.Config.FindApiStorageConnectionString);
-
-        foreach (var table in tableNames)
-        {
-            try
-            {
-                await service.DeleteTableAsync(table);
-            }
-            catch (RequestFailedException ex) when (ex.Status == 404)
-            {
-                // Table didn't exist; ignore
-            }
-
-            await service.CreateTableIfNotExistsAsync(table);
-        }
-
-        TestOutputHelper.WriteLine($"Reset Azure Tables complete: {string.Join(", ", tableNames)}");
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
     }
 
-    public static TheoryData<TestData> TestData =>
+    public static TheoryData<TestData> HappyPathTestData =>
         [
-            new()
+            new TestData
             {
                 EncryptedSui = "gkITssvF1IAbNgpcMv2lyA",
                 Sui = "9691292211",
@@ -106,7 +77,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     },
                 ],
             },
-            new()
+            new TestData
             {
                 EncryptedSui = "vehNMF2ySUU23P206A6BYA",
                 Sui = "9691292211",
@@ -124,14 +95,14 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     new TestRecord { RecordType = "personal.details", TestValue = "Octavia" },
                 ],
             },
-            new()
+            new TestData
             {
                 EncryptedSui = "-hg7DkXLL7oqmKzPwAfxGA",
                 Sui = "9449306613",
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records = [new TestRecord { RecordType = "personal.details", TestValue = "Briar" }],
             },
-            new()
+            new TestData
             {
                 EncryptedSui = "Gwy1RFyGF4b_sSbbPZExtQ",
                 Sui = "9449306494",
@@ -142,14 +113,18 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     new TestRecord { RecordType = "health.details", TestValue = "Dr E Green" },
                 ],
             },
-            new()
+        ];
+
+    public static TheoryData<TestData> NoRecordsTestData =>
+        [
+            new TestData
             {
                 EncryptedSui = "DcYc-jumZgryOtz3iFh7cw",
                 Sui = "9693821998",
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records = [],
             },
-            new()
+            new TestData
             {
                 EncryptedSui = "ZBLNLdIppgMge_MmzVImmA",
                 Sui = "9691292211",
@@ -158,50 +133,27 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             },
         ];
 
-    [Theory]
-    [MemberData(nameof(TestData))]
-    [SuppressMessage(
-        "Usage",
-        "xUnit1045",
-        Justification = "The `TestData` is a C# record, and the default string serialization of records provides distinct text for the purposes of test exploration, identification and results."
-    )]
-    public async Task Should_PersistSearchData_When_OrchestrationCompletesV1(TestData testData)
-    {
-        await RunTest(testData, false);
-    }
-
-    [Theory]
-    [MemberData(nameof(TestData))]
-    [SuppressMessage(
-        "Usage",
-        "xUnit1045",
-        Justification = "The `TestData` is a C# record, and the default string serialization of records provides distinct text for the purposes of test exploration, identification and results."
-    )]
-    public async Task Should_PersistSearchData_When_OrchestrationCompletesV2(TestData testData)
-    {
-        await RunTest(testData, true);
-    }
-
-    private async Task RunTest(TestData testData, bool usePolling)
+    protected async Task RunTest(TestData testData)
     {
         var authToken = await GetAuthTokenAsync(
             testData.TestClientId,
             TestClientSecret,
             TestScopes
         );
-        Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            authToken
-        );
+
+        if (string.IsNullOrWhiteSpace(authToken))
+        {
+            Assert.Fail("Auth token could not be retrieved.");
+        }
 
         // Step 1, start a new search
         var searchJobLinks = await RunAndAssertNewSearchEndpoint(
             Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui,
-            usePolling
+            authToken
         );
 
         var hasStatusLink = searchJobLinks.TryGetValue("status", out var statusLink);
-        if (!usePolling)
+        if (!UsePolling)
         {
             Assert.True(hasStatusLink);
         }
@@ -214,39 +166,45 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             statusLink != null ? statusLink.Href : resultsLink!.Href,
             resultsLink!.Href,
             testData,
-            usePolling
+            authToken
         );
 
         // Step 3, Get the results from fetch and assert
-        await RunAndAssertFetchEndpoints(resultsLink.Href, testData);
+        await RunAndAssertFetchEndpoints(resultsLink.Href, testData, authToken);
 
         // Fin
     }
 
     private async Task<Dictionary<string, HalLink>> RunAndAssertNewSearchEndpoint(
         string suid,
-        bool usePolling
+        string authToken
     )
     {
-        var startSearchUrl = usePolling ? "v2/searches" : "v1/searches";
+        var startSearchUrl = UsePolling ? "v2/searches" : "v1/searches";
 
         TestOutputHelper.WriteLine(
             $"Starting new search to find records for SUI: {suid} ({Fixture.Client.BaseAddress}{startSearchUrl})"
         );
 
         var body = new StartSearchRequest(suid);
-        using var stringContent = new StringContent(JsonSerializer.Serialize(body));
-        using var newSearchJobResult = await Fixture.Client.PostAsync(
-            startSearchUrl,
-            stringContent
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, startSearchUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(body),
+            System.Text.Encoding.UTF8,
+            "application/json"
         );
+
+        using var newSearchJobResult = await Fixture.Client.SendAsync(request);
 
         // We then want to assert the returned body and status code
         Assert.Equal(HttpStatusCode.Accepted, newSearchJobResult.StatusCode);
         var searchJobContent = await newSearchJobResult.Content.ReadAsStringAsync();
         var searchId = string.Empty;
         var links = new Dictionary<string, HalLink>();
-        if (usePolling)
+
+        if (UsePolling)
         {
             var searchJob = JsonSerializer.Deserialize<SearchJobV2>(searchJobContent);
             if (searchJob != null)
@@ -281,7 +239,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     : null
             ) ?? "Unknown";
 
-        var topLevelTaskName = usePolling ? "workItemId" : "jobId";
+        var topLevelTaskName = UsePolling ? "workItemId" : "jobId";
         TestOutputHelper.WriteLine(
             $"Search started: traceId={traceId}, invocationId={invocationId}, {topLevelTaskName}={searchId}"
         );
@@ -297,7 +255,11 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         return links;
     }
 
-    private async Task RunAndAssertPartialSearchResults(string url, TestData testData)
+    private async Task RunAndAssertPartialSearchResults(
+        string url,
+        TestData testData,
+        string authToken
+    )
     {
         url = RemoveLeadingSlashFromUrl(url);
 
@@ -305,7 +267,9 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             $"Getting partial search results from: {Fixture.Client.BaseAddress}{url}"
         );
 
-        var searchResults = await Fixture.Client.GetAsync(url);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+        using var searchResults = await Fixture.Client.SendAsync(request);
         var searchResultContent = await searchResults.Content.ReadAsStringAsync();
 
         var searchResultTypedContent = JsonSerializer.Deserialize<SearchResultsBase>(
@@ -332,7 +296,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
         Assert.Empty(invalidRecordTypes);
     }
 
-    private async Task RunAndAssertFetchEndpoints(string url, TestData testData)
+    private async Task RunAndAssertFetchEndpoints(string url, TestData testData, string authToken)
     {
         url = RemoveLeadingSlashFromUrl(url);
 
@@ -340,16 +304,21 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
             $"Getting search results from: {Fixture.Client.BaseAddress}{url}"
         );
 
-        var searchResults = await Fixture.Client.GetAsync(url);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+        using var searchResults = await Fixture.Client.SendAsync(request);
+
         // Look for URL link and save as variable
         var searchResultContent = await searchResults.Content.ReadAsStringAsync();
         var searchResultTypedContent = JsonSerializer.Deserialize<SearchResultsBase>(
             searchResultContent
         );
+
         Assert.True(
             searchResultTypedContent!.Items.Length == testData.Records.Length,
             $"Record count mismatch. Expected: {testData.Records.Length}, actual: {searchResultTypedContent.Items.Length}"
         );
+
         foreach (var searchResultItem in searchResultTypedContent.Items)
         {
             Assert.False(string.IsNullOrEmpty(searchResultItem.RecordUrl));
@@ -360,12 +329,16 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 $"Getting data from fetch: {Fixture.Client.BaseAddress}{recordUrl}"
             );
 
-            var fetchResult = await Fixture.Client.GetAsync(recordUrl);
+            using var fetchRequest = new HttpRequestMessage(HttpMethod.Get, recordUrl);
+            fetchRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            using var fetchResult = await Fixture.Client.SendAsync(fetchRequest);
+
             Assert.Equal(HttpStatusCode.OK, fetchResult.StatusCode);
             var fetchResultContent = await fetchResult.Content.ReadAsStringAsync();
             var fetchResultTypedContent = JsonSerializer.Deserialize<CustodianRecord>(
                 fetchResultContent
             );
+
             Assert.False(string.IsNullOrEmpty(fetchResultTypedContent!.RecordId));
             Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.PersonId));
             Assert.False(string.IsNullOrEmpty(fetchResultTypedContent.RecordType));
@@ -374,19 +347,19 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
             TestOutputHelper.WriteLine("Fetch verified ok");
 
+            var payload = fetchResultTypedContent.Payload!.Value;
+
             switch (fetchResultTypedContent.RecordType)
             {
                 case "health.details":
-                    var registeredGpName = fetchResultTypedContent.Payload.Value.GetProperty(
-                        "registeredGPName"
-                    );
+                    var registeredGpName = payload.GetProperty("registeredGPName");
                     Assert.Equal(
                         testData.Records.First(x => x.RecordType == "health.details").TestValue,
                         registeredGpName.GetString()
                     );
                     break;
                 case "childrens-services.details":
-                    var keyWorker = fetchResultTypedContent.Payload.Value.GetProperty("keyWorker");
+                    var keyWorker = payload.GetProperty("keyWorker");
                     Assert.Equal(
                         testData
                             .Records.First(x => x.RecordType == "childrens-services.details")
@@ -395,25 +368,21 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                     );
                     break;
                 case "education.details":
-                    var educationSettingName = fetchResultTypedContent.Payload.Value.GetProperty(
-                        "educationSettingName"
-                    );
+                    var educationSettingName = payload.GetProperty("educationSettingName");
                     Assert.Equal(
                         testData.Records.First(x => x.RecordType == "education.details").TestValue,
                         educationSettingName.GetString()
                     );
                     break;
                 case "personal.details":
-                    var firstName = fetchResultTypedContent.Payload.Value.GetProperty("firstName");
+                    var firstName = payload.GetProperty("firstName");
                     Assert.Equal(
                         testData.Records.First(x => x.RecordType == "personal.details").TestValue,
                         firstName.GetString()
                     );
                     break;
                 case "crime-justice.details":
-                    var policeMarkerDetails = fetchResultTypedContent.Payload.Value.GetProperty(
-                        "policeMarkerDetails"
-                    );
+                    var policeMarkerDetails = payload.GetProperty("policeMarkerDetails");
                     Assert.Contains(
                         policeMarkerDetails.GetString(),
                         testData
@@ -431,17 +400,17 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
     /// <param name="statusUrl">URL of the Search Status endpoint</param>
     /// <param name="resultsUrl">URL of the Search Results endpoint</param>
     /// <param name="testData">The test data for this search run</param>
-    /// <param name="usePolling">If true, specifies the tests are being run for the Polling Architecture, rather than Fan-out.</param>
+    /// <param name="authToken">AuthToken for this search run</param>
     private async Task RunAndAwaitAndAssertSearchStatusCompletion(
         string statusUrl,
         string resultsUrl,
         TestData testData,
-        bool usePolling
+        string authToken
     )
     {
         statusUrl = RemoveLeadingSlashFromUrl(statusUrl);
 
-        var timeout = TimeSpan.FromMinutes(usePolling ? 10 : 5);
+        var timeout = TimeSpan.FromMinutes(UsePolling ? 10 : 5);
         var retryDelay = TimeSpan.FromSeconds(2);
         var retryCount = (int)Math.Round(timeout / retryDelay);
 
@@ -472,7 +441,7 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                         break;
                     case "Running":
                         // Verify partial results are as expected while its in-progress
-                        RunAndAssertPartialSearchResults(resultsUrl, testData).Wait();
+                        RunAndAssertPartialSearchResults(resultsUrl, testData, authToken).Wait();
                         break;
                 }
 
@@ -496,7 +465,13 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
                 }
             );
 
-        await retryPolicy.ExecuteAsync(() => Fixture.Client.GetAsync(statusUrl));
+        // Execute the policy with a fresh request object each time to avoid 'ObjectDisposedException'
+        await retryPolicy.ExecuteAsync(async () =>
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, statusUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+            return await Fixture.Client.SendAsync(request);
+        });
 
         TestOutputHelper.WriteLine(
             $"Finished checking for search completion, final status was {statusMessage}, is completed: {isCompleted}"
@@ -504,9 +479,14 @@ public class StartANewSearchTests(FunctionTestFixture fixture, ITestOutputHelper
 
         Assert.True(isCompleted);
 
-        object? typedResult = usePolling
-            ? await Fixture.Client.GetFromJsonAsync<SearchJobV2>(statusUrl)
-            : await Fixture.Client.GetFromJsonAsync<SearchJob>(statusUrl);
+        // Final fetch to assert the typed result mapping
+        using var finalRequest = new HttpRequestMessage(HttpMethod.Get, statusUrl);
+        finalRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+        using var finalResponse = await Fixture.Client.SendAsync(finalRequest);
+
+        object? typedResult = UsePolling
+            ? await finalResponse.Content.ReadFromJsonAsync<SearchJobV2>()
+            : await finalResponse.Content.ReadFromJsonAsync<SearchJob>();
 
         Assert.NotNull(typedResult);
     }

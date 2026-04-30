@@ -10,24 +10,23 @@ using SUI.Find.Application.Services;
 using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Utility;
-using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
-[Collection("E2E")]
 [Trait("Category", "E2E")]
 [Trait("Suite", "Standard")]
-public class TestOutboundAuthService(
+public sealed class TestOutboundAuthService(
     FunctionTestFixture fixture,
     ITestOutputHelper testOutputHelper
 ) : IAsyncLifetime
 {
-    public async Task InitializeAsync()
-    {
+    /// <summary>
+    /// Runs before each individual test
+    /// </summary>
+    public async ValueTask InitializeAsync() =>
         await fixture.EnsureServicesAreUpAsync(testOutputHelper);
-    }
 
-    public Task DisposeAsync() => Task.CompletedTask;
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     [Fact]
     public async Task TestOutboundAuth_RealService_ReturnsToken()

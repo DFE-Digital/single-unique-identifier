@@ -2,11 +2,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using SUI.Find.Application.Models.Matching;
-using Xunit.Abstractions;
 
 namespace SUI.Find.E2ETests;
 
-[Collection("E2E")]
 [Trait("Category", "E2E")]
 [Trait("Suite", "Smoke")]
 public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
@@ -53,7 +51,9 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
             authToken!,
             logRequestBody: true
         );
-        var responseBody = await response.Content.ReadAsStringAsync();
+        var responseBody = await response.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken
+        );
 
         Assert.True(
             response.StatusCode == HttpStatusCode.OK,
@@ -185,21 +185,23 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
         bool logRequestBody = false
     )
     {
-        Fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            authToken
-        );
-        Fixture.Client.DefaultRequestHeaders.Remove("x-api-key");
-        Fixture.Client.DefaultRequestHeaders.Add("x-api-key", apiKey ?? Fixture.Config.FindApiKey);
-
         var requestJson = JsonSerializer.Serialize(requestBody);
         if (logRequestBody)
         {
             TestOutputHelper.WriteLine("MatchPerson request payload: {0}", requestJson);
         }
 
-        var stringContent = new StringContent(requestJson);
-        return await Fixture.Client.PostAsync("v1/matchperson", stringContent);
+        // THREAD-SAFE FIX: Create a specific request, do not touch DefaultRequestHeaders
+        using var request = new HttpRequestMessage(HttpMethod.Post, "v1/matchperson");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+        request.Headers.Add("x-api-key", apiKey ?? Fixture.Config.FindApiKey);
+        request.Content = new StringContent(
+            requestJson,
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
+
+        return await Fixture.Client.SendAsync(request);
     }
 
     private static MatchRequest CreateValidMatchRequest() =>
