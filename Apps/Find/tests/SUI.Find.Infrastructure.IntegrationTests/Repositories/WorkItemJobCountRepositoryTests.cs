@@ -143,7 +143,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task GetByWorkItemIdAndJobTypeAsync_ReturnsUnknownJobType_WhenStoredStringIsInvalid()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
-        var requestingOrganisationId = $"SOID_{Guid.NewGuid()}";
+        var requestingOrganisationId = $"ROID_{Guid.NewGuid()}";
         var lookupJobType = JobType.CustodianLookup; // Used to generate the RowKey so our Get method can find it
         var now = DateTimeOffset.UtcNow;
 
