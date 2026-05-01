@@ -103,6 +103,15 @@ public class ClaimJobFunctionTests
 
         // Assert the response body
         result.Body.Length.ShouldBe(0);
+
+        var hasRetryHeader = result.Headers.TryGetValues(
+            ApplicationConstants.Http.RetryAfterHeaderName,
+            out var retryValues
+        );
+        hasRetryHeader.ShouldBeTrue();
+        retryValues
+            .ShouldHaveSingleItem()
+            .ShouldBe(ApplicationConstants.Http.DefaultRetryAfterSeconds);
     }
 
     private static FunctionContext CreateContextWithAuth(string clientId)

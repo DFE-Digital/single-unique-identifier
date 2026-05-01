@@ -1,20 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
-using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Functions.HttpFunctions;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.UnitTests.Mocks;
-using Xunit;
 
 namespace SUI.Find.FindApi.UnitTests.FunctionTests;
 
@@ -85,6 +77,15 @@ public class WorkAvailableFunctionTests
         await _jobClaimService
             .Received(1)
             .DoesCustodianHaveJobs("test-client", Arg.Any<CancellationToken>());
+
+        var hasRetryHeader = result.Headers.TryGetValues(
+            ApplicationConstants.Http.RetryAfterHeaderName,
+            out var retryValues
+        );
+        Assert.True(hasRetryHeader, "Expected 'Retry-After' header to be present.");
+
+        var retryValue = Assert.Single(retryValues!);
+        Assert.Equal(ApplicationConstants.Http.DefaultRetryAfterSeconds, retryValue);
     }
 
     private static FunctionContext CreateContextWithAuth(string clientId)

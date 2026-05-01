@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.Azure.Functions.Worker.Http;
+using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Models;
 
 namespace SUI.Find.FindApi.Utility;
@@ -150,6 +151,15 @@ public static class HttpResponseUtility
         var res = req.CreateResponse(HttpStatusCode.NoContent);
         res.AddNoCacheHeaders();
         return res;
+    }
+
+    public static HttpResponseData AddRetryAfterHeader(this HttpResponseData response)
+    {
+        response.Headers.Add(
+            ApplicationConstants.Http.RetryAfterHeaderName,
+            ApplicationConstants.Http.DefaultRetryAfterSeconds
+        );
+        return response;
     }
 
     private static void AddNoCacheHeaders(this HttpResponseData response)

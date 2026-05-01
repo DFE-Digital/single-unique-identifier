@@ -47,4 +47,10 @@ public static class ApplicationConstants
     {
         public const string QueueName = "search-requests-inbound";
     }
+
+    public static class Http
+    {
+        public const string RetryAfterHeaderName = "Retry-After";
+        public const string DefaultRetryAfterSeconds = "10";
+    }
 }
