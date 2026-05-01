@@ -66,7 +66,7 @@ public class QueueSearchJobTriggerTests
         {
             WorkItemId = Guid.NewGuid(),
             PersonId = "test-person-id",
-            RequestingOrganisationId = "searching-custodian-id",
+            RequestingOrganisationId = "requesting-custodian-id",
             TraceId = "test-trace-id",
             InvocationId = "test-invocation",
             TraceParent = "original-search-request-trace-parent",
