@@ -76,7 +76,7 @@ public class QueueSearchJobTriggerTests
         {
             new()
             {
-                OrgId = "searching-custodian-id",
+                OrgId = "requesting-custodian-id",
                 OrgType = "typeA",
                 RecordType = "type0",
             },
@@ -118,7 +118,7 @@ public class QueueSearchJobTriggerTests
                     (
                         j.CustodianId == "org1"
                         || j.CustodianId == "org2"
-                        || j.CustodianId == "searching-custodian-id"
+                        || j.CustodianId == "requesting-custodian-id"
                     )
                     && j.RequestingOrganisationId == requestMessage.RequestingOrganisationId
                     && j.JobType == JobType.CustodianLookup
