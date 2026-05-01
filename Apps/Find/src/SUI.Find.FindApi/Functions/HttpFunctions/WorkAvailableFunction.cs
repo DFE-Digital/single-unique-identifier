@@ -8,6 +8,7 @@ using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.OpenApi;
 using SUI.Find.FindApi.Utility;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
@@ -28,7 +29,8 @@ public class WorkAvailableFunction(
     )]
     [OpenApiResponseWithoutBody(
         statusCode: HttpStatusCode.NoContent,
-        Summary = "No work available. There are no jobs waiting to be worked on."
+        Summary = "No work available. There are no jobs waiting to be worked on.",
+        CustomHeaderType = typeof(RetryAfterHeader)
     )]
     [RequiredScopes("work-item.read")]
     [Function(nameof(WorkAvailable))]
@@ -74,8 +76,13 @@ public class WorkAvailableFunction(
             cancellationToken
         );
 
-        return hasJobs
-            ? HttpResponseUtility.OkResponse(req)
-            : HttpResponseUtility.NoContentResponse(req);
+        if (hasJobs)
+        {
+            return HttpResponseUtility.OkResponse(req);
+        }
+
+        var response = HttpResponseUtility.NoContentResponse(req);
+        response.Headers.Add("Retry-After", "10");
+        return response;
     }
 }

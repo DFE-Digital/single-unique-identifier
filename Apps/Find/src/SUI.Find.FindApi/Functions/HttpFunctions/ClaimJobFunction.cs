@@ -9,6 +9,7 @@ using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.OpenApi;
 using SUI.Find.FindApi.Utility;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
@@ -28,7 +29,8 @@ public class ClaimJobFunction(ILogger<ClaimJobFunction> logger, IJobClaimService
     )]
     [OpenApiResponseWithoutBody(
         statusCode: HttpStatusCode.NoContent,
-        Summary = "There are no jobs waiting to be worked on."
+        Summary = "There are no jobs waiting to be worked on.",
+        CustomHeaderType = typeof(RetryAfterHeader)
     )]
     [RequiredScopes("work-item.write")]
     [Function(nameof(ClaimJob))]
@@ -81,6 +83,8 @@ public class ClaimJobFunction(ILogger<ClaimJobFunction> logger, IJobClaimService
             return await HttpResponseUtility.CreatedResponse(req, claimedJob, cancellationToken);
         }
 
-        return HttpResponseUtility.NoContentResponse(req);
+        var response = HttpResponseUtility.NoContentResponse(req);
+        response.Headers.Add("Retry-After", "10");
+        return response;
     }
 }
