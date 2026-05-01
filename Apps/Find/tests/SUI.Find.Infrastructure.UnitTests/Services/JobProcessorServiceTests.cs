@@ -42,7 +42,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
             return new Job
             {
                 JobId = jobId ?? Guid.NewGuid().ToString(),
-                SearchingOrganisationId = "search-org-1",
+                RequestingOrganisationId = "requesting-org-1",
                 LeaseId = leaseId,
                 CustodianId = custodianId!,
                 LeaseExpiresAtUtc = leaseExpires ?? DateTimeOffset.UtcNow.AddMinutes(5),
@@ -324,7 +324,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services
                 JobId = Guid.NewGuid().ToString(),
                 JobType = JobType.CustodianLookup,
                 CustodianId = Guid.NewGuid().ToString(),
-                SearchingOrganisationId = "anything",
+                RequestingOrganisationId = "anything",
                 PayloadJson = "{}",
             };
 

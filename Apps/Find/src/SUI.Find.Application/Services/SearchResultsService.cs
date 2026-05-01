@@ -37,7 +37,7 @@ public class SearchResultsService(
                     SubmittedAtUtc = submittedAtUtc,
                     JobId = jobId,
                     WorkItemId = workItemId,
-                    SearchingOrganisationId = searchResult.DestOrgId,
+                    RequestingOrganisationId = searchResult.DestOrgId,
                 },
                 cancellationToken
             );

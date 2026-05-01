@@ -249,7 +249,7 @@ public class SubmitJobResultsFunctionTests
         new()
         {
             JobId = request.JobId,
-            SearchingOrganisationId = "searching-org-1",
+            RequestingOrganisationId = "requesting-org-1",
             CustodianId = "cust-1",
             JobType = JobType.CustodianLookup,
             WorkItemId = "work-123",

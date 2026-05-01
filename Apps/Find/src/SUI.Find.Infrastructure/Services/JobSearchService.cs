@@ -21,7 +21,7 @@ public class JobSearchService(
         OneOf<SearchResultsV2Dto, NotFound, Unauthorized, Error>
     > GetSearchResultsAsync(
         string workItemId,
-        string searchingOrganisationId,
+        string requestingOrganisationId,
         CancellationToken cancellationToken
     )
     {
@@ -39,12 +39,12 @@ public class JobSearchService(
             return new NotFound();
         }
 
-        if (workItemJobCountEntity.SearchingOrganisationId != searchingOrganisationId)
+        if (workItemJobCountEntity.RequestingOrganisationId != requestingOrganisationId)
         {
             logger.LogWarning(
-                "Searching organisation ID ({SearchingOrganisationId}) from request does not match organisation ID ({ExpectedSearchingOrganisationId}) on work item. Work item ID: {WorkItemId}",
-                searchingOrganisationId,
-                workItemJobCountEntity.SearchingOrganisationId,
+                "Requesting organisation ID ({RequestingOrganisationId}) from request does not match organisation ID ({ExpectedRequestingOrganisationId}) on work item. Work item ID: {WorkItemId}",
+                requestingOrganisationId,
+                workItemJobCountEntity.RequestingOrganisationId,
                 workItemId
             );
             return new Unauthorized();
@@ -52,7 +52,7 @@ public class JobSearchService(
 
         var completedRecords = await searchResultsEntryRepository.GetByWorkItemIdAsync(
             workItemId,
-            searchingOrganisationId,
+            requestingOrganisationId,
             cancellationToken
         );
 

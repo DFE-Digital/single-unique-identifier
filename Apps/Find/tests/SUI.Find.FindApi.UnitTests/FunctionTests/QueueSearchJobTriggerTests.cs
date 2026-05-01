@@ -66,7 +66,7 @@ public class QueueSearchJobTriggerTests
         {
             WorkItemId = Guid.NewGuid(),
             PersonId = "test-person-id",
-            SearchingOrganisationId = "searching-custodian-id",
+            RequestingOrganisationId = "searching-custodian-id",
             TraceId = "test-trace-id",
             InvocationId = "test-invocation",
             TraceParent = "original-search-request-trace-parent",
@@ -120,7 +120,7 @@ public class QueueSearchJobTriggerTests
                         || j.CustodianId == "org2"
                         || j.CustodianId == "searching-custodian-id"
                     )
-                    && j.SearchingOrganisationId == requestMessage.SearchingOrganisationId
+                    && j.RequestingOrganisationId == requestMessage.RequestingOrganisationId
                     && j.JobType == JobType.CustodianLookup
                     && j.WorkItemType == WorkItemType.SearchExecution
                     && j.WorkItemId == requestMessage.WorkItemId.ToString()
@@ -152,7 +152,7 @@ public class QueueSearchJobTriggerTests
                     && w.WorkItemId == requestMessage.WorkItemId.ToString()
                     && w.ExpectedJobCount == 3
                     && w.PayloadJson.Contains(requestMessage.PersonId)
-                    && w.SearchingOrganisationId == requestMessage.SearchingOrganisationId
+                    && w.RequestingOrganisationId == requestMessage.RequestingOrganisationId
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -166,7 +166,7 @@ public class QueueSearchJobTriggerTests
         {
             WorkItemId = Guid.NewGuid(),
             PersonId = "test-person-id",
-            SearchingOrganisationId = "searching-custodian-id",
+            RequestingOrganisationId = "searching-custodian-id",
             TraceId = "test-trace-id",
             InvocationId = "test-invocation",
             TraceParent = "original-search-request-trace-parent",
@@ -220,7 +220,7 @@ public class QueueSearchJobTriggerTests
         {
             WorkItemId = Guid.NewGuid(),
             PersonId = "test-person-id",
-            SearchingOrganisationId = "searching-custodian-id",
+            RequestingOrganisationId = "searching-custodian-id",
             TraceId = "test-trace-id",
             InvocationId = "test-invocation",
             TraceParent = "original-search-request-trace-parent",
@@ -299,7 +299,7 @@ public class QueueSearchJobTriggerTests
                     && w.WorkItemId == requestMessage.WorkItemId.ToString()
                     && w.ExpectedJobCount == 2
                     && w.PayloadJson.Contains(requestMessage.PersonId)
-                    && w.SearchingOrganisationId == requestMessage.SearchingOrganisationId
+                    && w.RequestingOrganisationId == requestMessage.RequestingOrganisationId
                 ),
                 Arg.Any<CancellationToken>()
             );

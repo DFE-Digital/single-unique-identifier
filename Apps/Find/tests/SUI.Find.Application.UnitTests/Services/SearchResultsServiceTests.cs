@@ -81,7 +81,7 @@ public class SearchResultsServiceTests
                     && e.SubmittedAtUtc >= timeAtStart
                     && e.JobId == "example-JobId"
                     && e.WorkItemId == "example-WorkItemId"
-                    && e.SearchingOrganisationId == "destOrgId"
+                    && e.RequestingOrganisationId == "destOrgId"
                 ),
                 CancellationToken.None
             );
