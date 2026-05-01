@@ -82,7 +82,7 @@ public class WorkAvailableFunctionTests
         Assert.True(hasRetryHeader, "Expected 'Retry-After' header to be present.");
 
         var retryValue = Assert.Single(retryValues!);
-        Assert.Equal("10", retryValue);
+        Assert.Equal(ApplicationConstants.Http.DefaultRetryAfterSeconds, retryValue);
     }
 
     private static FunctionContext CreateContextWithAuth(string clientId)

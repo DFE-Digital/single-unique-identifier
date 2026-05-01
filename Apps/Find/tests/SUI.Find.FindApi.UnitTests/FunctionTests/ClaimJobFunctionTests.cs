@@ -106,7 +106,9 @@ public class ClaimJobFunctionTests
 
         var hasRetryHeader = result.Headers.TryGetValues("Retry-After", out var retryValues);
         hasRetryHeader.ShouldBeTrue();
-        retryValues.ShouldHaveSingleItem().ShouldBe("10");
+        retryValues
+            .ShouldHaveSingleItem()
+            .ShouldBe(ApplicationConstants.Http.DefaultRetryAfterSeconds);
     }
 
     private static FunctionContext CreateContextWithAuth(string clientId)
