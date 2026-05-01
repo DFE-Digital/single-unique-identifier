@@ -103,7 +103,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task UpsertAsync_ReplacesExistingRecord()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
-        var requestingOrganisationId = $"SOID_{Guid.NewGuid()}";
+        var requestingOrganisationId = $"ROID_{Guid.NewGuid()}";
         var jobType = JobType.CustodianLookup;
         var now = DateTimeOffset.UtcNow;
 
