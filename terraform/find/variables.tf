@@ -102,3 +102,21 @@ variable "find_match_api_key_ttl_days" {
     error_message = "find_match_api_key_ttl_days must be greater than 0."
   }
 }
+
+variable "nhs_digital_private_key" {
+  description = "Private key for connection with NHS FHIR API"
+  type = "string"
+  sensitive = true
+}
+
+variable "nhs_digital_kid" {
+  description = "KID for connection with NHS FHIR API"
+  type = "string"
+  sensitive = true
+}
+
+variable "nhs_digital_client_id" {
+  description = "Client ID for connection with NHS FHIR API"
+  type = "string"
+  sensitive = true
+}

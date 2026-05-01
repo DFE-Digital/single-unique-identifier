@@ -145,6 +145,39 @@ resource "azurerm_key_vault_secret" "find_match_api_key" {
   ]
 }
 
+resource "azurerm_key_vault_secret" "nhs_digital_private_key" {
+  name            = "nhs_digital_private_key"
+  value           = var.nhs_digital_private_key
+  key_vault_id    = module.key_vault.id
+  content_type    = "text/plain"
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+        
+resource "azurerm_key_vault_secret" "nhs_digital_kid" {
+  name            = "nhs_digital_kid"
+  value           = var.nhs_digital_kid
+  key_vault_id    = module.key_vault.id
+  content_type    = "text/plain"
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+        
+resource "azurerm_key_vault_secret" "nhs_digital_client_id" {
+  name            = "nhs_digital_client_id"
+  value           = var.nhs_digital_client_id
+  key_vault_id    = module.key_vault.id
+  content_type    = "text/plain"
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+
 data "terraform_remote_state" "stub_custodians" {
   count   = var.use_stub_custodians ? 1 : 0
   backend = "azurerm"
