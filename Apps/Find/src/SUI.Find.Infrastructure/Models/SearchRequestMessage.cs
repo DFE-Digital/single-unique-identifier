@@ -8,7 +8,7 @@ public record SearchRequestMessage
 
     public required string PersonId { get; set; }
 
-    public required string SearchingOrganisationId { get; set; }
+    public required string RequestingOrganisationId { get; set; }
 
     public string? TraceParent { get; set; }
 

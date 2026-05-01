@@ -32,7 +32,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = DateTimeOffset.UtcNow,
             JobId = "job-1",
             WorkItemId = $"work_{Guid.NewGuid()}",
-            SearchingOrganisationId = $"searching-organisation-{Guid.NewGuid()}",
+            RequestingOrganisationId = $"requesting-organisation-{Guid.NewGuid()}",
         };
 
         var partitionKey = SearchResultEntryKeys.PartitionKey(entry.WorkItemId);
@@ -62,7 +62,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         entity.GetString("RecordId").Should().Be(entry.RecordId);
         entity.GetString("JobId").Should().Be(entry.JobId);
         entity.GetString("WorkItemId").Should().Be(entry.WorkItemId);
-        entity.GetString("SearchingOrganisationId").Should().Be(entry.SearchingOrganisationId);
+        entity.GetString("RequestingOrganisationId").Should().Be(entry.RequestingOrganisationId);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = submitted,
             JobId = "job",
             WorkItemId = workItemId,
-            SearchingOrganisationId = "CustodianB",
+            RequestingOrganisationId = "CustodianB",
         };
 
         await _sut.UpsertAsync(entry, None);
@@ -99,7 +99,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = submitted,
             JobId = "job",
             WorkItemId = workItemId,
-            SearchingOrganisationId = "CustodianB",
+            RequestingOrganisationId = "CustodianB",
         };
 
         await _sut.UpsertAsync(updatedEntry, None);
@@ -126,7 +126,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = DateTimeOffset.UtcNow,
             JobId = "job",
             WorkItemId = workItemId,
-            SearchingOrganisationId = "CustodianB",
+            RequestingOrganisationId = "CustodianB",
         };
 
         var second = new SearchResultEntry
@@ -140,7 +140,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = DateTimeOffset.UtcNow.AddSeconds(1),
             JobId = "job",
             WorkItemId = workItemId,
-            SearchingOrganisationId = "CustodianB",
+            RequestingOrganisationId = "CustodianB",
         };
 
         await _sut.UpsertAsync(first, None);
@@ -170,7 +170,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = earlier,
             JobId = "job",
             WorkItemId = workItemId,
-            SearchingOrganisationId = "x",
+            RequestingOrganisationId = "x",
         };
 
         var second = new SearchResultEntry
@@ -184,7 +184,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             SubmittedAtUtc = later,
             JobId = "job",
             WorkItemId = workItemId,
-            SearchingOrganisationId = "x",
+            RequestingOrganisationId = "x",
         };
 
         await _sut.UpsertAsync(second, None);
@@ -219,7 +219,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetByWorkItemIdAsync_FiltersBy_SearchingOrganisationId()
+    public async Task GetByWorkItemIdAsync_FiltersBy_RequestingOrganisationId()
     {
         var workItemId = $"work_{Guid.NewGuid()}";
 
@@ -232,7 +232,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             RecordUrl = "url1",
             JobId = "job",
             WorkItemId = workItemId,
-            SearchingOrganisationId = "X",
+            RequestingOrganisationId = "X",
         };
 
         var second = new SearchResultEntry
@@ -244,7 +244,7 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
             RecordUrl = "url2",
             JobId = "job",
             WorkItemId = workItemId,
-            SearchingOrganisationId = "Y",
+            RequestingOrganisationId = "Y",
         };
 
         await _sut.UpsertAsync(second, None);
@@ -259,6 +259,6 @@ public class SearchResultEntryRepositoryTests : IAsyncLifetime
         var result = results.Single();
 
         result.RecordUrl.Should().Be("url2");
-        result.SearchingOrganisationId.Should().Be("Y");
+        result.RequestingOrganisationId.Should().Be("Y");
     }
 }

@@ -66,7 +66,7 @@ public class SearchResultsV2FunctionTests
             CustodianName = "TestCustodian",
             JobId = "6109939B-44FC-4550-B0C4-D9BAC296A513",
             WorkItemId = "work-1",
-            SearchingOrganisationId = "SOID-1",
+            RequestingOrganisationId = "ROID-1",
         };
     }
 

@@ -38,7 +38,7 @@ public class QueueSearchJobTrigger(
             {
                 { "WorkItemId", searchRequestMessage.WorkItemId },
                 { "PersonId", searchRequestMessage.PersonId },
-                { "SearchingOrganisationId", searchRequestMessage.SearchingOrganisationId },
+                { "RequestingOrganisationId", searchRequestMessage.RequestingOrganisationId },
                 { "TraceParent", searchRequestMessage.TraceParent },
                 { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
@@ -46,14 +46,14 @@ public class QueueSearchJobTrigger(
         );
 
         logger.LogInformation(
-            "QueueSearchJobTrigger function processed: Work item ID: {WorkItemId} for Searching Organisation ID: {SearchingOrganisationId}",
+            "QueueSearchJobTrigger function processed: Work item ID: {WorkItemId} for Requesting Organisation ID: {RequestingOrganisationId}",
             searchRequestMessage.WorkItemId,
-            searchRequestMessage.SearchingOrganisationId
+            searchRequestMessage.RequestingOrganisationId
         );
 
         var custodians = await custodianService.GetCustodiansAsync();
         var requestingOrg = custodianService.GetCustodian(
-            searchRequestMessage.SearchingOrganisationId,
+            searchRequestMessage.RequestingOrganisationId,
             custodians
         );
         var createdJobs = 0;
@@ -87,7 +87,7 @@ public class QueueSearchJobTrigger(
             var job = new Job
             {
                 CustodianId = custodian.OrgId,
-                SearchingOrganisationId = searchRequestMessage.SearchingOrganisationId,
+                RequestingOrganisationId = searchRequestMessage.RequestingOrganisationId,
                 JobId = Guid.NewGuid().ToString(),
                 JobType = JobType.CustodianLookup,
                 PayloadJson = JsonSerializer.Serialize(custodianPayload),
@@ -114,7 +114,7 @@ public class QueueSearchJobTrigger(
                 CreatedAtUtc = DateTime.UtcNow,
                 UpdatedAtUtc = DateTime.UtcNow,
                 ExpectedJobCount = createdJobs,
-                SearchingOrganisationId = searchRequestMessage.SearchingOrganisationId,
+                RequestingOrganisationId = searchRequestMessage.RequestingOrganisationId,
             },
             token
         );

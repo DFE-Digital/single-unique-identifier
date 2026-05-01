@@ -187,7 +187,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         JobId = "running-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
                         WorkItemId = "running-job",
-                        SearchingOrganisationId = ClientId,
+                        RequestingOrganisationId = ClientId,
                     },
                 }
             );
@@ -235,7 +235,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                     RecordType = "",
                     JobId = "running-job",
                     WorkItemId = "running-job",
-                    SearchingOrganisationId = ClientId,
+                    RequestingOrganisationId = ClientId,
                 },
                 new SearchResultEntry
                 {
@@ -247,7 +247,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                     RecordType = "",
                     JobId = "running-job",
                     WorkItemId = "running-job",
-                    SearchingOrganisationId = ClientId,
+                    RequestingOrganisationId = ClientId,
                 },
             ]);
 
@@ -304,7 +304,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         JobId = "completed-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
                         WorkItemId = "completed-job",
-                        SearchingOrganisationId = ClientId,
+                        RequestingOrganisationId = ClientId,
                     },
                 }
             );
@@ -351,7 +351,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         JobId = "running-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
                         WorkItemId = "running-job",
-                        SearchingOrganisationId = ClientId,
+                        RequestingOrganisationId = ClientId,
                     },
                 }
             );

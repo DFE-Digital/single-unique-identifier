@@ -48,7 +48,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
             { "SubmittedAtUtc", entry.SubmittedAtUtc },
             { "JobId", entry.JobId },
             { "WorkItemId", entry.WorkItemId },
-            { "SearchingOrganisationId", entry.SearchingOrganisationId },
+            { "RequestingOrganisationId", entry.RequestingOrganisationId },
         };
 
         try
@@ -68,7 +68,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
 
     public async Task<IReadOnlyList<SearchResultEntry>> GetByWorkItemIdAsync(
         string workItemId,
-        string searchingOrganisationId,
+        string requestingOrganisationId,
         CancellationToken cancellationToken
     )
     {
@@ -88,9 +88,9 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
                 var custodianId = entity.GetString("CustodianId");
                 var systemId = entity.GetString("SystemId");
                 var recordType = entity.GetString("RecordType");
-                var entitySearchingOrganisationId = entity.GetString("SearchingOrganisationId");
+                var entityRequestingOrganisationId = entity.GetString("RequestingOrganisationId");
 
-                if (entitySearchingOrganisationId != searchingOrganisationId)
+                if (entityRequestingOrganisationId != requestingOrganisationId)
                 {
                     continue;
                 }
@@ -107,7 +107,7 @@ public class SearchResultEntryRepository : ISearchResultEntryRepository, ITableS
                         SubmittedAtUtc = entity.GetDateTimeOffset("SubmittedAtUtc")!.Value,
                         JobId = entity.GetString("JobId"),
                         WorkItemId = entity.GetString("WorkItemId"),
-                        SearchingOrganisationId = entitySearchingOrganisationId,
+                        RequestingOrganisationId = entityRequestingOrganisationId,
                     }
                 );
             }
