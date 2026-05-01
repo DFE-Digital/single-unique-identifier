@@ -163,7 +163,7 @@ jobs:
              Apps/Find/src/SUI.Find.FindApi/local.settings.json
 
       - name: Start StubCustodians API
-        run: dotnet run --launch-profile http &
+        run: dotnet run --no-build --launch-profile http &
         working-directory: Apps/StubCustodians/src/SUI.StubCustodians.API
 
       - name: Start Find API
