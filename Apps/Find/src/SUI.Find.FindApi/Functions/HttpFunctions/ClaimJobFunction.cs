@@ -83,8 +83,6 @@ public class ClaimJobFunction(ILogger<ClaimJobFunction> logger, IJobClaimService
             return await HttpResponseUtility.CreatedResponse(req, claimedJob, cancellationToken);
         }
 
-        var response = HttpResponseUtility.NoContentResponse(req);
-        response.Headers.Add("Retry-After", ApplicationConstants.Http.DefaultRetryAfterSeconds);
-        return response;
+        return HttpResponseUtility.NoContentResponse(req).AddRetryAfterHeader();
     }
 }

@@ -81,8 +81,6 @@ public class WorkAvailableFunction(
             return HttpResponseUtility.OkResponse(req);
         }
 
-        var response = HttpResponseUtility.NoContentResponse(req);
-        response.Headers.Add("Retry-After", ApplicationConstants.Http.DefaultRetryAfterSeconds);
-        return response;
+        return HttpResponseUtility.NoContentResponse(req).AddRetryAfterHeader();
     }
 }

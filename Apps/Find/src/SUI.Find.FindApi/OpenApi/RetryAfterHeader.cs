@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.OpenApi.Models;
+using SUI.Find.Application.Constants;
 
 namespace SUI.Find.FindApi.OpenApi;
 
@@ -11,7 +12,7 @@ public class RetryAfterHeader : IOpenApiCustomResponseHeader
         new()
         {
             {
-                "Retry-After",
+                ApplicationConstants.Http.RetryAfterHeaderName,
                 new OpenApiHeader
                 {
                     Description =

@@ -78,7 +78,10 @@ public class WorkAvailableFunctionTests
             .Received(1)
             .DoesCustodianHaveJobs("test-client", Arg.Any<CancellationToken>());
 
-        var hasRetryHeader = result.Headers.TryGetValues("Retry-After", out var retryValues);
+        var hasRetryHeader = result.Headers.TryGetValues(
+            ApplicationConstants.Http.RetryAfterHeaderName,
+            out var retryValues
+        );
         Assert.True(hasRetryHeader, "Expected 'Retry-After' header to be present.");
 
         var retryValue = Assert.Single(retryValues!);

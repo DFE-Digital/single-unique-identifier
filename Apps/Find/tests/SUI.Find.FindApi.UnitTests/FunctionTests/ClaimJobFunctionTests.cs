@@ -104,7 +104,10 @@ public class ClaimJobFunctionTests
         // Assert the response body
         result.Body.Length.ShouldBe(0);
 
-        var hasRetryHeader = result.Headers.TryGetValues("Retry-After", out var retryValues);
+        var hasRetryHeader = result.Headers.TryGetValues(
+            ApplicationConstants.Http.RetryAfterHeaderName,
+            out var retryValues
+        );
         hasRetryHeader.ShouldBeTrue();
         retryValues
             .ShouldHaveSingleItem()
