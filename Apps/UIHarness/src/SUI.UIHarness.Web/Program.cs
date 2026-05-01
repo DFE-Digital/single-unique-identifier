@@ -59,7 +59,9 @@ app.MapPost(
                 configuration.GetValue<string>("UI_TEST_HARNESS_PASSWORD") ?? "local-dev-only";
             if (password != expectedPassword)
             {
-                return Results.Unauthorized();
+                return Results.Redirect(
+                    $"/login?error=invalid_password&custodianName={Uri.EscapeDataString(custodianName)}&architecture={Uri.EscapeDataString(architecture)}"
+                );
             }
 
             var claims = new List<Claim>
