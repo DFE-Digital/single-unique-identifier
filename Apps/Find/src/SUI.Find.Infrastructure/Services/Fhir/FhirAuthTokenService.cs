@@ -12,7 +12,7 @@ using SUI.Find.Infrastructure.Models.Fhir;
 
 namespace SUI.Find.Infrastructure.Services.Fhir;
 
-public class FhirAuthTokenService(
+public sealed class FhirAuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
     ILogger<FhirAuthTokenService> logger,
     IHttpClientFactory httpClientFactory
