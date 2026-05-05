@@ -211,7 +211,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task MarkJobCompletedAsync_CanAtomically_Update_CompletedJobIds_HashSet()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
-        var requestingOrganisationId = $"SOID_{Guid.NewGuid()}";
+        var requestingOrganisationId = $"ROID_{Guid.NewGuid()}";
         const JobType jobType = JobType.CustodianLookup;
         var now = DateTimeOffset.UtcNow;
 
