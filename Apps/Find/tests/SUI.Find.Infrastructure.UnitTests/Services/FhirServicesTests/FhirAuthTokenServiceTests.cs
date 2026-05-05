@@ -2,9 +2,6 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using SUI.Find.Infrastructure.Constants;
-using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Models.Fhir;
 using SUI.Find.Infrastructure.Services.Fhir;
 using SUI.Find.Infrastructure.UnitTests.Utility;
@@ -16,12 +13,9 @@ public class FhirAuthTokenServiceTests
     private readonly IOptions<AuthTokenServiceConfig> _subOptions;
     private readonly ILogger<FhirAuthTokenService> _subLogger;
     private readonly IHttpClientFactory _subHttpClientFactory;
-    private readonly ISecretService _subSecretService;
     private readonly MockHttpMessageHandler _mockHttpMessageHandler;
 
     private const string DummyToken = "a.dummy.token";
-
-    private static readonly string DummyPrivateKey = GenerateDummyPrivateKey();
     private const string DummyClientId = "test-client-id";
     private const string DummyKid = "test-kid";
 
@@ -30,10 +24,15 @@ public class FhirAuthTokenServiceTests
         _subOptions = Substitute.For<IOptions<AuthTokenServiceConfig>>();
         _subLogger = Substitute.For<ILogger<FhirAuthTokenService>>();
         _subHttpClientFactory = Substitute.For<IHttpClientFactory>();
-        _subSecretService = Substitute.For<ISecretService>();
 
         _subOptions.Value.Returns(
-            new AuthTokenServiceConfig { NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5 }
+            new AuthTokenServiceConfig
+            {
+                NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5,
+                NHS_DIGITAL_PRIVATE_KEY = GenerateDummyPrivateKey(),
+                NHS_DIGITAL_KID = DummyKid,
+                NHS_DIGITAL_CLIENT_ID = DummyClientId,
+            }
         );
 
         _mockHttpMessageHandler = new MockHttpMessageHandler();
@@ -44,17 +43,6 @@ public class FhirAuthTokenServiceTests
         };
 
         _subHttpClientFactory.CreateClient("nhs-auth-api").Returns(httpClient);
-
-        SetupSecret(FhirConstants.PrivateKey, DummyPrivateKey);
-        SetupSecret(FhirConstants.ClientId, DummyClientId);
-        SetupSecret(FhirConstants.Kid, DummyKid);
-    }
-
-    private void SetupSecret(string secretName, string secretValue)
-    {
-        _subSecretService
-            .GetSecretAsync(secretName, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(secretValue));
     }
 
     private static string GenerateDummyPrivateKey()
@@ -65,12 +53,7 @@ public class FhirAuthTokenServiceTests
 
     private FhirAuthTokenService CreateService()
     {
-        return new FhirAuthTokenService(
-            _subOptions,
-            _subLogger,
-            _subHttpClientFactory,
-            _subSecretService
-        );
+        return new FhirAuthTokenService(_subOptions, _subLogger, _subHttpClientFactory);
     }
 
     [Fact]
@@ -84,15 +67,6 @@ public class FhirAuthTokenServiceTests
 
         // Assert
         Assert.Equal(DummyToken, token);
-        await _subSecretService
-            .Received(1)
-            .GetSecretAsync(FhirConstants.PrivateKey, Arg.Any<CancellationToken>());
-        await _subSecretService
-            .Received(1)
-            .GetSecretAsync(FhirConstants.ClientId, Arg.Any<CancellationToken>());
-        await _subSecretService
-            .Received(1)
-            .GetSecretAsync(FhirConstants.Kid, Arg.Any<CancellationToken>());
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
     }
 
@@ -108,15 +82,6 @@ public class FhirAuthTokenServiceTests
 
         // Assert
         Assert.Equal(DummyToken, token);
-        await _subSecretService
-            .Received(1)
-            .GetSecretAsync(FhirConstants.PrivateKey, Arg.Any<CancellationToken>());
-        await _subSecretService
-            .Received(1)
-            .GetSecretAsync(FhirConstants.ClientId, Arg.Any<CancellationToken>());
-        await _subSecretService
-            .Received(1)
-            .GetSecretAsync(FhirConstants.Kid, Arg.Any<CancellationToken>());
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
     }
 
@@ -157,32 +122,6 @@ public class FhirAuthTokenServiceTests
         // Assert
         Assert.All(results, token => Assert.Equal(DummyToken, token));
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
-        await _subSecretService
-            .Received(1)
-            .GetSecretAsync(FhirConstants.PrivateKey, Arg.Any<CancellationToken>());
-        await _subSecretService
-            .Received(1)
-            .GetSecretAsync(FhirConstants.ClientId, Arg.Any<CancellationToken>());
-        await _subSecretService
-            .Received(1)
-            .GetSecretAsync(FhirConstants.Kid, Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task GetBearerToken_SecretFetchFails_ThrowsInvalidOperationException()
-    {
-        // Arrange
-        _subSecretService
-            .GetSecretAsync(FhirConstants.PrivateKey, Arg.Any<CancellationToken>())
-            .ThrowsAsync(new InvalidOperationException("Failed to get secret: "));
-
-        var service = CreateService();
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            service.GetBearerToken(CancellationToken.None)
-        );
-        Assert.Contains("Failed to get secret", exception.Message);
     }
 
     [Fact]

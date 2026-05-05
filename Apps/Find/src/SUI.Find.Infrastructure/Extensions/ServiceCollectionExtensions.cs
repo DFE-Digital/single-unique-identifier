@@ -1,9 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Interfaces.Matching;
 using SUI.Find.Infrastructure.Clients;
@@ -26,10 +22,7 @@ namespace SUI.Find.Infrastructure.Extensions;
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructureServices(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
     {
         services.AddSingleton<IAuditService, AuditStorageTableService>();
         services.AddSingleton<IAuditQueueClient, AuditQueueClient>();
@@ -46,17 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
         services.AddSingleton<IFhirService, FhirService>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
-        services.AddSingleton<ISecretService, AzureKeyVaultSecretService>();
-
-        var useStubAuthTokenService = configuration.GetValue<bool>("UseStubAuthTokenService");
-        if (useStubAuthTokenService)
-        {
-            services.AddSingleton<IFhirAuthTokenService, StubFhirAuthTokenService>();
-        }
-        else
-        {
-            services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
-        }
+        services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
 
         services.AddAzureTableServices();
 
@@ -69,38 +52,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IJobProcessorService, JobProcessorService>();
         services.AddSingleton<IJobResultsQueueClient, JobResultsQueueClient>();
         services.AddSingleton<IJobResultHandler, JobResultHandler>();
-
-        return services;
-    }
-
-    public static IServiceCollection AddSecretClientServices(this IServiceCollection services)
-    {
-        services
-            .AddOptions<AzureSecretConfiguration>()
-            .BindConfiguration(AzureSecretConfiguration.SectionName);
-
-        services.AddSingleton<SecretClient>(sp =>
-        {
-            var config = sp.GetRequiredService<IOptions<AzureSecretConfiguration>>().Value;
-            var uriString =
-                config.KeyVaultUri
-                ?? "https://localdevtotallyrandomaddressbecauseitdoesntrunwiththestubauthtokenservice";
-
-            Uri uri;
-            try
-            {
-                uri = new Uri(uriString);
-            }
-            catch (Exception e)
-            {
-                throw new InvalidOperationException(
-                    $"Invalid {nameof(config.KeyVaultUri)}: {uriString} ({e.Message})",
-                    e
-                );
-            }
-
-            return new SecretClient(vaultUri: uri, credential: new DefaultAzureCredential());
-        });
 
         return services;
     }

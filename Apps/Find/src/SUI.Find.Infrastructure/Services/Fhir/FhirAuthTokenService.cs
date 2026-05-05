@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using SUI.Find.Infrastructure.Constants;
-using SUI.Find.Infrastructure.Interfaces;
 using SUI.Find.Infrastructure.Interfaces.Fhir;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Models.Fhir;
@@ -16,8 +15,7 @@ namespace SUI.Find.Infrastructure.Services.Fhir;
 public class FhirAuthTokenService(
     IOptions<AuthTokenServiceConfig> options,
     ILogger<FhirAuthTokenService> logger,
-    IHttpClientFactory httpClientFactory,
-    ISecretService secretService
+    IHttpClientFactory httpClientFactory
 ) : IFhirAuthTokenService, IDisposable
 {
     private static readonly JsonWebTokenHandler TokenHandler = new();
@@ -25,9 +23,9 @@ public class FhirAuthTokenService(
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient("nhs-auth-api");
     private readonly AuthTokenServiceConfig _options = options.Value;
     private volatile CachedToken? _cachedToken;
-    protected string? PrivateKey;
-    protected string? ClientId;
-    protected string? Kid;
+    private string? _privateKey;
+    private string? _clientId;
+    private string? _kid;
 
     /// <summary>
     /// Retrieves a valid bearer token, handling caching and renewal automatically.
@@ -52,7 +50,7 @@ public class FhirAuthTokenService(
 
             logger.LogInformation("Cached token is expired or missing. Proceeding with renewal.");
 
-            await EnsureInitializedAsync(cancellationToken);
+            EnsureInitializedAsync();
 
             var newCachedToken = await FetchNewAccessTokenAsync(cancellationToken);
 #pragma warning disable CS0420
@@ -68,25 +66,21 @@ public class FhirAuthTokenService(
         }
     }
 
-    protected virtual async Task EnsureInitializedAsync(CancellationToken cancellationToken)
+    private void EnsureInitializedAsync()
     {
-        if (PrivateKey is not null)
+        if (_privateKey is not null)
             return;
 
         logger.LogInformation("First-time initialization: loading secrets from Azure Key Vault.");
 
-        var privateKeyTask = secretService.GetSecretAsync(
-            FhirConstants.PrivateKey,
-            cancellationToken
-        );
-        var clientIdTask = secretService.GetSecretAsync(FhirConstants.ClientId, cancellationToken);
-        var kidTask = secretService.GetSecretAsync(FhirConstants.Kid, cancellationToken);
-
-        await Task.WhenAll(privateKeyTask, clientIdTask, kidTask);
-
-        PrivateKey = await privateKeyTask;
-        ClientId = await clientIdTask;
-        Kid = await kidTask;
+        _privateKey =
+            _options.NHS_DIGITAL_PRIVATE_KEY
+            ?? throw new ArgumentNullException(_options.NHS_DIGITAL_PRIVATE_KEY);
+        _clientId =
+            _options.NHS_DIGITAL_CLIENT_ID
+            ?? throw new ArgumentNullException(_options.NHS_DIGITAL_CLIENT_ID);
+        _kid =
+            _options.NHS_DIGITAL_KID ?? throw new ArgumentNullException(_options.NHS_DIGITAL_KID);
     }
 
     private async Task<CachedToken> FetchNewAccessTokenAsync(CancellationToken cancellationToken)
@@ -149,13 +143,13 @@ public class FhirAuthTokenService(
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Audience = audience,
-            Issuer = ClientId!,
+            Issuer = _clientId!,
             Subject = new ClaimsIdentity([
-                new Claim(JwtRegisteredClaimNames.Sub, ClientId!),
+                new Claim(JwtRegisteredClaimNames.Sub, _clientId!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             ]),
             Expires = DateTime.UtcNow.AddMinutes(expInMinutes),
-            SigningCredentials = CreateSigningCredentials(PrivateKey!, Kid!),
+            SigningCredentials = CreateSigningCredentials(_privateKey!, _kid!),
         };
         return TokenHandler.CreateToken(tokenDescriptor);
     }
@@ -185,7 +179,7 @@ public class FhirAuthTokenService(
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (disposing)
         {
