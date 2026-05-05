@@ -22,7 +22,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task UpsertAsync_CreatesNewRecord_AsExpected()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
-        var searchingOrganisationId = $"SOID_{Guid.NewGuid()}";
+        var requestingOrganisationId = $"ROID_{Guid.NewGuid()}";
         var jobType = JobType.CustodianLookup;
         var now = DateTimeOffset.UtcNow;
 
@@ -33,7 +33,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
             ExpectedJobCount = 5,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
-            SearchingOrganisationId = searchingOrganisationId,
+            RequestingOrganisationId = requestingOrganisationId,
             PayloadJson = "{}",
         };
 
@@ -50,7 +50,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         stored.Value.GetString("WorkItemId").Should().Be(workItemId);
         stored.Value.GetString("JobType").Should().Be(nameof(JobType.CustodianLookup));
-        stored.Value.GetString("SearchingOrganisationId").Should().Be(searchingOrganisationId);
+        stored.Value.GetString("RequestingOrganisationId").Should().Be(requestingOrganisationId);
         stored.Value.GetInt32("ExpectedJobCount").Should().Be(5);
         stored.Value.GetString("PayloadJson").Should().Be("{}");
     }
@@ -59,7 +59,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task GetByWorkItemIdAndJobTypeAsync_ReturnsCount_WhenRecordExists()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
-        var searchingOrganisationId = $"SOID_{Guid.NewGuid()}";
+        var requestingOrganisationId = $"ROID_{Guid.NewGuid()}";
         var jobType = JobType.CustodianLookup;
         var now = DateTimeOffset.UtcNow;
 
@@ -70,7 +70,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
             ExpectedJobCount = 3,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
-            SearchingOrganisationId = searchingOrganisationId,
+            RequestingOrganisationId = requestingOrganisationId,
             PayloadJson = "{}",
         };
 
@@ -81,7 +81,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
         result.Should().NotBeNull();
         result.ExpectedJobCount.Should().Be(3);
         result.WorkItemId.Should().Be(workItemId);
-        result.SearchingOrganisationId.Should().Be(searchingOrganisationId);
+        result.RequestingOrganisationId.Should().Be(requestingOrganisationId);
         result.JobType.Should().Be(jobType);
         result.CreatedAtUtc.Should().Be(now);
         result.UpdatedAtUtc.Should().Be(now);
@@ -103,7 +103,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task UpsertAsync_ReplacesExistingRecord()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
-        var searchingOrganisationId = $"SOID_{Guid.NewGuid()}";
+        var requestingOrganisationId = $"ROID_{Guid.NewGuid()}";
         var jobType = JobType.CustodianLookup;
         var now = DateTimeOffset.UtcNow;
 
@@ -114,7 +114,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
             ExpectedJobCount = 1,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
-            SearchingOrganisationId = searchingOrganisationId,
+            RequestingOrganisationId = requestingOrganisationId,
             PayloadJson = "{}",
         };
 
@@ -127,7 +127,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
             ExpectedJobCount = 10,
             CreatedAtUtc = now,
             UpdatedAtUtc = DateTimeOffset.UtcNow,
-            SearchingOrganisationId = searchingOrganisationId,
+            RequestingOrganisationId = requestingOrganisationId,
             PayloadJson = "{}",
         };
 
@@ -143,7 +143,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task GetByWorkItemIdAndJobTypeAsync_ReturnsUnknownJobType_WhenStoredStringIsInvalid()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
-        var searchingOrganisationId = $"SOID_{Guid.NewGuid()}";
+        var requestingOrganisationId = $"ROID_{Guid.NewGuid()}";
         var lookupJobType = JobType.CustodianLookup; // Used to generate the RowKey so our Get method can find it
         var now = DateTimeOffset.UtcNow;
 
@@ -162,7 +162,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
             { "ExpectedJobCount", 5 },
             { "CreatedAtUtc", now },
             { "UpdatedAtUtc", now },
-            { "SearchingOrganisationId", searchingOrganisationId },
+            { "RequestingOrganisationId", requestingOrganisationId },
             { "PayloadJson", "{}" },
         };
 
@@ -177,7 +177,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task SearchingOrganisationId_IsOptional()
+    public async Task RequestingOrganisationId_IsOptional()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
         const JobType jobType = JobType.CustodianLookup;
@@ -185,7 +185,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
 
         var entity = new WorkItemJobCount
         {
-            SearchingOrganisationId = null,
+            RequestingOrganisationId = null,
             WorkItemId = workItemId,
             JobType = jobType,
             ExpectedJobCount = 5,
@@ -203,7 +203,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
         result
             .Should()
             .BeEquivalentTo(
-                new { WorkItemId = workItemId, SearchingOrganisationId = (string?)null }
+                new { WorkItemId = workItemId, RequestingOrganisationId = (string?)null }
             );
     }
 
@@ -211,7 +211,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
     public async Task MarkJobCompletedAsync_CanAtomically_Update_CompletedJobIds_HashSet()
     {
         var workItemId = $"WI_{Guid.NewGuid()}";
-        var searchingOrganisationId = $"SOID_{Guid.NewGuid()}";
+        var requestingOrganisationId = $"ROID_{Guid.NewGuid()}";
         const JobType jobType = JobType.CustodianLookup;
         var now = DateTimeOffset.UtcNow;
 
@@ -222,7 +222,7 @@ public partial class WorkItemJobCountRepositoryTests : IAsyncLifetime
             ExpectedJobCount = 3,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
-            SearchingOrganisationId = searchingOrganisationId,
+            RequestingOrganisationId = requestingOrganisationId,
             PayloadJson = "{}",
         };
 

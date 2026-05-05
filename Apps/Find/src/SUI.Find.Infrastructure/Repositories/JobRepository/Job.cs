@@ -9,7 +9,7 @@ public record Job
     public required JobType JobType { get; init; }
     public WorkItemType? WorkItemType { get; init; }
     public string? WorkItemId { get; init; }
-    public string? SearchingOrganisationId { get; init; }
+    public string? RequestingOrganisationId { get; init; }
     public string? LeaseId { get; init; }
     public DateTimeOffset? LeaseExpiresAtUtc { get; set; }
     public int AttemptCount { get; init; }

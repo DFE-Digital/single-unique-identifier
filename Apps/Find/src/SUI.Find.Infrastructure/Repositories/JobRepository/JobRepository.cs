@@ -65,7 +65,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
         {
             { "JobId", job.JobId },
             { "CustodianId", job.CustodianId },
-            { "SearchingOrganisationId", job.SearchingOrganisationId },
+            { "RequestingOrganisationId", job.RequestingOrganisationId },
             { "JobType", job.JobType.ToString() },
             { "WorkItemType", job.WorkItemType.ToString() },
             { "WorkItemId", job.WorkItemId },
@@ -120,7 +120,7 @@ public class JobRepository : IJobRepository, ITableServiceEnsureCreated
                     {
                         JobId = entity.GetString("JobId"),
                         CustodianId = entity.GetString("CustodianId"),
-                        SearchingOrganisationId = entity.GetString("SearchingOrganisationId"),
+                        RequestingOrganisationId = entity.GetString("RequestingOrganisationId"),
                         JobType = jobType,
                         WorkItemType = workItemType,
                         WorkItemId = entity.GetString("WorkItemId"),

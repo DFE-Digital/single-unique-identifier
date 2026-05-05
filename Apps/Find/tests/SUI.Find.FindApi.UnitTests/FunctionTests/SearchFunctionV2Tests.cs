@@ -58,7 +58,7 @@ public class SearchFunctionV2Tests
         // Arrange
         var requestData = new StartSearchRequest(""); // Invalid SUID
         var request = MockHttpRequestData.CreateJson(requestData);
-        var context = CreateContextWithAuth("test-searcher");
+        var context = CreateContextWithAuth("test-requester");
 
         // Act
         var result = await _function.SearchesV2(request, context, CancellationToken.None);
@@ -73,7 +73,7 @@ public class SearchFunctionV2Tests
         // Arrange
         var requestData = new StartSearchRequest("9000000009"); // Assuming valid NHS number
         var request = MockHttpRequestData.CreateJson(requestData);
-        var context = CreateContextWithAuth("test-searcher");
+        var context = CreateContextWithAuth("test-requester");
 
         var expectedJobId = Guid.NewGuid().ToString();
         var searchJobDto = new SearchWorkItemDto
@@ -96,7 +96,7 @@ public class SearchFunctionV2Tests
             .Received(1)
             .PostSearchJobAsync(
                 Arg.Is<SearchRequestMessage>(m =>
-                    m.PersonId == "9000000009" && m.SearchingOrganisationId == "test-searcher"
+                    m.PersonId == "9000000009" && m.RequestingOrganisationId == "test-requester"
                 ),
                 Arg.Any<CancellationToken>()
             );
@@ -122,7 +122,7 @@ public class SearchFunctionV2Tests
 
         var requestData = new StartSearchRequest("Cy13hyZL-4LSIwVy50p-Hg");
         var request = MockHttpRequestData.CreateJson(requestData);
-        var context = CreateContextWithAuth("test-searcher");
+        var context = CreateContextWithAuth("test-requester");
 
         var searchJobDto = new SearchWorkItemDto
         {
@@ -147,7 +147,7 @@ public class SearchFunctionV2Tests
                 Arg.Is<SearchRequestMessage>(m =>
                     m.PersonId == "Cy13hyZL-4LSIwVy50p-Hg"
                     && m.PersonId.Length > 0
-                    && m.SearchingOrganisationId == "test-searcher"
+                    && m.RequestingOrganisationId == "test-requester"
                 ),
                 Arg.Any<CancellationToken>()
             );

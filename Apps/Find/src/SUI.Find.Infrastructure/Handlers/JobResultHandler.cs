@@ -130,7 +130,7 @@ public class JobResultHandler(
     )
     {
         var queryProviderInput = new QueryProviderInput(
-            RequestingOrg: context.SearchingOrganisationId,
+            RequestingOrg: context.RequestingOrganisationId,
             JobId: message.JobId,
             InvocationId: message.JobTraceParent ?? string.Empty,
             Suid: payload.Sui,
@@ -199,26 +199,26 @@ public class JobResultHandler(
             return null;
         }
 
-        if (job.SearchingOrganisationId is null)
+        if (job.RequestingOrganisationId is null)
         {
             logger.LogWarning(
-                $"Job has no {nameof(job.SearchingOrganisationId)} for JobId {{JobId}}",
+                $"Job has no {nameof(job.RequestingOrganisationId)} for JobId {{JobId}}",
                 message.JobId
             );
             return null;
         }
 
-        var searchingOrg = await custodianService.GetCustodianAsync(job.SearchingOrganisationId);
+        var searchingOrg = await custodianService.GetCustodianAsync(job.RequestingOrganisationId);
         if (!searchingOrg.Success || searchingOrg.Value is null)
         {
             logger.LogWarning(
-                "Searching organisation config not found for {SearchingOrganisationId}",
-                job.SearchingOrganisationId
+                "Requesting organisation config not found for {RequestingOrganisationId}",
+                job.RequestingOrganisationId
             );
             return null;
         }
 
-        return new JobContext(custodian.Value, searchingOrg.Value, job.SearchingOrganisationId);
+        return new JobContext(custodian.Value, searchingOrg.Value, job.RequestingOrganisationId);
     }
 
     // PEP Filtering
@@ -235,8 +235,8 @@ public class JobResultHandler(
 
         var filterInput = new PepFilterInput<CustodianSearchResultItem>(
             context.Custodian.OrgId,
-            context.SearchingOrganisation.OrgId,
-            context.SearchingOrganisation.OrgType,
+            context.RequestingOrganisation.OrgId,
+            context.RequestingOrganisation.OrgType,
             records,
             context.Custodian.DsaPolicy,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
@@ -273,7 +273,7 @@ public class JobResultHandler(
             var entry = new SearchResultEntry
             {
                 CustodianId = message.CustodianId,
-                SearchingOrganisationId = context.SearchingOrganisationId,
+                RequestingOrganisationId = context.RequestingOrganisationId,
                 CustodianName = context.Custodian.OrgName,
                 WorkItemId = message.WorkItemId,
                 JobId = message.JobId,
@@ -290,8 +290,8 @@ public class JobResultHandler(
 
     private sealed record JobContext(
         ProviderDefinition Custodian,
-        ProviderDefinition SearchingOrganisation,
-        string SearchingOrganisationId
+        ProviderDefinition RequestingOrganisation,
+        string RequestingOrganisationId
     );
 
     private static List<CustodianSearchResultItem> MapRecordsToResultItems(

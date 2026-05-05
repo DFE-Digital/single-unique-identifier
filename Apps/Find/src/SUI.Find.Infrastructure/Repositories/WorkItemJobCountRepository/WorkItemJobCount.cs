@@ -10,7 +10,7 @@ public class WorkItemJobCount
     public int ExpectedJobCount { get; init; }
     public DateTimeOffset CreatedAtUtc { get; init; }
     public DateTimeOffset UpdatedAtUtc { get; init; }
-    public string? SearchingOrganisationId { get; init; }
+    public string? RequestingOrganisationId { get; init; }
     public required string PayloadJson { get; init; }
     public FrozenSet<string> CompletedJobIds { get; init; } = [];
 }

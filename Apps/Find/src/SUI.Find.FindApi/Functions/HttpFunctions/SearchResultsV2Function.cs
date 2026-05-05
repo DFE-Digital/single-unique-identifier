@@ -88,7 +88,7 @@ public class SearchResultsV2Function(
             {
                 ["InvocationId"] = context.InvocationId,
                 ["WorkItemId"] = workItemId,
-                ["SearchingOrganisationId"] = authContext.ClientId,
+                ["RequestingOrganisationId"] = authContext.ClientId,
                 ["TraceId"] = Activity.Current?.TraceId.ToString() ?? string.Empty,
                 ["TraceParent"] = context.TraceContext.TraceParent,
             }
