@@ -11,7 +11,8 @@ public class FindService : IFindService
     private readonly HttpClient _httpClient;
     private readonly IFindApiAuthClientProvider _authClientProvider;
     private readonly ILogger<FindService> _logger;
-    private const string? FindApiKey = "local-dev-key-change-me";
+    private readonly string _matchApiKey;
+
     private static readonly string[] Scopes =
     [
         "match-record.read",
@@ -24,18 +25,20 @@ public class FindService : IFindService
     public FindService(
         IHttpClientFactory httpClientFactory,
         IFindApiAuthClientProvider authClientProvider,
+        IConfiguration configuration,
         ILogger<FindService> logger
     )
     {
         _httpClient = httpClientFactory.CreateClient(nameof(FindService));
         _authClientProvider = authClientProvider;
+        _matchApiKey = configuration.GetValue<string>("MATCH_API_KEY") ?? "local-dev-key-change-me";
         _logger = logger;
     }
 
     public async Task<FindMatchResult> MatchRecord(LocalPerson person, string clientId)
     {
         await GetAuthTokenAsync(clientId, Scopes);
-        var request = new FindMatchRequest
+        var matchRequest = new FindMatchRequest
         {
             Metadata = [],
             PersonSpecification = new FindMatchPerson
@@ -51,9 +54,19 @@ public class FindService : IFindService
         };
         try
         {
-            var json = JsonSerializer.Serialize(request, _serializerSettings);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-            var result = await _httpClient.PostAsync("v1/matchperson", content);
+            var requestJson = JsonSerializer.Serialize(matchRequest, _serializerSettings);
+            using var content = new StringContent(
+                requestJson,
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, "v1/matchperson");
+            request.Headers.Authorization = _httpClient.DefaultRequestHeaders.Authorization;
+            request.Headers.Add("x-api-key", _matchApiKey);
+            request.Content = content;
+
+            var result = await _httpClient.SendAsync(request);
             if (result.IsSuccessStatusCode)
             {
                 return (await result.Content.ReadFromJsonAsync<FindMatchResult>())
@@ -220,9 +233,5 @@ public class FindService : IFindService
             "Bearer",
             accessToken
         );
-        if (!_httpClient.DefaultRequestHeaders.Contains("x-api-key"))
-        {
-            _httpClient.DefaultRequestHeaders.Add("x-api-key", FindApiKey);
-        }
     }
 }
