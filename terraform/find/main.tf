@@ -147,15 +147,15 @@ resource "azurerm_key_vault_secret" "find_match_api_key" {
 
 import {
   to = azurerm_key_vault_secret.nhs_digital_private_key
-  id = "${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_private_key.name}"
+  id = "${module.key_vault.vault_uri}secrets/nhs-digital-private-key"
 }
 import {
   to = azurerm_key_vault_secret.nhs_digital_client_id
-  id = "${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_client_id.name}"
+  id = "${module.key_vault.vault_uri}secrets/nhs-digital-client-id"
 }
 import {
   to = azurerm_key_vault_secret.nhs_digital_kid
-  id = "${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_kid.name}"
+  id = "${module.key_vault.vault_uri}secrets/nhs-digital-kid"
 }
 resource "azurerm_key_vault_secret" "nhs_digital_private_key" {
   name            = "nhs-digital-private-key"
