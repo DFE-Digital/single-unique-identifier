@@ -20,7 +20,7 @@ on:
           - d01
           - d02
       web_app_descriptor:
-        description: App to restart
+        description: Web App to restart
         required: true
         default: custodians01
         type: choice
@@ -44,21 +44,17 @@ on:
       AZURE_SUBSCRIPTION_ID:
         required: true
 
+permissions:
+  id-token: write
+
 jobs:
-  restart:
+  restart-web-app:
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     environment: ${{ inputs.environment }}
     env:
-      RESOURCE_GROUP_NAME: ${{ format('{0}{1}rg-{2}-{3}', github.env.AZURE_SUBSCRIPTION_PREFIX, inputs.environment, github.env.AZURE_REGION_SHORT, github.env.AZURE_ENV_DESCRIPTOR) }}
-      WEB_APP_NAME: ${{ format('{0}{1}app-{2}-{3}', github.env.AZURE_SUBSCRIPTION_PREFIX, inputs.environment, github.env.AZURE_REGION_SHORT, inputs.web_app_descriptor) }}
+      RESOURCE_GROUP_NAME: ${{ format('{0}{1}rg-{2}-{3}', vars.AZURE_SUBSCRIPTION_PREFIX, inputs.environment, vars.AZURE_REGION_SHORT, vars.AZURE_ENV_DESCRIPTOR) }}
+      WEB_APP_NAME: ${{ format('{0}{1}app-{2}-{3}', vars.AZURE_SUBSCRIPTION_PREFIX, inputs.environment, vars.AZURE_REGION_SHORT, inputs.web_app_descriptor) }}
     steps:
-      - name: Azure login with OIDC for ${{ inputs.environment }}
-        uses: azure/login@v3
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       - name: Display Workflow Setup
         run: |
           echo
@@ -66,8 +62,15 @@ jobs:
           echo "RESOURCE_GROUP_NAME: $RESOURCE_GROUP_NAME"
           echo "WEB_APP_NAME: $WEB_APP_NAME"
 
-      #- name: Restart Azure Web App
-      #  run: |
-      #    az webapp restart \
-      #      --name $WEB_APP_NAME \
-      #      --resource-group $RESOURCE_GROUP_NAME
+      - name: Azure login with OIDC for ${{ inputs.environment }}
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Restart Azure Web App
+        run: |
+          az webapp restart \
+            --name $WEB_APP_NAME \
+            --resource-group $RESOURCE_GROUP_NAME
