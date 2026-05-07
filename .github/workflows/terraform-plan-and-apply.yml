@@ -32,6 +32,7 @@ on:
         required: true
       NHS_DIGITAL_PRIVATE_KEY:
         required: true
+        
 
 permissions:
   id-token: write
@@ -47,13 +48,10 @@ jobs:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
       ARM_USE_OIDC: true
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      TF_VAR_subscription_prefix: ${{ vars.AZURE_SUBSCRIPTION_PREFIX }}
-      TF_VAR_region_short: ${{ vars.AZURE_REGION_SHORT }}
-      TF_VAR_descriptor: ${{ vars.AZURE_ENV_DESCRIPTOR }}
-      # The NHS secrets below are only required for the Match Function, and are transmitted from Github Secrets to the Azure Key Vault.
-      TF_VAR_nhs_digital_client_id: ${{ secrets.NHS_DIGITAL_CLIENT_ID }}
-      TF_VAR_nhs_digital_kid: ${{ secrets.NHS_DIGITAL_KID }}
-      TF_VAR_nhs_digital_private_key: ${{ secrets.NHS_DIGITAL_PRIVATE_KEY }}
+      # The below secrets are required for the Match Function, and are transmitted from Github Secrets to the Azure Key Vault.
+      TF_VAR_nhs_digital_client_id: ${{ secrets.NHS_DIGITAL_CLIENT_ID}}
+      TF_VAR_nhs_digital_kid: ${{ secrets.NHS_DIGITAL_KID}}
+      TF_VAR_nhs_digital_private_key: ${{ secrets.NHS_DIGITAL_PRIVATE_KEY}}
 
     steps:
       - name: Checkout repository
