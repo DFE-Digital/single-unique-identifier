@@ -51,14 +51,26 @@ jobs:
   restart-web-app:
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     environment: ${{ inputs.environment }}
-    env:
-      RESOURCE_GROUP_NAME: ${{ format('{0}{1}rg-{2}-{3}', vars.AZURE_SUBSCRIPTION_PREFIX, inputs.environment, vars.AZURE_REGION_SHORT, vars.AZURE_ENV_DESCRIPTOR) }}
-      WEB_APP_NAME: ${{ format('{0}{1}app-{2}-{3}', vars.AZURE_SUBSCRIPTION_PREFIX, inputs.environment, vars.AZURE_REGION_SHORT, inputs.web_app_descriptor) }}
     steps:
-      - name: Display Workflow Setup
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Load tfvars for ${{ inputs.environment }}
+        id: env_config
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ inputs.environment }}
+
+      - id: eval
+        name: Evaluate Workflow Setup
+        env:
+          RESOURCE_GROUP_NAME: ${{ format('{0}{1}rg-{2}-{3}', steps.env_config.outputs.subscription_prefix, inputs.environment, steps.env_config.outputs.region_short, steps.env_config.outputs.descriptor) }}
+          WEB_APP_NAME: ${{ format('{0}{1}app-{2}-{3}', steps.env_config.outputs.subscription_prefix, inputs.environment, steps.env_config.outputs.region_short, inputs.web_app_descriptor) }}
         run: |
-          echo
-          echo "---- Workflow Setup: ----"
+          echo "resource_group_name=$RESOURCE_GROUP_NAME" >> "$GITHUB_OUTPUT"
+          echo "web_app_name=$WEB_APP_NAME" >> "$GITHUB_OUTPUT"
+
+          echo "---- Evaluated Workflow Setup: ----"
           echo "RESOURCE_GROUP_NAME: $RESOURCE_GROUP_NAME"
           echo "WEB_APP_NAME: $WEB_APP_NAME"
 
@@ -72,5 +84,5 @@ jobs:
       - name: Restart Azure Web App
         run: |
           az webapp restart \
-            --name $WEB_APP_NAME \
-            --resource-group $RESOURCE_GROUP_NAME
+            --name ${{ steps.eval.outputs.web_app_name }} \
+            --resource-group ${{ steps.eval.outputs.resource_group_name }}
