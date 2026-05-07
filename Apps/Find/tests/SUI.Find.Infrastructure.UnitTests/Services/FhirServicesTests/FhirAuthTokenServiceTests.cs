@@ -43,6 +43,8 @@ public class FhirAuthTokenServiceTests
         };
 
         _subHttpClientFactory.CreateClient("nhs-auth-api").Returns(httpClient);
+
+        _subLogger.IsEnabled(LogLevel.Information).Returns(true);
     }
 
     private static string GenerateDummyPrivateKey()

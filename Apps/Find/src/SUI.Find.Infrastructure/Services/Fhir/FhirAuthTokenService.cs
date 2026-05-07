@@ -71,7 +71,9 @@ public sealed class FhirAuthTokenService(
         if (_privateKey is not null)
             return;
 
-        logger.LogInformation("First-time initialization: loading secrets from Azure Key Vault.");
+        logger.LogInformation(
+            $"{nameof(FhirAuthTokenService)} Initializing. Loading NHS FHIR secrets from configuration..."
+        );
 
         _privateKey =
             _options.NHS_DIGITAL_PRIVATE_KEY
@@ -81,6 +83,18 @@ public sealed class FhirAuthTokenService(
             ?? throw new ArgumentNullException(_options.NHS_DIGITAL_CLIENT_ID);
         _kid =
             _options.NHS_DIGITAL_KID ?? throw new ArgumentNullException(_options.NHS_DIGITAL_KID);
+
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation(
+                $$"""{{nameof(FhirAuthTokenService)}} Initializing. NHS_DIGITAL_PRIVATE_KEY length is: {KeyLength}""",
+                _privateKey == null ? "null" : _privateKey.Length
+            );
+
+        if (logger.IsEnabled(LogLevel.Information))
+            logger.LogInformation(
+                $$"""{{nameof(FhirAuthTokenService)}} Initializing. NHS_DIGITAL Key details are: {KeyDetails}""",
+                new { clientId = _clientId, kid = _kid }
+            );
     }
 
     private async Task<CachedToken> FetchNewAccessTokenAsync(CancellationToken cancellationToken)
