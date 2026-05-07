@@ -25,7 +25,7 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
-      # The below secrets are required for the Match Function.
+      # The NHS secrets below are only required for the Match Function.
       NHS_DIGITAL_CLIENT_ID:
         required: true
       NHS_DIGITAL_KID:
