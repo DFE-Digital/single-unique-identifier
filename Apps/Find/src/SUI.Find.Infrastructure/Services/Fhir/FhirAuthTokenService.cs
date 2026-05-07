@@ -87,7 +87,7 @@ public sealed class FhirAuthTokenService(
         if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation(
                 $$"""{{nameof(FhirAuthTokenService)}} Initializing. NHS_DIGITAL_PRIVATE_KEY length is: {KeyLength}""",
-                _privateKey?.Length
+                _privateKey.Length
             );
 
         if (logger.IsEnabled(LogLevel.Information))
