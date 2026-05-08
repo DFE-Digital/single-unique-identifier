@@ -85,21 +85,3 @@ variable "ui_test_harness_password" {
   type        = string
   sensitive   = true
 }
-
-variable "key_vault_default_action" {
-  description = "The Default Action to use when no rules match from ip_rules / virtual_network_subnet_ids."
-  type        = string
-  default     = "Deny"
-}
-
-variable "key_vault_bypass" {
-  description = "Specifies which traffic can bypass the network rules."
-  type        = string
-  default     = "AzureServices"
-}
-
-variable "key_vault_ip_rules" {
-  description = "One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault."
-  type        = list(string)
-  default     = []
-}
