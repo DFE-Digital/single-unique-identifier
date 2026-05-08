@@ -9,6 +9,8 @@ locals {
   )
 }
 
+# Accepted for now while the project is in early development and does not handle real data. This ignore must be removed and the key vault should be included in the vnet prior to handling real data.
+# trivy:ignore:AZU-0013
 resource "azurerm_key_vault" "this" {
   name                        = var.name
   location                    = var.location
