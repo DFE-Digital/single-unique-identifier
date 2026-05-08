@@ -20,7 +20,7 @@ on:
           - d01
           - d02
       web_app_descriptor:
-        description: App to restart
+        description: Web App to restart
         required: true
         default: custodians01
         type: choice
@@ -44,14 +44,36 @@ on:
       AZURE_SUBSCRIPTION_ID:
         required: true
 
+permissions:
+  id-token: write
+
 jobs:
-  restart:
+  restart-web-app:
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     environment: ${{ inputs.environment }}
-    env:
-      RESOURCE_GROUP_NAME: ${{ format('{0}{1}rg-{2}-{3}', github.env.AZURE_SUBSCRIPTION_PREFIX, inputs.environment, github.env.AZURE_REGION_SHORT, github.env.AZURE_ENV_DESCRIPTOR) }}
-      WEB_APP_NAME: ${{ format('{0}{1}app-{2}-{3}', github.env.AZURE_SUBSCRIPTION_PREFIX, inputs.environment, github.env.AZURE_REGION_SHORT, inputs.web_app_descriptor) }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Load tfvars for ${{ inputs.environment }}
+        id: env_config
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ inputs.environment }}
+
+      - id: eval
+        name: Evaluate Workflow Setup
+        env:
+          RESOURCE_GROUP_NAME: ${{ format('{0}{1}rg-{2}-{3}', steps.env_config.outputs.subscription_prefix, inputs.environment, steps.env_config.outputs.region_short, steps.env_config.outputs.descriptor) }}
+          WEB_APP_NAME: ${{ format('{0}{1}app-{2}-{3}', steps.env_config.outputs.subscription_prefix, inputs.environment, steps.env_config.outputs.region_short, inputs.web_app_descriptor) }}
+        run: |
+          echo "resource_group_name=$RESOURCE_GROUP_NAME" >> "$GITHUB_OUTPUT"
+          echo "web_app_name=$WEB_APP_NAME" >> "$GITHUB_OUTPUT"
+
+          echo "---- Evaluated Workflow Setup: ----"
+          echo "RESOURCE_GROUP_NAME: $RESOURCE_GROUP_NAME"
+          echo "WEB_APP_NAME: $WEB_APP_NAME"
+
       - name: Azure login with OIDC for ${{ inputs.environment }}
         uses: azure/login@v3
         with:
@@ -59,15 +81,8 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Display Workflow Setup
+      - name: Restart Azure Web App
         run: |
-          echo
-          echo "---- Workflow Setup: ----"
-          echo "RESOURCE_GROUP_NAME: $RESOURCE_GROUP_NAME"
-          echo "WEB_APP_NAME: $WEB_APP_NAME"
-
-      #- name: Restart Azure Web App
-      #  run: |
-      #    az webapp restart \
-      #      --name $WEB_APP_NAME \
-      #      --resource-group $RESOURCE_GROUP_NAME
+          az webapp restart \
+            --name ${{ steps.eval.outputs.web_app_name }} \
+            --resource-group ${{ steps.eval.outputs.resource_group_name }}

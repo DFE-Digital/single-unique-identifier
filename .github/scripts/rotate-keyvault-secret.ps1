@@ -258,6 +258,7 @@ function Get-RotationContext {
         scheduled_enabled = $scheduledEnabled.ToString().ToLowerInvariant()
         refresh_mode = if ($secretDefinition.ContainsKey('refresh_strategy')) { [string]$secretDefinition['refresh_strategy'] } elseif ($profileDefinition.ContainsKey('refresh_strategy')) { [string]$profileDefinition['refresh_strategy'] } else { '' }
         restart_mode = if ($secretDefinition.ContainsKey('restart_strategy')) { [string]$secretDefinition['restart_strategy'] } elseif ($profileDefinition.ContainsKey('restart_strategy')) { [string]$profileDefinition['restart_strategy'] } else { '' }
+        restart_dependant_webapp = if ($secretDefinition.ContainsKey('restart_dependant_webapp')) { [string]$secretDefinition['restart_dependant_webapp'] } elseif ($profileDefinition.ContainsKey('restart_dependant_webapp')) { [string]$profileDefinition['restart_dependant_webapp'] } else { '' }
         verification_runner = if ($verificationDefinition.ContainsKey('runner')) { [string]$verificationDefinition['runner'] } else { '' }
         verification_project = if ($verificationDefinition.ContainsKey('project')) { [string]$verificationDefinition['project'] } else { '' }
         verification_filter = if ($verificationDefinition.ContainsKey('filter')) { [string]$verificationDefinition['filter'] } else { '' }

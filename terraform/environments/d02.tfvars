@@ -24,6 +24,10 @@ find_app_settings = {
 custodian_app_settings = {
   FindApi__BaseUrl = "https://s270d02func-ukw-find01.azurewebsites.net"
   StubCustodians__BaseUrl = "https://s270d02app-ukw-custodians01.azurewebsites.net"
+  RandomDelayMinSeconds = 1,
+  RandomDelayMaxSeconds = 5,
+  CustodianWorkerRandomIntervalMinSeconds = 3,
+  CustodianWorkerRandomIntervalMaxSeconds = 8
 }
 
 tags = {
