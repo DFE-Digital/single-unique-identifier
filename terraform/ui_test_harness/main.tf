@@ -57,9 +57,14 @@ module "key_vault" {
   product          = var.product
   service_offering = var.service_offering
   tags             = var.tags
+
+  # NEW: Wire up the network ACLs to allow environment-specific overrides
+  network_acls_default_action = var.key_vault_default_action
+  network_acls_bypass         = var.key_vault_bypass
+  network_acls_ip_rules       = var.key_vault_ip_rules
 }
 
-# 1a. Give Terraform Operator access to create the secret
+# Give Terraform Operator access to create the secret
 module "rbac_assignments_terraform_operator" {
   source = "../modules/rbac_assignments"
   scope  = module.key_vault.id
