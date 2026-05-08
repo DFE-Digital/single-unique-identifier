@@ -32,7 +32,9 @@ on:
         required: true
       NHS_DIGITAL_PRIVATE_KEY:
         required: true
-        
+      # New secret for UI Test Harness
+      UI_TEST_HARNESS_PASSWORD:
+        required: false
 
 permissions:
   id-token: write
@@ -52,6 +54,8 @@ jobs:
       TF_VAR_nhs_digital_client_id: ${{ secrets.NHS_DIGITAL_CLIENT_ID}}
       TF_VAR_nhs_digital_kid: ${{ secrets.NHS_DIGITAL_KID}}
       TF_VAR_nhs_digital_private_key: ${{ secrets.NHS_DIGITAL_PRIVATE_KEY}}
+      # The below secret is required for the UI Test Harness, and are transmitted from Github Secrets to the Azure Key Vault.
+      TF_VAR_ui_test_harness_password: ${{ secrets.UI_TEST_HARNESS_PASSWORD }}
 
     steps:
       - name: Checkout repository

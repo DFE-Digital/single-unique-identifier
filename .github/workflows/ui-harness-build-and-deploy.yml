@@ -1,0 +1,89 @@
+name: 'Build, Test, Deploy: "UI Test Harness" Solution'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for deployment
+        required: false
+        default: d01
+        type: choice
+        options:
+          - d01
+          - d02
+      deploy:
+        description: Deploy to Azure Web App
+        required: false
+        default: false
+        type: boolean
+      upload_artifacts:
+        description: Upload build artifacts (auto-enabled when deploying)
+        required: false
+        default: false
+        type: boolean
+      artifact_store:
+        description: Artifact storage backend (github or azure)
+        required: false
+        default: azure
+        type: string
+      skip_tests:
+        description: Skip tests and related setup
+        required: false
+        default: false
+        type: boolean
+      skip_scans:
+        description: Skip SonarCloud scans
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - main
+    paths:
+      - "Apps/UIHarness/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Apps/UIHarness/**"
+
+jobs:
+  build-and-test-UIHarness:
+    name: UIHarness - Build Test Dotnet
+    uses: ./.github/workflows/build-test-dotnet.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      checks: write
+      packages: read
+      actions: write
+    with:
+      directory_name: Apps/UIHarness
+      project_names: '["SUI.UIHarness.Web"]'
+      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      skip_tests: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_tests == 'true' }}
+      skip_scans: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_scans == 'true' }}
+      deploy_requested: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true' }}
+
+  deploy-UIHarness:
+    name: UIHarness - Deploy Web App
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: build-and-test-UIHarness
+    uses: ./.github/workflows/deploy-dotnet-webapp.yml
+    secrets: inherit
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
+      directory_name: Apps/UIHarness
+      artifact_name: ${{ fromJson(needs.build-and-test-UIHarness.outputs.artifact_names)['SUI.UIHarness.Web'] }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      component_descriptor: uiharness01
+      package_path: publish
