@@ -10,7 +10,7 @@ locals {
   web_app_descriptor   = "uiharness01"
   web_app_name = format("%s%sapp-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.web_app_descriptor)
   
-  key_vault_descriptor = "uiharnesskv01" // gitleaks:allow
+  key_vault_descriptor = "uihrnskv01" // gitleaks:allow
   key_vault_name       = format("%s%skv-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.key_vault_descriptor)
 
   otel_resource_attributes = join(",", [
