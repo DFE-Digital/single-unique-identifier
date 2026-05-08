@@ -32,7 +32,7 @@ on:
         required: true
       NHS_DIGITAL_PRIVATE_KEY:
         required: true
-      # New secret for UI Test Harness
+      # Secret that grants end-users access to the deployed UI Test Harness
       UI_TEST_HARNESS_PASSWORD:
         required: false
 
