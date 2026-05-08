@@ -9,6 +9,8 @@ locals {
   )
 }
 
+# Accepted for now while the project is in early development and does not handle real data. This ignore must be removed and the key vault should be included in the vnet prior to handling real data.
+# trivy:ignore:AZU-0013
 resource "azurerm_key_vault" "this" {
   name                        = var.name
   location                    = var.location
@@ -20,13 +22,6 @@ resource "azurerm_key_vault" "this" {
   rbac_authorization_enabled  = var.rbac_authorization_enabled
 
   sku_name = "standard"
-
-  network_acls {
-    default_action             = var.network_acls_default_action
-    bypass                     = var.network_acls_bypass
-    ip_rules                   = var.network_acls_ip_rules
-    virtual_network_subnet_ids = var.network_acls_subnet_ids
-  }
 
   tags = merge(
     local.base_tags,

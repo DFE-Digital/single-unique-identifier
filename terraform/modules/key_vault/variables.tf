@@ -47,23 +47,3 @@ variable "rbac_authorization_enabled" {
   type        = bool
   default     = true
 }
-
-variable "network_acls_default_action" {
-  type    = string
-  default = "Deny"
-}
-
-variable "network_acls_bypass" {
-  type    = string
-  default = "AzureServices"
-}
-
-variable "network_acls_ip_rules" {
-  type    = list(string)
-  default = []
-}
-
-variable "network_acls_subnet_ids" {
-  type    = list(string)
-  default = []
-}
