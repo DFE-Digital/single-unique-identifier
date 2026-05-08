@@ -121,6 +121,8 @@ module "web_app" {
       APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
 
+      BaseUrl = format("https://%s%sfunc-%s-find01.azurewebsites.net", var.subscription_prefix, var.environment_id, var.region_short)
+
       # Key Vault References mapped to App Settings
       UI_TEST_HARNESS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.ui_harness_password.name}/)"
       MATCH_API_KEY            = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.find_match_api_key.versionless_id})"
