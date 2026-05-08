@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SUI.UIHarness.Web/SUI.UIHarness.Web.csproj" />
+  </Folder>
+</Solution>
