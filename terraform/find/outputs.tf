@@ -29,6 +29,11 @@ output "audit_processor_function_app_id" {
 }
 
 output "key_vault_name" {
+  value       = module.key_vault.name
+  description = "Name of the Key Vault."
+}
+
+output "key_vault_id" {
   value       = module.key_vault.id
   description = "ID of the Key Vault."
 }
