@@ -68,10 +68,11 @@ jobs:
       project_names: '["SUI.UIHarness.Web"]'
       upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
       artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      # Below settings are uniquely changed for the UI Harness to enable deployment
+      deploy_requested: false
       skip_tests: true
       skip_scans: true
-      deploy_requested: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true' }}
-
+      
   deploy-UIHarness:
     name: UIHarness - Deploy Web App
     if: |
