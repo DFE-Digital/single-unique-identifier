@@ -80,7 +80,9 @@ jobs:
         with:
           global-json-file: global.json
           cache: true
-          cache-dependency-path: ${{ inputs.directory_name }}/Directory.Packages.props
+          cache-dependency-path: |
+            ${{ inputs.directory_name }}/**/*.csproj
+            ${{ inputs.directory_name }}/Directory.Packages.props
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
