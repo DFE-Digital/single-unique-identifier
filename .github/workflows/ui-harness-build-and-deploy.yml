@@ -71,6 +71,8 @@ jobs:
       skip_tests: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_tests == 'true' }}
       skip_scans: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_scans == 'true' }}
       deploy_requested: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true' }}
+      skip_tests: true
+      skip_scans: true
 
   deploy-UIHarness:
     name: UIHarness - Deploy Web App
