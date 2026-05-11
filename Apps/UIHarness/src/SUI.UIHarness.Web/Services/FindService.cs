@@ -24,7 +24,7 @@ public class FindService : IFindService
     ];
 
     private const string ErrorPersonId = "Error - please retry";
-    private const string NotFoundPersonId = "Not found";
+    private const string NotFoundPersonId = "Not Found";
 
     public FindService(
         IHttpClientFactory httpClientFactory,
