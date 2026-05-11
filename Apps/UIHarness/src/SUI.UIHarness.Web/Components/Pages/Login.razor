@@ -1,4 +1,5 @@
 @page "/login"
+@using SUI.UIHarness.Web.Models
 @using SUI.UIHarness.Web.Services
 @inject IFindApiAuthClientProvider FindApiAuthClientProvider
 
@@ -22,7 +23,7 @@
                     <label for="custodianName" class="form-label">Custodian Name</label>
                     <select id="custodianName" name="custodianName" class="form-select" required>
                         <option value="" selected="@(string.IsNullOrEmpty(CustodianName))">Select...</option>
-                        @foreach (var authClient in FindApiAuthClientProvider.GetAuthClients().Where(x => x.Enabled))
+                        @foreach (var authClient in _authClients)
                         {
                             <option key="@authClient.ClientId" value="@authClient.ClientId" selected="@(CustodianName == authClient.ClientId)">@authClient.ClientId</option>
                         }
@@ -48,6 +49,8 @@
 </div>
 
 @code {
+    private AuthClient[] _authClients = [];
+
     [SupplyParameterFromQuery]
     public string? Error { get; set; }
 
@@ -56,4 +59,12 @@
 
     [SupplyParameterFromQuery]
     public string? Architecture { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _authClients = FindApiAuthClientProvider.GetAuthClients().Where(x => x.Enabled).ToArray();
+
+        Architecture ??= "Polling";
+        CustodianName ??= _authClients.FirstOrDefault()?.ClientId;
+    }
 }
