@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using SUI.UIHarness.Web.Models;
@@ -22,6 +23,9 @@ public class FindService : IFindService
         "fetch-record.read",
     ];
 
+    private const string ErrorPersonId = "Error - please retry";
+    private const string NotFoundPersonId = "Not found";
+
     public FindService(
         IHttpClientFactory httpClientFactory,
         IFindApiAuthClientProvider authClientProvider,
@@ -37,6 +41,7 @@ public class FindService : IFindService
 
     public async Task<FindMatchResult> MatchRecord(LocalPerson person, string clientId)
     {
+        string personId;
         await GetAuthTokenAsync(clientId, Scopes);
         var matchRequest = new FindMatchRequest
         {
@@ -72,13 +77,27 @@ public class FindService : IFindService
                 return (await result.Content.ReadFromJsonAsync<FindMatchResult>())
                     ?? throw new InvalidOperationException();
             }
+
+            personId = HandleErrorCodes(result);
         }
         catch (Exception exception)
         {
             _logger.LogError(exception, "MatchRecord failed: {Message}", exception.Message);
+            personId = ErrorPersonId;
         }
 
-        return new FindMatchResult("Not Found");
+        return new FindMatchResult(personId);
+    }
+
+    private static string HandleErrorCodes(HttpResponseMessage result)
+    {
+        if (result.StatusCode == HttpStatusCode.NotFound)
+            return NotFoundPersonId;
+
+        if ((int)result.StatusCode >= 500 && (int)result.StatusCode < 600)
+            return ErrorPersonId;
+
+        return result.ReasonPhrase ?? result.StatusCode.ToString();
     }
 
     public async Task<string> StartSearch(string clientId, string suid, bool usePolling)
