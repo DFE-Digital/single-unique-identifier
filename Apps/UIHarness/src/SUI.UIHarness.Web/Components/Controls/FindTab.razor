@@ -118,7 +118,7 @@
         var usePolling = Architecture == "Polling";
         var searchJob = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber, usePolling);
         var keepPolling = true;
-        const int percentToAdd = 10;
+        const int percentToAdd = 5; // Note: only applicable to Fanout architecture
         while (keepPolling && !HasCurrentNhsNumberChanged())
         {
             var result = await FindService.FindRecords(SelectedOrg, searchJob, usePolling);
