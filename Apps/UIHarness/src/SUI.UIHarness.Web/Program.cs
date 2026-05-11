@@ -45,6 +45,21 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 
+app.MapGet(
+    "/api/health",
+    ([FromServices] IHostEnvironment env) =>
+        Results.Ok(
+            new
+            {
+                Value = "Healthy",
+                ServiceName = "UIHarness",
+                env.EnvironmentName,
+                nowUtc = DateTimeOffset.UtcNow,
+                nowLocal = DateTimeOffset.Now,
+            }
+        )
+);
+
 app.MapPost(
         "/api/auth/login",
         async (
