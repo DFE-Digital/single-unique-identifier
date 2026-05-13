@@ -379,12 +379,12 @@
         Reset();
         _fetchedForOrg = null;
         _fetchProgress = 10;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
         _showFetchProgress = true;
         _currentRecord = await FindService.FetchRecord(SelectedOrg, SelectedRecordUrl);
         _fetchedForOrg = SelectedOrg;
         _fetchProgress = 50;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
         if (_currentRecord is { RecordType: "education.details", Payload: not null })
         {
             _currentEducationRecord = _currentRecord.Payload.Value.Deserialize<EducationDetailsRecord>(new JsonSerializerOptions(JsonSerializerDefaults.Web));
@@ -407,8 +407,8 @@
         }
 
         _fetchProgress = 100;
-        StateHasChanged();
         _showFetchProgress = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private void Reset()
