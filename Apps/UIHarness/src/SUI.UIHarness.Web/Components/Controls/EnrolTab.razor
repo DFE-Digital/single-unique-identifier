@@ -147,7 +147,7 @@
             var result = await FindService.MatchRecord(person, SelectedOrg);
             person.NhsNumber = result.PersonId;
             _enrolledForOrg ??= SelectedOrg;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
             await Task.Delay(500);
         }
 

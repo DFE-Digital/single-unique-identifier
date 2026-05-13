@@ -1,6 +1,7 @@
 @using SUI.UIHarness.Web.Models
 @using SUI.UIHarness.Web.Models.Find
 @using SUI.UIHarness.Web.Services
+
 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
     <div>
         <h2 class="h5 mb-2">Selected person</h2>
@@ -13,12 +14,8 @@
             <div class="" id="selectedPersonText">@CurrentPerson.Given @CurrentPerson.Family - NHS @CurrentPerson.NhsNumber</div>
         }
     </div>
-
-    <div class="text-end">
-        <button id="btnFindRecords" type="button" class="btn btn-primary" hidden="@(CurrentPerson == null)" @onclick="FindRecords">Find records</button>
-        <div class="text-muted mt-2" id="findRecordsStatus"></div>
-    </div>
 </div>
+
 @if (_showFindProgress)
 {
     <div id="findRecordsProgressWrap" class="mb-3">
@@ -94,6 +91,9 @@
     
     [Parameter]
     public EventCallback<LocalRecord> CurrentRecordChanged { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> CurrentWorkItemIdChanged { get; set; }
 
     private bool _showFindProgress;
     private int _findProgressPercentage;
@@ -102,68 +102,87 @@
     
     [Inject]
     public required IFindService FindService { get; set; }
-    
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_showFindProgress && _foundRecordsFor != (SelectedOrg, CurrentPerson?.NhsNumber))
+        {
+            await FindRecords();
+        }
+    }
+
     private async Task FindRecords()
     {
         if (CurrentPerson?.NhsNumber == null)
         {
             return;
         }
-
+        
         _foundRecords.Clear();
         _foundRecordsFor = null;
         _findProgressPercentage = 0;
         _showFindProgress = true;
         var currentNhsNumber = CurrentPerson.NhsNumber;
         var usePolling = Architecture == "Polling";
-        var searchJob = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber, usePolling);
-        var keepPolling = true;
-        const int percentToAdd = 5; // Note: only applicable to Fanout architecture
-        while (keepPolling && !HasCurrentNhsNumberChanged())
+
+        try
         {
-            var result = await FindService.FindRecords(SelectedOrg, searchJob, usePolling);
+            var workItemId = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber, usePolling);
+            await CurrentWorkItemIdChanged.InvokeAsync(workItemId);
 
-            if (HasCurrentNhsNumberChanged())
+            var keepPolling = true;
+            const int percentToAdd = 5; // Note: only applicable to Fanout architecture
+            while (keepPolling && !HasCurrentNhsNumberChanged())
             {
-                break;
-            }
+                var result = await FindService.FindRecords(SelectedOrg, workItemId, usePolling);
 
-            if (usePolling)
-            {
-                _findProgressPercentage = result.CompletenessPercentage;
-            }
-            else
-            {
-                _findProgressPercentage += percentToAdd;
-            }
-
-            StateHasChanged();
-            foreach (var resultItem in result.Items)
-            {
-                var record = new LocalRecord(resultItem.RecordId ?? resultItem.RecordUrl, resultItem.RecordUrl, resultItem.RecordType, resultItem.CustodianName ?? string.Empty);
-                
-                if (_foundRecords.Contains(record))
+                if (HasCurrentNhsNumberChanged())
                 {
-                    continue;
+                    break;
                 }
 
-                _foundRecords.Add(record);
-                _foundRecordsFor ??= (SelectedOrg, CurrentPerson.NhsNumber);
+                if (usePolling)
+                {
+                    _findProgressPercentage = result.CompletenessPercentage;
+                }
+                else
+                {
+                    _findProgressPercentage += percentToAdd;
+                }
+
+                await InvokeAsync(StateHasChanged);
+
+                foreach (var resultItem in result.Items)
+                {
+                    var record = new LocalRecord(resultItem.RecordId ?? resultItem.RecordUrl, resultItem.RecordUrl, resultItem.RecordType, resultItem.CustodianName ?? string.Empty);
                 
-                StateHasChanged();
-            }
+                    if (_foundRecords.Contains(record))
+                    {
+                        continue;
+                    }
+
+                    _foundRecords.Add(record);
+                    _foundRecordsFor ??= (SelectedOrg, CurrentPerson.NhsNumber);
+                
+                    await InvokeAsync(StateHasChanged);
+                }
             
-            if (_findProgressPercentage >= 100 || result.Status == FindSearchStatus.Completed)
-            {
-                keepPolling = false;
-            }
-            else
-            {
-                await Task.Delay(2000);
+                if (_findProgressPercentage >= 100 || result.Status == FindSearchStatus.Completed)
+                {
+                    keepPolling = false;
+                }
+                else
+                {
+                    await Task.Delay(2000);
+                }
             }
         }
-
-        _showFindProgress = false;
+        finally
+        {
+            _showFindProgress = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        
         return;
 
         bool HasCurrentNhsNumberChanged() => currentNhsNumber != CurrentPerson?.NhsNumber;

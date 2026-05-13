@@ -1,5 +1,4 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @using SUI.UIHarness.Web.Components.Controls
 @using SUI.UIHarness.Web.Models
@@ -13,7 +12,6 @@
 <div class="" style="padding-top: 24px;">
     <div class="mb-3">
         <p><strong>Current Custodian:</strong> @_selectedOrg</p>
-        <p><strong>Architecture:</strong> @_architecture</p>
     </div>
     
     <ul class="nav nav-tabs mt-3" id="mainTabs" role="tablist">
@@ -32,11 +30,24 @@
             <EnrolTab SelectedOrg="@_selectedOrg" CurrentPersonChanged="HandleCurrentPersonChanged"></EnrolTab>
         </div>
         <div class="tab-pane fade show active" id="tab-find" role="tabpanel" hidden='@(_currentTab != "find")'>
-            <FindTab SelectedOrg="@_selectedOrg" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged"></FindTab>
+            <FindTab SelectedOrg="@_selectedOrg" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged" CurrentWorkItemIdChanged="workItemId => _currentWorkItemId = workItemId"></FindTab>
         </div>
         <div class="tab-pane fade show active" id="tab-fetch" role="tabpanel" hidden='@(_currentTab != "fetch")'>
             <FetchTab SelectedOrg="@_selectedOrg" SelectedRecordUrl="@_selectedRecordUrl"></FetchTab>
         </div>
+    </div>
+    <div class="pt-3 small text-black-50">
+        <a href="" class="link-secondary link-underline-opacity-0 link-underline-opacity-100-hover" @onclick:preventDefault @onclick="@(() => _showDebug = !_showDebug)">
+            @(_showDebug ? "- Info" : "+ Info")
+        </a>
+        @if (_showDebug)
+        {
+           <div class="mt-3">
+                <div><strong>Base URL:</strong> @Configuration["BaseURL"]</div>
+                <div><strong>Architecture:</strong> @_architecture</div>
+                <div><strong>@(_architecture == "Fanout" ? "Job ID" : "Work Item ID"):</strong> @_currentWorkItemId</div>
+            </div>
+        }
     </div>
 </div>
 
@@ -49,9 +60,14 @@
     private string _currentTab = "enrol";
     private LocalPerson? _currentPerson;
     private string _selectedRecordUrl = string.Empty;
+    private string _currentWorkItemId = string.Empty;
+    private bool _showDebug;
     
     [Inject]
     public required IFindService FindService { get; set; }
+    
+    [Inject]
+    public required IConfiguration Configuration { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

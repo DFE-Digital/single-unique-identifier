@@ -23,7 +23,7 @@ public class FindService : IFindService
         "fetch-record.read",
     ];
 
-    private const string ErrorPersonId = "Error - please retry";
+    private const string ErrorPersonId = "Error";
     private const string NotFoundPersonId = "Not Found";
 
     public FindService(
@@ -94,10 +94,9 @@ public class FindService : IFindService
         if (result.StatusCode == HttpStatusCode.NotFound)
             return NotFoundPersonId;
 
-        if ((int)result.StatusCode >= 500 && (int)result.StatusCode < 600)
-            return ErrorPersonId;
+        var statusMessage = $"{(int)result.StatusCode} {result.ReasonPhrase}";
 
-        return result.ReasonPhrase ?? result.StatusCode.ToString();
+        return $"{ErrorPersonId} ({statusMessage})";
     }
 
     public async Task<string> StartSearch(string clientId, string suid, bool usePolling)
@@ -141,14 +140,20 @@ public class FindService : IFindService
         return string.Empty;
     }
 
-    public async Task<SearchResultsDto> FindRecords(string clientId, string jobId, bool usePolling)
+    public async Task<SearchResultsDto> FindRecords(
+        string clientId,
+        string workItemId,
+        bool usePolling
+    )
     {
         await GetAuthTokenAsync(clientId, Scopes);
 
         try
         {
             var result = await _httpClient.GetAsync(
-                usePolling ? $"v2/searches/{jobId}/results" : $"v1/searches/{jobId}/results"
+                usePolling
+                    ? $"v2/searches/{workItemId}/results"
+                    : $"v1/searches/{workItemId}/results"
             );
             if (result.IsSuccessStatusCode)
             {
