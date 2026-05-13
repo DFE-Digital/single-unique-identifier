@@ -13,7 +13,7 @@ namespace SUI.Find.FindApi.OpenApi;
 )]
 public class MatchRequestExample : OpenApiExample<MatchRequest>
 {
-    public override IOpenApiExample<MatchRequest> Build(NamingStrategy namingStrategy = null)
+    public override IOpenApiExample<MatchRequest> Build(NamingStrategy? namingStrategy = null)
     {
         Examples.Add(
             OpenApiExampleResolver.Resolve(

@@ -27,12 +27,6 @@ public class MatchFunction(
 {
     [Function(nameof(MatchPerson))]
     [RequiredScopes("match-record.read")]
-    // Enforces the oauth2_clientCredentials and the required scope
-    [OpenApiSecurity(
-        "oauth2_clientCredentials",
-        SecuritySchemeType.OAuth2,
-        Flows = typeof(MatchRecordClientCredentialsFlow)
-    )]
     // Updated Summary
     [OpenApiOperation(
         operationId: "FindPerson",
