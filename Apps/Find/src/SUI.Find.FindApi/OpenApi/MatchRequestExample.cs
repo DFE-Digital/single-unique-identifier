@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Resolvers;
 using Newtonsoft.Json.Serialization;
@@ -7,6 +8,9 @@ using SUI.Find.Application.Models.Matching;
 namespace SUI.Find.FindApi.OpenApi;
 
 // Generates the JSON Example in the Swagger UI
+[ExcludeFromCodeCoverage(
+    Justification = "OpenAPI request example does not contain any logic to be tested."
+)]
 public class MatchRequestExample : OpenApiExample<MatchRequest>
 {
     public override IOpenApiExample<MatchRequest> Build(NamingStrategy namingStrategy = null)
