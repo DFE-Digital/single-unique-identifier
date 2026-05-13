@@ -141,14 +141,20 @@ public class FindService : IFindService
         return string.Empty;
     }
 
-    public async Task<SearchResultsDto> FindRecords(string clientId, string jobId, bool usePolling)
+    public async Task<SearchResultsDto> FindRecords(
+        string clientId,
+        string workItemId,
+        bool usePolling
+    )
     {
         await GetAuthTokenAsync(clientId, Scopes);
 
         try
         {
             var result = await _httpClient.GetAsync(
-                usePolling ? $"v2/searches/{jobId}/results" : $"v1/searches/{jobId}/results"
+                usePolling
+                    ? $"v2/searches/{workItemId}/results"
+                    : $"v1/searches/{workItemId}/results"
             );
             if (result.IsSuccessStatusCode)
             {
