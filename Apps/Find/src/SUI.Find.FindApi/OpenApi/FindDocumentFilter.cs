@@ -13,6 +13,18 @@ public sealed class FindDocumentFilter : IDocumentFilter
     {
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+        document.Components.Schemas ??= new Dictionary<string, OpenApiSchema>();
+
+        var dateOnlyKeys = new[] { "dateOnly", "DateOnly" };
+        foreach (var key in dateOnlyKeys)
+        {
+            if (document.Components.Schemas.TryGetValue(key, out var schema))
+            {
+                schema.Type = "string";
+                schema.Format = "date";
+                schema.Properties.Clear();
+            }
+        }
 
         document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {

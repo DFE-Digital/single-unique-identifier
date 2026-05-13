@@ -14,13 +14,12 @@ public class PersonSpecification
     [OpenApiProperty(Description = "Family name (often called 'Surname')", Default = "Chislett")]
     public string? Family { get; set; }
 
-    // Type and Format is handled by DataType attribute
     [OpenApiProperty(Description = "The date of birth for the individual", Default = "2022-03-17")]
-    [DataType(DataType.Date)]
     public DateOnly? BirthDate { get; set; }
 
     [OpenApiProperty(
-        Description = "The gender that the patient is considered to have for administration and record keeping purposes."
+        Description = "The gender that the patient is considered to have for administration and record keeping purposes.",
+        Default = "female"
     )]
     public string? Gender { get; set; }
 
