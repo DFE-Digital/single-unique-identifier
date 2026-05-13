@@ -69,7 +69,7 @@ public class MatchFunctionTests
             },
             Metadata =
             [
-                new Metadata
+                new MatchRequestMetadata
                 {
                     RecordType = "Test RecordType",
                     SystemId = "Test System",
@@ -357,7 +357,7 @@ public class MatchFunctionTests
             },
             Metadata =
             [
-                new Metadata
+                new MatchRequestMetadata
                 {
                     RecordType = "Test RecordType",
                     SystemId = null!, // ← key scenario

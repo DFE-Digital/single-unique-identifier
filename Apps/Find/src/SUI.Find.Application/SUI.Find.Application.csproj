@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.OpenApi.Core" />
     <PackageReference Include="Microsoft.DurableTask.Client" />
     <PackageReference Include="OneOf" />
   </ItemGroup>

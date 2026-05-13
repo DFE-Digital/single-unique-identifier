@@ -213,6 +213,13 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
                 Family = "Chislett",
                 BirthDate = DateOnly.Parse("2008-09-20"),
             },
-            Metadata = [new Metadata { RecordType = "personal.details", RecordId = "9691292211" }],
+            Metadata =
+            [
+                new MatchRequestMetadata
+                {
+                    RecordType = "personal.details",
+                    RecordId = "9691292211",
+                },
+            ],
         };
 }
