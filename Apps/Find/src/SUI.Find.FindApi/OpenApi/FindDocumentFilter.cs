@@ -87,6 +87,20 @@ public sealed class FindDocumentFilter : IDocumentFilter
             ] = Array.Empty<string>(),
         };
 
+        var oauthRequirementMatch = new OpenApiSecurityRequirement
+        {
+            [
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "oauth2_clientCredentials",
+                    },
+                }
+            ] = ["match-record.read"],
+        };
+
         var apiKeyRequirement = new OpenApiSecurityRequirement
         {
             [
@@ -131,7 +145,7 @@ public sealed class FindDocumentFilter : IDocumentFilter
                 {
                     op.Security = new List<OpenApiSecurityRequirement>
                     {
-                        oauthRequirement,
+                        oauthRequirementMatch,
                         apiKeyRequirement,
                     };
                 }
