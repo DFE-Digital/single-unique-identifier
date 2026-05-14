@@ -143,7 +143,7 @@ public class SearchResultsV2FunctionTests
     }
 
     [Fact]
-    public async Task ReturnsUnauthorized_WhenUnauthorized()
+    public async Task ReturnsForbidden_WhenUserDoesNotHaveAccessTo_SearchResults()
     {
         _jobSearchService
             .GetSearchResultsAsync(
@@ -151,7 +151,7 @@ public class SearchResultsV2FunctionTests
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(new Unauthorized());
+            .Returns(new Forbidden());
 
         var response = await _sut.SearchResultsV2Trigger(
             _httpRequestData,
@@ -161,7 +161,7 @@ public class SearchResultsV2FunctionTests
             CancellationToken.None
         );
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         Assert.Equal("no-cache", response.Headers.GetValues("Pragma").Single());
         Assert.Equal(
             DateTimeOffset.UnixEpoch.ToString("R"),

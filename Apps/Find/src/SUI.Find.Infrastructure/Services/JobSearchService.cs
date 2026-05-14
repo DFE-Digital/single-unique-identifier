@@ -17,9 +17,7 @@ public class JobSearchService(
     ILogger<JobSearchService> logger
 ) : IJobSearchService
 {
-    public async Task<
-        OneOf<SearchResultsV2Dto, NotFound, Unauthorized, Error>
-    > GetSearchResultsAsync(
+    public async Task<OneOf<SearchResultsV2Dto, NotFound, Forbidden, Error>> GetSearchResultsAsync(
         string workItemId,
         string requestingOrganisationId,
         CancellationToken cancellationToken
@@ -47,7 +45,7 @@ public class JobSearchService(
                 workItemJobCountEntity.RequestingOrganisationId,
                 workItemId
             );
-            return new Unauthorized();
+            return new Forbidden();
         }
 
         var completedRecords = await searchResultsEntryRepository.GetByWorkItemIdAsync(

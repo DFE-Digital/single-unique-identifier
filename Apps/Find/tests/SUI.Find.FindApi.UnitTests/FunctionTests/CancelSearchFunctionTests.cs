@@ -191,7 +191,7 @@ public class CancelSearchFunctionTests
     }
 
     [Fact]
-    public async Task ShouldThrowUnauthorizedResponse_WhenUserIsNotAuthorizedToCancelSearch()
+    public async Task ShouldThrowForbiddenResponse_WhenUserDoesHaveAccessTo_CancelSearch()
     {
         // Arrange
         var httpRequestData = MockHttpRequestData.Create(
@@ -199,7 +199,7 @@ public class CancelSearchFunctionTests
         );
         _searchService
             .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
-            .Returns(new Unauthorized());
+            .Returns(new Forbidden());
 
         // Act
         var result = await _sut.CancelSearch(
@@ -210,9 +210,9 @@ public class CancelSearchFunctionTests
             CancellationToken.None
         );
 
-        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, result.StatusCode);
+        Assert.Equal(System.Net.HttpStatusCode.Forbidden, result.StatusCode);
         result.Body.Position = 0;
         var problemResponse = await JsonSerializer.DeserializeAsync<Problem>(result.Body);
-        Assert.Equal((int)System.Net.HttpStatusCode.Unauthorized, problemResponse!.Status);
+        Assert.Equal((int)System.Net.HttpStatusCode.Forbidden, problemResponse!.Status);
     }
 }

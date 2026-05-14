@@ -113,14 +113,14 @@ public class SearchStatusFunctionTests
     }
 
     [Fact]
-    public async Task ShouldReturnUnauthorized_WhenServiceReturnsUnauthorized()
+    public async Task ShouldReturnForbidden_WhenUserDoesNotHaveAccessTo_SearchStatus()
     {
         // Arrange
         var context = CreateContextWithAuth();
         var req = MockHttpRequestData.Create();
         _searchService
             .GetSearchStatusAsync("job-4", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new Unauthorized());
+            .Returns(new Forbidden());
 
         // Act
         var response = await _sut.SearchJobTrigger(
@@ -132,7 +132,7 @@ public class SearchStatusFunctionTests
         );
 
         // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]

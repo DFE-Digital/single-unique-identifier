@@ -32,7 +32,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
     }
 
     [Fact]
-    public async Task ShouldReturnUnauthorized_WhenClientIdDoesNotMatch()
+    public async Task ShouldReturnForbidden_WhenClientIdDoesNotMatch()
     {
         var meta = new OrchestrationMetadata("Orchestrator", "unauth-job")
         {
@@ -57,7 +57,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<Unauthorized>(result.Value);
+        Assert.IsType<Forbidden>(result.Value);
     }
 
     [Fact]

@@ -94,8 +94,7 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.True(
-            response.StatusCode == expectedStatusCode
-                || response.StatusCode == HttpStatusCode.Unauthorized, // rs-todo: Unauthorized strictly isn't correct
+            response.StatusCode == expectedStatusCode,
             $"Expected {expectedStatusCode}, but got {response.StatusCode} for {method} {url}"
         );
     }
