@@ -1,0 +1,47 @@
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Resolvers;
+using Newtonsoft.Json.Serialization;
+using SUI.Find.Application.Constants.Matching;
+using SUI.Find.Application.Models.Matching;
+
+namespace SUI.Find.FindApi.OpenApi;
+
+// Generates the JSON Example in the Swagger UI
+[ExcludeFromCodeCoverage(
+    Justification = "OpenAPI request example does not contain any logic to be tested."
+)]
+public class MatchRequestExample : OpenApiExample<MatchRequest>
+{
+    public override IOpenApiExample<MatchRequest> Build(NamingStrategy? namingStrategy = null)
+    {
+        Examples.Add(
+            OpenApiExampleResolver.Resolve(
+                "MatchRequestExample",
+                new MatchRequest
+                {
+                    PersonSpecification = new PersonSpecification
+                    {
+                        Given = "Octavia",
+                        Family = "Chislett",
+                        BirthDate = new DateOnly(2022, 3, 17),
+                        Gender = PdsConstants.Gender.Female,
+                        AddressPostalCode = "KT19 0ST",
+                    },
+                    Metadata =
+                    [
+                        new MatchRequestMetadata
+                        {
+                            RecordType = "health.details",
+                            SystemId = "SYS-XYZ",
+                            RecordId = "987123",
+                        },
+                    ],
+                },
+                namingStrategy
+            )
+        );
+
+        return this;
+    }
+}

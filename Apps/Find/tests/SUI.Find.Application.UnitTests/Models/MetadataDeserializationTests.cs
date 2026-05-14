@@ -17,7 +17,7 @@ public class MetadataDeserializationTests
             """;
 
         // Act
-        var metadata = JsonSerializer.Deserialize<Metadata>(json);
+        var metadata = JsonSerializer.Deserialize<MatchRequestMetadata>(json);
 
         // Assert
         Assert.NotNull(metadata);
@@ -40,7 +40,7 @@ public class MetadataDeserializationTests
             """;
 
         // Act
-        var metadata = JsonSerializer.Deserialize<Metadata>(json);
+        var metadata = JsonSerializer.Deserialize<MatchRequestMetadata>(json);
 
         // Assert
         Assert.NotNull(metadata);
@@ -58,7 +58,7 @@ public class MetadataDeserializationTests
             }
             """;
 
-        var metadata = JsonSerializer.Deserialize<Metadata>(json);
+        var metadata = JsonSerializer.Deserialize<MatchRequestMetadata>(json);
 
         // Assert
         Assert.NotNull(metadata);

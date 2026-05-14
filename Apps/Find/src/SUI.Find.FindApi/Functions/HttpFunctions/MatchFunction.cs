@@ -5,12 +5,14 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models.Matching;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.OpenApi;
 using SUI.Find.FindApi.Utility;
 using SUI.Find.Infrastructure.Repositories.SuiCustodianRegister;
 
@@ -25,16 +27,50 @@ public class MatchFunction(
 {
     [Function(nameof(MatchPerson))]
     [RequiredScopes("match-record.read")]
+    // Updated Summary
     [OpenApiOperation(
         operationId: "FindPerson",
         tags: ["Match"],
-        Summary = "I know of this person, what is their unique ID"
+        Summary = "I know of this person, what is their Single Unique Identifier"
     )]
-    [OpenApiRequestBody("application/json", typeof(MatchRequest), Required = true)]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(PersonMatch))]
-    [OpenApiResponseWithBody(HttpStatusCode.BadRequest, "application/json", typeof(Problem))]
-    [OpenApiResponseWithBody(HttpStatusCode.NotFound, "application/json", typeof(Problem))]
-    [OpenApiResponseWithBody(HttpStatusCode.Unauthorized, "application/json", typeof(Problem))]
+    // Wired Request Body Example
+    [OpenApiRequestBody(
+        "application/json",
+        typeof(MatchRequest),
+        Required = true,
+        Example = typeof(MatchRequestExample)
+    )]
+    // Response Descriptions (and the new 500 Error)
+    [OpenApiResponseWithBody(
+        HttpStatusCode.OK,
+        "application/json",
+        typeof(PersonMatch),
+        Description = "The requested demographic information confidently matched an individual person"
+    )]
+    [OpenApiResponseWithBody(
+        HttpStatusCode.BadRequest,
+        "application/json",
+        typeof(Problem),
+        Description = "Request was refused because it contained invalid data, or was missing required data"
+    )]
+    [OpenApiResponseWithBody(
+        HttpStatusCode.Unauthorized,
+        "application/json",
+        typeof(Problem),
+        Description = "Request was refused because it lacks valid authentication credentials"
+    )]
+    [OpenApiResponseWithBody(
+        HttpStatusCode.NotFound,
+        "application/json",
+        typeof(Problem),
+        Description = "The requested demographic information did not confidently match an individual person"
+    )]
+    [OpenApiResponseWithBody(
+        HttpStatusCode.InternalServerError,
+        "application/json",
+        typeof(Problem),
+        Description = "The server encountered an unexpected condition that prevented it from fulfilling the request"
+    )]
     public async Task<HttpResponseData> MatchPerson(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/matchperson")]
             HttpRequestData req,

@@ -13,6 +13,16 @@ public sealed class FindDocumentFilter : IDocumentFilter
     {
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+        document.Components.Schemas ??= new Dictionary<string, OpenApiSchema>();
+
+        var dateOnlyKeys = new[] { "dateOnly", "DateOnly" };
+        foreach (var key in dateOnlyKeys.Where(key => document.Components.Schemas.ContainsKey(key)))
+        {
+            var schema = document.Components.Schemas[key];
+            schema.Type = "string";
+            schema.Format = "date";
+            schema.Properties.Clear();
+        }
 
         document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {
@@ -75,6 +85,20 @@ public sealed class FindDocumentFilter : IDocumentFilter
             ] = Array.Empty<string>(),
         };
 
+        var oauthRequirementMatch = new OpenApiSecurityRequirement
+        {
+            [
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "oauth2_clientCredentials",
+                    },
+                }
+            ] = ["match-record.read"],
+        };
+
         var apiKeyRequirement = new OpenApiSecurityRequirement
         {
             [
@@ -119,7 +143,7 @@ public sealed class FindDocumentFilter : IDocumentFilter
                 {
                     op.Security = new List<OpenApiSecurityRequirement>
                     {
-                        oauthRequirement,
+                        oauthRequirementMatch,
                         apiKeyRequirement,
                     };
                 }
