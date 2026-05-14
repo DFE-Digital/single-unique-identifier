@@ -18,8 +18,7 @@ public record Problem(
     )]
         int Status,
     [property: OpenApiProperty(
-        Description = "A human-readable explanation specific to this occurrence of the problem.",
-        Nullable = false
+        Description = "A human-readable explanation specific to this occurrence of the problem."
     )]
         string? Detail,
     [property: OpenApiProperty(
