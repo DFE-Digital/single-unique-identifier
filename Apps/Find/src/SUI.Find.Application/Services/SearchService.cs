@@ -177,7 +177,12 @@ public class SearchService(
     {
         try
         {
-            var metaData = await client.GetInstanceAsync(jobId, cancellation: cancellationToken);
+            var metaData = await client.GetInstanceAsync(
+                jobId,
+                getInputsAndOutputs: true,
+                cancellation: cancellationToken
+            );
+
             if (metaData is null)
             {
                 return new NotFound();
