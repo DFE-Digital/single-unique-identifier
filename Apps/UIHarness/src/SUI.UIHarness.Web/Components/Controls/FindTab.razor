@@ -124,7 +124,7 @@
         _findProgressPercentage = 0;
         _showFindProgress = true;
         var currentNhsNumber = CurrentPerson.NhsNumber;
-        var usePolling = Architecture == "Polling";
+        var usePolling = Architecture == ArchitectureConstants.Polling;
 
         var sleepInterval = TimeSpan.FromMilliseconds(250);
         var maxTimeToWaitForFanout = TimeSpan.FromSeconds(90);

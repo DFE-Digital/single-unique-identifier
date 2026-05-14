@@ -36,8 +36,8 @@
                 <div class="mb-3">
                     <label for="architecture" class="form-label">Architecture</label>
                     <select id="architecture" name="architecture" class="form-select" required>
-                        <option value="Fanout" selected="@(Architecture == "Fanout")">Fanout</option>
-                        <option value="Polling" selected="@(Architecture == "Polling")">Polling</option>
+                        <option value="@ArchitectureConstants.Fanout" selected="@(Architecture == ArchitectureConstants.Fanout)">Fanout</option>
+                        <option value="@ArchitectureConstants.Polling" selected="@(Architecture == ArchitectureConstants.Polling)">Polling</option>
                     </select>
                 </div>
                 <div class="d-grid gap-2 mt-4">
@@ -64,7 +64,7 @@
     {
         _authClients = FindApiAuthClientProvider.GetAuthClients().Where(x => x.Enabled).ToArray();
 
-        Architecture ??= Constants.DefaultArchitecture;
+        Architecture ??= ArchitectureConstants.DefaultArchitecture;
         CustodianName ??= _authClients.FirstOrDefault()?.ClientId;
     }
 }
