@@ -24,8 +24,9 @@ public abstract class SearchTestsBase(
 {
     protected abstract bool UsePolling { get; }
 
-    private const string TestClientSecret = "SUIProject";
-    private static readonly string[] TestScopes =
+    protected const string TestClientSecret = "SUIProject";
+
+    protected static readonly string[] TestScopes =
     [
         "find-record.write",
         "find-record.read",

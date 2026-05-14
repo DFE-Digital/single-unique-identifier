@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Models;
 
 namespace SUI.Find.E2ETests;
@@ -10,16 +11,6 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
     ITestOutputHelper testOutputHelper
 ) : SearchTestsBase(fixture, testOutputHelper)
 {
-    private const string TestClientSecret = "SUIProject";
-
-    private static readonly string[] TestScopes =
-    [
-        "find-record.write",
-        "find-record.read",
-        "fetch-record.write",
-        "fetch-record.read",
-    ];
-
     protected async Task RunIsolationTest(TestData testData)
     {
         var ownerToken = await GetAuthTokenAsync(
@@ -35,6 +26,7 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
 
         Assert.NotNull(ownerToken);
         Assert.NotNull(attackerToken);
+        Assert.NotEqual(ownerToken, attackerToken);
 
         var searchJobLinks = await RunAndAssertNewSearchEndpoint(
             Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui,
@@ -48,20 +40,8 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
         Assert.True(hasResultsLink);
         var resultsUrl = RemoveLeadingSlashFromUrl(resultsLink!.Href);
 
-        if (!UsePolling && hasStatusLink)
-        {
-            var statusUrl = RemoveLeadingSlashFromUrl(statusLink!.Href);
-            await AssertForbidden(statusUrl, attackerToken, HttpMethod.Get);
-        }
-
-        await AssertForbidden(resultsUrl, attackerToken, HttpMethod.Get);
-
-        if (!UsePolling && hasCancelLink)
-        {
-            var cancelUrl = RemoveLeadingSlashFromUrl(cancelLink!.Href);
-            await AssertForbidden(cancelUrl, attackerToken, HttpMethod.Delete);
-        }
-
+        // First, run and wait for the search to complete
+        // We need to wait for at least the search to have started running, because some endpoints return not found until the queues have done their bit and eventual consistency has created things
         await RunAndAwaitAndAssertSearchStatusCompletion(
             statusLink?.Href ?? resultsLink.Href,
             resultsLink.Href,
@@ -69,22 +49,28 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
             ownerToken
         );
 
-        using var resultsRequest = new HttpRequestMessage(HttpMethod.Get, resultsUrl);
-        resultsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ownerToken);
-        using var resultsResponse = await Fixture.Client.SendAsync(resultsRequest);
-        var resultsContent = await resultsResponse.Content.ReadAsStringAsync();
-        var resultsTyped = JsonSerializer.Deserialize<SearchResultsBase>(resultsContent);
+        // Now the search has completed, verify that all the endpoints are not accessible to the attacker
+        if (!UsePolling)
+        {
+            Assert.True(hasStatusLink);
+            var statusUrl = RemoveLeadingSlashFromUrl(statusLink!.Href);
+            await AssertForbidden(statusUrl, attackerToken, HttpMethod.Get);
+        }
 
-        Assert.NotNull(resultsTyped);
-        if (resultsTyped.Items.Length > 0)
+        await AssertForbidden(resultsUrl, attackerToken, HttpMethod.Get);
+
+        if (!UsePolling)
         {
-            var recordUrl = RemoveLeadingSlashFromUrl(resultsTyped.Items[0].RecordUrl);
-            await AssertForbidden(recordUrl, attackerToken, HttpMethod.Get);
+            Assert.True(hasCancelLink);
+            var cancelUrl = RemoveLeadingSlashFromUrl(cancelLink!.Href);
+            await AssertForbidden(cancelUrl, attackerToken, HttpMethod.Delete);
         }
-        else
-        {
-            TestOutputHelper.WriteLine("Warning: No records found to test fetch isolation.");
-        }
+
+        var searchResultItems = await GetSearchResultItemsAsync(resultsUrl, ownerToken);
+
+        Assert.True(searchResultItems.Length > 0, "No records found to test fetch isolation");
+        var recordUrl = RemoveLeadingSlashFromUrl(searchResultItems.First().RecordUrl);
+        await AssertForbidden(recordUrl, attackerToken, HttpMethod.Get);
     }
 
     private async Task AssertForbidden(string url, string token, HttpMethod method)
@@ -97,9 +83,23 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
         Assert.True(
             response.StatusCode
                 is HttpStatusCode.Forbidden
-                    or HttpStatusCode.NotFound
-                    or HttpStatusCode.Unauthorized,
-            $"Expected Forbidden or NotFound, but got {response.StatusCode} for {method} {url}"
+                    or HttpStatusCode.NotFound // rs-todo: NotFound should only be for fetch
+                    or HttpStatusCode.Unauthorized, // rs-todo: Unauthorized strictly isn't correct
+            $"Expected Forbidden, but got {response.StatusCode} for {method} {url}"
         );
+    }
+
+    private async Task<SearchResultItem[]> GetSearchResultItemsAsync(
+        string resultsUrl,
+        string authToken
+    )
+    {
+        using var resultsRequest = new HttpRequestMessage(HttpMethod.Get, resultsUrl);
+        resultsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+        using var resultsResponse = await Fixture.Client.SendAsync(resultsRequest);
+        var resultsContent = await resultsResponse.Content.ReadAsStringAsync();
+        var resultsTyped = JsonSerializer.Deserialize<SearchResultsBase>(resultsContent);
+        Assert.NotNull(resultsTyped);
+        return resultsTyped.Items;
     }
 }
