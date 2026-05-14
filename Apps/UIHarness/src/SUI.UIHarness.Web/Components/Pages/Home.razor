@@ -76,7 +76,7 @@
         if (user.Identity?.IsAuthenticated == true)
         {
             _selectedOrg = user.Identity.Name ?? string.Empty;
-            _architecture = user.FindFirst("Architecture")?.Value ?? string.Empty;
+            _architecture = user.FindFirst("Architecture")?.Value ?? Constants.DefaultArchitecture;
         }
     }
 

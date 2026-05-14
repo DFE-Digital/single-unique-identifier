@@ -64,7 +64,7 @@
     {
         _authClients = FindApiAuthClientProvider.GetAuthClients().Where(x => x.Enabled).ToArray();
 
-        Architecture ??= "Polling";
+        Architecture ??= Constants.DefaultArchitecture;
         CustodianName ??= _authClients.FirstOrDefault()?.ClientId;
     }
 }
