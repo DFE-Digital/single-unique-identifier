@@ -54,38 +54,49 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
         {
             Assert.True(hasStatusLink);
             var statusUrl = RemoveLeadingSlashFromUrl(statusLink!.Href);
-            await AssertForbidden(statusUrl, attackerToken, HttpMethod.Get);
+            await AssertAttackingRequestFails(statusUrl, attackerToken, HttpMethod.Get);
         }
 
-        await AssertForbidden(resultsUrl, attackerToken, HttpMethod.Get);
+        await AssertAttackingRequestFails(resultsUrl, attackerToken, HttpMethod.Get);
 
         if (!UsePolling)
         {
             Assert.True(hasCancelLink);
             var cancelUrl = RemoveLeadingSlashFromUrl(cancelLink!.Href);
-            await AssertForbidden(cancelUrl, attackerToken, HttpMethod.Delete);
+            await AssertAttackingRequestFails(cancelUrl, attackerToken, HttpMethod.Delete);
         }
 
         var searchResultItems = await GetSearchResultItemsAsync(resultsUrl, ownerToken);
 
         Assert.True(searchResultItems.Length > 0, "No records found to test fetch isolation");
         var recordUrl = RemoveLeadingSlashFromUrl(searchResultItems.First().RecordUrl);
-        await AssertForbidden(recordUrl, attackerToken, HttpMethod.Get);
+        await AssertAttackingRequestFails(
+            recordUrl,
+            attackerToken,
+            HttpMethod.Get,
+            HttpStatusCode.NotFound
+        );
     }
 
-    private async Task AssertForbidden(string url, string token, HttpMethod method)
+    private async Task AssertAttackingRequestFails(
+        string url,
+        string token,
+        HttpMethod method,
+        HttpStatusCode expectedStatusCode = HttpStatusCode.Forbidden
+    )
     {
-        TestOutputHelper.WriteLine($"Asserting {method} {url} is forbidden for attacker");
+        TestOutputHelper.WriteLine(
+            $"Asserting {method} {url} is {expectedStatusCode} for attacker"
+        );
         using var request = new HttpRequestMessage(method, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var response = await Fixture.Client.SendAsync(request);
 
+        Assert.False(response.IsSuccessStatusCode);
         Assert.True(
-            response.StatusCode
-                is HttpStatusCode.Forbidden
-                    or HttpStatusCode.NotFound // rs-todo: NotFound should only be for fetch
-                    or HttpStatusCode.Unauthorized, // rs-todo: Unauthorized strictly isn't correct
-            $"Expected Forbidden, but got {response.StatusCode} for {method} {url}"
+            response.StatusCode == expectedStatusCode
+                || response.StatusCode == HttpStatusCode.Unauthorized, // rs-todo: Unauthorized strictly isn't correct
+            $"Expected {expectedStatusCode}, but got {response.StatusCode} for {method} {url}"
         );
     }
 
