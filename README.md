@@ -111,6 +111,13 @@ facilitating information sharing by providing systems, data storage and connecti
 | `PersonalDetailsRecord`          | personal.details           | https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json           |
 
 
+## Productionisation
+
+Productionisation should include:
+
+* Review all occurrences of `#trivy:ignore`. They must be removed and resolved correctly, prior to handling any real data.
+
+
 ## Getting Started
 
 ### Prerequisites
