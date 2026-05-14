@@ -1,3 +1,4 @@
+@using System.Diagnostics
 @using SUI.UIHarness.Web.Models
 @using SUI.UIHarness.Web.Models.Find
 @using SUI.UIHarness.Web.Services
@@ -123,7 +124,10 @@
         _findProgressPercentage = 0;
         _showFindProgress = true;
         var currentNhsNumber = CurrentPerson.NhsNumber;
-        var usePolling = Architecture == "Polling";
+        var usePolling = Architecture == ArchitectureConstants.Polling;
+
+        var sleepInterval = TimeSpan.FromMilliseconds(250);
+        var maxTimeToWaitForFanout = TimeSpan.FromSeconds(90);
 
         try
         {
@@ -131,7 +135,7 @@
             await CurrentWorkItemIdChanged.InvokeAsync(workItemId);
 
             var keepPolling = true;
-            const int percentToAdd = 5; // Note: only applicable to Fanout architecture
+            var stopwatch = Stopwatch.StartNew();
             while (keepPolling && !HasCurrentNhsNumberChanged())
             {
                 var result = await FindService.FindRecords(SelectedOrg, workItemId, usePolling);
@@ -147,7 +151,7 @@
                 }
                 else
                 {
-                    _findProgressPercentage += percentToAdd;
+                    _findProgressPercentage = (int)Math.Round(stopwatch.Elapsed / maxTimeToWaitForFanout * 100);
                 }
 
                 await InvokeAsync(StateHasChanged);
@@ -173,7 +177,7 @@
                 }
                 else
                 {
-                    await Task.Delay(2000);
+                    await Task.Delay(sleepInterval);
                 }
             }
         }
