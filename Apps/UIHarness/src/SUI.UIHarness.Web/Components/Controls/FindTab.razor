@@ -34,29 +34,26 @@
 <div class="table-responsive">
     <table class="table table-striped align-middle" id="findRecordsTable">
         <thead>
-            <tr>
-                <th>Custodian</th>
-                <th>Record type</th>
-                <th>Record ID</th>
-                <th>Action</th>
-            </tr>
+        <tr>
+            <th>Custodian</th>
+            <th>Record type</th>
+            <th></th> 
+        </tr>
         </thead>
         <tbody>
-            @if (_foundRecordsFor?.Org == SelectedOrg && _foundRecordsFor?.NhsNumber == CurrentPerson?.NhsNumber)
+        @if (_foundRecordsFor?.Org == SelectedOrg && _foundRecordsFor?.NhsNumber == CurrentPerson?.NhsNumber)
+        {
+            foreach (var p in _foundRecords)
             {
-                foreach (var p in _foundRecords)
-                {
-                    <tr data-record-id="@p.Id">
-                        <td>@p.CustodianName</td>
-                        <td>@p.Type</td>
-                        <td>@p.Id</td>
-                        <td>@p.Url</td>
-                        <td>
-                            <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentRecord(p)">Fetch Record</button>
-                        </td>
-                    </tr>
-                }
+                <tr data-record-id="@p.Id">
+                    <td>@p.CustodianName</td>
+                    <td>@p.Type</td>
+                    <td>
+                        <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentRecord(p)">Fetch Record</button>
+                    </td>
+                </tr>
             }
+        }
         </tbody>
     </table>
 </div>

@@ -2,6 +2,7 @@
 @using SUI.UIHarness.Web.Models
 @using SUI.UIHarness.Web.Services
 @inject IFindApiAuthClientProvider FindApiAuthClientProvider
+@inject IConfiguration Configuration
 
 <PageTitle>Login</PageTitle>
 
@@ -33,13 +34,20 @@
                     <label for="password" class="form-label">Password</label>
                     <input type="password" id="password" name="password" class="form-control" required />
                 </div>
-                <div class="mb-3">
-                    <label for="architecture" class="form-label">Architecture</label>
-                    <select id="architecture" name="architecture" class="form-select" required>
-                        <option value="@ArchitectureConstants.Fanout" selected="@(Architecture == ArchitectureConstants.Fanout)">Fanout</option>
-                        <option value="@ArchitectureConstants.Polling" selected="@(Architecture == ArchitectureConstants.Polling)">Polling</option>
-                    </select>
-                </div>
+                @if (!_architectureOptionHidden)
+                {
+                    <div class="mb-3">
+                        <label for="architecture" class="form-label">Architecture</label>
+                        <select id="architecture" name="architecture" class="form-select" required>
+                            <option value="@ArchitectureConstants.Fanout" selected="@(Architecture == ArchitectureConstants.Fanout)">Fanout</option>
+                            <option value="@ArchitectureConstants.Polling" selected="@(Architecture == ArchitectureConstants.Polling)">Polling</option>
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" name="architecture" value="@ArchitectureConstants.DefaultArchitecture" />
+                }
                 <div class="d-grid gap-2 mt-4">
                     <button type="submit" class="btn btn-primary">Login</button>
                 </div>
@@ -48,8 +56,20 @@
     </div>
 </div>
 
+<div class="container mt-5" style="max-width: 800px;">
+    <div class="alert alert-warning" role="alert">
+        <ul class="mb-0 ps-3">
+            <li>This demo shows how data could be transferred between services to help you understand the proposed concept we are testing.</li>
+            <li>This is a test version designed to illustrate the concept and gather feedback; it is not a final or finished product. It is not available for use yet, and will not be rolled out imminently.</li>
+            <li>Following this research, we will conduct a small scale operational pilot before a wider service can become a reality for practitioners.</li>
+            <li>If a service is launched, it will be built directly into your existing work systems (like your Case Management software), so the final look and feel will vary depending on what system you use.</li>
+        </ul>
+    </div>
+</div>
+
 @code {
     private AuthClient[] _authClients = [];
+    private bool _architectureOptionHidden;
 
     [SupplyParameterFromQuery]
     public string? Error { get; set; }
@@ -64,7 +84,18 @@
     {
         _authClients = FindApiAuthClientProvider.GetAuthClients().Where(x => x.Enabled).ToArray();
 
-        Architecture ??= ArchitectureConstants.DefaultArchitecture;
+        // Check the config (defaults to false if missing)
+        _architectureOptionHidden = Configuration.GetValue<bool>("ArchitectureOptionHidden", false);
+
+        if (_architectureOptionHidden)
+        {
+            Architecture = ArchitectureConstants.DefaultArchitecture;
+        }
+        else
+        {
+            Architecture ??= ArchitectureConstants.DefaultArchitecture;
+        }
+        
         CustodianName ??= _authClients.FirstOrDefault()?.ClientId;
     }
 }

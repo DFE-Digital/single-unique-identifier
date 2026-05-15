@@ -30,6 +30,10 @@ custodian_app_settings = {
   CustodianWorkerRandomIntervalMaxSeconds = 8
 }
 
+ui_harness_app_settings = {
+  ArchitectureOptionHidden = true
+}
+
 tags = {
   # Additional tags can be added here
   # Environment, Product, and Service Offering will be added by default
