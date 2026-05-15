@@ -17,21 +17,21 @@
       "rollForward": false
     },
     "dotnet-reportgenerator-globaltool": {
-      "version": "5.5.4",
+      "version": "5.5.10",
       "commands": [
         "reportgenerator"
       ],
       "rollForward": false
     },
     "powershell": {
-      "version": "7.6.0",
+      "version": "7.6.1",
       "commands": [
         "pwsh"
       ],
       "rollForward": false
     },
     "nswag.consolecore": {
-      "version": "14.6.3",
+      "version": "14.7.1",
       "commands": [
         "nswag"
       ],
