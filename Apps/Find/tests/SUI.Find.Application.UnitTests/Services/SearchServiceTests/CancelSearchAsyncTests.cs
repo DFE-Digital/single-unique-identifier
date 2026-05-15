@@ -27,7 +27,11 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
     public async Task ShouldReturnNotFound_WhenJobDoesNotExist()
     {
         _client
-            .GetInstanceAsync("not-found-job", Arg.Any<CancellationToken>())
+            .GetInstanceAsync(
+                "not-found-job",
+                getInputsAndOutputs: true,
+                Arg.Any<CancellationToken>()
+            )
             .Returns((OrchestrationMetadata?)null);
 
         var result = await Sut.CancelSearchAsync(
@@ -47,7 +51,13 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
         {
             RuntimeStatus = OrchestrationRuntimeStatus.Completed,
         };
-        _client.GetInstanceAsync("completed-job", Arg.Any<CancellationToken>()).Returns(meta);
+        _client
+            .GetInstanceAsync(
+                "completed-job",
+                getInputsAndOutputs: true,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(meta);
 
         var result = await Sut.CancelSearchAsync(
             "completed-job",
@@ -67,7 +77,13 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
         {
             RuntimeStatus = OrchestrationRuntimeStatus.Suspended,
         };
-        _client.GetInstanceAsync("non-cancellable-job", Arg.Any<CancellationToken>()).Returns(meta);
+        _client
+            .GetInstanceAsync(
+                "non-cancellable-job",
+                getInputsAndOutputs: true,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(meta);
 
         var result = await Sut.CancelSearchAsync(
             "non-cancellable-job",
@@ -88,7 +104,9 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
         {
             RuntimeStatus = OrchestrationRuntimeStatus.Running,
         };
-        _client.GetInstanceAsync("cancel-job", Arg.Any<CancellationToken>()).Returns(meta);
+        _client
+            .GetInstanceAsync("cancel-job", getInputsAndOutputs: true, Arg.Any<CancellationToken>())
+            .Returns(meta);
 
         var result = await Sut.CancelSearchAsync(
             "cancel-job",
@@ -106,7 +124,7 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
     public async Task ShouldReturnFailed_WhenExceptionIsThrown()
     {
         _client
-            .GetInstanceAsync("fail-job", Arg.Any<CancellationToken>())
+            .GetInstanceAsync("fail-job", getInputsAndOutputs: true, Arg.Any<CancellationToken>())
             .Throws(new Exception("fail"));
 
         var result = await Sut.CancelSearchAsync(
@@ -120,13 +138,15 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
     }
 
     [Fact]
-    public async Task ShouldReturnUnauthorized_WhenClientIdDoesNotMatch()
+    public async Task ShouldReturnForbidden_WhenClientIdDoesNotMatch()
     {
         var meta = new OrchestrationMetadata("Orchestrator", "unauth-job")
         {
             RuntimeStatus = OrchestrationRuntimeStatus.Running,
         };
-        _client.GetInstanceAsync("unauth-job", Arg.Any<CancellationToken>()).Returns(meta);
+        _client
+            .GetInstanceAsync("unauth-job", getInputsAndOutputs: true, Arg.Any<CancellationToken>())
+            .Returns(meta);
 
         // Mock the ReadOrchestratorInput to return a different clientId
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
@@ -145,6 +165,6 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
             CancellationToken.None
         );
 
-        Assert.IsType<Unauthorized>(result.Value);
+        Assert.IsType<Forbidden>(result.Value);
     }
 }

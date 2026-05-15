@@ -24,8 +24,9 @@ public abstract class SearchTestsBase(
 {
     protected abstract bool UsePolling { get; }
 
-    private const string TestClientSecret = "SUIProject";
-    private static readonly string[] TestScopes =
+    protected const string TestClientSecret = "SUIProject";
+
+    protected static readonly string[] TestScopes =
     [
         "find-record.write",
         "find-record.read",
@@ -175,7 +176,7 @@ public abstract class SearchTestsBase(
         // Fin
     }
 
-    private async Task<Dictionary<string, HalLink>> RunAndAssertNewSearchEndpoint(
+    protected async Task<Dictionary<string, HalLink>> RunAndAssertNewSearchEndpoint(
         string suid,
         string authToken
     )
@@ -255,7 +256,7 @@ public abstract class SearchTestsBase(
         return links;
     }
 
-    private async Task RunAndAssertPartialSearchResults(
+    protected async Task RunAndAssertPartialSearchResults(
         string url,
         TestData testData,
         string authToken
@@ -296,7 +297,7 @@ public abstract class SearchTestsBase(
         Assert.Empty(invalidRecordTypes);
     }
 
-    private async Task RunAndAssertFetchEndpoints(string url, TestData testData, string authToken)
+    protected async Task RunAndAssertFetchEndpoints(string url, TestData testData, string authToken)
     {
         url = RemoveLeadingSlashFromUrl(url);
 
@@ -401,7 +402,7 @@ public abstract class SearchTestsBase(
     /// <param name="resultsUrl">URL of the Search Results endpoint</param>
     /// <param name="testData">The test data for this search run</param>
     /// <param name="authToken">AuthToken for this search run</param>
-    private async Task RunAndAwaitAndAssertSearchStatusCompletion(
+    protected async Task RunAndAwaitAndAssertSearchStatusCompletion(
         string statusUrl,
         string resultsUrl,
         TestData testData,
@@ -491,7 +492,7 @@ public abstract class SearchTestsBase(
         Assert.NotNull(typedResult);
     }
 
-    private static string RemoveLeadingSlashFromUrl(string url) =>
+    protected static string RemoveLeadingSlashFromUrl(string url) =>
         url.StartsWith('/') ? url[1..] : url;
 
     private static string GenerateAppInsightsLink(string traceId)

@@ -1,3 +1,4 @@
+using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using OneOf;
@@ -81,6 +82,10 @@ public class UrlStorageTableService(
                 RequestingOrgId: res.Value.RequestingOrgId,
                 RecordType: res.Value.RecordType
             );
+        }
+        catch (RequestFailedException ex) when (ex.Status == 404)
+        {
+            return new NotFound();
         }
         catch (Exception ex)
         {

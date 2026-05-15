@@ -25,6 +25,24 @@ public static class HttpResponseUtility
         return res;
     }
 
+    public static async Task<HttpResponseData> ForbiddenResponse(
+        HttpRequestData req,
+        string traceId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var res = ProblemResponse(
+            req,
+            HttpStatusCode.Forbidden,
+            "Access Denied",
+            "No privileges to access resource.",
+            $"urn:trace::{traceId}",
+            cancellationToken
+        );
+
+        return await res;
+    }
+
     public static async Task<HttpResponseData> UnauthorizedResponse(
         HttpRequestData req,
         string traceId,

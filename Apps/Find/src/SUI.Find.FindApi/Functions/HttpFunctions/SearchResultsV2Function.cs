@@ -113,8 +113,8 @@ public class SearchResultsV2Function(
                     context.InvocationId,
                     cancellationToken
                 ),
-            async unauthorized =>
-                await HttpResponseUtility.UnauthorizedResponse(
+            async forbidden =>
+                await HttpResponseUtility.ForbiddenResponse(
                     req,
                     context.InvocationId,
                     cancellationToken

@@ -150,7 +150,7 @@ public class UrlStorageTableServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetAsync_ReturnsError_WhenEntityMissing()
+    public async Task GetAsync_ReturnsNotFound_WhenEntityMissing()
     {
         // ACT
         var result = await _sut.GetAsync(
@@ -160,7 +160,7 @@ public class UrlStorageTableServiceTests : IAsyncLifetime
         );
 
         // ASSERT
-        result.IsT3.Should().BeTrue(); // Error
+        result.IsT1.Should().BeTrue(); // NotFound
     }
 
     [Fact]

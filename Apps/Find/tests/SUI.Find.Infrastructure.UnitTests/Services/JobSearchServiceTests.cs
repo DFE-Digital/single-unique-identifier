@@ -116,7 +116,7 @@ public class JobSearchServiceTests
     }
 
     [Fact]
-    public async Task GetSearchResults_ReturnsUnauthorised_WhenRequestingOrganisationIdIsWrong()
+    public async Task GetSearchResults_ReturnsForbidden_WhenRequestingOrganisationIdIsWrong()
     {
         var workItemId = "WID-1";
         var requestingOrganisationId = "ROID-1";
@@ -148,7 +148,7 @@ public class JobSearchServiceTests
         );
 
         // ASSERT
-        Assert.IsType<Unauthorized>(result.Value);
+        Assert.IsType<Forbidden>(result.Value);
         _logger
             .Received(1)
             .Log(

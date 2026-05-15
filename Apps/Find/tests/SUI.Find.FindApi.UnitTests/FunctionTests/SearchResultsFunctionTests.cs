@@ -108,11 +108,11 @@ public class SearchResultsFunctionTests
     }
 
     [Fact]
-    public async Task ReturnsUnauthorized_WhenUnauthorized()
+    public async Task ReturnsForbidden_WhenUserDoesNotHaveAccessTo_SearchResults()
     {
         _searchService
             .GetSearchResultsAsync("job-3", "test-client-id", _client, Arg.Any<CancellationToken>())
-            .Returns(new Unauthorized());
+            .Returns(new Forbidden());
 
         var response = await _sut.SearchResultsTrigger(
             _httpRequestData,
@@ -122,7 +122,7 @@ public class SearchResultsFunctionTests
             CancellationToken.None
         );
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]

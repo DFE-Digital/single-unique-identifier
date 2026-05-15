@@ -26,21 +26,21 @@ public interface ISearchService
         CancellationToken cancellationToken
     );
 
-    Task<OneOf<SearchJobDto, NotFound, Unauthorized, Error>> CancelSearchAsync(
+    Task<OneOf<SearchJobDto, NotFound, Forbidden, Error>> CancelSearchAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     );
 
-    Task<OneOf<SearchResultsDto, NotFound, Unauthorized, Error>> GetSearchResultsAsync(
+    Task<OneOf<SearchResultsDto, NotFound, Forbidden, Error>> GetSearchResultsAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     );
 
-    Task<OneOf<SearchJobDto, Unauthorized, NotFound, Error>> GetSearchStatusAsync(
+    Task<OneOf<SearchJobDto, Forbidden, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -168,7 +168,7 @@ public class SearchService(
         return searchJob;
     }
 
-    public async Task<OneOf<SearchJobDto, NotFound, Unauthorized, Error>> CancelSearchAsync(
+    public async Task<OneOf<SearchJobDto, NotFound, Forbidden, Error>> CancelSearchAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -177,7 +177,12 @@ public class SearchService(
     {
         try
         {
-            var metaData = await client.GetInstanceAsync(jobId, cancellation: cancellationToken);
+            var metaData = await client.GetInstanceAsync(
+                jobId,
+                getInputsAndOutputs: true,
+                cancellation: cancellationToken
+            );
+
             if (metaData is null)
             {
                 return new NotFound();
@@ -187,7 +192,7 @@ public class SearchService(
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
-                return new Unauthorized();
+                return new Forbidden();
             }
 
             var canCancel =
@@ -223,7 +228,7 @@ public class SearchService(
         }
     }
 
-    public async Task<OneOf<SearchResultsDto, NotFound, Unauthorized, Error>> GetSearchResultsAsync(
+    public async Task<OneOf<SearchResultsDto, NotFound, Forbidden, Error>> GetSearchResultsAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -258,7 +263,7 @@ public class SearchService(
                     jobId,
                     clientId
                 );
-                return new Unauthorized();
+                return new Forbidden();
             }
 
             SearchResultItem[] finalItems;
@@ -319,7 +324,7 @@ public class SearchService(
         }
     }
 
-    public async Task<OneOf<SearchJobDto, Unauthorized, NotFound, Error>> GetSearchStatusAsync(
+    public async Task<OneOf<SearchJobDto, Forbidden, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
         string clientId,
         DurableTaskClient client,
@@ -337,7 +342,7 @@ public class SearchService(
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(jobStatus);
             if (input is null || input.PolicyContext.ClientId != clientId)
             {
-                return new Unauthorized();
+                return new Forbidden();
             }
 
             var dto = new SearchJobDto

@@ -101,8 +101,8 @@ public class SearchStatusFunction(
                     SearchJob.FromDto(dto),
                     cancellationToken
                 ),
-            async unauthorized =>
-                await HttpResponseUtility.UnauthorizedResponse(
+            async forbidden =>
+                await HttpResponseUtility.ForbiddenResponse(
                     req,
                     context.InvocationId,
                     cancellationToken
