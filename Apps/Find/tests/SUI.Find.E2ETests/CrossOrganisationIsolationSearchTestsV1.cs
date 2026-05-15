@@ -1,5 +1,6 @@
 namespace SUI.Find.E2ETests;
 
+[Collection(StartANewSearchTestsV1.StartANewSearchTestsV1CollectionId)]
 public class CrossOrganisationIsolationSearchTestsV1(
     FunctionTestFixture fixture,
     ITestOutputHelper output
