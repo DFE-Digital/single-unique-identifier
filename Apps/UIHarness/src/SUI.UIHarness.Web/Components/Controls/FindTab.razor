@@ -100,6 +100,9 @@
     
     [Inject]
     public required IFindService FindService { get; set; }
+    
+    [Inject]
+    public required ILogger<FindTab> Logger { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -191,6 +194,12 @@
 
     private async Task SetCurrentRecord(LocalRecord localRecord)
     {
+        Logger.LogInformation(
+            "Fetch Record button clicked. Custodian: {CustodianName}, Record Type: {RecordType}, Record URL: {RecordUrl}", 
+            localRecord.CustodianName, 
+            localRecord.Type, 
+            localRecord.Url);
+        
         await CurrentRecordChanged.InvokeAsync(localRecord);
     }
 }

@@ -2,10 +2,13 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using SUI.UIHarness.Web;
 using SUI.UIHarness.Web.Components;
 using SUI.UIHarness.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.UseOpenTelemetry();
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -67,6 +70,7 @@ app.MapPost(
             [FromForm] string password,
             [FromForm] string architecture,
             [FromServices] IConfiguration configuration,
+            [FromServices] ILogger<Program> logger,
             HttpContext httpContext
         ) =>
         {
@@ -74,10 +78,18 @@ app.MapPost(
                 configuration.GetValue<string>("UI_TEST_HARNESS_PASSWORD") ?? "local-dev-only";
             if (password != expectedPassword)
             {
+                logger.LogInformation("Login failed for custodian: {CustodianName}", custodianName);
+
                 return Results.Redirect(
                     $"/login?error=invalid_password&custodianName={Uri.EscapeDataString(custodianName)}&architecture={Uri.EscapeDataString(architecture)}"
                 );
             }
+
+            logger.LogInformation(
+                "Login successful for custodian: {CustodianName} using architecture: {Architecture}",
+                custodianName,
+                architecture
+            );
 
             var claims = new List<Claim>
             {

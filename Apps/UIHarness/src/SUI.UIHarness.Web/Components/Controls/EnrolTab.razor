@@ -124,6 +124,9 @@
     
     [Inject]
     public required IFindService FindService { get; set; }
+    
+    [Inject]
+    public required ILogger<EnrolTab> Logger { get; set; }
 
     protected override void OnParametersSet()
     {
@@ -136,6 +139,8 @@
         {
             return;
         }
+        
+        Logger.LogInformation("Enrol button clicked for organisation: {SelectedOrg}", SelectedOrg);
 
         _enrolledForOrg = null;
         EnrolProgress = 0;
@@ -156,6 +161,8 @@
     
     private async Task SetCurrentPerson(LocalPerson localPerson)
     {
+        Logger.LogInformation("Find Records button clicked for NHS Number: {NhsNumber}", localPerson.NhsNumber);
+        
         await CurrentPersonChanged.InvokeAsync(localPerson);
     }
 }
