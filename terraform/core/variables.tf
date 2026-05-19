@@ -84,3 +84,27 @@ variable "function_app_integration_subnet_address_prefixes" {
   type        = list(string)
   default     = ["10.250.0.0/26"]
 }
+
+variable "use_auxiliary_asp" {
+  description = "Controls whether an auxiliary App Service Plan is created for stubs and non-prod apps."
+  type        = bool
+  default     = false
+}
+
+variable "auxiliary_app_service_plan_sku" {
+  description = "SKU name for the auxiliary App Service plan."
+  type        = string
+  default     = "B1"
+}
+
+variable "auxiliary_app_service_plan_os_type" {
+  description = "OS type for the auxiliary App Service plan."
+  type        = string
+  default     = "Linux"
+}
+
+variable "auxiliary_app_service_plan_worker_count" {
+  description = "Number of workers for the auxiliary App Service plan."
+  type        = number
+  default     = 1
+}

@@ -43,3 +43,8 @@ output "app_insights_connection_string" {
   description = "Connection string for the shared Application Insights instance."
   sensitive   = true
 }
+
+output "auxiliary_app_service_plan_id" {
+  value       = one(azurerm_service_plan.auxiliary[*].id)
+  description = "ID of the auxiliary App Service plan, if created."
+}
