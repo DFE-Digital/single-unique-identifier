@@ -27,6 +27,12 @@ locals {
     var.environment_id,
     var.region_short
   )
+  aux_asp_name = format(
+    "%s%sasp-%s-auxsvcs01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short
+  )
   function_app_integration_vnet_name = format(
     "%s%svnet-%s-funcint01",
     var.subscription_prefix,
@@ -63,6 +69,19 @@ resource "azurerm_service_plan" "shared" {
   os_type             = var.app_service_plan_os_type
   sku_name            = var.app_service_plan_sku
   worker_count        = var.app_service_plan_worker_count
+
+  tags = local.base_tags
+}
+
+resource "azurerm_service_plan" "auxiliary" {
+  count               = var.use_auxiliary_asp ? 1 : 0
+
+  name                = local.aux_asp_name
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  os_type             = var.auxiliary_app_service_plan_os_type
+  sku_name            = var.auxiliary_app_service_plan_sku
+  worker_count        = var.auxiliary_app_service_plan_worker_count
 
   tags = local.base_tags
 }
