@@ -1,5 +1,12 @@
 <Solution>
   <Folder Name="/Apps/" />
+  <Folder Name="/Apps/AuthEmulator/" />
+  <Folder Name="/Apps/AuthEmulator/src/">
+    <Project Path="Apps\AuthEmulator\src\SUI.AuthEmulator\SUI.AuthEmulator.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Apps/AuthEmulator/tests/">
+    <Project Path="Apps\SUI.AuthEmulator.UnitTests\SUI.AuthEmulator.UnitTests.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/Apps/Find/">
     <File Path="Apps/Find/README.md" />
   </Folder>
