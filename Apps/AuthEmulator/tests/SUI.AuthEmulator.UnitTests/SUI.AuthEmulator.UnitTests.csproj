@@ -19,6 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AuthEmulator\src\SUI.AuthEmulator\SUI.AuthEmulator.csproj" />
+    <ProjectReference Include="..\..\src\SUI.AuthEmulator\SUI.AuthEmulator.csproj" />
   </ItemGroup>
 </Project>
