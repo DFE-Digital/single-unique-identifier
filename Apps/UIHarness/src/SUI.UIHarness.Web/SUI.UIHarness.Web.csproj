@@ -20,4 +20,7 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="1.15.1-beta.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
   </ItemGroup>
+  <PropertyGroup>
+    <SourceRevisionId>timestamp_$([System.DateTimeOffset]::UtcNow.ToString("O"))</SourceRevisionId>
+  </PropertyGroup>
 </Project>

@@ -50,8 +50,11 @@ app.MapStaticAssets();
 
 app.MapGet(
     "/api/health",
-    ([FromServices] IHostEnvironment env) =>
-        Results.Ok(
+    ([FromServices] IHostEnvironment env, [FromServices] ILogger<Program> logger) =>
+    {
+        logger.LogInformation("Health check was called");
+
+        return Results.Ok(
             new
             {
                 Value = "Healthy",
@@ -59,8 +62,10 @@ app.MapGet(
                 env.EnvironmentName,
                 nowUtc = DateTimeOffset.UtcNow,
                 nowLocal = DateTimeOffset.Now,
+                BuildTimestampUtility.BuildTimestamp,
             }
-        )
+        );
+    }
 );
 
 app.MapPost(
