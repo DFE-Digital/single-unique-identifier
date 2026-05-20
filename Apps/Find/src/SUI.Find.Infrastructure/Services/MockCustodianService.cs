@@ -11,22 +11,67 @@ using SUI.Find.Domain.Models;
 
 namespace SUI.Find.Infrastructure.Services;
 
-public class MockCustodianService(IFileSystem fileSystem, IConfiguration config) : ICustodianService
+public class MockCustodianService : ICustodianService
 {
-    public async Task<IReadOnlyList<ProviderDefinition>> GetCustodiansAsync()
+    private readonly IFileSystem _fileSystem;
+    private readonly IConfiguration _config;
+    private readonly Lazy<IReadOnlyList<ProviderDefinition>> _custodians;
+
+    public MockCustodianService(IFileSystem fileSystem, IConfiguration config)
+    {
+        _fileSystem = fileSystem;
+        _config = config;
+        _custodians = new Lazy<IReadOnlyList<ProviderDefinition>>(Load);
+    }
+
+    public Task<IReadOnlyList<ProviderDefinition>> GetCustodiansAsync()
+    {
+        // Instantly returns the cached in-memory list as a completed Task
+        return Task.FromResult(_custodians.Value);
+    }
+
+    public Task<Result<ProviderDefinition>> GetCustodianAsync(string orgId)
+    {
+        var custodian = GetCustodianById(orgId, _custodians.Value);
+
+        var result =
+            custodian == null
+                ? Result<ProviderDefinition>.Fail($"Custodian with OrgId '{orgId}' not found.")
+                : Result<ProviderDefinition>.Ok(custodian);
+
+        return Task.FromResult(result);
+    }
+
+    public ProviderDefinition GetCustodian(
+        string orgId,
+        IReadOnlyCollection<ProviderDefinition> custodians
+    ) =>
+        GetCustodianById(orgId, custodians)
+        ?? throw new InvalidOperationException($"Custodian with OrgId '{orgId}' not found.");
+
+    private static ProviderDefinition? GetCustodianById(
+        string orgId,
+        IReadOnlyCollection<ProviderDefinition> custodians
+    ) =>
+        custodians.FirstOrDefault(p =>
+            string.Equals(p.OrgId, orgId, StringComparison.OrdinalIgnoreCase)
+        );
+
+    private IReadOnlyList<ProviderDefinition> Load()
     {
         const string fileName = "org-directory.json";
         var baseDir = AppContext.BaseDirectory;
         var filePath = Path.Combine(baseDir, "Data", fileName);
 
-        if (!File.Exists(filePath))
+        if (!_fileSystem.File.Exists(filePath))
         {
             throw new InvalidOperationException($"File not found at: {filePath}");
         }
 
-        var json = await fileSystem.File.ReadAllTextAsync(filePath);
+        // Changed to synchronous reading to fit perfectly inside the Lazy initialization thread safety
+        var json = _fileSystem.File.ReadAllText(filePath);
 
-        var stubCustodiansBaseUrl = config["StubCustodiansBaseUrl"];
+        var stubCustodiansBaseUrl = _config["StubCustodiansBaseUrl"];
         if (!string.IsNullOrWhiteSpace(stubCustodiansBaseUrl))
         {
             json = json.Replace("{StubCustodiansBaseUrl}", stubCustodiansBaseUrl);
@@ -118,29 +163,6 @@ public class MockCustodianService(IFileSystem fileSystem, IConfiguration config)
 
         return providers;
     }
-
-    private static ProviderDefinition? GetCustodianById(
-        string orgId,
-        IReadOnlyCollection<ProviderDefinition> custodians
-    ) =>
-        custodians.FirstOrDefault(p =>
-            string.Equals(p.OrgId, orgId, StringComparison.OrdinalIgnoreCase)
-        );
-
-    public async Task<Result<ProviderDefinition>> GetCustodianAsync(string orgId)
-    {
-        var custodian = GetCustodianById(orgId, await GetCustodiansAsync());
-        return custodian == null
-            ? Result<ProviderDefinition>.Fail($"Custodian with OrgId '{orgId}' not found.")
-            : Result<ProviderDefinition>.Ok(custodian);
-    }
-
-    public ProviderDefinition GetCustodian(
-        string orgId,
-        IReadOnlyCollection<ProviderDefinition> custodians
-    ) =>
-        GetCustodianById(orgId, custodians)
-        ?? throw new InvalidOperationException($"Custodian with OrgId '{orgId}' not found.");
 
     // Only used for deserializing the mock org-directory.json, so it can exist locally
     private sealed class MockOrgDirectory

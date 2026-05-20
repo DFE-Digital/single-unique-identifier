@@ -23,7 +23,10 @@ public class MockCustodianServiceTests
         // Arrange: load the actual org-directory.json from Data
         var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "org-directory.json");
         var fileContent = await File.ReadAllTextAsync(filePath);
-        _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
+
+        // Mock both the Exists check and the synchronous ReadAllText call
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         // Act: get all custodians
         var providers = await _sut.GetCustodiansAsync();
@@ -48,8 +51,8 @@ public class MockCustodianServiceTests
         Assert.Contains("find-record.read fetch-record.read", la.Connection.Auth.Scopes);
         Assert.Equal("SUI-SERVICE", la.Connection.Auth.ClientId);
         Assert.Equal("SUIProject", la.Connection.Auth.ClientSecret);
-        // dsa policy
 
+        // dsa policy
         Assert.Equal(DateTimeOffset.Parse("2025-11-10T12:00:00Z"), la.DsaPolicy.Version);
         Assert.NotEmpty(la.DsaPolicy.Defaults);
         var defaultRule = la.DsaPolicy.Defaults.First();
@@ -89,7 +92,10 @@ public class MockCustodianServiceTests
         // Arrange
         var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "org-directory.json");
         var fileContent = await File.ReadAllTextAsync(filePath);
-        _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
+
+        // Mock both the Exists check and the synchronous ReadAllText call
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         var targetOrgId = "LOCAL-AUTHORITY-01";
 
@@ -109,7 +115,10 @@ public class MockCustodianServiceTests
         // Arrange
         var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "org-directory.json");
         var fileContent = await File.ReadAllTextAsync(filePath);
-        _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
+
+        // Mock both the Exists check and the synchronous ReadAllText call
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         var targetOrgId = "NON-EXISTENT-ORG-ID";
 
@@ -167,7 +176,10 @@ public class MockCustodianServiceTests
         // Arrange
         var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "org-directory.json");
         var fileContent = await File.ReadAllTextAsync(filePath);
-        _mockFileSystem.File.ReadAllTextAsync(Arg.Any<string>()).Returns(fileContent);
+
+        // Mock both the Exists check and the synchronous ReadAllText call
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         _mockConfiguration["StubCustodiansBaseUrl"].Returns("https://example123.com");
 
