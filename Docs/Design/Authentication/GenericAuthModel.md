@@ -142,7 +142,20 @@ The `auth-clients-outbound.json` data file is affected by the change to use non-
 
 To avoid a big bang change, and enable changes to be done in parallel without any breaking changes, the following work streams have been devised:
 
-rs-todo: create tickets and include Jira IDs
+rs-todo: create tickets and include Jira IDs  
+
+rs-todo: update SUI-1753, ICustodianService should just have an ICustodianService.GetAuthorisedScopes(orgId) method
+	rather than HasAnyRequiredScopeAsync
+	that logic should remain in JwtAuthMiddleware
+	And so the update to JwtAuthMiddleware, if UseCustodianServiceForAuthorisation is true, just does something like:
+		HasAnyRequiredScope:
+			var authorisedScopes = ICustodianService.GetAuthorisedScopes(orgId)
+			requiredScopes.Any(rs =>
+				authorisedScopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
+			);
+			i.e. should return true if the Organisation with the specified ID has any of the specified required scopes.  
+
+rs-todo: me to do quickly, at end of this, a quick LINQPad that verifies a FaUAPI token, using OIDC discovery
 
 #### Prerequisite Stream
 
