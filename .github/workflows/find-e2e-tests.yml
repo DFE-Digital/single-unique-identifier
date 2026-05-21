@@ -156,6 +156,9 @@ jobs:
 
       - name: Build StubCustodians Solution
         run: dotnet build Apps/StubCustodians/SUI.StubCustodians.slnx
+               
+      - name: Build AuthEmulator Solution
+        run: dotnet build Apps/AuthEmulator/SUI.AuthEmulator.slnx
 
       - name: Create local.settings.json for Find API
         run: |
@@ -165,6 +168,10 @@ jobs:
       - name: Start StubCustodians API
         run: dotnet run --no-build --launch-profile http &
         working-directory: Apps/StubCustodians/src/SUI.StubCustodians.API
+      
+      - name: Start AuthEmulator API
+        run: dotnet run --no-build --launch-profile https &
+        working-directory: Apps/AuthEmulator/src/SUI.AuthEmulator
 
       - name: Start Find API
         run: func start --port 7182 &
@@ -181,6 +188,8 @@ jobs:
             --results-directory TestResults \
             -e E2E__BaseUrl=http://localhost:7182/api/ \
             -e E2E__StubCustodiansBaseUrl=http://localhost:5193/api/ \
+            -e E2E__AuthEmulatorBaseUrl=https://localhost:7250/api/ \
+            -e E2E__UseAuthEmulator=True \
             -e E2E__SkipResetAzureTables=False \
             -e E2E__CheckStubCustodiansApiBuildTimestampThreshold=${{ needs.eval-workflow-setup.outputs.job_start_time }} \
             -e E2E__CheckFindApiBuildTimestampThreshold=${{ needs.eval-workflow-setup.outputs.job_start_time }} # The threshold checks are not necessary for ephemeral e2e tests, but are included to verify the threshold behaviour at pull request stage
@@ -228,6 +237,8 @@ jobs:
             -e E2E__BaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}func-${{ steps.env_config.outputs.region_short }}-find01.azurewebsites.net/api/ \
             -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
             -e E2E__SkipResetAzureTables=True \
+            -e E2E__AuthEmulatorBaseUrl="" \
+            -e E2E__UseAuthEmulator=False \
             -e E2E__CheckStubCustodiansApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Custodian') && github.event.workflow_run.run_started_at || '' }} \
             -e E2E__CheckFindApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Find') && github.event.workflow_run.run_started_at || '' }} # We pass the run_started_at value(s) so that we ensure the relevant API has restarted with the latest version. Note that this will pass an empty value if this pipeline was not trigerred by a workflow_run for that specific API, but that is fine and desired in that case (because we only need the check when this pipeline is immediately trigerred by the workflow_run after deployment of that specific API)
 
