@@ -21,4 +21,8 @@ public record Config
     public DateTimeOffset? CheckFindApiBuildTimestampThreshold { get; init; }
 
     public DateTimeOffset? CheckStubCustodiansApiBuildTimestampThreshold { get; init; }
+
+    public string AuthEmulatorBaseUrl { get; init; } = "https://localhost:7250/api/";
+
+    public bool UseAuthEmulator { get; init; } = true;
 }

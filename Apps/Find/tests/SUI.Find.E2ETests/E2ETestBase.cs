@@ -75,11 +75,15 @@ public class E2ETestBase
             request.Content = content;
             request.Headers.Authorization = clientCredentials;
 
+            var authClient = Fixture.Config.UseAuthEmulator
+                ? Fixture.AuthEmulatorClient
+                : Fixture.Client;
+
             TestOutputHelper.WriteLine(
-                $"Requesting access token from: {Fixture.Client.BaseAddress}{request.RequestUri}"
+                $"Requesting access token from: {authClient.BaseAddress}{request.RequestUri}"
             );
 
-            var response = await Fixture.Client.SendAsync(request);
+            var response = await authClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
