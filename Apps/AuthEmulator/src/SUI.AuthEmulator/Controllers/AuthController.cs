@@ -7,7 +7,7 @@ using SUI.AuthEmulator.Services;
 namespace SUI.AuthEmulator.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]/")]
 public class AuthController(
     ILogger<AuthController> logger,
     IAuthStoreService authStoreService,
@@ -17,16 +17,14 @@ public class AuthController(
     /// <summary>
     /// Issue a sandbox bearer token using client credentials
     /// </summary>
-    [HttpPost("token", Name = "AuthToken")]
-    [Consumes("application/json")]
+    [HttpPost("token", Name = "Token")]
+    [Consumes("application/x-www-form-urlencoded", "application/json")]
     [ProducesResponseType(typeof(AuthTokenResponse), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(ProblemDetails), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), (int)HttpStatusCode.Unauthorized)]
-    public async Task<Results<Ok<AuthTokenResponse>, ProblemHttpResult>> AuthToken(
-        HttpRequest request
-    )
+    public async Task<Results<Ok<AuthTokenResponse>, ProblemHttpResult>> AuthToken()
     {
-        var authValidation = ValidateAuthRequest(request);
+        var authValidation = ValidateAuthRequest();
         if (!authValidation.isValid)
         {
             return TypedResults.Problem(
@@ -48,7 +46,7 @@ public class AuthController(
             );
         }
 
-        var queryScopes = GetRequestScopeFromQueriesAsync(request);
+        var queryScopes = GetRequestScopeFromFormAsync();
         var requestedScopes = NormaliseScopes(queryScopes);
         var allowedScopes = NormaliseScopes(authClient.TokenRequest!.Scopes);
 
@@ -92,27 +90,28 @@ public class AuthController(
         );
     }
 
-    private static string[] GetRequestScopeFromQueriesAsync(HttpRequest requestData)
+    private string[] GetRequestScopeFromFormAsync()
     {
-        requestData.Body.Seek(0, SeekOrigin.Begin);
-        var scopes = requestData.Query.TryGetValue("scope", out var scopeValues)
-            ? scopeValues.FirstOrDefault()?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? []
-            : [];
-        return scopes;
+        if (HttpContext.Request.Form.TryGetValue("scope", out var scopeValues))
+        {
+            return scopeValues.FirstOrDefault()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                ?? [];
+        }
+        return [];
     }
 
-    private (bool isValid, string authValue) ValidateAuthRequest(HttpRequest requestData)
+    private (bool isValid, string authValue) ValidateAuthRequest()
     {
-        var contentType = requestData.Headers.ContentType.FirstOrDefault() ?? string.Empty;
+        var contentType = HttpContext.Request.Headers.ContentType.FirstOrDefault() ?? string.Empty;
 
         if (
             !contentType.Contains("application/x-www-form-urlencoded")
-            || !requestData.Query.TryGetValue("grant_type", out var grantTypes)
+            || !HttpContext.Request.Form.TryGetValue("grant_type", out var grantTypes)
             || grantTypes.FirstOrDefault() != "client_credentials"
         )
             return (false, string.Empty);
 
-        var authValues = requestData.Headers.Authorization;
+        var authValues = HttpContext.Request.Headers.Authorization;
         if (authValues.Count == 0)
         {
             logger.LogWarning("Missing Authorization header.");
@@ -125,8 +124,6 @@ public class AuthController(
             logger.LogWarning("Invalid Authorization header.");
             return (false, string.Empty);
         }
-
-        requestData.Body.Seek(0, SeekOrigin.Begin);
 
         return (true, authHeader);
     }

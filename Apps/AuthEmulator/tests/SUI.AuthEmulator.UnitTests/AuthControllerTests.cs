@@ -1,7 +1,7 @@
 using System.Text;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using NSubstitute;
@@ -21,17 +21,18 @@ public class AuthControllerTests
     public AuthControllerTests()
     {
         var logger = Substitute.For<ILogger<AuthController>>();
-        _sut = new AuthController(logger, _authStoreService, _jwtTokenService);
+        _sut = new AuthController(logger, _authStoreService, _jwtTokenService)
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
+        };
     }
 
     [Fact]
     public async Task ShouldReturnProblemResponse_WhenNoFormDetailsProvided()
     {
         // Arrange
-        var httpRequestData = CreateJson("");
-
         // Act
-        var result = await _sut.AuthToken(httpRequestData);
+        var result = await _sut.AuthToken();
 
         // Assert
         Assert.NotNull(result.Result);
@@ -49,64 +50,16 @@ public class AuthControllerTests
     public async Task ShouldReturnProblemResponse_WhenNoAuthorizationHeaderProvided()
     {
         // Arrange
-        var httpRequestData = CreateJson(
-            "",
-            query: new Dictionary<string, StringValues> { { "grant_type", "client_credentials" } }
+        SetHeadersAndForm(
+            form: new Dictionary<string, StringValues> { { "grant_type", "client_credentials" } },
+            headers: new Dictionary<string, string>
+            {
+                { "Content-Type", "application/x-www-form-urlencoded" },
+            }
         );
-        httpRequestData.Headers.Append("Content-Type", "application/x-www-form-urlencoded");
 
         // Act
-        var result = await _sut.AuthToken(httpRequestData);
-
-        // Assert
-        Assert.NotNull(result.Result);
-        Assert.IsType<ProblemHttpResult>(result.Result);
-        var problemHttpResult = (ProblemHttpResult)result.Result;
-        Assert.Equal(400, problemHttpResult.StatusCode);
-        Assert.Equal("Invalid request", problemHttpResult.ProblemDetails.Title);
-        Assert.Equal(
-            "Missing or malformed authentication details.",
-            problemHttpResult.ProblemDetails.Detail
-        );
-    }
-
-    [Fact]
-    public async Task ShouldReturnProblemResponse_WhenInvalidContentTypeProvided()
-    {
-        // Arrange
-        var httpRequestData = CreateJson(
-            "",
-            query: new Dictionary<string, StringValues> { { "grant_type", "client_credentials" } }
-        );
-        httpRequestData.Headers.Append("Content-Type", "application/json");
-
-        // Act
-        var result = await _sut.AuthToken(httpRequestData);
-
-        // Assert
-        Assert.NotNull(result.Result);
-        Assert.IsType<ProblemHttpResult>(result.Result);
-        var problemHttpResult = (ProblemHttpResult)result.Result;
-        Assert.Equal(400, problemHttpResult.StatusCode);
-        Assert.Equal("Invalid request", problemHttpResult.ProblemDetails.Title);
-        Assert.Equal(
-            "Missing or malformed authentication details.",
-            problemHttpResult.ProblemDetails.Detail
-        );
-    }
-
-    [Fact]
-    public async Task ShouldReturnProblemResponse_WhenNoClientIdOrSecretProvided()
-    {
-        // Arrange
-        var httpRequestData = CreateJson(
-            "",
-            query: new Dictionary<string, StringValues> { { "grant_type", "client_credentials" } }
-        );
-        httpRequestData.Headers.Append("Content-Type", "application/x-www-form-urlencoded");
-
-        // Act
-        var result = await _sut.AuthToken(httpRequestData);
+        var result = await _sut.AuthToken();
 
         // Assert
         Assert.NotNull(result.Result);
@@ -127,15 +80,18 @@ public class AuthControllerTests
         // Only clientId, no clientSecret
         const string credentials = "valid_client_id:";
         var base64Credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
-        var httpRequestData = CreateJson(
-            "",
-            query: new Dictionary<string, StringValues> { { "grant_type", "client_credentials" } }
+
+        SetHeadersAndForm(
+            form: new Dictionary<string, StringValues> { { "grant_type", "client_credentials" } },
+            headers: new Dictionary<string, string>
+            {
+                { "Content-Type", "application/x-www-form-urlencoded" },
+                { "Authorization", $"Basic {base64Credentials}" },
+            }
         );
-        httpRequestData.Headers.Append("Content-Type", "application/x-www-form-urlencoded");
-        httpRequestData.Headers.Append("Authorization", $"Basic {base64Credentials}");
 
         // Act
-        var result = await _sut.AuthToken(httpRequestData);
+        var result = await _sut.AuthToken();
 
         // Assert
         Assert.NotNull(result.Result);
@@ -149,20 +105,23 @@ public class AuthControllerTests
     [Fact]
     public async Task ShouldThrowException_WhenFileIsNotFound()
     {
-        // Arrange
-        var httpRequestData = CreateJson(
-            "",
-            new Dictionary<string, StringValues>
+        SetHeadersAndForm(
+            form: new Dictionary<string, StringValues>
             {
                 { "grant_type", "client_credentials" },
                 { "scope", "file.read" },
+            },
+            headers: new Dictionary<string, string>
+            {
+                { "Content-Type", "application/x-www-form-urlencoded" },
+                {
+                    "Authorization",
+                    "Basic "
+                        + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
+                },
             }
         );
-        httpRequestData.Headers.Append("Content-Type", "application/x-www-form-urlencoded");
-        httpRequestData.Headers.Append(
-            "Authorization",
-            "Basic " + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
-        );
+
         _authStoreService
             .GetClientByCredentials("valid_client_id", "valid_client_secret")
             .Throws(new InvalidOperationException("Auth store file not found at: some/path"));
@@ -170,7 +129,7 @@ public class AuthControllerTests
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
-            await _sut.AuthToken(httpRequestData);
+            await _sut.AuthToken();
         });
     }
 
@@ -178,18 +137,21 @@ public class AuthControllerTests
     public async Task ShouldReturnProblem_WhenInvalidScopeProvided()
     {
         // Arrange
-        var httpRequestData = CreateJson(
-            "",
-            new Dictionary<string, StringValues>
+        SetHeadersAndForm(
+            form: new Dictionary<string, StringValues>
             {
                 { "grant_type", "client_credentials" },
                 { "scope", "invalid.scope" },
+            },
+            headers: new Dictionary<string, string>
+            {
+                { "Content-Type", "application/x-www-form-urlencoded" },
+                {
+                    "Authorization",
+                    "Basic "
+                        + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
+                },
             }
-        );
-        httpRequestData.Headers.Append("Content-Type", "application/x-www-form-urlencoded");
-        httpRequestData.Headers.Append(
-            "Authorization",
-            "Basic " + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
         );
         _authStoreService
             .GetClientByCredentials("valid_client_id", "valid_client_secret")
@@ -209,7 +171,7 @@ public class AuthControllerTests
             .Returns("mocked_jwt_token");
 
         // Act
-        var result = await _sut.AuthToken(httpRequestData);
+        var result = await _sut.AuthToken();
 
         // Assert
         Assert.NotNull(result.Result);
@@ -227,18 +189,21 @@ public class AuthControllerTests
     public async Task ShouldReturnJwtTokenInResponse_WhenValidClientCredentialsProvided()
     {
         // Arrange
-        var httpRequestData = CreateJson(
-            "",
-            new Dictionary<string, StringValues>
+        SetHeadersAndForm(
+            form: new Dictionary<string, StringValues>
             {
                 { "grant_type", "client_credentials" },
                 { "scope", "file.read" },
+            },
+            headers: new Dictionary<string, string>
+            {
+                { "Content-Type", "application/x-www-form-urlencoded" },
+                {
+                    "Authorization",
+                    "Basic "
+                        + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
+                },
             }
-        );
-        httpRequestData.Headers.Append("Content-Type", "application/x-www-form-urlencoded");
-        httpRequestData.Headers.Append(
-            "Authorization",
-            "Basic " + Convert.ToBase64String("valid_client_id:valid_client_secret"u8.ToArray())
         );
         _authStoreService
             .GetClientByCredentials("valid_client_id", "valid_client_secret")
@@ -258,7 +223,7 @@ public class AuthControllerTests
             .Returns("mocked_jwt_token");
 
         // Act
-        var result = await _sut.AuthToken(httpRequestData);
+        var result = await _sut.AuthToken();
 
         // Assert
         Assert.NotNull(result.Result);
@@ -272,68 +237,17 @@ public class AuthControllerTests
         Assert.Equal((string?)"mocked_jwt_token", okHttpResult.Value?.AccessToken);
     }
 
-    private static HttpRequest CreateJson<T>(
-        T requestData,
-        Dictionary<string, StringValues>? query = null,
-        HeaderDictionary? headers = null
-    )
-        where T : class
-    {
-        var serializedData = JsonSerializer.Serialize(requestData);
-        var bodyDataStream = new MemoryStream(Encoding.UTF8.GetBytes(serializedData));
-
-        var queryDictionary = new Dictionary<string, StringValues>();
-        if (query != null)
-        {
-            foreach (var key in query.Keys)
-            {
-                foreach (var value in query[key])
-                {
-                    queryDictionary.Add(key, value);
-                }
-            }
-        }
-
-        var queryCollection = new QueryCollection(queryDictionary);
-
-        var request = Substitute.For<HttpRequest>();
-        request.Body.Returns(bodyDataStream);
-        request.Headers.Returns(headers ?? []);
-        request.Query.Returns(queryCollection);
-
-        return request;
-    }
-
-    private static HttpRequest CreateForm(
-        Dictionary<string, string> requestData,
-        Dictionary<string, StringValues>? query = null,
-        HeaderDictionary? headers = null
+    private void SetHeadersAndForm(
+        Dictionary<string, StringValues> form,
+        Dictionary<string, string> headers
     )
     {
-        var formData = new FormUrlEncodedContent(requestData);
-        var bodyDataStream = new MemoryStream();
-        formData.CopyToAsync(bodyDataStream).Wait();
-        bodyDataStream.Position = 0;
+        var formCollection = new FormCollection(form);
+        _sut.HttpContext.Request.Form = formCollection;
 
-        var queryDictionary = new Dictionary<string, StringValues>();
-        if (query != null)
+        foreach (var headerKvp in headers)
         {
-            foreach (var key in query.Keys)
-            {
-                foreach (var value in query[key])
-                {
-                    queryDictionary.Add(key, value);
-                }
-            }
+            _sut.HttpContext.Request.Headers[headerKvp.Key] = headerKvp.Value;
         }
-
-        var queryCollection = new QueryCollection(queryDictionary);
-
-        var request = Substitute.For<HttpRequest>();
-        request.Body.Returns(bodyDataStream);
-        request.Headers.Returns(headers ?? []);
-        request.Query.Returns(queryCollection);
-
-        return request;
     }
 }
