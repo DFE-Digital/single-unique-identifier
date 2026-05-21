@@ -144,37 +144,44 @@ To avoid a big bang change, and enable changes to be done in parallel without an
 
 rs-todo: create tickets and include Jira IDs
 
+#### Prerequisite Stream
+
 ```mermaid
 flowchart
     subgraph StreamClientIDs ["Prerequisite Stream: Auth Emulator Build"]
         direction TB
 
-        buildAuthEmulator["Extract AuthTokenFunction to a new AuthEmulator app"]
-        authEmulatorSwitchA["`Switch
-            **local and ephemeral**
-            to AuthEmulator`"]
+        buildAuthEmulator["`Extract AuthTokenFunction to a new AuthEmulator app
+            (SUI-1749, SUI-1756,
+            SUI-1757)`"]
 
-        buildAuthEmulator --> authEmulatorSwitchA
+        authEmulatorSwitchLocal["`Switch
+            **local and ephemeral**
+            to AuthEmulator (SUI-1749)`"]
+
+        buildAuthEmulator --> authEmulatorSwitchLocal
     end
 ```
 
 ★ This **Auth Emulator Build** work stream should be completed as a prerequisite before the other streams, so that the further changes required to the emulated auth (e.g. Asymmetric Token Signing change) are completed in the new separated app, and so that less code needs to moved across and deleted.
+
+#### Main Streams
 
 ```mermaid
 flowchart
     subgraph DeployAuthEmulator ["Steam: Auth Emulator Deployment"]
         direction TB
 
-        deployAuthEmulator["Deploy AuthEmulator"]
+        deployAuthEmulator["`Deploy AuthEmulator
+            (SUI-1750)`"]
 
-        %% rs-todo: Create ticket for switching d01 and d02 across to using the new Auth Emulator
-        authEmulatorSwitchB["`Switch
-            **deployed environments**
-            to AuthEmulator`"]
+        %% rs-todo: Create ticket for switching d01 across to using the new Auth Emulator (d02 we'll do in a batch at a later date)
+        authEmulatorSwitchD01["`Switch **d01**
+            to use AuthEmulator`"]
 
         removeAuthTokenFunction["Remove AuthTokenFunction and related unused code"]
 
-        deployAuthEmulator --> authEmulatorSwitchB --> removeAuthTokenFunction
+        deployAuthEmulator --> authEmulatorSwitchD01 --> removeAuthTokenFunction
     end
 
     subgraph StreamClientIDs ["Steam: Client ID to Organisation ID Mapping"]
@@ -237,4 +244,27 @@ flowchart
 
 ★ Once the **above** main streams of development work are complete, the final tidy up and verification work **below** can commence.
 
-rs-todo!
+#### Follow On Streams
+
+```mermaid
+flowchart
+    subgraph Verify ["Stream: Verify Generic Auth Model"]
+        direction TB
+
+        hideDeployedClientSecrets["Change deployed environments to use Non-public Client IDs and Secrets"]
+
+        verifyUsingFaUAPI["Verify Generic OAuth2/JWT Auth Model by integrating a new deployed Sandbox environment with Find and Use an API (FaUAPI)"]
+
+        hideDeployedClientSecrets --> verifyUsingFaUAPI
+    end
+
+    subgraph Test ["Stream: Expand E2E/Integration Test"]
+        direction TB
+
+        addOrganisations["`Add new Organisations with less allowed scopes
+            (e.g. searcher-only, custodian-only)`"]
+
+        allowedScopesVerification["Expand E2E/Integration Tests to cover allowed scopes verification"]
+
+        addOrganisations --> allowedScopesVerification
+    end
