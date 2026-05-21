@@ -265,13 +265,23 @@ flowchart
     subgraph Verify ["Stream: Verify Generic Auth Model"]
         direction TB
 
-        hideDeployedClientSecrets["`Change deployed environments to use Non-public Client IDs and Secrets
-            <sup>> auth-clients-inbound.json</sup>
-            <sup>> auth-clients-outbound.json</sup>`"]
+        subgraph hideDeployedClientSecretsContainer [" "]
+            direction TB
+
+            hideDeployedClientSecrets["Change deployed environments to use Non-public Client IDs and Secrets"]
+
+            auth-clients-inbound.json
+
+            auth-clients-outbound.json
+
+            hideDeployedClientSecrets --> auth-clients-inbound.json
+
+            hideDeployedClientSecrets --> auth-clients-outbound.json
+        end
 
         verifyUsingFaUAPI["Verify Generic OAuth2/JWT Auth Model by integrating a new deployed Sandbox environment with Find and Use an API (FaUAPI)"]
 
-        hideDeployedClientSecrets --> verifyUsingFaUAPI
+        hideDeployedClientSecretsContainer --> verifyUsingFaUAPI
     end
 
     subgraph Test ["Stream: Expand E2E/Integration Test"]
