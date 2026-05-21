@@ -144,17 +144,7 @@ To avoid a big bang change, and enable changes to be done in parallel without an
 
 rs-todo: create tickets and include Jira IDs  
 
-rs-todo: update SUI-1753, ICustodianService should just have an ICustodianService.GetAuthorisedScopes(orgId) method
-    ^^^^ maybe jst abandon this actually, in favour of the new plan?
-	rather than HasAnyRequiredScopeAsync
-	that logic should remain in JwtAuthMiddleware
-	And so the update to JwtAuthMiddleware, if UseCustodianServiceForAuthorisation is true, just does something like:
-		HasAnyRequiredScope:
-			var authorisedScopes = ICustodianService.GetAuthorisedScopes(orgId)
-			requiredScopes.Any(rs =>
-				authorisedScopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
-			);
-			i.e. should return true if the Organisation with the specified ID has any of the specified required scopes.  
+rs-todo: update SUI-1753, so its now about: optionally authorise scopes directly from Auth Store rather than token scopes
 
 rs-todo: me to do quickly, at end of this, a quick LINQPad that verifies a FaUAPI token, using OIDC discovery
 
@@ -279,9 +269,13 @@ flowchart
             hideDeployedClientSecrets --> auth-clients-outbound.json
         end
 
+        FaUAPIScopesSupport["Update Find API to optionally authorise scopes directly from Auth Store rather than token scopes (SUI-1753)"]
+
         verifyUsingFaUAPI["Verify Generic OAuth2/JWT Auth Model by integrating a new deployed Sandbox environment with Find and Use an API (FaUAPI)"]
 
         hideDeployedClientSecretsContainer --> verifyUsingFaUAPI
+
+        FaUAPIScopesSupport --> verifyUsingFaUAPI
     end
 
     subgraph Test ["Stream: Expand E2E/Integration Test"]
