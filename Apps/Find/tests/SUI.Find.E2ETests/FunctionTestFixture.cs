@@ -19,7 +19,7 @@ public class FunctionTestFixture : IAsyncLifetime
 
     public HttpClient StubCustodiansClient { get; }
 
-    public HttpClient AuthEmulatorClient { get; }
+    public HttpClient? AuthEmulatorClient { get; }
 
     public FunctionTestFixture()
     {
@@ -61,7 +61,7 @@ public class FunctionTestFixture : IAsyncLifetime
         // MAYBE: Delete everything in storage as a cleanup operation?
         Client.Dispose();
         StubCustodiansClient.Dispose();
-        AuthEmulatorClient.Dispose();
+        AuthEmulatorClient?.Dispose();
         GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
     }
