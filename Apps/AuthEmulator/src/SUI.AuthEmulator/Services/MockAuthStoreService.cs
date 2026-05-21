@@ -23,7 +23,6 @@ public class MockAuthStoreService : IAuthStoreService
             || string.IsNullOrWhiteSpace(store.SigningKey)
         )
         {
-            // May be better to log this error instead of throwing, doesn't stop the service
             throw new InvalidOperationException(
                 "Auth store file is missing issuer, audience, or signingKey."
             );

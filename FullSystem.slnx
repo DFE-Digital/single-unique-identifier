@@ -5,7 +5,7 @@
     <Project Path="Apps\AuthEmulator\src\SUI.AuthEmulator\SUI.AuthEmulator.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Apps/AuthEmulator/tests/">
-    <Project Path="Apps\SUI.AuthEmulator.UnitTests\SUI.AuthEmulator.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="Apps\AuthEmulator\tests\SUI.AuthEmulator.UnitTests\SUI.AuthEmulator.UnitTests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Apps/Find/">
     <File Path="Apps/Find/README.md" />
