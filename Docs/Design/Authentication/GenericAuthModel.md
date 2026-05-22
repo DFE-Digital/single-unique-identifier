@@ -140,8 +140,6 @@ The `auth-clients-outbound.json` data file is affected by the change to use non-
 
 To avoid a big bang change, and enable changes to be done in parallel without any breaking changes, the following work streams have been devised:
 
-rs-todo: me to do quickly, at end of this, a quick LINQPad that verifies a FaUAPI token, using OIDC discovery
-
 #### Prerequisite Stream
 
 ```mermaid
@@ -216,28 +214,26 @@ flowchart
     subgraph StreamAsymmetric ["Stream: Asymmetric Token Signing"]
         direction TB
 
-        %% rs-todo: Create ticket inc: returns the JSON Web Key Set (JWKS) of all the current keys; Should return the public key only!; Keys should rotate over time
         JWKSEndpoint["`_[Auth Emulator]_
-            JSON Web Key Set (JWKS) endpoint`"]
+            JSON Web Key Set (JWKS) endpoint (SUI-1776)`"]
 
-        %% rs-todo: Create ticket: inc: As a minimum, should return all of the required values as specified in: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig
         OIDCConfigEndpoint["`_[Auth Emulator]_
-            openid-configuration endpoint`"]
+            openid-configuration endpoint (SUI-1777)`"]
 
         RSAVerify["`_[Find API]_
             > openid discovery
             > Verify token signatures using RSA public key
             > JwtAuthMiddleware test coverage
-            > Keep Symmetric Key verifcation at this stage`"]
+            > Keep Symmetric Key verifcation at this stage
+            (SUI-1778)`"]
 
-        %% rs-todo: Create ticket including details about using RSA AsymmetricSecurityKey
         SignWithRSA["`_[Auth Emulator]_
-            Sign tokens using RSA private key`"]
+            Sign tokens using RSA private key (SUI-1779)`"]
 
-        %% rs-todo: Create ticket including auth-clients-inbound issuer, audience and defaultTokenLifetimeMinutes should be moved to Auth Emulator
         RemoveInboundSymmetricKey["`_[Find API]_
             Remove **Inbound** Symmetric Key & verification logic
-            (once above all deployed)`"]
+            (once above all deployed)
+            (SUI-1780)`"]
 
         JWKSEndpoint --> RSAVerify
 
