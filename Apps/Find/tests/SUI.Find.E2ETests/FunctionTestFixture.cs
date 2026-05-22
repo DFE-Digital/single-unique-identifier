@@ -47,7 +47,7 @@ public class FunctionTestFixture : IAsyncLifetime
 
         AuthEmulatorClient = new HttpClient(policyHandler)
         {
-            BaseAddress = new Uri(Config.AuthEmulatorBaseUrl),
+            BaseAddress = Config.UseAuthEmulator ? new Uri(Config.AuthEmulatorBaseUrl) : null,
         };
     }
 
