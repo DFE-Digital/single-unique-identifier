@@ -144,8 +144,6 @@ To avoid a big bang change, and enable changes to be done in parallel without an
 
 rs-todo: create tickets and include Jira IDs  
 
-rs-todo: Ticket for improving perf of MockAuthStoreService! Similar to the ord-directory ticket in this sprint.  
-
 rs-todo: me to do quickly, at end of this, a quick LINQPad that verifies a FaUAPI token, using OIDC discovery
 
 #### Prerequisite Stream
