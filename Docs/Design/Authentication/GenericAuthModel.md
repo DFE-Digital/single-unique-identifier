@@ -58,19 +58,17 @@ flowchart TB
     find[Find API]
     authStore[Auth Store]
 
-    custodian --> |"`**1. Get access token**
-        (using client credentials)`"| idp
+    custodian <--> |"`**1. Get access token**
+        > using client credentials
+        > returns signed token using public-key crypto`"| idp
 
-    idp --> |"`**2. Return access token**
-        (signed using public-key crypto)`"| custodian
-
-    custodian --> |"`**3. Call Find API**
+    custodian --> |"`**2. Call Find API**
         (including access token)`"| find
 
-    find --> |"`**4. Get public key**
+    find --> |"`**3. Get public key**
         (to verify signature)`"| idp
 
-    find --> |"`**5. Map Client ID to
+    find <--> |"`**4. Map Client ID to
         Organisation ID**`"| authStore
 ```
 
