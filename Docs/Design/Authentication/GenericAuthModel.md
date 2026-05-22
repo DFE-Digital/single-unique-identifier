@@ -140,8 +140,6 @@ The `auth-clients-outbound.json` data file is affected by the change to use non-
 
 To avoid a big bang change, and enable changes to be done in parallel without any breaking changes, the following work streams have been devised:
 
-rs-todo: create tickets and include Jira IDs  
-
 rs-todo: me to do quickly, at end of this, a quick LINQPad that verifies a FaUAPI token, using OIDC discovery
 
 #### Prerequisite Stream
@@ -175,11 +173,12 @@ flowchart
         deployAuthEmulator["`Deploy AuthEmulator
             (SUI-1750)`"]
 
-        %% rs-todo: Create ticket for switching d01 across to using the new Auth Emulator (d02 we'll do in a batch at a later date)
         authEmulatorSwitchD01["`Switch **d01**
-            to use AuthEmulator`"]
+            to use AuthEmulator
+            (SUI-1770)`"]
 
-        removeAuthTokenFunction["Remove AuthTokenFunction and related unused code"]
+        removeAuthTokenFunction["`Remove AuthTokenFunction and related unused code
+            (SUI-1771)`"]
 
         deployAuthEmulator --> authEmulatorSwitchD01 --> removeAuthTokenFunction
     end
@@ -189,19 +188,25 @@ flowchart
 
         newProp["`_[auth-clients-inbound]_
             new property per client:
-            **OrganisationId**: string`"]
+            **OrganisationId**: string
+            (SUI-1772)`"]
 
         mapNewProp["`_[Find API]_
-            JwtAuthMiddleware / AuthContextFactory updated to map **ClientId** to **OrganisationId**`"]
+            JwtAuthMiddleware / AuthContextFactory updated to map **ClientId** to **OrganisationId**
+            (SUI-1773)`"]
 
         useNewProp["`_[Find API]_
-            All usages of **AuthContext.ClientId** changed to use **AuthContext.OrganisationId**`"]
+            All usages of **AuthContext.ClientId** changed to use **AuthContext.OrganisationId**
+            (SUI-1773)`"]
 
         updateTestHarness["`_[TestHarness]_
-            Custodian dropdown updated to display **OrganisationId** but still use **ClientId** as value.`"]
+            Custodian dropdown updated to display **OrganisationId** but still use **ClientId** as value.
+            (SUI-1774)`"]
 
         updateClientIdValues["`_[auth-clients-inbound]_
-            **ClientId** values changed to not match **OrganisationId** (once above all deployed)`"]
+            **ClientId** values changed to not match **OrganisationId**
+            (once above all deployed)
+            (SUI-1775)`"]
 
         newProp --> mapNewProp --> useNewProp--> updateClientIdValues
 
