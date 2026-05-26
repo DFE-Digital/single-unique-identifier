@@ -11,8 +11,9 @@
     <PackageReference Include="Testably.Abstractions.FileSystem.Interface" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Content Update="Data\auth-clients-inbound.json">
+    <None Include="..\..\..\..\Data\auth-clients-inbound.json">
+      <Link>Data\auth-clients-inbound.json</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
 </Project>

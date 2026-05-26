@@ -19,8 +19,6 @@ public class FunctionTestFixture : IAsyncLifetime
 
     public HttpClient StubCustodiansClient { get; }
 
-    public HttpClient AuthEmulatorClient { get; }
-
     public FunctionTestFixture()
     {
         var configurationRoot = new ConfigurationBuilder()
@@ -44,11 +42,6 @@ public class FunctionTestFixture : IAsyncLifetime
         {
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
-
-        AuthEmulatorClient = new HttpClient(policyHandler)
-        {
-            BaseAddress = Config.UseAuthEmulator ? new Uri(Config.AuthEmulatorBaseUrl) : null,
-        };
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
@@ -58,7 +51,6 @@ public class FunctionTestFixture : IAsyncLifetime
         // MAYBE: Delete everything in storage as a cleanup operation?
         Client.Dispose();
         StubCustodiansClient.Dispose();
-        AuthEmulatorClient.Dispose();
         GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
     }
