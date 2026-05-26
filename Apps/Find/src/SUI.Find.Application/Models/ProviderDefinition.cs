@@ -1,5 +1,3 @@
-using SUI.Find.Domain.Models;
-
 namespace SUI.Find.Application.Models;
 
 public sealed class ProviderDefinition : IPepFilterable
@@ -14,7 +12,6 @@ public sealed class ProviderDefinition : IPepFilterable
     public string RecordType { get; init; } = string.Empty;
 
     public ConnectionDefinition Connection { get; init; } = new();
-    public EncryptionDefinition? Encryption { get; init; }
 
     public DsaPolicyDefinition DsaPolicy { get; set; } = new();
 }

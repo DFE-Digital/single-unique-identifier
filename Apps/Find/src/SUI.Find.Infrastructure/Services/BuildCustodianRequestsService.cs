@@ -1,7 +1,5 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Domain.Models;
@@ -13,9 +11,7 @@ public class BuildCustodianRequestsService(
     ILogger<BuildCustodianRequestsService> logger,
     IBuildCustodianHttpRequest requestBuilder,
     IProviderHttpClient providerHttpClient,
-    IOutboundAuthService outboundAuthService,
-    IPersonIdEncryptionService encryptionService,
-    IOptions<EncryptionConfiguration> encryptionConfig
+    IOutboundAuthService outboundAuthService
 ) : IBuildCustodianRequestService
 {
     public async Task<
@@ -25,35 +21,7 @@ public class BuildCustodianRequestsService(
         CancellationToken cancellationToken
     )
     {
-        var personId = string.Empty;
-        var encrypt = encryptionConfig.Value.EnablePersonIdEncryption;
-        if (data.Provider.Encryption is not null && encrypt)
-        {
-            var encryptedPersonId = encryptionService.EncryptNhsToPersonId(
-                data.Suid,
-                data.Provider.Encryption
-            );
-
-            if (!encryptedPersonId.Success)
-            {
-                logger.LogError(
-                    "Encryption failed for provider {Provider}: {ErrorMessage}",
-                    data.Provider.ProviderName,
-                    encryptedPersonId.Error
-                );
-
-                return Result<List<CustodianSearchResultItem>>.Fail(
-                    encryptedPersonId.Error ?? "Encryption of PersonId Failed"
-                );
-            }
-
-            if (encryptedPersonId.Value != null)
-                personId = encryptedPersonId.Value;
-        }
-        else
-        {
-            personId = data.Suid;
-        }
+        var personId = data.Suid;
 
         var tokenResult = await outboundAuthService.GetAccessTokenAsync(
             data.Provider,

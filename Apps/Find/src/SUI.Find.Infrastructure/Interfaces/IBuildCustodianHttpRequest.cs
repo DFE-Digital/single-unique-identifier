@@ -6,7 +6,7 @@ public interface IBuildCustodianHttpRequest
 {
     HttpRequestMessage BuildHttpRequest(
         ProviderDefinition provider,
-        string encryptedPersonId,
+        string personId,
         string? bearerToken
     );
 }

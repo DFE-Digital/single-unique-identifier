@@ -16,6 +16,7 @@
     "OTEL_SERVICE_NAME": "SUI.Find.FindApi",
     "IdEncryption:EnablePersonIdEncryption": false,
     "MatchFunction:XApiKey": "local-dev-key-change-me",
-    "StorageRetentionDays": 1
+    "StorageRetentionDays": 1,
+    "E2E:FindApiKey": "local-dev-key-change-me"
   }
 }

@@ -5,7 +5,6 @@ using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.UnitTests.Services.SearchServiceTests;
@@ -85,11 +84,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 
         CustodianService
             .GetCustodianAsync(ClientId)
-            .Returns(
-                Domain.Models.Result<ProviderDefinition>.Ok(
-                    new ProviderDefinition { Encryption = null }
-                )
-            );
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(new ProviderDefinition()));
 
         _client
             .ScheduleNewOrchestrationInstanceAsync(
@@ -115,35 +110,6 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     }
 
     [Fact]
-    public async Task ShouldReturnFailed_WhenDecryptionFails()
-    {
-        var instanceId = $"{_encryptedPersonId}-{ClientId}";
-        HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
-        _client
-            .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
-            .Returns((OrchestrationMetadata?)null);
-
-        var custodianDef = new ProviderDefinition { Encryption = new EncryptionDefinition() };
-        CustodianService
-            .GetCustodianAsync(ClientId)
-            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(custodianDef));
-
-        EncryptionService
-            .DecryptPersonIdToNhs(_encryptedPersonId.Value, custodianDef.Encryption)
-            .Returns(Domain.Models.Result<string>.Fail("Decryption failed"));
-
-        var result = await Sut.StartSearchAsync(
-            _encryptedPersonId.Value,
-            ClientId,
-            _client,
-            CorrelationId,
-            _cancellationToken
-        );
-
-        Assert.IsType<Error>(result.Value);
-    }
-
-    [Fact]
     public async Task ShouldReturnSuccess_WhenNewJobScheduled()
     {
         var instanceId = $"{_encryptedPersonId}-{ClientId}";
@@ -152,14 +118,10 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
             .Returns((OrchestrationMetadata?)null);
 
-        var custodianDef = new ProviderDefinition() { Encryption = new EncryptionDefinition() };
+        var custodianDef = new ProviderDefinition();
         CustodianService
             .GetCustodianAsync(ClientId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(custodianDef));
-
-        EncryptionService
-            .DecryptPersonIdToNhs(_encryptedPersonId.Value, custodianDef.Encryption)
-            .Returns(Domain.Models.Result<string>.Ok("decrypted-nhs-id"));
 
         _client
             .ScheduleNewOrchestrationInstanceAsync(

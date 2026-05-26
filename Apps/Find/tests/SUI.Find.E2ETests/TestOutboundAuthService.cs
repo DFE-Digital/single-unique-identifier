@@ -1,13 +1,10 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
-using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
-using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Services;
 using SUI.Find.Infrastructure.Utility;
 
@@ -74,9 +71,7 @@ public sealed class TestOutboundAuthService(
         var loggerBuildRequest = Substitute.For<ILogger<BuildCustodianRequestsService>>();
         var loggerOutboundAuth = Substitute.For<ILogger<OutboundAuthService>>();
         var loggerProviderHttp = Substitute.For<ILogger<ProviderHttpClient>>();
-        var loggerEncryption = Substitute.For<ILogger<PersonIdEncryptionService>>();
         var loggerMaskUrl = Substitute.For<ILogger<MaskUrlService>>();
-        var encryptionConfig = Substitute.For<IOptions<EncryptionConfiguration>>();
 
         var httpClientFactory = Substitute.For<IHttpClientFactory>();
         var httpClientFactory2 = Substitute.For<IHttpClientFactory>();
@@ -89,19 +84,13 @@ public sealed class TestOutboundAuthService(
 
         var outboundAuthService = new OutboundAuthService(loggerOutboundAuth, httpClientFactory);
         var providerHttpClient = new ProviderHttpClient(httpClientFactory2, loggerProviderHttp);
-        var encryptionService = new PersonIdEncryptionService(loggerEncryption);
         var requestBuilder = new BuildCustodianHttpRequest();
-        encryptionConfig.Value.Returns(
-            new EncryptionConfiguration { EnablePersonIdEncryption = false }
-        );
 
         var buildCustodianRequestService = new BuildCustodianRequestsService(
             loggerBuildRequest,
             requestBuilder,
             providerHttpClient,
-            outboundAuthService,
-            encryptionService,
-            encryptionConfig
+            outboundAuthService
         );
 
         var fetchUrlStorageService = Substitute.For<IFetchUrlStorageService>();
@@ -117,12 +106,6 @@ public sealed class TestOutboundAuthService(
         {
             OrgId = "LOCAL-AUTHORITY-01",
             ProviderName = "Local-Authority-01",
-            Encryption = new EncryptionDefinition
-            {
-                KeyId = "LOCAL-AUTHORITY-01-KEY-1",
-                Algorithm = "AES-256-CBC",
-                Key = "Kz4KY01cCpp1rvQ4Lj540n8Pp4EHBZ0HbNm6KvuzUaw=",
-            },
             Connection = new ConnectionDefinition
             {
                 Url =

@@ -321,7 +321,6 @@ public class JobResultHandlerTests
             OrgId = requestingOrganisationId,
             OrgName = "OrgX",
             OrgType = "TypeA",
-            Encryption = new EncryptionDefinition { Key = "test-key" },
             DsaPolicy = new DsaPolicyDefinition(),
         };
 
@@ -479,7 +478,6 @@ public class JobResultHandlerTests
             OrgId = requestingOrganisationId,
             OrgName = "OrgX",
             OrgType = "TypeA",
-            Encryption = new EncryptionDefinition { Key = "test-key" },
             DsaPolicy = new DsaPolicyDefinition(),
         };
 

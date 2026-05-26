@@ -9,7 +9,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Extensions.Http;
-using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
@@ -31,28 +30,9 @@ var builder = FunctionsApplication.CreateBuilder(args);
 
 builder.UseOpenTelemetry();
 
-// Options
-var encryptionConfigExists = builder.Configuration.GetSection(EncryptionConfiguration.SectionName);
-if (
-    !encryptionConfigExists.Exists()
-    || !bool.TryParse(
-        encryptionConfigExists[nameof(EncryptionConfiguration.EnablePersonIdEncryption)],
-        out _
-    )
-)
-{
-    throw new InvalidOperationException(
-        $"Missing required configuration section: {EncryptionConfiguration.SectionName}"
-    );
-}
 builder.Services.Configure<AuthTokenServiceConfig>(
     builder.Configuration.GetSection(AuthTokenServiceConfig.SectionName)
 );
-
-builder
-    .Services.AddOptions<EncryptionConfiguration>()
-    .BindConfiguration(EncryptionConfiguration.SectionName)
-    .ValidateDataAnnotations();
 
 builder
     .Services.AddOptions<MatchFunctionConfiguration>()
@@ -86,7 +66,6 @@ builder.Services.AddPdsSearchStrategies();
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<ICustodianService, MockCustodianService>();
 builder.Services.AddSingleton<IMatchRepository, MockMatchRepository>();
-builder.Services.AddSingleton<IMatchingEncryptionService, MatchingEncryptionService>();
 builder.Services.AddSingleton<IOutboundAuthService, OutboundAuthService>();
 
 // Add this after other service registrations

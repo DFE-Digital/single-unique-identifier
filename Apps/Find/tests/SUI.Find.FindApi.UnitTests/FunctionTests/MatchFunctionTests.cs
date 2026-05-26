@@ -87,7 +87,7 @@ public class MatchFunctionTests
         var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
-        var encryptedPersonId = new EncryptedSuidPersonId("some-encrypted-id");
+        var encryptedPersonId = new PlainPersonId("some-encrypted-id");
         _matchPersonOrchestrationService
             .FindPersonIdAsync(
                 Arg.Any<PersonSpecification>(),
@@ -369,7 +369,7 @@ public class MatchFunctionTests
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(request, headers: headers);
 
-        var encryptedPersonId = new EncryptedSuidPersonId("some-encrypted-id");
+        var encryptedPersonId = new PlainPersonId("some-encrypted-id");
 
         _matchPersonOrchestrationService
             .FindPersonIdAsync(

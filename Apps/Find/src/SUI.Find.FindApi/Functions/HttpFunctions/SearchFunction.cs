@@ -5,12 +5,8 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
-using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
@@ -18,11 +14,7 @@ using SUI.Find.FindApi.Validators;
 
 namespace SUI.Find.FindApi.Functions.HttpFunctions;
 
-public class SearchFunction(
-    ILogger<SearchFunction> logger,
-    ISearchService searchService,
-    IOptions<EncryptionConfiguration> encryptionConfig
-)
+public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searchService)
 {
     [OpenApiOperation(
         operationId: "searches",
@@ -78,9 +70,7 @@ public class SearchFunction(
             cancellationToken
         );
 
-        var encrypt = encryptionConfig.Value.EnablePersonIdEncryption;
-
-        if (!StartSearchRequestValidator.IsValid(searchRequest, encrypt, out var errorMessage))
+        if (!StartSearchRequestValidator.IsValid(searchRequest, out var errorMessage))
         {
             return await HttpResponseUtility.BadRequestResponse(
                 req,
@@ -93,16 +83,8 @@ public class SearchFunction(
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);
         var personId = string.Empty;
 
-        if (encrypt)
-        {
-            var encryptedPersonIdResult = EncryptedPersonId.Create(searchRequest!.Suid);
-            personId = encryptedPersonIdResult.Value!.Value;
-        }
-        else
-        {
-            if (searchRequest?.Suid != null)
-                personId = searchRequest.Suid;
-        }
+        if (searchRequest?.Suid != null)
+            personId = searchRequest.Suid;
 
         var searchJob = await searchService.StartSearchAsync(
             personId,

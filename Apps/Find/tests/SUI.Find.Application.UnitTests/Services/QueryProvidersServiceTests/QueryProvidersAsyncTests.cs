@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Dtos;
@@ -24,16 +23,12 @@ public class QueryProvidersAsyncTests
         _sut = new QueryProvidersService(_mockBuildRequest, _mockLogger, _mockMaskUrlService);
     }
 
-    private static ProviderDefinition MockProvider(
-        string orgId = "test-org-1",
-        EncryptionDefinition? encryption = null
-    )
+    private static ProviderDefinition MockProvider(string orgId = "test-org-1")
     {
         return new ProviderDefinition
         {
             OrgId = orgId,
             ProviderName = "Test Provider",
-            Encryption = encryption,
             Connection = new ConnectionDefinition { Url = "https://test-provider.com/api/records" },
         };
     }
