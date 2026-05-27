@@ -150,7 +150,6 @@ public class GetSearchResultItemsFromCustodianAsyncTests
             .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("valid-token"));
 
-        // FIXED: Expecting raw NhsNumber instead of "encrypted-id"
         _mockRequestBuilder
             .BuildHttpRequest(input.Provider, TestNhsNumber, "valid-token")
             .Returns(httpRequestMessage);
@@ -188,7 +187,6 @@ public class GetSearchResultItemsFromCustodianAsyncTests
             .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("valid-token"));
 
-        // FIXED: Expecting raw NhsNumber instead of "encrypted-id"
         _mockRequestBuilder
             .BuildHttpRequest(input.Provider, TestNhsNumber, "valid-token")
             .Returns(httpRequestMessage);
@@ -226,7 +224,6 @@ public class GetSearchResultItemsFromCustodianAsyncTests
             .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("valid-token"));
 
-        // FIXED: Expecting raw NhsNumber instead of "encrypted-id"
         _mockRequestBuilder
             .BuildHttpRequest(input.Provider, TestNhsNumber, "valid-token")
             .Returns(httpRequestMessage);
@@ -264,7 +261,6 @@ public class GetSearchResultItemsFromCustodianAsyncTests
             .GetAccessTokenAsync(input.Provider, Arg.Any<CancellationToken>())
             .Returns(Result<string>.Ok("valid-token"));
 
-        // FIXED: Expecting raw NhsNumber instead of "encrypted-id"
         _mockRequestBuilder
             .BuildHttpRequest(input.Provider, TestNhsNumber, "valid-token")
             .Returns(httpRequestMessage);

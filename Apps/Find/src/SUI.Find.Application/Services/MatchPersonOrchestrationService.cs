@@ -28,7 +28,7 @@ public class MatchPersonOrchestrationService(
             var getPersonIdResult = await HandlePersonIdRepresentationAsync(personId, clientId);
             return getPersonIdResult.Match<
                 OneOf<PersonIdValue, DataQualityResult, NotFound, Error>
-            >(encryptedId => encryptedId, error => error);
+            >(plainId => plainId, error => error);
         }
 
         return remainder.Match<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>>(

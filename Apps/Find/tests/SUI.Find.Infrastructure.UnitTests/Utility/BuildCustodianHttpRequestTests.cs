@@ -7,7 +7,7 @@ public class BuildCustodianHttpRequestTests
 {
     private readonly BuildCustodianHttpRequest _sut = new();
     private const string DefaultOrgId = "test-org-123";
-    private const string EncryptedPersonId = "1234567890123456";
+    private const string PersonId = "9999999999";
 
     private static ProviderDefinition MockProvider(
         string method = "GET",
@@ -44,13 +44,13 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider(method: inputMethod);
 
         // Act
-        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
+        var request = _sut.BuildHttpRequest(provider, PersonId, null);
         // Assert
         Assert.Equal(expectedMethod, request.Method.Method);
         Assert.Contains("orgId", request.Headers.ToString());
         Assert.Equal(DefaultOrgId, request.Headers.GetValues("orgId").Single());
         Assert.Equal(
-            $"https://api.example.com/records?personId={Uri.EscapeDataString(EncryptedPersonId)}",
+            $"https://api.example.com/records?personId={Uri.EscapeDataString(PersonId)}",
             request.RequestUri!.ToString()
         );
     }
@@ -63,11 +63,11 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider(personIdPosition: "path", url: url);
 
         // Act
-        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
+        var request = _sut.BuildHttpRequest(provider, PersonId, null);
 
         // Assert
         Assert.Equal(
-            $"https://api.example.com/records?{Uri.EscapeDataString(EncryptedPersonId)}",
+            $"https://api.example.com/records?{Uri.EscapeDataString(PersonId)}",
             request?.RequestUri?.ToString()
         );
     }
@@ -80,7 +80,7 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider();
 
         // Act
-        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, token);
+        var request = _sut.BuildHttpRequest(provider, PersonId, token);
 
         // Assert
         Assert.NotNull(request.Headers.Authorization);
@@ -98,7 +98,7 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider();
 
         // Act
-        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, token);
+        var request = _sut.BuildHttpRequest(provider, PersonId, token);
 
         // Assert
         Assert.Null(request.Headers.Authorization);
@@ -111,11 +111,11 @@ public class BuildCustodianHttpRequestTests
         var provider = MockProvider(personIdPosition: "header");
 
         // Act
-        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
+        var request = _sut.BuildHttpRequest(provider, PersonId, null);
 
         // Assert
         Assert.Contains("personId", request.Headers.ToString());
-        Assert.Equal(EncryptedPersonId, request.Headers.GetValues("personId").Single());
+        Assert.Equal(PersonId, request.Headers.GetValues("personId").Single());
     }
 
     [Theory]
@@ -134,7 +134,7 @@ public class BuildCustodianHttpRequestTests
         );
 
         // Act
-        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
+        var request = _sut.BuildHttpRequest(provider, PersonId, null);
 
         // Assert
         Assert.Null(request.Content);
@@ -152,12 +152,12 @@ public class BuildCustodianHttpRequestTests
         );
 
         // Act
-        var request = _sut.BuildHttpRequest(provider, EncryptedPersonId, null);
+        var request = _sut.BuildHttpRequest(provider, PersonId, null);
 
         // Assert
         Assert.NotNull(request.Content);
         Assert.Equal(
-            $"{{\"records\": {{ \"id\": \"{EncryptedPersonId}\" }}}}",
+            $"{{\"records\": {{ \"id\": \"{PersonId}\" }}}}",
             await request.Content.ReadAsStringAsync()
         );
     }

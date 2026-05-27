@@ -52,7 +52,6 @@ public abstract class SearchTestsBase(
         [
             new TestData
             {
-                EncryptedSui = "gkITssvF1IAbNgpcMv2lyA",
                 Sui = "9691292211",
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records =
@@ -80,7 +79,6 @@ public abstract class SearchTestsBase(
             },
             new TestData
             {
-                EncryptedSui = "vehNMF2ySUU23P206A6BYA",
                 Sui = "9691292211",
                 TestClientId = "EDUCATION-01",
                 Records =
@@ -98,14 +96,12 @@ public abstract class SearchTestsBase(
             },
             new TestData
             {
-                EncryptedSui = "-hg7DkXLL7oqmKzPwAfxGA",
                 Sui = "9449306613",
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records = [new TestRecord { RecordType = "personal.details", TestValue = "Briar" }],
             },
             new TestData
             {
-                EncryptedSui = "Gwy1RFyGF4b_sSbbPZExtQ",
                 Sui = "9449306494",
                 TestClientId = "HEALTH-01",
                 Records =
@@ -120,14 +116,12 @@ public abstract class SearchTestsBase(
         [
             new TestData
             {
-                EncryptedSui = "DcYc-jumZgryOtz3iFh7cw",
                 Sui = "9693821998",
                 TestClientId = "LOCAL-AUTHORITY-01",
                 Records = [],
             },
             new TestData
             {
-                EncryptedSui = "ZBLNLdIppgMge_MmzVImmA",
                 Sui = "9691292211",
                 TestClientId = "NO-DSA-01",
                 Records = [],
@@ -148,10 +142,7 @@ public abstract class SearchTestsBase(
         }
 
         // Step 1, start a new search
-        var searchJobLinks = await RunAndAssertNewSearchEndpoint(
-            Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui,
-            authToken
-        );
+        var searchJobLinks = await RunAndAssertNewSearchEndpoint(testData.Sui, authToken);
 
         var hasStatusLink = searchJobLinks.TryGetValue("status", out var statusLink);
         if (!UsePolling)
@@ -535,7 +526,6 @@ public class TestData
     public required string Sui { get; set; }
     public required TestRecord[] Records { get; set; }
     public required string TestClientId { get; set; }
-    public required string EncryptedSui { get; set; }
 }
 
 public class TestRecord
