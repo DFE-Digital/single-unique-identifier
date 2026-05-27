@@ -1,8 +1,10 @@
+using SUI.AuthEmulator;
 using SUI.AuthEmulator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.UseOpenTelemetry();
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
