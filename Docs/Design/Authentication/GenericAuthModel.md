@@ -23,19 +23,19 @@ This document outlines the technical specifications required to start developmen
 The gaps in the current auth implementation, and the elements to decouple from the prototype-only auth, are:
 
 * Asymmetric signature signing and verification is needed.
-    - To move to secure industry best practices whereby private keys are not shared, enabling integration with 3rd party identity providers.
+    - To move to secure industry best practices whereby private keys are not shared, enabling integration with real 3rd party identity providers.
 
 * Find API's authentication needs to be driven by standard OIDC inputs inputs/configuration.
-    - To enable Find API to integrate with 3rd party identity providers, rather than being tightly coupled to its current emulated auth.
+    - To enable Find API to seamlessly integrate with real 3rd party identity providers, rather than being tightly coupled to its current emulated auth.
 
-* The token verification in Find API needs full integration test coverage.
+* The token verification in Find API needs full test coverage.
     - To verify that system is secure.
 
 * The eumlated auth token endpoint needs to be decoupled from Find API.
     - To remove the coupling with the emulated auth.
 
 * Canonical Oganisation IDs need be decoupled from token identity (Client IDs).
-     - To enable Find API to integrate with 3rd party identity providers, so that token identity / Client IDs can be mapped to canonical Oganisation IDs.
+     - To enable Find API to integrate with real 3rd party identity providers, so that token identity / Client IDs can be mapped to canonical Oganisation IDs.
 
 * Client secrets are contained in the public repository.
     - While having client secrets in a public repo is fine for local development and ephemeral environments, deployed environments should use actual secret values (rather than pretend secret values that have been publicly published) so that unauthorised people cannot authenticate with our deployed environments.
@@ -43,7 +43,7 @@ The gaps in the current auth implementation, and the elements to decouple from t
 
 ## 3. Assumptions
 
-* The identity provider used in alpha (and possibly beyond) will likely use RSA 256-bit (RS256) asymmetric encryption.
+* The real identity provider used in alpha (and possibly beyond) will likely use RSA 256-bit (RS256) asymmetric encryption.  (Note that the 256-bit here refers to the payload hash size, rather than the private key size.)
 
 * Improved and more secure signing algorithms will be added later, for example Elliptic Curve Digital Signature Algorithm (ECDSA) and Edwards-curve Digital Signature Algorithm (Ed25519).
 
@@ -78,7 +78,7 @@ flowchart TB
 
 #### Asymmetric Token Signing change
 
-The endpoints affected by the change to use asymmetric (public-private key) cryptography are:
+The inbound endpoints affected by the change to use asymmetric (public-private key) cryptography are:
 * `CancelSearchFunction` (`find-record.write`)
 * `ClaimJobFunction` (`work-item.write`)
 * `FetchRecordFunction` (`fetch-record.read`)
@@ -122,9 +122,9 @@ The `auth-clients-inbound.json` data file is affected by the change to use non-p
 
 The `OutboundAuthService` (and `auth-clients-outbound.json`) should not be modified by the move to asymmetric (public-private key) cryptography.  The `OutboundAuthService` should remain using its existing symmetric (private key) cryptography.  This is the service that deals with `SUI service -> Custodian` calls:
 * Fanout (query providers)
-* FETCH's `SUI service -> Custodian` call to get the record data (`FetchRecordService`)
+* FETCH's `SUI service -> Custodian` call to get the record data (`FetchRecordService`).  _This is the call that the SUI system makes to fetch data from the source (Custodian)._
 
-It is important to note that the `Custodian -> SUI service` part of FETCH **is in scope**, and coverred by the asymmetric (public-private key) update to `FetchRecordFunction`.
+It is important to note that the `Organisation -> SUI service` part of FETCH **is in scope**, and coverred by the asymmetric (public-private key) update to `FetchRecordFunction`.  _This is the call that searchers make to indirectly fetch the data via the SUI system, given a record pointer._
 
 #### Client ID to Organisation ID Change
 
@@ -255,7 +255,7 @@ flowchart
         subgraph hideDeployedClientSecretsContainer [" "]
             direction TB
 
-            hideDeployedClientSecrets["Change deployed environments to use Non-public Client IDs and Secrets"]
+            hideDeployedClientSecrets["Change deployed environments to use Non-public Client IDs and Secrets (SUI-1785)"]
 
             auth-clients-inbound.json
 
@@ -268,7 +268,8 @@ flowchart
 
         FaUAPIScopesSupport["Update Find API to optionally authorise scopes directly from Auth Store rather than token scopes (SUI-1753)"]
 
-        verifyUsingFaUAPI["Verify Generic OAuth2/JWT Auth Model by integrating a new deployed Sandbox environment with Find and Use an API (FaUAPI)"]
+        verifyUsingFaUAPI["`Verify Generic OAuth2/JWT Auth Model by integrating a new deployed Sandbox environment with Find and Use an API (FaUAPI)
+        (SUI-1786)`"]
 
         hideDeployedClientSecretsContainer --> verifyUsingFaUAPI
 
@@ -279,9 +280,12 @@ flowchart
         direction TB
 
         addOrganisations["`Add new Organisations with less allowed scopes
-            (e.g. searcher-only, custodian-only)`"]
+            (e.g. searcher-only, custodian-only)
+            (SUI-1787)`"]
 
-        allowedScopesVerification["Expand E2E/Integration Tests to cover allowed scopes verification"]
+        allowedScopesVerification["`Expand E2E/Integration Tests to:
+            > cover allowed scopes verification (SUI-1787)
+            > re-cover as many scenarios in SUI-1778 as possible (SUI-1788)`"]
 
         addOrganisations --> allowedScopesVerification
     end
