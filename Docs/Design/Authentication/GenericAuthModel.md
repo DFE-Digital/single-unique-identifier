@@ -1,0 +1,291 @@
+# Generic OAuth2/JWT Auth Model
+
+**Date:** `2026-05-18`  
+**Owner:** SUI Service Team  
+**Scope:** Target authentication model for local, CI, ephemeral, non-prod, and high-fidelity environments; for MATCH, FIND and any minimal FETCH maintenance needed to preserve existing E2E and Test Harness flows.
+
+This document builds on:
+* [Authentication and API Edge Strategy](./Index.md),
+* [Authentication Baseline and Security Model](./BaselineSecurityModel.md),
+* [Authentication Environment Strategy](./EnvironmentStrategy.md), and
+* [ADR-SUI-0011: Authentication and trust boundaries for SUI APIs](../../Architecture%20decisions/Systems%20landscape/0011-authentication-and-trust-boundaries-for-sui-apis.md).
+
+
+## 1. Purpose
+
+The purpose of this design note is to capture the gaps in the current prototype-only auth and specify the changes required to evolve the auth toward a generic OAuth2 / JWT model.
+
+This document outlines the technical specifications required to start development of the generic auth.
+
+
+## 2. Current auth gaps and prototype-only decoupling
+
+The gaps in the current auth implementation, and the elements to decouple from the prototype-only auth, are:
+
+* Asymmetric signature signing and verification is needed.
+    - To move to secure industry best practices whereby private keys are not shared, enabling integration with real 3rd party identity providers.
+
+* Find API's authentication needs to be driven by standard OIDC inputs inputs/configuration.
+    - To enable Find API to seamlessly integrate with real 3rd party identity providers, rather than being tightly coupled to its current emulated auth.
+
+* The token verification in Find API needs full test coverage.
+    - To verify that system is secure.
+
+* The eumlated auth token endpoint needs to be decoupled from Find API.
+    - To remove the coupling with the emulated auth.
+
+* Canonical Oganisation IDs need be decoupled from token identity (Client IDs).
+     - To enable Find API to integrate with real 3rd party identity providers, so that token identity / Client IDs can be mapped to canonical Oganisation IDs.
+
+* Client secrets are contained in the public repository.
+    - While having client secrets in a public repo is fine for local development and ephemeral environments, deployed environments should use actual secret values (rather than pretend secret values that have been publicly published) so that unauthorised people cannot authenticate with our deployed environments.
+
+
+## 3. Assumptions
+
+* The real identity provider used in alpha (and possibly beyond) will likely use RSA 256-bit (RS256) asymmetric encryption.  (Note that the 256-bit here refers to the payload hash size, rather than the private key size.)
+
+* Improved and more secure signing algorithms will be added later, for example Elliptic Curve Digital Signature Algorithm (ECDSA) and Edwards-curve Digital Signature Algorithm (Ed25519).
+
+
+## 4. Target Auth Model
+
+```mermaid
+flowchart TB
+    custodian[Custodian /\nData Owner]
+    idp["`Identity Provider
+        _[OpenID Connect - OIDC]_`"]
+    find[Find API]
+    authStore[Auth Store]
+
+    custodian <--> |"`**1. Get access token**
+        > using client credentials
+        > returns signed token using public-key crypto`"| idp
+
+    custodian --> |"`**2. Call Find API**
+        (including access token)`"| find
+
+    find --> |"`**3. Get public key**
+        (to verify signature)`"| idp
+
+    find <--> |"`**4. Map Client ID to
+        Organisation ID**`"| authStore
+```
+
+## 5. Impacted Functionality
+
+### Inbound Auth - Custodians calling MATCH and FIND
+
+#### Asymmetric Token Signing change
+
+The inbound endpoints affected by the change to use asymmetric (public-private key) cryptography are:
+* `CancelSearchFunction` (`find-record.write`)
+* `ClaimJobFunction` (`work-item.write`)
+* `FetchRecordFunction` (`fetch-record.read`)
+* `MatchFunction` (`match-record.read`)
+* `RenewLeaseFunction` (`work-item.write`)
+* `SearchFunction` (`find-record.write`)
+* `SearchFunctionV2` (`find-record.write`)
+* `SearchResultsFunction` (`find-record.read`)
+* `SearchResultsV2Function` (`find-record.read`)
+* `SearchStatusFunction` (`find-record.read`)
+* `SubmitJobResultsFunction` (`work-item.write`)
+* `WorkAvailableFunction` (`work-item.read`)
+
+> Note that all the endpoints listed above use the existing `JwtAuthMiddleware`.  The desired and recommended approach is to update the `JwtAuthMiddleware` so that all the affected endpoints will be updated in one go.
+
+#### Client ID to Organisation ID change
+
+The items of functionality impacted by the "Client ID to Organisation ID mapping" change are:
+
+* `CancelSearchFunction`
+* `ClaimJobFunction`
+* `FetchRecordFunction`
+* `MatchFunction`
+* `RenewLeaseFunction`
+* `SearchFunction`
+* `SearchFunctionV2`
+* `SearchResultsFunction`
+* `SearchResultsV2Function`
+* `SearchStatusFunction`
+* `SubmitJobResultsFunction`
+* `WorkAvailableFunction`
+* `AuditMiddleware`
+
+#### Use Non-public Client IDs and Secrets change
+
+The `auth-clients-inbound.json` data file is affected by the change to use non-public Client IDs and non-public Client Secrets when running in deployed environments.
+
+### Outbound Auth - FIND (Fanout only) and FETCH calling Custodians
+
+#### Asymmetric Token Signing Change
+
+The `OutboundAuthService` (and `auth-clients-outbound.json`) should not be modified by the move to asymmetric (public-private key) cryptography.  The `OutboundAuthService` should remain using its existing symmetric (private key) cryptography.  This is the service that deals with `SUI service -> Custodian` calls:
+* Fanout (query providers)
+* FETCH's `SUI service -> Custodian` call to get the record data (`FetchRecordService`).  _This is the call that the SUI system makes to fetch data from the source (Custodian)._
+
+It is important to note that the `Organisation -> SUI service` part of FETCH **is in scope**, and coverred by the asymmetric (public-private key) update to `FetchRecordFunction`.  _This is the call that searchers make to indirectly fetch the data via the SUI system, given a record pointer._
+
+#### Client ID to Organisation ID Change
+
+The `OutboundAuthService` should not be modified by the "Client ID to Organisation ID Mapping" change.
+
+#### Use Non-public Client IDs and Secrets change
+
+The `auth-clients-outbound.json` data file is affected by the change to use non-public Client IDs and non-public Client Secrets when running in deployed environments.
+
+## 6. Implementation Work
+
+### Work Streams
+
+To avoid a big bang change, and enable changes to be done in parallel without any breaking changes, the following work streams have been devised:
+
+#### Prerequisite Stream
+
+```mermaid
+flowchart
+    subgraph StreamClientIDs ["Prerequisite Stream: Auth Emulator Build"]
+        direction TB
+
+        buildAuthEmulator["`Extract AuthTokenFunction to a new AuthEmulator app
+            (SUI-1749, SUI-1756,
+            SUI-1757)`"]
+
+        authEmulatorSwitchLocal["`Switch
+            **local and ephemeral**
+            to AuthEmulator (SUI-1749)`"]
+
+        buildAuthEmulator --> authEmulatorSwitchLocal
+    end
+```
+
+★ This **Auth Emulator Build** work stream should be completed as a prerequisite before the other streams, so that the further changes required to the emulated auth (e.g. Asymmetric Token Signing change) are completed in the new separated app, and so that less code needs to moved across and deleted.
+
+#### Main Streams
+
+```mermaid
+flowchart
+    subgraph DeployAuthEmulator ["Steam: Auth Emulator Deployment"]
+        direction TB
+
+        deployAuthEmulator["`Deploy AuthEmulator
+            (SUI-1750)`"]
+
+        authEmulatorSwitchD01["`Switch **d01**
+            to use AuthEmulator
+            (SUI-1770)`"]
+
+        removeAuthTokenFunction["`Remove AuthTokenFunction and related unused code
+            (SUI-1771)`"]
+
+        deployAuthEmulator --> authEmulatorSwitchD01 --> removeAuthTokenFunction
+    end
+
+    subgraph StreamClientIDs ["Steam: Client ID to Organisation ID Mapping"]
+        direction TB
+
+        newProp["`_[auth-clients-inbound]_
+            new property per client:
+            **OrganisationId**: string
+            (SUI-1772)`"]
+
+        mapNewProp["`_[Find API]_
+            JwtAuthMiddleware / AuthContextFactory updated to map **ClientId** to **OrganisationId**
+            (SUI-1773)`"]
+
+        useNewProp["`_[Find API]_
+            All usages of **AuthContext.ClientId** changed to use **AuthContext.OrganisationId**
+            (SUI-1773)`"]
+
+        updateTestHarness["`_[TestHarness]_
+            Custodian dropdown updated to display **OrganisationId** but still use **ClientId** as value.
+            (SUI-1774)`"]
+
+        updateClientIdValues["`_[auth-clients-inbound]_
+            **ClientId** values changed to not match **OrganisationId**
+            (once above all deployed)
+            (SUI-1775)`"]
+
+        newProp --> mapNewProp --> useNewProp--> updateClientIdValues
+
+        newProp --> updateTestHarness
+    end
+
+    subgraph StreamAsymmetric ["Stream: Asymmetric Token Signing"]
+        direction TB
+
+        JWKSEndpoint["`_[Auth Emulator]_
+            JSON Web Key Set (JWKS) endpoint (SUI-1776)`"]
+
+        OIDCConfigEndpoint["`_[Auth Emulator]_
+            openid-configuration endpoint (SUI-1777)`"]
+
+        RSAVerify["`_[Find API]_
+            > openid discovery
+            > Verify token signatures using RSA public key
+            > JwtAuthMiddleware test coverage
+            > Keep Symmetric Key verifcation at this stage
+            (SUI-1778)`"]
+
+        SignWithRSA["`_[Auth Emulator]_
+            Sign tokens using RSA private key (SUI-1779)`"]
+
+        RemoveInboundSymmetricKey["`_[Find API]_
+            Remove **Inbound** Symmetric Key & verification logic
+            (once above all deployed)
+            (SUI-1780)`"]
+
+        JWKSEndpoint --> RSAVerify
+
+        OIDCConfigEndpoint --> RSAVerify
+
+        RSAVerify --> SignWithRSA --> RemoveInboundSymmetricKey
+    end
+```
+
+★ Once the **above** main streams of development work are complete, the final tidy up and verification work **below** can commence.
+
+#### Follow On Streams
+
+```mermaid
+flowchart
+    subgraph Verify ["Stream: Verify Generic Auth Model"]
+        direction TB
+
+        subgraph hideDeployedClientSecretsContainer [" "]
+            direction TB
+
+            hideDeployedClientSecrets["Change deployed environments to use Non-public Client IDs and Secrets (SUI-1785)"]
+
+            auth-clients-inbound.json
+
+            auth-clients-outbound.json
+
+            hideDeployedClientSecrets --> auth-clients-inbound.json
+
+            hideDeployedClientSecrets --> auth-clients-outbound.json
+        end
+
+        FaUAPIScopesSupport["Update Find API to optionally authorise scopes directly from Auth Store rather than token scopes (SUI-1753)"]
+
+        verifyUsingFaUAPI["`Verify Generic OAuth2/JWT Auth Model by integrating a new deployed Sandbox environment with Find and Use an API (FaUAPI)
+        (SUI-1786)`"]
+
+        hideDeployedClientSecretsContainer --> verifyUsingFaUAPI
+
+        FaUAPIScopesSupport --> verifyUsingFaUAPI
+    end
+
+    subgraph Test ["Stream: Expand E2E/Integration Test"]
+        direction TB
+
+        addOrganisations["`Add new Organisations with less allowed scopes
+            (e.g. searcher-only, custodian-only)
+            (SUI-1787)`"]
+
+        allowedScopesVerification["`Expand E2E/Integration Tests to:
+            > cover allowed scopes verification (SUI-1787)
+            > re-cover as many scenarios in SUI-1778 as possible (SUI-1788)`"]
+
+        addOrganisations --> allowedScopesVerification
+    end
