@@ -45,7 +45,7 @@ public class GetSearchResultItemsFromCustodianAsyncTests
     }
 
     [Fact]
-    public async Task GetSearchResultItemsFromCustodianAsync_ReturnsSuccess_WhenEncryptionIsNull()
+    public async Task GetSearchResultItemsFromCustodianAsync_ReturnsSuccess()
     {
         // Arrange
         var input = new QueryProviderInput(

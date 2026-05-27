@@ -26,7 +26,7 @@ public class FindPersonIdAsyncTests
     }
 
     [Fact]
-    public async Task ShouldReturnPlainPersonId_WhenGlobalEncryptionDisabled_AndEncryptionDoesNotKeyExist()
+    public async Task ShouldReturnPlainPersonId_WhenGlobalEncryptionDisabled()
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
@@ -54,36 +54,7 @@ public class FindPersonIdAsyncTests
     }
 
     [Fact]
-    public async Task ShouldReturnPlainPersonId_WhenGlobalEncryptionDisabled_AndEncryptionKeyExists()
-    {
-        // Arrange
-        var personSpec = CreateMinimalValidPersonSpec();
-
-        _custodianService
-            .GetCustodianAsync("test-client-id")
-            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(new ProviderDefinition()));
-        var nhsPersonId = NhsPersonId.Create("9999999999").Value;
-        _matchingService
-            .MatchPersonAsync(personSpec, Arg.Any<CancellationToken>())
-            .Returns(
-                Task.FromResult<OneOf<NhsPersonId, DataQualityResult, NotFound, Error>>(
-                    nhsPersonId!
-                )
-            );
-
-        // Act
-        var result = await _sut.FindPersonIdAsync(
-            specification: personSpec,
-            clientId: "test-client-id",
-            CancellationToken.None
-        );
-
-        // Assert
-        Assert.IsType<PlainPersonId>(result.Value);
-    }
-
-    [Fact]
-    public async Task ShouldReturnPlainPersonId_WhenGlobalEncryptionEnabled_AndEncryptionDoesNotKeyExist()
+    public async Task ShouldReturnPlainPersonId_WhenGlobalEncryptionEnabled()
     {
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();

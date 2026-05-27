@@ -72,7 +72,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     }
 
     [Fact]
-    public async Task ShouldReturnSuccess_WhenCustodianHasNoEncryption()
+    public async Task ShouldReturnSuccess_WhenCustodianExists()
     {
         var instanceId = $"{_personId}-{ClientId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
