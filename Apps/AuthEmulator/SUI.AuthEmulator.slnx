@@ -1,0 +1,8 @@
+﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\SUI.AuthEmulator\SUI.AuthEmulator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\SUI.AuthEmulator.UnitTests\SUI.AuthEmulator.UnitTests.csproj" />
+  </Folder>
+</Solution>

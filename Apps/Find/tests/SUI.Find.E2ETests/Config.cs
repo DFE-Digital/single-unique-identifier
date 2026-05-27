@@ -21,4 +21,6 @@ public record Config
     public DateTimeOffset? CheckFindApiBuildTimestampThreshold { get; init; }
 
     public DateTimeOffset? CheckStubCustodiansApiBuildTimestampThreshold { get; init; }
+
+    public string AccessTokenUrl { get; init; } = "https://localhost:7250/api/v1/auth/token";
 }

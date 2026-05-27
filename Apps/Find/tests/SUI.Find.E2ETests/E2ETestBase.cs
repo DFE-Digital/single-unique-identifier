@@ -70,14 +70,15 @@ public class E2ETestBase
             };
 
             using var content = new FormUrlEncodedContent(formData);
-            using var request = new HttpRequestMessage(HttpMethod.Post, "v1/auth/token");
+            using var request = new HttpRequestMessage(
+                HttpMethod.Post,
+                Fixture.Config.AccessTokenUrl
+            );
 
             request.Content = content;
             request.Headers.Authorization = clientCredentials;
 
-            TestOutputHelper.WriteLine(
-                $"Requesting access token from: {Fixture.Client.BaseAddress}{request.RequestUri}"
-            );
+            TestOutputHelper.WriteLine($"Requesting access token from: {request.RequestUri}");
 
             var response = await Fixture.Client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
