@@ -7,6 +7,7 @@
     {
       "enabled": true,
       "clientId": "LOCAL-AUTHORITY-01",
+      "organisationId": "LOCAL-AUTHORITY-01",
       "clientSecret": "SUIProject",
       "allowedScopes": [
         "match-record.read",
@@ -21,6 +22,7 @@
     {
       "enabled": true,
       "clientId": "EDUCATION-01",
+      "organisationId": "EDUCATION-01",
       "clientSecret": "SUIProject",
       "allowedScopes": [
         "match-record.read",
@@ -35,6 +37,7 @@
     {
       "enabled": true,
       "clientId": "HEALTH-01",
+      "organisationId": "HEALTH-01",
       "clientSecret": "SUIProject",
       "allowedScopes": [
         "match-record.read",
@@ -49,6 +52,7 @@
     {
       "enabled": true,
       "clientId": "POLICE-01",
+      "organisationId": "POLICE-01",
       "clientSecret": "SUIProject",
       "allowedScopes": [
         "match-record.read",
@@ -63,6 +67,7 @@
     {
       "enabled": true,
       "clientId": "HOUSING-01",
+      "organisationId": "HOUSING-01",
       "clientSecret": "SUIProject",
       "allowedScopes": [
         "match-record.read",
@@ -77,6 +82,7 @@
     {
       "enabled": true,
       "clientId": "NO-DSA-01",
+      "organisationId": "NO-DSA-01",
       "clientSecret": "SUIProject",
       "allowedScopes": [
         "match-record.read",
@@ -90,3 +96,4 @@
     }
   ]
 }
+
