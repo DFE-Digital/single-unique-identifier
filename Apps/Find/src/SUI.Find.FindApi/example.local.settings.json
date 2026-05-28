@@ -15,7 +15,6 @@
     "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=Development,service.namespace=SUI",
     "OTEL_SERVICE_NAME": "SUI.Find.FindApi",
     "MatchFunction:XApiKey": "local-dev-key-change-me",
-    "StorageRetentionDays": 1,
-    "E2E:FindApiKey": "local-dev-key-change-me"
+    "StorageRetentionDays": 1
   }
 }

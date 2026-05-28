@@ -94,10 +94,8 @@ public class SearchFunctionV2(ILogger<SearchFunctionV2> logger, IJobQueueService
         }
 
         logger.LogInformation("Requesting Search with Id: {Suid}", searchRequest?.Suid);
-        var personId = string.Empty;
 
-        if (searchRequest?.Suid != null)
-            personId = searchRequest.Suid;
+        var personId = searchRequest?.Suid ?? string.Empty;
 
         var payload = new SearchRequestMessage
         {
