@@ -12,6 +12,7 @@ public class FunctionTestFixture : IAsyncLifetime
 {
     private bool _tableResetComplete;
     private readonly SemaphoreSlim _resetTablesMutex = new(1, 1);
+    private const string HealthEndpointUrl = "health";
 
     public Config Config { get; }
 
@@ -64,19 +65,37 @@ public class FunctionTestFixture : IAsyncLifetime
         await EnsureServiceIsUpAsync(
             "Find API",
             Client,
+            HealthEndpointUrl,
             testOutputHelper,
             checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
         );
     }
 
-    public async Task EnsureStubCustodiansApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    private async Task EnsureStubCustodiansApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
         await EnsureServiceIsUpAsync(
             "StubCustodians API",
             StubCustodiansClient,
+            HealthEndpointUrl,
             testOutputHelper,
             checkBuildTimestampThreshold: Config.CheckStubCustodiansApiBuildTimestampThreshold
         );
+    }
+
+    private async Task EnsureAuthEndpointApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    {
+        if (Config.AuthEmulatorHealthCheckEndpoint != null)
+        {
+            TestContext.Current.SendDiagnosticMessage("Checking Auth Emulator API health...");
+
+            await EnsureServiceIsUpAsync(
+                "AuthEmulator API",
+                Client,
+                Config.AuthEmulatorHealthCheckEndpoint,
+                testOutputHelper,
+                checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
+            );
+        }
     }
 
     public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
@@ -87,7 +106,8 @@ public class FunctionTestFixture : IAsyncLifetime
 
         await Task.WhenAll(
             EnsureFindApiIsUpAsync(testOutputHelper),
-            EnsureStubCustodiansApiIsUpAsync(testOutputHelper)
+            EnsureStubCustodiansApiIsUpAsync(testOutputHelper),
+            EnsureAuthEndpointApiIsUpAsync(testOutputHelper)
         );
     }
 
@@ -152,11 +172,11 @@ public class FunctionTestFixture : IAsyncLifetime
     private static async Task EnsureServiceIsUpAsync(
         string serviceName,
         HttpClient client,
+        string url,
         ITestOutputHelper testOutputHelper,
         DateTimeOffset? checkBuildTimestampThreshold = null
     )
     {
-        const string url = "health";
         var waitInterval = TimeSpan.FromSeconds(10);
 
         testOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");

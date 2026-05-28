@@ -16,4 +16,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <PropertyGroup>
+    <SourceRevisionId>timestamp_$([System.DateTimeOffset]::UtcNow.ToString("O"))</SourceRevisionId>
+  </PropertyGroup>
 </Project>
