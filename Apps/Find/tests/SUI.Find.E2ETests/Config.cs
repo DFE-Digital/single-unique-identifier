@@ -21,4 +21,9 @@ public record Config
     public DateTimeOffset? CheckStubCustodiansApiBuildTimestampThreshold { get; init; }
 
     public string AccessTokenUrl { get; init; } = "https://localhost:7250/api/v1/auth/token";
+
+    public string? AuthEmulatorHealthCheckEndpoint { get; init; } =
+        "https://localhost:7250/api/health";
+
+    public DateTimeOffset? CheckAuthEmulatorApiBuildTimestampThreshold { get; init; }
 }
