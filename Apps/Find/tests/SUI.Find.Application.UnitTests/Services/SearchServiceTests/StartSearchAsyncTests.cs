@@ -5,7 +5,6 @@ using OneOf.Types;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
-using SUI.Find.Domain.Models;
 using SUI.Find.Domain.ValueObjects;
 
 namespace SUI.Find.Application.UnitTests.Services.SearchServiceTests;
@@ -17,14 +16,12 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     private const string ClientId = "test-client-id";
     private const string CorrelationId = "corr-id";
     private readonly CancellationToken _cancellationToken = CancellationToken.None;
-    private readonly EncryptedPersonId _encryptedPersonId = EncryptedPersonId
-        .Create("Cy13hyZL-4LSIwVy50p-Hg")
-        .Value!;
+    private readonly NhsPersonId _personId = NhsPersonId.Create("9999999999").Value!;
 
     [Fact]
     public async Task ShouldReturnExistingJob_WhenDuplicateRequest()
     {
-        var instanceId = $"{_encryptedPersonId.Value}-{ClientId}";
+        var instanceId = $"{_personId.Value}-{ClientId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
 
         var orchestrationMeta = new OrchestrationMetadata("SearchOrchestrator", "hashed-id")
@@ -36,7 +33,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .Returns(orchestrationMeta);
 
         var result = await Sut.StartSearchAsync(
-            _encryptedPersonId.Value,
+            _personId.Value,
             ClientId,
             _client,
             CorrelationId,
@@ -46,14 +43,14 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
         Assert.IsType<SearchJobDto>(result.Value);
         var dto = result.AsT0;
         Assert.Equal("hashed-id", dto.JobId);
-        Assert.Equal(_encryptedPersonId.Value, dto.PersonId);
+        Assert.Equal(_personId.Value, dto.PersonId);
         Assert.Equal(SearchStatus.Running, dto.Status);
     }
 
     [Fact]
     public async Task ShouldReturnFailed_WhenCustodianNotFound()
     {
-        var instanceId = $"{_encryptedPersonId}-{ClientId}";
+        var instanceId = $"{_personId}-{ClientId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
         _client
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
@@ -64,7 +61,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Custodian not found"));
 
         var result = await Sut.StartSearchAsync(
-            _encryptedPersonId.Value,
+            _personId.Value,
             ClientId,
             _client,
             CorrelationId,
@@ -75,9 +72,9 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     }
 
     [Fact]
-    public async Task ShouldReturnSuccess_WhenCustodianHasNoEncryption()
+    public async Task ShouldReturnSuccess_WhenCustodianExists()
     {
-        var instanceId = $"{_encryptedPersonId}-{ClientId}";
+        var instanceId = $"{_personId}-{ClientId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
         _client
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
@@ -85,11 +82,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 
         CustodianService
             .GetCustodianAsync(ClientId)
-            .Returns(
-                Domain.Models.Result<ProviderDefinition>.Ok(
-                    new ProviderDefinition { Encryption = null }
-                )
-            );
+            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(new ProviderDefinition()));
 
         _client
             .ScheduleNewOrchestrationInstanceAsync(
@@ -101,7 +94,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .Returns("job-123");
 
         var result = await Sut.StartSearchAsync(
-            _encryptedPersonId.Value,
+            _personId.Value,
             ClientId,
             _client,
             CorrelationId,
@@ -110,56 +103,23 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 
         var dto = Assert.IsType<SearchJobDto>(result.Value);
         Assert.Equal("job-123", dto.JobId);
-        Assert.Equal(_encryptedPersonId.Value, dto.PersonId);
+        Assert.Equal(_personId.Value, dto.PersonId);
         Assert.Equal(SearchStatus.Queued, dto.Status);
-    }
-
-    [Fact]
-    public async Task ShouldReturnFailed_WhenDecryptionFails()
-    {
-        var instanceId = $"{_encryptedPersonId}-{ClientId}";
-        HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
-        _client
-            .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
-            .Returns((OrchestrationMetadata?)null);
-
-        var custodianDef = new ProviderDefinition { Encryption = new EncryptionDefinition() };
-        CustodianService
-            .GetCustodianAsync(ClientId)
-            .Returns(Domain.Models.Result<ProviderDefinition>.Ok(custodianDef));
-
-        EncryptionService
-            .DecryptPersonIdToNhs(_encryptedPersonId.Value, custodianDef.Encryption)
-            .Returns(Domain.Models.Result<string>.Fail("Decryption failed"));
-
-        var result = await Sut.StartSearchAsync(
-            _encryptedPersonId.Value,
-            ClientId,
-            _client,
-            CorrelationId,
-            _cancellationToken
-        );
-
-        Assert.IsType<Error>(result.Value);
     }
 
     [Fact]
     public async Task ShouldReturnSuccess_WhenNewJobScheduled()
     {
-        var instanceId = $"{_encryptedPersonId}-{ClientId}";
+        var instanceId = $"{_personId}-{ClientId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
         _client
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
             .Returns((OrchestrationMetadata?)null);
 
-        var custodianDef = new ProviderDefinition() { Encryption = new EncryptionDefinition() };
+        var custodianDef = new ProviderDefinition();
         CustodianService
             .GetCustodianAsync(ClientId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(custodianDef));
-
-        EncryptionService
-            .DecryptPersonIdToNhs(_encryptedPersonId.Value, custodianDef.Encryption)
-            .Returns(Domain.Models.Result<string>.Ok("decrypted-nhs-id"));
 
         _client
             .ScheduleNewOrchestrationInstanceAsync(
@@ -171,7 +131,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
             .Returns("job-123");
 
         var result = await Sut.StartSearchAsync(
-            _encryptedPersonId.Value,
+            _personId.Value,
             ClientId,
             _client,
             CorrelationId,
@@ -180,7 +140,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 
         var dto = Assert.IsType<SearchJobDto>(result.Value);
         Assert.Equal("job-123", dto.JobId);
-        Assert.Equal(_encryptedPersonId.Value, dto.PersonId);
+        Assert.Equal(_personId.Value, dto.PersonId);
         Assert.Equal(SearchStatus.Queued, dto.Status);
     }
 }

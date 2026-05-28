@@ -3,10 +3,8 @@ using System.Text.Json;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
-using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
@@ -51,10 +49,8 @@ public interface ISearchService
 // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 public class SearchService(
     ILogger<SearchService> logger,
-    IPersonIdEncryptionService encryptionService,
     ICustodianService custodianService,
     IHashService hashService,
-    IOptions<EncryptionConfiguration> encryptionConfig,
     ISearchResultEntryRepository searchResultEntryRepository
 ) : ISearchService
 {
@@ -107,8 +103,8 @@ public class SearchService(
             return originalJob;
         }
 
-        var encryptDefinition = await custodianService.GetCustodianAsync(clientId);
-        if (!encryptDefinition.Success || encryptDefinition.Value is null)
+        var providerDefinition = await custodianService.GetCustodianAsync(clientId);
+        if (!providerDefinition.Success || providerDefinition.Value is null)
         {
             logger.LogWarning(
                 "No custodian configuration found for ClientId: {ClientId}.",
@@ -117,37 +113,15 @@ public class SearchService(
             return new Error();
         }
 
-        string personId;
-        var encrypt = encryptionConfig.Value.EnablePersonIdEncryption;
-        if (encryptDefinition.Value.Encryption is not null && encrypt)
-        {
-            var unencryptedPersonId = encryptionService.DecryptPersonIdToNhs(
-                inputPersonId,
-                encryptDefinition.Value.Encryption
-            );
-
-            if (!unencryptedPersonId.Success || unencryptedPersonId.Value is null)
-            {
-                logger.LogWarning("Failed to decrypt SUID for ClientId: {ClientId}.", clientId);
-                return new Error();
-            }
-
-            personId = unencryptedPersonId.Value;
-        }
-        else
-        {
-            personId = inputPersonId;
-        }
-
         var metaData = new SearchJobMetadata(inputPersonId, DateTime.UtcNow, correlationId);
 
         var policyContext = new PolicyContext(
             clientId,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
-            encryptDefinition.Value.OrgType
+            providerDefinition.Value.OrgType
         );
 
-        var orchestratorInput = new SearchOrchestratorInput(personId, metaData, policyContext);
+        var orchestratorInput = new SearchOrchestratorInput(inputPersonId, metaData, policyContext);
 
         var jobId = await client.ScheduleNewOrchestrationInstanceAsync(
             "SearchOrchestrator",

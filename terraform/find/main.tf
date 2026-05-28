@@ -217,8 +217,6 @@ module "function_app" {
       OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
       AuditProcessorConnectionString        = module.audit_processor_function_app.storage_connection_string
 
-      IdEncryption__EnablePersonIdEncryption = false
-
       StorageRetentionDays = "1"
 
       StubCustodiansBaseUrl = try(

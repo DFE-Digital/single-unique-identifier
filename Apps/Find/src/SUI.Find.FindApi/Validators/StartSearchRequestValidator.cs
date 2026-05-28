@@ -6,11 +6,7 @@ namespace SUI.Find.FindApi.Validators;
 
 public static class StartSearchRequestValidator
 {
-    public static bool IsValid(
-        StartSearchRequest? request,
-        bool useEncryptedIds,
-        out string errorMessage
-    )
+    public static bool IsValid(StartSearchRequest? request, out string errorMessage)
     {
         if (request == null)
         {
@@ -24,31 +20,11 @@ public static class StartSearchRequestValidator
             return false;
         }
 
-        if (useEncryptedIds)
+        var nhsId = NhsPersonId.Create(request.Suid);
+        if (!nhsId.Success)
         {
-            try
-            {
-                var bytes = PersonIdEncryptionService.Base64UrlDecodeNoPadding(request.Suid);
-                if (bytes.Length != 16)
-                {
-                    errorMessage = "Suid is invalid";
-                    return false;
-                }
-            }
-            catch (FormatException)
-            {
-                errorMessage = "Suid is not valid Base64Url";
-                return false;
-            }
-        }
-        else
-        {
-            var nhsId = NhsPersonId.Create(request.Suid);
-            if (!nhsId.Success)
-            {
-                errorMessage = nhsId.Error ?? "NHS Number is not valid";
-                return false;
-            }
+            errorMessage = nhsId.Error ?? "NHS Number is not valid";
+            return false;
         }
 
         errorMessage = string.Empty;

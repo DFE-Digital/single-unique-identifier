@@ -31,7 +31,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IHashService, HashService>();
         services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
         services.AddSingleton<IFetchUrlStorageService, UrlStorageTableService>();
-        services.AddSingleton<IPersonIdEncryptionService, PersonIdEncryptionService>();
         services.AddSingleton<IBuildCustodianRequestService, BuildCustodianRequestsService>();
         services.AddSingleton<IBuildCustodianHttpRequest, BuildCustodianHttpRequest>();
         services.AddSingleton<IIdRegisterRepository, SuiCustodianRegisterRepository>();

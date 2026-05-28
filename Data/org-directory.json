@@ -62,11 +62,6 @@
           }
         ],
         "exceptions": []
-      },
-      "encryption": {
-        "algorithm": "AES-256-CBC",
-        "keyId": "LOCAL-AUTHORITY-01-KEY-1",
-        "key": "Kz4KY01cCpp1rvQ4Lj540n8Pp4EHBZ0HbNm6KvuzUaw="
       }
     },
 
@@ -145,11 +140,6 @@
             "purposes": [ "GENERAL_ENQUIRY" ]
           }
         ]
-      },
-      "encryption": {
-        "algorithm": "AES-256-CBC",
-        "keyId": "EDUCATION-01-KEY-1",
-        "key": "1hF0NhwSCLGSVD3Bzmy4ob/mHEai2DZFQsgK+f4TpXQ="
       }
     },
 
@@ -195,11 +185,6 @@
           }
         ],
         "exceptions": []
-      },
-      "encryption": {
-        "algorithm": "AES-256-CBC",
-        "keyId": "HEALTH-01-KEY-1",
-        "key": "LVth7FDlT7WJtSfnYH0fUbQlgN5IL45NHPxe2q/0cno="
       }
     },
 
@@ -261,11 +246,6 @@
             "reason": "Timeboxed multi-agency safeguarding operation."
           }
         ]
-      },
-      "encryption": {
-        "algorithm": "AES-256-CBC",
-        "keyId": "POLICE-01-KEY-1",
-        "key": "hVVOB+IwSa3VXQs9AD90XM6j4Q2wk1HJ5FdV5nbedlI="
       }
     },
 
@@ -294,11 +274,6 @@
         "version": "2026-04-13T12:00:00Z",
         "defaults": [],
         "exceptions": []
-      },
-      "encryption": {
-        "algorithm": "AES-256-CBC",
-        "keyId": "NO-DSA-01-KEY-1",
-        "key": "bUdQfUlY7h81Pn8+TOSGCBkAXgxgVUOaLU1lka3leQM="
       }
     }
   ]

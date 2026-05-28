@@ -2,9 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
-using SUI.Find.Application.Configurations;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Functions.HttpFunctions;
@@ -25,17 +23,11 @@ public class SearchFunctionV2Tests
         ILogger<SearchFunctionV2>
     >();
     private readonly IJobQueueService _findQueueService = Substitute.For<IJobQueueService>();
-    private readonly IOptions<EncryptionConfiguration> _encryptionConfig = Substitute.For<
-        IOptions<EncryptionConfiguration>
-    >();
     private readonly SearchFunctionV2 _function;
 
     public SearchFunctionV2Tests()
     {
-        _encryptionConfig.Value.Returns(
-            new EncryptionConfiguration { EnablePersonIdEncryption = false }
-        );
-        _function = new SearchFunctionV2(_logger, _findQueueService, _encryptionConfig);
+        _function = new SearchFunctionV2(_logger, _findQueueService);
     }
 
     [Fact]
@@ -110,47 +102,6 @@ public class SearchFunctionV2Tests
         Assert.NotNull(searchJob);
         Assert.Equal(expectedJobId, searchJob.WorkItemId);
         Assert.Equal(searchJobDto.PersonId, searchJob.Suid);
-    }
-
-    [Fact]
-    public async Task SearchesV2_ShouldEncryptPersonId_WhenEncryptionIsEnabled()
-    {
-        // Arrange
-        _encryptionConfig.Value.Returns(
-            new EncryptionConfiguration { EnablePersonIdEncryption = true }
-        );
-
-        var requestData = new StartSearchRequest("Cy13hyZL-4LSIwVy50p-Hg");
-        var request = MockHttpRequestData.CreateJson(requestData);
-        var context = CreateContextWithAuth("test-requester");
-
-        var searchJobDto = new SearchWorkItemDto
-        {
-            WorkItemId = Guid.NewGuid().ToString(),
-            PersonId = "Cy13hyZL-4LSIwVy50p-Hg",
-            CreatedAt = DateTime.UtcNow,
-        };
-
-        _findQueueService
-            .PostSearchJobAsync(Arg.Any<SearchRequestMessage>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(searchJobDto));
-
-        // Act
-        var result = await _function.SearchesV2(request, context, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Accepted, result.StatusCode);
-
-        await _findQueueService
-            .Received(1)
-            .PostSearchJobAsync(
-                Arg.Is<SearchRequestMessage>(m =>
-                    m.PersonId == "Cy13hyZL-4LSIwVy50p-Hg"
-                    && m.PersonId.Length > 0
-                    && m.RequestingOrganisationId == "test-requester"
-                ),
-                Arg.Any<CancellationToken>()
-            );
     }
 
     private static FunctionContext CreateContextWithAuth(string clientId)

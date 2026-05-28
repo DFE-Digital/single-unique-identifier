@@ -118,12 +118,7 @@ Search for a person and get an SUI back
   }
 }
 
-response with encryption (LOCAL-AUTHORITY-01)
-{
-  "PersonId": "gkITssvF1IAbNgpcMv2lyA"
-}
-
-response without encryption
+Example response
 {
   "PersonId": "9691292211"
 }
@@ -134,13 +129,13 @@ Take the SUI from the previous call and send it to the searches endpoint
 v1/searches
 
 {
-  "suid": "gkITssvF1IAbNgpcMv2lyA"
+  "suid": "9691292211"
 }
 
 Example Response
 {
   "JobId": "5493C9E42891BDDDBDA27C34E24CFF85A3D70CF0FD1FC964559462C26F36FDF5",
-  "Suid": "gkITssvF1IAbNgpcMv2lyA",
+  "Suid": "9691292211",
   "Status": "Queued",
   "CreatedAt": "2026-02-05T09:19:36.690255+00:00",
   "LastUpdatedAt": "2026-02-05T09:19:36.690255+00:00",
@@ -221,7 +216,7 @@ v1/records/2d9782ef03204778b1a29fc2edb1132e
 
 {
   "RecordId": "ATT-3210-1",
-  "PersonId": "vehNMF2ySUU23P206A6BYA",
+  "PersonId": "9691292211",
   "RecordType": "personal.details",
   "Version": 1,
   "SchemaUri": "https://schemas.example.gov.uk/sui/personal.details.record.v1.json",

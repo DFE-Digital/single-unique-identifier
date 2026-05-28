@@ -10,7 +10,7 @@ public class BuildCustodianHttpRequest : IBuildCustodianHttpRequest
 {
     public HttpRequestMessage BuildHttpRequest(
         ProviderDefinition provider,
-        string encryptedPersonId,
+        string personId,
         string? bearerToken
     )
     {
@@ -19,7 +19,7 @@ public class BuildCustodianHttpRequest : IBuildCustodianHttpRequest
 
         var url = MapPersonIdToUrl(
             connectionDefinition.Url,
-            encryptedPersonId,
+            personId,
             connectionDefinition.PersonIdPosition
         );
 
@@ -40,13 +40,13 @@ public class BuildCustodianHttpRequest : IBuildCustodianHttpRequest
             )
         )
         {
-            request.Headers.Add("personId", encryptedPersonId);
+            request.Headers.Add("personId", personId);
         }
 
         if (method != HttpMethod.Post && method != HttpMethod.Put && method != HttpMethod.Patch)
             return request;
 
-        var body = BuildHttpBody(connectionDefinition, encryptedPersonId);
+        var body = BuildHttpBody(connectionDefinition, personId);
 
         if (body is not null)
         {
@@ -56,13 +56,13 @@ public class BuildCustodianHttpRequest : IBuildCustodianHttpRequest
         return request;
     }
 
-    private static string MapPersonIdToUrl(string url, string encryptedPersonId, string position)
+    private static string MapPersonIdToUrl(string url, string personId, string position)
     {
         if (string.Equals(position, "path", StringComparison.OrdinalIgnoreCase))
         {
             return url.Replace(
                 "{personId}",
-                Uri.EscapeDataString(encryptedPersonId),
+                Uri.EscapeDataString(personId),
                 StringComparison.OrdinalIgnoreCase
             );
         }
@@ -72,7 +72,7 @@ public class BuildCustodianHttpRequest : IBuildCustodianHttpRequest
 
         var separator = url.Contains('?') ? "&" : "?";
 
-        return $"{url}{separator}personId={Uri.EscapeDataString(encryptedPersonId)}";
+        return $"{url}{separator}personId={Uri.EscapeDataString(personId)}";
     }
 
     private static string? BuildHttpBody(ConnectionDefinition connectionDefinition, string personId)

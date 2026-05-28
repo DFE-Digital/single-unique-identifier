@@ -147,15 +147,6 @@ public class MockCustodianService : ICustodianService
                                 })
                                 .ToList(),
                         },
-                        Encryption =
-                            org.Encryption == null
-                                ? null
-                                : new EncryptionDefinition
-                                {
-                                    Algorithm = org.Encryption.Algorithm,
-                                    KeyId = org.Encryption.KeyId,
-                                    Key = org.Encryption.Key,
-                                },
                     }
                 );
             }
@@ -177,7 +168,6 @@ public class MockCustodianService : ICustodianService
         public string OrgType { get; set; } = null!;
         public List<MockRecord> Records { get; set; } = null!;
         public MockDsaPolicy DsaPolicy { get; set; } = null!;
-        public MockEncryption Encryption { get; set; } = null!;
     }
 
     private sealed class MockRecord
@@ -232,12 +222,5 @@ public class MockCustodianService : ICustodianService
         public DateTimeOffset? ValidFrom { get; set; } = null!;
         public DateTimeOffset? ValidUntil { get; set; } = null!;
         public string Reason { get; set; } = null!;
-    }
-
-    private sealed class MockEncryption
-    {
-        public string Algorithm { get; set; } = null!;
-        public string KeyId { get; set; } = null!;
-        public string Key { get; set; } = null!;
     }
 }

@@ -28,10 +28,7 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
         Assert.NotNull(attackerToken);
         Assert.NotEqual(ownerToken, attackerToken);
 
-        var searchJobLinks = await RunAndAssertNewSearchEndpoint(
-            Fixture.Config.UseEncryptedIds ? testData.EncryptedSui : testData.Sui,
-            ownerToken
-        );
+        var searchJobLinks = await RunAndAssertNewSearchEndpoint(testData.Sui, ownerToken);
 
         var hasStatusLink = searchJobLinks.TryGetValue("status", out var statusLink);
         var hasResultsLink = searchJobLinks.TryGetValue("results", out var resultsLink);

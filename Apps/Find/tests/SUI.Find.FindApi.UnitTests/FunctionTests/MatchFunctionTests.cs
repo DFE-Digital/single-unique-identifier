@@ -79,7 +79,7 @@ public class MatchFunctionTests
         };
 
     [Fact]
-    public async Task ShouldReturnOk_WithEncryptedSuid_WhenMatchIsSuccessful()
+    public async Task ShouldReturnOk_WithSuid_WhenMatchIsSuccessful()
     {
         // Arrange
         var function = CreateFunction();
@@ -87,14 +87,14 @@ public class MatchFunctionTests
         var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
-        var encryptedPersonId = new EncryptedSuidPersonId("some-encrypted-id");
+        var personId = new PlainPersonId("some-person-id");
         _matchPersonOrchestrationService
             .FindPersonIdAsync(
                 Arg.Any<PersonSpecification>(),
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(encryptedPersonId);
+            .Returns(personId);
 
         // Act
         var response = await function.MatchPerson(req, context, CancellationToken.None);
@@ -104,7 +104,7 @@ public class MatchFunctionTests
         response.Body.Position = 0;
         var responseBody = await JsonSerializer.DeserializeAsync<PersonMatch>(response.Body);
         Assert.NotNull(responseBody);
-        Assert.Equal(encryptedPersonId.Value, responseBody.PersonId);
+        Assert.Equal(personId.Value, responseBody.PersonId);
         await _idRegisterRepository
             .Received(1)
             .UpsertAsync(
@@ -369,7 +369,7 @@ public class MatchFunctionTests
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(request, headers: headers);
 
-        var encryptedPersonId = new EncryptedSuidPersonId("some-encrypted-id");
+        var personId = new PlainPersonId("some-person-id");
 
         _matchPersonOrchestrationService
             .FindPersonIdAsync(
@@ -377,7 +377,7 @@ public class MatchFunctionTests
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(encryptedPersonId);
+            .Returns(personId);
 
         // Act
         await function.MatchPerson(req, context, CancellationToken.None);

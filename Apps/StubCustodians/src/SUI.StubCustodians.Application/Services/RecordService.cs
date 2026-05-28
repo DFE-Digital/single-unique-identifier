@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
-using SUI.StubCustodians.Application.Extensions;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
 
@@ -27,10 +26,9 @@ public class RecordService(IDataProvider dataProvider, IConfiguration configurat
             return null;
         }
 
-        var useEncryptedId = configuration.UseEncryptedId();
         var result = new RecordEnvelope<T>
         {
-            PersonId = useEncryptedId ? orgRecord.EncryptedPersonId : orgRecord.PersonId,
+            PersonId = orgRecord.PersonId,
             RecordId = orgRecord.RecordId,
             RecordType = orgRecord.RecordType,
             Version = orgRecord.Version,

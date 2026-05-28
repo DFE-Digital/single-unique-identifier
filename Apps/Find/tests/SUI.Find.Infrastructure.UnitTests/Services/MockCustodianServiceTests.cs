@@ -72,10 +72,6 @@ public class MockCustodianServiceTests
         Assert.Equal(DateTimeOffset.Parse("2025-12-01T00:00:00Z"), exceptionRule.ValidFrom);
         Assert.Equal(DateTimeOffset.Parse("2026-03-01T00:00:00Z"), exceptionRule.ValidUntil);
 
-        // encryption
-        Assert.NotNull(la.Encryption);
-        Assert.Equal("AES-256-ECB", la.Encryption.Algorithm);
-
         // Check an education record with a body template
         var edu = providers.FirstOrDefault(p =>
             p.OrgId == "EDUCATION-01" && p.RecordType == "education.details"
