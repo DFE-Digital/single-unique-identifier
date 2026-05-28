@@ -236,7 +236,7 @@ jobs:
             --results-directory TestResults \
             -e E2E__BaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}func-${{ steps.env_config.outputs.region_short }}-find01.azurewebsites.net/api/ \
             -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
-            -e E2E__AuthEmulatorHealthCheckEndpoint=null \
+            -e E2E__AuthEmulatorHealthCheckEndpoint="" \
             -e E2E__SkipResetAzureTables=True \
             -e E2E__AccessTokenUrl="v1/auth/token" \
             -e E2E__CheckStubCustodiansApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Custodian') && github.event.workflow_run.run_started_at || '' }} \

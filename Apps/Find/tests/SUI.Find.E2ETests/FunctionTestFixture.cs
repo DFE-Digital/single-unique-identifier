@@ -84,7 +84,7 @@ public class FunctionTestFixture : IAsyncLifetime
 
     private async Task EnsureAuthEndpointApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
-        if (Config.AuthEmulatorHealthCheckEndpoint != null)
+        if (!string.IsNullOrEmpty(Config.AuthEmulatorHealthCheckEndpoint))
         {
             TestContext.Current.SendDiagnosticMessage("Checking Auth Emulator API health...");
 
