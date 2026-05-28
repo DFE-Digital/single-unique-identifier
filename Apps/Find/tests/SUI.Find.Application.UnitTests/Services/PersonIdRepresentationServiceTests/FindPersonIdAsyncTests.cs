@@ -50,7 +50,7 @@ public class FindPersonIdAsyncTests
         );
 
         // Assert
-        Assert.IsType<PlainPersonId>(result.Value);
+        Assert.IsType<string>(result.Value);
     }
 
     [Fact]

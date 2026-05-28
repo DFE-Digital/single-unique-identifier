@@ -87,7 +87,7 @@ public class MatchFunctionTests
         var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
-        var personId = new PlainPersonId("some-person-id");
+        var personId = "some-person-id";
         _matchPersonOrchestrationService
             .FindPersonIdAsync(
                 Arg.Any<PersonSpecification>(),
@@ -104,7 +104,7 @@ public class MatchFunctionTests
         response.Body.Position = 0;
         var responseBody = await JsonSerializer.DeserializeAsync<PersonMatch>(response.Body);
         Assert.NotNull(responseBody);
-        Assert.Equal(personId.Value, responseBody.PersonId);
+        Assert.Equal(personId, responseBody.PersonId);
         await _idRegisterRepository
             .Received(1)
             .UpsertAsync(
@@ -369,7 +369,7 @@ public class MatchFunctionTests
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(request, headers: headers);
 
-        var personId = new PlainPersonId("some-person-id");
+        var personId = "some-person-id";
 
         _matchPersonOrchestrationService
             .FindPersonIdAsync(
