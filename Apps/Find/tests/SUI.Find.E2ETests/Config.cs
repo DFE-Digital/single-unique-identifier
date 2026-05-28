@@ -26,4 +26,6 @@ public record Config
 
     public string? AuthEmulatorHealthCheckEndpoint { get; init; } =
         "https://localhost:7250/api/health";
+
+    public DateTimeOffset? CheckAuthEmulatorApiBuildTimestampThreshold { get; init; }
 }

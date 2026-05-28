@@ -82,7 +82,7 @@ public class FunctionTestFixture : IAsyncLifetime
         );
     }
 
-    private async Task EnsureAuthEndpointApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    private async Task EnsureAuthEmulatorApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
         if (!string.IsNullOrEmpty(Config.AuthEmulatorHealthCheckEndpoint))
         {
@@ -93,7 +93,7 @@ public class FunctionTestFixture : IAsyncLifetime
                 Client,
                 Config.AuthEmulatorHealthCheckEndpoint,
                 testOutputHelper,
-                checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
+                checkBuildTimestampThreshold: Config.CheckAuthEmulatorApiBuildTimestampThreshold
             );
         }
     }
@@ -107,7 +107,7 @@ public class FunctionTestFixture : IAsyncLifetime
         await Task.WhenAll(
             EnsureFindApiIsUpAsync(testOutputHelper),
             EnsureStubCustodiansApiIsUpAsync(testOutputHelper),
-            EnsureAuthEndpointApiIsUpAsync(testOutputHelper)
+            EnsureAuthEmulatorApiIsUpAsync(testOutputHelper)
         );
     }
 
