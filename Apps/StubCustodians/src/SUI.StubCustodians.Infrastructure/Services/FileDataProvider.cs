@@ -1,10 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
-using SUI.StubCustodians.Application.Extensions;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
-using SUI.StubCustodians.Infrastructure.Extensions;
 
 namespace SUI.StubCustodians.Infrastructure.Services;
 
@@ -27,15 +25,10 @@ public sealed class FileDataProvider(
         await throttleService.DelayAsync(cancellationToken);
 
         var cfg = await LoadAsync(orgId, cancellationToken);
-        var useEncryptedId = configuration.UseEncryptedId();
 
         return cfg
             .Records.Where(r =>
-                string.Equals(
-                    useEncryptedId ? r.EncryptedPersonId : r.PersonId,
-                    personId,
-                    StringComparison.OrdinalIgnoreCase
-                )
+                string.Equals(r.PersonId, personId, StringComparison.OrdinalIgnoreCase)
             )
             .ToList();
     }
@@ -50,15 +43,11 @@ public sealed class FileDataProvider(
         await throttleService.DelayAsync(cancellationToken);
 
         var cfg = await LoadAsync(orgId, cancellationToken);
-        var useEncryptedId = configuration.UseEncryptedId();
 
         return cfg
             .Records.Where(r =>
-                string.Equals(
-                    useEncryptedId ? r.EncryptedPersonId : r.PersonId,
-                    personId,
-                    StringComparison.OrdinalIgnoreCase
-                ) && string.Equals(r.RecordType, recordType, StringComparison.OrdinalIgnoreCase)
+                string.Equals(r.PersonId, personId, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(r.RecordType, recordType, StringComparison.OrdinalIgnoreCase)
             )
             .ToList();
     }

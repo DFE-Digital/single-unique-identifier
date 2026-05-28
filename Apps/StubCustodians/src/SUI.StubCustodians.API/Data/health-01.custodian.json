@@ -6,7 +6,6 @@
     {
       "recordId": "MHR-1234-X",
       "personId": "9691292211",
-      "encryptedPersonId": "oupx6095s75Y1xPUQMo9zg",
       "recordType": "health.details",
       "version": "1",
       "contactDetails": [
@@ -76,7 +75,6 @@
     {
       "recordId": "MHR-1235-X",
       "personId": "9449306494",
-      "encryptedPersonId": "Gwy1RFyGF4b_sSbbPZExtQ",
       "recordType": "health.details",
       "version": "1",
       "contactDetails": [
