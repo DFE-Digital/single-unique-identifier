@@ -11,7 +11,7 @@ namespace SUI.Find.Application.Interfaces;
 /// </summary>
 public interface IMatchPersonOrchestrationService
 {
-    Task<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
+    Task<OneOf<string, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,
         string clientId,
         CancellationToken ct

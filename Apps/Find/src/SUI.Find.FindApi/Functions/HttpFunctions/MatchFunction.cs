@@ -150,7 +150,7 @@ public class MatchFunction(
                         await idRegisterRepository.UpsertAsync(
                             new IdRegisterEntry
                             {
-                                Sui = id.Value,
+                                Sui = id,
                                 CustodianId = authContext.ClientId,
                                 RecordType = entry.RecordType,
                                 SystemId = entry.SystemId,
@@ -165,7 +165,7 @@ public class MatchFunction(
 
                 return await HttpResponseUtility.OkResponse(
                     req,
-                    new PersonMatch(id.Value),
+                    new PersonMatch(id),
                     cancellationToken
                 );
             },

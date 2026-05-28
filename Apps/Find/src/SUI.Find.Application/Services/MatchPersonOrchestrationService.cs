@@ -15,7 +15,7 @@ public class MatchPersonOrchestrationService(
     ICustodianService custodianService
 ) : IMatchPersonOrchestrationService
 {
-    public async Task<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
+    public async Task<OneOf<string, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,
         string clientId,
         CancellationToken ct
@@ -26,19 +26,20 @@ public class MatchPersonOrchestrationService(
         if (matchResult.TryPickT0(out var personId, out var remainder))
         {
             var getPersonIdResult = await HandlePersonIdRepresentationAsync(personId, clientId);
-            return getPersonIdResult.Match<
-                OneOf<PersonIdValue, DataQualityResult, NotFound, Error>
-            >(plainId => plainId, error => error);
+            return getPersonIdResult.Match<OneOf<string, DataQualityResult, NotFound, Error>>(
+                plainId => plainId,
+                error => error
+            );
         }
 
-        return remainder.Match<OneOf<PersonIdValue, DataQualityResult, NotFound, Error>>(
+        return remainder.Match<OneOf<string, DataQualityResult, NotFound, Error>>(
             dataQuality => dataQuality,
             notFound => notFound,
             error => error
         );
     }
 
-    private async Task<OneOf<PersonIdValue, Error>> HandlePersonIdRepresentationAsync(
+    private async Task<OneOf<string, Error>> HandlePersonIdRepresentationAsync(
         NhsPersonId nhsPersonId,
         string clientId
     )
@@ -50,6 +51,6 @@ public class MatchPersonOrchestrationService(
             return new Error();
         }
 
-        return new PlainPersonId(nhsPersonId.Value);
+        return nhsPersonId.Value;
     }
 }
