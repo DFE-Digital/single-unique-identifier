@@ -171,7 +171,7 @@ function Invoke-Gitleaks {
     )
 
     & $CommandPath @Arguments
-    return $LASTEXITCODE
+    $script:gitleaksExitCode = $LASTEXITCODE
 }
 
 if ($env:SUI_SKIP_GITLEAKS -eq "1") {
@@ -196,7 +196,8 @@ try {
             "--report-path", $baselinePath
         )
 
-        $exitCode = Invoke-Gitleaks -CommandPath $gitleaksCommand -Arguments $baselineArguments
+        Invoke-Gitleaks -CommandPath $gitleaksCommand -Arguments $baselineArguments
+        $exitCode = $script:gitleaksExitCode
         if ($exitCode -ne 0) {
             exit $exitCode
         }
@@ -210,6 +211,7 @@ try {
         "--pre-commit",
         "--staged",
         "--redact",
+        "--verbose",
         "--config", $configPath
     )
 
@@ -217,7 +219,8 @@ try {
         $preCommitArguments += @("--baseline-path", $baselinePath)
     }
 
-    $exitCode = Invoke-Gitleaks -CommandPath $gitleaksCommand -Arguments $preCommitArguments
+    Invoke-Gitleaks -CommandPath $gitleaksCommand -Arguments $preCommitArguments
+    $exitCode = $script:gitleaksExitCode
     if ($exitCode -eq 0) {
         exit 0
     }
