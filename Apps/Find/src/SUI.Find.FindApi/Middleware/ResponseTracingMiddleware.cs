@@ -12,6 +12,9 @@ namespace SUI.Find.FindApi.Middleware;
 // ReSharper disable once ClassNeverInstantiated.Global
 public class ResponseTracingMiddleware : IFunctionsWorkerMiddleware
 {
+    public const string TraceIdHeaderName = "Trace-Id";
+    public const string InvocationIdHeaderName = "Invocation-Id";
+
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
         await next(context);
@@ -20,8 +23,8 @@ public class ResponseTracingMiddleware : IFunctionsWorkerMiddleware
 
         if (result?.Value is HttpResponseData response)
         {
-            response.Headers.Add("Trace-Id", Activity.Current?.TraceId.ToString());
-            response.Headers.Add("Invocation-Id", context.InvocationId);
+            response.Headers.Add(TraceIdHeaderName, Activity.Current?.TraceId.ToString());
+            response.Headers.Add(InvocationIdHeaderName, context.InvocationId);
         }
     }
 }

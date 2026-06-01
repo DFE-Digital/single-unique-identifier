@@ -3,6 +3,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
+using static SUI.Find.FindApi.Middleware.ResponseTracingMiddleware;
 
 namespace SUI.Find.FindApi.OpenApi;
 
@@ -54,7 +55,7 @@ public sealed class FindDocumentFilter : IDocumentFilter
             Description = "API Key for authentication",
         };
 
-        var operationIdHeader = new OpenApiHeader
+        var traceIdHeader = new OpenApiHeader
         {
             Description = "Primary trace ID for the whole operation",
             Schema = new OpenApiSchema { Type = "string" },
@@ -68,8 +69,8 @@ public sealed class FindDocumentFilter : IDocumentFilter
             Example = new OpenApiString("a49d73e8-dc36-4be5-92a6-9bf62868aa99"),
         };
 
-        document.Components.Headers["Operation-Id"] = operationIdHeader;
-        document.Components.Headers["Invocation-Id"] = invocationIdHeader;
+        document.Components.Headers[TraceIdHeaderName] = traceIdHeader;
+        document.Components.Headers[InvocationIdHeaderName] = invocationIdHeader;
 
         var oauthRequirement = new OpenApiSecurityRequirement
         {
@@ -156,8 +157,8 @@ public sealed class FindDocumentFilter : IDocumentFilter
                 {
                     foreach (var responseHeaders in op.Responses.Values.Select(x => x.Headers))
                     {
-                        responseHeaders["Operation-Id"] = operationIdHeader;
-                        responseHeaders["Invocation-Id"] = invocationIdHeader;
+                        responseHeaders[TraceIdHeaderName] = traceIdHeader;
+                        responseHeaders[InvocationIdHeaderName] = invocationIdHeader;
                     }
                 }
             }
