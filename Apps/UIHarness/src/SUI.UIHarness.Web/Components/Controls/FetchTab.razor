@@ -23,7 +23,7 @@
         </div>
     </div>
 }
-@if (_currentRecord != null && _fetchedForOrg == SelectedOrg)
+@if (_currentRecord != null && _fetchedForOrg == SelectedOrgClientId)
 {
     <div id="fetchContent">
         <div class="row g-3">
@@ -355,7 +355,7 @@
     public required string SelectedRecordUrl { get; set; }
     
     [Parameter]
-    public required string SelectedOrg { get; set; }
+    public required string SelectedOrgClientId { get; set; }
     
     [Inject]
     public required IFindService FindService { get; set; }
@@ -371,7 +371,7 @@
     
     private async Task FetchRecord()
     {
-        if (string.IsNullOrEmpty(SelectedRecordUrl) || string.IsNullOrEmpty(SelectedOrg))
+        if (string.IsNullOrEmpty(SelectedRecordUrl) || string.IsNullOrEmpty(SelectedOrgClientId))
         {
             return;
         }
@@ -381,8 +381,8 @@
         _fetchProgress = 10;
         await InvokeAsync(StateHasChanged);
         _showFetchProgress = true;
-        _currentRecord = await FindService.FetchRecord(SelectedOrg, SelectedRecordUrl);
-        _fetchedForOrg = SelectedOrg;
+        _currentRecord = await FindService.FetchRecord(SelectedOrgClientId, SelectedRecordUrl);
+        _fetchedForOrg = SelectedOrgClientId;
         _fetchProgress = 50;
         await InvokeAsync(StateHasChanged);
         if (_currentRecord is { RecordType: "education.details", Payload: not null })

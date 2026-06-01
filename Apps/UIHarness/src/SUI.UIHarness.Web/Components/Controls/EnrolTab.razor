@@ -52,13 +52,13 @@
                     <td>@(p.Email ?? "")</td>
                     <td>@p.Postcode</td>
                     <td class="nhs-number">
-                        @if (_enrolledForOrg == SelectedOrg)
+                        @if (_enrolledForOrg == SelectedOrgClientId)
                         {
                             @p.NhsNumber
                         }
                     </td>
                     <td class="actions">
-                        @if (!string.IsNullOrEmpty(p.NhsNumber) && p.NhsNumber != "Not Found" && _enrolledForOrg == SelectedOrg)
+                        @if (!string.IsNullOrEmpty(p.NhsNumber) && p.NhsNumber != "Not Found" && _enrolledForOrg == SelectedOrgClientId)
                         {
                             <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentPerson(p)">Find Records</button>
                         }
@@ -117,7 +117,7 @@
     private string? _enrolledForOrg;
     
     [Parameter]
-    public required string SelectedOrg { get; set; }
+    public required string SelectedOrgClientId { get; set; }
     
     [Parameter]
     public EventCallback<LocalPerson> CurrentPersonChanged { get; set; }
@@ -130,17 +130,17 @@
 
     protected override void OnParametersSet()
     {
-        _noOrgSelected = string.IsNullOrEmpty(SelectedOrg);
+        _noOrgSelected = string.IsNullOrEmpty(SelectedOrgClientId);
     }
 
     private async Task Enrol()
     {
-        if (string.IsNullOrEmpty(SelectedOrg))
+        if (string.IsNullOrEmpty(SelectedOrgClientId))
         {
             return;
         }
         
-        Logger.LogInformation("Enrol button clicked for organisation: {SelectedOrg}", SelectedOrg);
+        Logger.LogInformation("Enrol button clicked for organisation: {SelectedOrgClientId}", SelectedOrgClientId);
 
         _enrolledForOrg = null;
         EnrolProgress = 0;
@@ -149,9 +149,9 @@
         foreach (var person in _dataToOnboard)
         {
             EnrolProgress += a;
-            var result = await FindService.MatchRecord(person, SelectedOrg);
+            var result = await FindService.MatchRecord(person, SelectedOrgClientId);
             person.NhsNumber = result.PersonId;
-            _enrolledForOrg ??= SelectedOrg;
+            _enrolledForOrg ??= SelectedOrgClientId;
             await InvokeAsync(StateHasChanged);
             await Task.Delay(500);
         }
