@@ -339,11 +339,7 @@ public abstract class SearchTestsBase(
 
             TestOutputHelper.WriteLine("Fetch verified ok");
 
-            var payloadJson = fetchResultTypedContent.Payload as JsonElement?;
-
-            Assert.NotNull(payloadJson);
-
-            var payload = payloadJson.Value;
+            var payload = Assert.IsType<JsonElement>(fetchResultTypedContent.Payload);
 
             switch (fetchResultTypedContent.RecordType)
             {
