@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Text.Json.Serialization;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Interfaces;
@@ -204,6 +206,61 @@ public sealed class FindDocumentFilter : IDocumentFilter
             Tag("Work", "Check for and submit results to searches (Polling Architecture)", 6),
             Tag("Fetch", "Fetch records from providers", 7),
         };
+
+        TransformIntEnumsToStrings(document);
+    }
+
+    /// <summary>
+    /// Searches for and transforms integer enum properties to string representations where applicable in the OpenAPI document.
+    /// Ordinarily this would have been done using a Schema Transformer, but the Azure Functions SDK does not support them.
+    /// </summary>
+    private static void TransformIntEnumsToStrings(OpenApiDocument document)
+    {
+        // Get all the loaded public types
+        var publicTypes = AppDomain
+            .CurrentDomain.GetAssemblies()
+            .SelectMany(assembly => assembly.ExportedTypes.Where(x => !x.IsAbstract))
+            .ToLookup(x => x.Name, StringComparer.OrdinalIgnoreCase);
+
+        // For each schema, check any of the properties which are integer enums and then try and find the
+        // corresponding C# enum and convert the schema property to a string representation.
+        foreach (var (schemaName, schema) in document.Components.Schemas)
+        {
+            foreach (
+                var (schemaPropertyName, schemaEnumProperty) in schema.Properties.Where(p =>
+                    p.Value.Type == "integer" && p.Value.Enum.Any()
+                )
+            )
+            {
+                var modelProperty = publicTypes[schemaName]
+                    .SelectMany(t =>
+                        t.GetProperties()
+                            .Where(p =>
+                                p.Name.Equals(
+                                    schemaPropertyName,
+                                    StringComparison.OrdinalIgnoreCase
+                                )
+                                && p.PropertyType.IsEnum
+                                && p.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType
+                                    == typeof(JsonStringEnumConverter)
+                            )
+                    )
+                    .FirstOrDefault();
+
+                if (modelProperty != null)
+                {
+                    schemaEnumProperty.Type = "string";
+                    schemaEnumProperty.Enum.Clear();
+                    schemaEnumProperty.Format = null;
+                    schemaEnumProperty.Default = null;
+                    var names = Enum.GetNames(modelProperty.PropertyType);
+                    foreach (var name in names)
+                    {
+                        schemaEnumProperty.Enum.Add(new OpenApiString(name));
+                    }
+                }
+            }
+        }
     }
 
     private static OpenApiTag Tag(string name, string description, int order) =>
