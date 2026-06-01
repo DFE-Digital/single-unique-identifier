@@ -7,7 +7,6 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
@@ -88,7 +87,7 @@ public class SearchResultsV2Function(
             {
                 ["InvocationId"] = context.InvocationId,
                 ["WorkItemId"] = workItemId,
-                ["RequestingOrganisationId"] = authContext.ClientId,
+                ["RequestingOrganisationId"] = authContext.OrganisationId,
                 ["TraceId"] = Activity.Current?.TraceId.ToString() ?? string.Empty,
                 ["TraceParent"] = context.TraceContext.TraceParent,
             }
@@ -96,7 +95,7 @@ public class SearchResultsV2Function(
 
         var result = await jobSearchService.GetSearchResultsAsync(
             workItemId,
-            authContext.ClientId,
+            authContext.OrganisationId,
             cancellationToken
         );
 

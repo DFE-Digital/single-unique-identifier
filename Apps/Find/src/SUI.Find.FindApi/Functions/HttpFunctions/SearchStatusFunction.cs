@@ -6,7 +6,6 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
@@ -89,7 +88,7 @@ public class SearchStatusFunction(
         }
         var jobStatus = await searchService.GetSearchStatusAsync(
             jobId,
-            authContext.ClientId,
+            authContext.OrganisationId,
             client,
             cancellationToken
         );

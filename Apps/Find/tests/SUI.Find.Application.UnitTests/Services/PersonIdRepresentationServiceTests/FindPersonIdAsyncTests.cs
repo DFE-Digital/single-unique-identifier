@@ -45,7 +45,7 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id",
+            organisationId: "test-client-id",
             CancellationToken.None
         );
 
@@ -75,7 +75,7 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id",
+            organisationId: "test-client-id",
             CancellationToken.None
         );
 
@@ -99,7 +99,7 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id",
+            organisationId: "test-client-id",
             CancellationToken.None
         );
 
@@ -121,7 +121,7 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id",
+            organisationId: "test-client-id",
             CancellationToken.None
         );
 

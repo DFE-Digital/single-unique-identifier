@@ -6,7 +6,6 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
-using SUI.Find.Domain.ValueObjects;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
@@ -76,7 +75,7 @@ public class SearchFunctionV2(ILogger<SearchFunctionV2> logger, IJobQueueService
             {
                 { "WorkItemId", workItemId },
                 { "PersonId", searchRequest?.Suid ?? string.Empty },
-                { "RequestingOrganisationId", authContext.ClientId },
+                { "RequestingOrganisationId", authContext.OrganisationId },
                 { "TraceParent", context.TraceContext.TraceParent },
                 { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
@@ -101,7 +100,7 @@ public class SearchFunctionV2(ILogger<SearchFunctionV2> logger, IJobQueueService
         {
             WorkItemId = workItemId,
             PersonId = personId,
-            RequestingOrganisationId = authContext.ClientId,
+            RequestingOrganisationId = authContext.OrganisationId,
             TraceParent = context.TraceContext.TraceParent,
             TraceId = Activity.Current?.TraceId.ToString() ?? string.Empty,
             InvocationId = context.InvocationId,
