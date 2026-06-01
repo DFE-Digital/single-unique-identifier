@@ -22,7 +22,7 @@ public class JWKSControllerTests
     public void GetJwks_ShouldReturnOkWithCorrectJsonStructure()
     {
         // Arrange
-        var rsa = RSA.Create(2048);
+        using var rsa = RSA.Create(2048);
         var rsaSecurityKey = new RsaSecurityKey(rsa) { KeyId = "test-key-id" };
         var mockDetails = new RsaKeyDetails(
             rsaSecurityKey,
