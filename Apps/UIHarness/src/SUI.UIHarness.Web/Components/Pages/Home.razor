@@ -2,7 +2,6 @@
 @attribute [Authorize]
 @using SUI.UIHarness.Web.Components.Controls
 @using SUI.UIHarness.Web.Models
-@using SUI.UIHarness.Web.Models.Find
 @using SUI.UIHarness.Web.Services
 
 <PageTitle>SUI Test Harness</PageTitle>
@@ -11,7 +10,7 @@
 
 <div class="" style="padding-top: 24px;">
     <div class="mb-3">
-        <p><strong>Current Custodian:</strong> @_selectedOrg</p>
+        <p><strong>Current Custodian:</strong> @_displayOrganisationId</p>
     </div>
     
     <ul class="nav nav-tabs mt-3" id="mainTabs" role="tablist">
@@ -27,13 +26,13 @@
     </ul>
     <div class="tab-content border border-top-0 p-3" id="mainTabsContent">
         <div class="tab-pane fade show active" id="tab-enrol" role="tabpanel" hidden='@(_currentTab != "enrol")'>
-            <EnrolTab SelectedOrg="@_selectedOrg" CurrentPersonChanged="HandleCurrentPersonChanged"></EnrolTab>
+            <EnrolTab SelectedOrgClientId="@_selectedOrgClientId" CurrentPersonChanged="HandleCurrentPersonChanged"></EnrolTab>
         </div>
         <div class="tab-pane fade show active" id="tab-find" role="tabpanel" hidden='@(_currentTab != "find")'>
-            <FindTab SelectedOrg="@_selectedOrg" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged" CurrentWorkItemIdChanged="workItemId => _currentWorkItemId = workItemId"></FindTab>
+            <FindTab SelectedOrgClientId="@_selectedOrgClientId" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged" CurrentWorkItemIdChanged="workItemId => _currentWorkItemId = workItemId"></FindTab>
         </div>
         <div class="tab-pane fade show active" id="tab-fetch" role="tabpanel" hidden='@(_currentTab != "fetch")'>
-            <FetchTab SelectedOrg="@_selectedOrg" SelectedRecordUrl="@_selectedRecordUrl"></FetchTab>
+            <FetchTab SelectedOrgClientId="@_selectedOrgClientId" SelectedRecordUrl="@_selectedRecordUrl"></FetchTab>
         </div>
     </div>
     <div class="pt-3 small text-black-50">
@@ -55,7 +54,8 @@
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
-    private string _selectedOrg = string.Empty;
+    private string _selectedOrgClientId = string.Empty;
+    private string _displayOrganisationId = string.Empty;
     private string _architecture = string.Empty;
     private string _currentTab = "enrol";
     private LocalPerson? _currentPerson;
@@ -69,14 +69,25 @@
     [Inject]
     public required IConfiguration Configuration { get; set; }
 
+    // Inject the provider to resolve Organisation IDs from Client IDs
+    [Inject]
+    public required IFindApiAuthClientProvider FindApiAuthClientProvider { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateTask;
         var user = authState.User;
         if (user.Identity?.IsAuthenticated == true)
         {
-            _selectedOrg = user.Identity.Name ?? string.Empty;
+            _selectedOrgClientId = user.Identity.Name ?? string.Empty;
             _architecture = user.FindFirst("Architecture")?.Value ?? ArchitectureConstants.DefaultArchitecture;
+
+            // Resolve the OrganisationId from the loaded directory list
+            var clients = FindApiAuthClientProvider.GetAuthClients();
+            var matchingClient = clients.FirstOrDefault(c => c.ClientId == _selectedOrgClientId);
+            
+            // Fall back to the Client ID if no mapping exists
+            _displayOrganisationId = matchingClient?.OrganisationId ?? _selectedOrgClientId;
         }
     }
 
