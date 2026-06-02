@@ -214,6 +214,40 @@ public sealed class FindDocumentFilter : IDocumentFilter
     /// Searches for and transforms integer enum properties to string representations where applicable in the OpenAPI document.
     /// Ordinarily this would have been done using a Schema Transformer, but the Azure Functions SDK does not support them.
     /// </summary>
+    /// <example>
+    /// For example, transforms:
+    /// <code language="yaml">
+    ///   searchResultsV2:
+    ///     properties:
+    ///       status:
+    ///         enum:
+    ///           - 0
+    ///           - 1
+    ///           - 2
+    ///           - 3
+    ///           - 4
+    ///           - 5
+    ///           - 6
+    ///         type: integer
+    ///         format: int32
+    ///         default: 0
+    /// </code>
+    /// to:
+    /// <code language="yaml">
+    ///   searchResultsV2:
+    ///     properties:
+    ///       status:
+    ///         enum:
+    ///           - None
+    ///           - Queued
+    ///           - Running
+    ///           - Completed
+    ///           - Failed
+    ///           - Cancelled
+    ///           - Expired
+    ///         type: string
+    /// </code>
+    /// </example>
     private static void TransformIntEnumsToStrings(OpenApiDocument document)
     {
         // Get all the loaded public types
