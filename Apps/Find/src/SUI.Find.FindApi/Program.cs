@@ -50,6 +50,9 @@ builder.Services.AddSingleton<IFileSystem, FileSystem>();
 // Infrastructure services
 builder.Services.AddInfrastructureServices();
 
+// Middleware services
+builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();
+
 // Application services
 builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();
 builder.Services.AddSingleton<ISearchService, SearchService>();

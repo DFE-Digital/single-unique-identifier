@@ -18,7 +18,10 @@ namespace SUI.Find.FindApi.Middleware;
     Justification = "Waiting on Integration tests to cover middleware functionality."
 )]
 // ReSharper disable once ClassNeverInstantiated.Global
-public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsWorkerMiddleware
+public class JwtAuthMiddleware(
+    IAuthStoreService authStoreService,
+    IAuthContextFactory authContextFactory
+) : IFunctionsWorkerMiddleware
 {
     private static readonly JwtSecurityTokenHandler Handler = new();
 
@@ -111,7 +114,7 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
             return;
         }
 
-        var authContext = AuthContextFactory.FromJwt(jwt);
+        var authContext = authContextFactory.FromJwt(jwt, store);
 
         var requiredScopes = GetRequiredScopes(context);
 
@@ -176,41 +179,5 @@ public class JwtAuthMiddleware(IAuthStoreService authStoreService) : IFunctionsW
         return requiredScopes.Any(rs =>
             caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
         );
-    }
-}
-
-[ExcludeFromCodeCoverage(
-    Justification = "Waiting on Integration tests to cover middleware functionality."
-)]
-public static class AuthContextFactory
-{
-    public static AuthContext FromJwt(JwtSecurityToken jwt)
-    {
-        static string Get(JwtSecurityToken t, string type) =>
-            t.Claims.FirstOrDefault(c => c.Type == type)?.Value ?? string.Empty;
-
-        var clientId = Get(jwt, "client_id");
-        if (string.IsNullOrWhiteSpace(clientId))
-        {
-            clientId = Get(jwt, "sub");
-        }
-
-        if (string.IsNullOrWhiteSpace(clientId))
-        {
-            throw new InvalidOperationException("Token did not contain client_id or sub.");
-        }
-
-        var scopes = jwt
-            .Claims.Where(c => c.Type is "scp" or "scope" or "roles" or "role")
-            .SelectMany(c =>
-                c.Value.Split(
-                    ' ',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-            )
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        return new AuthContext(clientId, scopes);
     }
 }
