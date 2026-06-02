@@ -14,6 +14,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+builder.Services.AddSingleton<IJwksKeyProvider, JwksKeyProvider>();
 
 builder.Services.Configure<AuthSettings>(
     builder.Configuration.GetSection(AuthSettings.SectionName)
