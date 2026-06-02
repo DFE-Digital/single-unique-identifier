@@ -27,36 +27,26 @@ public sealed class FindDocumentFilter : IDocumentFilter
             schema.Properties.Clear();
         }
 
-        document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
+        ConfigureSecuritySchemes(document);
+
+        TransformPaths(document);
+
+        document.Tags = new List<OpenApiTag>
         {
-            Type = SecuritySchemeType.OAuth2,
-            Flows = new OpenApiOAuthFlows
-            {
-                ClientCredentials = new OpenApiOAuthFlow
-                {
-                    TokenUrl = new Uri("/api/v1/auth/token", UriKind.Relative),
-                    Scopes = new Dictionary<string, string>
-                    {
-                        { "match-record.read", "Obtain the id for a person." },
-                        { "find-record.read", "Read search status and results." },
-                        { "find-record.write", "Create and cancel searches." },
-                        { "fetch-record.read", "Retrieve records." },
-                        { "fetch-record.write", "Share records." },
-                        { "work-item.read", "Query the work item queue" },
-                        { "work-item.write", "Update the work item queue" },
-                    },
-                },
-            },
+            Tag("Health", "Service health check", 1),
+            Tag("Auth", "Simulate an OAuth provider", 2),
+            Tag("Match", "Locate the id for a person", 3),
+            Tag("Searches", "Start, get or cancel a search (Fan-out Architecture)", 4),
+            Tag("SearchesV2", "Start or get a search (Polling Architecture)", 5),
+            Tag("Work", "Check for and submit results to searches (Polling Architecture)", 6),
+            Tag("Fetch", "Fetch records from providers", 7),
         };
 
-        document.Components.SecuritySchemes["x-api-key"] = new OpenApiSecurityScheme
-        {
-            Type = SecuritySchemeType.ApiKey,
-            In = ParameterLocation.Header,
-            Name = "x-api-key",
-            Description = "API Key for authentication",
-        };
+        TransformIntEnumsToStrings(document);
+    }
 
+    private static void TransformPaths(OpenApiDocument document)
+    {
         var traceIdHeader = new OpenApiHeader
         {
             Description = "Primary trace ID for the whole operation",
@@ -195,19 +185,39 @@ public sealed class FindDocumentFilter : IDocumentFilter
         }
 
         document.Paths = newPaths;
+    }
 
-        document.Tags = new List<OpenApiTag>
+    private static void ConfigureSecuritySchemes(OpenApiDocument document)
+    {
+        document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {
-            Tag("Health", "Service health check", 1),
-            Tag("Auth", "Simulate an OAuth provider", 2),
-            Tag("Match", "Locate the id for a person", 3),
-            Tag("Searches", "Start, get or cancel a search (Fan-out Architecture)", 4),
-            Tag("SearchesV2", "Start or get a search (Polling Architecture)", 5),
-            Tag("Work", "Check for and submit results to searches (Polling Architecture)", 6),
-            Tag("Fetch", "Fetch records from providers", 7),
+            Type = SecuritySchemeType.OAuth2,
+            Flows = new OpenApiOAuthFlows
+            {
+                ClientCredentials = new OpenApiOAuthFlow
+                {
+                    TokenUrl = new Uri("/api/v1/auth/token", UriKind.Relative),
+                    Scopes = new Dictionary<string, string>
+                    {
+                        { "match-record.read", "Obtain the id for a person." },
+                        { "find-record.read", "Read search status and results." },
+                        { "find-record.write", "Create and cancel searches." },
+                        { "fetch-record.read", "Retrieve records." },
+                        { "fetch-record.write", "Share records." },
+                        { "work-item.read", "Query the work item queue" },
+                        { "work-item.write", "Update the work item queue" },
+                    },
+                },
+            },
         };
 
-        TransformIntEnumsToStrings(document);
+        document.Components.SecuritySchemes["x-api-key"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.ApiKey,
+            In = ParameterLocation.Header,
+            Name = "x-api-key",
+            Description = "API Key for authentication",
+        };
     }
 
     /// <summary>
