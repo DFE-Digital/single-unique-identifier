@@ -1,4 +1,5 @@
 using SUI.AuthEmulator;
+using SUI.AuthEmulator.Configurations;
 using SUI.AuthEmulator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,10 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+builder.Services.Configure<AuthSettings>(
+    builder.Configuration.GetSection(AuthSettings.SectionName)
+);
 
 var app = builder.Build();
 
