@@ -107,7 +107,7 @@ public class SearchFunctionV2Tests
     private static FunctionContext CreateContextWithAuth(string clientId)
     {
         var context = Substitute.For<FunctionContext>();
-        var authContext = new AuthContext(clientId, ["find-record.write"]);
+        var authContext = new AuthContext(clientId, clientId, ["find-record.write"]);
 
         var items = new Dictionary<object, object>
         {

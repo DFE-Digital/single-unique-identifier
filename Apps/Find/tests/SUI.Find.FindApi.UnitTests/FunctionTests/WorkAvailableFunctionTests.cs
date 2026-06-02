@@ -91,7 +91,7 @@ public class WorkAvailableFunctionTests
     private static FunctionContext CreateContextWithAuth(string clientId)
     {
         var context = Substitute.For<FunctionContext>();
-        var authContext = new AuthContext(clientId, ["work-item.read"]);
+        var authContext = new AuthContext(clientId, clientId, ["work-item.read"]);
 
         var items = new Dictionary<object, object>
         {

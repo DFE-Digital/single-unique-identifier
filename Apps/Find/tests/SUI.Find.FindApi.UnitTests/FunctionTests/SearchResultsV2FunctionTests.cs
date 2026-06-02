@@ -46,7 +46,7 @@ public class SearchResultsV2FunctionTests
             {
                 {
                     Application.Constants.ApplicationConstants.Auth.AuthContextKey,
-                    new AuthContext(clientId, [])
+                    new AuthContext(clientId, clientId, [])
                 },
             }
         );

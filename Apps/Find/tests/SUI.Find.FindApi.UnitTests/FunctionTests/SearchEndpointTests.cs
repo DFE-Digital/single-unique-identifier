@@ -31,7 +31,11 @@ public class SearchEndpointTests
         _context.InvocationId.Returns(Guid.NewGuid().ToString());
         var items = new Dictionary<object, object>
         {
-            [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(TestClientId, []),
+            [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(
+                TestClientId,
+                TestClientId,
+                []
+            ),
         };
         _context.Items.Returns(items);
         var logger = Substitute.For<ILogger<SearchFunction>>();

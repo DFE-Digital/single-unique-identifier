@@ -35,7 +35,7 @@ public class CancelSearchFunctionTests
         // Setup AuthContext in FunctionContext.Items
         var items = new Dictionary<object, object>
         {
-            [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(ClientId, []),
+            [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(ClientId, ClientId, []),
         };
         _context.Items.Returns(items);
     }

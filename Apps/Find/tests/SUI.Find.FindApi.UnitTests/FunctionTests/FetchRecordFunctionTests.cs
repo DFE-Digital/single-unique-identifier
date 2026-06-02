@@ -30,7 +30,10 @@ public class FetchRecordFunctionTests
     {
         var context = Substitute.For<FunctionContext>();
         context.Items.Returns(
-            new Dictionary<object, object> { { "AuthContext", new AuthContext(clientId, []) } }
+            new Dictionary<object, object>
+            {
+                { "AuthContext", new AuthContext(clientId, clientId, []) },
+            }
         );
         context.InvocationId.Returns(Guid.NewGuid().ToString());
         return context;

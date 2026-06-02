@@ -117,7 +117,7 @@ public class ClaimJobFunctionTests
     private static FunctionContext CreateContextWithAuth(string clientId)
     {
         var context = Substitute.For<FunctionContext>();
-        var authContext = new AuthContext(clientId, ["work-item.write"]);
+        var authContext = new AuthContext(clientId, clientId, ["work-item.write"]);
 
         var items = new Dictionary<object, object>
         {
