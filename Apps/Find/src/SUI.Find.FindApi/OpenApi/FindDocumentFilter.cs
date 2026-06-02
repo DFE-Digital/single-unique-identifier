@@ -31,6 +31,13 @@ public sealed class FindDocumentFilter : IDocumentFilter
 
         TransformPaths(document);
 
+        ConfigureTags(document);
+
+        TransformIntEnumsToStrings(document);
+    }
+
+    private static void ConfigureTags(OpenApiDocument document)
+    {
         document.Tags = new List<OpenApiTag>
         {
             Tag("Health", "Service health check", 1),
@@ -41,8 +48,6 @@ public sealed class FindDocumentFilter : IDocumentFilter
             Tag("Work", "Check for and submit results to searches (Polling Architecture)", 6),
             Tag("Fetch", "Fetch records from providers", 7),
         };
-
-        TransformIntEnumsToStrings(document);
     }
 
     private static void TransformPaths(OpenApiDocument document)
