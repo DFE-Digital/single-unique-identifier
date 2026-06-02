@@ -13,6 +13,7 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+builder.Services.AddSingleton<IJwksKeyProvider, JwksKeyProvider>();
 
 var app = builder.Build();
 
