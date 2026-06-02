@@ -46,6 +46,9 @@ module "web_app" {
     {
       APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
+
+      # Map the environment's dynamic base URL down to the Auth Emulator config
+      AuthSettings__BaseUrl                  = format("https://%s%sapp-%s-authemulator01.azurewebsites.net/", var.subscription_prefix, var.environment_id, var.region_short)
     },
     var.authemulator_app_settings,
   )
