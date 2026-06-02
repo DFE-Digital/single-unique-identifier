@@ -36,17 +36,36 @@ public sealed class FindDocumentFilter : IDocumentFilter
         TransformIntEnumsToStrings(document);
     }
 
-    private static void ConfigureTags(OpenApiDocument document)
+    private static void ConfigureSecuritySchemes(OpenApiDocument document)
     {
-        document.Tags = new List<OpenApiTag>
+        document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {
-            Tag("Health", "Service health check", 1),
-            Tag("Auth", "Simulate an OAuth provider", 2),
-            Tag("Match", "Locate the id for a person", 3),
-            Tag("Searches", "Start, get or cancel a search (Fan-out Architecture)", 4),
-            Tag("SearchesV2", "Start or get a search (Polling Architecture)", 5),
-            Tag("Work", "Check for and submit results to searches (Polling Architecture)", 6),
-            Tag("Fetch", "Fetch records from providers", 7),
+            Type = SecuritySchemeType.OAuth2,
+            Flows = new OpenApiOAuthFlows
+            {
+                ClientCredentials = new OpenApiOAuthFlow
+                {
+                    TokenUrl = new Uri("/api/v1/auth/token", UriKind.Relative),
+                    Scopes = new Dictionary<string, string>
+                    {
+                        { "match-record.read", "Obtain the id for a person." },
+                        { "find-record.read", "Read search status and results." },
+                        { "find-record.write", "Create and cancel searches." },
+                        { "fetch-record.read", "Retrieve records." },
+                        { "fetch-record.write", "Share records." },
+                        { "work-item.read", "Query the work item queue" },
+                        { "work-item.write", "Update the work item queue" },
+                    },
+                },
+            },
+        };
+
+        document.Components.SecuritySchemes["x-api-key"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.ApiKey,
+            In = ParameterLocation.Header,
+            Name = "x-api-key",
+            Description = "API Key for authentication",
         };
     }
 
@@ -192,36 +211,17 @@ public sealed class FindDocumentFilter : IDocumentFilter
         document.Paths = newPaths;
     }
 
-    private static void ConfigureSecuritySchemes(OpenApiDocument document)
+    private static void ConfigureTags(OpenApiDocument document)
     {
-        document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
+        document.Tags = new List<OpenApiTag>
         {
-            Type = SecuritySchemeType.OAuth2,
-            Flows = new OpenApiOAuthFlows
-            {
-                ClientCredentials = new OpenApiOAuthFlow
-                {
-                    TokenUrl = new Uri("/api/v1/auth/token", UriKind.Relative),
-                    Scopes = new Dictionary<string, string>
-                    {
-                        { "match-record.read", "Obtain the id for a person." },
-                        { "find-record.read", "Read search status and results." },
-                        { "find-record.write", "Create and cancel searches." },
-                        { "fetch-record.read", "Retrieve records." },
-                        { "fetch-record.write", "Share records." },
-                        { "work-item.read", "Query the work item queue" },
-                        { "work-item.write", "Update the work item queue" },
-                    },
-                },
-            },
-        };
-
-        document.Components.SecuritySchemes["x-api-key"] = new OpenApiSecurityScheme
-        {
-            Type = SecuritySchemeType.ApiKey,
-            In = ParameterLocation.Header,
-            Name = "x-api-key",
-            Description = "API Key for authentication",
+            Tag("Health", "Service health check", 1),
+            Tag("Auth", "Simulate an OAuth provider", 2),
+            Tag("Match", "Locate the id for a person", 3),
+            Tag("Searches", "Start, get or cancel a search (Fan-out Architecture)", 4),
+            Tag("SearchesV2", "Start or get a search (Polling Architecture)", 5),
+            Tag("Work", "Check for and submit results to searches (Polling Architecture)", 6),
+            Tag("Fetch", "Fetch records from providers", 7),
         };
     }
 
