@@ -15,7 +15,7 @@ public class MockAuthStoreServiceTests
     public MockAuthStoreServiceTests()
     {
         _sut = new MockAuthStoreService(_mockFileSystem);
-        _realStoreFilePath = Path.Combine(
+        _realStoreFilePath = Path.Join(
             AppContext.BaseDirectory,
             "Data",
             "auth-clients-inbound.json"
