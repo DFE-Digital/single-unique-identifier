@@ -33,26 +33,31 @@ public class SearchResultsV2Function(
         In = ParameterLocation.Path,
         Required = true,
         Type = typeof(string),
-        Summary = "Identifier of the search work item.",
-        Description = "Identifier of the search work item."
+        Summary = "Identifier of the search work item."
     )]
     [OpenApiResponseWithBody(
         statusCode: HttpStatusCode.OK,
         contentType: "application/json",
         bodyType: typeof(SearchResultsV2),
-        Summary = "Results for the specified search work item."
+        Description = "The status of a Find a Record search work item, and the results if available."
     )]
     [OpenApiResponseWithBody(
         statusCode: HttpStatusCode.NotFound,
         contentType: "application/json",
         bodyType: typeof(Problem),
-        Summary = "Search work item not found."
+        Description = "The requested search work item was not found."
     )]
     [OpenApiResponseWithBody(
-        statusCode: HttpStatusCode.InternalServerError,
-        contentType: "application/json",
-        bodyType: typeof(Problem),
-        Summary = "Error"
+        HttpStatusCode.Unauthorized,
+        "application/json",
+        typeof(Problem),
+        Description = "Request was refused because it lacks valid authentication credentials."
+    )]
+    [OpenApiResponseWithBody(
+        HttpStatusCode.InternalServerError,
+        "application/json",
+        typeof(Problem),
+        Description = "The server encountered an unexpected condition that prevented it from fulfilling the request."
     )]
     #endregion
 

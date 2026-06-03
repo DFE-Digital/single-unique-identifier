@@ -198,7 +198,7 @@ public abstract class SearchTestsBase(
 
         if (UsePolling)
         {
-            var searchJob = JsonSerializer.Deserialize<SearchJobV2>(searchJobContent);
+            var searchJob = JsonSerializer.Deserialize<SearchWorkItem>(searchJobContent);
             if (searchJob != null)
             {
                 searchId = searchJob.WorkItemId;
@@ -339,7 +339,7 @@ public abstract class SearchTestsBase(
 
             TestOutputHelper.WriteLine("Fetch verified ok");
 
-            var payload = fetchResultTypedContent.Payload!.Value;
+            var payload = Assert.IsType<JsonElement>(fetchResultTypedContent.Payload);
 
             switch (fetchResultTypedContent.RecordType)
             {
@@ -477,7 +477,7 @@ public abstract class SearchTestsBase(
         using var finalResponse = await Fixture.Client.SendAsync(finalRequest);
 
         object? typedResult = UsePolling
-            ? await finalResponse.Content.ReadFromJsonAsync<SearchJobV2>()
+            ? await finalResponse.Content.ReadFromJsonAsync<SearchWorkItem>()
             : await finalResponse.Content.ReadFromJsonAsync<SearchJob>();
 
         Assert.NotNull(typedResult);

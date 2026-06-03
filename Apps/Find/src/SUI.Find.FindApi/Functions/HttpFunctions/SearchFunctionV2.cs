@@ -21,7 +21,8 @@ public class SearchFunctionV2(ILogger<SearchFunctionV2> logger, IJobQueueService
     [OpenApiOperation(
         operationId: "searches-v2",
         tags: ["SearchesV2"],
-        Summary = "Submit a new search request"
+        Summary = "Submit a new search request",
+        Description = "Starts a search to find which Custodians (Data Owners) have a record relating to the specified child's identifier (NHS Number)."
     )]
     [OpenApiRequestBody(
         contentType: "application/json",
@@ -32,14 +33,26 @@ public class SearchFunctionV2(ILogger<SearchFunctionV2> logger, IJobQueueService
     [OpenApiResponseWithBody(
         statusCode: HttpStatusCode.Accepted,
         contentType: "application/json",
-        bodyType: typeof(SearchJob),
-        Summary = "The accepted search job"
+        bodyType: typeof(SearchWorkItem),
+        Description = "Request was accepted for processing, a search has been initiated."
     )]
     [OpenApiResponseWithBody(
         statusCode: HttpStatusCode.BadRequest,
         contentType: "application/json",
         bodyType: typeof(Problem),
-        Summary = "Invalid search request"
+        Description = "Request was refused because it contained invalid data, or was missing required data."
+    )]
+    [OpenApiResponseWithBody(
+        HttpStatusCode.Unauthorized,
+        "application/json",
+        typeof(Problem),
+        Description = "Request was refused because it lacks valid authentication credentials."
+    )]
+    [OpenApiResponseWithBody(
+        HttpStatusCode.InternalServerError,
+        "application/json",
+        typeof(Problem),
+        Description = "The server encountered an unexpected condition that prevented it from fulfilling the request."
     )]
     [RequiredScopes("find-record.write")]
     [Function(nameof(SearchesV2))]
@@ -111,7 +124,7 @@ public class SearchFunctionV2(ILogger<SearchFunctionV2> logger, IJobQueueService
 
         return await HttpResponseUtility.AcceptedResponse(
             req,
-            SearchJobV2.FromDto(result),
+            SearchWorkItem.FromDto(result),
             cancellationToken
         );
     }

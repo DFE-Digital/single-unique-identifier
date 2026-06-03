@@ -1,8 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Text.Json.Serialization;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
+using static SUI.Find.FindApi.Middleware.ResponseTracingMiddleware;
 
 namespace SUI.Find.FindApi.OpenApi;
 
@@ -24,6 +27,17 @@ public sealed class FindDocumentFilter : IDocumentFilter
             schema.Properties.Clear();
         }
 
+        ConfigureSecuritySchemes(document);
+
+        TransformPaths(document);
+
+        ConfigureTags(document);
+
+        TransformIntEnumsToStrings(document);
+    }
+
+    private static void ConfigureSecuritySchemes(OpenApiDocument document)
+    {
         document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.OAuth2,
@@ -53,8 +67,11 @@ public sealed class FindDocumentFilter : IDocumentFilter
             Name = "x-api-key",
             Description = "API Key for authentication",
         };
+    }
 
-        var operationIdHeader = new OpenApiHeader
+    private static void TransformPaths(OpenApiDocument document)
+    {
+        var traceIdHeader = new OpenApiHeader
         {
             Description = "Primary trace ID for the whole operation",
             Schema = new OpenApiSchema { Type = "string" },
@@ -68,8 +85,8 @@ public sealed class FindDocumentFilter : IDocumentFilter
             Example = new OpenApiString("a49d73e8-dc36-4be5-92a6-9bf62868aa99"),
         };
 
-        document.Components.Headers["Operation-Id"] = operationIdHeader;
-        document.Components.Headers["Invocation-Id"] = invocationIdHeader;
+        document.Components.Headers[TraceIdHeaderName] = traceIdHeader;
+        document.Components.Headers[InvocationIdHeaderName] = invocationIdHeader;
 
         var oauthRequirement = new OpenApiSecurityRequirement
         {
@@ -156,8 +173,8 @@ public sealed class FindDocumentFilter : IDocumentFilter
                 {
                     foreach (var responseHeaders in op.Responses.Values.Select(x => x.Headers))
                     {
-                        responseHeaders["Operation-Id"] = operationIdHeader;
-                        responseHeaders["Invocation-Id"] = invocationIdHeader;
+                        responseHeaders[TraceIdHeaderName] = traceIdHeader;
+                        responseHeaders[InvocationIdHeaderName] = invocationIdHeader;
                     }
                 }
             }
@@ -192,7 +209,10 @@ public sealed class FindDocumentFilter : IDocumentFilter
         }
 
         document.Paths = newPaths;
+    }
 
+    private static void ConfigureTags(OpenApiDocument document)
+    {
         document.Tags = new List<OpenApiTag>
         {
             Tag("Health", "Service health check", 1),
@@ -203,6 +223,93 @@ public sealed class FindDocumentFilter : IDocumentFilter
             Tag("Work", "Check for and submit results to searches (Polling Architecture)", 6),
             Tag("Fetch", "Fetch records from providers", 7),
         };
+    }
+
+    /// <summary>
+    /// Searches for and transforms integer enum properties to string representations where applicable in the OpenAPI document.
+    /// Ordinarily this would have been done using a Schema Transformer, but the Azure Functions SDK does not support them.
+    /// </summary>
+    /// <example>
+    /// For example, transforms:
+    /// <code language="yaml">
+    ///   searchResultsV2:
+    ///     properties:
+    ///       status:
+    ///         enum:
+    ///           - 0
+    ///           - 1
+    ///           - 2
+    ///           - 3
+    ///           - 4
+    ///           - 5
+    ///           - 6
+    ///         type: integer
+    ///         format: int32
+    ///         default: 0
+    /// </code>
+    /// to:
+    /// <code language="yaml">
+    ///   searchResultsV2:
+    ///     properties:
+    ///       status:
+    ///         enum:
+    ///           - None
+    ///           - Queued
+    ///           - Running
+    ///           - Completed
+    ///           - Failed
+    ///           - Cancelled
+    ///           - Expired
+    ///         type: string
+    /// </code>
+    /// </example>
+    private static void TransformIntEnumsToStrings(OpenApiDocument document)
+    {
+        // Get all the loaded public types
+        var publicTypes = AppDomain
+            .CurrentDomain.GetAssemblies()
+            .SelectMany(assembly => assembly.ExportedTypes.Where(x => !x.IsAbstract))
+            .ToLookup(x => x.Name, StringComparer.OrdinalIgnoreCase);
+
+        // For each schema, check any of the properties which are integer enums and then try and find the
+        // corresponding C# enum and convert the schema property to a string representation.
+        foreach (var (schemaName, schema) in document.Components.Schemas)
+        {
+            foreach (
+                var (schemaPropertyName, schemaEnumProperty) in schema.Properties.Where(p =>
+                    p.Value.Type == "integer" && p.Value.Enum.Any()
+                )
+            )
+            {
+                var modelProperty = publicTypes[schemaName]
+                    .SelectMany(t =>
+                        t.GetProperties()
+                            .Where(p =>
+                                p.Name.Equals(
+                                    schemaPropertyName,
+                                    StringComparison.OrdinalIgnoreCase
+                                )
+                                && p.PropertyType.IsEnum
+                                && p.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType
+                                    == typeof(JsonStringEnumConverter)
+                            )
+                    )
+                    .FirstOrDefault();
+
+                if (modelProperty != null)
+                {
+                    schemaEnumProperty.Type = "string";
+                    schemaEnumProperty.Enum.Clear();
+                    schemaEnumProperty.Format = null;
+                    schemaEnumProperty.Default = null;
+                    var names = Enum.GetNames(modelProperty.PropertyType);
+                    foreach (var name in names)
+                    {
+                        schemaEnumProperty.Enum.Add(new OpenApiString(name));
+                    }
+                }
+            }
+        }
     }
 
     private static OpenApiTag Tag(string name, string description, int order) =>
