@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -24,11 +23,6 @@ public class SubmitJobResultsFunctionTests
     private readonly IJobResultsQueueClient _queueClient = Substitute.For<IJobResultsQueueClient>();
 
     private readonly SubmitJobResultsFunction _function;
-
-    private readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
 
     public SubmitJobResultsFunctionTests()
     {
@@ -262,10 +256,14 @@ public class SubmitJobResultsFunctionTests
             JobTraceParent = jobTraceParent ?? "00-defaulttraceparent",
         };
 
-    private static FunctionContext CreateContextWithAuth(string clientId)
+    private static FunctionContext CreateContextWithAuth(string organisationId)
     {
         var context = Substitute.For<FunctionContext>();
-        var authContext = new AuthContext(clientId, clientId, ["work-item.write"]);
+        var authContext = new AuthContext(
+            Guid.NewGuid().ToString(),
+            organisationId,
+            ["work-item.write"]
+        );
 
         var items = new Dictionary<object, object>
         {

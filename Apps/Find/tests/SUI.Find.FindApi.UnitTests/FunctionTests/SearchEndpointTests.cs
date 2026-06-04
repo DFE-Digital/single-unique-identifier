@@ -24,7 +24,7 @@ public class SearchEndpointTests
 
     private const string ValidSuid = "9999999999";
     private const string InvalidSuid = "invalid-suid";
-    private const string TestClientId = "test-client-id";
+    private const string TestOrganisationId = "test-org-id";
 
     public SearchEndpointTests()
     {
@@ -32,8 +32,8 @@ public class SearchEndpointTests
         var items = new Dictionary<object, object>
         {
             [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(
-                TestClientId,
-                TestClientId,
+                Guid.NewGuid().ToString(),
+                TestOrganisationId,
                 []
             ),
         };

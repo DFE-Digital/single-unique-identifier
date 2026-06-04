@@ -49,7 +49,7 @@ public class RenewLeaseFunctionTests
     {
         // ARRANGE
         var request = MockHttpRequestData.Create(); // Empty body
-        var context = CreateContextWithAuth("test-client-id");
+        var context = CreateContextWithAuth("test-org-id");
 
         // ACT
         var result = await _sut.RenewLease(request, context, CancellationToken.None);
@@ -62,23 +62,23 @@ public class RenewLeaseFunctionTests
     public async Task RenewLease_ShouldReturn_Ok_WhenLeaseIsRenewedSuccessfully()
     {
         // ARRANGE
-        const string testClientId = "test-client-id";
+        const string testOrganisationId = "test-org-id";
         var requestBody = new RenewJobLeaseRequest { JobId = "job123", LeaseId = "lease456" };
         var request = CreateHttpRequestData(requestBody);
-        var context = CreateContextWithAuth(testClientId);
+        var context = CreateContextWithAuth(testOrganisationId);
 
         var expectedJobInfo = new JobInfo
         {
             JobId = requestBody.JobId,
             LeaseId = requestBody.LeaseId,
-            CustodianId = testClientId,
+            CustodianId = testOrganisationId,
             WorkItemId = "workItem789",
             LeaseExpiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(30),
         };
 
         _mockJobClaimService
             .ExtendJobLeaseAsync(
-                testClientId,
+                testOrganisationId,
                 requestBody.JobId,
                 requestBody.LeaseId,
                 Arg.Any<CancellationToken>()
@@ -93,7 +93,7 @@ public class RenewLeaseFunctionTests
         await _mockJobClaimService
             .Received(1)
             .ExtendJobLeaseAsync(
-                testClientId,
+                testOrganisationId,
                 requestBody.JobId,
                 requestBody.LeaseId,
                 Arg.Any<CancellationToken>()
@@ -115,14 +115,14 @@ public class RenewLeaseFunctionTests
     public async Task RenewLease_ShouldReturn_NoContent_WhenJobInfoIsNull()
     {
         // ARRANGE
-        const string testClientId = "test-client-id";
+        const string testOrganisationId = "test-org-id";
         var requestBody = new RenewJobLeaseRequest { JobId = "job123", LeaseId = "lease456" };
         var request = CreateHttpRequestData(requestBody);
-        var context = CreateContextWithAuth(testClientId);
+        var context = CreateContextWithAuth(testOrganisationId);
 
         _mockJobClaimService
             .ExtendJobLeaseAsync(
-                testClientId,
+                testOrganisationId,
                 requestBody.JobId,
                 requestBody.LeaseId,
                 Arg.Any<CancellationToken>()
@@ -137,7 +137,7 @@ public class RenewLeaseFunctionTests
         await _mockJobClaimService
             .Received(1)
             .ExtendJobLeaseAsync(
-                testClientId,
+                testOrganisationId,
                 requestBody.JobId,
                 requestBody.LeaseId,
                 Arg.Any<CancellationToken>()
@@ -145,10 +145,14 @@ public class RenewLeaseFunctionTests
         result.Body.Length.ShouldBe(0);
     }
 
-    private static FunctionContext CreateContextWithAuth(string clientId)
+    private static FunctionContext CreateContextWithAuth(string organisationId)
     {
         var context = Substitute.For<FunctionContext>();
-        var authContext = new AuthContext(clientId, clientId, ["work-item.write"]);
+        var authContext = new AuthContext(
+            Guid.NewGuid().ToString(),
+            organisationId,
+            ["work-item.write"]
+        );
 
         var items = new Dictionary<object, object>
         {
