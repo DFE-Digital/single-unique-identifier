@@ -28,7 +28,7 @@ public class SearchStatusFunctionTests
         _sut = new SearchStatusFunction(Logger, _searchService);
     }
 
-    private static FunctionContext CreateContextWithAuth(string clientId = "test-client-id")
+    private static FunctionContext CreateContextWithAuth(string organisationId = "test-org-id")
     {
         var context = Substitute.For<FunctionContext>();
         context.Items.Returns(
@@ -36,7 +36,7 @@ public class SearchStatusFunctionTests
             {
                 {
                     Application.Constants.ApplicationConstants.Auth.AuthContextKey,
-                    new AuthContext(clientId, clientId, [])
+                    new AuthContext(Guid.NewGuid().ToString(), organisationId, [])
                 },
             }
         );
@@ -73,7 +73,7 @@ public class SearchStatusFunctionTests
         var context = CreateContextWithAuth();
         var req = MockHttpRequestData.Create();
         _searchService
-            .GetSearchStatusAsync("job-2", "test-client-id", _client, Arg.Any<CancellationToken>())
+            .GetSearchStatusAsync("job-2", "test-org-id", _client, Arg.Any<CancellationToken>())
             .Returns(new Error());
 
         // Act
@@ -96,7 +96,7 @@ public class SearchStatusFunctionTests
         var context = CreateContextWithAuth();
         var req = MockHttpRequestData.Create();
         _searchService
-            .GetSearchStatusAsync("job-3", "test-client-id", _client, Arg.Any<CancellationToken>())
+            .GetSearchStatusAsync("job-3", "test-org-id", _client, Arg.Any<CancellationToken>())
             .Returns(new NotFound());
 
         // Act
@@ -119,7 +119,7 @@ public class SearchStatusFunctionTests
         var context = CreateContextWithAuth();
         var req = MockHttpRequestData.Create();
         _searchService
-            .GetSearchStatusAsync("job-4", "test-client-id", _client, Arg.Any<CancellationToken>())
+            .GetSearchStatusAsync("job-4", "test-org-id", _client, Arg.Any<CancellationToken>())
             .Returns(new Forbidden());
 
         // Act
@@ -150,7 +150,7 @@ public class SearchStatusFunctionTests
             LastUpdatedAt = DateTime.UtcNow,
         };
         _searchService
-            .GetSearchStatusAsync("job-5", "test-client-id", _client, Arg.Any<CancellationToken>())
+            .GetSearchStatusAsync("job-5", "test-org-id", _client, Arg.Any<CancellationToken>())
             .Returns(dto);
 
         // Act

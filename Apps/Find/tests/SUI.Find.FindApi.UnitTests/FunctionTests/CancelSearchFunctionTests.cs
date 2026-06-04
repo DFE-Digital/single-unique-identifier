@@ -6,7 +6,6 @@ using Microsoft.Extensions.Primitives;
 using NSubstitute;
 using OneOf.Types;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Enums;
 using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
@@ -23,7 +22,7 @@ public class CancelSearchFunctionTests
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
     private readonly FunctionContext _context = Substitute.For<FunctionContext>();
     private const string JobId = "test-job-id";
-    private const string ClientId = "test-client-id";
+    private const string OrganisationId = "test-org-id";
 
     public CancelSearchFunctionTests()
     {
@@ -35,7 +34,11 @@ public class CancelSearchFunctionTests
         // Setup AuthContext in FunctionContext.Items
         var items = new Dictionary<object, object>
         {
-            [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(ClientId, ClientId, []),
+            [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(
+                Guid.NewGuid().ToString(),
+                OrganisationId,
+                []
+            ),
         };
         _context.Items.Returns(items);
     }
@@ -48,7 +51,7 @@ public class CancelSearchFunctionTests
             new Dictionary<string, StringValues> { { "jobId", JobId } }
         );
         _searchService
-            .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
+            .CancelSearchAsync(JobId, OrganisationId, _client, CancellationToken.None)
             .Returns(
                 new SearchJobDto
                 {
@@ -81,7 +84,7 @@ public class CancelSearchFunctionTests
             new Dictionary<string, StringValues> { { "jobId", JobId } }
         );
         _searchService
-            .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
+            .CancelSearchAsync(JobId, OrganisationId, _client, CancellationToken.None)
             .Returns(new NotFound());
 
         // Act
@@ -108,7 +111,7 @@ public class CancelSearchFunctionTests
             new Dictionary<string, StringValues> { { "jobId", JobId } }
         );
         _searchService
-            .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
+            .CancelSearchAsync(JobId, OrganisationId, _client, CancellationToken.None)
             .Returns(
                 new SearchJobDto
                 {
@@ -145,7 +148,7 @@ public class CancelSearchFunctionTests
             new Dictionary<string, StringValues> { { "jobId", JobId } }
         );
         _searchService
-            .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
+            .CancelSearchAsync(JobId, OrganisationId, _client, CancellationToken.None)
             .Returns(new Error());
 
         // Act
@@ -198,7 +201,7 @@ public class CancelSearchFunctionTests
             new Dictionary<string, StringValues> { { "jobId", JobId } }
         );
         _searchService
-            .CancelSearchAsync(JobId, ClientId, _client, CancellationToken.None)
+            .CancelSearchAsync(JobId, OrganisationId, _client, CancellationToken.None)
             .Returns(new Forbidden());
 
         // Act

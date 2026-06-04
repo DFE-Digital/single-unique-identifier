@@ -37,7 +37,7 @@ public class SearchResultsFunctionTests
         _sut = new SearchResultsFunction(_logger, _searchService);
     }
 
-    private static FunctionContext CreateContextWithAuth(string clientId = "test-client-id")
+    private static FunctionContext CreateContextWithAuth(string organisationId = "test-org-id")
     {
         var context = Substitute.For<FunctionContext>();
         context.Items.Returns(
@@ -45,7 +45,7 @@ public class SearchResultsFunctionTests
             {
                 {
                     Application.Constants.ApplicationConstants.Auth.AuthContextKey,
-                    new AuthContext(clientId, clientId, [])
+                    new AuthContext(Guid.NewGuid().ToString(), organisationId, [])
                 },
             }
         );
@@ -75,7 +75,7 @@ public class SearchResultsFunctionTests
             Items = [CreateSearchResultItem()],
         };
         _searchService
-            .GetSearchResultsAsync("job-1", "test-client-id", _client, Arg.Any<CancellationToken>())
+            .GetSearchResultsAsync("job-1", "test-org-id", _client, Arg.Any<CancellationToken>())
             .Returns(dto);
 
         var response = await _sut.SearchResultsTrigger(
@@ -93,7 +93,7 @@ public class SearchResultsFunctionTests
     public async Task ReturnsNotFound_WhenJobNotFound()
     {
         _searchService
-            .GetSearchResultsAsync("job-2", "test-client-id", _client, Arg.Any<CancellationToken>())
+            .GetSearchResultsAsync("job-2", "test-org-id", _client, Arg.Any<CancellationToken>())
             .Returns(new NotFound());
 
         var response = await _sut.SearchResultsTrigger(
@@ -111,7 +111,7 @@ public class SearchResultsFunctionTests
     public async Task ReturnsForbidden_WhenUserDoesNotHaveAccessTo_SearchResults()
     {
         _searchService
-            .GetSearchResultsAsync("job-3", "test-client-id", _client, Arg.Any<CancellationToken>())
+            .GetSearchResultsAsync("job-3", "test-org-id", _client, Arg.Any<CancellationToken>())
             .Returns(new Forbidden());
 
         var response = await _sut.SearchResultsTrigger(
@@ -129,7 +129,7 @@ public class SearchResultsFunctionTests
     public async Task ReturnsInternalServerError_OnError()
     {
         _searchService
-            .GetSearchResultsAsync("job-4", "test-client-id", _client, Arg.Any<CancellationToken>())
+            .GetSearchResultsAsync("job-4", "test-org-id", _client, Arg.Any<CancellationToken>())
             .Returns(new Error());
 
         var response = await _sut.SearchResultsTrigger(
