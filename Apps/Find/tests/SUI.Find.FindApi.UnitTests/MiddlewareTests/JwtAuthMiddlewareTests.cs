@@ -31,13 +31,16 @@ public class JwtAuthMiddlewareTests
     [InlineData("health")]
     public async Task TestInvoke_WithNoAuthEndpoints_SkipsMethod(string endpoint)
     {
+        // Arrange
         var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
         var request = Substitute.For<HttpRequestData>(_context);
         request.Url.Returns(new Uri("/api/" + endpoint));
         _context.GetHttpRequestDataAsync().Returns(request);
 
+        // Act
         await sut.Invoke(_context, Next);
 
+        // Assert
         await _authStoreService.DidNotReceive().GetAuthStoreAsync();
         _handler
             .DidNotReceive()
@@ -50,11 +53,14 @@ public class JwtAuthMiddlewareTests
     [Fact]
     public async Task TestInvoke_WithNoAuthHeaders_ReturnsProblemResponse()
     {
+        // Arrange
         InitialiseRequest([]);
         var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
 
+        // Act
         await sut.Invoke(_context, Next);
 
+        // Assert
         var invocationResult = Assert.IsType<HttpResponseData>(
             _context.GetInvocationResult().Value,
             exactMatch: false
@@ -73,11 +79,14 @@ public class JwtAuthMiddlewareTests
     [Fact]
     public async Task TestInvoke_WithInvalidAuthHeaders_ReturnsProblemResponse()
     {
+        // Arrange
         InitialiseRequest(new HttpHeadersCollection { { "Authorization", "Invalid" } });
         var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
 
+        // Act
         await sut.Invoke(_context, Next);
 
+        // Assert
         var invocationResult = Assert.IsType<HttpResponseData>(
             _context.GetInvocationResult().Value,
             exactMatch: false
@@ -96,6 +105,7 @@ public class JwtAuthMiddlewareTests
     [Fact]
     public async Task TestInvoke_HandlesErrorsFromTokenHandler()
     {
+        // Arrange
         InitialiseRequest(new HttpHeadersCollection { { "Authorization", "Bearer token" } });
 
         var clients = new List<AuthClient>
@@ -131,8 +141,10 @@ public class JwtAuthMiddlewareTests
 
         var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
 
+        // Act
         await sut.Invoke(_context, Next);
 
+        // Assert
         var invocationResult = Assert.IsType<HttpResponseData>(
             _context.GetInvocationResult().Value,
             exactMatch: false
@@ -151,6 +163,7 @@ public class JwtAuthMiddlewareTests
     [Fact]
     public async Task TestInvoke_WhenScopesIncorrect_ReturnsProblemResponse()
     {
+        // Arrange
         InitialiseRequest(new HttpHeadersCollection { { "Authorization", "Bearer token" } });
 
         var clients = new List<AuthClient>
@@ -198,8 +211,10 @@ public class JwtAuthMiddlewareTests
             "SUI.Find.FindApi.Functions.HttpFunctions.FetchRecordFunction.FetchRecord"
         );
 
+        // Act
         await sut.Invoke(_context, Next);
 
+        // Assert
         var invocationResult = Assert.IsType<HttpResponseData>(
             _context.GetInvocationResult().Value,
             exactMatch: false
@@ -216,6 +231,7 @@ public class JwtAuthMiddlewareTests
     [Fact]
     public async Task TestInvoke_WithValidInputs_ReturnsAuthContext()
     {
+        // Arrange
         InitialiseRequest(new HttpHeadersCollection { { "Authorization", "Bearer token" } });
 
         var clients = new List<AuthClient>
@@ -265,8 +281,10 @@ public class JwtAuthMiddlewareTests
             "SUI.Find.FindApi.Functions.HttpFunctions.FetchRecordFunction.FetchRecord"
         );
 
+        // Act
         await sut.Invoke(_context, Next);
 
+        // Assert
         await _authStoreService.Received(1).GetAuthStoreAsync();
         _handler
             .Received(1)
