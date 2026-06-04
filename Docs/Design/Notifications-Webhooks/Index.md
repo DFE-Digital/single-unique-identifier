@@ -52,7 +52,14 @@ The goals and reasons for adding Notifications to the SUI system are:
   * Auditing:
     * Should reuse the existing `AuditEvent`.
     * After calling a webhook URL, log an `AuditEvent` on success or failure.
-
+* Stub Custodians:
+  * For our mock Custodians that have `Job Created` subscriptions, they should not poll for Jobs, and instead we should have an HTTP endpoint for the `Job Created` webhook's destination.   
+* E2E Tests:
+  * For our mock Searchers that have `Search Completed` subscriptions, the E2E Test logic should listen rather than poll for search results, for those applicable subscriptions.
+  * Idea:
+    1. The Stub Custodians has an HTTP endpoint for the `Search Completed` webhook's destination.
+    2. That HTTP endpoint writes to an Azure Storage Queue.
+    3. The E2E Test logic listens to that Azure Storage Queue, rather than polling for search results, for those applicable subscriptions.
 * Maybe: "Ping" job
   * For organisations to be able to test polling/webhooks.
   * Question: how would this be invoked?  Admin endpoint / concept?
