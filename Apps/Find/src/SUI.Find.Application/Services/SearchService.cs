@@ -164,7 +164,7 @@ public class SearchService(
 
             // Check if the job belongs to the requesting client
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
-            if (input is null || input.PolicyContext.ClientId != organisationId)
+            if (input is null || input.PolicyContext.OrganisationId != organisationId)
             {
                 return new Forbidden();
             }
@@ -230,7 +230,7 @@ public class SearchService(
                 return new Error();
             }
 
-            if (meta.PolicyContext.ClientId != organisationId)
+            if (meta.PolicyContext.OrganisationId != organisationId)
             {
                 logger.LogWarning(
                     "Unauthorized access attempt to search job {JobId} by organisation {OrganisationId}.",
@@ -314,7 +314,7 @@ public class SearchService(
             }
 
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(jobStatus);
-            if (input is null || input.PolicyContext.ClientId != organisationId)
+            if (input is null || input.PolicyContext.OrganisationId != organisationId)
             {
                 return new Forbidden();
             }

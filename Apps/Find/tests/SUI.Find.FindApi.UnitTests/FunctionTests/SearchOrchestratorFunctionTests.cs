@@ -132,7 +132,7 @@ public class SearchOrchestratorFunctionsTests
                 Arg.Is<PersistSearchResultsInput>(x =>
                     x.WorkItemId == "instance-123"
                     && x.JobId == "instance-123"
-                    && x.RequestingOrdId == DestOrgId
+                    && x.RequestingOrgId == DestOrgId
                     && x.SourceOrgId == SourceOrgId1
                 ),
                 Arg.Any<TaskOptions>()

@@ -1,6 +1,5 @@
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 using SUI.Find.Application.Dtos;
 using SUI.Find.Application.Interfaces;
@@ -27,7 +26,7 @@ public class BaseSearchServiceTests
             SearchResultEntryRepository
         );
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
-        var policyData = new PolicyContext("test-client-id", "SAFEGUARDING", "LOCAL_AUTHORITY");
+        var policyData = new PolicyContext("test-org-id", "SAFEGUARDING", "LOCAL_AUTHORITY");
         Sut.ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
     }

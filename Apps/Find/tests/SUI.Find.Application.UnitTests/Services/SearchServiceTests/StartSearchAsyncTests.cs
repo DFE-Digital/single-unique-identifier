@@ -13,7 +13,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
 
-    private const string ClientId = "test-client-id";
+    private const string OrganisationId = "test-org-id";
     private const string CorrelationId = "corr-id";
     private readonly CancellationToken _cancellationToken = CancellationToken.None;
     private readonly NhsPersonId _personId = NhsPersonId.Create("9999999999").Value!;
@@ -21,7 +21,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     [Fact]
     public async Task ShouldReturnExistingJob_WhenDuplicateRequest()
     {
-        var instanceId = $"{_personId.Value}-{ClientId}";
+        var instanceId = $"{_personId.Value}-{OrganisationId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
 
         var orchestrationMeta = new OrchestrationMetadata("SearchOrchestrator", "hashed-id")
@@ -34,7 +34,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.StartSearchAsync(
             _personId.Value,
-            ClientId,
+            OrganisationId,
             _client,
             CorrelationId,
             _cancellationToken
@@ -50,19 +50,19 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     [Fact]
     public async Task ShouldReturnFailed_WhenCustodianNotFound()
     {
-        var instanceId = $"{_personId}-{ClientId}";
+        var instanceId = $"{_personId}-{OrganisationId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
         _client
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
             .Returns((OrchestrationMetadata?)null);
 
         CustodianService
-            .GetCustodianAsync(ClientId)
+            .GetCustodianAsync(OrganisationId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Fail("Custodian not found"));
 
         var result = await Sut.StartSearchAsync(
             _personId.Value,
-            ClientId,
+            OrganisationId,
             _client,
             CorrelationId,
             _cancellationToken
@@ -74,14 +74,14 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     [Fact]
     public async Task ShouldReturnSuccess_WhenCustodianExists()
     {
-        var instanceId = $"{_personId}-{ClientId}";
+        var instanceId = $"{_personId}-{OrganisationId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
         _client
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
             .Returns((OrchestrationMetadata?)null);
 
         CustodianService
-            .GetCustodianAsync(ClientId)
+            .GetCustodianAsync(OrganisationId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(new ProviderDefinition()));
 
         _client
@@ -95,7 +95,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.StartSearchAsync(
             _personId.Value,
-            ClientId,
+            OrganisationId,
             _client,
             CorrelationId,
             _cancellationToken
@@ -110,7 +110,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     [Fact]
     public async Task ShouldReturnSuccess_WhenNewJobScheduled()
     {
-        var instanceId = $"{_personId}-{ClientId}";
+        var instanceId = $"{_personId}-{OrganisationId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
         _client
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
@@ -118,7 +118,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 
         var custodianDef = new ProviderDefinition();
         CustodianService
-            .GetCustodianAsync(ClientId)
+            .GetCustodianAsync(OrganisationId)
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(custodianDef));
 
         _client
@@ -132,7 +132,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.StartSearchAsync(
             _personId.Value,
-            ClientId,
+            OrganisationId,
             _client,
             CorrelationId,
             _cancellationToken

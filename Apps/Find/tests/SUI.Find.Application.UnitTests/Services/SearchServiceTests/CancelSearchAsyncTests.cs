@@ -13,12 +13,12 @@ namespace SUI.Find.Application.UnitTests.Services.SearchServiceTests;
 public class CancelSearchAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
-    private const string ClientId = "test-client-id";
+    private const string OrganisationId = "test-org-id";
 
     public CancelSearchAsyncTests()
     {
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
-        var policyData = new PolicyContext("test-client-id", "SAFEGUARDING", "LOCAL_AUTHORITY");
+        var policyData = new PolicyContext(OrganisationId, "SAFEGUARDING", "LOCAL_AUTHORITY");
         Sut.ReadOrchestratorInput<SearchOrchestratorInput>(Arg.Any<OrchestrationMetadata>())
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
     }
@@ -36,7 +36,7 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.CancelSearchAsync(
             "not-found-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -61,7 +61,7 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.CancelSearchAsync(
             "completed-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -87,7 +87,7 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.CancelSearchAsync(
             "non-cancellable-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -110,7 +110,7 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.CancelSearchAsync(
             "cancel-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -129,7 +129,7 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.CancelSearchAsync(
             "fail-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -150,17 +150,13 @@ public class CancelSearchAsyncTests : BaseSearchServiceTests
 
         // Mock the ReadOrchestratorInput to return a different clientId
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
-        var policyData = new PolicyContext(
-            "different-client-id",
-            "SAFEGUARDING",
-            "LOCAL_AUTHORITY"
-        );
+        var policyData = new PolicyContext("different-org-id", "SAFEGUARDING", "LOCAL_AUTHORITY");
         Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
         var result = await Sut.CancelSearchAsync(
             "unauth-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
