@@ -55,8 +55,10 @@ public class JwtAuthMiddlewareTests
 
         await sut.Invoke(_context, Next);
 
-        var invocationResult = _context.GetInvocationResult().Value as HttpResponseData;
-        Assert.NotNull(invocationResult);
+        var invocationResult = Assert.IsType<HttpResponseData>(
+            _context.GetInvocationResult().Value,
+            exactMatch: false
+        );
         Assert.Equal(HttpStatusCode.Unauthorized, invocationResult.StatusCode);
 
         await _authStoreService.DidNotReceive().GetAuthStoreAsync();
@@ -76,8 +78,10 @@ public class JwtAuthMiddlewareTests
 
         await sut.Invoke(_context, Next);
 
-        var invocationResult = _context.GetInvocationResult().Value as HttpResponseData;
-        Assert.NotNull(invocationResult);
+        var invocationResult = Assert.IsType<HttpResponseData>(
+            _context.GetInvocationResult().Value,
+            exactMatch: false
+        );
         Assert.Equal(HttpStatusCode.Unauthorized, invocationResult.StatusCode);
 
         await _authStoreService.DidNotReceive().GetAuthStoreAsync();
