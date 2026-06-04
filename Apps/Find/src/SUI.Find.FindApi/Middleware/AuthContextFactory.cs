@@ -17,13 +17,11 @@ public class AuthContextFactory : IAuthContextFactory
 
         var client = store.Clients?.FirstOrDefault(c => c.ClientId == clientId);
         if (client == null)
-            throw new InvalidOperationException(
-                $"Client could not be found in auth store. ClientId: {clientId}"
-            );
+            throw new InvalidOperationException("Client could not be found in auth store.");
 
         if (string.IsNullOrWhiteSpace(client.OrganisationId))
             throw new InvalidOperationException(
-                $"No Organisation ID found for client in auth store. ClientId: {clientId}"
+                "No Organisation ID found for client in auth store."
             );
 
         var scopes = jwt

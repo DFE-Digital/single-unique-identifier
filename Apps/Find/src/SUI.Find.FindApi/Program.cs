@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.IO.Abstractions;
 using System.Net;
 using Azure.Data.Tables;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Extensions.Http;
 using SUI.Find.Application.Constants;
@@ -52,6 +54,7 @@ builder.Services.AddInfrastructureServices();
 
 // Middleware services
 builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();
+builder.Services.AddSingleton<ISecurityTokenValidator, JwtSecurityTokenHandler>();
 
 // Application services
 builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();

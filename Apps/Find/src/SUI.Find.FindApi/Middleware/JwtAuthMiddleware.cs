@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Reflection;
@@ -14,17 +13,13 @@ using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Middleware;
 
-[ExcludeFromCodeCoverage(
-    Justification = "Waiting on Integration tests to cover middleware functionality."
-)]
 // ReSharper disable once ClassNeverInstantiated.Global
 public class JwtAuthMiddleware(
     IAuthStoreService authStoreService,
-    IAuthContextFactory authContextFactory
+    IAuthContextFactory authContextFactory,
+    ISecurityTokenValidator handler
 ) : IFunctionsWorkerMiddleware
 {
-    private static readonly JwtSecurityTokenHandler Handler = new();
-
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
         var req = await context.GetHttpRequestDataAsync();
@@ -90,7 +85,7 @@ public class JwtAuthMiddleware(
 
         try
         {
-            Handler.ValidateToken(token, validationParameters, out var validated);
+            handler.ValidateToken(token, validationParameters, out var validated);
             jwt = (JwtSecurityToken)validated;
         }
         catch (SecurityTokenException ex)
