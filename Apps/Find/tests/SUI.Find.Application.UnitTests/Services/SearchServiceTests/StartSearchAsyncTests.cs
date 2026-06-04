@@ -50,7 +50,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     [Fact]
     public async Task ShouldReturnFailed_WhenCustodianNotFound()
     {
-        var instanceId = $"{_personId}-{OrganisationId}";
+        var instanceId = $"{_personId.Value}-{OrganisationId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
         _client
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
@@ -74,7 +74,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     [Fact]
     public async Task ShouldReturnSuccess_WhenCustodianExists()
     {
-        var instanceId = $"{_personId}-{OrganisationId}";
+        var instanceId = $"{_personId.Value}-{OrganisationId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
         _client
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
@@ -110,7 +110,7 @@ public class StartSearchAsyncTests : BaseSearchServiceTests
     [Fact]
     public async Task ShouldReturnSuccess_WhenNewJobScheduled()
     {
-        var instanceId = $"{_personId}-{OrganisationId}";
+        var instanceId = $"{_personId.Value}-{OrganisationId}";
         HashService.HmacSha256Hash(instanceId).Returns("hashed-id");
         _client
             .GetInstanceAsync("hashed-id", Arg.Any<CancellationToken>())
