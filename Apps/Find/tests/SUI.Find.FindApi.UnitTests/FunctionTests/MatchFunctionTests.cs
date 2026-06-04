@@ -9,7 +9,6 @@ using OneOf.Types;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Enums.Matching;
 using SUI.Find.Application.Interfaces;
-using SUI.Find.Application.Models;
 using SUI.Find.Application.Models.Matching;
 using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Functions.HttpFunctions;
@@ -38,11 +37,14 @@ public class MatchFunctionTests
     private MatchFunction CreateFunction() =>
         new(_logger, _matchPersonOrchestrationService, _idRegisterRepository, _matchFunctionConfig);
 
-    private static FunctionContext CreateContextWithAuth(string clientId = "test-client-id")
+    private static FunctionContext CreateContextWithAuth(string organisationId = "test-org-id")
     {
         var context = Substitute.For<FunctionContext>();
         context.Items.Returns(
-            new Dictionary<object, object> { { "AuthContext", new AuthContext(clientId, []) } }
+            new Dictionary<object, object>
+            {
+                { "AuthContext", new AuthContext(Guid.NewGuid().ToString(), organisationId, []) },
+            }
         );
         context.InvocationId.Returns(Guid.NewGuid().ToString());
         return context;
@@ -112,7 +114,7 @@ public class MatchFunctionTests
                     e.RecordType == "Test RecordType"
                     && e.CustodianSubjectId == "9999999999"
                     && e.SystemId == "Test System"
-                    && e.CustodianId == "test-client-id"
+                    && e.CustodianId == "test-org-id"
                 ),
                 Arg.Any<CancellationToken>()
             );

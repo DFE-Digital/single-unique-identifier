@@ -11,7 +11,7 @@ public sealed record PersistSearchResultsInput(
     string WorkItemId,
     string JobId,
     string InvocationId,
-    string RequestingOrdId,
+    string RequestingOrgId,
     string SourceOrgId
 );
 
@@ -35,7 +35,7 @@ public class PersistSearchResultsFunction(
             {
                 input.WorkItemId,
                 input.JobId,
-                input.RequestingOrdId,
+                input.RequestingOrgId,
                 input.SourceOrgId,
             }
         );

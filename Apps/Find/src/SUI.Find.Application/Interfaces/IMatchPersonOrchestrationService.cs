@@ -13,7 +13,7 @@ public interface IMatchPersonOrchestrationService
 {
     Task<OneOf<string, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,
-        string clientId,
+        string organisationId,
         CancellationToken ct
     );
 }

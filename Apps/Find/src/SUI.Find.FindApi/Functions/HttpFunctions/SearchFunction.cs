@@ -88,7 +88,7 @@ public class SearchFunction(ILogger<SearchFunction> logger, ISearchService searc
 
         var searchJob = await searchService.StartSearchAsync(
             personId,
-            authContext.ClientId,
+            authContext.OrganisationId,
             client,
             context.InvocationId,
             cancellationToken

@@ -57,7 +57,7 @@ public class AuditMiddleware(ILogger<AuditMiddleware> logger, IAuditQueueClient 
 
         if (authContext is not null)
         {
-            var clientId = authContext.ClientId;
+            var organisationId = authContext.OrganisationId;
 
             var payload = new AuditAccessMessage
             {
@@ -89,7 +89,7 @@ public class AuditMiddleware(ILogger<AuditMiddleware> logger, IAuditQueueClient 
                 CorrelationId = context.InvocationId,
                 ServiceName = "AuditMiddleware",
                 EventName = ApplicationConstants.Audit.HttpRequest.EventName,
-                Actor = new AuditActor { ActorId = clientId, ActorRole = "Organisation" },
+                Actor = new AuditActor { ActorId = organisationId, ActorRole = "Organisation" },
                 Payload = JsonSerializer.SerializeToElement(payload),
             };
 

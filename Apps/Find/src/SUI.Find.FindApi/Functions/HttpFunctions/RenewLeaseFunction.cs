@@ -80,7 +80,7 @@ public class RenewLeaseFunction(
         using var scope = logger.BeginScope(
             new Dictionary<string, object>
             {
-                { "SubmittingCustodianId", authContext.ClientId },
+                { "SubmittingCustodianId", authContext.OrganisationId },
                 { "TraceParent", context.TraceContext.TraceParent },
                 { "TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty },
                 { "InvocationId", context.InvocationId },
@@ -96,7 +96,7 @@ public class RenewLeaseFunction(
         );
 
         var jobInfo = await jobClaimService.ExtendJobLeaseAsync(
-            authContext.ClientId,
+            authContext.OrganisationId,
             request.JobId,
             request.LeaseId,
             cancellationToken

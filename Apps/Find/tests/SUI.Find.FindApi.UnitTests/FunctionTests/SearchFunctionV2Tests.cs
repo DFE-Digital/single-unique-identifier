@@ -104,10 +104,14 @@ public class SearchFunctionV2Tests
         Assert.Equal(searchJobDto.PersonId, searchJob.Suid);
     }
 
-    private static FunctionContext CreateContextWithAuth(string clientId)
+    private static FunctionContext CreateContextWithAuth(string organisationId)
     {
         var context = Substitute.For<FunctionContext>();
-        var authContext = new AuthContext(clientId, ["find-record.write"]);
+        var authContext = new AuthContext(
+            Guid.NewGuid().ToString(),
+            organisationId,
+            ["find-record.write"]
+        );
 
         var items = new Dictionary<object, object>
         {

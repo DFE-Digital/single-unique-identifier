@@ -17,7 +17,7 @@ public class MatchPersonOrchestrationService(
 {
     public async Task<OneOf<string, DataQualityResult, NotFound, Error>> FindPersonIdAsync(
         PersonSpecification specification,
-        string clientId,
+        string organisationId,
         CancellationToken ct
     )
     {
@@ -25,7 +25,10 @@ public class MatchPersonOrchestrationService(
 
         if (matchResult.TryPickT0(out var personId, out var remainder))
         {
-            var getPersonIdResult = await HandlePersonIdRepresentationAsync(personId, clientId);
+            var getPersonIdResult = await HandlePersonIdRepresentationAsync(
+                personId,
+                organisationId
+            );
             return getPersonIdResult.Match<OneOf<string, DataQualityResult, NotFound, Error>>(
                 plainId => plainId,
                 error => error
@@ -41,13 +44,16 @@ public class MatchPersonOrchestrationService(
 
     private async Task<OneOf<string, Error>> HandlePersonIdRepresentationAsync(
         NhsPersonId nhsPersonId,
-        string clientId
+        string organisationId
     )
     {
-        var client = await custodianService.GetCustodianAsync(clientId);
-        if (!client.Success || client.Value is null)
+        var organisation = await custodianService.GetCustodianAsync(organisationId);
+        if (!organisation.Success || organisation.Value is null)
         {
-            logger.LogError("Custodian organisation not found for client ID: {ClientId}", clientId);
+            logger.LogError(
+                "Custodian organisation not found for organisation ID: {OrganisationId}",
+                organisationId
+            );
             return new Error();
         }
 

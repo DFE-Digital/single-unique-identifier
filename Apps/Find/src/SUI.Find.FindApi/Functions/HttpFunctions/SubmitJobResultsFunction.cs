@@ -66,7 +66,7 @@ public class SubmitJobResultsFunction(
             );
         }
 
-        var custodianId = authContext.ClientId;
+        var custodianId = authContext.OrganisationId;
 
         var job = await jobService.ValidateLeaseAsync(
             request.JobId,

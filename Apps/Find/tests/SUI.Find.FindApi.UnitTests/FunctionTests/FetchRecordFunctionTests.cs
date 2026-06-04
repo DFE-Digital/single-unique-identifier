@@ -4,7 +4,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using OneOf.Types;
-using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 using SUI.Find.FindApi.Functions.HttpFunctions;
@@ -26,11 +25,14 @@ public class FetchRecordFunctionTests
         _sut = new FetchRecordFunction(_mockLogger, _mockService);
     }
 
-    private static FunctionContext CreateContextWithAuth(string clientId = "test-client-id")
+    private static FunctionContext CreateContextWithAuth(string organisationId = "test-org-id")
     {
         var context = Substitute.For<FunctionContext>();
         context.Items.Returns(
-            new Dictionary<object, object> { { "AuthContext", new AuthContext(clientId, []) } }
+            new Dictionary<object, object>
+            {
+                { "AuthContext", new AuthContext(Guid.NewGuid().ToString(), organisationId, []) },
+            }
         );
         context.InvocationId.Returns(Guid.NewGuid().ToString());
         return context;

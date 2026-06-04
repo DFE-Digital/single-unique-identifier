@@ -6,7 +6,6 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Models;
 using SUI.Find.Application.Services;
 using SUI.Find.FindApi.Attributes;
 using SUI.Find.FindApi.Models;
@@ -76,7 +75,7 @@ public class CancelSearchFunction(
 
         var result = await searchService.CancelSearchAsync(
             jobId,
-            authContext.ClientId,
+            authContext.OrganisationId,
             client,
             cancellationToken
         );

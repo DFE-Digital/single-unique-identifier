@@ -12,7 +12,7 @@ namespace SUI.Find.Application.UnitTests.Services.SearchServiceTests;
 public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 {
     private readonly DurableTaskClient _client = Substitute.For<DurableTaskClient>("name");
-    private const string ClientId = "test-client-id";
+    private const string OrganisationId = "test-org-id";
 
     [Fact]
     public async Task ShouldReturnNotFound_WhenJobDoesNotExist()
@@ -23,7 +23,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.GetSearchResultsAsync(
             "not-found-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -42,17 +42,13 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         // Mock the ReadOrchestratorInput to return a different clientId
         var metaData = new SearchJobMetadata("test-person-id", DateTime.UtcNow, "invocation-id");
-        var policyData = new PolicyContext(
-            "different-client-id",
-            "SAFEGUARDING",
-            "LOCAL_AUTHORITY"
-        );
+        var policyData = new PolicyContext("different-org-id", "SAFEGUARDING", "LOCAL_AUTHORITY");
         Sut.ReadOrchestratorInput<SearchOrchestratorInput>(meta)
             .Returns(new SearchOrchestratorInput("test-suid", metaData, policyData));
 
         var result = await Sut.GetSearchResultsAsync(
             "unauth-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -69,7 +65,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.GetSearchResultsAsync(
             "fail-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -88,7 +84,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.GetSearchResultsAsync(
             "running-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -110,7 +106,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.GetSearchResultsAsync(
             "empty-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -150,7 +146,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
 
         var result = await Sut.GetSearchResultsAsync(
             "success-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -172,7 +168,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
         SearchResultEntryRepository
-            .GetByWorkItemIdAsync("running-job", ClientId, Arg.Any<CancellationToken>())
+            .GetByWorkItemIdAsync("running-job", OrganisationId, Arg.Any<CancellationToken>())
             .Returns(
                 new[]
                 {
@@ -187,14 +183,14 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         JobId = "running-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
                         WorkItemId = "running-job",
-                        RequestingOrganisationId = ClientId,
+                        RequestingOrganisationId = OrganisationId,
                     },
                 }
             );
 
         var result = await Sut.GetSearchResultsAsync(
             "running-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -223,7 +219,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
         SearchResultEntryRepository
-            .GetByWorkItemIdAsync("running-job", ClientId, Arg.Any<CancellationToken>())
+            .GetByWorkItemIdAsync("running-job", OrganisationId, Arg.Any<CancellationToken>())
             .Returns([
                 new SearchResultEntry
                 {
@@ -235,7 +231,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                     RecordType = "",
                     JobId = "running-job",
                     WorkItemId = "running-job",
-                    RequestingOrganisationId = ClientId,
+                    RequestingOrganisationId = OrganisationId,
                 },
                 new SearchResultEntry
                 {
@@ -247,14 +243,14 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                     RecordType = "",
                     JobId = "running-job",
                     WorkItemId = "running-job",
-                    RequestingOrganisationId = ClientId,
+                    RequestingOrganisationId = OrganisationId,
                 },
             ]);
 
         // ACT
         var result = await Sut.GetSearchResultsAsync(
             "running-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -289,7 +285,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         _client.GetInstanceAsync("completed-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
         SearchResultEntryRepository
-            .GetByWorkItemIdAsync("completed-job", ClientId, Arg.Any<CancellationToken>())
+            .GetByWorkItemIdAsync("completed-job", OrganisationId, Arg.Any<CancellationToken>())
             .Returns(
                 new[]
                 {
@@ -304,14 +300,14 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         JobId = "completed-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
                         WorkItemId = "completed-job",
-                        RequestingOrganisationId = ClientId,
+                        RequestingOrganisationId = OrganisationId,
                     },
                 }
             );
 
         var result = await Sut.GetSearchResultsAsync(
             "completed-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );
@@ -336,7 +332,7 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
         _client.GetInstanceAsync("running-job", true, Arg.Any<CancellationToken>()).Returns(meta);
 
         SearchResultEntryRepository
-            .GetByWorkItemIdAsync("running-job", ClientId, Arg.Any<CancellationToken>())
+            .GetByWorkItemIdAsync("running-job", OrganisationId, Arg.Any<CancellationToken>())
             .Returns(
                 new[]
                 {
@@ -351,14 +347,14 @@ public class GetSearchResultsAsyncTests : BaseSearchServiceTests
                         JobId = "running-job",
                         SubmittedAtUtc = DateTimeOffset.UtcNow,
                         WorkItemId = "running-job",
-                        RequestingOrganisationId = ClientId,
+                        RequestingOrganisationId = OrganisationId,
                     },
                 }
             );
 
         var result = await Sut.GetSearchResultsAsync(
             "running-job",
-            ClientId,
+            OrganisationId,
             _client,
             CancellationToken.None
         );

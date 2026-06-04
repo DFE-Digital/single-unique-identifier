@@ -24,14 +24,18 @@ public class SearchEndpointTests
 
     private const string ValidSuid = "9999999999";
     private const string InvalidSuid = "invalid-suid";
-    private const string TestClientId = "test-client-id";
+    private const string TestOrganisationId = "test-org-id";
 
     public SearchEndpointTests()
     {
         _context.InvocationId.Returns(Guid.NewGuid().ToString());
         var items = new Dictionary<object, object>
         {
-            [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(TestClientId, []),
+            [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(
+                Guid.NewGuid().ToString(),
+                TestOrganisationId,
+                []
+            ),
         };
         _context.Items.Returns(items);
         var logger = Substitute.For<ILogger<SearchFunction>>();

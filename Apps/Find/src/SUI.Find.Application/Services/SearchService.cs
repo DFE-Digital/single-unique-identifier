@@ -18,7 +18,7 @@ public interface ISearchService
 {
     Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
         string inputPersonId,
-        string clientId,
+        string organisationId,
         DurableTaskClient client,
         string correlationId,
         CancellationToken cancellationToken
@@ -26,21 +26,21 @@ public interface ISearchService
 
     Task<OneOf<SearchJobDto, NotFound, Forbidden, Error>> CancelSearchAsync(
         string jobId,
-        string clientId,
+        string organisationId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     );
 
     Task<OneOf<SearchResultsDto, NotFound, Forbidden, Error>> GetSearchResultsAsync(
         string jobId,
-        string clientId,
+        string organisationId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     );
 
     Task<OneOf<SearchJobDto, Forbidden, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
-        string clientId,
+        string organisationId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     );
@@ -56,13 +56,13 @@ public class SearchService(
 {
     public async Task<OneOf<SearchJobDto, Error>> StartSearchAsync(
         string inputPersonId,
-        string clientId,
+        string organisationId,
         DurableTaskClient client,
         string correlationId,
         CancellationToken cancellationToken
     )
     {
-        var instanceId = $"{inputPersonId}-{clientId}";
+        var instanceId = $"{inputPersonId}-{organisationId}";
         var hashedInstanceId = hashService.HmacSha256Hash(instanceId);
 
         var existingInstance = await client.GetInstanceAsync(
@@ -103,12 +103,12 @@ public class SearchService(
             return originalJob;
         }
 
-        var providerDefinition = await custodianService.GetCustodianAsync(clientId);
+        var providerDefinition = await custodianService.GetCustodianAsync(organisationId);
         if (!providerDefinition.Success || providerDefinition.Value is null)
         {
             logger.LogWarning(
-                "No custodian configuration found for ClientId: {ClientId}.",
-                clientId
+                "No custodian configuration found for OrganisationId: {OrganisationId}.",
+                organisationId
             );
             return new Error();
         }
@@ -116,7 +116,7 @@ public class SearchService(
         var metaData = new SearchJobMetadata(inputPersonId, DateTime.UtcNow, correlationId);
 
         var policyContext = new PolicyContext(
-            clientId,
+            organisationId,
             ApplicationConstants.PolicyEnforcementPurposes.Safeguarding,
             providerDefinition.Value.OrgType
         );
@@ -144,7 +144,7 @@ public class SearchService(
 
     public async Task<OneOf<SearchJobDto, NotFound, Forbidden, Error>> CancelSearchAsync(
         string jobId,
-        string clientId,
+        string organisationId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     )
@@ -164,7 +164,7 @@ public class SearchService(
 
             // Check if the job belongs to the requesting client
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(metaData);
-            if (input is null || input.PolicyContext.ClientId != clientId)
+            if (input is null || input.PolicyContext.OrganisationId != organisationId)
             {
                 return new Forbidden();
             }
@@ -204,7 +204,7 @@ public class SearchService(
 
     public async Task<OneOf<SearchResultsDto, NotFound, Forbidden, Error>> GetSearchResultsAsync(
         string jobId,
-        string clientId,
+        string organisationId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     )
@@ -230,12 +230,12 @@ public class SearchService(
                 return new Error();
             }
 
-            if (meta.PolicyContext.ClientId != clientId)
+            if (meta.PolicyContext.OrganisationId != organisationId)
             {
                 logger.LogWarning(
-                    "Unauthorized access attempt to search job {JobId} by client {ClientId}.",
+                    "Unauthorized access attempt to search job {JobId} by organisation {OrganisationId}.",
                     jobId,
-                    clientId
+                    organisationId
                 );
                 return new Forbidden();
             }
@@ -247,7 +247,7 @@ public class SearchService(
             {
                 var persistedItems = await searchResultEntryRepository.GetByWorkItemIdAsync(
                     jobId,
-                    clientId,
+                    organisationId,
                     cancellationToken
                 );
 
@@ -300,7 +300,7 @@ public class SearchService(
 
     public async Task<OneOf<SearchJobDto, Forbidden, NotFound, Error>> GetSearchStatusAsync(
         string jobId,
-        string clientId,
+        string organisationId,
         DurableTaskClient client,
         CancellationToken cancellationToken
     )
@@ -314,7 +314,7 @@ public class SearchService(
             }
 
             var input = ReadOrchestratorInput<SearchOrchestratorInput>(jobStatus);
-            if (input is null || input.PolicyContext.ClientId != clientId)
+            if (input is null || input.PolicyContext.OrganisationId != organisationId)
             {
                 return new Forbidden();
             }

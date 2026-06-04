@@ -72,7 +72,7 @@ public class FetchRecordFunction(
 
         var result = await fetchRecordService.FetchRecordAsync(
             recordId,
-            authContext.ClientId,
+            authContext.OrganisationId,
             cancellationToken
         );
 
