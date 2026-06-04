@@ -22,7 +22,7 @@ public class JwtAuthMiddlewareTests
     private readonly IAuthStoreService _authStoreService = Substitute.For<IAuthStoreService>();
     private readonly IAuthContextFactory _authContextFactory =
         Substitute.For<IAuthContextFactory>();
-    private readonly ISecurityTokenValidator _handler = Substitute.For<JwtSecurityTokenHandler>();
+    private readonly JwtSecurityTokenHandler _handler = Substitute.For<JwtSecurityTokenHandler>();
 
     [Theory]
     [InlineData("swagger")]
