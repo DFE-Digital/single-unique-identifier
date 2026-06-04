@@ -33,7 +33,7 @@ public class JwtAuthMiddlewareTests
     {
         var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
         var request = Substitute.For<HttpRequestData>(_context);
-        request.Url.Returns(new Uri("/api/" + endpoint));
+        request.Url.Returns(new Uri("https://mock.gov.uk/api/" + endpoint));
         _context.GetHttpRequestDataAsync().Returns(request);
 
         await sut.Invoke(_context, Next);
@@ -279,7 +279,7 @@ public class JwtAuthMiddlewareTests
     private void InitialiseRequest(HttpHeadersCollection headers)
     {
         var request = Substitute.For<HttpRequestData>(_context);
-        request.Url.Returns(new Uri("/api/v1/searches"));
+        request.Url.Returns(new Uri("https://mock.gov.uk/api/v1/searches"));
         request.Headers.Returns(headers);
         request.CreateResponse().Returns(new MockHttpResponseData(_context));
         _context.GetHttpRequestDataAsync().Returns(request);
