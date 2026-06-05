@@ -291,6 +291,7 @@ module "audit_processor_function_app" {
       WEBSITE_RUN_FROM_PACKAGE              = "1"
       APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
+      AccessTokenUrl = format("https://%s%sapp-%s-authemulator01.azurewebsites.net/api/v1/auth/token", var.subscription_prefix, var.environment_id, var.region_short)
     },
     var.audit_app_settings
   )

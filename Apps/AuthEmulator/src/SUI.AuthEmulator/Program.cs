@@ -7,6 +7,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.UseOpenTelemetry();
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        }
+    );
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddProblemDetails();
 builder.Services.AddHttpContextAccessor();
@@ -23,6 +34,8 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+
+app.UseCors("AllowAll");
 
 app.UseAuthorization();
 

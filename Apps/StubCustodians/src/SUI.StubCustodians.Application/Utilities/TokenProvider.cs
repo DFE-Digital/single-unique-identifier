@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
 
@@ -9,12 +10,14 @@ namespace SUI.StubCustodians.Application.Utilities;
 public class TokenProvider : ITokenProvider
 {
     private readonly HttpClient _httpClient;
+    private readonly IConfiguration _configuration;
 
     private readonly Dictionary<string, (string Token, DateTimeOffset Expiry)> _cache = new();
 
-    public TokenProvider(HttpClient httpClient)
+    public TokenProvider(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
+        _configuration = configuration;
     }
 
     public async Task<string> GetTokenAsync(string clientId, string clientSecret)
@@ -26,7 +29,8 @@ public class TokenProvider : ITokenProvider
             return entry.Token;
         }
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/token");
+        var accessTokenUrl = _configuration.GetValue<string>("AccessTokenUrl");
+        using var request = new HttpRequestMessage(HttpMethod.Post, accessTokenUrl);
 
         var creds = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
 

@@ -6,7 +6,7 @@ using Microsoft.OpenApi;
 namespace SUI.StubCustodians.API.OpenApi;
 
 [ExcludeFromCodeCoverage(Justification = "OpenAPI documentation")]
-public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
+public sealed class FindDocumentFilter(IConfiguration configuration) : IOpenApiDocumentTransformer
 {
     private static OpenApiTag Tag(string name, string description, int order) =>
         new()
@@ -28,6 +28,12 @@ public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
 
+        var accessTokenUrl = configuration["AccessTokenUrl"];
+        if (string.IsNullOrWhiteSpace(accessTokenUrl))
+        {
+            throw new InvalidOperationException("AccessTokenUrl is not set in configuration.");
+        }
+
         document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.OAuth2,
@@ -35,7 +41,7 @@ public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
             {
                 ClientCredentials = new OpenApiOAuthFlow
                 {
-                    TokenUrl = new Uri("/api/v1/auth/token", UriKind.Relative),
+                    TokenUrl = new Uri(accessTokenUrl, UriKind.RelativeOrAbsolute),
                     Scopes = new Dictionary<string, string>
                     {
                         { "find-record.read", "Read search status and results." },

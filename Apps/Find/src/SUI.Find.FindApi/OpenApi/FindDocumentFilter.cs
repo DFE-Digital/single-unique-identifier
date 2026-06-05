@@ -24,6 +24,13 @@ public sealed class FindDocumentFilter : IDocumentFilter
             schema.Properties.Clear();
         }
 
+        var accessTokenUrl = Environment.GetEnvironmentVariable("AccessTokenUrl");
+
+        if (string.IsNullOrWhiteSpace(accessTokenUrl))
+        {
+            throw new InvalidOperationException("AccessTokenUrl is not set in configuration.");
+        }
+
         document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.OAuth2,
@@ -31,7 +38,7 @@ public sealed class FindDocumentFilter : IDocumentFilter
             {
                 ClientCredentials = new OpenApiOAuthFlow
                 {
-                    TokenUrl = new Uri("/api/v1/auth/token", UriKind.Relative),
+                    TokenUrl = new Uri(accessTokenUrl, UriKind.RelativeOrAbsolute),
                     Scopes = new Dictionary<string, string>
                     {
                         { "match-record.read", "Obtain the id for a person." },

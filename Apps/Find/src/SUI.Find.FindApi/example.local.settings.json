@@ -5,6 +5,7 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "AuditProcessorConnectionString": "UseDevelopmentStorage=true",
     "StubCustodiansBaseUrl": "https://localhost:7256",
+    "AccessTokenUrl": "https://localhost:7250/api/v1/auth/token",
     "NhsAuthConfig:NHS_DIGITAL_TOKEN_URL": "https://int.api.service.nhs.uk/oauth2/token",
     "NhsAuthConfig:NHS_DIGITAL_FHIR_ENDPOINT": "https://int.api.service.nhs.uk/personal-demographics/FHIR/R4/",
     "NhsAuthConfig:NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES": 5,

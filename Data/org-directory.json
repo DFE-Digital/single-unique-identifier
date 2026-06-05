@@ -13,9 +13,9 @@
             "personIdPosition": "path",
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "tokenUrl": "{AccessTokenUrl}",
               "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
+              "clientId": "LOCAL-AUTHORITY-01",
               "clientSecret": "SUIProject"
             }
           }
@@ -33,9 +33,9 @@
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "tokenUrl": "{AccessTokenUrl}",
               "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
+              "clientId": "LOCAL-AUTHORITY-01",
               "clientSecret": "SUIProject"
             }
           }
@@ -83,9 +83,9 @@
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "tokenUrl": "{AccessTokenUrl}",
               "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
+              "clientId": "EDUCATION-01",
               "clientSecret": "SUIProject"
             }
           }
@@ -103,7 +103,7 @@
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "tokenUrl": "{AccessTokenUrl}",
               "scopes": [ "find-record.read fetch-record.read" ],
               "clientId": "SUI-SERVICE",
               "clientSecret": "SUIProject"
@@ -156,9 +156,9 @@
             "personIdPosition": "path",
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "tokenUrl": "{AccessTokenUrl}",
               "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
+              "clientId": "HEALTH-01",
               "clientSecret": "SUIProject"
             }
           }
@@ -206,9 +206,9 @@
             },
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "tokenUrl": "{AccessTokenUrl}",
               "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
+              "clientId": "POLICE-01",
               "clientSecret": "SUIProject"
             }
           }
@@ -262,9 +262,9 @@
             "personIdPosition": "path",
             "auth": {
               "type": "oauth2_client_credentials",
-              "tokenUrl": "{StubCustodiansBaseUrl}/api/v1/auth/token",
+              "tokenUrl": "{AccessTokenUrl}",
               "scopes": [ "find-record.read fetch-record.read" ],
-              "clientId": "SUI-SERVICE",
+              "clientId": "NO-DSA-01",
               "clientSecret": "SUIProject"
             }
           }

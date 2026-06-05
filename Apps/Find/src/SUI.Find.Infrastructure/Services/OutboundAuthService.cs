@@ -51,6 +51,12 @@ public class OutboundAuthService(
         var cacheKey = $"{auth.TokenUrl}||{auth.ClientId}||{scopeString}";
 
         using var request = new HttpRequestMessage(HttpMethod.Post, auth.TokenUrl);
+        var creds = Convert.ToBase64String(
+            Encoding.UTF8.GetBytes($"{auth.ClientId}:{auth.ClientSecret}")
+        );
+
+        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", creds);
+
         logger.LogInformation(
             "Token request to {TokenUrl} for provider {Provider}",
             auth.TokenUrl,
@@ -60,8 +66,6 @@ public class OutboundAuthService(
             new Dictionary<string, string>
             {
                 ["grant_type"] = "client_credentials",
-                ["client_id"] = auth.ClientId,
-                ["client_secret"] = auth.ClientSecret,
                 ["scope"] = scopeString,
             }
         );
