@@ -10,7 +10,7 @@ namespace SUI.Find.AuditProcessor.UnitTests;
 public class AuditAccessFunctionTests
 {
     [Fact]
-    public async Task ShouldCalAuditService_WhenValidModel()
+    public async Task ShouldCallAuditService_WhenValidModel()
     {
         // Arrange
         var loggerMock = Substitute.For<ILogger<QueueAuditAccessTrigger>>();
@@ -19,6 +19,7 @@ public class AuditAccessFunctionTests
             Method = "GET",
             Path = "/test/path",
             Suid = "suid-67890",
+            ClientId = "client_id",
         };
         var auditServiceMock = Substitute.For<IAuditService>();
         var auditEvent = new AuditEvent
