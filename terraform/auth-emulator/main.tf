@@ -28,6 +28,7 @@ data "terraform_remote_state" "core" {
 }
 
 module "web_app" {
+  count   = var.use_auth_emulator ? 1 : 0
   source = "../modules/linux_web_app"
 
   name                = local.web_app_name
