@@ -55,3 +55,8 @@ module "web_app" {
   )
   tags           = var.tags
 }
+
+moved {
+  from = module.web_app
+  to   = module.web_app[0]
+}
