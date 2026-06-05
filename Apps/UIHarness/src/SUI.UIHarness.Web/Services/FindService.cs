@@ -120,7 +120,7 @@ public class FindService : IFindService
             {
                 if (usePolling)
                 {
-                    var searchJobV2 = await result.Content.ReadFromJsonAsync<FindSearchJobV2>();
+                    var searchJobV2 = await result.Content.ReadFromJsonAsync<FindSearchWorkItem>();
                     if (searchJobV2 != null)
                     {
                         return searchJobV2.WorkItemId;

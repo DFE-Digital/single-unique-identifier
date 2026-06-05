@@ -5,7 +5,6 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
 using SUI.Find.Application.Constants;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models.Matching;
@@ -136,7 +135,7 @@ public class MatchFunction(
 
         var personMatch = await matchOrchestrationService.FindPersonIdAsync(
             request.PersonSpecification,
-            authContext.ClientId,
+            authContext.OrganisationId,
             cancellationToken
         );
 
@@ -151,7 +150,7 @@ public class MatchFunction(
                             new IdRegisterEntry
                             {
                                 Sui = id,
-                                CustodianId = authContext.ClientId,
+                                CustodianId = authContext.OrganisationId,
                                 RecordType = entry.RecordType,
                                 SystemId = entry.SystemId,
                                 CustodianSubjectId = entry.RecordId,

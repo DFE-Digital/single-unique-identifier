@@ -42,10 +42,10 @@ public class WorkAvailableFunctionTests
     {
         // Arrange
         var request = MockHttpRequestData.Create();
-        var context = CreateContextWithAuth("test-client");
+        var context = CreateContextWithAuth("test-org-id");
 
         _jobClaimService
-            .DoesCustodianHaveJobs("test-client", Arg.Any<CancellationToken>())
+            .DoesCustodianHaveJobs("test-org-id", Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(true));
 
         // Act
@@ -55,7 +55,7 @@ public class WorkAvailableFunctionTests
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
         await _jobClaimService
             .Received(1)
-            .DoesCustodianHaveJobs("test-client", Arg.Any<CancellationToken>());
+            .DoesCustodianHaveJobs("test-org-id", Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -63,10 +63,10 @@ public class WorkAvailableFunctionTests
     {
         // Arrange
         var request = MockHttpRequestData.Create();
-        var context = CreateContextWithAuth("test-client");
+        var context = CreateContextWithAuth("test-org-id");
 
         _jobClaimService
-            .DoesCustodianHaveJobs("test-client", Arg.Any<CancellationToken>())
+            .DoesCustodianHaveJobs("test-org-id", Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(false));
 
         // Act
@@ -76,7 +76,7 @@ public class WorkAvailableFunctionTests
         Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
         await _jobClaimService
             .Received(1)
-            .DoesCustodianHaveJobs("test-client", Arg.Any<CancellationToken>());
+            .DoesCustodianHaveJobs("test-org-id", Arg.Any<CancellationToken>());
 
         var hasRetryHeader = result.Headers.TryGetValues(
             ApplicationConstants.Http.RetryAfterHeaderName,
@@ -88,10 +88,14 @@ public class WorkAvailableFunctionTests
         Assert.Equal(ApplicationConstants.Http.DefaultRetryAfterSeconds, retryValue);
     }
 
-    private static FunctionContext CreateContextWithAuth(string clientId)
+    private static FunctionContext CreateContextWithAuth(string organisationId)
     {
         var context = Substitute.For<FunctionContext>();
-        var authContext = new AuthContext(clientId, ["work-item.read"]);
+        var authContext = new AuthContext(
+            Guid.NewGuid().ToString(),
+            organisationId,
+            ["work-item.read"]
+        );
 
         var items = new Dictionary<object, object>
         {

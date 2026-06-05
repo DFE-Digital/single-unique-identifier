@@ -56,7 +56,7 @@ public class ClaimJobFunction(ILogger<ClaimJobFunction> logger, IJobClaimService
             );
         }
 
-        var submittingCustodianId = authContext.ClientId;
+        var submittingCustodianId = authContext.OrganisationId;
 
         using var scope = logger.BeginScope(
             new Dictionary<string, object>

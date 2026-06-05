@@ -1,3 +1,5 @@
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+
 namespace SUI.Find.Application.Models;
 
 public record CustodianRecord
@@ -10,5 +12,10 @@ public record CustodianRecord
     public List<ContactDetails>? ContactDetails { get; init; }
 
     public List<RecordLink>? RecordLinks { get; init; }
-    public System.Text.Json.JsonElement? Payload { get; init; }
+
+    [OpenApiProperty(
+        Nullable = true,
+        Description = "The payload of the record, if available. This is an open object adhering to the schema defined by the `RecordType` and `SchemaUri`."
+    )]
+    public object? Payload { get; init; }
 }

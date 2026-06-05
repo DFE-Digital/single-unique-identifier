@@ -38,7 +38,7 @@ public class SearchResultsV2FunctionTests
         _sut = new SearchResultsV2Function(_logger, _jobSearchService);
     }
 
-    private static FunctionContext CreateContextWithAuth(string clientId = "test-client-id")
+    private static FunctionContext CreateContextWithAuth(string organisationId = "test-org-id")
     {
         var context = Substitute.For<FunctionContext>();
         context.Items.Returns(
@@ -46,7 +46,7 @@ public class SearchResultsV2FunctionTests
             {
                 {
                     Application.Constants.ApplicationConstants.Auth.AuthContextKey,
-                    new AuthContext(clientId, [])
+                    new AuthContext(Guid.NewGuid().ToString(), organisationId, [])
                 },
             }
         );

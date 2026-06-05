@@ -31,7 +31,7 @@ public class FindPersonIdAsyncTests
         // Arrange
         var personSpec = CreateMinimalValidPersonSpec();
         _custodianService
-            .GetCustodianAsync("test-client-id")
+            .GetCustodianAsync("test-org-id")
             .Returns(Domain.Models.Result<ProviderDefinition>.Ok(new ProviderDefinition()));
         var nhsPersonId = NhsPersonId.Create("9999999999").Value;
         _matchingService
@@ -45,7 +45,7 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id",
+            organisationId: "test-org-id",
             CancellationToken.None
         );
 
@@ -75,7 +75,7 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id",
+            organisationId: "test-org-id",
             CancellationToken.None
         );
 
@@ -99,7 +99,7 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id",
+            organisationId: "test-org-id",
             CancellationToken.None
         );
 
@@ -121,7 +121,7 @@ public class FindPersonIdAsyncTests
         // Act
         var result = await _sut.FindPersonIdAsync(
             specification: personSpec,
-            clientId: "test-client-id",
+            organisationId: "test-org-id",
             CancellationToken.None
         );
 

@@ -26,7 +26,7 @@
                         <option value="" selected="@(string.IsNullOrEmpty(CustodianName))">Select...</option>
                         @foreach (var authClient in _authClients)
                         {
-                            <option key="@authClient.ClientId" value="@authClient.ClientId" selected="@(CustodianName == authClient.ClientId)">@authClient.ClientId</option>
+                            <option key="@authClient.ClientId" value="@authClient.ClientId" selected="@(CustodianName == authClient.ClientId)">@authClient.OrganisationId</option>
                         }
                     </select>
                 </div>

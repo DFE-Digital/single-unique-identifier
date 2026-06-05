@@ -10,7 +10,7 @@ using SUI.AuthEmulator.Controllers;
 using SUI.AuthEmulator.Models;
 using SUI.AuthEmulator.Services;
 
-namespace SUI.AuthEmulator.UnitTests;
+namespace SUI.AuthEmulator.UnitTests.Controllers;
 
 public class AuthControllerTests
 {

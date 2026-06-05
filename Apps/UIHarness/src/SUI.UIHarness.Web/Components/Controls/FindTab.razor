@@ -41,7 +41,7 @@
         </tr>
         </thead>
         <tbody>
-        @if (_foundRecordsFor?.Org == SelectedOrg && _foundRecordsFor?.NhsNumber == CurrentPerson?.NhsNumber)
+        @if (_foundRecordsFor?.Org == SelectedOrgClientId && _foundRecordsFor?.NhsNumber == CurrentPerson?.NhsNumber)
         {
             foreach (var p in _foundRecords)
             {
@@ -82,7 +82,7 @@
     public LocalPerson? CurrentPerson { get; set; }
     
     [Parameter]
-    public required string SelectedOrg { get; set; }
+    public required string SelectedOrgClientId { get; set; }
     
     [Parameter]
     public required string Architecture { get; set; }
@@ -106,7 +106,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!_showFindProgress && _foundRecordsFor != (SelectedOrg, CurrentPerson?.NhsNumber))
+        if (!_showFindProgress && _foundRecordsFor != (SelectedOrgClientId, CurrentPerson?.NhsNumber))
         {
             await FindRecords();
         }
@@ -131,14 +131,14 @@
 
         try
         {
-            var workItemId = await FindService.StartSearch(SelectedOrg, CurrentPerson.NhsNumber, usePolling);
+            var workItemId = await FindService.StartSearch(SelectedOrgClientId, CurrentPerson.NhsNumber, usePolling);
             await CurrentWorkItemIdChanged.InvokeAsync(workItemId);
 
             var keepPolling = true;
             var stopwatch = Stopwatch.StartNew();
             while (keepPolling && !HasCurrentNhsNumberChanged())
             {
-                var result = await FindService.FindRecords(SelectedOrg, workItemId, usePolling);
+                var result = await FindService.FindRecords(SelectedOrgClientId, workItemId, usePolling);
 
                 if (HasCurrentNhsNumberChanged())
                 {
@@ -166,7 +166,7 @@
                     }
 
                     _foundRecords.Add(record);
-                    _foundRecordsFor ??= (SelectedOrg, CurrentPerson.NhsNumber);
+                    _foundRecordsFor ??= (SelectedOrgClientId, CurrentPerson.NhsNumber);
                 
                     await InvokeAsync(StateHasChanged);
                 }

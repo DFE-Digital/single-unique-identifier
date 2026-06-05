@@ -114,10 +114,14 @@ public class ClaimJobFunctionTests
             .ShouldBe(ApplicationConstants.Http.DefaultRetryAfterSeconds);
     }
 
-    private static FunctionContext CreateContextWithAuth(string clientId)
+    private static FunctionContext CreateContextWithAuth(string organisationId)
     {
         var context = Substitute.For<FunctionContext>();
-        var authContext = new AuthContext(clientId, ["work-item.write"]);
+        var authContext = new AuthContext(
+            Guid.NewGuid().ToString(),
+            organisationId,
+            ["work-item.write"]
+        );
 
         var items = new Dictionary<object, object>
         {

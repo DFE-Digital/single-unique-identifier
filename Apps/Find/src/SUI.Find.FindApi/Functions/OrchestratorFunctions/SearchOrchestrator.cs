@@ -22,7 +22,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
             data is null
             || string.IsNullOrWhiteSpace(data.Suid)
             || string.IsNullOrWhiteSpace(data.Metadata.PersonId)
-            || string.IsNullOrWhiteSpace(data.PolicyContext.ClientId)
+            || string.IsNullOrWhiteSpace(data.PolicyContext.OrganisationId)
         )
         {
             throw new ArgumentException("Invalid input in Search Orchestrator");
@@ -85,14 +85,14 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         ArgumentNullException.ThrowIfNull(input);
 
         var (jobId, data, provider) = input;
-        var requestingOrdId = data.PolicyContext.ClientId;
+        var requestingOrgId = data.PolicyContext.OrganisationId;
         var sourceOrgId = provider.OrgId;
 
         using var logScope = logger.BeginScope(
-            "CorrelationId: {CorrelationId}, JobId: {JobId}, RequestingOrdId: {RequestingOrdId}, SourceOrgId: {SourceOrgId}",
+            "CorrelationId: {CorrelationId}, JobId: {JobId}, RequestingOrgId: {RequestingOrgId}, SourceOrgId: {SourceOrgId}",
             input.SearchInput.Metadata.InvocationId,
             jobId,
-            requestingOrdId,
+            requestingOrgId,
             sourceOrgId
         );
 
@@ -104,7 +104,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         >(
             nameof(QueryProvidersFunction),
             new QueryProviderInput(
-                requestingOrdId,
+                requestingOrgId,
                 jobId,
                 data.Metadata.InvocationId,
                 data.Suid,
@@ -118,7 +118,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
         // Activity Two: filter the provider's results based on the requesting provider's data sharing policies (PEP Policy Enforcement Point)
         var filterInput = new PepFilterInput<CustodianSearchResultItem>(
             sourceOrgId,
-            requestingOrdId,
+            requestingOrgId,
             data.PolicyContext.OrgType,
             providerResults,
             provider.DsaPolicy,
@@ -146,7 +146,7 @@ public class SearchOrchestrator(ILogger<SearchOrchestrator> logger)
                 WorkItemId: jobId, // In this context (fan-out architecture), WorkItemId is the same as JobId.
                 InvocationId: data.Metadata.InvocationId,
                 JobId: jobId,
-                RequestingOrdId: requestingOrdId,
+                RequestingOrgId: requestingOrgId,
                 SourceOrgId: sourceOrgId
             ),
             options
