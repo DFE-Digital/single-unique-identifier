@@ -6,8 +6,6 @@ locals {
   core_state_key    = format("%s/terraform.tfstate", var.environment_id)
   service_state_key = format("%s/find.tfstate", var.environment_id)
 
-  custodians_service_state_key = format("%s/custodians.tfstate", var.environment_id)
-
   function_descriptor = "find01"
   function_app_name = format(
     "%s%sfunc-%s-%s",
