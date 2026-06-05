@@ -4,22 +4,29 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Attributes;
+using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Models;
 using SUI.Find.FindApi.Utility;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Middleware;
 
-// ReSharper disable once ClassNeverInstantiated.Global
 public class JwtAuthMiddleware(
     IAuthStoreService authStoreService,
     IAuthContextFactory authContextFactory,
-    ISecurityTokenValidator handler
+    IConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
+    IOptions<AuthSettings> authSettings
 ) : IFunctionsWorkerMiddleware
 {
+    // One concrete handler with no interfaces, no injection mocks.
+    private static readonly JwtSecurityTokenHandler TokenHandler = new();
+
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
         var req = await context.GetHttpRequestDataAsync();
@@ -68,25 +75,53 @@ public class JwtAuthMiddleware(
         var token = bearer["Bearer ".Length..].Trim();
 
         var store = await authStoreService.GetAuthStoreAsync();
-
-        var validationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = store.Issuer,
-            ValidateAudience = true,
-            ValidAudience = store.Audience,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(store.SigningKey)),
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromMinutes(2),
-        };
-
         JwtSecurityToken jwt;
 
         try
         {
-            handler.ValidateToken(token, validationParameters, out var validated);
-            jwt = (JwtSecurityToken)validated;
+            var unverifiedToken = TokenHandler.ReadJwtToken(token);
+            var algorithm = unverifiedToken.Header.Alg;
+            SecurityToken validatedToken;
+
+            if (algorithm == SecurityAlgorithms.RsaSha256)
+            {
+                validatedToken = await ValidateAsymmetricTokenAsync(
+                    token,
+                    unverifiedToken,
+                    context.CancellationToken
+                );
+            }
+            else if (algorithm == SecurityAlgorithms.HmacSha256)
+            {
+                var validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = store.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = store.Audience,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(store.SigningKey)
+                    ),
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(2),
+                };
+
+                // Uses the concrete .NET framework validation engine directly
+                TokenHandler.ValidateToken(token, validationParameters, out validatedToken);
+            }
+            else
+            {
+                context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
+                    req,
+                    HttpStatusCode.Unauthorized,
+                    nameof(HttpStatusCode.Unauthorized),
+                    $"Unsupported signing algorithm '{algorithm}'."
+                );
+                return;
+            }
+
+            jwt = (JwtSecurityToken)validatedToken;
         }
         catch (SecurityTokenException ex)
         {
@@ -129,10 +164,57 @@ public class JwtAuthMiddleware(
         await next(context);
     }
 
+    private async Task<SecurityToken> ValidateAsymmetricTokenAsync(
+        string token,
+        JwtSecurityToken unverifiedToken,
+        CancellationToken cancellationToken,
+        bool allowRetry = true
+    )
+    {
+        var oidcConfig = await oidcConfigManager.GetConfigurationAsync(cancellationToken);
+        var configValues = authSettings.Value;
+
+        var validationParameters = new TokenValidationParameters
+        {
+            RequireSignedTokens = true,
+            ValidateIssuer = true,
+            ValidIssuer = configValues.Issuer,
+            ValidateAudience = true,
+            ValidAudience = configValues.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKeys = oidcConfig.SigningKeys,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(2),
+        };
+
+        try
+        {
+            TokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+            return validatedToken;
+        }
+        catch (SecurityTokenSignatureKeyNotFoundException)
+        {
+            if (
+                allowRetry
+                && unverifiedToken.Issuer == configValues.Issuer
+                && unverifiedToken.Audiences.Contains(configValues.Audience)
+            )
+            {
+                oidcConfigManager.RequestRefresh();
+                return await ValidateAsymmetricTokenAsync(
+                    token,
+                    unverifiedToken,
+                    cancellationToken,
+                    allowRetry: false
+                );
+            }
+            throw;
+        }
+    }
+
     private static string[] GetRequiredScopes(FunctionContext context)
     {
         var entryPoint = context.FunctionDefinition.EntryPoint;
-
         if (string.IsNullOrWhiteSpace(entryPoint))
         {
             return [];
@@ -169,10 +251,5 @@ public class JwtAuthMiddleware(
     private static bool HasAnyRequiredScope(
         AuthContext caller,
         IReadOnlyList<string> requiredScopes
-    )
-    {
-        return requiredScopes.Any(rs =>
-            caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
-        );
-    }
+    ) => requiredScopes.Any(rs => caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase));
 }

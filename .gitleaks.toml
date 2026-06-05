@@ -14,6 +14,7 @@ paths = [
   '''^Apps/Find/tests/SUI\.Find\.E2ETests/StartANewSearchTests\.cs$''',
   '''^Apps/Find/tests/SUI\.Find\.E2ETests/TestOutboundAuthService\.cs$''',
   '''^Apps/Find/tests/SUI\.Find\.FindApi\.UnitTests/FunctionTests/AuthTokenFunctionTests\.cs$''',
+  '''^Apps/Find/tests/SUI\.Find\.FindApi\.UnitTests/MiddlewareTests/JwtAuthMiddlewareTests\.cs$''',
   '''^Apps/Find/tests/SUI\.Find\.Infrastructure\.UnitTests/Data/auth-clients-inbound\.json$''',
   '''^Apps/Find/tests/SUI\.Find\.Infrastructure\.UnitTests/Data/org-directory\.json$''',
   '''^Apps/Find/tests/SUI\.Find\.Infrastructure\.UnitTests/Services/MockAuthStoreServiceTests\.cs$''',

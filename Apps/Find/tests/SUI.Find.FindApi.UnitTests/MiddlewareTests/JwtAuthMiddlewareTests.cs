@@ -1,16 +1,21 @@
+using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using SUI.Find.Application.Constants;
+using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Models;
-using SUI.Find.FindApi.UnitTests.Mocks;
 using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Services;
 
@@ -18,296 +23,719 @@ namespace SUI.Find.FindApi.UnitTests.MiddlewareTests;
 
 public class JwtAuthMiddlewareTests
 {
-    private readonly FunctionContext _context = Substitute.For<FunctionContext>();
-    private readonly IAuthStoreService _authStoreService = Substitute.For<IAuthStoreService>();
-    private readonly IAuthContextFactory _authContextFactory =
+    private readonly IAuthStoreService _mockAuthStore = Substitute.For<IAuthStoreService>();
+    private readonly IAuthContextFactory _mockAuthContextFactory =
         Substitute.For<IAuthContextFactory>();
-    private readonly JwtSecurityTokenHandler _handler = Substitute.For<JwtSecurityTokenHandler>();
+    private readonly IConfigurationManager<OpenIdConnectConfiguration> _mockConfigManager =
+        Substitute.For<IConfigurationManager<OpenIdConnectConfiguration>>();
+    private readonly IOptions<AuthSettings> _mockOptions = Substitute.For<IOptions<AuthSettings>>();
 
-    [Theory]
-    [InlineData("swagger")]
-    [InlineData("openapi")]
-    [InlineData("v1/auth/token")]
-    [InlineData("health")]
-    public async Task TestInvoke_WithNoAuthEndpoints_SkipsMethod(string endpoint)
+    private readonly AuthSettings _authSettings;
+    private readonly RSA _genuineRsa;
+    private readonly string _genuineKid = "kid-genuine-01";
+
+    protected JwtAuthMiddlewareTests()
     {
-        // Arrange
-        var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
-        var request = Substitute.For<HttpRequestData>(_context);
-        request.Url.Returns(new Uri("https://mock.gov.uk/api/" + endpoint));
-        _context.GetHttpRequestDataAsync().Returns(request);
-
-        // Act
-        await sut.Invoke(_context, Next);
-
-        // Assert
-        await _authStoreService.DidNotReceive().GetAuthStoreAsync();
-        _handler
-            .DidNotReceive()
-            .ValidateToken(Arg.Any<string>(), Arg.Any<TokenValidationParameters>(), out _);
-        _authContextFactory
-            .DidNotReceive()
-            .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>());
+        _genuineRsa = RSA.Create(2048);
+        _authSettings = new AuthSettings
+        {
+            Issuer = "https://sandbox.api.example.gov.uk/find-a-record/auth",
+            Audience = "sui-find-a-record-api",
+        };
+        _mockOptions.Value.Returns(_authSettings);
     }
 
-    [Fact]
-    public async Task TestInvoke_WithNoAuthHeaders_ReturnsProblemResponse()
+    #region Shared Helpers
+
+    private string GenerateSymmetricToken(
+        string issuer,
+        string audience,
+        string signingKey,
+        string clientId,
+        string scope = "fetch-record.read"
+    )
     {
-        // Arrange
-        InitialiseRequest([]);
-        var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var claims = new[] { new Claim("client_id", clientId), new Claim("scp", scope) };
 
-        // Act
-        await sut.Invoke(_context, Next);
-
-        // Assert
-        var invocationResult = Assert.IsType<HttpResponseData>(
-            _context.GetInvocationResult().Value,
-            exactMatch: false
+        var token = new JwtSecurityToken(
+            issuer,
+            audience,
+            claims,
+            expires: DateTime.UtcNow.AddMinutes(30),
+            signingCredentials: credentials
         );
-        Assert.Equal(HttpStatusCode.Unauthorized, invocationResult.StatusCode);
-
-        await _authStoreService.DidNotReceive().GetAuthStoreAsync();
-        _handler
-            .DidNotReceive()
-            .ValidateToken(Arg.Any<string>(), Arg.Any<TokenValidationParameters>(), out _);
-        _authContextFactory
-            .DidNotReceive()
-            .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>());
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    [Fact]
-    public async Task TestInvoke_WithInvalidAuthHeaders_ReturnsProblemResponse()
+    private string GenerateAsymmetricToken(
+        RSA rsaKey,
+        string kid,
+        string? issuer = null,
+        string? audience = null,
+        DateTime? notBefore = null,
+        DateTime? expires = null,
+        bool stripSignature = false,
+        bool modifyPayload = false,
+        bool modifyHeader = false
+    )
     {
-        // Arrange
-        InitialiseRequest(new HttpHeadersCollection { { "Authorization", "Invalid" } });
-        var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
+        var key = new RsaSecurityKey(rsaKey) { KeyId = kid };
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
+        var claims = new[]
+        {
+            new Claim("client_id", "clientId"),
+            new Claim("scp", "fetch-record.read"),
+        };
 
-        // Act
-        await sut.Invoke(_context, Next);
-
-        // Assert
-        var invocationResult = Assert.IsType<HttpResponseData>(
-            _context.GetInvocationResult().Value,
-            exactMatch: false
+        var jwtToken = new JwtSecurityToken(
+            issuer: issuer ?? _authSettings.Issuer,
+            audience: audience ?? _authSettings.Audience,
+            claims: claims,
+            notBefore: notBefore ?? DateTime.UtcNow.AddMinutes(-5),
+            expires: expires ?? DateTime.UtcNow.AddMinutes(30),
+            signingCredentials: credentials
         );
-        Assert.Equal(HttpStatusCode.Unauthorized, invocationResult.StatusCode);
 
-        await _authStoreService.DidNotReceive().GetAuthStoreAsync();
-        _handler
-            .DidNotReceive()
-            .ValidateToken(Arg.Any<string>(), Arg.Any<TokenValidationParameters>(), out _);
-        _authContextFactory
-            .DidNotReceive()
-            .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>());
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+
+        if (stripSignature)
+        {
+            return $"{tokenString.Split('.')[0]}.{tokenString.Split('.')[1]}.";
+        }
+
+        if (modifyPayload)
+        {
+            return $"{tokenString.Split('.')[0]}.eyJhY3VfYmFkIjp0cnVlfQ==.{tokenString.Split('.')[2]}";
+        }
+
+        if (modifyHeader)
+        {
+            return $"eyJh bGciOiJSUzI1NiIsImtpZCI6ImJhZCJ9.{tokenString.Split('.')[1]}.{tokenString.Split('.')[2]}";
+        }
+
+        return tokenString;
     }
 
-    [Fact]
-    public async Task TestInvoke_HandlesErrorsFromTokenHandler()
+    private OpenIdConnectConfiguration CreateOidcConfig(RSA rsaKey, string kid)
     {
-        // Arrange
-        InitialiseRequest(new HttpHeadersCollection { { "Authorization", "Bearer token" } });
+        var config = new OpenIdConnectConfiguration();
+        config.SigningKeys.Add(new RsaSecurityKey(rsaKey) { KeyId = kid });
+        return config;
+    }
 
-        var clients = new List<AuthClient>
-        {
-            new()
-            {
-                ClientId = "clientId",
-                ClientSecret = "clientSecret",
-                AllowedScopes = ["file.read", "file.write"],
-                Enabled = true,
-                OrganisationId = "organisationId",
-            },
-        };
+    private FunctionContext CreateMockFunctionContext(string? authHeaderValue)
+    {
+        var context = Substitute.For<FunctionContext>();
+        var features = Substitute.For<IInvocationFeatures>();
+        var requestFeature = Substitute.For<IHttpRequestDataFeature>();
 
-        var store = new AuthStore
-        {
-            Audience = "Audience",
-            Issuer = "Issuer",
-            Clients = clients,
-            DefaultTokenLifetimeMinutes = 60,
-            SigningKey = "SigningKey",
-        };
-
-        _authStoreService.GetAuthStoreAsync().Returns(store);
-
-        _handler
-            .ValidateToken(
-                Arg.Any<string>(),
-                Arg.Any<TokenValidationParameters>(),
-                out Arg.Any<SecurityToken>()
-            )
-            .Throws<SecurityTokenException>();
-
-        var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
-
-        // Act
-        await sut.Invoke(_context, Next);
-
-        // Assert
-        var invocationResult = Assert.IsType<HttpResponseData>(
-            _context.GetInvocationResult().Value,
-            exactMatch: false
+        var requestData = Substitute.For<Microsoft.Azure.Functions.Worker.Http.HttpRequestData>(
+            context
         );
-        Assert.Equal(HttpStatusCode.Unauthorized, invocationResult.StatusCode);
+        var responseData = Substitute.For<HttpResponseData>(context);
 
-        await _authStoreService.Received(1).GetAuthStoreAsync();
-        _handler
-            .Received(1)
-            .ValidateToken(Arg.Any<string>(), Arg.Any<TokenValidationParameters>(), out _);
-        _authContextFactory
-            .DidNotReceive()
-            .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>());
-    }
+        var requestHeaders = new HttpHeadersCollection();
+        if (authHeaderValue != null)
+            requestHeaders.Add("Authorization", authHeaderValue);
+        requestData.Headers.Returns(requestHeaders);
 
-    [Fact]
-    public async Task TestInvoke_WhenScopesIncorrect_ReturnsProblemResponse()
-    {
-        // Arrange
-        InitialiseRequest(new HttpHeadersCollection { { "Authorization", "Bearer token" } });
+        var responseHeaders = new HttpHeadersCollection();
+        responseData.Headers.Returns(responseHeaders);
 
-        var clients = new List<AuthClient>
-        {
-            new()
-            {
-                ClientId = "clientId",
-                ClientSecret = "clientSecret",
-                AllowedScopes = ["file.read"],
-                Enabled = true,
-                OrganisationId = "organisationId",
-            },
-        };
+        requestData.Url.Returns(new Uri("https://mock.gov.uk/api/v1/searches"));
+        requestData.CreateResponse().Returns(responseData);
+        responseData.Body.Returns(new MemoryStream());
 
-        var store = new AuthStore
-        {
-            Audience = "Audience",
-            Issuer = "Issuer",
-            Clients = clients,
-            DefaultTokenLifetimeMinutes = 60,
-            SigningKey = "SigningKey",
-        };
+        var invocationResult = Substitute.For<InvocationResult>();
+        context.GetInvocationResult().Returns(invocationResult);
 
-        _authStoreService.GetAuthStoreAsync().Returns(store);
+        requestFeature
+            .GetHttpRequestDataAsync(context)
+            .Returns(
+                ValueTask.FromResult<Microsoft.Azure.Functions.Worker.Http.HttpRequestData?>(
+                    requestData
+                )
+            );
+        features.Get<IHttpRequestDataFeature>().Returns(requestFeature);
+        context.Features.Returns(features);
 
-        _handler
-            .ValidateToken(
-                Arg.Any<string>(),
-                Arg.Any<TokenValidationParameters>(),
-                out Arg.Any<SecurityToken>()
-            )
-            .Returns(x =>
-            {
-                x[2] = new JwtSecurityToken();
-                return new ClaimsPrincipal();
-            });
-
-        _authContextFactory
-            .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
-            .Returns(new AuthContext("clientId", "organisationId", ["file.write"]));
-
-        var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
-
-        _context.FunctionDefinition.EntryPoint.Returns(
+        var items = new ConcurrentDictionary<object, object>();
+        context.Items.Returns(items);
+        context.FunctionDefinition.EntryPoint.Returns(
             "SUI.Find.FindApi.Functions.HttpFunctions.FetchRecordFunction.FetchRecord"
         );
 
-        // Act
-        await sut.Invoke(_context, Next);
-
-        // Assert
-        var invocationResult = Assert.IsType<HttpResponseData>(
-            _context.GetInvocationResult().Value,
-            exactMatch: false
-        );
-        Assert.Equal(HttpStatusCode.Unauthorized, invocationResult.StatusCode);
-
-        await _authStoreService.Received(1).GetAuthStoreAsync();
-        _handler
-            .Received(1)
-            .ValidateToken(Arg.Any<string>(), Arg.Any<TokenValidationParameters>(), out _);
-        _authContextFactory.Received(1).FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>());
-    }
-
-    [Fact]
-    public async Task TestInvoke_WithValidInputs_ReturnsAuthContext()
-    {
-        // Arrange
-        InitialiseRequest(new HttpHeadersCollection { { "Authorization", "Bearer token" } });
-
-        var clients = new List<AuthClient>
-        {
-            new()
-            {
-                ClientId = "clientId",
-                ClientSecret = "clientSecret",
-                AllowedScopes = ["fetch-record.read"],
-                Enabled = true,
-                OrganisationId = "organisationId",
-            },
-        };
-
-        var store = new AuthStore
-        {
-            Audience = "Audience",
-            Issuer = "Issuer",
-            Clients = clients,
-            DefaultTokenLifetimeMinutes = 60,
-            SigningKey = "SigningKey",
-        };
-
-        _authStoreService.GetAuthStoreAsync().Returns(store);
-
-        _handler
-            .ValidateToken(
-                Arg.Any<string>(),
-                Arg.Any<TokenValidationParameters>(),
-                out Arg.Any<SecurityToken>()
+        var mockSerializer = Substitute.For<Azure.Core.Serialization.ObjectSerializer>();
+        mockSerializer
+            .When(x =>
+                x.SerializeAsync(
+                    Arg.Any<Stream>(),
+                    Arg.Any<object>(),
+                    Arg.Any<Type>(),
+                    Arg.Any<CancellationToken>()
+                )
             )
-            .Returns(x =>
+            .Do(callInfo =>
+                JsonSerializer.Serialize(
+                    callInfo.Arg<Stream>(),
+                    callInfo.Arg<object>(),
+                    new JsonSerializerOptions(JsonSerializerDefaults.Web)
+                )
+            );
+
+        var workerOptions = new WorkerOptions { Serializer = mockSerializer };
+        var mockWorkerOptionsContainer = Substitute.For<IOptions<WorkerOptions>>();
+        mockWorkerOptionsContainer.Value.Returns(workerOptions);
+
+        var mockServiceProvider = Substitute.For<IServiceProvider>();
+        mockServiceProvider
+            .GetService(typeof(IOptions<WorkerOptions>))
+            .Returns(mockWorkerOptionsContainer);
+        context.InstanceServices.Returns(mockServiceProvider);
+
+        return context;
+    }
+
+    protected static Task Next(FunctionContext context) => Task.CompletedTask;
+
+    #endregion
+
+    public class SymmetricTests : JwtAuthMiddlewareTests
+    {
+        [Theory]
+        [InlineData("swagger")]
+        [InlineData("openapi")]
+        [InlineData("v1/auth/token")]
+        [InlineData("health")]
+        public async Task TestInvoke_WithNoAuthEndpoints_SkipsMethod(string endpoint)
+        {
+            // Arrange
+            var context = CreateMockFunctionContext(null);
+            var req = await context.GetHttpRequestDataAsync();
+            req!.Url.Returns(new Uri("https://mock.gov.uk/api/" + endpoint));
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            await _mockAuthStore.DidNotReceive().GetAuthStoreAsync();
+        }
+
+        [Fact]
+        public async Task TestInvoke_WithNoAuthHeaders_ReturnsProblemResponse()
+        {
+            // Arrange
+            var context = CreateMockFunctionContext(null);
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.Equal(
+                HttpStatusCode.Unauthorized,
+                ((HttpResponseData)context.GetInvocationResult().Value!).StatusCode
+            );
+        }
+
+        [Fact]
+        public async Task TestInvoke_WithInvalidAuthHeaders_ReturnsProblemResponse()
+        {
+            // Arrange
+            var context = CreateMockFunctionContext("Invalid");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.Equal(
+                HttpStatusCode.Unauthorized,
+                ((HttpResponseData)context.GetInvocationResult().Value!).StatusCode
+            );
+        }
+
+        [Fact]
+        public async Task TestInvoke_HandlesErrorsFromTokenHandler()
+        {
+            // Arrange
+            var store = new AuthStore
             {
-                x[2] = new JwtSecurityToken();
-                return new ClaimsPrincipal();
-            });
+                Audience = "Audience",
+                Issuer = "Issuer",
+                SigningKey = "SecretKeyShouldBeLongEnoughToPass12345!",
+                DefaultTokenLifetimeMinutes = 60,
+            };
+            _mockAuthStore.GetAuthStoreAsync().Returns(store);
+            var context = CreateMockFunctionContext(
+                "Bearer eyJobGciOiJIUzI1NiJ9.eyJpc3MiOiJJc3N1ZXIifQ.badsignature"
+            );
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
 
-        var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
+            // Act
+            await sut.Invoke(context, Next);
 
-        _authContextFactory
-            .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
-            .Returns(authContext);
+            // Assert
+            Assert.Equal(
+                HttpStatusCode.Unauthorized,
+                ((HttpResponseData)context.GetInvocationResult().Value!).StatusCode
+            );
+        }
 
-        var sut = new JwtAuthMiddleware(_authStoreService, _authContextFactory, _handler);
+        [Fact]
+        public async Task TestInvoke_WhenScopesIncorrect_ReturnsProblemResponse()
+        {
+            // Arrange
+            var store = new AuthStore
+            {
+                Audience = "Audience",
+                Issuer = "Issuer",
+                SigningKey = "SecretKeyShouldBeLongEnoughToPass12345!",
+                DefaultTokenLifetimeMinutes = 60,
+            };
+            _mockAuthStore.GetAuthStoreAsync().Returns(store);
+            var token = GenerateSymmetricToken(
+                store.Issuer,
+                store.Audience,
+                store.SigningKey,
+                "clientId",
+                "wrong.scope"
+            );
+            var context = CreateMockFunctionContext($"Bearer {token}");
 
-        _context.FunctionDefinition.EntryPoint.Returns(
-            "SUI.Find.FindApi.Functions.HttpFunctions.FetchRecordFunction.FetchRecord"
-        );
+            _mockAuthContextFactory
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .Returns(new AuthContext("clientId", "organisationId", ["wrong.scope"]));
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
 
-        // Act
-        await sut.Invoke(_context, Next);
+            // Act
+            await sut.Invoke(context, Next);
 
-        // Assert
-        await _authStoreService.Received(1).GetAuthStoreAsync();
-        _handler
-            .Received(1)
-            .ValidateToken(Arg.Any<string>(), Arg.Any<TokenValidationParameters>(), out _);
-        _authContextFactory.Received(1).FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>());
+            // Assert
+            Assert.Equal(
+                HttpStatusCode.Unauthorized,
+                ((HttpResponseData)context.GetInvocationResult().Value!).StatusCode
+            );
+        }
 
-        Assert.Equal(authContext, _context.Items[ApplicationConstants.Auth.AuthContextKey]);
+        [Fact]
+        public async Task TestInvoke_WithValidInputs_ReturnsAuthContext()
+        {
+            // Arrange
+            var store = new AuthStore
+            {
+                Audience = "Audience",
+                Issuer = "Issuer",
+                SigningKey = "SecretKeyShouldBeLongEnoughToPass12345!",
+                DefaultTokenLifetimeMinutes = 60,
+            };
+            _mockAuthStore.GetAuthStoreAsync().Returns(store);
+            var token = GenerateSymmetricToken(
+                store.Issuer,
+                store.Audience,
+                store.SigningKey,
+                "clientId"
+            );
+            var context = CreateMockFunctionContext($"Bearer {token}");
+
+            var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
+            _mockAuthContextFactory
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .Returns(authContext);
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.Equal(authContext, context.Items[ApplicationConstants.Auth.AuthContextKey]);
+        }
     }
 
-    private void InitialiseRequest(HttpHeadersCollection headers)
+    public class AsymmetricOidcTests : JwtAuthMiddlewareTests
     {
-        var request = Substitute.For<HttpRequestData>(_context);
-        request.Url.Returns(new Uri("https://mock.gov.uk/api/v1/searches"));
-        request.Headers.Returns(headers);
-        request.CreateResponse().Returns(new MockHttpResponseData(_context));
-        _context.GetHttpRequestDataAsync().Returns(request);
-        var serviceCollection = new ServiceCollection();
-        serviceCollection.AddFunctionsWorkerDefaults();
-        _context.InstanceServices.Returns(serviceCollection.BuildServiceProvider());
-    }
+        [Fact]
+        public async Task Scenario1_ValidToken_ShouldAllowAccessAndPopulateAuthContext()
+        {
+            // Scenario: Valid token, should Allow access, and the auth context should be set as expected
+            // Arrange
+            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid);
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
 
-    private static Task Next(FunctionContext context)
-    {
-        return Task.CompletedTask;
+            var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
+            _mockAuthContextFactory
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .Returns(authContext);
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+            var nextExecuted = false;
+
+            // Act
+            await sut.Invoke(
+                context,
+                _ =>
+                {
+                    nextExecuted = true;
+                    return Task.CompletedTask;
+                }
+            );
+
+            // Assert
+            Assert.True(nextExecuted);
+            Assert.Null(context.GetInvocationResult().Value);
+            Assert.Equal(authContext, context.Items[ApplicationConstants.Auth.AuthContextKey]);
+        }
+
+        [Fact]
+        public async Task Scenario2_KidMissingInitially_ShouldForceRefreshAndSucceedOnRetry()
+        {
+            // Scenario: Valid token, except for kid is missing in our OIDC Config, so force refresh should happen, and the final result should Allow access
+            // Arrange
+            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid);
+            var emptyConfig = new OpenIdConnectConfiguration();
+            var refreshedConfig = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager
+                .GetConfigurationAsync(Arg.Any<CancellationToken>())
+                .Returns(emptyConfig, refreshedConfig);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
+            _mockAuthContextFactory
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .Returns(authContext);
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+            var nextExecuted = false;
+
+            // Act
+            await sut.Invoke(
+                context,
+                _ =>
+                {
+                    nextExecuted = true;
+                    return Task.CompletedTask;
+                }
+            );
+
+            // Assert
+            _mockConfigManager.Received(1).RequestRefresh();
+            Assert.True(nextExecuted);
+        }
+
+        [Fact]
+        public async Task Scenario3_KidMissingEvenAfterForceRefresh_ShouldDenyAccess()
+        {
+            // Scenario: Valid token, except for kid is missing in our oidcConfig, so force refresh should happen, and after force refresh the kid is still missing, then should Deny access
+            // Arrange
+            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid);
+            var emptyConfig = new OpenIdConnectConfiguration();
+            _mockConfigManager
+                .GetConfigurationAsync(Arg.Any<CancellationToken>())
+                .Returns(emptyConfig);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            _mockConfigManager.Received(1).RequestRefresh();
+            Assert.NotNull(context.GetInvocationResult().Value);
+        }
+
+        [Fact]
+        public async Task Scenario4_ModifiedPayload_ShouldDenyAccess()
+        {
+            // Scenario: Invalid signature due to modified token payload, should Deny access
+            // Arrange
+            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid, modifyPayload: true);
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.NotNull(context.GetInvocationResult().Value);
+        }
+
+        [Fact]
+        public async Task Scenario5_ModifiedHeader_ShouldDenyAccess()
+        {
+            // Scenario: Invalid signature due to modified token header, should Deny access
+            // Arrange
+            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid, modifyHeader: true);
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.NotNull(context.GetInvocationResult().Value);
+        }
+
+        [Fact]
+        public async Task Scenario6_TokenNotActiveYet_ShouldDenyAccess()
+        {
+            // Scenario: Invalid due to use of token before valid time range (i.e. not-before), should Deny access
+            // Arrange
+            var token = GenerateAsymmetricToken(
+                _genuineRsa,
+                _genuineKid,
+                notBefore: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.UtcNow.AddHours(3)
+            );
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.NotNull(context.GetInvocationResult().Value);
+        }
+
+        [Fact]
+        public async Task Scenario7_TokenExpired_ShouldDenyAccess()
+        {
+            // Scenario: Invalid due to use of token after valid time range (i.e. expiration), should Deny access
+            // Arrange
+            var token = GenerateAsymmetricToken(
+                _genuineRsa,
+                _genuineKid,
+                notBefore: DateTime.UtcNow.AddHours(-3),
+                expires: DateTime.UtcNow.AddHours(-2)
+            );
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.NotNull(context.GetInvocationResult().Value);
+        }
+
+        [Fact]
+        public async Task Scenario8_StrippedSignature_ShouldDenyAccess()
+        {
+            // Scenario: Invalid signature due to signature removal, should Deny access
+            // Arrange
+            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid, stripSignature: true);
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.NotNull(context.GetInvocationResult().Value);
+        }
+
+        [Fact]
+        public async Task Scenario9_ForgedPrivateKeySignature_ShouldDenyAccess()
+        {
+            // Scenario: Invalid signature due to non-genuine private key, should Deny access
+            // Arrange
+            using var forgedRsaKey = RSA.Create(2048);
+            var token = GenerateAsymmetricToken(forgedRsaKey, _genuineKid);
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.NotNull(context.GetInvocationResult().Value);
+        }
+
+        [Fact]
+        public async Task Scenario10_InvalidIssuer_ShouldDenyAccess()
+        {
+            // Scenario: Invalid source (i.e. issuer), should Deny access
+            // Arrange
+            var token = GenerateAsymmetricToken(
+                _genuineRsa,
+                _genuineKid,
+                issuer: "https://untrusted-issuer.com"
+            );
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.NotNull(context.GetInvocationResult().Value);
+        }
+
+        [Fact]
+        public async Task Scenario11_InvalidAudience_ShouldDenyAccess()
+        {
+            // Scenario: Invalid target (i.e. audience), should Deny access
+            // Arrange
+            var token = GenerateAsymmetricToken(
+                _genuineRsa,
+                _genuineKid,
+                audience: "malicious-intercept-audience"
+            );
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            Assert.NotNull(context.GetInvocationResult().Value);
+        }
     }
 }
