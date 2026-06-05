@@ -73,3 +73,9 @@ variable "app_service_plan_worker_count" {
   type        = number
   default     = null
 }
+
+variable "use_auth_emulator" {
+  description = "Set to true to deploy the Auth Emulator web app infrastructure."
+  type        = bool
+  default     = false
+}

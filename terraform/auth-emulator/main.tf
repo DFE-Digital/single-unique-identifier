@@ -28,6 +28,7 @@ data "terraform_remote_state" "core" {
 }
 
 module "web_app" {
+  count   = var.use_auth_emulator ? 1 : 0
   source = "../modules/linux_web_app"
 
   name                = local.web_app_name
@@ -53,4 +54,9 @@ module "web_app" {
     var.authemulator_app_settings,
   )
   tags           = var.tags
+}
+
+moved {
+  from = module.web_app
+  to   = module.web_app[0]
 }
