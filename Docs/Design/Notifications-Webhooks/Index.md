@@ -16,8 +16,8 @@ The goals and reasons for adding Notifications to the SUI system are:
 
 ## Requirements
 
-1. Custodians should be able to be notified when they have jobs, rather than having to poll for jobs.
-2. (Ideally) Searchers should be able to be notified when their search job completes, rather than having to poll for search results.
+1. Custodians should be able to be notified when they have Jobs, rather than having to poll for Jobs.
+2. (Ideally) Searchers should be able to be notified when their Search Request completes, rather than having to poll for Search Request completion.
 
 
 ## Technical Guidelines / Decisions
