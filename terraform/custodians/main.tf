@@ -28,6 +28,7 @@ data "terraform_remote_state" "core" {
 }
 
 module "web_app" {
+  count   = var.use_stub_custodians ? 1 : 0
   source = "../modules/linux_web_app"
 
   name                = local.web_app_name
