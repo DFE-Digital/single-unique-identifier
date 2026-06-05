@@ -25,9 +25,9 @@ find_app_settings = {
 }
 
 custodian_app_settings = {
-  RandomDelayMinSeconds = 1,
-  RandomDelayMaxSeconds = 5,
-  CustodianWorkerRandomIntervalMinSeconds = 3,
+  RandomDelayMinSeconds = 1
+  RandomDelayMaxSeconds = 5
+  CustodianWorkerRandomIntervalMinSeconds = 3
   CustodianWorkerRandomIntervalMaxSeconds = 8
 }
 
