@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using SUI.AuthEmulator;
 using SUI.AuthEmulator.Configurations;
 using SUI.AuthEmulator.Services;
@@ -12,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddProblemDetails();
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddSingleton<IFileSystem, FileSystem>();
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IJwksKeyProvider, JwksKeyProvider>();
