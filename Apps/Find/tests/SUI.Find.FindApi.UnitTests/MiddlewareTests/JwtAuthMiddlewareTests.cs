@@ -47,7 +47,7 @@ public class JwtAuthMiddlewareTests
 
     #region Shared Helpers
 
-    private string GenerateSymmetricToken(
+    private static string GenerateSymmetricToken(
         string issuer,
         string audience,
         string signingKey,
@@ -118,14 +118,14 @@ public class JwtAuthMiddlewareTests
         return tokenString;
     }
 
-    private OpenIdConnectConfiguration CreateOidcConfig(RSA rsaKey, string kid)
+    private static OpenIdConnectConfiguration CreateOidcConfig(RSA rsaKey, string kid)
     {
         var config = new OpenIdConnectConfiguration();
         config.SigningKeys.Add(new RsaSecurityKey(rsaKey) { KeyId = kid });
         return config;
     }
 
-    private FunctionContext CreateMockFunctionContext(string? authHeaderValue)
+    private static FunctionContext CreateMockFunctionContext(string? authHeaderValue)
     {
         var context = Substitute.For<FunctionContext>();
         var features = Substitute.For<IInvocationFeatures>();
@@ -198,7 +198,7 @@ public class JwtAuthMiddlewareTests
         return context;
     }
 
-    protected static Task Next(FunctionContext context) => Task.CompletedTask;
+    private static Task Next(FunctionContext context) => Task.CompletedTask;
 
     #endregion
 
