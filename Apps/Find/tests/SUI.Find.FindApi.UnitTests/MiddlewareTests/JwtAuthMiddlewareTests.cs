@@ -30,6 +30,10 @@ public class JwtAuthMiddlewareTests
         Substitute.For<IConfigurationManager<OpenIdConnectConfiguration>>();
     private readonly IOptions<AuthSettings> _mockOptions = Substitute.For<IOptions<AuthSettings>>();
 
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new(
+        JsonSerializerDefaults.Web
+    );
+
     private readonly AuthSettings _authSettings;
     private readonly RSA _genuineRsa;
     private readonly string _genuineKid = "kid-genuine-01";
@@ -181,7 +185,7 @@ public class JwtAuthMiddlewareTests
                 JsonSerializer.Serialize(
                     callInfo.Arg<Stream>(),
                     callInfo.Arg<object>(),
-                    new JsonSerializerOptions(JsonSerializerDefaults.Web)
+                    JsonSerializerOptions
                 )
             );
 
