@@ -37,31 +37,55 @@ The goals and reasons for adding Notifications to the SUI system are:
 
 ## High-Level Design
 
-* Subscription Management:
-  * Org Directory will need optional ability for webhooks URLs to be supplied (eventually the Custodians will supply these to us).
-  * Org Directory will need a private secret key per Custodian that we use to sign webhook payloads (HMAC), so that Custodians can verify to is us who has called them (payload is authentic), and that the payload hasn't been tampered with.
-* Dispatching Notifications:
-  * When a Job is created and the Custodian of the Job has a Job Created subscription,  
-    Then the Custodian organisation should receive the notification on their Job Created webhook URL.
-  * When a Search is completed and the initiating Searcher has a Search Completed subscription,  
-    Then the Searching organisation should receive the notification on their Search Completed webhook URL.
-  * Dispatching should use message queues, so that:
-    * the notification functionality doesn't block the main functionality, and
-    * we can keep track of webhooks that completely fail (to enable alerts to the organisation, or manual replays).
-  * Processing of webhooks should include retries with backoff, up to a capped number of retries.
-  * Auditing:
-    * Should reuse the existing `AuditEvent`.
-    * After calling a webhook URL, log an `AuditEvent` on success or failure.
-* Stub Custodians:
-  * For our mock Custodians that have `Job Created` subscriptions, they should not poll for Jobs, and instead we should have an HTTP endpoint for the `Job Created` webhook's destination.   
-* E2E Tests:
-  * For our mock Searchers that have `Search Completed` subscriptions, the E2E Test logic should listen rather than poll for search results, for those applicable subscriptions.
-  * Idea:
-    1. The Stub Custodians has an HTTP endpoint for the `Search Completed` webhook's destination.
-    2. That HTTP endpoint writes to an Azure Storage Queue.
-    3. The E2E Test logic listens to that Azure Storage Queue, rather than polling for search results, for those applicable subscriptions.
-* Maybe: "Ping" job
-  * For organisations to be able to test polling/webhooks.
-  * Question: how would this be invoked?  Admin endpoint / concept?
-  * Also, possibly, some way of knowing which Custodians are listening and responding.
-    - This would likely require someway of the Custodians replying to the ping and the SUI system storing that.
+```mermaid
+flowchart
+  sui["`SUI
+    with Webhooks`"]
+  orgDir["`Subscription Management
+    (via Organisation Directory)`"]
+  jobCreated["Job Created"]
+  searchCompleted["Search Completed"]
+  custodians["Custodians"]
+  searchers["Searchers"]
+
+  orgDir --> sui
+
+  sui --> jobCreated --> custodians
+
+  sui --> searchCompleted --> searchers
+```
+
+### Subscription Management
+* Org Directory will need optional ability for webhooks URLs to be supplied (eventually the Custodians will supply these to us).
+* Org Directory will need a private secret key per Custodian that we use to sign webhook payloads (HMAC), so that Custodians can verify to is us who has called them (payload is authentic), and that the payload hasn't been tampered with.
+
+### Dispatching Notifications
+* When a Job is created and the Custodian of the Job has a Job Created subscription,  
+  Then the Custodian organisation should receive the notification on their Job Created webhook URL.
+* When a Search is completed and the initiating Searcher has a Search Completed subscription,  
+  Then the Searching organisation should receive the notification on their Search Completed webhook URL.
+* Dispatching should use message queues, so that:
+  * the notification functionality doesn't block the main functionality, and
+  * we can keep track of webhooks that completely fail (to enable alerts and/or manual replays).
+* Processing of webhooks should include retries with backoff, up to a capped number of retries.
+* Auditing:
+  * Should reuse the existing `AuditEvent`.
+  * After calling a webhook URL, log an `AuditEvent` on success or failure.
+
+## Related Changes
+
+### Stub Custodians - Webhook rather than Poll for Jobs
+* For our mock Custodians that have `Job Created` subscriptions, they should not poll for Jobs, and instead we should have an HTTP endpoint for the `Job Created` webhook's destination.
+
+### E2E Tests - Webhook rather than Poll for Search completion
+* For our mock Searchers that have `Search Completed` subscriptions, the E2E Test logic should listen rather than poll for search results, for those applicable subscriptions.
+* Idea:
+  1. The Stub Custodians has an HTTP endpoint for the `Search Completed` webhook's destination.
+  2. That HTTP endpoint writes to an Azure Storage Queue.
+  3. The E2E Test logic listens to that Azure Storage Queue, rather than polling for search results, for those applicable subscriptions.
+
+### Maybe: "Ping" job
+* For organisations to be able to test polling/webhooks.
+* Question: how would this be invoked?  Admin endpoint / concept?
+* Also, possibly, some way of knowing which Custodians are listening and responding.
+  - This would likely require someway of the Custodians replying to the ping and the SUI system storing that.
