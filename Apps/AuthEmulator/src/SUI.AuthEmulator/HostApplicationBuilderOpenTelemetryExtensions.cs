@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -6,6 +7,9 @@ using OpenTelemetry.Trace;
 
 namespace SUI.AuthEmulator;
 
+[ExcludeFromCodeCoverage(
+    Justification = "Behaviour heavily depends in integration with infrastructure."
+)]
 public static class HostApplicationBuilderOpenTelemetryExtensions
 {
     public static IHostApplicationBuilder UseOpenTelemetry(this IHostApplicationBuilder builder)
