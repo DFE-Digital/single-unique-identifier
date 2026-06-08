@@ -52,7 +52,7 @@ public class MockAuthStoreService : IAuthStoreService
     private AuthStore LoadStore()
     {
         var baseDir = AppContext.BaseDirectory;
-        var filePath = Path.Combine(baseDir, "Data", "auth-clients-inbound.json");
+        var filePath = Path.Join(baseDir, "Data", "auth-clients-inbound.json");
 
         if (!_fileSystem.File.Exists(filePath))
         {
