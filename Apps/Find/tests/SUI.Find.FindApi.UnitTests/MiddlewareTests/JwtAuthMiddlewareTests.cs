@@ -4,14 +4,15 @@ using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
+using Shouldly;
 using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Middleware;
@@ -29,16 +30,17 @@ public class JwtAuthMiddlewareTests
     private readonly IConfigurationManager<OpenIdConnectConfiguration> _mockConfigManager =
         Substitute.For<IConfigurationManager<OpenIdConnectConfiguration>>();
     private readonly IOptions<AuthSettings> _mockOptions = Substitute.For<IOptions<AuthSettings>>();
-
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new(
-        JsonSerializerDefaults.Web
-    );
+    private readonly ILogger<JwtAuthMiddleware> _mockLogger = Substitute.For<
+        ILogger<JwtAuthMiddleware>
+    >();
 
     private readonly AuthSettings _authSettings;
     private readonly RSA _genuineRsa;
     private readonly string _genuineKid = "kid-genuine-01";
 
-    protected JwtAuthMiddlewareTests()
+    private bool _nextExecuted;
+
+    private JwtAuthMiddlewareTests()
     {
         _genuineRsa = RSA.Create(2048);
         _authSettings = new AuthSettings
@@ -50,6 +52,56 @@ public class JwtAuthMiddlewareTests
     }
 
     #region Shared Helpers
+
+    private void AssertAccessAllowed(FunctionContext context, AuthContext expectedAuthContext)
+    {
+        Assert.True(_nextExecuted);
+        Assert.True(context.Items.ContainsKey(ApplicationConstants.Auth.AuthContextKey));
+
+        Assert.Null(context.GetInvocationResult().Value);
+
+        Assert.Equal(expectedAuthContext, context.Items[ApplicationConstants.Auth.AuthContextKey]);
+    }
+
+    private void AssertAccessDenied(
+        FunctionContext context,
+        string expectedResponseContains,
+        string? expectedSecurityErrorContains = null
+    )
+    {
+        Assert.False(_nextExecuted);
+        Assert.False(context.Items.ContainsKey(ApplicationConstants.Auth.AuthContextKey));
+
+        Assert.NotNull(context.GetInvocationResult().Value);
+
+        var responseData = Assert.IsType<HttpResponseData>(
+            context.GetInvocationResult().Value,
+            exactMatch: false
+        );
+
+        Assert.Equal(HttpStatusCode.Unauthorized, responseData.StatusCode);
+
+        responseData.Body.Seek(0, SeekOrigin.Begin);
+        using var streamReader = new StreamReader(responseData.Body);
+        var responseBody = streamReader.ReadToEnd();
+
+        responseBody.ShouldContain(expectedResponseContains);
+
+        if (expectedSecurityErrorContains != null)
+        {
+            _mockLogger
+                .Received(1)
+                .Log(
+                    LogLevel.Warning,
+                    0,
+                    Arg.Any<object>(),
+                    Arg.Is<SecurityTokenException>(e =>
+                        e.Message.Contains(expectedSecurityErrorContains)
+                    ),
+                    Arg.Any<Func<object, Exception?, string>>()
+                );
+        }
+    }
 
     private static string GenerateSymmetricToken(
         string issuer,
@@ -82,16 +134,13 @@ public class JwtAuthMiddlewareTests
         DateTime? expires = null,
         bool stripSignature = false,
         bool modifyPayload = false,
-        bool modifyHeader = false
+        bool modifyHeader = false,
+        string scope = "fetch-record.read"
     )
     {
         var key = new RsaSecurityKey(rsaKey) { KeyId = kid };
         var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
-        var claims = new[]
-        {
-            new Claim("client_id", "clientId"),
-            new Claim("scp", "fetch-record.read"),
-        };
+        var claims = new[] { new Claim("client_id", "clientId"), new Claim("scp", scope) };
 
         var jwtToken = new JwtSecurityToken(
             issuer: issuer ?? _authSettings.Issuer,
@@ -111,12 +160,15 @@ public class JwtAuthMiddlewareTests
 
         if (modifyPayload)
         {
-            return $"{tokenString.Split('.')[0]}.eyJhY3VfYmFkIjp0cnVlfQ==.{tokenString.Split('.')[2]}";
+            return $"{tokenString.Split('.')[0]}.{Base64UrlEncoder.Encode("{\"acu_bad\":\"true\"}")}.{tokenString.Split('.')[2]}";
         }
 
         if (modifyHeader)
         {
-            return $"eyJh bGciOiJSUzI1NiIsImtpZCI6ImJhZCJ9.{tokenString.Split('.')[1]}.{tokenString.Split('.')[2]}";
+            var badHeader = Base64UrlEncoder.Encode(
+                Base64UrlEncoder.Decode(tokenString.Split('.')[0]).Replace("JWT", "BAD")
+            );
+            return $"{badHeader}.{tokenString.Split('.')[1]}.{tokenString.Split('.')[2]}";
         }
 
         return tokenString;
@@ -150,7 +202,7 @@ public class JwtAuthMiddlewareTests
 
         requestData.Url.Returns(new Uri("https://mock.gov.uk/api/v1/searches"));
         requestData.CreateResponse().Returns(responseData);
-        responseData.Body.Returns(Stream.Null);
+        responseData.Body.Returns(new MemoryStream());
 
         var invocationResult = Substitute.For<InvocationResult>();
         context.GetInvocationResult().Returns(invocationResult);
@@ -171,25 +223,10 @@ public class JwtAuthMiddlewareTests
             "SUI.Find.FindApi.Functions.HttpFunctions.FetchRecordFunction.FetchRecord"
         );
 
-        var mockSerializer = Substitute.For<Azure.Core.Serialization.ObjectSerializer>();
-        mockSerializer
-            .When(x =>
-                x.SerializeAsync(
-                    Arg.Any<Stream>(),
-                    Arg.Any<object>(),
-                    Arg.Any<Type>(),
-                    Arg.Any<CancellationToken>()
-                )
-            )
-            .Do(callInfo =>
-                JsonSerializer.Serialize(
-                    callInfo.Arg<Stream>(),
-                    callInfo.Arg<object>(),
-                    JsonSerializerOptions
-                )
-            );
-
-        var workerOptions = new WorkerOptions { Serializer = mockSerializer };
+        var workerOptions = new WorkerOptions
+        {
+            Serializer = Azure.Core.Serialization.JsonObjectSerializer.Default,
+        };
         var mockWorkerOptionsContainer = Substitute.For<IOptions<WorkerOptions>>();
         mockWorkerOptionsContainer.Value.Returns(workerOptions);
 
@@ -202,11 +239,15 @@ public class JwtAuthMiddlewareTests
         return context;
     }
 
-    private static Task Next(FunctionContext context) => Task.CompletedTask;
+    private Task Next(FunctionContext context)
+    {
+        _nextExecuted = true;
+        return Task.CompletedTask;
+    }
 
     #endregion
 
-    public class SymmetricTests : JwtAuthMiddlewareTests
+    public class GeneralVerificationTests : JwtAuthMiddlewareTests
     {
         [Theory]
         [InlineData("swagger")]
@@ -223,13 +264,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
+            Assert.True(_nextExecuted);
             await _mockAuthStore.DidNotReceive().GetAuthStoreAsync();
         }
 
@@ -242,17 +285,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.Equal(
-                HttpStatusCode.Unauthorized,
-                ((HttpResponseData)context.GetInvocationResult().Value!).StatusCode
-            );
+            AssertAccessDenied(context, "Missing Authorization header");
         }
 
         [Fact]
@@ -264,7 +305,8 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
@@ -275,10 +317,11 @@ public class JwtAuthMiddlewareTests
                 HttpStatusCode.Unauthorized,
                 ((HttpResponseData)context.GetInvocationResult().Value!).StatusCode
             );
+            AssertAccessDenied(context, "Invalid Authorization header");
         }
 
         [Fact]
-        public async Task TestInvoke_HandlesErrorsFromTokenHandler()
+        public async Task TestInvoke_Handles_UnsupportedSigningAlgorithms()
         {
             // Arrange
             var store = new AuthStore
@@ -296,7 +339,8 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
@@ -307,8 +351,12 @@ public class JwtAuthMiddlewareTests
                 HttpStatusCode.Unauthorized,
                 ((HttpResponseData)context.GetInvocationResult().Value!).StatusCode
             );
+            AssertAccessDenied(context, "Unsupported signing algorithm");
         }
+    }
 
+    public class SymmetricVerificationTests : JwtAuthMiddlewareTests
+    {
         [Fact]
         public async Task TestInvoke_WhenScopesIncorrect_ReturnsProblemResponse()
         {
@@ -337,17 +385,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.Equal(
-                HttpStatusCode.Unauthorized,
-                ((HttpResponseData)context.GetInvocationResult().Value!).StatusCode
-            );
+            AssertAccessDenied(context, "Insufficient scope for this operation");
         }
 
         [Fact]
@@ -378,19 +424,52 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.Equal(authContext, context.Items[ApplicationConstants.Auth.AuthContextKey]);
+            AssertAccessAllowed(context, authContext);
         }
     }
 
-    public class AsymmetricOidcTests : JwtAuthMiddlewareTests
+    public class AsymmetricVerificationTests : JwtAuthMiddlewareTests
     {
+        [Fact]
+        public async Task Scenario0_ValidToken_WhenScopesIncorrect_ShouldDenyAccess()
+        {
+            // Arrange
+            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid, scope: "wrong.scope");
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+            _mockAuthStore
+                .GetAuthStoreAsync()
+                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
+
+            var authContext = new AuthContext("clientId", "organisationId", ["wrong.scope"]);
+            _mockAuthContextFactory
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .Returns(authContext);
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+            var sut = new JwtAuthMiddleware(
+                _mockAuthStore,
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions,
+                _mockLogger
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            AssertAccessDenied(context, "Insufficient scope for this operation");
+        }
+
         [Fact]
         public async Task Scenario1_ValidToken_ShouldAllowAccessAndPopulateAuthContext()
         {
@@ -413,24 +492,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
-            var nextExecuted = false;
 
             // Act
-            await sut.Invoke(
-                context,
-                _ =>
-                {
-                    nextExecuted = true;
-                    return Task.CompletedTask;
-                }
-            );
+            await sut.Invoke(context, Next);
 
             // Assert
-            Assert.True(nextExecuted);
-            Assert.Null(context.GetInvocationResult().Value);
-            Assert.Equal(authContext, context.Items[ApplicationConstants.Auth.AuthContextKey]);
+            AssertAccessAllowed(context, authContext);
         }
 
         [Fact]
@@ -458,23 +528,16 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
-            var nextExecuted = false;
 
             // Act
-            await sut.Invoke(
-                context,
-                _ =>
-                {
-                    nextExecuted = true;
-                    return Task.CompletedTask;
-                }
-            );
+            await sut.Invoke(context, Next);
 
             // Assert
             _mockConfigManager.Received(1).RequestRefresh();
-            Assert.True(nextExecuted);
+            AssertAccessAllowed(context, authContext);
         }
 
         [Fact]
@@ -496,7 +559,8 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
@@ -504,7 +568,7 @@ public class JwtAuthMiddlewareTests
 
             // Assert
             _mockConfigManager.Received(1).RequestRefresh();
-            Assert.NotNull(context.GetInvocationResult().Value);
+            AssertAccessDenied(context, "Token validation failed", "No security keys");
         }
 
         [Fact]
@@ -524,14 +588,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.NotNull(context.GetInvocationResult().Value);
+            AssertAccessDenied(context, "Token validation failed", "Signature validation failed");
         }
 
         [Fact]
@@ -551,14 +616,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.NotNull(context.GetInvocationResult().Value);
+            AssertAccessDenied(context, "Token validation failed", "Signature validation failed");
         }
 
         [Fact]
@@ -583,14 +649,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.NotNull(context.GetInvocationResult().Value);
+            AssertAccessDenied(context, "Token validation failed", "The token is not yet valid");
         }
 
         [Fact]
@@ -615,14 +682,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.NotNull(context.GetInvocationResult().Value);
+            AssertAccessDenied(context, "Token validation failed", "The token is expired");
         }
 
         [Fact]
@@ -642,14 +710,19 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.NotNull(context.GetInvocationResult().Value);
+            AssertAccessDenied(
+                context,
+                "Token validation failed",
+                "token does not have a signature"
+            );
         }
 
         [Fact]
@@ -670,14 +743,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.NotNull(context.GetInvocationResult().Value);
+            AssertAccessDenied(context, "Token validation failed", "Signature validation failed");
         }
 
         [Fact]
@@ -701,14 +775,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.NotNull(context.GetInvocationResult().Value);
+            AssertAccessDenied(context, "Token validation failed", "Issuer validation failed");
         }
 
         [Fact]
@@ -732,14 +807,15 @@ public class JwtAuthMiddlewareTests
                 _mockAuthStore,
                 _mockAuthContextFactory,
                 _mockConfigManager,
-                _mockOptions
+                _mockOptions,
+                _mockLogger
             );
 
             // Act
             await sut.Invoke(context, Next);
 
             // Assert
-            Assert.NotNull(context.GetInvocationResult().Value);
+            AssertAccessDenied(context, "Token validation failed", "Audience validation failed");
         }
     }
 }

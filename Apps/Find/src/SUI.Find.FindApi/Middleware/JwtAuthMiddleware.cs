@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -21,7 +22,8 @@ public class JwtAuthMiddleware(
     IAuthStoreService authStoreService,
     IAuthContextFactory authContextFactory,
     IConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
-    IOptions<AuthSettings> authSettings
+    IOptions<AuthSettings> authSettings,
+    ILogger<JwtAuthMiddleware> logger
 ) : IFunctionsWorkerMiddleware
 {
     // One concrete handler with no interfaces, no injection mocks.
@@ -125,16 +127,18 @@ public class JwtAuthMiddleware(
         }
         catch (SecurityTokenException ex)
         {
+            logger.LogWarning(ex, "Token validation failed");
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 nameof(HttpStatusCode.Unauthorized),
-                ex.Message
+                "Token validation failed."
             );
             return;
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogWarning(ex, "Invalid bearer token");
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.Unauthorized,
