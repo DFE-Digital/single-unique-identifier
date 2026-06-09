@@ -255,7 +255,9 @@ public class JwtAuthMiddleware(
         if (authSettings.Value.UseAuthStoreForAuthorisation)
         {
             return requiredScopes.Any(rs =>
-                authStoreService.GetScopesByClientId(caller.ClientId).Contains(rs)
+                authStoreService
+                    .GetScopesByClientId(caller.ClientId)
+                    .Contains(rs, StringComparer.OrdinalIgnoreCase)
             );
         }
 
