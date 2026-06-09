@@ -1,4 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.IO.Abstractions;
 using System.Net;
 using Azure.Data.Tables;
@@ -8,7 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Polly;
 using Polly.Extensions.Http;
 using SUI.Find.Application.Constants;
@@ -36,6 +37,11 @@ builder.Services.Configure<AuthTokenServiceConfig>(
     builder.Configuration.GetSection(AuthTokenServiceConfig.SectionName)
 );
 
+// Bind AuthSettings to configuration
+builder.Services.Configure<AuthSettings>(
+    builder.Configuration.GetSection(AuthSettings.SectionName)
+);
+
 builder
     .Services.AddOptions<MatchFunctionConfiguration>()
     .BindConfiguration(MatchFunctionConfiguration.SectionName)
@@ -43,6 +49,17 @@ builder
 
 // .NET services
 builder.Services.AddSingleton(TimeProvider.System);
+
+// Register OpenID Connect ConfigurationManager as a Singleton to cache public keys across function invocations
+builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<AuthSettings>>().Value;
+    return new ConfigurationManager<OpenIdConnectConfiguration>(
+        settings.OidcDiscoveryUrl,
+        new OpenIdConnectConfigurationRetriever(),
+        new HttpDocumentRetriever { RequireHttps = true }
+    );
+});
 
 // Third-party and framework services
 builder.Services.AddHealthChecks();
@@ -54,7 +71,6 @@ builder.Services.AddInfrastructureServices();
 
 // Middleware services
 builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();
-builder.Services.AddSingleton<ISecurityTokenValidator, JwtSecurityTokenHandler>();
 
 // Application services
 builder.Services.AddSingleton<IMaskUrlService, MaskUrlService>();

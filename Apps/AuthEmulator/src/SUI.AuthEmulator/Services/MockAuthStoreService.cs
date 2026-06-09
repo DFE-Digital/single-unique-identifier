@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using System.Text.Json;
 using SUI.AuthEmulator.Models;
 
@@ -5,17 +6,24 @@ namespace SUI.AuthEmulator.Services;
 
 public class MockAuthStoreService : IAuthStoreService
 {
-    public async Task<AuthStore> GetAuthStoreAsync()
+    private readonly IFileSystem _fileSystem;
+    private readonly Lazy<AuthStore> _authStore;
+
+    public MockAuthStoreService(IFileSystem fileSystem)
     {
-        return await GetStore();
+        _fileSystem = fileSystem;
+        _authStore = new Lazy<AuthStore>(LoadStore);
     }
 
-    public async Task<Result<AuthClient>> GetClientByCredentials(
-        string clientId,
-        string clientSecret
-    )
+    public Task<AuthStore> GetAuthStoreAsync()
     {
-        var store = await GetStore();
+        // Instantly returns the cached in-memory store as a completed Task
+        return Task.FromResult(_authStore.Value);
+    }
+
+    public Task<Result<AuthClient>> GetClientByCredentials(string clientId, string clientSecret)
+    {
+        var store = _authStore.Value;
 
         if (
             string.IsNullOrWhiteSpace(store.Issuer)
@@ -34,28 +42,31 @@ public class MockAuthStoreService : IAuthStoreService
             c.ClientId == clientId && c.ClientSecret == clientSecret && c.Enabled
         );
 
-        return client is null
+        var result = client is null
             ? Result<AuthClient>.Fail("Unauthorized")
             : Result<AuthClient>.Ok(client);
+
+        return Task.FromResult(result);
     }
 
-    private async Task<AuthStore> GetStore()
+    private AuthStore LoadStore()
     {
         var baseDir = AppContext.BaseDirectory;
         var filePath = Path.Join(baseDir, "Data", "auth-clients-inbound.json");
 
-        if (!File.Exists(filePath))
+        if (!_fileSystem.File.Exists(filePath))
         {
             throw new InvalidOperationException($"Auth store file not found at: {filePath}");
         }
 
-        var json = await File.ReadAllTextAsync(filePath);
+        var json = _fileSystem.File.ReadAllText(filePath);
         var store = JsonSerializer.Deserialize<AuthStore>(json, JsonSerializerOptions.Web);
 
         if (store is null)
         {
             throw new InvalidOperationException("Auth store file could not be deserialized.");
         }
+
         return store;
     }
 }

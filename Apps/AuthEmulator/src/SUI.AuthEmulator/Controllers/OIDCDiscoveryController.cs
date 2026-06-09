@@ -23,8 +23,8 @@ public class OIDCDiscoveryController : ControllerBase
         var discoveryDocument = new
         {
             issuer = _authSettings.Issuer,
-            token_endpoint = $"{baseUrl}/v1/token",
-            jwks_uri = $"{baseUrl}/v1/jwks",
+            token_endpoint = $"{baseUrl}/api/v1/auth/token",
+            jwks_uri = $"{baseUrl}/api/v1/jwks",
             id_token_signing_alg_values_supported = new[] { "RS256" },
             grant_types_supported = new[] { "client_credentials" },
             response_types_supported = new[] { "token" },
