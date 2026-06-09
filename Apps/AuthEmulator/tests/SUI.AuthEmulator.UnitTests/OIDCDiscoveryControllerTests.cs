@@ -17,7 +17,7 @@ public class OIDCDiscoveryControllerTests
         var settings = new AuthSettings
         {
             Issuer = "https://test.issuer.com",
-            BaseUrl = "https://test.api.com/api/", // Testing with a trailing slash to verify truncation logic
+            BaseUrl = "https://test.api.com/", // Testing with a trailing slash to verify truncation logic
         };
         _mockOptions.Value.Returns(settings);
 
@@ -34,7 +34,7 @@ public class OIDCDiscoveryControllerTests
         var val = okResult.Value;
         Assert.Equal("https://test.issuer.com", val.GetType().GetProperty("issuer")?.GetValue(val));
         Assert.Equal(
-            "https://test.api.com/api/v1/token",
+            "https://test.api.com/api/v1/auth/token",
             val.GetType().GetProperty("token_endpoint")?.GetValue(val)
         );
         Assert.Equal(
@@ -42,7 +42,7 @@ public class OIDCDiscoveryControllerTests
             val.GetType().GetProperty("jwks_uri")?.GetValue(val)
         );
         Assert.Equal(
-            "https://test.api.com/api/dummy",
+            "https://test.api.com/dummy",
             val.GetType().GetProperty("authorization_endpoint")?.GetValue(val)
         );
 

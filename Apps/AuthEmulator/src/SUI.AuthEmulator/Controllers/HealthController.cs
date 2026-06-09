@@ -5,7 +5,8 @@ namespace SUI.AuthEmulator.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class HealthController(IHostEnvironment env, ILogger<AuthController> logger) : ControllerBase
+public class HealthController(IHostEnvironment env, ILogger<HealthController> logger)
+    : ControllerBase
 {
     private const string ServiceName = nameof(AuthEmulator);
 
