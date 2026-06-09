@@ -9,6 +9,7 @@ public interface IAuthStoreService
 {
     Task<AuthStore> GetAuthStoreAsync();
     Task<Result<AuthClient>> GetClientByCredentials(string clientId, string clientSecret);
+    IReadOnlyList<string> GetScopesByClientId(string clientId);
 }
 
 public class MockAuthStoreService : IAuthStoreService
@@ -30,6 +31,29 @@ public class MockAuthStoreService : IAuthStoreService
 
     public Task<Result<AuthClient>> GetClientByCredentials(string clientId, string clientSecret)
     {
+        var clients = GetClients();
+
+        var client = clients.FirstOrDefault(c =>
+            c.ClientId == clientId && c.ClientSecret == clientSecret && c.Enabled
+        );
+
+        var result = client is null
+            ? Result<AuthClient>.Fail("Unauthorized")
+            : Result<AuthClient>.Ok(client);
+
+        return Task.FromResult(result);
+    }
+
+    public IReadOnlyList<string> GetScopesByClientId(string clientId)
+    {
+        var clients = GetClients();
+
+        var scopes = clients.FirstOrDefault(x => x.ClientId == clientId)?.AllowedScopes ?? [];
+        return scopes;
+    }
+
+    private List<AuthClient> GetClients()
+    {
         var store = _authStore.Value;
 
         if (
@@ -44,16 +68,7 @@ public class MockAuthStoreService : IAuthStoreService
         }
 
         store.Clients ??= [];
-
-        var client = store.Clients.FirstOrDefault(c =>
-            c.ClientId == clientId && c.ClientSecret == clientSecret && c.Enabled
-        );
-
-        var result = client is null
-            ? Result<AuthClient>.Fail("Unauthorized")
-            : Result<AuthClient>.Ok(client);
-
-        return Task.FromResult(result);
+        return store.Clients;
     }
 
     private AuthStore LoadStore()

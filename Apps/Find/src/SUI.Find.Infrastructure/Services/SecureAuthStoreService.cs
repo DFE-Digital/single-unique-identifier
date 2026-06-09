@@ -16,4 +16,9 @@ public class SecureAuthStoreService : IAuthStoreService
     {
         throw new NotImplementedException();
     }
+
+    public IReadOnlyList<string> GetScopesByClientId(string clientId)
+    {
+        throw new NotImplementedException();
+    }
 }

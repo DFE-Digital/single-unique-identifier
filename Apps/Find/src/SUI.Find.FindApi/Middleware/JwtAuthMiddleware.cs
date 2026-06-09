@@ -250,11 +250,15 @@ public class JwtAuthMiddleware(
         return attr?.Scopes.ToArray() ?? [];
     }
 
-    private static bool HasAnyRequiredScope(
-        AuthContext caller,
-        IReadOnlyList<string> requiredScopes
-    )
+    private bool HasAnyRequiredScope(AuthContext caller, IReadOnlyList<string> requiredScopes)
     {
+        if (authSettings.Value.UseAuthStoreForAuthorisation)
+        {
+            return requiredScopes.Any(rs =>
+                authStoreService.GetScopesByClientId(caller.ClientId).Contains(rs)
+            );
+        }
+
         return requiredScopes.Any(rs =>
             caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
         );

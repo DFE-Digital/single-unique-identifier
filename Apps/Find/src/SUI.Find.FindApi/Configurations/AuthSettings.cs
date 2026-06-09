@@ -4,6 +4,8 @@ public class AuthSettings
 {
     public const string SectionName = "AuthSettings";
 
+    public bool UseAuthStoreForAuthorisation { get; set; }
+
     // OIDC Discovery configuration properties
     public string Issuer { get; set; } =
         "https://sandbox.api.example.gov.uk/sui-find-a-record/auth";
