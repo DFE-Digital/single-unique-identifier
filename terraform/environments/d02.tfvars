@@ -12,6 +12,7 @@ app_service_plan_worker_count = 1
 function_dotnet_version       = "10.0"
 webapp_dotnet_version         = "10.0"
 use_stub_custodians           = true
+use_auth_emulator             = true
 use_auxiliary_asp                       = true
 auxiliary_app_service_plan_sku          = "B1"
 auxiliary_app_service_plan_os_type      = "Linux"
@@ -25,11 +26,9 @@ find_app_settings = {
 }
 
 custodian_app_settings = {
-  FindApi__BaseUrl = "https://s270d02func-ukw-find01.azurewebsites.net"
-  StubCustodians__BaseUrl = "https://s270d02app-ukw-custodians01.azurewebsites.net"
-  RandomDelayMinSeconds = 1,
-  RandomDelayMaxSeconds = 5,
-  CustodianWorkerRandomIntervalMinSeconds = 3,
+  RandomDelayMinSeconds = 1
+  RandomDelayMaxSeconds = 5
+  CustodianWorkerRandomIntervalMinSeconds = 3
   CustodianWorkerRandomIntervalMaxSeconds = 8
 }
 

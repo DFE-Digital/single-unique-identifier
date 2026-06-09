@@ -63,6 +63,7 @@ public class AuditMiddleware(ILogger<AuditMiddleware> logger, IAuditQueueClient 
             {
                 Path = httpReq.Url.AbsolutePath,
                 Method = httpReq.Method,
+                ClientId = authContext.ClientId,
             };
 
             var isSearchRequest =

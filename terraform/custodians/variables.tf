@@ -73,3 +73,9 @@ variable "app_service_plan_worker_count" {
   type        = number
   default     = null
 }
+
+variable "use_stub_custodians" {
+  description = "Set to true to deploy the Stub Custodians web app infrastructure."
+  type        = bool
+  default     = false
+}

@@ -6,8 +6,6 @@ locals {
   core_state_key    = format("%s/terraform.tfstate", var.environment_id)
   service_state_key = format("%s/find.tfstate", var.environment_id)
 
-  custodians_service_state_key = format("%s/custodians.tfstate", var.environment_id)
-
   function_descriptor = "find01"
   function_app_name = format(
     "%s%sfunc-%s-%s",
@@ -178,18 +176,6 @@ resource "azurerm_key_vault_secret" "nhs_digital_client_id" {
   ]
 }
 
-data "terraform_remote_state" "stub_custodians" {
-  count   = var.use_stub_custodians ? 1 : 0
-  backend = "azurerm"
-
-  config = {
-    resource_group_name  = local.state_rg
-    storage_account_name = local.state_storage
-    container_name       = local.state_container
-    key                  = local.custodians_service_state_key
-  }
-}
-
 module "function_app" {
   source = "../modules/linux_function_app"
 
@@ -219,9 +205,10 @@ module "function_app" {
 
       StorageRetentionDays = "1"
 
-      StubCustodiansBaseUrl = try(
-        "https://${data.terraform_remote_state.stub_custodians[0].outputs.web_app_default_hostname}",
-        null
+      StubCustodiansBaseUrl = (
+        var.use_stub_custodians
+          ? format("https://%s%sapp-%s-custodians01.azurewebsites.net", var.subscription_prefix, var.environment_id, var.region_short)
+          : null
       )
 
       MatchFunction__XApiKey                 = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.find_match_api_key.name}/)"
