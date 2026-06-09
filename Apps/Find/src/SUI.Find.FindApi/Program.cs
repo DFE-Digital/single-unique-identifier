@@ -50,7 +50,7 @@ builder
 // .NET services
 builder.Services.AddSingleton(TimeProvider.System);
 
-// Register ConfigurationManager as a Singleton to cache public keys across function invocations
+// Register OpenID Connect ConfigurationManager as a Singleton to cache public keys across function invocations
 builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<AuthSettings>>().Value;

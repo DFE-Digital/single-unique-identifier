@@ -106,7 +106,6 @@ public class JwtAuthMiddleware(
                         Encoding.UTF8.GetBytes(store.SigningKey)
                     ),
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromMinutes(2),
                 };
 
                 // Uses the concrete .NET framework validation engine directly
@@ -188,7 +187,6 @@ public class JwtAuthMiddleware(
             ValidateIssuerSigningKey = true,
             IssuerSigningKeys = oidcConfig.SigningKeys,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromMinutes(2),
         };
 
         try
@@ -255,5 +253,10 @@ public class JwtAuthMiddleware(
     private static bool HasAnyRequiredScope(
         AuthContext caller,
         IReadOnlyList<string> requiredScopes
-    ) => requiredScopes.Any(rs => caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase));
+    )
+    {
+        return requiredScopes.Any(rs =>
+            caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
+        );
+    }
 }

@@ -24,7 +24,7 @@ find_app_settings = {
   NhsAuthConfig__NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5
   AuthSettings__Issuer           = "https://sandbox.api.example.gov.uk/sui-find-a-record/auth"
   AuthSettings__Audience         = "sui-find-a-record-api"
-  AuthSettings__OidcDiscoveryUrl = "https://sandbox.api.example.gov.uk/sui-find-a-record/auth/.well-known/openid-configuration"
+  AuthSettings__OidcDiscoveryUrl = "https://s270d01app-ukw-authemulator01.azurewebsites.net/api/v1/.well-known/openid-configuration"
 }
 
 custodian_app_settings = {
