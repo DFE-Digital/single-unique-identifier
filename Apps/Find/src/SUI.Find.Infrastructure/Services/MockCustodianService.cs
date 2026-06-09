@@ -77,12 +77,6 @@ public class MockCustodianService : ICustodianService
             json = json.Replace("{StubCustodiansBaseUrl}", stubCustodiansBaseUrl);
         }
 
-        var accessTokenUrl = _config["AccessTokenUrl"];
-        if (!string.IsNullOrWhiteSpace(accessTokenUrl))
-        {
-            json = json.Replace("{AccessTokenUrl}", accessTokenUrl);
-        }
-
         var doc =
             JsonSerializer.Deserialize<MockOrgDirectory>(json, JsonSerializerOptions.Web)
             ?? throw new InvalidOperationException($"Failed to deserialize {fileName}");
