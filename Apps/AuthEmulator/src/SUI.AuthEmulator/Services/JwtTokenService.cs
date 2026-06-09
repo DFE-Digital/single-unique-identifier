@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
 using SUI.AuthEmulator.Configurations;
 
@@ -25,9 +26,9 @@ public class JwtTokenService(
             );
         }
 
-        // Randomly choose an RSA security key
-        var random = new Random();
-        var selectedKey = signingKeys.ElementAt(random.Next(signingKeys.Count));
+        // Randomly choose an RSA security key securely using CSPRNG
+        var randomIndex = RandomNumberGenerator.GetInt32(signingKeys.Count);
+        var selectedKey = signingKeys.ElementAt(randomIndex);
 
         // Grab the Asymmetric Signing Credentials directly from the record
         var credentials = selectedKey.SigningCredentials;
