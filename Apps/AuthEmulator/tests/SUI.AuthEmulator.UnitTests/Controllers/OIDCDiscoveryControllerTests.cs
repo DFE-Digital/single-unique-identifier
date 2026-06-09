@@ -4,7 +4,7 @@ using NSubstitute;
 using SUI.AuthEmulator.Configurations;
 using SUI.AuthEmulator.Controllers;
 
-namespace SUI.AuthEmulator.UnitTests;
+namespace SUI.AuthEmulator.UnitTests.Controllers;
 
 public class OIDCDiscoveryControllerTests
 {
