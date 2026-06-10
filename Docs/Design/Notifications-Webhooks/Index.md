@@ -1,4 +1,4 @@
-# Notifications (Webhooks) - Requirements and High-Level Design
+# Notifications (Webhooks): Requirements and High-Level Design
 
 **Date:** `2026-06-04`  
 **Owner:** SUI Service Team  
@@ -86,10 +86,10 @@ flowchart
 
 ## Related Changes
 
-### Stub Custodians - Webhook rather than Poll for Jobs
+### Stub Custodians: Webhook rather than Poll for Jobs
 * For our mock Custodians that have `Job Created` subscriptions they should not poll for Jobs (disable/exclude applicable Custodian workers), and instead we should have an HTTP endpoint for the `Job Created` webhook's destination.
 
-### E2E Tests - Webhook rather than Poll for Search completion
+### E2E Tests: Webhook rather than Poll for Search completion
 * For our mock Searchers that have `Search Updated` subscriptions, the E2E Test logic should listen rather than poll for search results, for those applicable subscriptions.
 * HTTP Streaming Idea:
   1. The Stub Custodians has an HTTP endpoint for the `Search Updated` webhook's destination.
@@ -98,18 +98,24 @@ flowchart
   3. The E2E Test logic listens to the HTTP Stream endpoint, rather than polling for search results, for those applicable subscriptions.
 * The existing Version 2 E2E tests should be expanded to cover a mixture of polling and notifications/webhooks (with a higher ratio of notifications compared to polling).
 
-### UI Test Harness
+### UI Test Harness: Webhook rather than Poll for Search completion
 * Ideally, the UI Test Harness should be updated so that it uses the `Search Updated` webhook rather than polling for serach results.
   * An issue here is that it will be the same Org Directory that the E2E tests use, so how will the FindAPI know where the callback should go?  Maybe the Org Directory has a whitelist of "Search Updated callback URLs" so that each individual search can choose which callback URL to use.
   * Probably this could be an option when logging in (choices: "Search Updated webhook" or "Poll for Search Results").
 
-### Maybe: "Ping" job
-* For organisations to be able to test polling/webhooks.
-* Question: how would this be invoked?  Admin endpoint / concept?
-* Also, possibly, some way of knowing which Custodians are listening and responding.
-  - This would likely require someway of the Custodians replying to the ping and the SUI system storing that.
+## Related Ideas
 
 ### Work Item / Job Expiry
 * The existing Work Item Expiry Window of 3 days is probably too long.  The default probably makes more sense to be 4 hours.
 * Granular Feedback of Search Jobs:
   * Ideally, search results should show which Jobs/Custodians eventually failed to respond within the allowed time window.
+
+### "Health Check" job
+* "Health Check" job would enable the SUI System to know which Custodians are listening and responding.
+  - Jobs queued by SUI system on a schedule, probably 0-N hours, 0 being off, or an interval of N hours between "Health Check" jobs being queued for each Custodian.
+  - This would also require someway of the Custodians replying and the SUI system storing that.
+  - Then we could have a dashboard showing which ones are up, with metrics like uptime, response time.
+  - This relates closely to Service Metrics / Success Metrics, so this designed should be aligned with that.
+* "Health Check" job would also enable Organisations to be able to test polling/webhooks.
+  * Question: how would this be invoked? Admin endpoint / concept?
+  * Maybe this is a separate "Ping" job?
