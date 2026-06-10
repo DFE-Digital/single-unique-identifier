@@ -28,7 +28,7 @@ public class JwtTokenService(
 
         // Randomly choose an RSA security key securely using CSPRNG
         var randomIndex = RandomNumberGenerator.GetInt32(signingKeys.Count);
-        var selectedKey = signingKeys.ElementAt(randomIndex);
+        var selectedKey = signingKeys.First(); //signingKeys.ElementAt(randomIndex);
 
         // Grab the Asymmetric Signing Credentials directly from the record
         var credentials = selectedKey.SigningCredentials;
