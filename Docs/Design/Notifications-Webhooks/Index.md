@@ -30,7 +30,7 @@ The goals and reasons for adding Notifications to the SUI system are:
 * Security: Subscribers need to know it's actually us calling them and not a malicious actor.
   - We should use the industry standard for this which is **HMAC** (Hash-based Message Authentication Code).
   - At least **SHA256** should be used for the HMAC.
-* Two subscriptions should be offered (to enable organisations to opt-in incrementally, and so that Custodian and Searcher contexts are kept seperate):
+* Two subscriptions should be offered (to enable organisations to opt-in incrementally, and so that Custodian and Searcher contexts are kept separate):
   1. `Job Created` subscription
   2. `Search Updated` subscription
 * Notifications should avoid introducing new infrastructure technologies at this point (e.g. avoid introducing Azure Service Bus or Event Grid), so there are no architectural changes to the infrastructure stack.
@@ -58,7 +58,7 @@ flowchart
 
 ### Subscription Management
 * Org Directory will need an optional ability for webhook URLs to be supplied (eventually the Custodians will supply these to us).
-* Org Directory will need a private secret key per Custodian that we use to sign webhook payloads (HMAC), so that Custodians can verify to is us who has called them (payload is authentic), and that the payload hasn't been tampered with.
+* Org Directory will need a private secret key per Custodian that we use to sign webhook payloads (HMAC), so that Custodians can verify it is us that called them (payload is authentic), and that the payload hasn't been tampered.
 
 ### Dispatching Notifications
 * Dispatching should use message queues, so that:
@@ -87,7 +87,7 @@ flowchart
 ## Related Changes
 
 ### Stub Custodians - Webhook rather than Poll for Jobs
-* For our mock Custodians that have `Job Created` subscriptions, they should not poll for Jobs, and instead we should have an HTTP endpoint for the `Job Created` webhook's destination.
+* For our mock Custodians that have `Job Created` subscriptions they should not poll for Jobs (disable/exclude applicable Custodian workers), and instead we should have an HTTP endpoint for the `Job Created` webhook's destination.
 
 ### E2E Tests - Webhook rather than Poll for Search completion
 * For our mock Searchers that have `Search Updated` subscriptions, the E2E Test logic should listen rather than poll for search results, for those applicable subscriptions.
@@ -98,8 +98,18 @@ flowchart
   3. The E2E Test logic listens to the HTTP Stream endpoint, rather than polling for search results, for those applicable subscriptions.
 * The existing Version 2 E2E tests should be expanded to cover a mixture of polling and notifications/webhooks (with a higher ratio of notifications compared to polling).
 
+### UI Test Harness
+* Ideally, the UI Test Harness should be updated so that it uses the `Search Updated` webhook rather than polling for serach results.
+  * An issue here is that it will be the same Org Directory that the E2E tests use, so how will the FindAPI know where the callback should go?  Maybe the Org Directory has a whitelist of "Search Updated callback URLs" so that each individual search can choose which callback URL to use.
+  * Probably this could be an option when logging in (choices: "Search Updated webhook" or "Poll for Search Results").
+
 ### Maybe: "Ping" job
 * For organisations to be able to test polling/webhooks.
 * Question: how would this be invoked?  Admin endpoint / concept?
 * Also, possibly, some way of knowing which Custodians are listening and responding.
   - This would likely require someway of the Custodians replying to the ping and the SUI system storing that.
+
+### Work Item / Job Expiry
+* The existing Work Item Expiry Window of 3 days is probably too long.  The default probably makes more sense to be 4 hours.
+* Granular Feedback of Search Jobs:
+  * Ideally, search results should show which Jobs/Custodians eventually failed to respond within the allowed time window.
