@@ -50,4 +50,4 @@ app.UseAuthorization();
 app.MapStaticAssets();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
