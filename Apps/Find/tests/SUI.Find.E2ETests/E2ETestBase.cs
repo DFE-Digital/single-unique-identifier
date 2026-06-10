@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -95,6 +96,21 @@ public class E2ETestBase
             }
 
             TestOutputHelper.WriteLine("Access token received OK");
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(accessToken);
+
+            TestOutputHelper.WriteLine("=== JWT HEADER ===");
+            foreach (var h in jwt.Header)
+                TestOutputHelper.WriteLine($"{h.Key}: {h.Value}");
+
+            TestOutputHelper.WriteLine("=== JWT CLAIMS ===");
+            foreach (var c in jwt.Claims)
+                TestOutputHelper.WriteLine($"{c.Type}: {c.Value}");
+
+            TestOutputHelper.WriteLine($"ISSUER: {jwt.Issuer}");
+            TestOutputHelper.WriteLine($"AUDIENCES: {string.Join(",", jwt.Audiences)}");
+
             return accessToken;
         });
     }
