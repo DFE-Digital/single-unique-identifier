@@ -181,7 +181,7 @@ public class JwtAuthMiddleware(
         {
             RequireSignedTokens = true,
             ValidateIssuer = true,
-            ValidIssuer = configValues.Issuer,
+            ValidIssuer = unverifiedToken.Issuer,
             ValidateAudience = true,
             ValidAudience = configValues.Audience,
             ValidateIssuerSigningKey = true,
