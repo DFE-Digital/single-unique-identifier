@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
@@ -10,7 +11,7 @@ using static SUI.Find.FindApi.Middleware.ResponseTracingMiddleware;
 namespace SUI.Find.FindApi.OpenApi;
 
 [ExcludeFromCodeCoverage(Justification = "OpenAPI filters do not contain any logic to be tested.")]
-public sealed class FindDocumentFilter : IDocumentFilter
+public sealed class FindDocumentFilter(IConfiguration configuration) : IDocumentFilter
 {
     public void Apply(IHttpRequestDataObject req, OpenApiDocument document)
     {
@@ -36,9 +37,9 @@ public sealed class FindDocumentFilter : IDocumentFilter
         TransformIntEnumsToStrings(document);
     }
 
-    private static void ConfigureSecuritySchemes(OpenApiDocument document)
+    private void ConfigureSecuritySchemes(OpenApiDocument document)
     {
-        var inboundAccessTokenUrl = Environment.GetEnvironmentVariable("InboundAccessTokenUrl");
+        var inboundAccessTokenUrl = configuration["InboundAccessTokenUrl"];
 
         if (string.IsNullOrWhiteSpace(inboundAccessTokenUrl))
         {

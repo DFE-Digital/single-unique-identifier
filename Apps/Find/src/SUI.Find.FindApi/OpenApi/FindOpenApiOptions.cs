@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 
 namespace SUI.Find.FindApi.OpenApi;
@@ -10,9 +11,9 @@ namespace SUI.Find.FindApi.OpenApi;
 )]
 public sealed class FindOpenApiOptions : DefaultOpenApiConfigurationOptions
 {
-    public FindOpenApiOptions()
+    public FindOpenApiOptions(IConfiguration configuration)
     {
-        DocumentFilters.Add(new FindDocumentFilter());
+        DocumentFilters.Add(new FindDocumentFilter(configuration));
     }
 
     public override OpenApiInfo Info { get; set; } =

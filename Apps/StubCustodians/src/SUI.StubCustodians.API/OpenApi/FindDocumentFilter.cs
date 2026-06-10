@@ -6,7 +6,7 @@ using Microsoft.OpenApi;
 namespace SUI.StubCustodians.API.OpenApi;
 
 [ExcludeFromCodeCoverage(Justification = "OpenAPI documentation")]
-public sealed class FindDocumentFilter(IConfiguration configuration) : IOpenApiDocumentTransformer
+public sealed class FindDocumentFilter : IOpenApiDocumentTransformer
 {
     private static OpenApiTag Tag(string name, string description, int order) =>
         new()
@@ -35,7 +35,7 @@ public sealed class FindDocumentFilter(IConfiguration configuration) : IOpenApiD
             {
                 ClientCredentials = new OpenApiOAuthFlow
                 {
-                    TokenUrl = new Uri("/api/v1.0/Auth/token", UriKind.Relative),
+                    TokenUrl = new Uri("/api/v1/auth/token", UriKind.Relative),
                     Scopes = new Dictionary<string, string>
                     {
                         { "find-record.read", "Read search status and results." },
