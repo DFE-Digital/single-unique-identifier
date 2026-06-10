@@ -15,6 +15,7 @@ builder.Services.AddCors(options =>
         "AllowAll",
         policy =>
         {
+            // It is safe to allow all origins and methods because this is a mock service.
             policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
         }
     );
