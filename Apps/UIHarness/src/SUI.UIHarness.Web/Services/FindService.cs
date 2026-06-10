@@ -13,7 +13,7 @@ public class FindService : IFindService
     private readonly IFindApiAuthClientProvider _authClientProvider;
     private readonly ILogger<FindService> _logger;
     private readonly string _matchApiKey;
-    private readonly string _accessTokenUrl;
+    private readonly string _inboundAccessTokenUrl;
 
     private static readonly string[] Scopes =
     [
@@ -37,8 +37,8 @@ public class FindService : IFindService
         _httpClient = httpClientFactory.CreateClient(nameof(FindService));
         _authClientProvider = authClientProvider;
         _matchApiKey = configuration.GetValue<string>("MATCH_API_KEY") ?? "local-dev-key-change-me";
-        _accessTokenUrl =
-            configuration.GetValue<string>("AccessTokenUrl")
+        _inboundAccessTokenUrl =
+            configuration.GetValue<string>("InboundAccessTokenUrl")
             ?? "https://localhost:7250/api/v1/auth/token";
         _logger = logger;
     }
@@ -231,7 +231,7 @@ public class FindService : IFindService
 
         var content = new FormUrlEncodedContent(formData);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, _accessTokenUrl)
+        var request = new HttpRequestMessage(HttpMethod.Post, _inboundAccessTokenUrl)
         {
             Content = content,
         };

@@ -854,7 +854,7 @@
         "type": "oauth2",
         "flows": {
           "clientCredentials": {
-            "tokenUrl": "https://localhost:7250/api/v1/auth/token",
+            "tokenUrl": "/api/v1.0/Auth/token",
             "scopes": {
               "find-record.read": "Read search status and results.",
               "fetch-record.read": "Retrieve records."

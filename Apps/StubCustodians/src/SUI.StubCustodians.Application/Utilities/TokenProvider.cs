@@ -29,7 +29,14 @@ public class TokenProvider : ITokenProvider
             return entry.Token;
         }
 
-        var accessTokenUrl = _configuration.GetValue<string>("AccessTokenUrl");
+        var accessTokenUrl = _configuration["InboundAccessTokenUrl"];
+        if (string.IsNullOrWhiteSpace(accessTokenUrl))
+        {
+            throw new InvalidOperationException(
+                "InboundAccessTokenUrl is not set in configuration."
+            );
+        }
+
         using var request = new HttpRequestMessage(HttpMethod.Post, accessTokenUrl);
 
         var creds = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
