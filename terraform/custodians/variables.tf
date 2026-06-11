@@ -79,3 +79,8 @@ variable "use_stub_custodians" {
   type        = bool
   default     = false
 }
+
+variable "AuthSettings_AccessTokenUrl" {
+  description = "Inbound Access Token URL (to be able to request tokens to use the Find API)"
+  type        = string
+}
