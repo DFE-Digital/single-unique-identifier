@@ -190,15 +190,20 @@ public abstract class SearchTestsBase(
 
         using var newSearchJobResult = await Fixture.Client.SendAsync(request);
 
+        var responseBody = await newSearchJobResult.Content.ReadAsStringAsync();
+        TestOutputHelper.WriteLine(
+            $"New Search response status {newSearchJobResult.StatusCode}, body: {responseBody}"
+        );
+
         // We then want to assert the returned body and status code
         Assert.Equal(HttpStatusCode.Accepted, newSearchJobResult.StatusCode);
-        var searchJobContent = await newSearchJobResult.Content.ReadAsStringAsync();
+
         var searchId = string.Empty;
         var links = new Dictionary<string, HalLink>();
 
         if (UsePolling)
         {
-            var searchJob = JsonSerializer.Deserialize<SearchWorkItem>(searchJobContent);
+            var searchJob = JsonSerializer.Deserialize<SearchWorkItem>(responseBody);
             if (searchJob != null)
             {
                 searchId = searchJob.WorkItemId;
@@ -207,7 +212,7 @@ public abstract class SearchTestsBase(
         }
         else
         {
-            var searchJob = JsonSerializer.Deserialize<SearchJob>(searchJobContent);
+            var searchJob = JsonSerializer.Deserialize<SearchJob>(responseBody);
             if (searchJob != null)
             {
                 searchId = searchJob.JobId;
