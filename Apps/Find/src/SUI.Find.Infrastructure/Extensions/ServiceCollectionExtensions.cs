@@ -26,7 +26,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<IAuditService, AuditStorageTableService>();
         services.AddSingleton<IAuditQueueClient, AuditQueueClient>();
-        services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IQueueClientFactory, QueueClientFactory>();
         services.AddSingleton<IHashService, HashService>();
         services.AddSingleton<IProviderHttpClient, ProviderHttpClient>();
@@ -37,7 +36,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ISearchResultEntryRepository, SearchResultEntryRepository>();
         services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
         services.AddSingleton<IFhirService, FhirService>();
-        services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
 
         services.AddAzureTableServices();
