@@ -40,6 +40,11 @@ public class JwtTokenService(
         // Build the claims collection using updated configuration settings
         var claims = new List<Claim>
         {
+            new(
+                JwtRegisteredClaimNames.Iat,
+                now.ToUnixTimeSeconds().ToString(),
+                ClaimValueTypes.Integer64
+            ),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
             new("client_id", clientId),
             new("scp", string.Join(' ', scopes)),
