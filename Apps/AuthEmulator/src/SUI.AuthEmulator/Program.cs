@@ -16,7 +16,9 @@ builder.Services.AddCors(options =>
         policy =>
         {
             // It is safe to allow all origins and methods because this is a mock service.
+#pragma warning disable S5122
             policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+#pragma warning restore S5122
         }
     );
 });
