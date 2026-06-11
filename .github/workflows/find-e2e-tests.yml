@@ -123,9 +123,6 @@ jobs:
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
-    env:
-      # Point OpenSSL to the .NET dev certs trust directory
-      SSL_CERT_DIR: /home/runner/.aspnet/dev-certs/trust:/etc/ssl/certs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -136,16 +133,7 @@ jobs:
           global-json-file: global.json
 
       - name: Generate and Trust .NET Dev Certificate
-        run: |
-          EXIT_CODE=0
-          dotnet dev-certs https --trust || EXIT_CODE=$?
-          
-          # Allow exit code 4 (partial trust), fail on anything else
-          if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 4 ]; then
-            echo "dotnet dev-certs https --trust failed with exit code $EXIT_CODE"
-            exit $EXIT_CODE
-          fi
-          echo "Dev certificate trusted successfully."
+        run: dotnet dev-certs https --trust
 
       - name: Setup Node.js (for Azurite and Functions tools)
         uses: actions/setup-node@v6
