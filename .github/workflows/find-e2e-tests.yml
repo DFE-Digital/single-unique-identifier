@@ -182,6 +182,9 @@ jobs:
         run: func start --port 7182 &
         env:
           StubCustodiansBaseUrl: http://localhost:5193
+          AuthSettings__Issuer: https://sandbox.api.example.gov.uk/sui-find-a-record/auth
+          AuthSettings__Audience: sui-find-a-record-api
+          AuthSettings__OidcDiscoveryUrl: http://localhost:5250/api/v1/.well-known/openid-configuration
         working-directory: Apps/Find/src/SUI.Find.FindApi
 
       - name: Run E2E Tests (against ephemeral environment)
