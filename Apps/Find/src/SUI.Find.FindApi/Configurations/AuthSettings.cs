@@ -4,6 +4,9 @@ public class AuthSettings
 {
     public const string SectionName = "AuthSettings";
 
+    // The AccessTokenUrl is specifically needed for the OpenAPI spec generation.
+    public string AccessTokenUrl { get; set; } = "https://localhost:7250/api/v1/auth/token";
+
     // OIDC Discovery configuration properties
     public string Issuer { get; set; } =
         "https://sandbox.api.example.gov.uk/sui-find-a-record/auth";

@@ -5,7 +5,6 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "AuditProcessorConnectionString": "UseDevelopmentStorage=true",
     "StubCustodiansBaseUrl": "https://localhost:7256",
-    "InboundAccessTokenUrl": "https://localhost:7250/api/v1/auth/token",
     "NhsAuthConfig:NHS_DIGITAL_TOKEN_URL": "https://int.api.service.nhs.uk/oauth2/token",
     "NhsAuthConfig:NHS_DIGITAL_FHIR_ENDPOINT": "https://int.api.service.nhs.uk/personal-demographics/FHIR/R4/",
     "NhsAuthConfig:NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES": 5,
@@ -19,6 +18,7 @@
     "StorageRetentionDays": 1,
     "AuthSettings__Issuer": "https://sandbox.api.example.gov.uk/sui-find-a-record/auth",
     "AuthSettings__Audience": "sui-find-a-record-api",
-    "AuthSettings__OidcDiscoveryUrl": "https://localhost:7250/api/v1/.well-known/openid-configuration"
+    "AuthSettings__OidcDiscoveryUrl": "https://localhost:7250/api/v1/.well-known/openid-configuration",
+    "AuthSettings__AccessTokenUrl": "https://localhost:7250/api/v1/auth/token"
   }
 }

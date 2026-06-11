@@ -29,15 +29,11 @@ public class TokenProvider : ITokenProvider
             return entry.Token;
         }
 
-        var accessTokenUrl = _configuration["InboundAccessTokenUrl"];
-        if (string.IsNullOrWhiteSpace(accessTokenUrl))
-        {
-            throw new InvalidOperationException(
-                "InboundAccessTokenUrl is not set in configuration."
-            );
-        }
+        var inboundAccessTokenUrl =
+            _configuration["AuthSettings:AccessTokenUrl"]
+            ?? "https://localhost:7250/api/v1/auth/token";
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, accessTokenUrl);
+        using var request = new HttpRequestMessage(HttpMethod.Post, inboundAccessTokenUrl);
 
         var creds = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
 

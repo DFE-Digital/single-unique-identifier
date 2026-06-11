@@ -173,7 +173,7 @@ jobs:
       - name: Start StubCustodians API
         run: dotnet run --no-build --launch-profile http &
         env:
-          InboundAccessTokenUrl: http://localhost:5250/api/v1/auth/token
+          AuthSettings__AccessTokenUrl: http://localhost:5250/api/v1/auth/token
         working-directory: Apps/StubCustodians/src/SUI.StubCustodians.API
       
       - name: Start AuthEmulator API

@@ -2,16 +2,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
+using SUI.Find.FindApi.Configurations;
 using static SUI.Find.FindApi.Middleware.ResponseTracingMiddleware;
 
 namespace SUI.Find.FindApi.OpenApi;
 
 [ExcludeFromCodeCoverage(Justification = "OpenAPI filters do not contain any logic to be tested.")]
-public sealed class FindDocumentFilter(IConfiguration configuration) : IDocumentFilter
+public sealed class FindDocumentFilter(IOptions<AuthSettings> authSettings) : IDocumentFilter
 {
     public void Apply(IHttpRequestDataObject req, OpenApiDocument document)
     {
@@ -39,15 +40,6 @@ public sealed class FindDocumentFilter(IConfiguration configuration) : IDocument
 
     private void ConfigureSecuritySchemes(OpenApiDocument document)
     {
-        var inboundAccessTokenUrl = configuration["InboundAccessTokenUrl"];
-
-        if (string.IsNullOrWhiteSpace(inboundAccessTokenUrl))
-        {
-            throw new InvalidOperationException(
-                "InboundAccessTokenUrl is not set in configuration."
-            );
-        }
-
         document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.OAuth2,
@@ -55,7 +47,10 @@ public sealed class FindDocumentFilter(IConfiguration configuration) : IDocument
             {
                 ClientCredentials = new OpenApiOAuthFlow
                 {
-                    TokenUrl = new Uri(inboundAccessTokenUrl, UriKind.RelativeOrAbsolute),
+                    TokenUrl = new Uri(
+                        authSettings.Value.AccessTokenUrl, // i.e. inboundAccessTokenUrl
+                        UriKind.RelativeOrAbsolute
+                    ),
                     Scopes = new Dictionary<string, string>
                     {
                         { "match-record.read", "Obtain the id for a person." },

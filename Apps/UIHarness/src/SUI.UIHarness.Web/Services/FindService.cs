@@ -38,7 +38,7 @@ public class FindService : IFindService
         _authClientProvider = authClientProvider;
         _matchApiKey = configuration.GetValue<string>("MATCH_API_KEY") ?? "local-dev-key-change-me";
         _inboundAccessTokenUrl =
-            configuration.GetValue<string>("InboundAccessTokenUrl")
+            configuration.GetValue<string>("AuthSettings:AccessTokenUrl")
             ?? "https://localhost:7250/api/v1/auth/token";
         _logger = logger;
     }

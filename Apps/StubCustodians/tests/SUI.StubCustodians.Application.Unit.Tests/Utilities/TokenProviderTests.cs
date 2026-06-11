@@ -35,8 +35,6 @@ public class TokenProviderTests
             };
         });
 
-        _config["InboundAccessTokenUrl"] = "https://find.test/api/v1/token";
-
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
 
         var provider = new TokenProvider(client, _config);
@@ -65,8 +63,6 @@ public class TokenProviderTests
                 Content = new StringContent(JsonSerializer.Serialize(response)),
             };
         });
-
-        _config["InboundAccessTokenUrl"] = "https://find.test/api/v1/token";
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
 
@@ -100,8 +96,6 @@ public class TokenProviderTests
             };
         });
 
-        _config["InboundAccessTokenUrl"] = "https://find.test/api/v1/token";
-
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
 
         var provider = new TokenProvider(client, _config);
@@ -122,30 +116,11 @@ public class TokenProviderTests
             return new HttpResponseMessage(HttpStatusCode.Unauthorized);
         });
 
-        _config["InboundAccessTokenUrl"] = "https://find.test/api/v1/token";
-
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
 
         var provider = new TokenProvider(client, _config);
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
-            provider.GetTokenAsync("client", "secret")
-        );
-    }
-
-    [Fact]
-    public async Task GetTokenAsync_ShouldThrow_WhenTokenUrlNotSet()
-    {
-        var handler = new FakeHandler(req =>
-        {
-            return new HttpResponseMessage(HttpStatusCode.Unauthorized);
-        });
-
-        var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
-
-        var provider = new TokenProvider(client, _config);
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             provider.GetTokenAsync("client", "secret")
         );
     }
