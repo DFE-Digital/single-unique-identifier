@@ -2,15 +2,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
+using SUI.Find.FindApi.Configurations;
 using static SUI.Find.FindApi.Middleware.ResponseTracingMiddleware;
 
 namespace SUI.Find.FindApi.OpenApi;
 
 [ExcludeFromCodeCoverage(Justification = "OpenAPI filters do not contain any logic to be tested.")]
-public sealed class FindDocumentFilter : IDocumentFilter
+public sealed class FindDocumentFilter(IOptions<AuthSettings> authSettings) : IDocumentFilter
 {
     public void Apply(IHttpRequestDataObject req, OpenApiDocument document)
     {
@@ -36,7 +38,7 @@ public sealed class FindDocumentFilter : IDocumentFilter
         TransformIntEnumsToStrings(document);
     }
 
-    private static void ConfigureSecuritySchemes(OpenApiDocument document)
+    private void ConfigureSecuritySchemes(OpenApiDocument document)
     {
         document.Components.SecuritySchemes["oauth2_clientCredentials"] = new OpenApiSecurityScheme
         {
@@ -45,7 +47,10 @@ public sealed class FindDocumentFilter : IDocumentFilter
             {
                 ClientCredentials = new OpenApiOAuthFlow
                 {
-                    TokenUrl = new Uri("/api/v1/auth/token", UriKind.Relative),
+                    TokenUrl = new Uri(
+                        authSettings.Value.AccessTokenUrl, // i.e. inboundAccessTokenUrl
+                        UriKind.RelativeOrAbsolute
+                    ),
                     Scopes = new Dictionary<string, string>
                     {
                         { "match-record.read", "Obtain the id for a person." },
