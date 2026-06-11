@@ -123,6 +123,9 @@ jobs:
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
+    env:
+      # Point OpenSSL to the .NET dev certs trust directory
+      SSL_CERT_DIR: $HOME/.aspnet/dev-certs/trust:/usr/lib/ssl/certs:/etc/ssl/certs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
