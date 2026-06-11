@@ -21,4 +21,9 @@ public class SecureAuthStoreService : IAuthStoreService
     {
         throw new NotImplementedException();
     }
+
+    public string GetOrganisationIdForClientId(string clientId)
+    {
+        throw new NotImplementedException();
+    }
 }

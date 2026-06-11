@@ -1,12 +1,16 @@
 using System.IdentityModel.Tokens.Jwt;
 using SUI.Find.FindApi.Models;
-using SUI.Find.Infrastructure.Models;
+using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Middleware;
 
 public class AuthContextFactory : IAuthContextFactory
 {
-    public AuthContext FromJwt(JwtSecurityToken jwt, AuthStore store)
+    public AuthContext FromJwt(
+        JwtSecurityToken jwt,
+        IAuthStoreService storeService,
+        bool useAuthStoreForAuthorisation
+    )
     {
         var clientId = Get(jwt, "client_id");
         if (string.IsNullOrWhiteSpace(clientId))
@@ -15,16 +19,26 @@ public class AuthContextFactory : IAuthContextFactory
         if (string.IsNullOrWhiteSpace(clientId))
             throw new InvalidOperationException("Token did not contain client_id or sub.");
 
-        var client = store.Clients?.FirstOrDefault(c => c.ClientId == clientId);
-        if (client == null)
-            throw new InvalidOperationException("Client could not be found in auth store.");
+        var organisationId = storeService.GetOrganisationIdForClientId(clientId);
 
-        if (string.IsNullOrWhiteSpace(client.OrganisationId))
+        if (string.IsNullOrWhiteSpace(organisationId))
             throw new InvalidOperationException(
                 "No Organisation ID found for client in auth store."
             );
 
-        var scopes = jwt
+        var scopes = useAuthStoreForAuthorisation
+            ? storeService.GetScopesByClientId(clientId)
+            : GetScopesFromToken(jwt);
+
+        return new AuthContext(clientId, organisationId, scopes);
+
+        static string Get(JwtSecurityToken t, string type) =>
+            t.Claims.FirstOrDefault(c => c.Type == type)?.Value ?? string.Empty;
+    }
+
+    private static List<string> GetScopesFromToken(JwtSecurityToken jwt)
+    {
+        return jwt
             .Claims.Where(c => c.Type is "scp" or "scope" or "roles" or "role")
             .SelectMany(c =>
                 c.Value.Split(
@@ -34,10 +48,5 @@ public class AuthContextFactory : IAuthContextFactory
             )
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
-
-        return new AuthContext(clientId, client.OrganisationId, scopes);
-
-        static string Get(JwtSecurityToken t, string type) =>
-            t.Claims.FirstOrDefault(c => c.Type == type)?.Value ?? string.Empty;
     }
 }

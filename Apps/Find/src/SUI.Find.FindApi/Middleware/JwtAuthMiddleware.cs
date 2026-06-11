@@ -147,7 +147,11 @@ public class JwtAuthMiddleware(
             return;
         }
 
-        var authContext = authContextFactory.FromJwt(jwt, store);
+        var authContext = authContextFactory.FromJwt(
+            jwt,
+            authStoreService,
+            authSettings.Value.UseAuthStoreForAuthorisation
+        );
 
         var requiredScopes = GetRequiredScopes(context);
 
@@ -250,17 +254,11 @@ public class JwtAuthMiddleware(
         return attr?.Scopes.ToArray() ?? [];
     }
 
-    private bool HasAnyRequiredScope(AuthContext caller, IReadOnlyList<string> requiredScopes)
+    private static bool HasAnyRequiredScope(
+        AuthContext caller,
+        IReadOnlyList<string> requiredScopes
+    )
     {
-        if (authSettings.Value.UseAuthStoreForAuthorisation)
-        {
-            return requiredScopes.Any(rs =>
-                authStoreService
-                    .GetScopesByClientId(caller.ClientId)
-                    .Contains(rs, StringComparer.OrdinalIgnoreCase)
-            );
-        }
-
         return requiredScopes.Any(rs =>
             caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
         );

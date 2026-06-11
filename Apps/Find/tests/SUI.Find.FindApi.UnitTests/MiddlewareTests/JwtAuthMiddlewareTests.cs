@@ -379,7 +379,7 @@ public class JwtAuthMiddlewareTests
             var context = CreateMockFunctionContext($"Bearer {token}");
 
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
                 .Returns(new AuthContext("clientId", "organisationId", ["wrong.scope"]));
             var sut = new JwtAuthMiddleware(
                 _mockAuthStore,
@@ -418,96 +418,7 @@ public class JwtAuthMiddlewareTests
 
             var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
-                .Returns(authContext);
-            var sut = new JwtAuthMiddleware(
-                _mockAuthStore,
-                _mockAuthContextFactory,
-                _mockConfigManager,
-                _mockOptions,
-                _mockLogger
-            );
-
-            // Act
-            await sut.Invoke(context, Next);
-
-            // Assert
-            AssertAccessAllowed(context, authContext);
-        }
-
-        [Fact]
-        public async Task TestInvoke_WhenScopesIncorrect_UsingAuthStoreForAuthorisation_ReturnsProblemResponse()
-        {
-            // Arrange
-            var store = new AuthStore
-            {
-                Audience = "Audience",
-                Issuer = "Issuer",
-                SigningKey = "SecretKeyShouldBeLongEnoughToPass12345!",
-                DefaultTokenLifetimeMinutes = 60,
-            };
-            _mockAuthStore.GetAuthStoreAsync().Returns(store);
-            _mockAuthStore.GetScopesByClientId(Arg.Any<string>()).Returns(["auth-store.scope"]);
-
-            _authSettings.UseAuthStoreForAuthorisation = true;
-            _mockOptions.Value.Returns(_authSettings);
-
-            var token = GenerateSymmetricToken(
-                store.Issuer,
-                store.Audience,
-                store.SigningKey,
-                "clientId"
-            );
-            var context = CreateMockFunctionContext($"Bearer {token}");
-
-            var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
-            _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
-                .Returns(authContext);
-            var sut = new JwtAuthMiddleware(
-                _mockAuthStore,
-                _mockAuthContextFactory,
-                _mockConfigManager,
-                _mockOptions,
-                _mockLogger
-            );
-
-            // Act
-            await sut.Invoke(context, Next);
-
-            // Assert
-            AssertAccessDenied(context, "Insufficient scope for this operation");
-        }
-
-        [Fact]
-        public async Task TestInvoke_WithValidInputs_UsingAuthStoreForAuthorisation_ReturnsAuthContext()
-        {
-            // Arrange
-            var store = new AuthStore
-            {
-                Audience = "Audience",
-                Issuer = "Issuer",
-                SigningKey = "SecretKeyShouldBeLongEnoughToPass12345!",
-                DefaultTokenLifetimeMinutes = 60,
-            };
-            _mockAuthStore.GetAuthStoreAsync().Returns(store);
-            _mockAuthStore.GetScopesByClientId(Arg.Any<string>()).Returns(["fetch-record.read"]);
-
-            _authSettings.UseAuthStoreForAuthorisation = true;
-            _mockOptions.Value.Returns(_authSettings);
-
-            var token = GenerateSymmetricToken(
-                store.Issuer,
-                store.Audience,
-                store.SigningKey,
-                "clientId",
-                "auth-store.scope"
-            );
-            var context = CreateMockFunctionContext($"Bearer {token}");
-
-            var authContext = new AuthContext("clientId", "organisationId", ["auth-store.scope"]);
-            _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
                 .Returns(authContext);
             var sut = new JwtAuthMiddleware(
                 _mockAuthStore,
@@ -540,7 +451,7 @@ public class JwtAuthMiddlewareTests
 
             var authContext = new AuthContext("clientId", "organisationId", ["wrong.scope"]);
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
                 .Returns(authContext);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
@@ -557,83 +468,6 @@ public class JwtAuthMiddlewareTests
 
             // Assert
             AssertAccessDenied(context, "Insufficient scope for this operation");
-        }
-
-        [Fact]
-        public async Task Scenario0_ValidToken_WhenScopesIncorrect_UsingAuthStoreForAuthorisation_ShouldDenyAccess()
-        {
-            // Arrange
-            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid);
-            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
-            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
-            _mockAuthStore
-                .GetAuthStoreAsync()
-                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
-
-            _mockAuthStore.GetScopesByClientId(Arg.Any<string>()).Returns(["auth-store.scope"]);
-            _authSettings.UseAuthStoreForAuthorisation = true;
-            _mockOptions.Value.Returns(_authSettings);
-
-            var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
-            _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
-                .Returns(authContext);
-
-            var context = CreateMockFunctionContext($"Bearer {token}");
-            var sut = new JwtAuthMiddleware(
-                _mockAuthStore,
-                _mockAuthContextFactory,
-                _mockConfigManager,
-                _mockOptions,
-                _mockLogger
-            );
-
-            // Act
-            await sut.Invoke(context, Next);
-
-            // Assert
-            AssertAccessDenied(context, "Insufficient scope for this operation");
-        }
-
-        [Fact]
-        public async Task Scenario1_ValidToken_UsingAuthStoreForAuthorisation_ShouldAllowAccessAndPopulateAuthContext()
-        {
-            // Scenario: Valid token, should Allow access, and the auth context should be set as expected
-            // Arrange
-            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid);
-            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
-            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
-            _mockAuthStore
-                .GetAuthStoreAsync()
-                .Returns(new AuthStore { DefaultTokenLifetimeMinutes = 60 });
-
-            _mockAuthStore.GetScopesByClientId(Arg.Any<string>()).Returns(["fetch-record.read"]);
-            _authSettings.UseAuthStoreForAuthorisation = true;
-            _mockOptions.Value.Returns(_authSettings);
-
-            var authContext = new AuthContext(
-                "clientId",
-                "organisationId",
-                ["should.check.auth.store"]
-            );
-            _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
-                .Returns(authContext);
-
-            var context = CreateMockFunctionContext($"Bearer {token}");
-            var sut = new JwtAuthMiddleware(
-                _mockAuthStore,
-                _mockAuthContextFactory,
-                _mockConfigManager,
-                _mockOptions,
-                _mockLogger
-            );
-
-            // Act
-            await sut.Invoke(context, Next);
-
-            // Assert
-            AssertAccessAllowed(context, authContext);
         }
 
         [Fact]
@@ -650,7 +484,7 @@ public class JwtAuthMiddlewareTests
 
             var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
                 .Returns(authContext);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
@@ -686,7 +520,7 @@ public class JwtAuthMiddlewareTests
 
             var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<AuthStore>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
                 .Returns(authContext);
 
             var context = CreateMockFunctionContext($"Bearer {token}");

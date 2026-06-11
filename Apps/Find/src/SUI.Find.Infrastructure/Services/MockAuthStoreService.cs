@@ -1,6 +1,5 @@
 using System.IO.Abstractions;
 using System.Text.Json;
-using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.Infrastructure.Services;
@@ -8,8 +7,8 @@ namespace SUI.Find.Infrastructure.Services;
 public interface IAuthStoreService
 {
     Task<AuthStore> GetAuthStoreAsync();
-    Task<Result<AuthClient>> GetClientByCredentials(string clientId, string clientSecret);
     IReadOnlyList<string> GetScopesByClientId(string clientId);
+    string GetOrganisationIdForClientId(string clientId);
 }
 
 public class MockAuthStoreService : IAuthStoreService
@@ -29,27 +28,21 @@ public class MockAuthStoreService : IAuthStoreService
         return Task.FromResult(_authStore.Value);
     }
 
-    public Task<Result<AuthClient>> GetClientByCredentials(string clientId, string clientSecret)
-    {
-        var clients = GetClients();
-
-        var client = clients.FirstOrDefault(c =>
-            c.ClientId == clientId && c.ClientSecret == clientSecret && c.Enabled
-        );
-
-        var result = client is null
-            ? Result<AuthClient>.Fail("Unauthorized")
-            : Result<AuthClient>.Ok(client);
-
-        return Task.FromResult(result);
-    }
-
     public IReadOnlyList<string> GetScopesByClientId(string clientId)
     {
         var clients = GetClients();
 
         var scopes = clients.FirstOrDefault(x => x.ClientId == clientId)?.AllowedScopes ?? [];
         return scopes;
+    }
+
+    public string GetOrganisationIdForClientId(string clientId)
+    {
+        var clients = GetClients();
+
+        var organisationId =
+            clients.FirstOrDefault(x => x.ClientId == clientId)?.OrganisationId ?? string.Empty;
+        return organisationId;
     }
 
     private List<AuthClient> GetClients()
