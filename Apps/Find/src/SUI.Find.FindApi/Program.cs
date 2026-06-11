@@ -3,6 +3,7 @@ using System.Net;
 using Azure.Data.Tables;
 using DotNetEnv;
 using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,6 +21,7 @@ using SUI.Find.Application.Services;
 using SUI.Find.Application.Services.Matching;
 using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Middleware;
+using SUI.Find.FindApi.OpenApi;
 using SUI.Find.FindApi.Startup;
 using SUI.Find.Infrastructure.Extensions;
 using SUI.Find.Infrastructure.Interfaces;
@@ -65,6 +67,7 @@ builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>
 builder.Services.AddHealthChecks();
 builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
+builder.Services.AddSingleton<IOpenApiConfigurationOptions, FindOpenApiOptions>();
 
 // Infrastructure services
 builder.Services.AddInfrastructureServices();

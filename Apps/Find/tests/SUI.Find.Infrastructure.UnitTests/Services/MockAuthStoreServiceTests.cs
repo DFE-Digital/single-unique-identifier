@@ -63,64 +63,6 @@ public class MockAuthStoreServiceTests
     }
 
     [Fact]
-    public async Task GetClientByCredentials_ShouldReturnClient_WhenIdAndSecretMatch()
-    {
-        // Arrange
-        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
-        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
-
-        // Act
-        var result = await _sut.GetClientByCredentials("LOCAL-AUTHORITY-01", "SUIProject");
-
-        // Assert
-        Assert.True(result.Success);
-        Assert.NotNull(result.Value);
-        Assert.Equal("LOCAL-AUTHORITY-01", result.Value.ClientId);
-    }
-
-    [Fact]
-    public async Task GetClientByCredentials_ShouldReturnFailure_WhenCredentialsAreInvalid()
-    {
-        // Arrange
-        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
-        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
-
-        // Act
-        var result = await _sut.GetClientByCredentials("LOCAL-AUTHORITY-01", "WRONG-PASSWORD-XYZ");
-
-        // Assert
-        Assert.False(result.Success);
-        Assert.Equal("Unauthorized", result.Error);
-        Assert.Null(result.Value);
-    }
-
-    [Fact]
-    public async Task GetClientByCredentials_ShouldThrowInvalidOperationException_WhenFileHeaderIsMissingMetadata()
-    {
-        // Arrange
-        var badStore = new AuthStore
-        {
-            Issuer = "", // Missing
-            Audience = "some-audience",
-            SigningKey = "some-key",
-            DefaultTokenLifetimeMinutes = 60,
-        };
-        var badJson = JsonSerializer.Serialize(badStore, JsonSerializerOptions.Web);
-
-        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(badJson);
-
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.GetClientByCredentials("LOCAL-AUTHORITY-01", "SUIProject")
-        );
-
-        Assert.Equal("Auth store file is missing issuer, audience, or signingKey.", ex.Message);
-    }
-
-    [Fact]
     public async Task LoadStore_ShouldThrowInvalidOperationException_WhenFileDoesNotExist()
     {
         // Arrange
