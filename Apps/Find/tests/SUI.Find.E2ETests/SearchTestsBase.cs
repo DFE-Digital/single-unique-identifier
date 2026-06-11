@@ -190,9 +190,9 @@ public abstract class SearchTestsBase(
 
         using var newSearchJobResult = await Fixture.Client.SendAsync(request);
 
-        var responseBody = await newSearchJobResult.Content.ReadAsStringAsync();
+        var newSearchResponseBody = await newSearchJobResult.Content.ReadAsStringAsync();
         TestOutputHelper.WriteLine(
-            $"New Search response status {newSearchJobResult.StatusCode}, body: {responseBody}"
+            $"New Search response status {newSearchJobResult.StatusCode}, body: {newSearchResponseBody}"
         );
 
         // We then want to assert the returned body and status code
@@ -203,7 +203,7 @@ public abstract class SearchTestsBase(
 
         if (UsePolling)
         {
-            var searchJob = JsonSerializer.Deserialize<SearchWorkItem>(responseBody);
+            var searchJob = JsonSerializer.Deserialize<SearchWorkItem>(newSearchResponseBody);
             if (searchJob != null)
             {
                 searchId = searchJob.WorkItemId;
@@ -212,7 +212,7 @@ public abstract class SearchTestsBase(
         }
         else
         {
-            var searchJob = JsonSerializer.Deserialize<SearchJob>(responseBody);
+            var searchJob = JsonSerializer.Deserialize<SearchJob>(newSearchResponseBody);
             if (searchJob != null)
             {
                 searchId = searchJob.JobId;
