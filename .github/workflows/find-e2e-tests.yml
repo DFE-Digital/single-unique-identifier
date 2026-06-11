@@ -168,12 +168,7 @@ jobs:
       - name: Create local.settings.json for Find API
         run: |
           cp Apps/Find/src/SUI.Find.FindApi/example.local.settings.json \
-          Apps/Find/src/SUI.Find.FindApi/local.settings.json
-          cd Apps/Find/src/SUI.Find.FindApi
-          func settings add UseStubAuthTokenService false
-          func settings add AuthSettings__Issuer "https://sandbox.api.example.gov.uk/sui-find-a-record/auth"
-          func settings add AuthSettings__Audience "sui-find-a-record-api"
-          func settings add AuthSettings__OidcDiscoveryUrl "http://localhost:5250/api/v1/.well-known/openid-configuration"
+             Apps/Find/src/SUI.Find.FindApi/local.settings.json
 
       - name: Start StubCustodians API
         run: dotnet run --no-build --launch-profile http &
@@ -191,6 +186,7 @@ jobs:
         run: func start --port 7182 &
         env:
           StubCustodiansBaseUrl: http://localhost:5193
+          AuthSettings__OidcDiscoveryUrl: http://localhost:5250/api/v1/.well-known/openid-configuration
         working-directory: Apps/Find/src/SUI.Find.FindApi
 
       - name: Run E2E Tests (against ephemeral environment)
