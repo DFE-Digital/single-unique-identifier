@@ -22,6 +22,7 @@ function SetupAndRunTests {
         $procs = $(
             Start-Process dotnet "build" -NoNewWindow -WorkingDirectory Apps/Find/src/SUI.Find.FindApi -PassThru;
             Start-Process dotnet "build" -NoNewWindow -WorkingDirectory Apps/StubCustodians/src/SUI.StubCustodians.API -PassThru;
+            Start-Process dotnet "build" -NoNewWindow -WorkingDirectory Apps/AuthEmulator/src/SUI.AuthEmulator -PassThru;
         )
         $procs | Wait-Process
         Write-Host "Built .NET projects ok"
@@ -30,11 +31,14 @@ function SetupAndRunTests {
         Write-Host "Starting apps..."
         $procs = $(
             Start-Process func "start --port 7182" -NoNewWindow -WorkingDirectory Apps/Find/src/SUI.Find.FindApi -PassThru;
-            Start-Process dotnet "run --no-build" -NoNewWindow -WorkingDirectory Apps/StubCustodians/src/SUI.StubCustodians.API -PassThru;
+            Start-Process dotnet "run --no-build --launch-profile https" -NoNewWindow -WorkingDirectory Apps/StubCustodians/src/SUI.StubCustodians.API -PassThru;
+            Start-Process dotnet "run --no-build --launch-profile https" -NoNewWindow -WorkingDirectory Apps/AuthEmulator/src/SUI.AuthEmulator -PassThru;
         )
 
         # Wait for Find API to be up...
         WaitForAPI -Url "http://localhost:7182/api/health" -Name "Find API"
+        WaitForAPI -Url "https://localhost:7256/api/health" -Name "StubCustodians API"
+        WaitForAPI -Url "https://localhost:7250/api/health" -Name "AuthEmulator API"
 
         # Run e2e tests
         Write-Host "Running e2e tests..."
