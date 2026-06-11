@@ -135,4 +135,33 @@ public class MockAuthStoreServiceTests
         // Act & Assert
         await Assert.ThrowsAsync<JsonException>(() => _sut.GetAuthStoreAsync());
     }
+
+    [Fact]
+    public async Task GetScopesByClientId_WithValidClientId_ShouldReturnScopes()
+    {
+        // Arrange
+        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
+
+        // Act
+        var result = _sut.GetScopesByClientId("LOCAL-AUTHORITY-01");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equivalent(
+            new[]
+            {
+                "match-record.read",
+                "find-record.read",
+                "find-record.write",
+                "fetch-record.read",
+                "fetch-record.write",
+                "work-item.read",
+                "work-item.write",
+            },
+            result,
+            strict: true
+        );
+    }
 }
