@@ -142,7 +142,7 @@ public class JwtAuthMiddleware(
                 req,
                 HttpStatusCode.Unauthorized,
                 nameof(HttpStatusCode.Unauthorized),
-                $"Invalid bearer token. {ex}" // rs-todo: revert this
+                "Invalid bearer token."
             );
             return;
         }
