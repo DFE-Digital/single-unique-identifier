@@ -11,6 +11,16 @@ public class MockAuthStoreServiceTests
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
     private readonly MockAuthStoreService _sut;
     private readonly string _realStoreFilePath;
+    private static readonly string[] ExpectedScopes =
+    [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write",
+        "work-item.read",
+        "work-item.write",
+    ];
 
     public MockAuthStoreServiceTests()
     {
@@ -149,19 +159,6 @@ public class MockAuthStoreServiceTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equivalent(
-            new[]
-            {
-                "match-record.read",
-                "find-record.read",
-                "find-record.write",
-                "fetch-record.read",
-                "fetch-record.write",
-                "work-item.read",
-                "work-item.write",
-            },
-            result,
-            strict: true
-        );
+        Assert.Equivalent(ExpectedScopes, result, strict: true);
     }
 }
