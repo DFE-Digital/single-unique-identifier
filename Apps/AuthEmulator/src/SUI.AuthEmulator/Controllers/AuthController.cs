@@ -74,10 +74,7 @@ public class AuthController(
             grantedScopes = requestedScopes;
         }
 
-        var token = await jwtTokenService.GenerateToken(
-            authClient.TokenRequest!.ClientId,
-            grantedScopes
-        );
+        var token = jwtTokenService.GenerateToken(authClient.TokenRequest!.ClientId, grantedScopes);
 
         return TypedResults.Ok(
             new AuthTokenResponse

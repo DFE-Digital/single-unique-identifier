@@ -56,6 +56,14 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<AuthSettings>>().Value;
+
+    var logger = sp.GetRequiredService<ILogger<Program>>();
+    if (logger.IsEnabled(LogLevel.Information))
+        logger.LogInformation(
+            "Using OIDC Discovery URL: {OidcDiscoveryUrl}",
+            settings.OidcDiscoveryUrl
+        );
+
     return new ConfigurationManager<OpenIdConnectConfiguration>(
         settings.OidcDiscoveryUrl,
         new OpenIdConnectConfigurationRetriever(),

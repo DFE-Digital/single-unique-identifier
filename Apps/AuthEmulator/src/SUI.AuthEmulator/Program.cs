@@ -16,7 +16,9 @@ builder.Services.AddCors(options =>
         policy =>
         {
             // It is safe to allow all origins and methods because this is a mock service.
+#pragma warning disable S5122
             policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+#pragma warning restore S5122
         }
     );
 });
@@ -24,6 +26,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddProblemDetails();
 builder.Services.AddHttpContextAccessor();
+
+// Added to allow for reliable test mock times
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();

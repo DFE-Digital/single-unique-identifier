@@ -1,37 +1,48 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
+using Microsoft.Extensions.Options;
+using SUI.AuthEmulator.Configurations;
 
 namespace SUI.AuthEmulator.Services;
 
-public class JwtTokenService(IAuthStoreService authStoreService) : IJwtTokenService
+public class JwtTokenService(
+    IOptions<AuthSettings> authSettings,
+    IJwksKeyProvider jwksKeyProvider,
+    TimeProvider timeProvider
+) : IJwtTokenService
 {
-    public async Task<string> GenerateToken(string clientId, IReadOnlyList<string> scopes)
-    {
-        var store = await authStoreService.GetAuthStoreAsync();
-        var now = DateTimeOffset.UtcNow;
-        var expires = now.AddMinutes(
-            store.DefaultTokenLifetimeMinutes > 0 ? store.DefaultTokenLifetimeMinutes : 60
-        );
+    private readonly AuthSettings _authSettings = authSettings.Value;
 
+    public string GenerateToken(string clientId, IReadOnlyList<string> scopes)
+    {
+        // Fetch active keys from the JWKS key provider
+        var signingKeys = jwksKeyProvider.GetKeys();
+
+        if (signingKeys.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "No RSA signing keys are available from the JWKS provider."
+            );
+        }
+
+        // Randomly choose an RSA security key securely using CSPRNG
+        var randomIndex = RandomNumberGenerator.GetInt32(signingKeys.Count);
+        var selectedKey = signingKeys.ElementAt(randomIndex);
+
+        // Grab the Asymmetric Signing Credentials directly from the record
+        var credentials = selectedKey.SigningCredentials;
+
+        // Calculate token lifetime using the testable TimeProvider
+        var now = timeProvider.GetUtcNow();
+        var expires = now.AddMinutes(_authSettings.TokenLifetimeMinutes);
+
+        // Build the claims collection using updated configuration settings
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Iss, store.Issuer),
-            new(JwtRegisteredClaimNames.Aud, store.Audience),
             new(
                 JwtRegisteredClaimNames.Iat,
                 now.ToUnixTimeSeconds().ToString(),
-                ClaimValueTypes.Integer64
-            ),
-            new(
-                JwtRegisteredClaimNames.Nbf,
-                now.ToUnixTimeSeconds().ToString(),
-                ClaimValueTypes.Integer64
-            ),
-            new(
-                JwtRegisteredClaimNames.Exp,
-                expires.ToUnixTimeSeconds().ToString(),
                 ClaimValueTypes.Integer64
             ),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
@@ -39,19 +50,17 @@ public class JwtTokenService(IAuthStoreService authStoreService) : IJwtTokenServ
             new("scp", string.Join(' ', scopes)),
         };
 
-        var keyBytes = Encoding.UTF8.GetBytes((string)store.SigningKey);
-        var securityKey = new SymmetricSecurityKey(keyBytes);
-        var creds = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
+        // Generate the asymmetric JWT structure
         var jwt = new JwtSecurityToken(
-            issuer: store.Issuer,
-            audience: store.Audience,
+            issuer: _authSettings.Issuer,
+            audience: _authSettings.Audience,
             claims: claims,
             notBefore: now.UtcDateTime,
             expires: expires.UtcDateTime,
-            signingCredentials: creds
+            signingCredentials: credentials
         );
 
+        // Write the token and return
         return new JwtSecurityTokenHandler().WriteToken(jwt);
     }
 }
