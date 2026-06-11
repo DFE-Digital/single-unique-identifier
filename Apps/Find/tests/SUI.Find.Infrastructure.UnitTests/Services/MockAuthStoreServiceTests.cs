@@ -1,7 +1,6 @@
 using System.IO.Abstractions;
 using System.Text.Json;
 using NSubstitute;
-using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
@@ -102,5 +101,21 @@ public class MockAuthStoreServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.Equivalent(ExpectedScopes, result, strict: true);
+    }
+
+    [Fact]
+    public async Task GetOrganisationIdForClientId_WithValidClientId_ShouldReturnScopes()
+    {
+        // Arrange
+        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
+
+        // Act
+        var result = _sut.GetOrganisationIdForClientId("LOCAL-AUTHORITY-01");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("LOCAL-AUTHORITY-01", result);
     }
 }
