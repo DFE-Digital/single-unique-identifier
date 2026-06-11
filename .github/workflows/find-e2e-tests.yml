@@ -125,7 +125,7 @@ jobs:
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
     env:
       # Point OpenSSL to the .NET dev certs trust directory
-      SSL_CERT_DIR: $HOME/.aspnet/dev-certs/trust:/usr/lib/ssl/certs:/etc/ssl/certs
+      SSL_CERT_DIR: /home/runner/.aspnet/dev-certs/trust:/usr/lib/ssl/certs:/etc/ssl/certs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
