@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using NSubstitute;
 using SUI.StubCustodians.Application.Models;
 using SUI.StubCustodians.Application.Utilities;
 
@@ -8,6 +10,8 @@ namespace SUI.StubCustodians.Application.Unit.Tests.Utilities;
 
 public class TokenProviderTests
 {
+    private readonly IConfiguration _config = Substitute.For<IConfiguration>();
+
     [Fact]
     public async Task GetTokenAsync_ShouldFetchToken_FromApi()
     {
@@ -33,7 +37,7 @@ public class TokenProviderTests
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
 
-        var provider = new TokenProvider(client);
+        var provider = new TokenProvider(client, _config);
 
         var token = await provider.GetTokenAsync("client", "secret");
 
@@ -62,7 +66,7 @@ public class TokenProviderTests
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
 
-        var provider = new TokenProvider(client);
+        var provider = new TokenProvider(client, _config);
 
         var first = await provider.GetTokenAsync("client", "secret");
         var second = await provider.GetTokenAsync("client", "secret");
@@ -94,7 +98,7 @@ public class TokenProviderTests
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
 
-        var provider = new TokenProvider(client);
+        var provider = new TokenProvider(client, _config);
 
         var token1 = await provider.GetTokenAsync("client1", "secret1");
         var token2 = await provider.GetTokenAsync("client2", "secret2");
@@ -114,7 +118,7 @@ public class TokenProviderTests
 
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
 
-        var provider = new TokenProvider(client);
+        var provider = new TokenProvider(client, _config);
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
             provider.GetTokenAsync("client", "secret")
