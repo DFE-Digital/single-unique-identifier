@@ -176,6 +176,8 @@ jobs:
       
       - name: Start AuthEmulator API
         run: dotnet run --no-build --launch-profile http &
+        env:
+          AuthSettings__BaseUrl: http://localhost:5250
         working-directory: Apps/AuthEmulator/src/SUI.AuthEmulator
 
       - name: Start Find API
