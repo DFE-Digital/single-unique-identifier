@@ -241,7 +241,7 @@ jobs:
             --results-directory TestResults \
             -e E2E__BaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}func-${{ steps.env_config.outputs.region_short }}-find01.azurewebsites.net/api/ \
             -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
-            -e E2E__AccessTokenUrl=${{ vars.AUTH_SETTINGS__ACCESS_TOKEN_URL }} \
+            -e E2E__AccessTokenUrl=${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
             -e E2E__AuthEmulatorHealthCheckEndpoint="https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-authemulator01.azurewebsites.net/api/health" \
             -e E2E__SkipResetAzureTables=True \
             -e E2E__CheckStubCustodiansApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Custodians" Solution') && github.event.workflow_run.run_started_at || '' }} \
