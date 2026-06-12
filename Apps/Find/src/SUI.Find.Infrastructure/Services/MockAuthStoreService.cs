@@ -36,7 +36,7 @@ public class MockAuthStoreService : IAuthStoreService
 
     public string GetOrganisationIdForClientId(string clientId)
     {
-        var clients = GetClientById(clientId);
+        var client = GetClientById(clientId);
         return clients.OrganisationId;
     }
 
