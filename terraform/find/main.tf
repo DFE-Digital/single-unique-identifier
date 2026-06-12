@@ -210,8 +210,12 @@ module "function_app" {
           ? format("https://%s%sapp-%s-custodians01.azurewebsites.net", var.subscription_prefix, var.environment_id, var.region_short)
           : null
       )
-      
-      AuthSettings__AccessTokenUrl           = format("https://%s%sapp-%s-authemulator01.azurewebsites.net/api/v1/auth/token", var.subscription_prefix, var.environment_id, var.region_short)
+
+      AuthSettings__Issuer           = var.AuthSettings_Issuer
+      AuthSettings__Audience         = var.AuthSettings_Audience
+      AuthSettings__OidcDiscoveryUrl = var.AuthSettings_OidcDiscoveryUrl
+      AuthSettings__AccessTokenUrl   = var.AuthSettings_AccessTokenUrl
+
       MatchFunction__XApiKey                 = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.find_match_api_key.name}/)"
       NhsAuthConfig__NHS_DIGITAL_PRIVATE_KEY = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_private_key.name}/)"
       NhsAuthConfig__NHS_DIGITAL_KID         = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_kid.name}/)"

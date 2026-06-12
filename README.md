@@ -118,6 +118,15 @@ Productionisation should include:
 * Review all occurrences of `#trivy:ignore`. They must be removed and resolved correctly, prior to handling any real data.
 
 
+## Development Environments
+
+| Environment ID | Purpose                                                                                                                                                                | Trigger                                                                                            |
+|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| `d01`          | **Primary development environment**. Used by the engineering team to test and verify changes. Possibly may contain broken functionality, although that is undesirable. | **Automatically trigerred deployments** (from changes to `main`).                                  |
+| `d02`          | **Demo environment**. Stable environment that should not contain broken functionality. Used in presentations and in research sessions.                                 | **Manually trigerred deployments**. Deployments must be scheduled and coordinated with whole team. |
+| `d03`          | **Sandbox environment**. Used for trialling potential changes and configurations, for example trialling integrating with FaUAPI.                                       | **Manually trigerred deployments**                                                                 |
+
+
 ## Getting Started
 
 ### Prerequisites
