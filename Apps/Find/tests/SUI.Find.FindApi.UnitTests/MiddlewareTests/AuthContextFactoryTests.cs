@@ -1,85 +1,63 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SUI.Find.FindApi.Middleware;
-using SUI.Find.Infrastructure.Models;
+using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.UnitTests.MiddlewareTests;
 
 public class AuthContextFactoryTests
 {
-    private readonly AuthContextFactory _sut = new();
+    private readonly AuthContextFactory _sut;
+    private readonly IAuthStoreService _store;
+
+    public AuthContextFactoryTests()
+    {
+        _store = Substitute.For<IAuthStoreService>();
+        _sut = new AuthContextFactory(_store);
+    }
 
     [Fact]
     public void TestFromJwt_WhenClientIdAndSubEmpty_ShouldThrowException()
     {
+        // Arrange
         var claims = new List<Claim> { new("client_id", ""), new("sub", "") };
-
         var jwt = new JwtSecurityToken(claims: claims);
-        var store = new AuthStore { DefaultTokenLifetimeMinutes = 60 };
 
-        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, store));
+        // Act
+        // Assert
+        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
     }
 
     [Fact]
     public void TestFromJwt_WhenNoClientIdOrSub_ShouldThrowException()
     {
+        // Arrange
         var jwt = new JwtSecurityToken();
-        var store = new AuthStore { DefaultTokenLifetimeMinutes = 60 };
 
-        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, store));
-    }
-
-    [Fact]
-    public void TestFromJwt_WhenNoClientIdInAuthStore_ShouldThrowException()
-    {
-        var claims = new List<Claim> { new("client_id", "EDUCATION-01") };
-
-        var jwt = new JwtSecurityToken(claims: claims);
-
-        var clients = new List<AuthClient>
-        {
-            new()
-            {
-                ClientId = "POLICE-01",
-                Enabled = true,
-                OrganisationId = "POL-ORG-01",
-                ClientSecret = "secret",
-                AllowedScopes = ["file.read", "file.write"],
-            },
-        };
-
-        var store = new AuthStore { Clients = clients, DefaultTokenLifetimeMinutes = 60 };
-
-        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, store));
+        // Act
+        // Assert
+        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
     }
 
     [Fact]
     public void TestFromJwt_WhenNoOrganisationIdForClientId_ShouldThrowException()
     {
+        // Arrange
         var claims = new List<Claim> { new("client_id", "EDUCATION-01") };
-
         var jwt = new JwtSecurityToken(claims: claims);
+        _store.GetOrganisationIdForClientId("EDUCATION-01").Returns("");
 
-        var clients = new List<AuthClient>
-        {
-            new()
-            {
-                ClientId = "EDUCATION-01",
-                Enabled = true,
-                OrganisationId = "",
-                ClientSecret = "secret",
-                AllowedScopes = ["file.read", "file.write"],
-            },
-        };
-
-        var store = new AuthStore { Clients = clients, DefaultTokenLifetimeMinutes = 60 };
-
-        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, store));
+        // Act
+        // Assert
+        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
     }
 
     [Fact]
-    public void TestFromJwt_WithValidInputs_ReturnsAuthContext()
+    public void TestFromJwt_WithValidInputs_UsingTokenScopes_ReturnsAuthContext()
     {
+        // Arrange
         const string clientId = "EDUCATION-01";
         const string organisationId = "Edu-ORG-01";
         List<string> scopesList = ["file.read", "file.write"];
@@ -91,22 +69,40 @@ public class AuthContextFactoryTests
         };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        var clients = new List<AuthClient>
+        _store.GetOrganisationIdForClientId("EDUCATION-01").Returns(organisationId);
+        _store.GetScopesByClientId(Arg.Any<string>()).Throws<InvalidOperationException>(); // Should not use Auth Store for authorisation
+
+        // Act
+        var result = _sut.FromJwt(jwt, false);
+
+        // Assert
+        Assert.Equal(clientId, result.ClientId);
+        Assert.Equal(organisationId, result.OrganisationId);
+        Assert.Equal(scopesList, result.Scopes);
+    }
+
+    [Fact]
+    public void TestFromJwt_WithValidInputs_UsingAuthStoreScopes_ReturnsAuthContext()
+    {
+        // Arrange
+        const string clientId = "EDUCATION-01";
+        const string organisationId = "Edu-ORG-01";
+        List<string> scopesList = ["file.read", "file.write"];
+
+        var claims = new List<Claim>
         {
-            new()
-            {
-                ClientId = clientId,
-                Enabled = true,
-                OrganisationId = organisationId,
-                ClientSecret = "secret",
-                AllowedScopes = ["file.read", "file.write", "record.read"],
-            },
+            new("client_id", clientId),
+            new("scope", "incorrect.scope"),
         };
+        var jwt = new JwtSecurityToken(claims: claims);
 
-        var store = new AuthStore { Clients = clients, DefaultTokenLifetimeMinutes = 60 };
+        _store.GetOrganisationIdForClientId("EDUCATION-01").Returns(organisationId);
+        _store.GetScopesByClientId(Arg.Any<string>()).Returns(scopesList);
 
-        var result = _sut.FromJwt(jwt, store);
+        // Act
+        var result = _sut.FromJwt(jwt, true);
 
+        // Assert
         Assert.Equal(clientId, result.ClientId);
         Assert.Equal(organisationId, result.OrganisationId);
         Assert.Equal(scopesList, result.Scopes);

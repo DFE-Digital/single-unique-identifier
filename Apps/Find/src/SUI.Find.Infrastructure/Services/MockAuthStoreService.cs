@@ -1,6 +1,5 @@
 using System.IO.Abstractions;
 using System.Text.Json;
-using SUI.Find.Domain.Models;
 using SUI.Find.Infrastructure.Models;
 
 namespace SUI.Find.Infrastructure.Services;
@@ -8,6 +7,8 @@ namespace SUI.Find.Infrastructure.Services;
 public interface IAuthStoreService
 {
     Task<AuthStore> GetAuthStoreAsync();
+    IReadOnlyList<string> GetScopesByClientId(string clientId);
+    string GetOrganisationIdForClientId(string clientId);
 }
 
 public class MockAuthStoreService : IAuthStoreService
@@ -25,6 +26,39 @@ public class MockAuthStoreService : IAuthStoreService
     {
         // Instantly returns the cached in-memory store as a completed Task
         return Task.FromResult(_authStore.Value);
+    }
+
+    public IReadOnlyList<string> GetScopesByClientId(string clientId)
+    {
+        var client = GetClientById(clientId);
+        return client.AllowedScopes ?? [];
+    }
+
+    public string GetOrganisationIdForClientId(string clientId)
+    {
+        var client = GetClientById(clientId);
+        return client.OrganisationId;
+    }
+
+    private AuthClient GetClientById(string clientId)
+    {
+        var store = _authStore.Value;
+
+        if (
+            string.IsNullOrWhiteSpace(store.Issuer)
+            || string.IsNullOrWhiteSpace(store.Audience)
+            || string.IsNullOrWhiteSpace(store.SigningKey)
+        )
+        {
+            throw new InvalidOperationException(
+                "Auth store file is missing issuer, audience, or signingKey."
+            );
+        }
+
+        var client = store.Clients?.FirstOrDefault(x => x.ClientId == clientId);
+
+        return client
+            ?? throw new InvalidOperationException($"ClientId {clientId} not found in auth store.");
     }
 
     private AuthStore LoadStore()

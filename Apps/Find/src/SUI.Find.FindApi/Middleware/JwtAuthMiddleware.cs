@@ -147,7 +147,10 @@ public class JwtAuthMiddleware(
             return;
         }
 
-        var authContext = authContextFactory.FromJwt(jwt, store);
+        var authContext = authContextFactory.FromJwt(
+            jwt,
+            authSettings.Value.UseAuthStoreForAuthorisation
+        );
 
         var requiredScopes = GetRequiredScopes(context);
 
