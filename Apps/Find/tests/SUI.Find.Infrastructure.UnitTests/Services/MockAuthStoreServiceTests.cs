@@ -44,12 +44,6 @@ public class MockAuthStoreServiceTests
 
         // Assert
         Assert.NotNull(store);
-        Assert.Equal("https://sandbox.api.example.gov.uk/find-a-record/auth", store.Issuer);
-        Assert.Equal("find-a-record-api", store.Audience);
-        Assert.Equal(
-            "Wc8Kq1ZyR4hNfD0uVx3mS9JpA6eLrT2bG7wQvY5sCjP8kF1nH0tUoMzBiXaEdRl",
-            store.SigningKey
-        );
         Assert.NotNull(store.Clients);
         Assert.NotEmpty(store.Clients);
 

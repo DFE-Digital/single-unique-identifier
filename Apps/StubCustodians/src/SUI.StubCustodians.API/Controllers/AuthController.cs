@@ -16,7 +16,7 @@ namespace SUI.StubCustodians.API.Controllers;
 [ApiVersion("1.0")]
 public class AuthController(ILogger<AuthController> logger) : ControllerBase
 {
-    private static readonly Lazy<AuthStore> Store = new(LoadAuthStore);
+    private static readonly Lazy<OutboundAuthStore> Store = new(LoadOutboundAuthStore);
 
     private readonly int _tokenLifetimeMinutes =
         Store.Value.DefaultTokenLifetimeMinutes > 0 ? Store.Value.DefaultTokenLifetimeMinutes : 60;
@@ -153,7 +153,7 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
         );
     }
 
-    private string CreateJwt(AuthStore store, string clientId, IReadOnlyList<string> scopes)
+    private string CreateJwt(OutboundAuthStore store, string clientId, IReadOnlyList<string> scopes)
     {
         var now = DateTimeOffset.UtcNow;
         var expires = now.AddMinutes(_tokenLifetimeMinutes);
@@ -212,7 +212,7 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
             .ToArray();
     }
 
-    private static AuthStore LoadAuthStore()
+    private static OutboundAuthStore LoadOutboundAuthStore()
     {
         var baseDir = AppContext.BaseDirectory;
         var filePath = Path.Combine(baseDir, "Data", "auth-clients-outbound.json");
@@ -223,7 +223,7 @@ public class AuthController(ILogger<AuthController> logger) : ControllerBase
         }
 
         var json = System.IO.File.ReadAllText(filePath);
-        var store = JsonSerializer.Deserialize<AuthStore>(json, JsonSerializerOptions.Web);
+        var store = JsonSerializer.Deserialize<OutboundAuthStore>(json, JsonSerializerOptions.Web);
 
         if (store is null)
         {

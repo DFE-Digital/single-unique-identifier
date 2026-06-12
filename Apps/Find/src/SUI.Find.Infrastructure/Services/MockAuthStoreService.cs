@@ -44,17 +44,6 @@ public class MockAuthStoreService : IAuthStoreService
     {
         var store = _authStore.Value;
 
-        if (
-            string.IsNullOrWhiteSpace(store.Issuer)
-            || string.IsNullOrWhiteSpace(store.Audience)
-            || string.IsNullOrWhiteSpace(store.SigningKey)
-        )
-        {
-            throw new InvalidOperationException(
-                "Auth store file is missing issuer, audience, or signingKey."
-            );
-        }
-
         var client = store.Clients?.FirstOrDefault(x => x.ClientId == clientId);
 
         return client

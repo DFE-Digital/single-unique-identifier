@@ -15,7 +15,7 @@ namespace SUI.StubCustodians.API;
 public class ScopeEnforcementMiddleware
 {
     private static readonly JwtSecurityTokenHandler Handler = new();
-    private static readonly Lazy<AuthStore> Store = new(LoadAuthStore);
+    private static readonly Lazy<OutboundAuthStore> Store = new(LoadOutboundAuthStore);
     private readonly RequestDelegate _next;
 
     public ScopeEnforcementMiddleware(RequestDelegate next)
@@ -156,7 +156,7 @@ public class ScopeEnforcementMiddleware
         return requiredScopesAttribute?.Scopes.ToArray() ?? [];
     }
 
-    private static AuthStore LoadAuthStore()
+    private static OutboundAuthStore LoadOutboundAuthStore()
     {
         var baseDir = AppContext.BaseDirectory;
         var filePath = Path.Combine(baseDir, "Data", "auth-clients-outbound.json");
@@ -167,7 +167,7 @@ public class ScopeEnforcementMiddleware
         }
 
         var json = File.ReadAllText(filePath);
-        var store = JsonSerializer.Deserialize<AuthStore>(json, JsonSerializerOptions.Web);
+        var store = JsonSerializer.Deserialize<OutboundAuthStore>(json, JsonSerializerOptions.Web);
 
         if (store is null)
         {

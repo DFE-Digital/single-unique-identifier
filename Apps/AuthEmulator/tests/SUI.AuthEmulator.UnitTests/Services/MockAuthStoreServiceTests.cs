@@ -35,12 +35,6 @@ public class MockAuthStoreServiceTests
 
         // Assert
         Assert.NotNull(store);
-        Assert.Equal("https://sandbox.api.example.gov.uk/find-a-record/auth", store.Issuer);
-        Assert.Equal("find-a-record-api", store.Audience);
-        Assert.Equal(
-            "Wc8Kq1ZyR4hNfD0uVx3mS9JpA6eLrT2bG7wQvY5sCjP8kF1nH0tUoMzBiXaEdRl",
-            store.SigningKey
-        );
         Assert.NotNull(store.Clients);
         Assert.NotEmpty(store.Clients);
 
@@ -84,30 +78,6 @@ public class MockAuthStoreServiceTests
         Assert.False(result.Success);
         Assert.Equal("Unauthorized", result.Error);
         Assert.Null(result.Value);
-    }
-
-    [Fact]
-    public async Task GetClientByCredentials_ShouldThrowInvalidOperationException_WhenFileHeaderIsMissingMetadata()
-    {
-        // Arrange
-        var badStore = new AuthStore
-        {
-            Issuer = "", // Missing
-            Audience = "some-audience",
-            SigningKey = "some-key",
-            DefaultTokenLifetimeMinutes = 60,
-        };
-        var badJson = JsonSerializer.Serialize(badStore, JsonSerializerOptions.Web);
-
-        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(badJson);
-
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.GetClientByCredentials("LOCAL-AUTHORITY-01", "SUIProject")
-        );
-
-        Assert.Equal("Auth store file is missing issuer, audience, or signingKey.", ex.Message);
     }
 
     [Fact]
