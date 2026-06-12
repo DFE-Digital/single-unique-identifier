@@ -4,13 +4,9 @@ using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Middleware;
 
-public class AuthContextFactory : IAuthContextFactory
+public class AuthContextFactory(IAuthStoreService storeService) : IAuthContextFactory
 {
-    public AuthContext FromJwt(
-        JwtSecurityToken jwt,
-        IAuthStoreService storeService,
-        bool useAuthStoreForAuthorisation
-    )
+    public AuthContext FromJwt(JwtSecurityToken jwt, bool useAuthStoreForAuthorisation)
     {
         var clientId = Get(jwt, "client_id");
         if (string.IsNullOrWhiteSpace(clientId))

@@ -379,7 +379,7 @@ public class JwtAuthMiddlewareTests
             var context = CreateMockFunctionContext($"Bearer {token}");
 
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
                 .Returns(new AuthContext("clientId", "organisationId", ["wrong.scope"]));
             var sut = new JwtAuthMiddleware(
                 _mockAuthStore,
@@ -418,7 +418,7 @@ public class JwtAuthMiddlewareTests
 
             var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
                 .Returns(authContext);
             var sut = new JwtAuthMiddleware(
                 _mockAuthStore,
@@ -451,7 +451,7 @@ public class JwtAuthMiddlewareTests
 
             var authContext = new AuthContext("clientId", "organisationId", ["wrong.scope"]);
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
                 .Returns(authContext);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
@@ -484,7 +484,7 @@ public class JwtAuthMiddlewareTests
 
             var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
                 .Returns(authContext);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
@@ -520,7 +520,7 @@ public class JwtAuthMiddlewareTests
 
             var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
             _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<IAuthStoreService>(), Arg.Any<bool>())
+                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
                 .Returns(authContext);
 
             var context = CreateMockFunctionContext($"Bearer {token}");

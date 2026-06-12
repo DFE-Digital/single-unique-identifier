@@ -149,7 +149,6 @@ public class JwtAuthMiddleware(
 
         var authContext = authContextFactory.FromJwt(
             jwt,
-            authStoreService,
             authSettings.Value.UseAuthStoreForAuthorisation
         );
 

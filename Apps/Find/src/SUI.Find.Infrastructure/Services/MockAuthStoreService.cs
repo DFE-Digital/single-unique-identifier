@@ -30,22 +30,17 @@ public class MockAuthStoreService : IAuthStoreService
 
     public IReadOnlyList<string> GetScopesByClientId(string clientId)
     {
-        var clients = GetClients();
-
-        var scopes = clients.FirstOrDefault(x => x.ClientId == clientId)?.AllowedScopes ?? [];
-        return scopes;
+        var client = GetClientById(clientId);
+        return client.AllowedScopes ?? [];
     }
 
     public string GetOrganisationIdForClientId(string clientId)
     {
-        var clients = GetClients();
-
-        var organisationId =
-            clients.FirstOrDefault(x => x.ClientId == clientId)?.OrganisationId ?? string.Empty;
-        return organisationId;
+        var clients = GetClientById(clientId);
+        return clients.OrganisationId;
     }
 
-    private List<AuthClient> GetClients()
+    private AuthClient GetClientById(string clientId)
     {
         var store = _authStore.Value;
 
@@ -60,8 +55,10 @@ public class MockAuthStoreService : IAuthStoreService
             );
         }
 
-        store.Clients ??= [];
-        return store.Clients;
+        var client = store.Clients?.FirstOrDefault(x => x.ClientId == clientId);
+
+        return client
+            ?? throw new InvalidOperationException($"ClientId {clientId} not found in auth store.");
     }
 
     private AuthStore LoadStore()

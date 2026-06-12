@@ -104,7 +104,22 @@ public class MockAuthStoreServiceTests
     }
 
     [Fact]
-    public async Task GetOrganisationIdForClientId_WithValidClientId_ShouldReturnScopes()
+    public async Task GetScopesByClientId_WithInvalidClientId_ShouldThrowException()
+    {
+        // Arrange
+        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
+
+        // Act
+        // Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            _sut.GetScopesByClientId("invalid-client-id")
+        );
+    }
+
+    [Fact]
+    public async Task GetOrganisationIdForClientId_WithValidClientId_ShouldReturnOrganisationId()
     {
         // Arrange
         var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
@@ -117,5 +132,20 @@ public class MockAuthStoreServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal("LOCAL-AUTHORITY-01", result);
+    }
+
+    [Fact]
+    public async Task GetOrganisationByClientId_WithInvalidClientId_ShouldThrowException()
+    {
+        // Arrange
+        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
+
+        // Act
+        // Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            _sut.GetOrganisationIdForClientId("invalid-client-id")
+        );
     }
 }
