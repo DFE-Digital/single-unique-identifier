@@ -225,6 +225,8 @@ jobs:
       - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
         id: env_config
         uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ env.TARGET_ENVIRONMENT }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
