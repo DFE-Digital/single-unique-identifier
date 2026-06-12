@@ -57,18 +57,23 @@ jobs:
       # The secret below is required for the UI Test Harness, and is transmitted from Github Secrets to the Azure Key Vault.
       TF_VAR_ui_test_harness_password: ${{ secrets.UI_TEST_HARNESS_PASSWORD }}
       # AuthSettings driven by GitHub Environment Variables:
-      TF_VAR_AuthSettings_Issuer: ${{ vars.AUTH_SETTINGS__ISSUER }}
       TF_VAR_AuthSettings_Audience: ${{ vars.AUTH_SETTINGS__AUDIENCE }}
       TF_VAR_AuthSettings_OidcDiscoveryUrl: ${{ vars.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}
       TF_VAR_AuthSettings_AccessTokenUrl: ${{ vars.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
 
     steps:
-      - name: Mask environment variables which should be hidden from public view
+      - name: Fetch and mask config which should be hidden from public view
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          TF_VAR_AuthSettings_Issuer=$(gh api /repos/${{ github.repository }}/environments/${{ env.TARGET_ENVIRONMENT }}/variables/AUTH_SETTINGS__ISSUER --jq '.value')
+
           echo "::add-mask::$TF_VAR_AuthSettings_Issuer"
           echo "::add-mask::$TF_VAR_AuthSettings_Audience"
           echo "::add-mask::$TF_VAR_AuthSettings_OidcDiscoveryUrl"
           echo "::add-mask::$TF_VAR_AuthSettings_AccessTokenUrl"
+
+          echo "TF_VAR_AuthSettings_Issuer=$TF_VAR_AuthSettings_Issuer" >> $GITHUB_ENV
 
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -87,7 +92,7 @@ jobs:
             curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
           fi
 
-      - name: Azure login with OIDC for ${{ inputs.environment }}
+      - name: Azure login with OIDC for ${{ env.TARGET_ENVIRONMENT }}
         uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
