@@ -216,6 +216,7 @@ jobs:
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_dev == 'true'
+    environment: ${{ inputs.environment || 'd01' }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment || 'd01' }}
     steps:
@@ -225,8 +226,6 @@ jobs:
       - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
         id: env_config
         uses: ./.github/actions/load-tfvars
-        with:
-          environment: ${{ env.TARGET_ENVIRONMENT }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -242,7 +241,7 @@ jobs:
             --results-directory TestResults \
             -e E2E__BaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}func-${{ steps.env_config.outputs.region_short }}-find01.azurewebsites.net/api/ \
             -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
-            -e E2E__AccessTokenUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-authemulator01.azurewebsites.net/api/v1/auth/token \
+            -e E2E__AccessTokenUrl=${{ vars.AUTH_SETTINGS__ACCESS_TOKEN_URL }} \
             -e E2E__AuthEmulatorHealthCheckEndpoint="https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-authemulator01.azurewebsites.net/api/health" \
             -e E2E__SkipResetAzureTables=True \
             -e E2E__CheckStubCustodiansApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Custodians" Solution') && github.event.workflow_run.run_started_at || '' }} \
