@@ -89,4 +89,5 @@ variable "ui_test_harness_password" {
 variable "AuthSettings_AccessTokenUrl" {
   description = "Inbound Access Token URL (to be able to request tokens to use the Find API)"
   type        = string
+  sensitive   = true
 }

@@ -63,6 +63,13 @@ jobs:
       TF_VAR_AuthSettings_AccessTokenUrl: ${{ vars.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
 
     steps:
+      - name: Mask environment variables which should be hidden
+        run: |
+          echo "::add-mask::${{ vars.AUTH_SETTINGS__ISSUER }}"
+          echo "::add-mask::${{ vars.AUTH_SETTINGS__AUDIENCE }}"
+          echo "::add-mask::${{ vars.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}"
+          echo "::add-mask::${{ vars.AUTH_SETTINGS__ACCESS_TOKEN_URL }}"
+
       - name: Checkout repository
         uses: actions/checkout@v6
 

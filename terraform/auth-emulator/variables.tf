@@ -83,9 +83,11 @@ variable "use_auth_emulator" {
 variable "AuthSettings_Issuer" {
   description = "The OAuth Issuer to use when signing access tokens"
   type        = string
+  sensitive   = true
 }
 
 variable "AuthSettings_Audience" {
   description = "The OAuth Audience to use when signing access tokens"
   type        = string
+  sensitive   = true
 }
