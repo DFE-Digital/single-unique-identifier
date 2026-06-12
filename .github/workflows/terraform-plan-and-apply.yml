@@ -35,6 +35,15 @@ on:
       # Secret that grants end-users access to the deployed UI Test Harness
       UI_TEST_HARNESS_PASSWORD:
         required: false
+      # Ability to pass sensitive Auth Settings:
+      AUTH_SETTINGS__ISSUER:
+        required: false
+      AUTH_SETTINGS__AUDIENCE:
+        required: false
+      AUTH_SETTINGS__OIDC_DISCOVERY_URL:
+        required: false
+      AUTH_SETTINGS__ACCESS_TOKEN_URL:
+        required: false
 
 permissions:
   id-token: write
@@ -56,20 +65,13 @@ jobs:
       TF_VAR_nhs_digital_private_key: ${{ secrets.NHS_DIGITAL_PRIVATE_KEY}}
       # The secret below is required for the UI Test Harness, and is transmitted from Github Secrets to the Azure Key Vault.
       TF_VAR_ui_test_harness_password: ${{ secrets.UI_TEST_HARNESS_PASSWORD }}
-      # AuthSettings driven by GitHub Environment Variables:
-      TF_VAR_AuthSettings_Issuer: ${{ vars.AUTH_SETTINGS__ISSUER }}
-      TF_VAR_AuthSettings_Audience: ${{ vars.AUTH_SETTINGS__AUDIENCE }}
-      TF_VAR_AuthSettings_OidcDiscoveryUrl: ${{ vars.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}
-      TF_VAR_AuthSettings_AccessTokenUrl: ${{ vars.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
+      # Ability to pass sensitive Auth Settings:
+      TF_VAR_AuthSettings_Issuer: ${{ secrets.AUTH_SETTINGS__ISSUER }}
+      TF_VAR_AuthSettings_Audience: ${{ secrets.AUTH_SETTINGS__AUDIENCE }}
+      TF_VAR_AuthSettings_OidcDiscoveryUrl: ${{ secrets.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}
+      TF_VAR_AuthSettings_AccessTokenUrl: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
 
     steps:
-      - name: Mask environment variables which should be hidden
-        run: |
-          echo "::add-mask::${{ vars.AUTH_SETTINGS__ISSUER }}"
-          echo "::add-mask::${{ vars.AUTH_SETTINGS__AUDIENCE }}"
-          echo "::add-mask::${{ vars.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}"
-          echo "::add-mask::${{ vars.AUTH_SETTINGS__ACCESS_TOKEN_URL }}"
-
       - name: Checkout repository
         uses: actions/checkout@v6
 
