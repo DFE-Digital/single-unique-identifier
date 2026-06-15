@@ -6,7 +6,6 @@ namespace SUI.Find.Infrastructure.Services;
 
 public interface IAuthStoreService
 {
-    Task<AuthStore> GetAuthStoreAsync();
     IReadOnlyList<string> GetScopesByClientId(string clientId);
     string GetOrganisationIdForClientId(string clientId);
 }
@@ -20,12 +19,6 @@ public class MockAuthStoreService : IAuthStoreService
     {
         _fileSystem = fileSystem;
         _authStore = new Lazy<AuthStore>(LoadStore);
-    }
-
-    public Task<AuthStore> GetAuthStoreAsync()
-    {
-        // Instantly returns the cached in-memory store as a completed Task
-        return Task.FromResult(_authStore.Value);
     }
 
     public IReadOnlyList<string> GetScopesByClientId(string clientId)
@@ -43,17 +36,6 @@ public class MockAuthStoreService : IAuthStoreService
     private AuthClient GetClientById(string clientId)
     {
         var store = _authStore.Value;
-
-        if (
-            string.IsNullOrWhiteSpace(store.Issuer)
-            || string.IsNullOrWhiteSpace(store.Audience)
-            || string.IsNullOrWhiteSpace(store.SigningKey)
-        )
-        {
-            throw new InvalidOperationException(
-                "Auth store file is missing issuer, audience, or signingKey."
-            );
-        }
 
         var client = store.Clients?.FirstOrDefault(x => x.ClientId == clientId);
 
