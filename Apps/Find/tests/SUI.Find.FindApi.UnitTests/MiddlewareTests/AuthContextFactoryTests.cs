@@ -19,26 +19,26 @@ public class AuthContextFactoryTests
     }
 
     [Fact]
-    public void TestFromJwt_WhenClientIdAndSubEmpty_ShouldThrowException()
+    public void TestFromJwt_WhenClientIdAzpAndSubEmpty_ShouldThrowException()
     {
         // Arrange
-        var claims = new List<Claim> { new("client_id", ""), new("sub", "") };
+        var claims = new List<Claim> { new("client_id", ""), new("azp", ""), new("sub", "") };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        // Act
-        // Assert
-        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
+        Assert.Contains("Token did not contain client_id, azp, or sub", ex.Message);
     }
 
     [Fact]
-    public void TestFromJwt_WhenNoClientIdOrSub_ShouldThrowException()
+    public void TestFromJwt_WhenNoClientIdAzpOrSub_ShouldThrowException()
     {
         // Arrange
         var jwt = new JwtSecurityToken();
 
-        // Act
-        // Assert
-        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
+        Assert.Contains("Token did not contain client_id, azp, or sub", ex.Message);
     }
 
     [Fact]
@@ -49,9 +49,58 @@ public class AuthContextFactoryTests
         var jwt = new JwtSecurityToken(claims: claims);
         _store.GetOrganisationIdForClientId("EDUCATION-01").Returns("");
 
-        // Act
-        // Assert
+        // Act & Assert
         Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
+    }
+
+    [Fact]
+    public void TestFromJwt_WhenAzpAndSubPresent_UsesAzpAsClientId()
+    {
+        // Arrange
+        var claims = new List<Claim> { new("azp", "AZP-CLIENT-01"), new("sub", "SUB-CLIENT-01") };
+        var jwt = new JwtSecurityToken(claims: claims);
+        _store.GetOrganisationIdForClientId("AZP-CLIENT-01").Returns("ORG-01");
+
+        // Act
+        var result = _sut.FromJwt(jwt, false);
+
+        // Assert
+        Assert.Equal("AZP-CLIENT-01", result.ClientId);
+    }
+
+    [Fact]
+    public void TestFromJwt_WhenClientIdAndAzpPresent_UsesClientId()
+    {
+        // Arrange
+        var claims = new List<Claim>
+        {
+            new("client_id", "MAIN-CLIENT-01"),
+            new("azp", "AZP-CLIENT-01"),
+            new("sub", "SUB-CLIENT-01"),
+        };
+        var jwt = new JwtSecurityToken(claims: claims);
+        _store.GetOrganisationIdForClientId("MAIN-CLIENT-01").Returns("ORG-01");
+
+        // Act
+        var result = _sut.FromJwt(jwt, false);
+
+        // Assert
+        Assert.Equal("MAIN-CLIENT-01", result.ClientId);
+    }
+
+    [Fact]
+    public void TestFromJwt_WhenOnlySubPresent_UsesSubAsClientId()
+    {
+        // Arrange
+        var claims = new List<Claim> { new("sub", "SUB-CLIENT-01") };
+        var jwt = new JwtSecurityToken(claims: claims);
+        _store.GetOrganisationIdForClientId("SUB-CLIENT-01").Returns("ORG-01");
+
+        // Act
+        var result = _sut.FromJwt(jwt, false);
+
+        // Assert
+        Assert.Equal("SUB-CLIENT-01", result.ClientId);
     }
 
     [Fact]
