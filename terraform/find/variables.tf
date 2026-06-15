@@ -120,3 +120,27 @@ variable "nhs_digital_client_id" {
   type = string
   sensitive = true
 }
+
+variable "AuthSettings_Issuer" {
+  description = "The expected OAuth Issuer of authentic access tokens"
+  type        = string
+  sensitive   = true
+}
+
+variable "AuthSettings_Audience" {
+  description = "The expected OAuth Audience of authentic access tokens"
+  type        = string
+  sensitive   = true
+}
+
+variable "AuthSettings_OidcDiscoveryUrl" {
+  description = "The URL to discover the OpenID Connect configuration of the Issuer of authentic access tokens"
+  type        = string
+  sensitive   = true
+}
+
+variable "AuthSettings_AccessTokenUrl" {
+  description = "Inbound Access Token URL (to be able to request tokens to use the Find API)"
+  type        = string
+  sensitive   = true
+}
