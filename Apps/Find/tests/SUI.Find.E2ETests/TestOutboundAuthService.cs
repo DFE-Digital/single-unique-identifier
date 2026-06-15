@@ -46,7 +46,7 @@ public sealed class TestOutboundAuthService(
                 Auth = new AuthDefinition
                 {
                     TokenUrl = $"{fixture.StubCustodiansClient.BaseAddress}v1/auth/token",
-                    ClientId = "CLIENT-ID_SUI-SERVICE",
+                    ClientId = "SUI-SERVICE",
                     ClientSecret = "SUIProject",
                     Scopes = new List<string> { "find-record.read", "fetch-record.read" },
                 },
@@ -115,7 +115,7 @@ public sealed class TestOutboundAuthService(
                 Auth = new AuthDefinition
                 {
                     TokenUrl = $"{fixture.StubCustodiansClient.BaseAddress}v1/auth/token",
-                    ClientId = "CLIENT-ID_SUI-SERVICE",
+                    ClientId = "SUI-SERVICE",
                     ClientSecret = "SUIProject",
                     Scopes = new List<string> { "find-record.read", "fetch-record.read" },
                 },
