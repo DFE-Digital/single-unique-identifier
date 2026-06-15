@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -100,7 +101,27 @@ public class JwtAuthMiddlewareTests
         }
     }
 
-    // REMOVED: GenerateSymmetricToken Helper
+    private static string GenerateSymmetricToken(
+        string issuer,
+        string audience,
+        string signingKey,
+        string clientId,
+        string scope = "fetch-record.read"
+    )
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var claims = new[] { new Claim("client_id", clientId), new Claim("scp", scope) };
+
+        var token = new JwtSecurityToken(
+            issuer,
+            audience,
+            claims,
+            expires: DateTime.UtcNow.AddMinutes(30),
+            signingCredentials: credentials
+        );
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 
     private string GenerateAsymmetricToken(
         RSA rsaKey,
@@ -294,7 +315,38 @@ public class JwtAuthMiddlewareTests
         }
     }
 
-    // REMOVED: SymmetricVerificationTests class entirely
+    public class SymmetricVerificationTests : JwtAuthMiddlewareTests
+    {
+        [Fact]
+        public async Task TestInvoke_WithSymmetricToken_ReturnsProblemResponse()
+        {
+            // Arrange
+            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
+            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
+
+            var token = GenerateSymmetricToken(
+                _authSettings.Issuer,
+                _authSettings.Audience,
+                "SecretKeyShouldBeLongEnoughToPass12345!",
+                "clientId"
+            );
+
+            var context = CreateMockFunctionContext($"Bearer {token}");
+
+            var sut = new JwtAuthMiddleware(
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions,
+                _mockLogger
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            AssertAccessDenied(context, "Token validation failed", "Signature validation failed");
+        }
+    }
 
     public class AsymmetricVerificationTests : JwtAuthMiddlewareTests
     {
