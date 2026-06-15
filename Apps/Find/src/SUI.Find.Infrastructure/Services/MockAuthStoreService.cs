@@ -6,7 +6,6 @@ namespace SUI.Find.Infrastructure.Services;
 
 public interface IAuthStoreService
 {
-    Task<AuthStore> GetAuthStoreAsync();
     IReadOnlyList<string> GetScopesByClientId(string clientId);
     string GetOrganisationIdForClientId(string clientId);
 }
@@ -20,12 +19,6 @@ public class MockAuthStoreService : IAuthStoreService
     {
         _fileSystem = fileSystem;
         _authStore = new Lazy<AuthStore>(LoadStore);
-    }
-
-    public Task<AuthStore> GetAuthStoreAsync()
-    {
-        // Instantly returns the cached in-memory store as a completed Task
-        return Task.FromResult(_authStore.Value);
     }
 
     public IReadOnlyList<string> GetScopesByClientId(string clientId)

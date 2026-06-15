@@ -32,56 +32,6 @@ public class MockAuthStoreServiceTests
     }
 
     [Fact]
-    public async Task GetAuthStoreAsync_MapsJsonToStoreDefinitionCorrectly()
-    {
-        // Arrange
-        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
-        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
-
-        // Act
-        var store = await _sut.GetAuthStoreAsync();
-
-        // Assert
-        Assert.NotNull(store);
-        Assert.NotNull(store.Clients);
-        Assert.NotEmpty(store.Clients);
-
-        // Verify structure of an active client
-        var sampleClient = store.Clients.FirstOrDefault(c => c.ClientId == "LOCAL-AUTHORITY-01");
-        Assert.NotNull(sampleClient);
-        Assert.True(sampleClient.Enabled);
-        Assert.Equal("SUIProject", sampleClient.ClientSecret);
-        Assert.Contains("match-record.read", sampleClient.AllowedScopes!);
-    }
-
-    [Fact]
-    public async Task LoadStore_ShouldThrowInvalidOperationException_WhenFileDoesNotExist()
-    {
-        // Arrange
-        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(false);
-
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.GetAuthStoreAsync()
-        );
-        Assert.Contains("Auth store file not found at", ex.Message);
-    }
-
-    [Fact]
-    public async Task LoadStore_ShouldThrowInvalidOperationException_WhenJsonIsCorrupt()
-    {
-        // Arrange
-        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-        _mockFileSystem
-            .File.ReadAllText(Arg.Any<string>())
-            .Returns("{ invalid-json-payload : true ");
-
-        // Act & Assert
-        await Assert.ThrowsAsync<JsonException>(() => _sut.GetAuthStoreAsync());
-    }
-
-    [Fact]
     public async Task GetScopesByClientId_WithValidClientId_ShouldReturnScopes()
     {
         // Arrange

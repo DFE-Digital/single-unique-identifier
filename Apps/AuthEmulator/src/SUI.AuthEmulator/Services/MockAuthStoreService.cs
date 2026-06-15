@@ -15,12 +15,6 @@ public class MockAuthStoreService : IAuthStoreService
         _authStore = new Lazy<AuthStore>(LoadStore);
     }
 
-    public Task<AuthStore> GetAuthStoreAsync()
-    {
-        // Instantly returns the cached in-memory store as a completed Task
-        return Task.FromResult(_authStore.Value);
-    }
-
     public Task<Result<AuthClient>> GetClientByCredentials(string clientId, string clientSecret)
     {
         var store = _authStore.Value;
