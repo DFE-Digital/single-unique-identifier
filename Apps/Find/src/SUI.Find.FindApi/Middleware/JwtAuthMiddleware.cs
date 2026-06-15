@@ -204,10 +204,13 @@ public class JwtAuthMiddleware(
             return [];
         }
 
+        // It is safe to bypass accessibility here because we are only reading attributes for authorization, not invoking the method.
+#pragma warning disable S3011
         var method = type.GetMethod(
             methodName,
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
         );
+#pragma warning restore S3011
         if (method is null)
         {
             return [];
