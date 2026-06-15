@@ -8,6 +8,7 @@ namespace SUI.AuthEmulator.UnitTests.Services;
 
 public class MockAuthStoreServiceTests
 {
+    private const string ClientId = "CLIENT-ID_LOCAL-AUTHORITY-01";
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
     private readonly MockAuthStoreService _sut;
     private readonly string _realStoreFilePath;
@@ -45,7 +46,7 @@ public class MockAuthStoreServiceTests
         Assert.NotEmpty(store.Clients);
 
         // Verify structure of an active client
-        var sampleClient = store.Clients.FirstOrDefault(c => c.ClientId == "LOCAL-AUTHORITY-01");
+        var sampleClient = store.Clients.FirstOrDefault(c => c.ClientId == ClientId);
         Assert.NotNull(sampleClient);
         Assert.True(sampleClient.Enabled);
         Assert.Equal("SUIProject", sampleClient.ClientSecret);
@@ -61,12 +62,12 @@ public class MockAuthStoreServiceTests
         _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         // Act
-        var result = await _sut.GetClientByCredentials("LOCAL-AUTHORITY-01", "SUIProject");
+        var result = await _sut.GetClientByCredentials(ClientId, "SUIProject");
 
         // Assert
         Assert.True(result.Success);
         Assert.NotNull(result.Value);
-        Assert.Equal("LOCAL-AUTHORITY-01", result.Value.ClientId);
+        Assert.Equal(ClientId, result.Value.ClientId);
     }
 
     [Fact]
@@ -78,7 +79,7 @@ public class MockAuthStoreServiceTests
         _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         // Act
-        var result = await _sut.GetClientByCredentials("LOCAL-AUTHORITY-01", "WRONG-PASSWORD-XYZ");
+        var result = await _sut.GetClientByCredentials(ClientId, "WRONG-PASSWORD-XYZ");
 
         // Assert
         Assert.False(result.Success);
@@ -104,7 +105,7 @@ public class MockAuthStoreServiceTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _sut.GetClientByCredentials("LOCAL-AUTHORITY-01", "SUIProject")
+            _sut.GetClientByCredentials(ClientId, "SUIProject")
         );
 
         Assert.Equal("Auth store file is missing issuer, audience, or signingKey.", ex.Message);
