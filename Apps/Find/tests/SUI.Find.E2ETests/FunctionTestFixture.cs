@@ -179,7 +179,9 @@ public class FunctionTestFixture : IAsyncLifetime
     {
         var waitInterval = TimeSpan.FromSeconds(10);
 
-        testOutputHelper.WriteLine($"Checking {serviceName} is up: {client.BaseAddress}{url}");
+        testOutputHelper.WriteLine(
+            $"Checking {serviceName} is up: {(url.StartsWith("http") ? url : client.BaseAddress + url)}"
+        );
 
         var useExtendedTimeout = checkBuildTimestampThreshold != null;
         var timeout = useExtendedTimeout ? TimeSpan.FromMinutes(10) : TimeSpan.FromSeconds(60);
