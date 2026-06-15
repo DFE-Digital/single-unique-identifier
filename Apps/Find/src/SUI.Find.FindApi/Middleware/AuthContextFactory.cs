@@ -9,11 +9,15 @@ public class AuthContextFactory(IAuthStoreService storeService) : IAuthContextFa
     public AuthContext FromJwt(JwtSecurityToken jwt, bool useAuthStoreForAuthorisation)
     {
         var clientId = Get(jwt, "client_id");
+
+        if (string.IsNullOrWhiteSpace(clientId))
+            clientId = Get(jwt, "azp");
+
         if (string.IsNullOrWhiteSpace(clientId))
             clientId = Get(jwt, "sub");
 
         if (string.IsNullOrWhiteSpace(clientId))
-            throw new InvalidOperationException("Token did not contain client_id or sub.");
+            throw new InvalidOperationException("Token did not contain client_id, azp, or sub.");
 
         var organisationId = storeService.GetOrganisationIdForClientId(clientId);
 
