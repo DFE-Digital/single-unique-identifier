@@ -20,7 +20,9 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
         );
 
         var attackerClientId =
-            testData.TestClientId == "LOCAL-AUTHORITY-01" ? "EDUCATION-01" : "LOCAL-AUTHORITY-01";
+            testData.TestClientId == "CLIENT-ID_LOCAL-AUTHORITY-01"
+                ? "CLIENT-ID_EDUCATION-01"
+                : "CLIENT-ID_LOCAL-AUTHORITY-01";
 
         var attackerToken = await GetAuthTokenAsync(attackerClientId, TestClientSecret, TestScopes);
 

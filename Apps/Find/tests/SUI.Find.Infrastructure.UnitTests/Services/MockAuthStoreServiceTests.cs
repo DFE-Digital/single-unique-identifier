@@ -54,7 +54,9 @@ public class MockAuthStoreServiceTests
         Assert.NotEmpty(store.Clients);
 
         // Verify structure of an active client
-        var sampleClient = store.Clients.FirstOrDefault(c => c.ClientId == "LOCAL-AUTHORITY-01");
+        var sampleClient = store.Clients.FirstOrDefault(c =>
+            c.ClientId == "CLIENT-ID_LOCAL-AUTHORITY-01"
+        );
         Assert.NotNull(sampleClient);
         Assert.True(sampleClient.Enabled);
         Assert.Equal("SUIProject", sampleClient.ClientSecret);
@@ -96,7 +98,7 @@ public class MockAuthStoreServiceTests
         _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         // Act
-        var result = _sut.GetScopesByClientId("LOCAL-AUTHORITY-01");
+        var result = _sut.GetScopesByClientId("CLIENT-ID_LOCAL-AUTHORITY-01");
 
         // Assert
         Assert.NotNull(result);
@@ -127,7 +129,7 @@ public class MockAuthStoreServiceTests
         _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         // Act
-        var result = _sut.GetOrganisationIdForClientId("LOCAL-AUTHORITY-01");
+        var result = _sut.GetOrganisationIdForClientId("CLIENT-ID_LOCAL-AUTHORITY-01");
 
         // Assert
         Assert.NotNull(result);
