@@ -216,7 +216,9 @@ jobs:
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_dev == 'true'
-    environment: ${{ inputs.environment || 'd01' }}
+    environment:
+      name: ${{ inputs.environment || 'd01' }}
+      deployment: false
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment || 'd01' }}
     steps:
