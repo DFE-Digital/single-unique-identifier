@@ -70,7 +70,7 @@ jobs:
       TF_VAR_AuthSettings_Audience: ${{ secrets.AUTH_SETTINGS__AUDIENCE }}
       TF_VAR_AuthSettings_OidcDiscoveryUrl: ${{ secrets.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}
       TF_VAR_AuthSettings_AccessTokenUrl: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
-      # TF_VAR_AuthClientCredentialsMap: ${{ base64encode(secrets.AUTH_CLIENT_CREDENTIALS_MAP) }}
+      TF_VAR_AuthClientCredentialsMap: ${{ secrets.AUTH_CLIENT_CREDENTIALS_MAP }}
 
     steps:
       - name: Checkout repository
@@ -117,7 +117,7 @@ jobs:
         run: terraform -chdir=${{ inputs.root }} validate
 
       - name: "Terraform plan ${{ inputs.root }} (tfvars: ${{ steps.env_config.outputs.tfvars_path }})"
-        run: terraform -chdir=${{ inputs.root }} plan -input=false -var-file=<(cat terraform/${{ steps.env_config.outputs.tfvars_path }}) -out=tfplan
+        run: terraform -chdir=${{ inputs.root }} plan -input=false -var-file=../${{ steps.env_config.outputs.tfvars_path }} -out=tfplan
 
       - name: Summarize tfplan
         if: always()
