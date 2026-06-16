@@ -55,12 +55,12 @@ module "web_app" {
       AuthSettings__BaseUrl = format("https://%s%sapp-%s-authemulator01.azurewebsites.net/", var.subscription_prefix, var.environment_id, var.region_short)
     },
     # rs-todo: wrap in sensitive:
-    sensitive(merge([
+    merge([
       for client in var.AuthClientCredentialsMap : {
-        "AuthClientCredentials__${client.clientId}__NewClientId"     = client.newClientId
-        "AuthClientCredentials__${client.clientId}__NewClientSecret" = client.newClientSecret
+        "AuthClientCredentials__${client.clientId}__NewClientId"     = sensitive(client.newClientId)
+        "AuthClientCredentials__${client.clientId}__NewClientSecret" = sensitive(client.newClientSecret)
       }
-    ]...)),
+    ]...),
     var.authemulator_app_settings,
   )
   tags           = var.tags
