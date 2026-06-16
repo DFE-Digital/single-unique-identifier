@@ -117,7 +117,7 @@ jobs:
         run: terraform -chdir=${{ inputs.root }} validate
 
       - name: "Terraform plan ${{ inputs.root }} (tfvars: ${{ steps.env_config.outputs.tfvars_path }})"
-        run: terraform -chdir=${{ inputs.root }} plan -input=false -var-file=<(cat ../${{ steps.env_config.outputs.tfvars_path }}) -out=tfplan
+        run: terraform -chdir=${{ inputs.root }} plan -input=false -var-file=<(cat terraform/${{ steps.env_config.outputs.tfvars_path }}) -out=tfplan
 
       - name: Summarize tfplan
         if: always()
