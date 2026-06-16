@@ -1,10 +1,24 @@
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using NSubstitute;
+using NSubstitute.Extensions;
 using SUI.StubCustodians.Application.Services;
 
 namespace SUI.StubCustodians.Application.Unit.Tests.Services;
 
 public class FindApiAuthClientProviderTests
 {
+    private readonly IConfiguration _mockConfiguration = Substitute.For<IConfiguration>();
+
+    private readonly FindApiAuthClientProvider _sut;
+
+    public FindApiAuthClientProviderTests()
+    {
+        _mockConfiguration.ReturnsForAll((string?)null);
+
+        _sut = new FindApiAuthClientProvider(_mockConfiguration);
+    }
+
     private static string DataDirectory => Path.Combine(AppContext.BaseDirectory, "Data");
 
     private static string FilePath => Path.Combine(DataDirectory, "auth-clients-inbound.json");
@@ -44,10 +58,10 @@ public class FindApiAuthClientProviderTests
 
             WriteJson(json);
 
-            var provider = new FindApiAuthClientProvider();
+            // ACT
+            var clients = _sut.GetAuthClients();
 
-            var clients = provider.GetAuthClients();
-
+            // ASSERT
             Assert.Single(clients);
             Assert.Equal("LOCAL-AUTHORITY-01", clients[0].ClientId);
         }
@@ -80,11 +94,11 @@ public class FindApiAuthClientProviderTests
 
             WriteJson(json);
 
-            var provider = new FindApiAuthClientProvider();
+            // ACT
+            var first = _sut.GetAuthClients();
+            var second = _sut.GetAuthClients();
 
-            var first = provider.GetAuthClients();
-            var second = provider.GetAuthClients();
-
+            // ASSERT
             Assert.Same(first, second);
         }
         finally
@@ -98,9 +112,8 @@ public class FindApiAuthClientProviderTests
     {
         Cleanup();
 
-        var provider = new FindApiAuthClientProvider();
-
-        var ex = Assert.Throws<InvalidOperationException>(() => provider.GetAuthClients());
+        // ACT & ASSERT
+        var ex = Assert.Throws<InvalidOperationException>(() => _sut.GetAuthClients());
 
         Assert.Contains("auth-clients-inbound.json not found", ex.Message);
     }
@@ -112,9 +125,8 @@ public class FindApiAuthClientProviderTests
         {
             WriteJson("invalid-json");
 
-            var provider = new FindApiAuthClientProvider();
-
-            Assert.ThrowsAny<JsonException>(() => provider.GetAuthClients());
+            // ACT & ASSERT
+            Assert.ThrowsAny<JsonException>(() => _sut.GetAuthClients());
         }
         finally
         {
@@ -129,10 +141,10 @@ public class FindApiAuthClientProviderTests
         {
             WriteJson("{}");
 
-            var provider = new FindApiAuthClientProvider();
+            // ACT
+            var result = _sut.GetAuthClients();
 
-            var result = provider.GetAuthClients();
-
+            // ASSERT
             Assert.Empty(result);
         }
         finally

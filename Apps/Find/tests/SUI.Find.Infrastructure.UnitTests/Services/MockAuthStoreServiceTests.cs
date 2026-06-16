@@ -1,5 +1,7 @@
 using System.IO.Abstractions;
+using Microsoft.Extensions.Configuration;
 using NSubstitute;
+using NSubstitute.Extensions;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
@@ -8,6 +10,7 @@ public class MockAuthStoreServiceTests
 {
     private const string ClientId = "CLIENT-ID_LOCAL-AUTHORITY-01";
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
+    private readonly IConfiguration _mockConfiguration = Substitute.For<IConfiguration>();
     private readonly MockAuthStoreService _sut;
     private readonly string _realStoreFilePath;
     private static readonly string[] ExpectedScopes =
@@ -23,7 +26,9 @@ public class MockAuthStoreServiceTests
 
     public MockAuthStoreServiceTests()
     {
-        _sut = new MockAuthStoreService(_mockFileSystem);
+        _mockConfiguration.ReturnsForAll((string?)null);
+
+        _sut = new MockAuthStoreService(_mockFileSystem, _mockConfiguration);
         _realStoreFilePath = Path.Join(
             AppContext.BaseDirectory,
             "Data",

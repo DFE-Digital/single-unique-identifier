@@ -124,6 +124,8 @@ jobs:
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
     env:
+      AuthClientCredentials__CLIENT-ID_LOCAL-AUTHORITY-01__NewClientId: TestExampleClientId-01
+      AuthClientCredentials__CLIENT-ID_LOCAL-AUTHORITY-01__NewClientSecret: TestExampleSecret
       # Point OpenSSL to the .NET dev certs trust directory
       SSL_CERT_DIR: /home/runner/.aspnet/dev-certs/trust:/usr/lib/ssl/certs:/etc/ssl/certs
     steps:
@@ -162,14 +164,14 @@ jobs:
       - name: Install Azure Functions Core Tools
         run: npm i -g azure-functions-core-tools@4
 
-      - name: Build Find Solution
-        run: dotnet build Apps/Find/SUI.Find.slnx
+      - name: Build Find API
+        run: dotnet build Apps/Find/src/SUI.Find.FindApi
 
-      - name: Build StubCustodians Solution
-        run: dotnet build Apps/StubCustodians/SUI.StubCustodians.slnx
+      - name: Build StubCustodians API
+        run: dotnet build Apps/StubCustodians/src/SUI.StubCustodians.API
 
-      - name: Build AuthEmulator Solution
-        run: dotnet build Apps/AuthEmulator/SUI.AuthEmulator.slnx
+      - name: Build AuthEmulator API
+        run: dotnet build Apps/AuthEmulator/src/SUI.AuthEmulator
 
       - name: Create local.settings.json for Find API
         run: |
@@ -189,6 +191,9 @@ jobs:
         working-directory: Apps/Find/src/SUI.Find.FindApi
 
       - name: Run E2E Tests (against ephemeral environment)
+        env:
+          E2E__AuthClientIdsJsonMap: '{"CLIENT-ID_LOCAL-AUTHORITY-01": "TestExampleClientId-01"}'
+          E2E__AuthClientSecretsJsonMap: '{"CLIENT-ID_LOCAL-AUTHORITY-01": "TestExampleSecret"}'
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
             --filter "Category=E2E&Suite=Standard" \
@@ -237,6 +242,9 @@ jobs:
           global-json-file: global.json
 
       - name: Run E2E Tests (against dev environment)
+        env:
+          E2E__AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
+          E2E__AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
             --filter "Category=E2E&Suite=Standard" \

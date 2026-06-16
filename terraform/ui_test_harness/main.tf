@@ -132,6 +132,21 @@ module "web_app" {
       MATCH_API_KEY            = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.find_match_api_key.versionless_id})"
     },
     var.ui_harness_app_settings,
+
+    # AuthClientCredentials:
+    {
+      # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
+      AuthClientIdsJsonMap = sensitive(var.AuthClientIdsJsonMap),
+      AuthClientSecretsJsonMap = sensitive(var.AuthClientSecretsJsonMap),
+    },
+    {
+      for clientId, newClientId in jsondecode(nonsensitive(coalesce(var.AuthClientIdsJsonMap, "{}"))) :
+        "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
+    },
+    {
+      for clientId, newClientSecret in jsondecode(nonsensitive(coalesce(var.AuthClientSecretsJsonMap, "{}"))) :
+        "AuthClientCredentials__${clientId}__NewClientSecret" => sensitive(newClientSecret)
+    },
   )
   tags = var.tags
 }

@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Configuration;
@@ -13,21 +15,38 @@ public class FunctionTestFixture : IAsyncLifetime
     private bool _tableResetComplete;
     private readonly SemaphoreSlim _resetTablesMutex = new(1, 1);
     private const string HealthEndpointUrl = "health";
+    private readonly StringBuilder _startupDiagnosticMessages = new();
 
     public Config Config { get; }
+
+    public IConfiguration Configuration { get; }
 
     public HttpClient Client { get; }
 
     public HttpClient StubCustodiansClient { get; }
 
+    public string StartupDiagnosticMessages => _startupDiagnosticMessages.ToString();
+
     public FunctionTestFixture()
     {
-        var configurationRoot = new ConfigurationBuilder()
+        TransformAuthClientCredentialsEnvironmentVariables(
+            "E2E__AuthClientIdsJsonMap",
+            clientId => $"E2E__AuthClientCredentials__{clientId}__NewClientId",
+            sensitive: true
+        );
+
+        TransformAuthClientCredentialsEnvironmentVariables(
+            "E2E__AuthClientSecretsJsonMap",
+            clientId => $"E2E__AuthClientCredentials__{clientId}__NewClientSecret",
+            sensitive: true
+        );
+
+        Configuration = new ConfigurationBuilder()
             .AddEnvironmentVariables()
             .AddUserSecrets<FunctionTestFixture>()
             .Build();
 
-        Config = configurationRoot.GetSection("E2E").Get<Config>() ?? new Config();
+        Config = Configuration.GetSection("E2E").Get<Config>() ?? new Config();
 
         // For our HTTP clients, retry a small number of times if we ever receive a timeout, with a small wait in between
         var retryPolicy = Policy<HttpResponseMessage>
@@ -54,6 +73,35 @@ public class FunctionTestFixture : IAsyncLifetime
         StubCustodiansClient.Dispose();
         GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
+    }
+
+    private void TransformAuthClientCredentialsEnvironmentVariables(
+        string sourceEnvironmentVariableName,
+        Func<string, string> transformKey,
+        bool sensitive
+    )
+    {
+        var sourceJsonMap = Environment.GetEnvironmentVariable(sourceEnvironmentVariableName);
+
+        var map = JsonSerializer.Deserialize<Dictionary<string, string>>(sourceJsonMap ?? "{}");
+
+        if (map is { Count: > 0 })
+        {
+            foreach (var (key, value) in map)
+            {
+                var newKey = transformKey(key);
+                Environment.SetEnvironmentVariable(newKey, value);
+
+                var safeValue =
+                    !sensitive ? value
+                    : value.Length < 8 ? "***"
+                    : $"{value[..2]}***{value[^2..]}";
+
+                _startupDiagnosticMessages.AppendLine(
+                    $"Environment variable set: {newKey} = {safeValue}"
+                );
+            }
+        }
     }
 
     private record HealthCheckResponse(string? Value, DateTimeOffset? BuildTimestamp);

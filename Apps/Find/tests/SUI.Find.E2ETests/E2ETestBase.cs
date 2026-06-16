@@ -17,6 +17,11 @@ public class E2ETestBase
         TestOutputHelper = testOutputHelper;
 
         TestOutputHelper.WriteLine(Fixture.Config.ToString());
+
+        TestOutputHelper.WriteLine("Startup Diagnostic Messages:");
+        TestOutputHelper.WriteLine(
+            Fixture.StartupDiagnosticMessages == "" ? "None" : Fixture.StartupDiagnosticMessages
+        );
     }
 
     protected async Task<string?> GetAuthTokenAsync(
@@ -25,16 +30,24 @@ public class E2ETestBase
         string[] scopes
     )
     {
+        clientId =
+            Fixture.Configuration[$"E2E:AuthClientCredentials:{clientId}:NewClientId"] ?? clientId;
+
+        clientSecret =
+            Fixture.Configuration[$"E2E:AuthClientCredentials:{clientId}:NewClientSecret"]
+            ?? clientSecret;
+
         var authString = $"{clientId}:{clientSecret}";
         var base64Auth = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(authString));
         var clientCredentials = new AuthenticationHeaderValue("Basic", base64Auth);
 
-        return await GetAuthTokenWithRetryAsync(scopes, clientCredentials);
+        return await GetAuthTokenWithRetryAsync(scopes, clientCredentials, clientId);
     }
 
     private async Task<string> GetAuthTokenWithRetryAsync(
         string[] scopes,
-        AuthenticationHeaderValue clientCredentials
+        AuthenticationHeaderValue clientCredentials,
+        string clientId
     )
     {
         const int retryCount = 12;
@@ -78,7 +91,9 @@ public class E2ETestBase
             request.Content = content;
             request.Headers.Authorization = clientCredentials;
 
-            TestOutputHelper.WriteLine($"Requesting access token from: {request.RequestUri}");
+            TestOutputHelper.WriteLine(
+                $"Requesting access token from: {request.RequestUri} for client ID: {clientId}"
+            );
 
             var response = await Fixture.Client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
