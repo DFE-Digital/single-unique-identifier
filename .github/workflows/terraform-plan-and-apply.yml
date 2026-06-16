@@ -70,6 +70,8 @@ jobs:
       TF_VAR_AuthSettings_Audience: ${{ secrets.AUTH_SETTINGS__AUDIENCE }}
       TF_VAR_AuthSettings_OidcDiscoveryUrl: ${{ secrets.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}
       TF_VAR_AuthSettings_AccessTokenUrl: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
+      TF_VAR_AuthClientCredentialsMap: |
+        ${{ secrets.AUTH_CLIENT_CREDENTIALS_MAP }}
 
     steps:
       - name: Checkout repository

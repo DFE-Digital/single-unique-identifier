@@ -54,6 +54,13 @@ module "web_app" {
       # Map the environment's dynamic base URL down to the Auth Emulator config
       AuthSettings__BaseUrl = format("https://%s%sapp-%s-authemulator01.azurewebsites.net/", var.subscription_prefix, var.environment_id, var.region_short)
     },
+    # rs-todo: wrap in sensitive:
+    merge([
+      for client in var.AuthClientCredentialsMap : {
+        "AuthClientCredentials__${client.clientId}__NewClientId"     = client.newClientId
+        "AuthClientCredentials__${client.clientId}__NewClientSecret" = client.newClientSecret
+      }
+    ]...),
     var.authemulator_app_settings,
   )
   tags           = var.tags
