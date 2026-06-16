@@ -63,11 +63,11 @@ module "web_app" {
       AuthClientCredentials_ClientSecretsJson = var.AuthClientCredentials_ClientSecretsJson,
     },
     {
-      for clientId, newClientId in jsondecode(var.AuthClientCredentials_ClientIdsJson) : 
+      for clientId, newClientId in jsondecode(coalesce(var.AuthClientCredentials_ClientIdsJson, "{}")) : 
         "AuthClientCredentials__${clientId}__NewClientId" => newClientId
     },
     {
-      for clientId, newClientSecret in jsondecode(var.AuthClientCredentials_ClientSecretsJson) : 
+      for clientId, newClientSecret in jsondecode(coalesce(var.AuthClientCredentials_ClientSecretsJson, "{}")) : 
         "AuthClientCredentials__${clientId}__NewClientSecret" => newClientSecret
     },
   )
