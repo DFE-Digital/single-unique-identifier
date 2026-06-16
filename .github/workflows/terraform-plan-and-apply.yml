@@ -44,6 +44,8 @@ on:
         required: false
       AUTH_SETTINGS__ACCESS_TOKEN_URL:
         required: false
+      AUTH_CLIENT_CREDENTIALS__CLIENT_IDS_JSON:
+        required: false
 
 permissions:
   id-token: write
