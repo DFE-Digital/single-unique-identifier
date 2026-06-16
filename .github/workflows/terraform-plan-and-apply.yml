@@ -76,15 +76,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Rob Test
-        run: |
-          $test = $(cat <<EOF
-            ${{ toJSON(vars) }}
-          EOF
-          )
-
-          echo rs-todo: $test
-
       - name: Setup Node.js (for Terraform)
         uses: actions/setup-node@v6
         with:
@@ -126,7 +117,7 @@ jobs:
         run: terraform -chdir=${{ inputs.root }} validate
 
       - name: "Terraform plan ${{ inputs.root }} (tfvars: ${{ steps.env_config.outputs.tfvars_path }})"
-        run: terraform -chdir=${{ inputs.root }} plan -input=false -var-file=../${{ steps.env_config.outputs.tfvars_path }} -out=tfplan
+        run: terraform -chdir=${{ inputs.root }} plan -input=false -var-file=<(cat ../${{ steps.env_config.outputs.tfvars_path }}) -out=tfplan
 
       - name: Summarize tfplan
         if: always()
