@@ -68,8 +68,9 @@ public class CustodianWorker : BackgroundService
     {
         if (_logger.IsEnabled(LogLevel.Information))
             _logger.LogInformation(
-                "Custodian {ClientId} started. Interval: {Interval}s",
-                _authClient.ClientId,
+                "Custodian {OrganisationId} ({ClientId}) started. Interval: {Interval} seconds",
+                _authClient.OrganisationId,
+                _clientId,
                 _intervalSeconds
             );
 
@@ -109,7 +110,12 @@ public class CustodianWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Polling failed for {ClientId}", _authClient.ClientId);
+                _logger.LogError(
+                    ex,
+                    "Polling failed for {OrganisationId} ({ClientId})",
+                    _authClient.OrganisationId,
+                    _clientId
+                );
                 sleep = true;
             }
 
