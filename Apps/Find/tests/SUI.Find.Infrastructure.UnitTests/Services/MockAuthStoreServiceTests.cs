@@ -1,5 +1,4 @@
 using System.IO.Abstractions;
-using System.Text.Json;
 using NSubstitute;
 using SUI.Find.Infrastructure.Services;
 
@@ -7,6 +6,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services;
 
 public class MockAuthStoreServiceTests
 {
+    private const string ClientId = "CLIENT-ID_LOCAL-AUTHORITY-01";
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
     private readonly MockAuthStoreService _sut;
     private readonly string _realStoreFilePath;
@@ -40,7 +40,7 @@ public class MockAuthStoreServiceTests
         _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         // Act
-        var result = _sut.GetScopesByClientId("LOCAL-AUTHORITY-01");
+        var result = _sut.GetScopesByClientId(ClientId);
 
         // Assert
         Assert.NotNull(result);
@@ -71,7 +71,7 @@ public class MockAuthStoreServiceTests
         _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         // Act
-        var result = _sut.GetOrganisationIdForClientId("LOCAL-AUTHORITY-01");
+        var result = _sut.GetOrganisationIdForClientId(ClientId);
 
         // Assert
         Assert.NotNull(result);

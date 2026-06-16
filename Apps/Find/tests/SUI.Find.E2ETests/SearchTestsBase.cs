@@ -53,7 +53,7 @@ public abstract class SearchTestsBase(
             new TestData
             {
                 Sui = "9691292211",
-                TestClientId = "LOCAL-AUTHORITY-01",
+                TestClientId = "CLIENT-ID_LOCAL-AUTHORITY-01",
                 Records =
                 [
                     new TestRecord { RecordType = "health.details", TestValue = "Dr E Green" },
@@ -80,7 +80,7 @@ public abstract class SearchTestsBase(
             new TestData
             {
                 Sui = "9691292211",
-                TestClientId = "EDUCATION-01",
+                TestClientId = "CLIENT-ID_EDUCATION-01",
                 Records =
                 [
                     new TestRecord { RecordType = "health.details", TestValue = "Dr E Green" },
@@ -97,13 +97,13 @@ public abstract class SearchTestsBase(
             new TestData
             {
                 Sui = "9449306613",
-                TestClientId = "LOCAL-AUTHORITY-01",
+                TestClientId = "CLIENT-ID_LOCAL-AUTHORITY-01",
                 Records = [new TestRecord { RecordType = "personal.details", TestValue = "Briar" }],
             },
             new TestData
             {
                 Sui = "9449306494",
-                TestClientId = "HEALTH-01",
+                TestClientId = "CLIENT-ID_HEALTH-01",
                 Records =
                 [
                     new TestRecord { RecordType = "personal.details", TestValue = "Red" },
@@ -117,13 +117,13 @@ public abstract class SearchTestsBase(
             new TestData
             {
                 Sui = "9693821998",
-                TestClientId = "LOCAL-AUTHORITY-01",
+                TestClientId = "CLIENT-ID_LOCAL-AUTHORITY-01",
                 Records = [],
             },
             new TestData
             {
                 Sui = "9691292211",
-                TestClientId = "NO-DSA-01",
+                TestClientId = "CLIENT-ID_NO-DSA-01",
                 Records = [],
             },
         ];

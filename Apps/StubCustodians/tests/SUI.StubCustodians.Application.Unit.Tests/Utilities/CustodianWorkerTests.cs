@@ -28,6 +28,7 @@ public class CustodianWorkerTests
         _testClient = new AuthClient()
         {
             ClientId = "client-id",
+            OrganisationId = "organisation-id",
             ClientSecret = "secret",
             Enabled = true,
             AllowedScopes = ["test-scope"],
@@ -93,7 +94,7 @@ public class CustodianWorkerTests
 
         _manifestService
             .GetManifestForOrganisation(
-                _testClient.ClientId,
+                _testClient.OrganisationId,
                 job.Sui,
                 "https://api.test",
                 job.RecordType,
@@ -301,7 +302,7 @@ public class CustodianWorkerTests
 
         _manifestService
             .GetManifestForOrganisation(
-                _testClient.ClientId,
+                _testClient.OrganisationId,
                 job.Sui,
                 "https://api.test",
                 job.RecordType,

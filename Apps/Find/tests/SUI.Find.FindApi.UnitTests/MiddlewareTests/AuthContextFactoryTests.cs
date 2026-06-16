@@ -9,6 +9,8 @@ namespace SUI.Find.FindApi.UnitTests.MiddlewareTests;
 
 public class AuthContextFactoryTests
 {
+    private const string ClientId = "CLIENT-ID_EDUCATION-01";
+    private const string OrganisationId = "EDUCATION-01";
     private readonly AuthContextFactory _sut;
     private readonly IAuthStoreService _store;
 
@@ -45,9 +47,9 @@ public class AuthContextFactoryTests
     public void TestFromJwt_WhenNoOrganisationIdForClientId_ShouldThrowException()
     {
         // Arrange
-        var claims = new List<Claim> { new("client_id", "EDUCATION-01") };
+        var claims = new List<Claim> { new("client_id", ClientId) };
         var jwt = new JwtSecurityToken(claims: claims);
-        _store.GetOrganisationIdForClientId("EDUCATION-01").Returns("");
+        _store.GetOrganisationIdForClientId(ClientId).Returns("");
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
@@ -107,26 +109,24 @@ public class AuthContextFactoryTests
     public void TestFromJwt_WithValidInputs_UsingTokenScopes_ReturnsAuthContext()
     {
         // Arrange
-        const string clientId = "EDUCATION-01";
-        const string organisationId = "Edu-ORG-01";
         List<string> scopesList = ["file.read", "file.write"];
 
         var claims = new List<Claim>
         {
-            new("client_id", clientId),
+            new("client_id", ClientId),
             new("scope", "file.read file.write"),
         };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        _store.GetOrganisationIdForClientId("EDUCATION-01").Returns(organisationId);
+        _store.GetOrganisationIdForClientId(ClientId).Returns(OrganisationId);
         _store.GetScopesByClientId(Arg.Any<string>()).Throws<InvalidOperationException>(); // Should not use Auth Store for authorisation
 
         // Act
         var result = _sut.FromJwt(jwt, false);
 
         // Assert
-        Assert.Equal(clientId, result.ClientId);
-        Assert.Equal(organisationId, result.OrganisationId);
+        Assert.Equal(ClientId, result.ClientId);
+        Assert.Equal(OrganisationId, result.OrganisationId);
         Assert.Equal(scopesList, result.Scopes);
     }
 
@@ -134,26 +134,24 @@ public class AuthContextFactoryTests
     public void TestFromJwt_WithValidInputs_UsingAuthStoreScopes_ReturnsAuthContext()
     {
         // Arrange
-        const string clientId = "EDUCATION-01";
-        const string organisationId = "Edu-ORG-01";
         List<string> scopesList = ["file.read", "file.write"];
 
         var claims = new List<Claim>
         {
-            new("client_id", clientId),
+            new("client_id", ClientId),
             new("scope", "incorrect.scope"),
         };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        _store.GetOrganisationIdForClientId("EDUCATION-01").Returns(organisationId);
+        _store.GetOrganisationIdForClientId(ClientId).Returns(OrganisationId);
         _store.GetScopesByClientId(Arg.Any<string>()).Returns(scopesList);
 
         // Act
         var result = _sut.FromJwt(jwt, true);
 
         // Assert
-        Assert.Equal(clientId, result.ClientId);
-        Assert.Equal(organisationId, result.OrganisationId);
+        Assert.Equal(ClientId, result.ClientId);
+        Assert.Equal(OrganisationId, result.OrganisationId);
         Assert.Equal(scopesList, result.Scopes);
     }
 }

@@ -135,7 +135,7 @@ public class CustodianWorker : BackgroundService
             {
                 ["JobId"] = job.JobId,
                 ["LeaseId"] = job.LeaseId,
-                ["OrgId"] = _authClient.ClientId,
+                ["OrgId"] = _authClient.OrganisationId,
             }
         );
 
@@ -146,7 +146,7 @@ public class CustodianWorker : BackgroundService
                 {
                     job.JobId,
                     job.LeaseId,
-                    _authClient.ClientId,
+                    _authClient.OrganisationId,
                 }
             );
 
@@ -159,7 +159,7 @@ public class CustodianWorker : BackgroundService
         var baseUrl = _config["StubCustodians:BaseUrl"]!;
 
         var manifest = await manifestService.GetManifestForOrganisation(
-            _authClient.ClientId,
+            _authClient.OrganisationId,
             job.Sui,
             baseUrl,
             job.RecordType,
