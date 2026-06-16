@@ -60,16 +60,16 @@ module "web_app" {
     {
       # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
       AuthClientIdsJsonMap = var.AuthClientIdsJsonMap,
-      AuthClientSecretsJsonMap = sensitive(var.AuthClientSecretsJsonMap),
+      #AuthClientSecretsJsonMap = sensitive(var.AuthClientSecretsJsonMap),
     },
     {
       for clientId, newClientId in jsondecode(coalesce(var.AuthClientIdsJsonMap, "{}")) :
         "AuthClientCredentials__${clientId}__NewClientId" => newClientId
     },
-    {
-      for clientId, newClientSecret in jsondecode(coalesce(var.AuthClientSecretsJsonMap, "{}")) :
-        "AuthClientCredentials__${clientId}__NewClientSecret" => sensitive(newClientSecret)
-    },
+    # {
+    #   for clientId, newClientSecret in jsondecode(coalesce(var.AuthClientSecretsJsonMap, "{}")) :
+    #     "AuthClientCredentials__${clientId}__NewClientSecret" => sensitive(newClientSecret)
+    # },
   )
   tags           = var.tags
 }
