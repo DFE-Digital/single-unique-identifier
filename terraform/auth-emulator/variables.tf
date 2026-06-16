@@ -94,7 +94,6 @@ variable "AuthSettings_Audience" {
 
 variable "AuthClientCredentialsMap" {
   description = "A list of Auth Client Credential mapping objects, map from public Client ID to private values."
-  #sensitive   = true
   type        = list(object({
     clientId        = string
     newClientId     = string

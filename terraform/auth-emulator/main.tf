@@ -55,13 +55,13 @@ module "web_app" {
       AuthSettings__BaseUrl = format("https://%s%sapp-%s-authemulator01.azurewebsites.net/", var.subscription_prefix, var.environment_id, var.region_short)
     },
     merge(
-      {
-        # Provided for debugging and ease of updating, because this value can be retrieved from the app settings in the Azure Portal:
-        AuthClientCredentialsMapRaw = sensitive(var.AuthClientCredentialsMap),
-      },
+      #{
+      #  # Provided for debugging and ease of updating, because this value can be retrieved from the app settings in the Azure Portal:
+      #  AuthClientCredentialsMapRaw = sensitive(var.AuthClientCredentialsMap),
+      #},
       [
         for client in var.AuthClientCredentialsMap : {
-          "AuthClientCredentials__${client.clientId}__NewClientId"     = sensitive(client.newClientId)
+          "AuthClientCredentials__${client.clientId}__NewClientId"     = client.newClientId
           "AuthClientCredentials__${client.clientId}__NewClientSecret" = sensitive(client.newClientSecret)
         }
       ]...),
