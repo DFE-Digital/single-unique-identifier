@@ -92,15 +92,15 @@ variable "AuthSettings_Audience" {
   sensitive   = true
 }
 
-variable "AuthClientCredentials_ClientIdsJson" {
+variable "AuthClientIdsJsonMap" {
   description = "Optional string containing a JSON map to transform the Client IDs in the sample data. Not considered sensitive."
   type        = string
   default     = null
 }
 
-variable "AuthClientCredentials_ClientSecretsJson" {
+variable "AuthClientSecretsJsonMap" {
   description = "Optional string containing a JSON map to transform the Client Secrets in the sample data. Contains sensitive data, must be masked."
   type        = string
   default     = null
-  #sensitive   = true # rs-todo
+  sensitive   = true
 }

@@ -59,15 +59,15 @@ module "web_app" {
     # AuthClientCredentials:
     {
       # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
-      AuthClientCredentials_ClientIdsJson = var.AuthClientCredentials_ClientIdsJson,
-      AuthClientCredentials_ClientSecretsJson = var.AuthClientCredentials_ClientSecretsJson,
+      AuthClientIdsJsonMap = var.AuthClientIdsJsonMap,
+      AuthClientSecretsJsonMap = var.AuthClientSecretsJsonMap,
     },
     {
-      for clientId, newClientId in jsondecode(coalesce(var.AuthClientCredentials_ClientIdsJson, "{}")) : 
+      for clientId, newClientId in jsondecode(coalesce(var.AuthClientIdsJsonMap, "{}")) :
         "AuthClientCredentials__${clientId}__NewClientId" => newClientId
     },
     {
-      for clientId, newClientSecret in jsondecode(coalesce(var.AuthClientCredentials_ClientSecretsJson, "{}")) : 
+      for clientId, newClientSecret in jsondecode(coalesce(var.AuthClientSecretsJsonMap, "{}")) :
         "AuthClientCredentials__${clientId}__NewClientSecret" => newClientSecret
     },
   )
