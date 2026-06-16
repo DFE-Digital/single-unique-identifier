@@ -73,12 +73,17 @@ jobs:
       # TF_VAR_AuthClientCredentialsMap: ${{ base64encode(secrets.AUTH_CLIENT_CREDENTIALS_MAP) }}
 
     steps:
-      - name: Rob Test
-        run: |
-          ${{ toJSON(vars) }}
-
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Rob Test
+        run: |
+          $test = $(cat <<EOF
+            ${{ toJSON(vars) }}
+          EOF
+          )
+
+          echo rs-todo: $test
 
       - name: Setup Node.js (for Terraform)
         uses: actions/setup-node@v6
