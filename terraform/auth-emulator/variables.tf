@@ -92,12 +92,13 @@ variable "AuthSettings_Audience" {
   sensitive   = true
 }
 
-variable "AuthClientCredentialsMap" {
-  description = "A list of Auth Client Credential mapping objects, map from public Client ID to private values."
-  type        = list(object({
-    clientId        = string
-    newClientId     = string
-    newClientSecret = string
-  }))
-  default     = []
+variable "AuthClientCredentials_ClientIdsJson" {
+  description = "Optional string containing a JSON map to transform the Client IDs in the sample data. Not considered sensitive."
+  type        = string
+}
+
+variable "AuthClientCredentials_ClientSecretsJson" {
+  description = "Optional string containing a JSON map to transform the Client Secrets in the sample data. Contains sensitive data, must be masked."
+  type        = string
+  #sensitive   = true # rs-todo
 }

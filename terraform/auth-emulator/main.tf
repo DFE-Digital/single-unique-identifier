@@ -54,18 +54,22 @@ module "web_app" {
       # Map the environment's dynamic base URL down to the Auth Emulator config
       AuthSettings__BaseUrl = format("https://%s%sapp-%s-authemulator01.azurewebsites.net/", var.subscription_prefix, var.environment_id, var.region_short)
     },
-    merge(
-      #{
-      #  # Provided for debugging and ease of updating, because this value can be retrieved from the app settings in the Azure Portal:
-      #  AuthClientCredentialsMapRaw = sensitive(var.AuthClientCredentialsMap),
-      #},
-      [
-        for client in var.AuthClientCredentialsMap : {
-          "AuthClientCredentials__${client.clientId}__NewClientId"     = client.newClientId
-          "AuthClientCredentials__${client.clientId}__NewClientSecret" = sensitive(client.newClientSecret)
-        }
-      ]...),
     var.authemulator_app_settings,
+
+    # AuthClientCredentials:
+    {
+      # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
+      AuthClientCredentials_ClientIdsJson = var.AuthClientCredentials_ClientIdsJson,
+      AuthClientCredentials_ClientSecretsJson = var.AuthClientCredentials_ClientSecretsJson,
+    },
+    {
+      for clientId, newClientId in jsondecode(var.AuthClientCredentials_ClientIdsJson) : 
+        "AuthClientCredentials__${clientId}__NewClientId" => newClientId
+    },
+    {
+      for clientId, newClientSecret in jsondecode(var.AuthClientCredentials_ClientSecretsJson) : 
+        "AuthClientCredentials__${key}__NewClientSecret" => newClientSecret
+    },
   )
   tags           = var.tags
 }
