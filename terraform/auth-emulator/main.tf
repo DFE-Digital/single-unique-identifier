@@ -68,7 +68,7 @@ module "web_app" {
     },
     {
       for clientId, newClientSecret in jsondecode(var.AuthClientCredentials_ClientSecretsJson) : 
-        "AuthClientCredentials__${key}__NewClientSecret" => newClientSecret
+        "AuthClientCredentials__${clientId}__NewClientSecret" => newClientSecret
     },
   )
   tags           = var.tags
