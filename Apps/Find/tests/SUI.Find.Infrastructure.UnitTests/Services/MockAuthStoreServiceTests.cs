@@ -8,7 +8,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services;
 
 public class MockAuthStoreServiceTests
 {
-    private const string ClientId = "CLIENT-ID_LOCAL-AUTHORITY-01";
+    private const string ClientId = "CLIENT_ID_LOCAL_AUTHORITY_01";
     private const string ExpectedOrganisationId = "LOCAL-AUTHORITY-01";
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
     private readonly IConfiguration _mockConfiguration = Substitute.For<IConfiguration>();

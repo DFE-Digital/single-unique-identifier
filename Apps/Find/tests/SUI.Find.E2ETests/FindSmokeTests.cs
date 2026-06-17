@@ -10,7 +10,7 @@ namespace SUI.Find.E2ETests;
 public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
     : E2ETestBase(fixture, testOutputHelper)
 {
-    private const string TestClientId = "CLIENT-ID_LOCAL-AUTHORITY-01";
+    private const string TestClientId = "CLIENT_ID_LOCAL_AUTHORITY_01";
     private const string TestClientSecret = "SUIProject";
     private const int ApiKeyAcceptanceRetryCount = 6;
     private static readonly string[] MatchReadScopes = ["match-record.read"];

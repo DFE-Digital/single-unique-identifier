@@ -124,8 +124,8 @@ jobs:
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
     env:
-      AuthClientCredentials__CLIENT-ID_LOCAL-AUTHORITY-01__NewClientId: TestExampleClientId-01
-      AuthClientCredentials__CLIENT-ID_LOCAL-AUTHORITY-01__NewClientSecret: TestExampleSecret
+      AuthClientCredentials__CLIENT_ID_LOCAL_AUTHORITY_01__NewClientId: TestExampleClientId-01
+      AuthClientCredentials__CLIENT_ID_LOCAL_AUTHORITY_01__NewClientSecret: TestExampleSecret
       # Point OpenSSL to the .NET dev certs trust directory
       SSL_CERT_DIR: /home/runner/.aspnet/dev-certs/trust:/usr/lib/ssl/certs:/etc/ssl/certs
     steps:
@@ -192,8 +192,8 @@ jobs:
 
       - name: Run E2E Tests (against ephemeral environment)
         env:
-          E2E__AuthClientIdsJsonMap: '{"CLIENT-ID_LOCAL-AUTHORITY-01": "TestExampleClientId-01"}'
-          E2E__AuthClientSecretsJsonMap: '{"CLIENT-ID_LOCAL-AUTHORITY-01": "TestExampleSecret"}'
+          E2E__AuthClientIdsJsonMap: '{"CLIENT_ID_LOCAL_AUTHORITY_01": "TestExampleClientId-01"}'
+          E2E__AuthClientSecretsJsonMap: '{"CLIENT_ID_LOCAL_AUTHORITY_01": "TestExampleSecret"}'
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
             --filter "Category=E2E&Suite=Standard" \

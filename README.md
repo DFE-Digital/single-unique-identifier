@@ -303,12 +303,12 @@ Both secrets must be JSON maps, where the key is the original Client ID and the 
 
 `AUTH_CLIENT_IDS_JSON_MAP` expects a map of `OriginalClientId` to `SensitiveClientId`, for example:
 ```json
-{"CLIENT-ID_LOCAL-AUTHORITY-01":"sensitive-client-id-1", "CLIENT-ID_EDUCATION-01":"sensitive-client-id-2"}
+{"CLIENT_ID_LOCAL_AUTHORITY_01":"sensitive-client-id-1", "CLIENT_ID_EDUCATION_01":"sensitive-client-id-2"}
 ```
 
 `AUTH_CLIENT_SECRETS_JSON_MAP` expects a map of `OriginalClientId` to `SensitiveClientSecret`, for example:
 ```json
-{"CLIENT-ID_LOCAL-AUTHORITY-01":"sensitive-client-secret-1", "CLIENT-ID_EDUCATION-01":"sensitive-client-secret-2"}
+{"CLIENT_ID_LOCAL_AUTHORITY_01":"sensitive-client-secret-1", "CLIENT_ID_EDUCATION_01":"sensitive-client-secret-2"}
 ```
 
 **It is important to note that these values must be a single line.  They must not be multi-line.  Newline characters break the GitHub workflows!**

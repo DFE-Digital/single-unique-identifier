@@ -9,7 +9,7 @@ namespace SUI.Find.FindApi.UnitTests.MiddlewareTests;
 
 public class AuthContextFactoryTests
 {
-    private const string ClientId = "CLIENT-ID_EDUCATION-01";
+    private const string ClientId = "CLIENT_ID_EDUCATION_01";
     private const string OrganisationId = "EDUCATION-01";
     private readonly AuthContextFactory _sut;
     private readonly IAuthStoreService _store;
