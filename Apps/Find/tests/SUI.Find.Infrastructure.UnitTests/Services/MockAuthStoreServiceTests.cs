@@ -9,6 +9,7 @@ namespace SUI.Find.Infrastructure.UnitTests.Services;
 public class MockAuthStoreServiceTests
 {
     private const string ClientId = "CLIENT-ID_LOCAL-AUTHORITY-01";
+    private const string ExpectedOrganisationId = "LOCAL-AUTHORITY-01";
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
     private readonly IConfiguration _mockConfiguration = Substitute.For<IConfiguration>();
     private readonly MockAuthStoreService _sut;
@@ -80,7 +81,7 @@ public class MockAuthStoreServiceTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("LOCAL-AUTHORITY-01", result);
+        Assert.Equal(ExpectedOrganisationId, result);
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public class MockAuthStoreServiceTests
         var resultScopes = _sut.GetScopesByClientId(sensitiveClientId);
 
         // Assert
-        Assert.Equal("LOCAL-AUTHORITY-01", resultOrganisationId);
+        Assert.Equal(ExpectedOrganisationId, resultOrganisationId);
         Assert.Equivalent(ExpectedScopes, resultScopes, strict: true);
     }
 }
