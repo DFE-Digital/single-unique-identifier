@@ -19,14 +19,20 @@ public sealed class FindDocumentFilter(IOptions<AuthSettings> authSettings) : ID
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
         document.Components.Schemas ??= new Dictionary<string, OpenApiSchema>();
+        document.Components.Headers ??= new Dictionary<string, OpenApiHeader>();
 
+        // Remove DateOnly component schemas
         var dateOnlyKeys = new[] { "dateOnly", "DateOnly" };
+
         foreach (var key in dateOnlyKeys.Where(key => document.Components.Schemas.ContainsKey(key)))
         {
-            var schema = document.Components.Schemas[key];
-            schema.Type = "string";
-            schema.Format = "date";
-            schema.Properties.Clear();
+            document.Components.Schemas.Remove(key);
+        }
+
+        // Recursively strip DateOnly references from remaining schemas
+        foreach (var schema in document.Components.Schemas.Values)
+        {
+            ReplaceDateOnlyReferences(schema);
         }
 
         ConfigureSecuritySchemes(document);
@@ -76,22 +82,20 @@ public sealed class FindDocumentFilter(IOptions<AuthSettings> authSettings) : ID
 
     private static void TransformPaths(OpenApiDocument document)
     {
-        var traceIdHeader = new OpenApiHeader
+        // Define Headers centrally in Components
+        document.Components.Headers[TraceIdHeaderName] = new OpenApiHeader
         {
             Description = "Primary trace ID for the whole operation",
             Schema = new OpenApiSchema { Type = "string" },
             Example = new OpenApiString("082d58852e3244eed72f52f41e0f8045"),
         };
 
-        var invocationIdHeader = new OpenApiHeader
+        document.Components.Headers[InvocationIdHeaderName] = new OpenApiHeader
         {
             Description = "Secondary trace ID for the whole operation",
             Schema = new OpenApiSchema { Type = "string" },
             Example = new OpenApiString("a49d73e8-dc36-4be5-92a6-9bf62868aa99"),
         };
-
-        document.Components.Headers[TraceIdHeaderName] = traceIdHeader;
-        document.Components.Headers[InvocationIdHeaderName] = invocationIdHeader;
 
         var oauthRequirement = new OpenApiSecurityRequirement
         {
@@ -155,6 +159,20 @@ public sealed class FindDocumentFilter(IOptions<AuthSettings> authSettings) : ID
 
             foreach (var op in pathItem.Operations.Values)
             {
+                // Ensure DateOnly schemas in payloads/parameters are also stripped
+                foreach (var parameter in op.Parameters)
+                {
+                    ReplaceDateOnlyReferences(parameter.Schema);
+                }
+
+                if (op.RequestBody?.Content != null)
+                {
+                    foreach (var mediaType in op.RequestBody.Content.Values)
+                    {
+                        ReplaceDateOnlyReferences(mediaType.Schema);
+                    }
+                }
+
                 if (isPublic)
                 {
                     op.Security = new List<OpenApiSecurityRequirement>();
@@ -174,12 +192,37 @@ public sealed class FindDocumentFilter(IOptions<AuthSettings> authSettings) : ID
                     op.Security = new List<OpenApiSecurityRequirement> { oauthRequirement };
                 }
 
-                if (hasTraceHeaders)
+                foreach (var response in op.Responses.Values)
                 {
-                    foreach (var responseHeaders in op.Responses.Values.Select(x => x.Headers))
+                    // Ensure DateOnly schemas in response payloads are stripped
+                    if (response.Content != null)
                     {
-                        responseHeaders[TraceIdHeaderName] = traceIdHeader;
-                        responseHeaders[InvocationIdHeaderName] = invocationIdHeader;
+                        foreach (var mediaType in response.Content.Values)
+                        {
+                            ReplaceDateOnlyReferences(mediaType.Schema);
+                        }
+                    }
+
+                    if (hasTraceHeaders)
+                    {
+                        // Map trace headers using $ref instead of inline definitions
+                        response.Headers[TraceIdHeaderName] = new OpenApiHeader
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.Header,
+                                Id = TraceIdHeaderName,
+                            },
+                        };
+
+                        response.Headers[InvocationIdHeaderName] = new OpenApiHeader
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.Header,
+                                Id = InvocationIdHeaderName,
+                            },
+                        };
                     }
                 }
             }
@@ -188,6 +231,7 @@ public sealed class FindDocumentFilter(IOptions<AuthSettings> authSettings) : ID
         var orderedPaths = document.Paths.OrderBy(p => p.Key).ToArray();
 
         var newPaths = new OpenApiPaths();
+
         foreach (var p in orderedPaths)
         {
             p.Value.Operations = p
@@ -313,6 +357,61 @@ public sealed class FindDocumentFilter(IOptions<AuthSettings> authSettings) : ID
                         schemaEnumProperty.Enum.Add(new OpenApiString(name));
                     }
                 }
+            }
+        }
+    }
+
+    private static void ReplaceDateOnlyReferences(OpenApiSchema? schema)
+    {
+        if (schema == null)
+        {
+            return;
+        }
+
+        // If this schema node is a $ref to DateOnly, strip the ref and inline the string/date format
+        if (string.Equals(schema.Reference?.Id, "dateOnly", StringComparison.OrdinalIgnoreCase))
+        {
+            schema.Reference = null;
+            schema.Type = "string";
+            schema.Format = "date";
+            schema.Properties?.Clear();
+        }
+
+        // Recursively check all nested properties, arrays, and composites
+        if (schema.Properties != null)
+        {
+            foreach (var prop in schema.Properties.Values)
+            {
+                ReplaceDateOnlyReferences(prop);
+            }
+        }
+
+        if (schema.Items != null)
+        {
+            ReplaceDateOnlyReferences(schema.Items);
+        }
+
+        if (schema.AllOf != null)
+        {
+            foreach (var s in schema.AllOf)
+            {
+                ReplaceDateOnlyReferences(s);
+            }
+        }
+
+        if (schema.AnyOf != null)
+        {
+            foreach (var s in schema.AnyOf)
+            {
+                ReplaceDateOnlyReferences(s);
+            }
+        }
+
+        if (schema.OneOf != null)
+        {
+            foreach (var s in schema.OneOf)
+            {
+                ReplaceDateOnlyReferences(s);
             }
         }
     }
