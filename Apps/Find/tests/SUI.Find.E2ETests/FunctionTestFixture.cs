@@ -32,13 +32,13 @@ public class FunctionTestFixture : IAsyncLifetime
         TransformAuthClientCredentialsEnvironmentVariables(
             "E2E__AuthClientIdsJsonMap",
             clientId => $"E2E__AuthClientCredentials__{clientId}__NewClientId",
-            sensitive: true
+            isSensitive: true
         );
 
         TransformAuthClientCredentialsEnvironmentVariables(
             "E2E__AuthClientSecretsJsonMap",
             clientId => $"E2E__AuthClientCredentials__{clientId}__NewClientSecret",
-            sensitive: true
+            isSensitive: true
         );
 
         Configuration = new ConfigurationBuilder()
@@ -75,10 +75,15 @@ public class FunctionTestFixture : IAsyncLifetime
         return ValueTask.CompletedTask;
     }
 
+    public static string MaskValue(string value, bool isSensitive) =>
+        !isSensitive ? value
+        : value.Length < 8 ? "***"
+        : $"{value[..2]}***{value[^2..]}";
+
     private void TransformAuthClientCredentialsEnvironmentVariables(
         string sourceEnvironmentVariableName,
         Func<string, string> transformKey,
-        bool sensitive
+        bool isSensitive
     )
     {
         var sourceJsonMap = Environment.GetEnvironmentVariable(sourceEnvironmentVariableName);
@@ -92,13 +97,8 @@ public class FunctionTestFixture : IAsyncLifetime
                 var newKey = transformKey(key);
                 Environment.SetEnvironmentVariable(newKey, value);
 
-                var safeValue =
-                    !sensitive ? value
-                    : value.Length < 8 ? "***"
-                    : $"{value[..2]}***{value[^2..]}";
-
                 _startupDiagnosticMessages.AppendLine(
-                    $"Environment variable set: {newKey} = {safeValue}"
+                    $"Environment variable set: {newKey} = {MaskValue(value, isSensitive)}"
                 );
             }
         }

@@ -97,4 +97,25 @@ public class MockAuthStoreServiceTests
             _sut.GetOrganisationIdForClientId("invalid-client-id")
         );
     }
+
+    [Fact]
+    public async Task GetOrganisationIdForClientId_AndGetScopesByClientId_ShouldSupportSensitiveOverridesViaConfiguration()
+    {
+        // Arrange
+        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
+
+        const string sensitiveClientId = "SensitiveClientId";
+
+        _mockConfiguration[$"AuthClientCredentials:{ClientId}:NewClientId"] = sensitiveClientId;
+
+        // Act
+        var resultOrganisationId = _sut.GetOrganisationIdForClientId(sensitiveClientId);
+        var resultScopes = _sut.GetScopesByClientId(sensitiveClientId);
+
+        // Assert
+        Assert.Equal("LOCAL-AUTHORITY-01", resultOrganisationId);
+        Assert.Equivalent(ExpectedScopes, resultScopes, strict: true);
+    }
 }

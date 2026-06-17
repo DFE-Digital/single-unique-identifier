@@ -64,10 +64,11 @@ public class MockAuthStoreService : IAuthStoreService
             throw new InvalidOperationException("Auth store file could not be deserialized.");
         }
 
-        foreach (var client in store.Clients ?? []) // rs-todo: tests
+        foreach (var client in store.Clients ?? [])
         {
+            var originalClientId = client.ClientId;
             client.ClientId =
-                _configuration[$"AuthClientCredentials:{client.ClientId}:NewClientId"]
+                _configuration[$"AuthClientCredentials:{originalClientId}:NewClientId"]
                 ?? client.ClientId;
         }
 

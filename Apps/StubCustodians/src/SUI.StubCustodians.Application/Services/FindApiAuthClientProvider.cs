@@ -33,13 +33,14 @@ public class FindApiAuthClientProvider : IFindApiAuthClientProvider
             JsonSerializer.Deserialize<AuthStore>(json, JsonSerializerOptions.Web)
             ?? throw new InvalidOperationException("Invalid auth-clients-inbound.json");
 
-        foreach (var client in store.Clients ?? []) // rs-todo: tests
+        foreach (var client in store.Clients ?? [])
         {
+            var originalClientId = client.ClientId;
             client.ClientId =
-                _configuration[$"AuthClientCredentials:{client.ClientId}:NewClientId"]
+                _configuration[$"AuthClientCredentials:{originalClientId}:NewClientId"]
                 ?? client.ClientId;
             client.ClientSecret =
-                _configuration[$"AuthClientCredentials:{client.ClientId}:NewClientSecret"]
+                _configuration[$"AuthClientCredentials:{originalClientId}:NewClientSecret"]
                 ?? client.ClientSecret;
         }
 

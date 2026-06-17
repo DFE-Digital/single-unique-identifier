@@ -59,4 +59,34 @@ public class MockAuthStoreServiceTests
         Assert.Equal("Unauthorized", result.Error);
         Assert.Null(result.Value);
     }
+
+    [Theory]
+    [InlineData(null, null, ClientId, "SUIProject")]
+    [InlineData("SensitiveClientId", null, "SensitiveClientId", "SUIProject")]
+    [InlineData(null, "SensitiveClientSecret", ClientId, "SensitiveClientSecret")]
+    [InlineData("PrivateClientId", "PrivateClientSecret", "PrivateClientId", "PrivateClientSecret")]
+    public async Task GetClientByCredentials_ShouldSupportSensitiveOverridesViaConfiguration(
+        string? sensitiveClientId,
+        string? sensitiveClientSecret,
+        string expectedClientId,
+        string expectedClientSecret
+    )
+    {
+        // Arrange
+        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
+
+        _mockConfiguration[$"AuthClientCredentials:{ClientId}:NewClientId"] = sensitiveClientId;
+        _mockConfiguration[$"AuthClientCredentials:{ClientId}:NewClientSecret"] =
+            sensitiveClientSecret;
+
+        // Act
+        var result = await _sut.GetClientByCredentials(expectedClientId, expectedClientSecret);
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.NotNull(result.Value);
+        Assert.Equal(expectedClientId, result.Value.ClientId);
+    }
 }

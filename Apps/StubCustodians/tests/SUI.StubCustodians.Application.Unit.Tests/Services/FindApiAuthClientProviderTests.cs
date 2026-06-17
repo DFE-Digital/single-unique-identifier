@@ -152,4 +152,55 @@ public class FindApiAuthClientProviderTests
             Cleanup();
         }
     }
+
+    [Theory]
+    [InlineData(null, null, "LOCAL-AUTHORITY-01", "SUIProject")]
+    [InlineData("SensitiveClientId", null, "SensitiveClientId", "SUIProject")]
+    [InlineData(null, "SensitiveClientSecret", "LOCAL-AUTHORITY-01", "SensitiveClientSecret")]
+    [InlineData("PrivateClientId", "PrivateClientSecret", "PrivateClientId", "PrivateClientSecret")]
+    public void GetAuthClients_ShouldSupportSensitiveOverridesViaConfiguration(
+        string? sensitiveClientId,
+        string? sensitiveClientSecret,
+        string expectedClientId,
+        string expectedClientSecret
+    )
+    {
+        try
+        {
+            var json = """
+                {
+                  "clients": [
+                    {
+                      "enabled": true,
+                      "clientId": "LOCAL-AUTHORITY-01",
+                      "clientSecret": "SUIProject",
+                      "allowedScopes": [
+                        "work-item.read",
+                        "work-item.write"
+                      ]
+                    }
+                  ]
+                }
+                """;
+
+            WriteJson(json);
+
+            _mockConfiguration["AuthClientCredentials:LOCAL-AUTHORITY-01:NewClientId"] =
+                sensitiveClientId;
+            _mockConfiguration["AuthClientCredentials:LOCAL-AUTHORITY-01:NewClientSecret"] =
+                sensitiveClientSecret;
+
+            // ACT
+            var clients = _sut.GetAuthClients();
+
+            // ASSERT
+            Assert.Single(clients);
+            Assert.Equal(expectedClientId, clients[0].ClientId);
+            Assert.Equal(expectedClientSecret, clients[0].ClientSecret);
+        }
+        finally
+        {
+            Cleanup();
+        }
+    }
 }
