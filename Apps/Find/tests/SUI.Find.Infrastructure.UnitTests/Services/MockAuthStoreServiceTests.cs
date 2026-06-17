@@ -1,13 +1,17 @@
 using System.IO.Abstractions;
+using Microsoft.Extensions.Configuration;
 using NSubstitute;
+using NSubstitute.Extensions;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.Infrastructure.UnitTests.Services;
 
 public class MockAuthStoreServiceTests
 {
-    private const string ClientId = "CLIENT-ID_LOCAL-AUTHORITY-01";
+    private const string ClientId = "CLIENT_ID_LOCAL_AUTHORITY_01";
+    private const string ExpectedOrganisationId = "LOCAL-AUTHORITY-01";
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
+    private readonly IConfiguration _mockConfiguration = Substitute.For<IConfiguration>();
     private readonly MockAuthStoreService _sut;
     private readonly string _realStoreFilePath;
     private static readonly string[] ExpectedScopes =
@@ -23,7 +27,9 @@ public class MockAuthStoreServiceTests
 
     public MockAuthStoreServiceTests()
     {
-        _sut = new MockAuthStoreService(_mockFileSystem);
+        _mockConfiguration.ReturnsForAll((string?)null);
+
+        _sut = new MockAuthStoreService(_mockFileSystem, _mockConfiguration);
         _realStoreFilePath = Path.Join(
             AppContext.BaseDirectory,
             "Data",
@@ -75,7 +81,7 @@ public class MockAuthStoreServiceTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("LOCAL-AUTHORITY-01", result);
+        Assert.Equal(ExpectedOrganisationId, result);
     }
 
     [Fact]
@@ -91,5 +97,26 @@ public class MockAuthStoreServiceTests
         Assert.Throws<InvalidOperationException>(() =>
             _sut.GetOrganisationIdForClientId("invalid-client-id")
         );
+    }
+
+    [Fact]
+    public async Task GetOrganisationIdForClientId_AndGetScopesByClientId_ShouldSupportSensitiveOverridesViaConfiguration()
+    {
+        // Arrange
+        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
+        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
+
+        const string sensitiveClientId = "SensitiveClientId";
+
+        _mockConfiguration[$"AuthClientCredentials:{ClientId}:NewClientId"] = sensitiveClientId;
+
+        // Act
+        var resultOrganisationId = _sut.GetOrganisationIdForClientId(sensitiveClientId);
+        var resultScopes = _sut.GetScopesByClientId(sensitiveClientId);
+
+        // Assert
+        Assert.Equal(ExpectedOrganisationId, resultOrganisationId);
+        Assert.Equivalent(ExpectedScopes, resultScopes, strict: true);
     }
 }

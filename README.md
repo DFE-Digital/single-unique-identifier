@@ -287,3 +287,40 @@ Example:
 ```
 GITHUB_USERNAME=YourGitHubUsername GITHUB_TOKEN_DFENUGET=YourTokenHere dotnet watch run --launch-profile https
 ```
+
+
+## Configuring Non-public Client IDs and Secrets for Authentication
+
+While having client secrets in a public repo is fine for local development and ephemeral environments, deployed environments should use actual secret values (rather than pretend secret values that have been publicly published) so that unauthorised people cannot authenticate with our deployed environments.
+
+This is achieved via the `AuthClientCredentials` configuration functionality that enables overriding the Client IDs and Secrets in the sample data.
+
+Ultimately this is driven by GitHub Environment Secrets called:
+- `AUTH_CLIENT_IDS_JSON_MAP`
+- `AUTH_CLIENT_SECRETS_JSON_MAP`
+
+Both secrets must be JSON maps, where the key is the original Client ID and the value is the corresponding private value.
+
+`AUTH_CLIENT_IDS_JSON_MAP` expects a map of `OriginalClientId` to `SensitiveClientId`, for example:
+```json
+{"CLIENT_ID_LOCAL_AUTHORITY_01":"sensitive-client-id-1", "CLIENT_ID_EDUCATION_01":"sensitive-client-id-2"}
+```
+
+`AUTH_CLIENT_SECRETS_JSON_MAP` expects a map of `OriginalClientId` to `SensitiveClientSecret`, for example:
+```json
+{"CLIENT_ID_LOCAL_AUTHORITY_01":"sensitive-client-secret-1", "CLIENT_ID_EDUCATION_01":"sensitive-client-secret-2"}
+```
+
+**It is important to note that these values must be a single line.  They must not be multi-line.  Newline characters break the GitHub workflows!**
+
+The PowerShell script `scripts/generate-auth-client-credentials-secrets.ps1` exists to help generate the values.
+
+To generate secret values:
+```bash
+dotnet pwsh ./scripts/generate-auth-client-credentials-secrets.ps1
+```
+
+To generate template values:
+```bash
+dotnet pwsh ./scripts/generate-auth-client-credentials-secrets.ps1 -TemplateMode
+```

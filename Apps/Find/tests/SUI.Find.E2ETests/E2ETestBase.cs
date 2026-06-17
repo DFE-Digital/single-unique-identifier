@@ -17,6 +17,11 @@ public class E2ETestBase
         TestOutputHelper = testOutputHelper;
 
         TestOutputHelper.WriteLine(Fixture.Config.ToString());
+
+        TestOutputHelper.WriteLine("Startup Diagnostic Messages:");
+        TestOutputHelper.WriteLine(
+            Fixture.StartupDiagnosticMessages == "" ? "None" : Fixture.StartupDiagnosticMessages
+        );
     }
 
     protected async Task<string?> GetAuthTokenAsync(
@@ -25,16 +30,33 @@ public class E2ETestBase
         string[] scopes
     )
     {
+        var originalClientId = clientId;
+
+        clientId =
+            Fixture.Configuration[$"E2E:AuthClientCredentials:{originalClientId}:NewClientId"]
+            ?? clientId;
+
+        clientSecret =
+            Fixture.Configuration[$"E2E:AuthClientCredentials:{originalClientId}:NewClientSecret"]
+            ?? clientSecret;
+
         var authString = $"{clientId}:{clientSecret}";
         var base64Auth = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(authString));
         var clientCredentials = new AuthenticationHeaderValue("Basic", base64Auth);
 
-        return await GetAuthTokenWithRetryAsync(scopes, clientCredentials);
+        return await GetAuthTokenWithRetryAsync(
+            scopes,
+            clientCredentials,
+            clientId,
+            isClientIdSensitive: clientId != originalClientId
+        );
     }
 
     private async Task<string> GetAuthTokenWithRetryAsync(
         string[] scopes,
-        AuthenticationHeaderValue clientCredentials
+        AuthenticationHeaderValue clientCredentials,
+        string clientId,
+        bool isClientIdSensitive
     )
     {
         const int retryCount = 12;
@@ -78,7 +100,9 @@ public class E2ETestBase
             request.Content = content;
             request.Headers.Authorization = clientCredentials;
 
-            TestOutputHelper.WriteLine($"Requesting access token from: {request.RequestUri}");
+            TestOutputHelper.WriteLine(
+                $"Requesting access token from: {request.RequestUri} for client ID: {FunctionTestFixture.MaskValue(clientId, isClientIdSensitive)}"
+            );
 
             var response = await Fixture.Client.SendAsync(request);
             if (!response.IsSuccessStatusCode)

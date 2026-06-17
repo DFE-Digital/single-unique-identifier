@@ -144,3 +144,10 @@ variable "AuthSettings_AccessTokenUrl" {
   type        = string
   sensitive   = true
 }
+
+variable "AuthClientIdsJsonMap" {
+  description = "Optional string containing a JSON map to transform the Client IDs in the sample data. Could contain sensitive data, should be masked."
+  type        = string
+  default     = null
+  sensitive   = true
+}

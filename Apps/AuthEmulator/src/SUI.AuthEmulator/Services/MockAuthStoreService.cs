@@ -7,11 +7,13 @@ namespace SUI.AuthEmulator.Services;
 public class MockAuthStoreService : IAuthStoreService
 {
     private readonly IFileSystem _fileSystem;
+    private readonly IConfiguration _configuration;
     private readonly Lazy<AuthStore> _authStore;
 
-    public MockAuthStoreService(IFileSystem fileSystem)
+    public MockAuthStoreService(IFileSystem fileSystem, IConfiguration configuration)
     {
         _fileSystem = fileSystem;
+        _configuration = configuration;
         _authStore = new Lazy<AuthStore>(LoadStore);
     }
 
@@ -48,6 +50,17 @@ public class MockAuthStoreService : IAuthStoreService
         if (store is null)
         {
             throw new InvalidOperationException("Auth store file could not be deserialized.");
+        }
+
+        foreach (var client in store.Clients ?? [])
+        {
+            var originalClientId = client.ClientId;
+            client.ClientId =
+                _configuration[$"AuthClientCredentials:{originalClientId}:NewClientId"]
+                ?? client.ClientId;
+            client.ClientSecret =
+                _configuration[$"AuthClientCredentials:{originalClientId}:NewClientSecret"]
+                ?? client.ClientSecret;
         }
 
         return store;
