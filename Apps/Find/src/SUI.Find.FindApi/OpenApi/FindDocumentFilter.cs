@@ -369,7 +369,7 @@ public sealed class FindDocumentFilter(IOptions<AuthSettings> authSettings) : ID
         }
 
         // If this schema node is a $ref to DateOnly, strip the ref and inline the string/date format
-        if (schema.Reference?.Id.Equals("dateOnly", StringComparison.OrdinalIgnoreCase) == true)
+        if (string.Equals(schema.Reference?.Id, "dateOnly", StringComparison.OrdinalIgnoreCase))
         {
             schema.Reference = null;
             schema.Type = "string";
