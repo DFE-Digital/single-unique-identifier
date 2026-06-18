@@ -79,7 +79,15 @@ resource "azurerm_monitor_diagnostic_setting" "storage_service" {
   }
 
   enabled_metric {
-    category = "AllMetrics"
+    category = "Capacity"
+  }
+  
+  enabled_metric {
+    category = "Transaction"
+  }
+  
+  enabled_metric {
+    category = "SLI"
   }
 }
 
