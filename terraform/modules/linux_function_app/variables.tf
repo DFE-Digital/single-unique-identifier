@@ -99,6 +99,12 @@ variable "app_settings" {
   default     = {}
 }
 
+variable "application_insights_connection_string" {
+  description = "Optional. Specifies the connection string that the function app should use to connect to Application Insights for telemetry and logging."
+  type        = string
+  default     = null
+}
+
 variable "health_check_path" {
   description = "The URI path to the endpoint to use for health checks. Should return 200 OK if the API is up and healthy."
   type        = string
