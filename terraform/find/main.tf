@@ -286,16 +286,14 @@ module "audit_processor_function_app" {
 
   dotnet_version = var.function_dotnet_version
 
-  app_settings = merge(
+  app_settings =
     {
       FUNCTIONS_WORKER_RUNTIME              = "dotnet-isolated"
       FUNCTIONS_EXTENSION_VERSION           = "~4"
       WEBSITE_RUN_FROM_PACKAGE              = "1"
       APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
-    },
-    var.audit_app_settings
-  )
+    }
 
   application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
 
