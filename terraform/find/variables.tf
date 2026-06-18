@@ -50,6 +50,12 @@ variable "find_app_settings" {
   default     = {}
 }
 
+variable "audit_app_settings" {
+  description = "Additional app settings to apply to the Audit function app."
+  type        = map(string)
+  default     = {}
+}
+
 variable "function_dotnet_version" {
   description = "Dotnet version for the function app stack."
   type        = string
