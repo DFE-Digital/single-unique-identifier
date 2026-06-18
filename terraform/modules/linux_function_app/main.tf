@@ -2,10 +2,7 @@ locals {
   base_app_settings = merge(
     {
       FUNCTIONS_WORKER_RUNTIME    = "dotnet-isolated"
-      FUNCTIONS_EXTENSION_VERSION = "~4"
       WEBSITE_RUN_FROM_PACKAGE    = "1"
-
-      APPLICATIONINSIGHTS_CONNECTION_STRING = var.application_insights_connection_string
     },
     var.environment_tag == null ? {} : { ASPNETCORE_ENVIRONMENT = var.environment_tag },
   )
@@ -54,6 +51,17 @@ resource "azurerm_storage_account" "this" {
   )
 }
 
+data "azurerm_monitor_diagnostic_categories" "storage_service" {
+  for_each = var.log_analytics_workspace_id == null ? {} : {
+    blob  = "${azurerm_storage_account.this.id}/blobServices/default"
+    file  = "${azurerm_storage_account.this.id}/fileServices/default"
+    queue = "${azurerm_storage_account.this.id}/queueServices/default"
+    table = "${azurerm_storage_account.this.id}/tableServices/default"
+  }
+  
+  resource_id = each.value
+}
+
 resource "azurerm_monitor_diagnostic_setting" "storage_service" {
   for_each = var.log_analytics_workspace_id == null ? {} : {
     blob  = "${azurerm_storage_account.this.id}/blobServices/default"
@@ -78,9 +86,11 @@ resource "azurerm_monitor_diagnostic_setting" "storage_service" {
     category = "StorageDelete"
   }
 
-  metric {
-    category = "AllMetrics"
-    enabled  = true
+  dynamic "enabled_metric" {
+    for_each = data.azurerm_monitor_diagnostic_categories.storage_service[each.key].metrics
+    content {
+      category = enabled_metric.value
+    }
   }
 }
 
@@ -95,6 +105,8 @@ resource "azurerm_linux_function_app" "this" {
   storage_account_access_key = azurerm_storage_account.this.primary_access_key
 
   https_only = var.https_only
+
+  functions_extension_version = "~4"
 
   dynamic "identity" {
     for_each = var.enable_system_assigned_identity ? [1] : []
