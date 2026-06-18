@@ -12,6 +12,7 @@ on:
         options:
           - d01
           - d02
+          - d03
       apply:
         description: Apply changes (otherwise plan only)
         required: true
