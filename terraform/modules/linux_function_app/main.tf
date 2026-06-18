@@ -106,6 +106,8 @@ resource "azurerm_linux_function_app" "this" {
 
   https_only = var.https_only
 
+  functions_extension_version = "~4"
+
   dynamic "identity" {
     for_each = var.enable_system_assigned_identity ? [1] : []
     content {
@@ -125,8 +127,6 @@ resource "azurerm_linux_function_app" "this" {
       dotnet_version               = var.dotnet_version
       use_dotnet_isolated_runtime = true
     }
-
-    functions_extension_version = "~4"
 
     application_insights_connection_string = var.application_insights_connection_string
   }
