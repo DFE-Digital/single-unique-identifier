@@ -76,7 +76,6 @@ jobs:
       TF_VAR_AuthSettings_AccessTokenUrl: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
       TF_VAR_AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
       TF_VAR_AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
-      TF_LOG: TRACE
 
     steps:
       - name: Checkout repository
