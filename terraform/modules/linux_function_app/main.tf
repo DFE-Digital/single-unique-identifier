@@ -80,7 +80,6 @@ resource "azurerm_monitor_diagnostic_setting" "storage_service" {
 
   enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 
