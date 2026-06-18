@@ -90,7 +90,7 @@ resource "azurerm_monitor_diagnostic_setting" "storage_service" {
   }
 
   dynamic "enabled_metric" {
-    for_each = azurerm_monitor_diagnostic_categories[each.key].metrics
+    for_each = azurerm_monitor_diagnostic_categories.storage_service[each.key].metrics
     content {
       category = enabled_metric.value
     }
