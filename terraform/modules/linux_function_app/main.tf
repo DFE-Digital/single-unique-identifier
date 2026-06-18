@@ -106,6 +106,8 @@ resource "azurerm_linux_function_app" "this" {
 
   https_only = var.https_only
 
+  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
+
   dynamic "identity" {
     for_each = var.enable_system_assigned_identity ? [1] : []
     content {

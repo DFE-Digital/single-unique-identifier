@@ -194,8 +194,6 @@ module "function_app" {
 
   dotnet_version = var.function_dotnet_version
 
-  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
-
   tags = var.tags
 
   app_settings = merge(
@@ -283,8 +281,6 @@ module "audit_processor_function_app" {
   service_offering = var.service_offering
 
   dotnet_version = var.function_dotnet_version
-
-  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
 
   tags = var.tags
 
