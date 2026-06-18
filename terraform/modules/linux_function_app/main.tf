@@ -2,10 +2,7 @@ locals {
   base_app_settings = merge(
     {
       FUNCTIONS_WORKER_RUNTIME    = "dotnet-isolated"
-      FUNCTIONS_EXTENSION_VERSION = "~4"
       WEBSITE_RUN_FROM_PACKAGE    = "1"
-
-      APPLICATIONINSIGHTS_CONNECTION_STRING = var.application_insights_connection_string
     },
     var.environment_tag == null ? {} : { ASPNETCORE_ENVIRONMENT = var.environment_tag },
   )
@@ -128,6 +125,8 @@ resource "azurerm_linux_function_app" "this" {
       dotnet_version               = var.dotnet_version
       use_dotnet_isolated_runtime = true
     }
+
+    functions_extension_version = "~4"
 
     application_insights_connection_string = var.application_insights_connection_string
   }

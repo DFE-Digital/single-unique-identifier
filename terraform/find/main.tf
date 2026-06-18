@@ -201,9 +201,7 @@ module "function_app" {
   app_settings = merge(
     {
       FUNCTIONS_WORKER_RUNTIME              = "dotnet-isolated"
-      FUNCTIONS_EXTENSION_VERSION           = "~4"
       WEBSITE_RUN_FROM_PACKAGE              = "1"
-      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
       AuditProcessorConnectionString        = module.audit_processor_function_app.storage_connection_string
 
@@ -293,9 +291,7 @@ module "audit_processor_function_app" {
   app_settings = merge(
     {
       FUNCTIONS_WORKER_RUNTIME              = "dotnet-isolated"
-      FUNCTIONS_EXTENSION_VERSION           = "~4"
       WEBSITE_RUN_FROM_PACKAGE              = "1"
-      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
     },
     var.audit_app_settings
