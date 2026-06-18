@@ -54,6 +54,17 @@ resource "azurerm_storage_account" "this" {
   )
 }
 
+data "azurerm_monitor_diagnostic_categories" "storage_service" {
+  for_each = var.log_analytics_workspace_id == null ? {} : {
+    blob  = "${azurerm_storage_account.this.id}/blobServices/default"
+    file  = "${azurerm_storage_account.this.id}/fileServices/default"
+    queue = "${azurerm_storage_account.this.id}/queueServices/default"
+    table = "${azurerm_storage_account.this.id}/tableServices/default"
+  }
+  
+  resource_id = each.value
+}
+
 resource "azurerm_monitor_diagnostic_setting" "storage_service" {
   for_each = var.log_analytics_workspace_id == null ? {} : {
     blob  = "${azurerm_storage_account.this.id}/blobServices/default"
@@ -78,16 +89,11 @@ resource "azurerm_monitor_diagnostic_setting" "storage_service" {
     category = "StorageDelete"
   }
 
-  enabled_metric {
-    category = "Capacity"
-  }
-  
-  enabled_metric {
-    category = "Transaction"
-  }
-  
-  enabled_metric {
-    category = "SLI"
+  dynamic "enabled_metric" {
+    for_each = azurerm_monitor_diagnostic_categories[each.key].metrics
+    content {
+      category = enabled_metric.value
+    }
   }
 }
 
