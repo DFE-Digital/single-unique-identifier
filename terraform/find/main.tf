@@ -194,6 +194,10 @@ module "function_app" {
 
   dotnet_version = var.function_dotnet_version
 
+  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
+
+  tags = var.tags
+
   app_settings = merge(
     {
       FUNCTIONS_WORKER_RUNTIME              = "dotnet-isolated"
@@ -233,10 +237,6 @@ module "function_app" {
         "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
     },
   )
-
-  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
-
-  tags = var.tags
 
   depends_on = [
     azurerm_key_vault_secret.find_match_api_key
@@ -286,6 +286,10 @@ module "audit_processor_function_app" {
 
   dotnet_version = var.function_dotnet_version
 
+  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
+
+  tags = var.tags
+
   app_settings = merge(
     {
       FUNCTIONS_WORKER_RUNTIME              = "dotnet-isolated"
@@ -296,8 +300,4 @@ module "audit_processor_function_app" {
     },
     var.audit_app_settings
   )
-
-  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
-
-  tags = var.tags
 }
