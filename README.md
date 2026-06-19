@@ -113,9 +113,17 @@ facilitating information sharing by providing systems, data storage and connecti
 
 ## Productionisation
 
-Productionisation should include:
+Productionisation / getting ready to handle real data should include:
 
-* Review all occurrences of `#trivy:ignore`. They must be removed and resolved correctly, prior to handling any real data.
+* Review all occurrences of `#trivy:ignore`. They must be removed and resolved correctly before handling any real data.
+* Update the mock Custodian Service (Org Directory) and mock Auth Store to be real.
+    * The goal here is for DfE IT Operations to be able to securely configure the SUI System without them needing to make code changes nor redeploy the infrastructure or software.
+    * The current thinking is that good candidates for the solution are Azure Key Vault or Azure App Configuration.
+
+Other none essential but good-to-do long-term items include:
+* Upgrade SonarQube licence, rather than using free tier licence.
+    * So that the connection from GitHub to SonarQube can use a machine-machine token or ideally federated credentials.
+    * The current SonarQube licence does not allow more advanced connections than a short-lived personal access token.
 
 
 ## Development Environments
