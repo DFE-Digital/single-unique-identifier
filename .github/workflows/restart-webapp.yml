@@ -19,6 +19,7 @@ on:
         options:
           - d01
           - d02
+          - d03
       web_app_descriptor:
         description: Web App to restart
         required: true

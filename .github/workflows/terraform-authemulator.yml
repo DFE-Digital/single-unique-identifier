@@ -12,6 +12,7 @@ on:
         options:
           - d01
           - d02
+          # Support for deployment to d03 is not required here, FaUAPI is used with AuthStore instead
       apply:
         description: Apply changes (otherwise plan only)
         required: true

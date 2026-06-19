@@ -15,6 +15,7 @@ on:
         options:
           - d01
           - d02
+          # Support for deployment to d03 is not required here, FaUAPI is used with AuthStore instead
       deploy:
         description: Deploy to Azure Web App
         required: false

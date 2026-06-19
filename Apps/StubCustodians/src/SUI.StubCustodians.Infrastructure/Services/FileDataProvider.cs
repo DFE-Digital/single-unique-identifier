@@ -1,20 +1,42 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using Microsoft.Extensions.Configuration;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
 
 namespace SUI.StubCustodians.Infrastructure.Services;
 
 [ExcludeFromCodeCoverage(Justification = "Mocked simulator")]
-public sealed class FileDataProvider(
-    IRandomDelayService throttleService,
-    IConfiguration configuration
-) : IDataProvider
+public sealed class FileDataProvider(IRandomDelayService throttleService) : IDataProvider
 {
     private readonly Dictionary<string, CustodianConfig> _cache = new(
         StringComparer.OrdinalIgnoreCase
     );
+
+    // Build an explicit whitelist mapping of OrgId -> Absolute File Path.
+    private readonly Lazy<Dictionary<string, string>> _fileMap = new(() =>
+    {
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var baseDir = AppContext.BaseDirectory;
+        var dataDir = Path.Join(baseDir, "Data");
+
+        if (Directory.Exists(dataDir))
+        {
+            var files = Directory.GetFiles(dataDir, "*.custodian.json");
+            foreach (var file in files)
+            {
+                var fileName = Path.GetFileName(file);
+                // Extract the orgId from the file name to use as our dictionary key
+                var key = fileName.Replace(
+                    ".custodian.json",
+                    "",
+                    StringComparison.OrdinalIgnoreCase
+                );
+                map[key] = file;
+            }
+        }
+
+        return map;
+    });
 
     public async Task<IReadOnlyList<CustodianRecord>> GetRecordsAsync(
         string orgId,
@@ -74,9 +96,13 @@ public sealed class FileDataProvider(
             return cached;
         }
 
-        var fileName = $"{orgId.ToLowerInvariant()}.custodian.json";
-        var baseDir = AppContext.BaseDirectory;
-        var path = Path.Combine(baseDir, "Data", fileName);
+        // Validate the user-provided orgId strictly against the pre-loaded dictionary
+        if (!_fileMap.Value.TryGetValue(orgId, out var path))
+        {
+            throw new InvalidOperationException(
+                $"No custodian configuration found for organization '{orgId}'."
+            );
+        }
 
         await using var stream = File.OpenRead(path);
 
@@ -89,7 +115,7 @@ public sealed class FileDataProvider(
         var materialised =
             cfg
             ?? throw new InvalidOperationException(
-                $"Custodian config '{fileName}' could not be deserialised."
+                $"Custodian config '{Path.GetFileName(path)}' could not be deserialised."
             );
 
         _cache[orgId] = materialised;

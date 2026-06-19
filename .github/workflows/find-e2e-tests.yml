@@ -32,6 +32,7 @@ on:
         options:
           - d01
           - d02
+          - d03
       manual_run_ephemeral:
         description: e2e test 'ephemeral' environment
         default: true
