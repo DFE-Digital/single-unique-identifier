@@ -31,9 +31,7 @@ public class QueueSearchJobTrigger(
         CancellationToken token
     )
     {
-        using var activity = logger.StartActivityWithTraceParent(
-            activityName: $"Handling_{nameof(SearchRequestMessage)}",
-            searchRequestMessage.TraceParent,
+        using var activity = logger.BeginScope(
             new Dictionary<string, object?>
             {
                 { "WorkItemId", searchRequestMessage.WorkItemId },
@@ -46,7 +44,7 @@ public class QueueSearchJobTrigger(
         );
 
         logger.LogInformation(
-            "QueueSearchJobTrigger function processed: Work item ID: {WorkItemId} for Requesting Organisation ID: {RequestingOrganisationId}",
+            "Processing SearchRequestMessage with Work item ID {WorkItemId} for Requesting Organisation ID {RequestingOrganisationId}",
             searchRequestMessage.WorkItemId,
             searchRequestMessage.RequestingOrganisationId
         );

@@ -98,9 +98,7 @@ public class SubmitJobResultsFunction(
             );
         }
 
-        using var activity = logger.StartActivityWithTraceParent(
-            activityName: "JobResultsSubmitted",
-            job.JobTraceParent,
+        using var activity = logger.BeginScope(
             new Dictionary<string, object?>
             {
                 ["LeaseId"] = request.LeaseId,

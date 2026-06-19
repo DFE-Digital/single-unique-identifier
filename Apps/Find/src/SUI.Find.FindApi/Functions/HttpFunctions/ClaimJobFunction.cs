@@ -80,6 +80,13 @@ public class ClaimJobFunction(ILogger<ClaimJobFunction> logger, IJobClaimService
 
         if (claimedJob != null)
         {
+            logger.LogInformation(
+                "Custodian {SubmittingCustodianId} claimed Job with Job ID {JobId}, Work item ID {WorkItemId}",
+                submittingCustodianId,
+                claimedJob.JobId,
+                claimedJob.WorkItemId
+            );
+
             return await HttpResponseUtility.CreatedResponse(req, claimedJob, cancellationToken);
         }
 

@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
-using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Application.Models;
 
@@ -20,9 +19,7 @@ public class JobResultHandlerFunction(
         CancellationToken cancellationToken
     )
     {
-        using var activity = logger.StartActivityWithTraceParent(
-            activityName: $"Handling_{nameof(JobResultMessage)}",
-            message.JobTraceParent,
+        using var activity = logger.BeginScope(
             new Dictionary<string, object?>
             {
                 ["WorkItemId"] = message.WorkItemId,
