@@ -151,7 +151,8 @@ public class RenewLeaseFunctionTests
         var authContext = new AuthContext(
             Guid.NewGuid().ToString(),
             organisationId,
-            ["work-item.write"]
+            ["work-item.write"],
+            true
         );
 
         var items = new Dictionary<object, object>

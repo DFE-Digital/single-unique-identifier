@@ -36,7 +36,7 @@ public class SearchStatusFunctionTests
             {
                 {
                     Application.Constants.ApplicationConstants.Auth.AuthContextKey,
-                    new AuthContext(Guid.NewGuid().ToString(), organisationId, [])
+                    new AuthContext(Guid.NewGuid().ToString(), organisationId, [], true)
                 },
             }
         );

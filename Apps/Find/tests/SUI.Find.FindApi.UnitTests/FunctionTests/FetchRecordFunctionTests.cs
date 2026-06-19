@@ -31,7 +31,10 @@ public class FetchRecordFunctionTests
         context.Items.Returns(
             new Dictionary<object, object>
             {
-                { "AuthContext", new AuthContext(Guid.NewGuid().ToString(), organisationId, []) },
+                {
+                    "AuthContext",
+                    new AuthContext(Guid.NewGuid().ToString(), organisationId, [], true)
+                },
             }
         );
         context.InvocationId.Returns(Guid.NewGuid().ToString());

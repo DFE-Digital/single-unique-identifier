@@ -116,6 +116,21 @@ public class JwtAuthMiddleware(
             authSettings.Value.UseAuthStoreForAuthorisation
         );
 
+        if (!authContext.IsEnabled)
+        {
+            logger.LogWarning(
+                "Access denied. Client ID '{ClientId}' is disabled.",
+                authContext.ClientId
+            );
+            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                nameof(HttpStatusCode.Unauthorized),
+                "Client is disabled."
+            );
+            return;
+        }
+
         var requiredScopes = GetRequiredScopes(context);
 
         if (!HasAnyRequiredScope(authContext, requiredScopes))

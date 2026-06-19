@@ -94,7 +94,8 @@ public class WorkAvailableFunctionTests
         var authContext = new AuthContext(
             Guid.NewGuid().ToString(),
             organisationId,
-            ["work-item.read"]
+            ["work-item.read"],
+            true
         );
 
         var items = new Dictionary<object, object>

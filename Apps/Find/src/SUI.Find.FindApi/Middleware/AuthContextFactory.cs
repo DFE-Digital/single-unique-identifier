@@ -26,11 +26,13 @@ public class AuthContextFactory(IAuthStoreService storeService) : IAuthContextFa
                 "No Organisation ID found for client in auth store."
             );
 
+        var isEnabled = storeService.IsClientEnabled(clientId);
+
         var scopes = useAuthStoreForAuthorisation
             ? storeService.GetScopesByClientId(clientId)
             : GetScopesFromToken(jwt);
 
-        return new AuthContext(clientId, organisationId, scopes);
+        return new AuthContext(clientId, organisationId, scopes, isEnabled);
 
         static string Get(JwtSecurityToken t, string type) =>
             t.Claims.FirstOrDefault(c => c.Type == type)?.Value ?? string.Empty;

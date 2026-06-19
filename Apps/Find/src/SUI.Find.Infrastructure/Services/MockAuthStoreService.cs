@@ -9,6 +9,7 @@ public interface IAuthStoreService
 {
     IReadOnlyList<string> GetScopesByClientId(string clientId);
     string GetOrganisationIdForClientId(string clientId);
+    bool IsClientEnabled(string clientId);
 }
 
 public class MockAuthStoreService : IAuthStoreService
@@ -34,6 +35,12 @@ public class MockAuthStoreService : IAuthStoreService
     {
         var client = GetClientById(clientId);
         return client.OrganisationId;
+    }
+
+    public bool IsClientEnabled(string clientId)
+    {
+        var client = GetClientById(clientId);
+        return client.Enabled;
     }
 
     private AuthClient GetClientById(string clientId)
