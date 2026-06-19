@@ -17,7 +17,7 @@ public sealed class FileDataProvider(IRandomDelayService throttleService) : IDat
     {
         var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var baseDir = AppContext.BaseDirectory;
-        var dataDir = Path.Combine(baseDir, "Data");
+        var dataDir = Path.Join(baseDir, "Data");
 
         if (Directory.Exists(dataDir))
         {
