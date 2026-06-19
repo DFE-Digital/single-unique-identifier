@@ -105,3 +105,9 @@ variable "AuthClientSecretsJsonMap" {
   default     = null
   sensitive   = true
 }
+
+variable "FindApiGatewayBaseUrl" {
+  description = "URL endpoint to use when routing to Find through a gateway"
+  type = string
+  default = null
+}

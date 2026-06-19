@@ -48,6 +48,8 @@ on:
         required: false
       AUTH_CLIENT_SECRETS_JSON_MAP:
         required: false
+      FIND_API_GATEWAY_BASE_URL:
+        required: false
 
 permissions:
   id-token: write
@@ -76,6 +78,7 @@ jobs:
       TF_VAR_AuthSettings_AccessTokenUrl: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
       TF_VAR_AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
       TF_VAR_AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
+      TF_VAR_FindApiGatewayBaseUrl: ${{ secrets.FIND_API_GATEWAY_BASE_URL}}
 
     steps:
       - name: Checkout repository

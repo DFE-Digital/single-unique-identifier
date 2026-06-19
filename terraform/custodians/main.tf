@@ -48,7 +48,7 @@ module "web_app" {
       APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
       AuthSettings__AccessTokenUrl = var.AuthSettings_AccessTokenUrl
-      FindApi__BaseUrl = format("https://%s%sfunc-%s-find01.azurewebsites.net", var.subscription_prefix, var.environment_id, var.region_short)
+      FindApi__BaseUrl = coalesce(var.FindApiGatewayBaseUrl, format("https://%s%sfunc-%s-find01.azurewebsites.net/api", var.subscription_prefix, var.environment_id, var.region_short))
       StubCustodians__BaseUrl = format("https://%s%sapp-%s-custodians01.azurewebsites.net", var.subscription_prefix, var.environment_id, var.region_short)
     },
     var.custodian_app_settings,

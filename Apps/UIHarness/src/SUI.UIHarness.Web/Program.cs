@@ -22,9 +22,13 @@ builder
     });
 builder.Services.AddAuthorization();
 
+var baseUrl =
+    builder.Configuration["BaseUrl"]
+    ?? throw new InvalidOperationException("BaseUrl configuration is missing");
+
 builder.Services.AddHttpClient(
     nameof(FindService),
-    client => client.BaseAddress = new Uri(builder.Configuration["BaseUrl"] + "api/")
+    client => client.BaseAddress = new Uri(baseUrl)
 );
 builder.Services.AddScoped<IFindService, FindService>();
 builder.Services.AddScoped<IFindApiAuthClientProvider, FindApiAuthClientProvider>();
@@ -49,7 +53,7 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 
 app.MapGet(
-    "/api/health",
+    "/health",
     ([FromServices] IHostEnvironment env, [FromServices] ILogger<Program> logger) =>
     {
         logger.LogInformation("Health check was called");
@@ -69,7 +73,7 @@ app.MapGet(
 );
 
 app.MapPost(
-        "/api/auth/login",
+        "/auth/login",
         async (
             [FromForm] string custodianName,
             [FromForm] string password,
@@ -120,7 +124,7 @@ app.MapPost(
     .DisableAntiforgery();
 
 app.MapPost(
-        "/api/auth/logout",
+        "/auth/logout",
         async (HttpContext httpContext) =>
         {
             await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
