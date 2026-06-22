@@ -34,6 +34,7 @@ public class QueueSearchJobTrigger(
         using var activity = logger.StartActivityWithTraceParent(
             activityName: $"Handling_{nameof(SearchRequestMessage)}",
             searchRequestMessage.TraceParent,
+            ActivityKind.Consumer,
             new Dictionary<string, object?>
             {
                 { "WorkItemId", searchRequestMessage.WorkItemId },
