@@ -68,7 +68,7 @@ public class ClaimJobFunction(ILogger<ClaimJobFunction> logger, IJobClaimService
             }
         );
 
-        logger.LogInformation(
+        logger.LogDebug(
             "Checking if job is available, and atomically leasing it if so, for custodian: {SubmittingCustodianId}",
             submittingCustodianId
         );

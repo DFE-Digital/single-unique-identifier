@@ -18,7 +18,7 @@ public class QueueAuditAccessTrigger(
         CancellationToken token
     )
     {
-        logger.LogInformation(
+        logger.LogDebug(
             "Processing AuditEvent: {EventType} for ActorId: {ActorId} at {Timestamp}",
             auditMessage.EventName,
             auditMessage.Actor.ActorId,
