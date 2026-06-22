@@ -274,7 +274,7 @@ jobs:
             --logger "console;verbosity=detailed" \
             --logger "trx;LogFileName=e2e-dev.trx" \
             --results-directory TestResults \
-            -e E2E__BaseUrl=secrets.FIND_API_GATEWAY_BASE_URL \
+            -e E2E__BaseUrl=${{ env.FIND_API_GATEWAY_BASE_URL }} \
             -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
             -e E2E__AccessTokenUrl=${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }} \
             -e E2E__AuthEmulatorHealthCheckEndpoint="" \
