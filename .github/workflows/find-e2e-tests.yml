@@ -227,6 +227,7 @@ jobs:
       deployment: false
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment || 'd01' }}
+      FIND_API_GATEWAY_BASE_URL: ${{ secrets.FIND_API_GATEWAY_BASE_URL || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -243,7 +244,7 @@ jobs:
           global-json-file: global.json
 
       - name: Run E2E Tests (against dev environment)
-        if: ${{ (secrets.FIND_API_GATEWAY_BASE_URL || '') == '' }}
+        if: ${{ (env.FIND_API_GATEWAY_BASE_URL || '') == '' }}
         env:
           E2E__AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
           E2E__AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
@@ -263,7 +264,7 @@ jobs:
             -e E2E__CheckFindApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Find" Solution') && github.event.workflow_run.run_started_at || '' }} # We pass the run_started_at value(s) so that we ensure the relevant API has restarted with the latest version. Note that this will pass an empty value if this pipeline was not trigerred by a workflow_run for that specific API, but that is fine and desired in that case (because we only need the check when this pipeline is immediately trigerred by the workflow_run after deployment of that specific API)
 
       - name: Run E2E Tests (against dev environment via gateway)
-        if: ${{ (secrets.FIND_API_GATEWAY_BASE_URL || '') != '' }}
+        if: ${{ (env.FIND_API_GATEWAY_BASE_URL || '') != '' }}
         env:
           E2E__AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
           E2E__AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
