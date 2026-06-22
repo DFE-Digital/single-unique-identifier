@@ -92,6 +92,7 @@ public class AuditMiddleware(ILogger<AuditMiddleware> logger, IAuditQueueClient 
                 EventName = ApplicationConstants.Audit.HttpRequest.EventName,
                 Actor = new AuditActor { ActorId = organisationId, ActorRole = "Organisation" },
                 Payload = JsonSerializer.SerializeToElement(payload),
+                TraceParent = context.TraceContext.TraceParent,
             };
 
             await auditClient.SendAuditEventAsync(auditEvent, CancellationToken.None);
