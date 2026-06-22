@@ -110,8 +110,7 @@ public class SearchFunctionV2Tests
         var authContext = new AuthContext(
             Guid.NewGuid().ToString(),
             organisationId,
-            ["find-record.write"],
-            true
+            ["find-record.write"]
         );
 
         var items = new Dictionary<object, object>

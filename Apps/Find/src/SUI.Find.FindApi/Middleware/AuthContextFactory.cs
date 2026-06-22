@@ -1,12 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.Models.Auth;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.Middleware;
 
 public class AuthContextFactory(IAuthStoreService storeService) : IAuthContextFactory
 {
-    public AuthContext FromJwt(JwtSecurityToken jwt, bool useAuthStoreForAuthorisation)
+    public AuthResult FromJwt(JwtSecurityToken jwt, bool useAuthStoreForAuthorisation)
     {
         var clientId = Get(jwt, "client_id");
 
@@ -17,22 +18,36 @@ public class AuthContextFactory(IAuthStoreService storeService) : IAuthContextFa
             clientId = Get(jwt, "sub");
 
         if (string.IsNullOrWhiteSpace(clientId))
-            throw new InvalidOperationException("Token did not contain client_id, azp, or sub.");
+            return AuthResult.Failure(
+                AuthFailureReason.InvalidTokenClaims,
+                "Token did not contain client_id, azp, or sub."
+            );
 
-        var organisationId = storeService.GetOrganisationIdForClientId(clientId);
+        var client = storeService.GetClientById(clientId);
+
+        if (client == null)
+            return AuthResult.Failure(
+                AuthFailureReason.ClientNotFound,
+                "No matching client found in auth store."
+            );
+
+        if (!client.Enabled)
+            return AuthResult.Failure(AuthFailureReason.ClientDisabled, "Client is disabled.");
+
+        var organisationId = client.OrganisationId;
 
         if (string.IsNullOrWhiteSpace(organisationId))
-            throw new InvalidOperationException(
+            return AuthResult.Failure(
+                AuthFailureReason.MissingOrganisationId,
                 "No Organisation ID found for client in auth store."
             );
 
-        var isEnabled = storeService.IsClientEnabled(clientId);
-
         var scopes = useAuthStoreForAuthorisation
-            ? storeService.GetScopesByClientId(clientId)
+            ? client.AllowedScopes ?? []
             : GetScopesFromToken(jwt);
 
-        return new AuthContext(clientId, organisationId, scopes, isEnabled);
+        var context = new AuthContext(clientId, organisationId, scopes);
+        return AuthResult.Success(context);
 
         static string Get(JwtSecurityToken t, string type) =>
             t.Claims.FirstOrDefault(c => c.Type == type)?.Value ?? string.Empty;

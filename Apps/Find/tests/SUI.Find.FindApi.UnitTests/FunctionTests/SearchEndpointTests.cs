@@ -34,8 +34,7 @@ public class SearchEndpointTests
             [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(
                 Guid.NewGuid().ToString(),
                 TestOrganisationId,
-                [],
-                true
+                []
             ),
         };
         _context.Items.Returns(items);

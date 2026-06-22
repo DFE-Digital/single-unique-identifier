@@ -37,8 +37,7 @@ public class CancelSearchFunctionTests
             [ApplicationConstants.Auth.AuthContextKey] = new AuthContext(
                 Guid.NewGuid().ToString(),
                 OrganisationId,
-                [],
-                true
+                []
             ),
         };
         _context.Items.Returns(items);

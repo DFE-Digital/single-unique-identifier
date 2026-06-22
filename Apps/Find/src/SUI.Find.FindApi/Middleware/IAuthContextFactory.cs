@@ -1,9 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
-using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.Models.Auth;
 
 namespace SUI.Find.FindApi.Middleware;
 
 public interface IAuthContextFactory
 {
-    AuthContext FromJwt(JwtSecurityToken jwt, bool useAuthStoreForAuthorisation);
+    AuthResult FromJwt(JwtSecurityToken jwt, bool useAuthStoreForAuthorisation);
 }

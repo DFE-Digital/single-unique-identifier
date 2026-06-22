@@ -120,8 +120,7 @@ public class ClaimJobFunctionTests
         var authContext = new AuthContext(
             Guid.NewGuid().ToString(),
             organisationId,
-            ["work-item.write"],
-            true
+            ["work-item.write"]
         );
 
         var items = new Dictionary<object, object>

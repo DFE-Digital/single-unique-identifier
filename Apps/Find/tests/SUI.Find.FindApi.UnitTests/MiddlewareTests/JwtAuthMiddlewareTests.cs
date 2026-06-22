@@ -17,6 +17,7 @@ using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Models;
+using SUI.Find.FindApi.Models.Auth; // <-- Added this using directive
 
 namespace SUI.Find.FindApi.UnitTests.MiddlewareTests;
 
@@ -322,17 +323,15 @@ public class JwtAuthMiddlewareTests
             var config = CreateOidcConfig(_genuineRsa, _genuineKid);
             _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
 
-            // Context returns Enabled = false
-            var authContext = new AuthContext(
-                "clientId",
-                "organisationId",
-                ["fetch-record.read"],
-                false
+            // Mock the explicitly typed Failure state
+            var authResult = AuthResult.Failure(
+                AuthFailureReason.ClientDisabled,
+                "Client is disabled."
             );
 
             _mockAuthContextFactory
                 .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
-                .Returns(authContext);
+                .Returns(authResult);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
             var sut = new JwtAuthMiddleware(
@@ -346,7 +345,7 @@ public class JwtAuthMiddlewareTests
             await sut.Invoke(context, Next);
 
             // Assert
-            AssertAccessDenied(context, "Client is disabled");
+            AssertAccessDenied(context, "Client is disabled.");
         }
     }
 
@@ -393,10 +392,12 @@ public class JwtAuthMiddlewareTests
             var config = CreateOidcConfig(_genuineRsa, _genuineKid);
             _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
 
-            var authContext = new AuthContext("clientId", "organisationId", ["wrong.scope"], true);
+            var authContext = new AuthContext("clientId", "organisationId", ["wrong.scope"]);
+            var authResult = AuthResult.Success(authContext);
+
             _mockAuthContextFactory
                 .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
-                .Returns(authContext);
+                .Returns(authResult);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
             var sut = new JwtAuthMiddleware(
@@ -421,15 +422,12 @@ public class JwtAuthMiddlewareTests
             var config = CreateOidcConfig(_genuineRsa, _genuineKid);
             _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
 
-            var authContext = new AuthContext(
-                "clientId",
-                "organisationId",
-                ["fetch-record.read"],
-                true
-            );
+            var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
+            var authResult = AuthResult.Success(authContext);
+
             _mockAuthContextFactory
                 .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
-                .Returns(authContext);
+                .Returns(authResult);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
             var sut = new JwtAuthMiddleware(
@@ -457,15 +455,12 @@ public class JwtAuthMiddlewareTests
                 .GetConfigurationAsync(Arg.Any<CancellationToken>())
                 .Returns(emptyConfig, refreshedConfig);
 
-            var authContext = new AuthContext(
-                "clientId",
-                "organisationId",
-                ["fetch-record.read"],
-                true
-            );
+            var authContext = new AuthContext("clientId", "organisationId", ["fetch-record.read"]);
+            var authResult = AuthResult.Success(authContext);
+
             _mockAuthContextFactory
                 .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
-                .Returns(authContext);
+                .Returns(authResult);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
             var sut = new JwtAuthMiddleware(
