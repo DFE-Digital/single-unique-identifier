@@ -50,12 +50,12 @@
 
                     @if (!string.IsNullOrWhiteSpace(_traceDetails?.Link))
                     {
-                        <span>&nbsp;<a href="@_traceDetails?.Link" target="_blank">View trace</a></span>
+                        <span>&nbsp;<a href="@_traceDetails.Value.Link" target="_blank">View trace</a></span>
                     }
                     
                     @if (!string.IsNullOrWhiteSpace(_traceDetails?.Message))
                     {
-                        <pre class="mt-3">@_traceDetails?.Message</pre>
+                        <pre class="mt-3">@_traceDetails.Value.Message</pre>
                     }
                 </div>
             </div>
