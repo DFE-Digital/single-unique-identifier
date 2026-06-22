@@ -30,13 +30,7 @@
             <EnrolTab SelectedOrgClientId="@_selectedOrgClientId" CurrentPersonChanged="HandleCurrentPersonChanged"></EnrolTab>
         </div>
         <div class="tab-pane fade show active" id="tab-find" role="tabpanel" hidden='@(_currentTab != "find")'>
-            <FindTab 
-                SelectedOrgClientId="@_selectedOrgClientId"
-                Architecture="@_architecture"
-                CurrentPerson="_currentPerson"
-                CurrentRecordChanged="HandleCurrentRecordChanged"
-                CurrentWorkItemIdChanged="HandleWorkItemIdChanged"
-            />
+            <FindTab SelectedOrgClientId="@_selectedOrgClientId" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged" CurrentWorkItemIdChanged="HandleWorkItemIdChanged"></FindTab>
         </div>
         <div class="tab-pane fade show active" id="tab-fetch" role="tabpanel" hidden='@(_currentTab != "fetch")'>
             <FetchTab SelectedOrgClientId="@_selectedOrgClientId" SelectedRecordUrl="@_selectedRecordUrl"></FetchTab>
