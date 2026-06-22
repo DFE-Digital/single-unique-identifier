@@ -19,7 +19,7 @@ public class QueueAuditAccessTrigger(
     )
     {
         logger.LogInformation(
-            "C# Queue trigger function processed: {EventType} for Organisation: {OrgId} at {Timestamp}",
+            "Processing AuditEvent: {EventType} for ActorId: {ActorId} at {Timestamp}",
             auditMessage.EventName,
             auditMessage.Actor.ActorId,
             auditMessage.Timestamp
