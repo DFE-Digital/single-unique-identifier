@@ -17,7 +17,7 @@ using SUI.Find.Application.Constants;
 using SUI.Find.FindApi.Configurations;
 using SUI.Find.FindApi.Middleware;
 using SUI.Find.FindApi.Models;
-using SUI.Find.FindApi.Models.Auth; // <-- Added this using directive
+using SUI.Find.FindApi.Models.Auth;
 
 namespace SUI.Find.FindApi.UnitTests.MiddlewareTests;
 

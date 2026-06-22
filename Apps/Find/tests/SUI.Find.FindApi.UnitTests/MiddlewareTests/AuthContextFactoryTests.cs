@@ -77,7 +77,12 @@ public class AuthContextFactoryTests
         var claims = new List<Claim> { new("client_id", ClientId) };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        var disabledClient = new AuthClient { Enabled = false, OrganisationId = OrganisationId };
+        var disabledClient = new AuthClient
+        {
+            Enabled = false,
+            OrganisationId = OrganisationId,
+            AllowedScopes = ["test.scope.disabled"],
+        };
         _store.GetClientById(ClientId).Returns(disabledClient);
 
         // Act
@@ -96,7 +101,12 @@ public class AuthContextFactoryTests
         var claims = new List<Claim> { new("client_id", ClientId) };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        var invalidClient = new AuthClient { Enabled = true, OrganisationId = "" };
+        var invalidClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = "",
+            AllowedScopes = ["test.scope.missing-org"],
+        };
         _store.GetClientById(ClientId).Returns(invalidClient);
 
         // Act
@@ -115,7 +125,12 @@ public class AuthContextFactoryTests
         var claims = new List<Claim> { new("azp", "AZP-CLIENT-01"), new("sub", "SUB-CLIENT-01") };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        var validClient = new AuthClient { Enabled = true, OrganisationId = "ORG-01" };
+        var validClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = "ORG-01",
+            AllowedScopes = ["test.scope.azp"],
+        };
         _store.GetClientById("AZP-CLIENT-01").Returns(validClient);
 
         // Act
@@ -138,7 +153,12 @@ public class AuthContextFactoryTests
         };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        var validClient = new AuthClient { Enabled = true, OrganisationId = "ORG-01" };
+        var validClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = "ORG-01",
+            AllowedScopes = ["test.scope.main"],
+        };
         _store.GetClientById("MAIN-CLIENT-01").Returns(validClient);
 
         // Act
@@ -156,7 +176,12 @@ public class AuthContextFactoryTests
         var claims = new List<Claim> { new("sub", "SUB-CLIENT-01") };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        var validClient = new AuthClient { Enabled = true, OrganisationId = "ORG-01" };
+        var validClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = "ORG-01",
+            AllowedScopes = ["test.scope.sub"],
+        };
         _store.GetClientById("SUB-CLIENT-01").Returns(validClient);
 
         // Act
@@ -180,7 +205,12 @@ public class AuthContextFactoryTests
         };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        var validClient = new AuthClient { Enabled = true, OrganisationId = OrganisationId };
+        var validClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = OrganisationId,
+            AllowedScopes = ["should.be.ignored"],
+        };
         _store.GetClientById(ClientId).Returns(validClient);
 
         // Act
