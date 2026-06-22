@@ -1,5 +1,10 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Launch Backend" type="com.intellij.execution.configurations.multilaunch" factoryName="MultiLaunchConfiguration">
+  <configuration
+    default="false"
+    name="Launch Backend"
+    type="com.intellij.execution.configurations.multilaunch"
+    factoryName="MultiLaunchConfiguration"
+  >
     <rows>
       <ExecutableRowSnapshot>
         <option name="condition">
@@ -9,7 +14,10 @@
         </option>
         <option name="executable">
           <ExecutableSnapshot>
-            <option name="id" value="runConfig:.NET Launch Settings Profile.SUI.AuthEmulator: https" />
+            <option
+              name="id"
+              value="runConfig:.NET Launch Settings Profile.SUI.AuthEmulator: https"
+            />
           </ExecutableSnapshot>
         </option>
       </ExecutableRowSnapshot>
@@ -45,7 +53,10 @@
         </option>
         <option name="executable">
           <ExecutableSnapshot>
-            <option name="id" value="runConfig:.NET Launch Settings Profile.SUI.StubCustodians.API: https" />
+            <option
+              name="id"
+              value="runConfig:.NET Launch Settings Profile.SUI.StubCustodians.API: https"
+            />
           </ExecutableSnapshot>
         </option>
       </ExecutableRowSnapshot>
