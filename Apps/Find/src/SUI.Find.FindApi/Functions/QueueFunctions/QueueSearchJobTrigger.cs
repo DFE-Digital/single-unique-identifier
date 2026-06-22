@@ -31,7 +31,9 @@ public class QueueSearchJobTrigger(
         CancellationToken token
     )
     {
-        using var activity = logger.BeginScope(
+        using var activity = logger.StartActivityWithTraceParent(
+            activityName: $"Handling_{nameof(SearchRequestMessage)}",
+            searchRequestMessage.TraceParent,
             new Dictionary<string, object?>
             {
                 { "WorkItemId", searchRequestMessage.WorkItemId },
