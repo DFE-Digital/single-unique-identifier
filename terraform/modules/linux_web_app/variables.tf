@@ -106,3 +106,9 @@ variable "auth_settings_v2" {
   type        = any
   default     = null
 }
+
+variable "application_insights_connection_string" {
+  description = "Optional. Specifies the connection string that the function app should use to connect to Application Insights for telemetry and logging."
+  type        = string
+  default     = null
+}

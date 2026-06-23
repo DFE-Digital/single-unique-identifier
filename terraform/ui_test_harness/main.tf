@@ -118,9 +118,10 @@ module "web_app" {
 
   dotnet_version = var.webapp_dotnet_version
 
+  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
+
   app_settings = merge(
     {
-      APPLICATIONINSIGHTS_CONNECTION_STRING = data.terraform_remote_state.core.outputs.app_insights_connection_string
       OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
 
       BaseUrl = format("https://%s%sfunc-%s-find01.azurewebsites.net/", var.subscription_prefix, var.environment_id, var.region_short)
