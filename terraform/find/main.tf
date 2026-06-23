@@ -194,9 +194,6 @@ module "function_app" {
 
   dotnet_version = var.function_dotnet_version
 
-  # dummy test
-  health_check_path = "/api/dummy-safe-test"
-
   app_settings = merge(
     {
       FUNCTIONS_WORKER_RUNTIME              = "dotnet-isolated"
