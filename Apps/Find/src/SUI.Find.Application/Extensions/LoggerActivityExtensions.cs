@@ -12,11 +12,12 @@ public static class LoggerActivityExtensions
     private static Activity? StartActivity(
         string activityName,
         string? traceParent,
-        ActivityKind activityKind
+        ActivityKind activityKind,
+        Dictionary<string, object?> tags
     )
     {
         ActivityContext.TryParse(traceParent, null, out var parentContext);
-        return ActivitySource.StartActivity(activityName, activityKind, parentContext);
+        return ActivitySource.StartActivity(activityName, activityKind, parentContext, tags);
     }
 
     /// <summary>
@@ -38,7 +39,7 @@ public static class LoggerActivityExtensions
         Dictionary<string, object?> logMetadata
     )
     {
-        var activity = StartActivity(activityName, traceParent, activityKind);
+        var activity = StartActivity(activityName, traceParent, activityKind, logMetadata);
         var logScope = logger.BeginScope(logMetadata);
 
         if (logger.IsEnabled(LogLevel.Debug))
