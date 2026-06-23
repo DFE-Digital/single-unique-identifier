@@ -293,7 +293,7 @@ module "audit_processor_function_app" {
     var.audit_app_settings
   )
 
-  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
+  application_insights_connection_string = "data.terraform_remote_state.core.outputs.app_insights_connection_string"
 
   tags = var.tags
 }
