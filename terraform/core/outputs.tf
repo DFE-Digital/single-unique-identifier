@@ -39,7 +39,7 @@ output "log_analytics_workspace_id" {
 }
 
 output "app_insights_connection_string" {
-  value       = azurerm_application_insights.shared.connection_string
+  value       = sensitive(azurerm_application_insights.shared.connection_string)
   description = "Connection string for the shared Application Insights instance."
   sensitive   = true
 }
