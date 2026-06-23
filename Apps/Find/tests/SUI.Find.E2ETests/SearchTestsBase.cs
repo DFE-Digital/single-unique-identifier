@@ -235,12 +235,12 @@ public abstract class SearchTestsBase(
                     : null
             ) ?? "Unknown";
 
+        TestOutputHelper.WriteLine("");
+
         var topLevelTaskName = UsePolling ? "workItemId" : "jobId";
         TestOutputHelper.WriteLine(
             $"Search started: traceId={traceId}, invocationId={invocationId}, {topLevelTaskName}={searchId}"
         );
-
-        TestOutputHelper.WriteLine("");
 
         if (Fixture.Config.IsLocal)
         {
@@ -251,11 +251,12 @@ public abstract class SearchTestsBase(
         else
         {
             var query = $"""
+                // App Insights Trace Query below:
+                // Also, use the 'Search' feature in App Insights to visualise the whole Trace
                 union traces, exceptions
                 | where operation_Id == "{traceId}"
                 | extend message = coalesce(message, innermostMessage)
                 """;
-            TestOutputHelper.WriteLine("App Insights trace query:");
             TestOutputHelper.WriteLine(query);
         }
 

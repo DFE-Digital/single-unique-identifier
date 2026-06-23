@@ -7,7 +7,7 @@ public interface IFindService
 {
     Task<FindMatchResult> MatchRecord(LocalPerson person, string clientId);
 
-    Task<string> StartSearch(string clientId, string suid, bool usePolling);
+    Task<StartSearchResult> StartSearch(string clientId, string suid, bool usePolling);
 
     Task<SearchResultsDto> FindRecords(string clientId, string workItemId, bool usePolling);
 

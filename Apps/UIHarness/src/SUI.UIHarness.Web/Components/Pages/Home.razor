@@ -29,7 +29,7 @@
             <EnrolTab SelectedOrgClientId="@_selectedOrgClientId" CurrentPersonChanged="HandleCurrentPersonChanged"></EnrolTab>
         </div>
         <div class="tab-pane fade show active" id="tab-find" role="tabpanel" hidden='@(_currentTab != "find")'>
-            <FindTab SelectedOrgClientId="@_selectedOrgClientId" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged" CurrentWorkItemIdChanged="HandleWorkItemIdChanged"></FindTab>
+            <FindTab SelectedOrgClientId="@_selectedOrgClientId" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged" OnSearchStarted="HandleOnSearchStarted"></FindTab>
         </div>
         <div class="tab-pane fade show active" id="tab-fetch" role="tabpanel" hidden='@(_currentTab != "fetch")'>
             <FetchTab SelectedOrgClientId="@_selectedOrgClientId" SelectedRecordUrl="@_selectedRecordUrl"></FetchTab>
@@ -119,21 +119,27 @@
         ChangeTabs("fetch");
     }
     
-    private void HandleWorkItemIdChanged(string workItemId)
+    private void HandleOnSearchStarted(StartSearchResult startSearchResult)
     {
-        _currentWorkItemId = workItemId;
-        _traceDetails = GenerateTraceDetails(workItemId);
+        _currentWorkItemId = startSearchResult.WorkItemId;
+        _traceDetails = GenerateTraceDetails(startSearchResult.TraceId);
     }
 
-    private (string? Link, string? Message) GenerateTraceDetails(string workItemId)
+    private (string? Link, string? Message) GenerateTraceDetails(string? traceId)
     {
+        if (string.IsNullOrWhiteSpace(traceId))
+        {
+            return (null, null);
+        }
+        
         var isLocal = Configuration["BaseURL"]?.Contains("localhost") == true;
         return isLocal
-            ? ($"http://localhost:18888/structuredlogs?filters=WorkItemId%3Aequals%3A{workItemId}", null)
+            ? ($"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}", null)
             : (null, $"""
-                      // App Insights trace query:
+                      // App Insights Trace Query below:
+                      // Also, use the 'Search' feature in App Insights to visualise the whole Trace
                       union traces, exceptions
-                      | where customDimensions.WorkItemId == "{workItemId}"
+                      | where operation_Id == "{traceId}"
                       | extend message = coalesce(message, innermostMessage)
                       """);
     }
