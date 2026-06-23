@@ -117,7 +117,7 @@ resource "azurerm_linux_function_app" "this" {
 
   site_config {
     always_on              = true
-    ftps_state             = AllAllowed
+    ftps_state             = var.ftps_state
     vnet_route_all_enabled = true
 
     health_check_path                 = var.health_check_path
