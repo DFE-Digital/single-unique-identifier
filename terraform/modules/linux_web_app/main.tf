@@ -2,6 +2,7 @@ locals {
   base_app_settings = merge(
     {
       WEBSITE_RUN_FROM_PACKAGE = "1"
+      APPLICATIONINSIGHTS_CONNECTION_STRING = sensitive(var.application_insights_connection_string)
     },
     var.environment_tag == null ? {} : { ASPNETCORE_ENVIRONMENT = var.environment_tag },
   )

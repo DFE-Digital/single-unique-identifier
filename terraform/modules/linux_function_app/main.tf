@@ -128,7 +128,7 @@ resource "azurerm_linux_function_app" "this" {
       use_dotnet_isolated_runtime = true
     }
 
-    application_insights_connection_string = var.application_insights_connection_string
+    application_insights_connection_string = sensitive(var.application_insights_connection_string)
   }
 
   app_settings = merge(
