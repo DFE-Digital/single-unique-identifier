@@ -25,6 +25,8 @@ public class FunctionTestFixture : IAsyncLifetime
 
     public HttpClient StubCustodiansClient { get; }
 
+    public AccessTokenProvider AccessTokenProvider { get; }
+
     public string StartupDiagnosticMessages => _startupDiagnosticMessages.ToString();
 
     public FunctionTestFixture()
@@ -62,6 +64,8 @@ public class FunctionTestFixture : IAsyncLifetime
         {
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
+
+        AccessTokenProvider = new AccessTokenProvider(this);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;

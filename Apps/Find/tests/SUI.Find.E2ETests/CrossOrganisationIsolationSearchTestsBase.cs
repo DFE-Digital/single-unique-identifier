@@ -13,10 +13,11 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
 {
     protected async Task RunIsolationTest(TestData testData)
     {
-        var ownerToken = await GetAuthTokenAsync(
+        var ownerToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
             testData.TestClientId,
             TestClientSecret,
-            Fixture.Config.AuthScope
+            Fixture.Config.AuthScopes,
+            TestOutputHelper
         );
 
         var attackerClientId =
@@ -24,10 +25,11 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
                 ? "CLIENT_ID_EDUCATION_01"
                 : "CLIENT_ID_LOCAL_AUTHORITY_01";
 
-        var attackerToken = await GetAuthTokenAsync(
+        var attackerToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
             attackerClientId,
             TestClientSecret,
-            Fixture.Config.AuthScope
+            Fixture.Config.AuthScopes,
+            TestOutputHelper
         );
 
         Assert.NotNull(ownerToken);

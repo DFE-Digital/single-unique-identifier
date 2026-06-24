@@ -16,8 +16,7 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
     private static readonly string[] MatchReadScopes = ["match-record.read"];
     private static readonly TimeSpan ApiKeyAcceptanceRetryInterval = TimeSpan.FromSeconds(10);
 
-    private string?[] AuthScopes =>
-        Fixture.Config.AuthScope != null ? [Fixture.Config.AuthScope] : MatchReadScopes;
+    private string?[] AuthScopes => Fixture.Config.AuthScopes ?? MatchReadScopes;
 
     [Fact]
     public async Task Should_ReportHealthy()
@@ -30,7 +29,12 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
     {
         await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
 
-        var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, AuthScopes);
+        var authToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
+            TestClientId,
+            TestClientSecret,
+            AuthScopes,
+            TestOutputHelper
+        );
 
         Assert.False(string.IsNullOrWhiteSpace(authToken));
     }
@@ -45,7 +49,12 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
             "Smoke tests require E2E__FindApiKey to be set."
         );
 
-        var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, AuthScopes);
+        var authToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
+            TestClientId,
+            TestClientSecret,
+            AuthScopes,
+            TestOutputHelper
+        );
 
         await WaitForConfiguredApiKeyAcceptanceAsync(authToken!);
 

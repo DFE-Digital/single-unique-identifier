@@ -121,10 +121,11 @@ public abstract class SearchTestsBase(
 
     protected async Task RunTest(TestData testData)
     {
-        var authToken = await GetAuthTokenAsync(
+        var authToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
             testData.TestClientId,
             TestClientSecret,
-            Fixture.Config.AuthScope
+            Fixture.Config.AuthScopes,
+            TestOutputHelper
         );
 
         if (string.IsNullOrWhiteSpace(authToken))
