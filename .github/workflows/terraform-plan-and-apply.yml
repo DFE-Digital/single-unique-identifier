@@ -49,6 +49,8 @@ on:
       AUTH_CLIENT_SECRETS_JSON_MAP:
         required: false
       FIND_API_GATEWAY_BASE_URL:
+        required: false  
+      E2E_AUTH_SCOPE:
         required: false
 
 permissions:

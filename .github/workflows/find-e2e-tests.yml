@@ -279,6 +279,7 @@ jobs:
             -e E2E__AccessTokenUrl=${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }} \
             -e E2E__AuthEmulatorHealthCheckEndpoint="" \
             -e E2E__SkipResetAzureTables=True \
+            -e E2E__AuthScope=${{ secrets.E2E_AUTH_SCOPE }} \
             -e E2E__CheckStubCustodiansApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Custodians" Solution') && github.event.workflow_run.run_started_at || '' }} \
             -e E2E__CheckAuthEmulatorApiBuildTimestampThreshold="" \
             -e E2E__CheckFindApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Find" Solution') && github.event.workflow_run.run_started_at || '' }} # We pass the run_started_at value(s) so that we ensure the relevant API has restarted with the latest version. Note that this will pass an empty value if this pipeline was not trigerred by a workflow_run for that specific API, but that is fine and desired in that case (because we only need the check when this pipeline is immediately trigerred by the workflow_run after deployment of that specific API)
