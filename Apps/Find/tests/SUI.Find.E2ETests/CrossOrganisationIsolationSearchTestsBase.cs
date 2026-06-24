@@ -16,7 +16,7 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
         var ownerToken = await GetAuthTokenAsync(
             testData.TestClientId,
             TestClientSecret,
-            TestScopes
+            Fixture.Config.AuthScope
         );
 
         var attackerClientId =
@@ -24,7 +24,11 @@ public abstract class CrossOrganisationIsolationSearchTestsBase(
                 ? "CLIENT_ID_EDUCATION_01"
                 : "CLIENT_ID_LOCAL_AUTHORITY_01";
 
-        var attackerToken = await GetAuthTokenAsync(attackerClientId, TestClientSecret, TestScopes);
+        var attackerToken = await GetAuthTokenAsync(
+            attackerClientId,
+            TestClientSecret,
+            Fixture.Config.AuthScope
+        );
 
         Assert.NotNull(ownerToken);
         Assert.NotNull(attackerToken);

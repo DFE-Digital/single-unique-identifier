@@ -22,6 +22,11 @@ public record Config
 
     public string AccessTokenUrl { get; init; } = "https://localhost:7250/api/v1/auth/token";
 
+    /// <summary>
+    /// Optional ability to override the scope to use when requesting access tokens, to support running the tests through FaUAPI or other gateways.
+    /// </summary>
+    public string? AuthScope { get; init; }
+
     public string? AuthEmulatorHealthCheckEndpoint { get; init; } =
         "https://localhost:7250/api/health";
 

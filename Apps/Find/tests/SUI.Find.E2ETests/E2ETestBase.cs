@@ -27,7 +27,7 @@ public class E2ETestBase
     protected async Task<string?> GetAuthTokenAsync(
         string clientId,
         string clientSecret,
-        string[] scopes
+        params string?[] scopes
     )
     {
         var originalClientId = clientId;
@@ -53,7 +53,7 @@ public class E2ETestBase
     }
 
     private async Task<string> GetAuthTokenWithRetryAsync(
-        string[] scopes,
+        string?[] scopes,
         AuthenticationHeaderValue clientCredentials,
         string clientId,
         bool isClientIdSensitive

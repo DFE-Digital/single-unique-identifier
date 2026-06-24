@@ -25,14 +25,6 @@ public abstract class SearchTestsBase(
 
     protected const string TestClientSecret = "SUIProject";
 
-    protected static readonly string[] TestScopes =
-    [
-        "find-record.write",
-        "find-record.read",
-        "fetch-record.write",
-        "fetch-record.read",
-    ];
-
     private record SearchStatusResponse(string? Status, int? CompletenessPercentage);
 
     /// <summary>
@@ -132,7 +124,7 @@ public abstract class SearchTestsBase(
         var authToken = await GetAuthTokenAsync(
             testData.TestClientId,
             TestClientSecret,
-            TestScopes
+            Fixture.Config.AuthScope
         );
 
         if (string.IsNullOrWhiteSpace(authToken))
