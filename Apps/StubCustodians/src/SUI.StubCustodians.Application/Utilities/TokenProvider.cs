@@ -37,13 +37,15 @@ public class TokenProvider : ITokenProvider
 
         var creds = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
 
+        var scope = _configuration["AuthSettings:FindApiGatewayAuthScope"] ?? "work-item.write";
+
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", creds);
 
         request.Content = new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
                 ["grant_type"] = "client_credentials",
-                ["scope"] = "work-item.write",
+                ["scope"] = scope,
             }
         );
 
