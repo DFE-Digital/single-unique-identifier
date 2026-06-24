@@ -141,7 +141,7 @@ public class FunctionTestFixture : IAsyncLifetime
     {
         if (!string.IsNullOrEmpty(Config.AuthEmulatorHealthCheckEndpoint))
         {
-            TestContext.Current.SendDiagnosticMessage("Checking Auth Emulator API health...");
+            testOutputHelper.WriteLine("Checking Auth Emulator API health...");
 
             await EnsureServiceIsUpAsync(
                 "AuthEmulator API",
@@ -156,9 +156,7 @@ public class FunctionTestFixture : IAsyncLifetime
 
     public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
     {
-        TestContext.Current.SendDiagnosticMessage(
-            "Checking Find API and StubCustodians API health..."
-        );
+        testOutputHelper.WriteLine("Checking Find API and StubCustodians API health...");
 
         await Task.WhenAll(
             EnsureFindApiIsUpAsync(testOutputHelper),
