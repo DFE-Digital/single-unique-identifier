@@ -10,8 +10,6 @@ namespace SUI.Find.E2ETests;
 public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
     : E2ETestBase(fixture, testOutputHelper)
 {
-    private const string TestClientId = "CLIENT_ID_LOCAL_AUTHORITY_01";
-    private const string TestClientSecret = "SUIProject";
     private const int ApiKeyAcceptanceRetryCount = 6;
     private static readonly string[] MatchReadScopes = ["match-record.read"];
     private static readonly TimeSpan ApiKeyAcceptanceRetryInterval = TimeSpan.FromSeconds(10);
@@ -30,8 +28,8 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
         await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
 
         var authToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
-            TestClientId,
-            TestClientSecret,
+            Consts.TestClientId,
+            Consts.TestClientSecret,
             AuthScopes,
             TestOutputHelper
         );
@@ -50,8 +48,8 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
         );
 
         var authToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
-            TestClientId,
-            TestClientSecret,
+            Consts.TestClientId,
+            Consts.TestClientSecret,
             AuthScopes,
             TestOutputHelper
         );

@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -119,7 +120,8 @@ public class FunctionTestFixture : IAsyncLifetime
             Client,
             HealthEndpointUrl,
             testOutputHelper,
-            checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
+            checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold,
+            useAccessToken: true
         );
     }
 
@@ -130,7 +132,8 @@ public class FunctionTestFixture : IAsyncLifetime
             StubCustodiansClient,
             HealthEndpointUrl,
             testOutputHelper,
-            checkBuildTimestampThreshold: Config.CheckStubCustodiansApiBuildTimestampThreshold
+            checkBuildTimestampThreshold: Config.CheckStubCustodiansApiBuildTimestampThreshold,
+            useAccessToken: false
         );
     }
 
@@ -145,7 +148,8 @@ public class FunctionTestFixture : IAsyncLifetime
                 Client,
                 Config.AuthEmulatorHealthCheckEndpoint,
                 testOutputHelper,
-                checkBuildTimestampThreshold: Config.CheckAuthEmulatorApiBuildTimestampThreshold
+                checkBuildTimestampThreshold: Config.CheckAuthEmulatorApiBuildTimestampThreshold,
+                useAccessToken: false
             );
         }
     }
@@ -221,14 +225,27 @@ public class FunctionTestFixture : IAsyncLifetime
         }
     }
 
-    private static async Task EnsureServiceIsUpAsync(
+    private async Task EnsureServiceIsUpAsync(
         string serviceName,
         HttpClient client,
         string url,
         ITestOutputHelper testOutputHelper,
-        DateTimeOffset? checkBuildTimestampThreshold = null
+        DateTimeOffset? checkBuildTimestampThreshold,
+        bool useAccessToken
     )
     {
+        var accessToken = useAccessToken
+            ? new AuthenticationHeaderValue(
+                "Bearer",
+                await AccessTokenProvider.GetAuthTokenAsync(
+                    Consts.TestClientId,
+                    Consts.TestClientSecret,
+                    Config.AuthScopes,
+                    testOutputHelper
+                )
+            )
+            : null;
+
         var waitInterval = TimeSpan.FromSeconds(10);
 
         testOutputHelper.WriteLine(
@@ -257,7 +274,10 @@ public class FunctionTestFixture : IAsyncLifetime
         {
             try
             {
-                using var response = await client.GetAsync(url);
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Authorization = accessToken;
+
+                using var response = await client.SendAsync(request);
                 var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
 
                 return content?.Value == "Healthy"
