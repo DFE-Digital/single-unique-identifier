@@ -25,14 +25,6 @@ public abstract class SearchTestsBase(
 
     protected const string TestClientSecret = "SUIProject";
 
-    protected static readonly string[] TestScopes =
-    [
-        "find-record.write",
-        "find-record.read",
-        "fetch-record.write",
-        "fetch-record.read",
-    ];
-
     private record SearchStatusResponse(string? Status, int? CompletenessPercentage);
 
     /// <summary>
@@ -129,10 +121,11 @@ public abstract class SearchTestsBase(
 
     protected async Task RunTest(TestData testData)
     {
-        var authToken = await GetAuthTokenAsync(
+        var authToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
             testData.TestClientId,
             TestClientSecret,
-            TestScopes
+            Fixture.Config.AuthScopes,
+            TestOutputHelper
         );
 
         if (string.IsNullOrWhiteSpace(authToken))
