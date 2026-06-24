@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -24,6 +25,8 @@ public class FunctionTestFixture : IAsyncLifetime
     public HttpClient Client { get; }
 
     public HttpClient StubCustodiansClient { get; }
+
+    public AccessTokenProvider AccessTokenProvider { get; }
 
     public string StartupDiagnosticMessages => _startupDiagnosticMessages.ToString();
 
@@ -62,6 +65,8 @@ public class FunctionTestFixture : IAsyncLifetime
         {
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
+
+        AccessTokenProvider = new AccessTokenProvider(this);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
@@ -115,7 +120,8 @@ public class FunctionTestFixture : IAsyncLifetime
             Client,
             HealthEndpointUrl,
             testOutputHelper,
-            checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold
+            checkBuildTimestampThreshold: Config.CheckFindApiBuildTimestampThreshold,
+            useAccessToken: true
         );
     }
 
@@ -126,7 +132,8 @@ public class FunctionTestFixture : IAsyncLifetime
             StubCustodiansClient,
             HealthEndpointUrl,
             testOutputHelper,
-            checkBuildTimestampThreshold: Config.CheckStubCustodiansApiBuildTimestampThreshold
+            checkBuildTimestampThreshold: Config.CheckStubCustodiansApiBuildTimestampThreshold,
+            useAccessToken: false
         );
     }
 
@@ -134,23 +141,22 @@ public class FunctionTestFixture : IAsyncLifetime
     {
         if (!string.IsNullOrEmpty(Config.AuthEmulatorHealthCheckEndpoint))
         {
-            TestContext.Current.SendDiagnosticMessage("Checking Auth Emulator API health...");
+            testOutputHelper.WriteLine("Checking Auth Emulator API health...");
 
             await EnsureServiceIsUpAsync(
                 "AuthEmulator API",
                 Client,
                 Config.AuthEmulatorHealthCheckEndpoint,
                 testOutputHelper,
-                checkBuildTimestampThreshold: Config.CheckAuthEmulatorApiBuildTimestampThreshold
+                checkBuildTimestampThreshold: Config.CheckAuthEmulatorApiBuildTimestampThreshold,
+                useAccessToken: false
             );
         }
     }
 
     public async Task EnsureServicesAreUpAsync(ITestOutputHelper testOutputHelper)
     {
-        TestContext.Current.SendDiagnosticMessage(
-            "Checking Find API and StubCustodians API health..."
-        );
+        testOutputHelper.WriteLine("Checking Find API and StubCustodians API health...");
 
         await Task.WhenAll(
             EnsureFindApiIsUpAsync(testOutputHelper),
@@ -217,14 +223,27 @@ public class FunctionTestFixture : IAsyncLifetime
         }
     }
 
-    private static async Task EnsureServiceIsUpAsync(
+    private async Task EnsureServiceIsUpAsync(
         string serviceName,
         HttpClient client,
         string url,
         ITestOutputHelper testOutputHelper,
-        DateTimeOffset? checkBuildTimestampThreshold = null
+        DateTimeOffset? checkBuildTimestampThreshold,
+        bool useAccessToken
     )
     {
+        var accessToken = useAccessToken
+            ? new AuthenticationHeaderValue(
+                "Bearer",
+                await AccessTokenProvider.GetAuthTokenAsync(
+                    Consts.TestClientId,
+                    Consts.TestClientSecret,
+                    Config.AuthScopes,
+                    testOutputHelper
+                )
+            )
+            : null;
+
         var waitInterval = TimeSpan.FromSeconds(10);
 
         testOutputHelper.WriteLine(
@@ -253,7 +272,10 @@ public class FunctionTestFixture : IAsyncLifetime
         {
             try
             {
-                using var response = await client.GetAsync(url);
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Authorization = accessToken;
+
+                using var response = await client.SendAsync(request);
                 var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
 
                 return content?.Value == "Healthy"

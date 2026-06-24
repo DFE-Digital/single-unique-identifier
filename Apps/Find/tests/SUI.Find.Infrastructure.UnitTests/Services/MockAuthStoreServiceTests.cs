@@ -38,7 +38,7 @@ public class MockAuthStoreServiceTests
     }
 
     [Fact]
-    public async Task GetScopesByClientId_WithValidClientId_ShouldReturnScopes()
+    public async Task GetClientById_WithValidClientId_ShouldReturnClientWithCorrectDetails()
     {
         // Arrange
         var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
@@ -46,15 +46,16 @@ public class MockAuthStoreServiceTests
         _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         // Act
-        var result = _sut.GetScopesByClientId(ClientId);
+        var result = _sut.GetClientById(ClientId);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equivalent(ExpectedScopes, result, strict: true);
+        Assert.Equal(ExpectedOrganisationId, result.OrganisationId);
+        Assert.Equivalent(ExpectedScopes, result.AllowedScopes, strict: true);
     }
 
     [Fact]
-    public async Task GetScopesByClientId_WithInvalidClientId_ShouldThrowException()
+    public async Task GetClientById_WithInvalidClientId_ShouldReturnNull()
     {
         // Arrange
         var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
@@ -62,45 +63,14 @@ public class MockAuthStoreServiceTests
         _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
 
         // Act
+        var result = _sut.GetClientById("invalid-client-id");
+
         // Assert
-        Assert.Throws<InvalidOperationException>(() =>
-            _sut.GetScopesByClientId("invalid-client-id")
-        );
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task GetOrganisationIdForClientId_WithValidClientId_ShouldReturnOrganisationId()
-    {
-        // Arrange
-        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
-        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
-
-        // Act
-        var result = _sut.GetOrganisationIdForClientId(ClientId);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(ExpectedOrganisationId, result);
-    }
-
-    [Fact]
-    public async Task GetOrganisationByClientId_WithInvalidClientId_ShouldThrowException()
-    {
-        // Arrange
-        var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
-        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(true);
-        _mockFileSystem.File.ReadAllText(Arg.Any<string>()).Returns(fileContent);
-
-        // Act
-        // Assert
-        Assert.Throws<InvalidOperationException>(() =>
-            _sut.GetOrganisationIdForClientId("invalid-client-id")
-        );
-    }
-
-    [Fact]
-    public async Task GetOrganisationIdForClientId_AndGetScopesByClientId_ShouldSupportSensitiveOverridesViaConfiguration()
+    public async Task GetClientById_ShouldSupportSensitiveOverridesViaConfiguration()
     {
         // Arrange
         var fileContent = await File.ReadAllTextAsync(_realStoreFilePath);
@@ -109,14 +79,27 @@ public class MockAuthStoreServiceTests
 
         const string sensitiveClientId = "SensitiveClientId";
 
-        _mockConfiguration[$"AuthClientCredentials:{ClientId}:NewClientId"] = sensitiveClientId;
+        _mockConfiguration[$"AuthClientCredentials:{ClientId}:NewClientId"]
+            .Returns(sensitiveClientId);
 
         // Act
-        var resultOrganisationId = _sut.GetOrganisationIdForClientId(sensitiveClientId);
-        var resultScopes = _sut.GetScopesByClientId(sensitiveClientId);
+        var result = _sut.GetClientById(sensitiveClientId);
 
         // Assert
-        Assert.Equal(ExpectedOrganisationId, resultOrganisationId);
-        Assert.Equivalent(ExpectedScopes, resultScopes, strict: true);
+        Assert.NotNull(result);
+        Assert.Equal(sensitiveClientId, result.ClientId);
+        Assert.Equal(ExpectedOrganisationId, result.OrganisationId);
+        Assert.Equivalent(ExpectedScopes, result.AllowedScopes, strict: true);
+    }
+
+    [Fact]
+    public void LoadStore_WhenFileIsMissing_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        _mockFileSystem.File.Exists(Arg.Any<string>()).Returns(false);
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => _sut.GetClientById(ClientId));
+        Assert.Contains("Auth store file not found at", ex.Message);
     }
 }

@@ -111,14 +111,27 @@ public class JwtAuthMiddleware(
             return;
         }
 
-        var authContext = authContextFactory.FromJwt(
+        var authResult = authContextFactory.FromJwt(
             jwt,
             authSettings.Value.UseAuthStoreForAuthorisation
         );
 
+        if (!authResult.IsSuccess)
+        {
+            logger.LogWarning("Access denied. Reason: {Reason}", authResult.ErrorMessage);
+
+            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                nameof(HttpStatusCode.Unauthorized),
+                authResult.ErrorMessage
+            );
+            return;
+        }
+
         var requiredScopes = GetRequiredScopes(context);
 
-        if (!HasAnyRequiredScope(authContext, requiredScopes))
+        if (!HasAnyRequiredScope(authResult.Context, requiredScopes))
         {
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
@@ -129,7 +142,7 @@ public class JwtAuthMiddleware(
             return;
         }
 
-        context.Items[ApplicationConstants.Auth.AuthContextKey] = authContext;
+        context.Items[ApplicationConstants.Auth.AuthContextKey] = authResult.Context;
 
         await next(context);
     }

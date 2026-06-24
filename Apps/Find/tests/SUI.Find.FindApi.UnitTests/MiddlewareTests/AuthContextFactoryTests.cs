@@ -1,8 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using SUI.Find.FindApi.Middleware;
+using SUI.Find.FindApi.Models.Auth;
+using SUI.Find.Infrastructure.Models;
 using SUI.Find.Infrastructure.Services;
 
 namespace SUI.Find.FindApi.UnitTests.MiddlewareTests;
@@ -21,38 +22,100 @@ public class AuthContextFactoryTests
     }
 
     [Fact]
-    public void TestFromJwt_WhenClientIdAzpAndSubEmpty_ShouldThrowException()
+    public void TestFromJwt_WhenClientIdAzpAndSubEmpty_ShouldReturnFailure()
     {
         // Arrange
         var claims = new List<Claim> { new("client_id", ""), new("azp", ""), new("sub", "") };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        // Act & Assert
-        var ex = Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
-        Assert.Contains("Token did not contain client_id, azp, or sub", ex.Message);
+        // Act
+        var result = _sut.FromJwt(jwt, false);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AuthFailureReason.InvalidTokenClaims, result.FailureType);
+        Assert.Equal("Token did not contain client_id, azp, or sub.", result.ErrorMessage);
+        Assert.Null(result.Context);
     }
 
     [Fact]
-    public void TestFromJwt_WhenNoClientIdAzpOrSub_ShouldThrowException()
+    public void TestFromJwt_WhenNoClientIdAzpOrSub_ShouldReturnFailure()
     {
         // Arrange
         var jwt = new JwtSecurityToken();
 
-        // Act & Assert
-        var ex = Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
-        Assert.Contains("Token did not contain client_id, azp, or sub", ex.Message);
+        // Act
+        var result = _sut.FromJwt(jwt, false);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AuthFailureReason.InvalidTokenClaims, result.FailureType);
+        Assert.Equal("Token did not contain client_id, azp, or sub.", result.ErrorMessage);
     }
 
     [Fact]
-    public void TestFromJwt_WhenNoOrganisationIdForClientId_ShouldThrowException()
+    public void TestFromJwt_WhenClientNotFound_ShouldReturnFailure()
     {
         // Arrange
         var claims = new List<Claim> { new("client_id", ClientId) };
         var jwt = new JwtSecurityToken(claims: claims);
-        _store.GetOrganisationIdForClientId(ClientId).Returns("");
+        _store.GetClientById(ClientId).Returns((AuthClient?)null);
 
-        // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => _sut.FromJwt(jwt, false));
+        // Act
+        var result = _sut.FromJwt(jwt, false);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AuthFailureReason.ClientNotFound, result.FailureType);
+        Assert.Equal("No matching client found in auth store.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void TestFromJwt_WhenClientIsDisabled_ShouldReturnFailure()
+    {
+        // Arrange
+        var claims = new List<Claim> { new("client_id", ClientId) };
+        var jwt = new JwtSecurityToken(claims: claims);
+
+        var disabledClient = new AuthClient
+        {
+            Enabled = false,
+            OrganisationId = OrganisationId,
+            AllowedScopes = ["test.scope.disabled"],
+        };
+        _store.GetClientById(ClientId).Returns(disabledClient);
+
+        // Act
+        var result = _sut.FromJwt(jwt, false);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AuthFailureReason.ClientDisabled, result.FailureType);
+        Assert.Equal("Client is disabled.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void TestFromJwt_WhenNoOrganisationIdForClientId_ShouldReturnFailure()
+    {
+        // Arrange
+        var claims = new List<Claim> { new("client_id", ClientId) };
+        var jwt = new JwtSecurityToken(claims: claims);
+
+        var invalidClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = "",
+            AllowedScopes = ["test.scope.missing-org"],
+        };
+        _store.GetClientById(ClientId).Returns(invalidClient);
+
+        // Act
+        var result = _sut.FromJwt(jwt, false);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AuthFailureReason.MissingOrganisationId, result.FailureType);
+        Assert.Equal("No Organisation ID found for client in auth store.", result.ErrorMessage);
     }
 
     [Fact]
@@ -61,13 +124,21 @@ public class AuthContextFactoryTests
         // Arrange
         var claims = new List<Claim> { new("azp", "AZP-CLIENT-01"), new("sub", "SUB-CLIENT-01") };
         var jwt = new JwtSecurityToken(claims: claims);
-        _store.GetOrganisationIdForClientId("AZP-CLIENT-01").Returns("ORG-01");
+
+        var validClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = "ORG-01",
+            AllowedScopes = ["test.scope.azp"],
+        };
+        _store.GetClientById("AZP-CLIENT-01").Returns(validClient);
 
         // Act
         var result = _sut.FromJwt(jwt, false);
 
         // Assert
-        Assert.Equal("AZP-CLIENT-01", result.ClientId);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("AZP-CLIENT-01", result.Context!.ClientId);
     }
 
     [Fact]
@@ -81,13 +152,21 @@ public class AuthContextFactoryTests
             new("sub", "SUB-CLIENT-01"),
         };
         var jwt = new JwtSecurityToken(claims: claims);
-        _store.GetOrganisationIdForClientId("MAIN-CLIENT-01").Returns("ORG-01");
+
+        var validClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = "ORG-01",
+            AllowedScopes = ["test.scope.main"],
+        };
+        _store.GetClientById("MAIN-CLIENT-01").Returns(validClient);
 
         // Act
         var result = _sut.FromJwt(jwt, false);
 
         // Assert
-        Assert.Equal("MAIN-CLIENT-01", result.ClientId);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("MAIN-CLIENT-01", result.Context!.ClientId);
     }
 
     [Fact]
@@ -96,13 +175,21 @@ public class AuthContextFactoryTests
         // Arrange
         var claims = new List<Claim> { new("sub", "SUB-CLIENT-01") };
         var jwt = new JwtSecurityToken(claims: claims);
-        _store.GetOrganisationIdForClientId("SUB-CLIENT-01").Returns("ORG-01");
+
+        var validClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = "ORG-01",
+            AllowedScopes = ["test.scope.sub"],
+        };
+        _store.GetClientById("SUB-CLIENT-01").Returns(validClient);
 
         // Act
         var result = _sut.FromJwt(jwt, false);
 
         // Assert
-        Assert.Equal("SUB-CLIENT-01", result.ClientId);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("SUB-CLIENT-01", result.Context!.ClientId);
     }
 
     [Fact]
@@ -118,16 +205,22 @@ public class AuthContextFactoryTests
         };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        _store.GetOrganisationIdForClientId(ClientId).Returns(OrganisationId);
-        _store.GetScopesByClientId(Arg.Any<string>()).Throws<InvalidOperationException>(); // Should not use Auth Store for authorisation
+        var validClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = OrganisationId,
+            AllowedScopes = ["should.be.ignored"],
+        };
+        _store.GetClientById(ClientId).Returns(validClient);
 
         // Act
-        var result = _sut.FromJwt(jwt, false);
+        var result = _sut.FromJwt(jwt, false); // false = read from token
 
         // Assert
-        Assert.Equal(ClientId, result.ClientId);
-        Assert.Equal(OrganisationId, result.OrganisationId);
-        Assert.Equal(scopesList, result.Scopes);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ClientId, result.Context!.ClientId);
+        Assert.Equal(OrganisationId, result.Context.OrganisationId);
+        Assert.Equal(scopesList, result.Context.Scopes);
     }
 
     [Fact]
@@ -143,15 +236,22 @@ public class AuthContextFactoryTests
         };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        _store.GetOrganisationIdForClientId(ClientId).Returns(OrganisationId);
-        _store.GetScopesByClientId(Arg.Any<string>()).Returns(scopesList);
+        var validClient = new AuthClient
+        {
+            Enabled = true,
+            OrganisationId = OrganisationId,
+            AllowedScopes = scopesList,
+        };
+
+        _store.GetClientById(ClientId).Returns(validClient);
 
         // Act
-        var result = _sut.FromJwt(jwt, true);
+        var result = _sut.FromJwt(jwt, true); // true = read from auth store
 
         // Assert
-        Assert.Equal(ClientId, result.ClientId);
-        Assert.Equal(OrganisationId, result.OrganisationId);
-        Assert.Equal(scopesList, result.Scopes);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(ClientId, result.Context!.ClientId);
+        Assert.Equal(OrganisationId, result.Context.OrganisationId);
+        Assert.Equal(scopesList, result.Context.Scopes);
     }
 }

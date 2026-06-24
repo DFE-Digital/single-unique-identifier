@@ -14,8 +14,11 @@ public class AuditStorageTableServiceTests : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    [Fact]
-    public async Task WriteAccessAuditLogAsync_CreatesRecord_AsExpected()
+    [Theory]
+    [InlineData("00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01")]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task WriteAccessAuditLogAsync_CreatesRecord_AsExpected(string? traceParent)
     {
         var inputTimestamp = new DateTime(2026, 2, 16, 12, 23, 45, 123, 456, DateTimeKind.Utc);
         const string inputPayload = """{"test": true}""";
@@ -32,6 +35,7 @@ public class AuditStorageTableServiceTests : IAsyncLifetime
             Payload = JsonElement.Parse(inputPayload),
             Timestamp = inputTimestamp,
             CorrelationId = $"CorrelationId_{Guid.NewGuid()}",
+            TraceParent = traceParent,
         };
 
         var expectedPartitionKey = $"{inputTimestamp:yyyy-MM-dd}";
@@ -60,6 +64,7 @@ public class AuditStorageTableServiceTests : IAsyncLifetime
             Payload = JsonElement.Parse(entity.GetString("Payload")),
             Timestamp = inputTimestamp,
             CorrelationId = entity.GetString("CorrelationId"),
+            TraceParent = entity.GetString("TraceParent"),
         };
 
         result.Should().NotBeSameAs(input);

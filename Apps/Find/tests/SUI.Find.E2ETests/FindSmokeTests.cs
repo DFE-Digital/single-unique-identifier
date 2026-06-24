@@ -10,11 +10,11 @@ namespace SUI.Find.E2ETests;
 public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testOutputHelper)
     : E2ETestBase(fixture, testOutputHelper)
 {
-    private const string TestClientId = "CLIENT_ID_LOCAL_AUTHORITY_01";
-    private const string TestClientSecret = "SUIProject";
     private const int ApiKeyAcceptanceRetryCount = 6;
     private static readonly string[] MatchReadScopes = ["match-record.read"];
     private static readonly TimeSpan ApiKeyAcceptanceRetryInterval = TimeSpan.FromSeconds(10);
+
+    private string?[] AuthScopes => Fixture.Config.AuthScopes ?? MatchReadScopes;
 
     [Fact]
     public async Task Should_ReportHealthy()
@@ -27,7 +27,12 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
     {
         await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
 
-        var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, MatchReadScopes);
+        var authToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
+            Consts.TestClientId,
+            Consts.TestClientSecret,
+            AuthScopes,
+            TestOutputHelper
+        );
 
         Assert.False(string.IsNullOrWhiteSpace(authToken));
     }
@@ -42,7 +47,12 @@ public class FindSmokeTests(FunctionTestFixture fixture, ITestOutputHelper testO
             "Smoke tests require E2E__FindApiKey to be set."
         );
 
-        var authToken = await GetAuthTokenAsync(TestClientId, TestClientSecret, MatchReadScopes);
+        var authToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
+            Consts.TestClientId,
+            Consts.TestClientSecret,
+            AuthScopes,
+            TestOutputHelper
+        );
 
         await WaitForConfiguredApiKeyAcceptanceAsync(authToken!);
 

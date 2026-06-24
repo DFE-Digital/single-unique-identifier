@@ -103,7 +103,7 @@ public class FindService : IFindService
         return $"{ErrorPersonId} ({statusMessage})";
     }
 
-    public async Task<string> StartSearch(string clientId, string suid, bool usePolling)
+    public async Task<StartSearchResult> StartSearch(string clientId, string suid, bool usePolling)
     {
         await GetAuthTokenAsync(clientId, Scopes);
 
@@ -116,6 +116,11 @@ public class FindService : IFindService
                 usePolling ? "v2/searches" : "v1/searches",
                 content
             );
+
+            var traceId = result.Headers.TryGetValues("Trace-Id", out var traceIds)
+                ? traceIds.FirstOrDefault()
+                : null;
+
             if (result.IsSuccessStatusCode)
             {
                 if (usePolling)
@@ -123,7 +128,7 @@ public class FindService : IFindService
                     var searchJobV2 = await result.Content.ReadFromJsonAsync<FindSearchWorkItem>();
                     if (searchJobV2 != null)
                     {
-                        return searchJobV2.WorkItemId;
+                        return new StartSearchResult(searchJobV2.WorkItemId, traceId);
                     }
                 }
                 else
@@ -131,7 +136,7 @@ public class FindService : IFindService
                     var searchJob = await result.Content.ReadFromJsonAsync<FindSearchJob>();
                     if (searchJob != null)
                     {
-                        return searchJob.JobId;
+                        return new StartSearchResult(searchJob.JobId, traceId);
                     }
                 }
             }
@@ -141,7 +146,7 @@ public class FindService : IFindService
             _logger.LogError(exception, "StartSearch failed: {Message}", exception.Message);
         }
 
-        return string.Empty;
+        return new StartSearchResult(string.Empty, null);
     }
 
     public async Task<SearchResultsDto> FindRecords(
@@ -159,6 +164,7 @@ public class FindService : IFindService
                     ? $"v2/searches/{workItemId}/results"
                     : $"v1/searches/{workItemId}/results"
             );
+
             if (result.IsSuccessStatusCode)
             {
                 if (usePolling)

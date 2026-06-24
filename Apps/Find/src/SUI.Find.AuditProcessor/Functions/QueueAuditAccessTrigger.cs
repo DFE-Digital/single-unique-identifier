@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using SUI.Find.Application.Constants;
+using SUI.Find.Application.Extensions;
 using SUI.Find.Application.Interfaces;
 using SUI.Find.Domain.Events.Audit;
 
@@ -18,8 +20,21 @@ public class QueueAuditAccessTrigger(
         CancellationToken token
     )
     {
-        logger.LogInformation(
-            "C# Queue trigger function processed: {EventType} for Organisation: {OrgId} at {Timestamp}",
+        using var activity = logger.StartActivityWithTraceParent(
+            activityName: $"Handling_{nameof(AuditEvent)}",
+            auditMessage.TraceParent,
+            ActivityKind.Consumer,
+            new Dictionary<string, object?>
+            {
+                ["EventName"] = auditMessage.EventName,
+                ["ActorId"] = auditMessage.Actor.ActorId,
+                ["TraceParent"] = auditMessage.TraceParent,
+                ["InvocationId"] = context.InvocationId,
+            }
+        );
+
+        logger.LogDebug(
+            "Processing AuditEvent: {EventName} for ActorId: {ActorId} at {Timestamp}",
             auditMessage.EventName,
             auditMessage.Actor.ActorId,
             auditMessage.Timestamp

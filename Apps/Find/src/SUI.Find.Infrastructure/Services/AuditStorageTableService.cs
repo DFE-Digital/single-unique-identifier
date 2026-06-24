@@ -31,6 +31,7 @@ public class AuditStorageTableService(TableServiceClient client)
                 { "Timestamp", auditEvent.Timestamp.ToUniversalTime() },
                 { "CorrelationId", auditEvent.CorrelationId },
                 { "Payload", auditEvent.Payload.ToString() },
+                { "TraceParent", auditEvent.TraceParent },
             },
             cancellationToken
         );

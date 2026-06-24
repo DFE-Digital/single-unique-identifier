@@ -23,6 +23,7 @@ public class JobResultHandlerFunction(
         using var activity = logger.StartActivityWithTraceParent(
             activityName: $"Handling_{nameof(JobResultMessage)}",
             message.JobTraceParent,
+            ActivityKind.Consumer,
             new Dictionary<string, object?>
             {
                 ["WorkItemId"] = message.WorkItemId,

@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -25,14 +24,6 @@ public abstract class SearchTestsBase(
     protected abstract bool UsePolling { get; }
 
     protected const string TestClientSecret = "SUIProject";
-
-    protected static readonly string[] TestScopes =
-    [
-        "find-record.write",
-        "find-record.read",
-        "fetch-record.write",
-        "fetch-record.read",
-    ];
 
     private record SearchStatusResponse(string? Status, int? CompletenessPercentage);
 
@@ -130,10 +121,11 @@ public abstract class SearchTestsBase(
 
     protected async Task RunTest(TestData testData)
     {
-        var authToken = await GetAuthTokenAsync(
+        var authToken = await Fixture.AccessTokenProvider.GetAuthTokenAsync(
             testData.TestClientId,
             TestClientSecret,
-            TestScopes
+            Fixture.Config.AuthScopes,
+            TestOutputHelper
         );
 
         if (string.IsNullOrWhiteSpace(authToken))
@@ -236,17 +228,31 @@ public abstract class SearchTestsBase(
                     : null
             ) ?? "Unknown";
 
+        TestOutputHelper.WriteLine("");
+
         var topLevelTaskName = UsePolling ? "workItemId" : "jobId";
         TestOutputHelper.WriteLine(
             $"Search started: traceId={traceId}, invocationId={invocationId}, {topLevelTaskName}={searchId}"
         );
 
-        var observabilityLink = Fixture.Config.IsLocal
-            ? $"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}"
-            : GenerateAppInsightsLink(traceId);
+        if (Fixture.Config.IsLocal)
+        {
+            var observabilityLink =
+                $"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}";
+            TestOutputHelper.WriteLine($"Trace observability: {observabilityLink}");
+        }
+        else
+        {
+            var query = $"""
+                // App Insights Trace Query below:
+                // Also, use the 'Search' feature in App Insights to visualise the whole Trace
+                union traces, exceptions
+                | where operation_Id == "{traceId}"
+                | extend message = coalesce(message, innermostMessage)
+                """;
+            TestOutputHelper.WriteLine(query);
+        }
 
-        TestOutputHelper.WriteLine("");
-        TestOutputHelper.WriteLine($"Trace observability: {observabilityLink}");
         TestOutputHelper.WriteLine("");
 
         return links;
@@ -490,40 +496,6 @@ public abstract class SearchTestsBase(
 
     protected static string RemoveLeadingSlashFromUrl(string url) =>
         url.StartsWith('/') ? url[1..] : url;
-
-    private static string GenerateAppInsightsLink(string traceId)
-    {
-        const string template =
-            "https://portal.azure.com#@fad277c9-c60a-4da1-b5f3-b3b8b34a82f9/blade/Microsoft_OperationsManagementSuite_Workspace/Logs.ReactView/resourceId/%2Fsubscriptions%2F4be6cd11-d358-413e-a744-8716ef3488c8%2FresourceGroups%2Fs270d01rg-ukw-dev%2Fproviders%2Fmicrosoft.insights%2Fcomponents%2Fs270d01appi-ukw-services01/source/LogsBlade.AnalyticsShareLinkToQuery/q/{0}/timespan/P1D/limit/1000";
-
-        var query = $"""
-            union traces, exceptions
-            | where operation_Id == "{traceId}"
-            | extend message = coalesce(message, innermostMessage)
-            """;
-
-        return string.Format(template, EncodedKqlQuery(query));
-
-        static string EncodedKqlQuery(string query)
-        {
-            var bytes = System.Text.Encoding.UTF8.GetBytes(query);
-            using var memoryStream = new MemoryStream();
-            using (
-                var compressedStream = new GZipStream(
-                    memoryStream,
-                    CompressionMode.Compress,
-                    leaveOpen: true
-                )
-            )
-            {
-                compressedStream.Write(bytes, 0, bytes.Length);
-            }
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            var data = memoryStream.ToArray();
-            var encodedQuery = Convert.ToBase64String(data);
-            return System.Web.HttpUtility.UrlEncode(encodedQuery);
-        }
-    }
 }
 
 public class TestData

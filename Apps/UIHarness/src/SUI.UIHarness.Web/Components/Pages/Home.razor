@@ -29,7 +29,7 @@
             <EnrolTab SelectedOrgClientId="@_selectedOrgClientId" CurrentPersonChanged="HandleCurrentPersonChanged"></EnrolTab>
         </div>
         <div class="tab-pane fade show active" id="tab-find" role="tabpanel" hidden='@(_currentTab != "find")'>
-            <FindTab SelectedOrgClientId="@_selectedOrgClientId" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged" CurrentWorkItemIdChanged="workItemId => _currentWorkItemId = workItemId"></FindTab>
+            <FindTab SelectedOrgClientId="@_selectedOrgClientId" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged" OnSearchStarted="HandleOnSearchStarted"></FindTab>
         </div>
         <div class="tab-pane fade show active" id="tab-fetch" role="tabpanel" hidden='@(_currentTab != "fetch")'>
             <FetchTab SelectedOrgClientId="@_selectedOrgClientId" SelectedRecordUrl="@_selectedRecordUrl"></FetchTab>
@@ -45,6 +45,23 @@
                 <div><strong>Base URL:</strong> @Configuration["BaseURL"]</div>
                 <div><strong>Architecture:</strong> @_architecture</div>
                 <div><strong>@(_architecture == ArchitectureConstants.Fanout ? "Job ID" : "Work Item ID"):</strong> @_currentWorkItemId</div>
+                @if (!string.IsNullOrWhiteSpace(_currentTraceId))
+                {
+                    <div>
+                        <strong>Find Records - Trace ID:</strong>
+                        <span>@_currentTraceId</span>
+
+                        @if (!string.IsNullOrWhiteSpace(_traceDetails?.Link))
+                        {
+                            <span>&nbsp;<a href="@_traceDetails.Value.Link" target="_blank">View trace</a></span>
+                        }
+                    
+                        @if (!string.IsNullOrWhiteSpace(_traceDetails?.Message))
+                        {
+                            <pre>@_traceDetails.Value.Message</pre>
+                        }
+                    </div>
+                }
             </div>
         }
     </div>
@@ -61,10 +78,9 @@
     private LocalPerson? _currentPerson;
     private string _selectedRecordUrl = string.Empty;
     private string _currentWorkItemId = string.Empty;
+    private string? _currentTraceId;
+    private (string? Link, string? Message)? _traceDetails;
     private bool _showDebug;
-    
-    [Inject]
-    public required IFindService FindService { get; set; }
     
     [Inject]
     public required IConfiguration Configuration { get; set; }
@@ -106,5 +122,31 @@
     {
         _selectedRecordUrl = localRecord.Url;
         ChangeTabs("fetch");
+    }
+    
+    private void HandleOnSearchStarted(StartSearchResult startSearchResult)
+    {
+        _currentWorkItemId = startSearchResult.WorkItemId;
+        _currentTraceId = startSearchResult.TraceId;
+        _traceDetails = GenerateTraceDetails(startSearchResult.TraceId);
+    }
+
+    private (string? Link, string? Message) GenerateTraceDetails(string? traceId)
+    {
+        if (string.IsNullOrWhiteSpace(traceId))
+        {
+            return (null, null);
+        }
+        
+        var isLocal = Configuration["BaseURL"]?.Contains("localhost") == true;
+        return isLocal
+            ? ($"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}", null)
+            : (null, $"""
+                      // App Insights Trace Query below:
+                      // Also, use the 'Search' feature in App Insights to visualise the whole Trace
+                      union traces, exceptions
+                      | where operation_Id == "{traceId}"
+                      | extend message = coalesce(message, innermostMessage)
+                      """);
     }
 }

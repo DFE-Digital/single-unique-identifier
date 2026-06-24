@@ -7,8 +7,7 @@ namespace SUI.Find.Infrastructure.Services;
 
 public interface IAuthStoreService
 {
-    IReadOnlyList<string> GetScopesByClientId(string clientId);
-    string GetOrganisationIdForClientId(string clientId);
+    AuthClient? GetClientById(string clientId);
 }
 
 public class MockAuthStoreService : IAuthStoreService
@@ -24,26 +23,13 @@ public class MockAuthStoreService : IAuthStoreService
         _authStore = new Lazy<AuthStore>(LoadStore);
     }
 
-    public IReadOnlyList<string> GetScopesByClientId(string clientId)
-    {
-        var client = GetClientById(clientId);
-        return client.AllowedScopes ?? [];
-    }
-
-    public string GetOrganisationIdForClientId(string clientId)
-    {
-        var client = GetClientById(clientId);
-        return client.OrganisationId;
-    }
-
-    private AuthClient GetClientById(string clientId)
+    public AuthClient? GetClientById(string clientId)
     {
         var store = _authStore.Value;
 
         var client = store.Clients?.FirstOrDefault(x => x.ClientId == clientId);
 
-        return client
-            ?? throw new InvalidOperationException($"ClientId {clientId} not found in auth store.");
+        return client;
     }
 
     private AuthStore LoadStore()
