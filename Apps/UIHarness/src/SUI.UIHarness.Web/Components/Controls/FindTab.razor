@@ -91,7 +91,7 @@
     public EventCallback<LocalRecord> CurrentRecordChanged { get; set; }
     
     [Parameter]
-    public EventCallback<string> CurrentWorkItemIdChanged { get; set; }
+    public EventCallback<StartSearchResult> OnSearchStarted { get; set; }
 
     private bool _showFindProgress;
     private int _findProgressPercentage;
@@ -131,9 +131,10 @@
 
         try
         {
-            var workItemId = await FindService.StartSearch(SelectedOrgClientId, CurrentPerson.NhsNumber, usePolling);
-            await CurrentWorkItemIdChanged.InvokeAsync(workItemId);
+            var startSearchResult = await FindService.StartSearch(SelectedOrgClientId, CurrentPerson.NhsNumber, usePolling);
+            await OnSearchStarted.InvokeAsync(startSearchResult);
 
+            var workItemId = startSearchResult.WorkItemId;
             var keepPolling = true;
             var stopwatch = Stopwatch.StartNew();
             while (keepPolling && !HasCurrentNhsNumberChanged())

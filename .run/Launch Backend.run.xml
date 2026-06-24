@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration
     default="false"
-    name="Launch Find and Stub Custodians"
+    name="Launch Backend"
     type="com.intellij.execution.configurations.multilaunch"
     factoryName="MultiLaunchConfiguration"
   >
@@ -14,7 +14,10 @@
         </option>
         <option name="executable">
           <ExecutableSnapshot>
-            <option name="id" value="runConfig:Azure - Run Function App.SUI.Find.FindApi" />
+            <option
+              name="id"
+              value="runConfig:.NET Launch Settings Profile.SUI.AuthEmulator: https"
+            />
           </ExecutableSnapshot>
         </option>
       </ExecutableRowSnapshot>
@@ -33,7 +36,19 @@
       <ExecutableRowSnapshot>
         <option name="condition">
           <ConditionSnapshot>
-            <option name="type" value="immediately" />
+            <option name="type" value="afterPreviousStarted" />
+          </ConditionSnapshot>
+        </option>
+        <option name="executable">
+          <ExecutableSnapshot>
+            <option name="id" value="runConfig:Azure - Run Function App.SUI.Find.FindApi" />
+          </ExecutableSnapshot>
+        </option>
+      </ExecutableRowSnapshot>
+      <ExecutableRowSnapshot>
+        <option name="condition">
+          <ConditionSnapshot>
+            <option name="type" value="afterPreviousStarted" />
           </ConditionSnapshot>
         </option>
         <option name="executable">

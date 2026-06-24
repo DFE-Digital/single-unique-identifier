@@ -7,6 +7,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using SUI.Find.Application.Extensions;
 
 namespace SUI.Find.Infrastructure.Extensions;
 
@@ -44,6 +45,7 @@ public static class HostApplicationBuilderOpenTelemetryExtensions
             {
                 tracing
                     .AddHttpClientInstrumentation(options => options.RecordException = true)
+                    .AddSource(LoggerActivityExtensions.SourceName)
                     .AddSource("Azure.Data.Tables")
                     .AddSource("Azure.Security.KeyVault.Secrets")
                     .AddSource("Azure.Storage.Queues");

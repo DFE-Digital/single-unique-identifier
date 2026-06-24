@@ -34,6 +34,7 @@ public class QueueSearchJobTrigger(
         using var activity = logger.StartActivityWithTraceParent(
             activityName: $"Handling_{nameof(SearchRequestMessage)}",
             searchRequestMessage.TraceParent,
+            ActivityKind.Consumer,
             new Dictionary<string, object?>
             {
                 { "WorkItemId", searchRequestMessage.WorkItemId },
@@ -46,7 +47,7 @@ public class QueueSearchJobTrigger(
         );
 
         logger.LogInformation(
-            "QueueSearchJobTrigger function processed: Work item ID: {WorkItemId} for Requesting Organisation ID: {RequestingOrganisationId}",
+            "Processing SearchRequestMessage with Work item ID {WorkItemId} for Requesting Organisation ID {RequestingOrganisationId}",
             searchRequestMessage.WorkItemId,
             searchRequestMessage.RequestingOrganisationId
         );

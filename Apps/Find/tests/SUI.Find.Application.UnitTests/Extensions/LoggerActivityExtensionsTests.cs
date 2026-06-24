@@ -9,8 +9,26 @@ namespace SUI.Find.Application.UnitTests.Extensions;
 // Ignore "Evaluation of this argument may be expensive and unnecessary if logging is disabled" - these are tests!
 #pragma warning disable CA1873
 
-public class LoggerActivityExtensionsTests
+public sealed class LoggerActivityExtensionsTests : IDisposable
 {
+    private readonly ActivityListener _activityListener;
+
+    public LoggerActivityExtensionsTests()
+    {
+        _activityListener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == LoggerActivityExtensions.SourceName,
+            SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+        };
+        ActivitySource.AddActivityListener(_activityListener); // Ensure our activities are picked up by the .NET Diagnostics. This is what the OpenTelemetry package does when it adds a tracing source.
+    }
+
+    public void Dispose()
+    {
+        _activityListener.Dispose();
+    }
+
     [Fact]
     public void StartActivityWithTraceParent_Does_Setup_Activity_And_LogScope_AsExpected()
     {
@@ -19,7 +37,7 @@ public class LoggerActivityExtensionsTests
         var exampleLogMetadata = new Dictionary<string, object?> { { "test", true } };
 
         var mockLogger = Substitute.For<ILogger<LoggerActivityExtensionsTests>>();
-        mockLogger.IsEnabled(LogLevel.Information).Returns(true);
+        mockLogger.IsEnabled(LogLevel.Debug).Returns(true);
 
         var mockLogScope = Substitute.For<IDisposable>();
         mockLogger.BeginScope(exampleLogMetadata).Returns(mockLogScope);
@@ -32,6 +50,7 @@ public class LoggerActivityExtensionsTests
             var activityScope = mockLogger.StartActivityWithTraceParent(
                 exampleActivityName,
                 exampleTraceParent,
+                ActivityKind.Internal,
                 exampleLogMetadata
             )
         )
@@ -61,7 +80,7 @@ public class LoggerActivityExtensionsTests
             mockLogger
                 .Received()
                 .Log(
-                    LogLevel.Information,
+                    LogLevel.Debug,
                     Arg.Any<EventId>(),
                     Arg.Is<Arg.AnyType>(
                         (object x) =>
@@ -97,6 +116,7 @@ public class LoggerActivityExtensionsTests
         using var activityScope = mockLogger.StartActivityWithTraceParent(
             "TestActivityName",
             inputTraceParent,
+            ActivityKind.Internal,
             new Dictionary<string, object?> { { "test", true } }
         );
 

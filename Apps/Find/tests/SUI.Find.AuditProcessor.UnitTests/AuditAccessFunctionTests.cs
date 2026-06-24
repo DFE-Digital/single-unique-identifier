@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.Find.Application.Interfaces;
@@ -32,10 +33,12 @@ public class AuditAccessFunctionTests
             Timestamp = default,
             CorrelationId = Guid.NewGuid().ToString(),
         };
+        var mockFunctionContext = Substitute.For<FunctionContext>();
 
         // Act
         var sut = new QueueAuditAccessTrigger(loggerMock, auditServiceMock);
-        await sut.QueueAuditAccessFunction(auditEvent, null!, CancellationToken.None);
+
+        await sut.QueueAuditAccessFunction(auditEvent, mockFunctionContext, CancellationToken.None);
 
         // Assert
         await auditServiceMock
