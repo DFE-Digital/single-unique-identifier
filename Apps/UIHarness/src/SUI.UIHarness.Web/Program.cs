@@ -53,7 +53,7 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 
 app.MapGet(
-    "/health",
+    "/api/health",
     ([FromServices] IHostEnvironment env, [FromServices] ILogger<Program> logger) =>
     {
         logger.LogInformation("Health check was called");
@@ -73,7 +73,7 @@ app.MapGet(
 );
 
 app.MapPost(
-        "/auth/login",
+        "/api/auth/login",
         async (
             [FromForm] string custodianName,
             [FromForm] string password,
@@ -124,7 +124,7 @@ app.MapPost(
     .DisableAntiforgery();
 
 app.MapPost(
-        "/auth/logout",
+        "/api/auth/logout",
         async (HttpContext httpContext) =>
         {
             await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
