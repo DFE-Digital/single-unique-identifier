@@ -1,3 +1,8 @@
+output "service_state_key" {
+  value       = local.service_state_key
+  description = "State key for the UI Test Harness Service"
+}
+
 output "web_app_name" {
   value       = module.web_app.name
   description = "Name of the UI Test Harness web app."

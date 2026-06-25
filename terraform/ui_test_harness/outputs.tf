@@ -1,19 +1,19 @@
 output "service_state_key" {
-  value       = format("%s/ui_test_harness.tfstate", var.environment_id)
+  value       = one(module.app[*].service_state_key)
   description = "State key for the UI Test Harness Service"
 }
 
 output "web_app_name" {
-  value       = try(module.app[0].web_app_name, null)
+  value       = one(module.app[*].web_app_name)
   description = "Name of the UI Test Harness web app."
 }
 
 output "web_app_id" {
-  value       = try(module.app[0].web_app_id, null)
+  value       = one(module.app[*].web_app_id)
   description = "ID of the UI Test Harness web app."
 }
 
 output "web_app_default_hostname" {
-  value       = try(module.app[0].web_app_default_hostname, null)
+  value       = one(module.app[*].web_app_default_hostname)
   description = "Default hostname of the UI Test Harness web app."
 }

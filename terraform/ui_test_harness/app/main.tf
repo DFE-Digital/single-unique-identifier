@@ -197,3 +197,50 @@ resource "azurerm_key_vault_access_policy" "find_kv" {
 
   secret_permissions = ["Get"]
 }
+
+# Moving top-level resources down into the conditional 'app' sub-module to prevent destroy/recreate during refactoring.
+
+moved {
+  from = module.key_vault
+  to   = module.app[0].module.key_vault
+}
+
+moved {
+  from = module.rbac_assignments_terraform_operator
+  to   = module.app[0].module.rbac_assignments_terraform_operator
+}
+
+moved {
+  from = azurerm_key_vault_access_policy.terraform_operator
+  to   = module.app[0].azurerm_key_vault_access_policy.terraform_operator
+}
+
+moved {
+  from = azurerm_key_vault_secret.ui_harness_password
+  to   = module.app[0].azurerm_key_vault_secret.ui_harness_password
+}
+
+moved {
+  from = module.web_app
+  to   = module.app[0].module.web_app
+}
+
+moved {
+  from = module.rbac_assignments_ui_harness_app
+  to   = module.app[0].module.rbac_assignments_ui_harness_app
+}
+
+moved {
+  from = azurerm_key_vault_access_policy.ui_harness_app
+  to   = module.app[0].azurerm_key_vault_access_policy.ui_harness_app
+}
+
+moved {
+  from = module.rbac_assignments_find_kv
+  to   = module.app[0].module.rbac_assignments_find_kv
+}
+
+moved {
+  from = azurerm_key_vault_access_policy.find_kv
+  to   = module.app[0].azurerm_key_vault_access_policy.find_kv
+}
