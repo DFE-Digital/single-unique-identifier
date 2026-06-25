@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SUI.StubCustodians.Application.Extensions;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Models;
 
@@ -76,6 +78,18 @@ public class CustodianWorker : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            using var activity = _logger.StartActivityWithTraceParent(
+                $"Stub Custodian Update: {_authClient.OrganisationId}",
+                null,
+                ActivityKind.Producer,
+                new Dictionary<string, object?>
+                {
+                    { "OrganisationId", _authClient.OrganisationId },
+                    { "ClientId", _authClient.ClientId },
+                    { "FindApiBaseUrl", _findApiClient.BaseAddress },
+                }
+            );
+
             bool sleep;
 
             try

@@ -16,6 +16,8 @@ public class FindApiClient : IFindApiClient
         _http = http;
     }
 
+    public string? BaseAddress => _http.BaseAddress?.ToString();
+
     public async Task<JobInfo?> ClaimAsync(string token)
     {
         using var req = new HttpRequestMessage(HttpMethod.Post, "/v2/work/claim");
