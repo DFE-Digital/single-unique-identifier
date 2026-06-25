@@ -101,13 +101,13 @@ variable "AuthClientSecretsJsonMap" {
 }
 
 variable "FindApiGatewayBaseUrl" {
-  description = "URL endpoint to use when routing to Find through a gateway"
+  description = "Optional URL endpoint to use when routing to Find through a gateway"
   type = string
   default = null
 }
 
 variable "FindApiGatewayAuthScope" {
-  description = "Scopes needed for use with a gateway"
+  description = "Optional Auth Scopes needed for use with a gateway"
   type = string
   default = null
 }
