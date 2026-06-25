@@ -105,9 +105,3 @@ variable "AuthClientSecretsJsonMap" {
   default     = null
   sensitive   = true
 }
-
-variable "use_ui_test_harness" {
-  description = "Set to true to deploy the UI Test Harness web app infrastructure."
-  type        = bool
-  default     = false
-}
