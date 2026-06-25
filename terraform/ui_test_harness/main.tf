@@ -1,199 +1,74 @@
-locals {
-  state_rg        = format("%s%srg-%s-tfstate", var.subscription_prefix, var.environment_id, var.region_short)
-  state_storage   = format("%s%ssttfstate01", var.subscription_prefix, var.environment_id)
-  state_container = "tfstate"
+module "app" {
+  source = "./app"
 
-  core_state_key    = format("%s/terraform.tfstate", var.environment_id)
-  find_state_key    = format("%s/find.tfstate", var.environment_id)
-  service_state_key = format("%s/ui_test_harness.tfstate", var.environment_id)
+  # The Toggle Switch
+  count  = var.use_ui_test_harness ? 1 : 0
 
-  web_app_descriptor   = "uiharness01"
-  web_app_name = format("%s%sapp-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.web_app_descriptor)
-  
-  key_vault_descriptor = "uihrnskv01" // gitleaks:allow
-  key_vault_name       = format("%s%skv-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.key_vault_descriptor)
-
-  otel_resource_attributes = join(",", [
-    "deployment.environment=${var.environment_tag}",
-    "service.namespace=${var.product}",
-    "cloud.region=${var.location}",
-  ])
+  # Passing all variables down
+  subscription_prefix           = var.subscription_prefix
+  environment_id                = var.environment_id
+  environment_tag               = var.environment_tag
+  region_short                  = var.region_short
+  descriptor                    = var.descriptor
+  location                      = var.location
+  product                       = var.product
+  service_offering              = var.service_offering
+  tags                          = var.tags
+  key_vault_use_rbac            = var.key_vault_use_rbac
+  ui_harness_app_settings       = var.ui_harness_app_settings
+  webapp_dotnet_version         = var.webapp_dotnet_version
+  app_service_plan_sku          = var.app_service_plan_sku
+  app_service_plan_os_type      = var.app_service_plan_os_type
+  app_service_plan_worker_count = var.app_service_plan_worker_count
+  ui_test_harness_password      = var.ui_test_harness_password
+  AuthSettings_AccessTokenUrl   = var.AuthSettings_AccessTokenUrl
+  AuthClientIdsJsonMap          = var.AuthClientIdsJsonMap
+  AuthClientSecretsJsonMap      = var.AuthClientSecretsJsonMap
 }
 
-data "azurerm_client_config" "current" {}
+# Moving top-level resources down into the conditional 'app' sub-module to prevent destroy/recreate during refactoring.
 
-data "terraform_remote_state" "core" {
-  backend = "azurerm"
-  config = {
-    resource_group_name  = local.state_rg
-    storage_account_name = local.state_storage
-    container_name       = local.state_container
-    key                  = local.core_state_key
-  }
+moved {
+  from = module.key_vault
+  to   = module.app[0].module.key_vault
 }
 
-data "terraform_remote_state" "find" {
-  backend = "azurerm"
-  config = {
-    resource_group_name  = local.state_rg
-    storage_account_name = local.state_storage
-    container_name       = local.state_container
-    key                  = local.find_state_key
-  }
+moved {
+  from = module.rbac_assignments_terraform_operator
+  to   = module.app[0].module.rbac_assignments_terraform_operator
 }
 
-# 1. UI Harness Key Vault
-module "key_vault" {
-  source = "../modules/key_vault"
-
-  name                = local.key_vault_name
-  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
-  location            = data.terraform_remote_state.core.outputs.resource_group_location
-
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  rbac_authorization_enabled = var.key_vault_use_rbac
-
-  environment_tag  = var.environment_tag
-  product          = var.product
-  service_offering = var.service_offering
-  tags             = var.tags
+moved {
+  from = azurerm_key_vault_access_policy.terraform_operator
+  to   = module.app[0].azurerm_key_vault_access_policy.terraform_operator
 }
 
-# Give Terraform Operator access to create the secret
-module "rbac_assignments_terraform_operator" {
-  source = "../modules/rbac_assignments"
-  scope  = module.key_vault.id
-
-  assignments = var.key_vault_use_rbac ? {
-    terraform_operator_secrets = {
-      principal_id = data.azurerm_client_config.current.object_id
-      role_name    = "Key Vault Secrets Officer"
-    }
-  } : {}
+moved {
+  from = azurerm_key_vault_secret.ui_harness_password
+  to   = module.app[0].azurerm_key_vault_secret.ui_harness_password
 }
 
-resource "azurerm_key_vault_access_policy" "terraform_operator" {
-  count = var.key_vault_use_rbac ? 0 : 1
-
-  key_vault_id = module.key_vault.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  secret_permissions = ["Get", "Set", "Delete", "List"]
+moved {
+  from = module.web_app
+  to   = module.app[0].module.web_app
 }
 
-# 2. UI Harness Password Secret
-resource "azurerm_key_vault_secret" "ui_harness_password" {
-  name         = "UI-TEST-HARNESS-PASSWORD"
-  value        = var.ui_test_harness_password
-  key_vault_id = module.key_vault.id
-  content_type = "text/plain"
-
-  depends_on = [
-    module.rbac_assignments_terraform_operator,
-    azurerm_key_vault_access_policy.terraform_operator
-  ]
+moved {
+  from = module.rbac_assignments_ui_harness_app
+  to   = module.app[0].module.rbac_assignments_ui_harness_app
 }
 
-# 3. Look up the Find Secret using the ID from the Find remote state
-data "azurerm_key_vault_secret" "find_match_api_key" {
-  name         = "find-match-api-key"
-  key_vault_id = data.terraform_remote_state.find.outputs.key_vault_id
+moved {
+  from = azurerm_key_vault_access_policy.ui_harness_app
+  to   = module.app[0].azurerm_key_vault_access_policy.ui_harness_app
 }
 
-# 4. Web App
-module "web_app" {
-  source = "../modules/linux_web_app"
-
-  name                = local.web_app_name
-  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
-  location            = data.terraform_remote_state.core.outputs.resource_group_location
-  
-  # UPDATED: Use auxiliary plan if it exists, otherwise fall back to the shared plan
-  service_plan_id     = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id : data.terraform_remote_state.core.outputs.app_service_plan_id
-
-  environment_tag  = var.environment_tag
-  product          = var.product
-  service_offering = var.service_offering
-
-  dotnet_version = var.webapp_dotnet_version
-
-  application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string
-
-  app_settings = merge(
-    {
-      OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
-
-      BaseUrl = coalesce(var.FindApiGatewayBaseUrl, format("https://%s%sfunc-%s-find01.azurewebsites.net/api/", var.subscription_prefix, var.environment_id, var.region_short))
-
-      AuthSettings__AccessTokenUrl = var.AuthSettings_AccessTokenUrl
-
-      # Key Vault References mapped to App Settings
-      UI_TEST_HARNESS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.ui_harness_password.name}/)"
-      MATCH_API_KEY            = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.find_match_api_key.versionless_id})"
-    },
-    var.ui_harness_app_settings,
-
-    # AuthClientCredentials:
-    {
-      # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
-      AuthClientIdsJsonMap = sensitive(var.AuthClientIdsJsonMap),
-      AuthClientSecretsJsonMap = sensitive(var.AuthClientSecretsJsonMap),
-    },
-    {
-      for clientId, newClientId in jsondecode(nonsensitive(coalesce(var.AuthClientIdsJsonMap, "{}"))) :
-        "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
-    },
-    {
-      for clientId, newClientSecret in jsondecode(nonsensitive(coalesce(var.AuthClientSecretsJsonMap, "{}"))) :
-        "AuthClientCredentials__${clientId}__NewClientSecret" => sensitive(newClientSecret)
-    },
-  )
-  tags = var.tags
+moved {
+  from = module.rbac_assignments_find_kv
+  to   = module.app[0].module.rbac_assignments_find_kv
 }
 
-# 5. Grant Web App access to its own Key Vault
-module "rbac_assignments_ui_harness_app" {
-  source = "../modules/rbac_assignments"
-  scope  = module.key_vault.id
-
-  assignments = var.key_vault_use_rbac ? {
-    function_app_secrets = {
-      principal_id = module.web_app.principal_id
-      role_name    = "Key Vault Secrets User"
-    }
-  } : {}
-}
-
-resource "azurerm_key_vault_access_policy" "ui_harness_app" {
-  count = var.key_vault_use_rbac ? 0 : 1
-
-  key_vault_id = module.key_vault.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = module.web_app.principal_id
-
-  secret_permissions = ["Get", "List"]
-}
-
-# 6. Grant Web App access to the Find Key Vault
-module "rbac_assignments_find_kv" {
-  source = "../modules/rbac_assignments"
-  scope  = data.terraform_remote_state.find.outputs.key_vault_id
-
-  assignments = var.key_vault_use_rbac ? {
-    function_app_secrets = {
-      principal_id = module.web_app.principal_id
-      role_name    = "Key Vault Secrets User"
-    }
-  } : {}
-}
-
-resource "azurerm_key_vault_access_policy" "find_kv" {
-  count = var.key_vault_use_rbac ? 0 : 1
-
-  key_vault_id = data.terraform_remote_state.find.outputs.key_vault_id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = module.web_app.principal_id
-
-  secret_permissions = ["Get"]
+moved {
+  from = azurerm_key_vault_access_policy.find_kv
+  to   = module.app[0].azurerm_key_vault_access_policy.find_kv
 }

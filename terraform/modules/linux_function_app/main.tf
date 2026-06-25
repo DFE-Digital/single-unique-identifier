@@ -4,7 +4,7 @@ locals {
       FUNCTIONS_WORKER_RUNTIME    = "dotnet-isolated"
       WEBSITE_RUN_FROM_PACKAGE    = "1"
     },
-    var.environment_tag == null ? {} : { ASPNETCORE_ENVIRONMENT = var.environment_tag },
+    var.environment_tag == null ? {} : { AZURE_FUNCTIONS_ENVIRONMENT = var.environment_tag },
   )
 
   base_tags = merge(
