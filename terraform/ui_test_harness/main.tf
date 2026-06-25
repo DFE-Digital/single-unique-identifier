@@ -24,6 +24,7 @@ module "app" {
   AuthSettings_AccessTokenUrl   = var.AuthSettings_AccessTokenUrl
   AuthClientIdsJsonMap          = var.AuthClientIdsJsonMap
   AuthClientSecretsJsonMap      = var.AuthClientSecretsJsonMap
+  FindApiGatewayBaseUrl         = var.FindApiGatewayBaseUrl
 }
 
 # Moving top-level resources down into the conditional 'app' sub-module to prevent destroy/recreate during refactoring.
