@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SUI.UIHarness.Web;
 using SUI.UIHarness.Web.Components;
+using SUI.UIHarness.Web.Extensions;
 using SUI.UIHarness.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +24,7 @@ builder
 builder.Services.AddAuthorization();
 
 var baseUrl =
-    builder.Configuration["BaseUrl"]
+    builder.Configuration["BaseUrl"]?.EnsureTrailingSlash()
     ?? throw new InvalidOperationException("BaseUrl configuration is missing");
 
 builder.Services.AddHttpClient(
