@@ -4,6 +4,7 @@ locals {
       WEBSITE_RUN_FROM_PACKAGE = "1"
       APPLICATIONINSIGHTS_CONNECTION_STRING = sensitive(var.application_insights_connection_string)
     },
+    var.application_insights_connection_string == null ? {} : { ApplicationInsightsAgent_EXTENSION_VERSION = "~3" },
     var.environment_tag == null ? {} : { ASPNETCORE_ENVIRONMENT = var.environment_tag },
   )
 
