@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using SUI.StubCustodians.API.OpenApi;
+using SUI.StubCustodians.Application.Extensions;
 using SUI.StubCustodians.Application.Interfaces;
 using SUI.StubCustodians.Application.Services;
 using SUI.StubCustodians.Application.Utilities;
@@ -100,18 +101,15 @@ namespace SUI.StubCustodians.API
             services.AddHttpContextAccessor();
             services.AddSingleton<IBaseUrlProvider, HttpContextBaseUrlProvider>();
 
-            var baseUrl =
-                configuration["FindApi:BaseUrl"]
-                ?? throw new InvalidOperationException("FindApi:BaseUrl configuration is missing");
+            services.AddHttpClient<ITokenProvider, TokenProvider>();
 
-            services.AddHttpClient<ITokenProvider, TokenProvider>(c =>
-            {
-                c.BaseAddress = new Uri(baseUrl);
-            });
+            var findApiBaseUrl =
+                configuration["FindApi:BaseUrl"]?.EnsureTrailingSlash()
+                ?? throw new InvalidOperationException("FindApi:BaseUrl configuration is missing");
 
             services.AddHttpClient<IFindApiClient, FindApiClient>(c =>
             {
-                c.BaseAddress = new Uri(baseUrl);
+                c.BaseAddress = new Uri(findApiBaseUrl);
             });
 
             var sp = services.BuildServiceProvider();
