@@ -107,7 +107,7 @@ variable "FindApiGatewayBaseUrl" {
 }
 
 variable "FindApiGatewayAuthScope" {
-  description = "Optional Auth Scopes needed for use with a gateway"
+  description = "Optional Auth Scopes needed to use Find through a gateway"
   type = string
   default = null
 }
