@@ -23,7 +23,7 @@ public class FindApiClientTests
 
         var handler = new FakeHandler(req =>
         {
-            Assert.Equal("/api/v2/work/claim", req.RequestUri!.AbsolutePath);
+            Assert.Equal("/base/v2/work/claim", req.RequestUri!.AbsolutePath);
             Assert.Equal("Bearer", req.Headers.Authorization!.Scheme);
             Assert.Equal("token", req.Headers.Authorization.Parameter);
 
@@ -37,7 +37,7 @@ public class FindApiClientTests
             };
         });
 
-        var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
+        var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test/base/") };
 
         var api = new FindApiClient(client);
 
@@ -82,14 +82,14 @@ public class FindApiClientTests
     {
         var handler = new FakeHandler(req =>
         {
-            Assert.Equal("/api/v2/work/result", req.RequestUri!.AbsolutePath);
+            Assert.Equal("/base/v2/work/result", req.RequestUri!.AbsolutePath);
             Assert.Equal("Bearer", req.Headers.Authorization!.Scheme);
             Assert.Equal("token", req.Headers.Authorization.Parameter);
 
             return new HttpResponseMessage(HttpStatusCode.OK);
         });
 
-        var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test") };
+        var client = new HttpClient(handler) { BaseAddress = new Uri("https://find.test/base/") };
 
         var api = new FindApiClient(client);
 

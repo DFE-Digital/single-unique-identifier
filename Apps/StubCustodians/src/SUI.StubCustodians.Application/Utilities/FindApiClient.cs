@@ -16,9 +16,11 @@ public class FindApiClient : IFindApiClient
         _http = http;
     }
 
+    public string? BaseAddress => _http.BaseAddress?.ToString();
+
     public async Task<JobInfo?> ClaimAsync(string token)
     {
-        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v2/work/claim");
+        using var req = new HttpRequestMessage(HttpMethod.Post, "v2/work/claim");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         using var res = await _http.SendAsync(req);
@@ -40,7 +42,7 @@ public class FindApiClient : IFindApiClient
         RenewJobLeaseRequest request
     )
     {
-        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v2/work/lease/renew");
+        using var req = new HttpRequestMessage(HttpMethod.Post, "v2/work/lease/renew");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var content = JsonContent.Create(request);
         await content.LoadIntoBufferAsync(); // Local only concern, stops the HTTP client using chunked transfer encoding, which is not supported by the receiving end (Azure Functions Core Tools local dev host)
@@ -62,7 +64,7 @@ public class FindApiClient : IFindApiClient
 
     public async Task SubmitAsync(string token, SubmitJobResultsRequest request)
     {
-        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v2/work/result");
+        using var req = new HttpRequestMessage(HttpMethod.Post, "v2/work/result");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         using var content = JsonContent.Create(request);

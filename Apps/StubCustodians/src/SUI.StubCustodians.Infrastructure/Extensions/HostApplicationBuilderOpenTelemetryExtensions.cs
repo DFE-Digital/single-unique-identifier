@@ -6,6 +6,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using SUI.StubCustodians.Application.Extensions;
 
 namespace SUI.StubCustodians.Infrastructure.Extensions;
 
@@ -43,7 +44,8 @@ public static class HostApplicationBuilderOpenTelemetryExtensions
             {
                 tracing
                     .AddAspNetCoreInstrumentation(options => options.RecordException = true)
-                    .AddHttpClientInstrumentation(options => options.RecordException = true);
+                    .AddHttpClientInstrumentation(options => options.RecordException = true)
+                    .AddSource(LoggerActivityExtensions.SourceName);
             })
             .WithMetrics(metrics =>
                 metrics

@@ -111,3 +111,9 @@ variable "use_ui_test_harness" {
   type        = bool
   default     = false
 }
+
+variable "FindApiGatewayBaseUrl" {
+  description = "Optional URL endpoint to use when routing to Find through a gateway"
+  type = string
+  default = null
+}
