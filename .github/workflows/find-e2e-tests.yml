@@ -125,7 +125,7 @@ jobs:
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
     env:
-      APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.EPHEMERAL_E2E_APP_CONNECTION_STRING }}
+      APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.EPHEMERAL_E2E_APP_INSIGHTS_CONNECTION_STRING }}
       OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=ephemeral,service.namespace=MAIS Pilot 3,cloud.region=na"
       AuthClientCredentials__CLIENT_ID_LOCAL_AUTHORITY_01__NewClientId: TestExampleClientId-01
       AuthClientCredentials__CLIENT_ID_LOCAL_AUTHORITY_01__NewClientSecret: TestExampleSecret
