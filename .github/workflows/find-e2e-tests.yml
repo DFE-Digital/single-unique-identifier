@@ -20,6 +20,7 @@ permissions:
   contents: read
   actions: read
   checks: write
+  id-token: write
 
 on:
   workflow_dispatch:
@@ -124,7 +125,11 @@ jobs:
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
+    environment:
+      name: ${{ inputs.environment || 'd01' }}
+      deployment: false
     env:
+      TARGET_ENVIRONMENT: ${{ inputs.environment || 'd01' }}
       AuthClientCredentials__CLIENT_ID_LOCAL_AUTHORITY_01__NewClientId: TestExampleClientId-01
       AuthClientCredentials__CLIENT_ID_LOCAL_AUTHORITY_01__NewClientSecret: TestExampleSecret
       # Point OpenSSL to the .NET dev certs trust directory
@@ -132,6 +137,36 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+          
+      # Grab the storage account details dynamically
+      - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
+        id: env_config
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ env.TARGET_ENVIRONMENT }}
+          
+      # Authenticate to Azure using OIDC
+      - name: Azure login with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          
+      # Download the state file
+      - name: Fetch App Insights & Configure OTEL
+        run: |
+          az storage blob download \
+            --account-name ${{ steps.env_config.outputs.state_storage }} \
+            --container-name ${{ steps.env_config.outputs.state_container }} \
+            --name "${{ steps.env_config.outputs.state_key }}" \
+            --file core.tfstate \
+            --auth-mode login >/dev/null 2>&1
+          
+          APP_INSIGHTS_CS=$(jq -r '.outputs.app_insights_connection_string.value' core.tfstate)
+          
+          echo "APPLICATIONINSIGHTS_CONNECTION_STRING=$APP_INSIGHTS_CS" >> $GITHUB_ENV
+          echo "OTEL_RESOURCE_ATTRIBUTES=deployment.environment=ephemeral,service.namespace=MAIS Pilot 3,cloud.region=na" >> $GITHUB_ENV
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
