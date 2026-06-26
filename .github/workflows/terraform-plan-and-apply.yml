@@ -48,6 +48,7 @@ on:
         required: false
       AUTH_CLIENT_SECRETS_JSON_MAP:
         required: false
+      # Ability for Find API to be accessed via a gateway:
       FIND_API_GATEWAY_BASE_URL:
         required: false  
       FIND_API_GATEWAY_AUTH_SCOPE:
@@ -80,6 +81,7 @@ jobs:
       TF_VAR_AuthSettings_AccessTokenUrl: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
       TF_VAR_AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
       TF_VAR_AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
+      # Ability for Find API to be accessed via a gateway:
       TF_VAR_FindApiGatewayBaseUrl: ${{ secrets.FIND_API_GATEWAY_BASE_URL }}
       TF_VAR_FindApiGatewayAuthScope: ${{ secrets.FIND_API_GATEWAY_AUTH_SCOPE }}
 
