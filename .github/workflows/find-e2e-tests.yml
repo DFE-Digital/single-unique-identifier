@@ -20,7 +20,6 @@ permissions:
   contents: read
   actions: read
   checks: write
-  id-token: write
 
 on:
   workflow_dispatch:
@@ -125,11 +124,7 @@ jobs:
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     if: needs.eval-workflow-setup.outputs.run_ephemeral == 'true'
-    environment:
-      name: ${{ inputs.environment || 'd01' }}
-      deployment: false
     env:
-      TARGET_ENVIRONMENT: ${{ inputs.environment || 'd01' }}
       AuthClientCredentials__CLIENT_ID_LOCAL_AUTHORITY_01__NewClientId: TestExampleClientId-01
       AuthClientCredentials__CLIENT_ID_LOCAL_AUTHORITY_01__NewClientSecret: TestExampleSecret
       # Point OpenSSL to the .NET dev certs trust directory
@@ -137,36 +132,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      
-      # Grab the storage account details dynamically
-      - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
-        id: env_config
-        uses: ./.github/actions/load-tfvars
-        with:
-          environment: ${{ env.TARGET_ENVIRONMENT }}
-      
-      # Authenticate to Azure using OIDC
-      - name: Azure login with OIDC
-        uses: azure/login@v3
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      
-      # Download the state file
-      - name: Fetch App Insights & Configure OTEL
-        run: |
-          az storage blob download \
-            --account-name ${{ steps.env_config.outputs.state_storage }} \
-            --container-name ${{ steps.env_config.outputs.state_container }} \
-            --name "${{ steps.env_config.outputs.state_key }}" \
-            --file core.tfstate \
-            --auth-mode login >/dev/null 2>&1
-          
-          APP_INSIGHTS_CS=$(jq -r '.outputs.app_insights_connection_string.value' core.tfstate)
-          
-          echo "APPLICATIONINSIGHTS_CONNECTION_STRING=$APP_INSIGHTS_CS" >> $GITHUB_ENV
-          echo "OTEL_RESOURCE_ATTRIBUTES=deployment.environment=ephemeral,service.namespace=MAIS Pilot 3,cloud.region=na" >> $GITHUB_ENV
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -262,6 +227,7 @@ jobs:
       deployment: false
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment || 'd01' }}
+      FIND_API_GATEWAY_BASE_URL: ${{ secrets.FIND_API_GATEWAY_BASE_URL || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -278,6 +244,7 @@ jobs:
           global-json-file: global.json
 
       - name: Run E2E Tests (against dev environment)
+        if: ${{ (env.FIND_API_GATEWAY_BASE_URL || '') == '' }}
         env:
           E2E__AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
           E2E__AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
@@ -294,6 +261,27 @@ jobs:
             -e E2E__SkipResetAzureTables=True \
             -e E2E__CheckStubCustodiansApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Custodians" Solution') && github.event.workflow_run.run_started_at || '' }} \
             -e E2E__CheckAuthEmulatorApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Auth Emulator" Solution') && github.event.workflow_run.run_started_at || '' }} \
+            -e E2E__CheckFindApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Find" Solution') && github.event.workflow_run.run_started_at || '' }} # We pass the run_started_at value(s) so that we ensure the relevant API has restarted with the latest version. Note that this will pass an empty value if this pipeline was not trigerred by a workflow_run for that specific API, but that is fine and desired in that case (because we only need the check when this pipeline is immediately trigerred by the workflow_run after deployment of that specific API)
+
+      - name: Run E2E Tests (against dev environment via gateway)
+        if: ${{ (env.FIND_API_GATEWAY_BASE_URL || '') != '' }}
+        env:
+          E2E__AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
+          E2E__AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
+        run: |
+          dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
+            --filter "Category=E2E&Suite=Standard" \
+            --logger "console;verbosity=detailed" \
+            --logger "trx;LogFileName=e2e-dev.trx" \
+            --results-directory TestResults \
+            -e E2E__BaseUrl=${{ env.FIND_API_GATEWAY_BASE_URL }} \
+            -e E2E__StubCustodiansBaseUrl=https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}app-${{ steps.env_config.outputs.region_short }}-custodians01.azurewebsites.net/api/ \
+            -e E2E__AccessTokenUrl=${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }} \
+            -e E2E__AuthEmulatorHealthCheckEndpoint="" \
+            -e E2E__SkipResetAzureTables=True \
+            -e E2E__AuthScope=${{ secrets.FIND_API_GATEWAY_AUTH_SCOPE }} \
+            -e E2E__CheckStubCustodiansApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Custodians" Solution') && github.event.workflow_run.run_started_at || '' }} \
+            -e E2E__CheckAuthEmulatorApiBuildTimestampThreshold="" \
             -e E2E__CheckFindApiBuildTimestampThreshold=${{ contains(github.event.workflow_run.name, 'Build, Test, Deploy: "Find" Solution') && github.event.workflow_run.run_started_at || '' }} # We pass the run_started_at value(s) so that we ensure the relevant API has restarted with the latest version. Note that this will pass an empty value if this pipeline was not trigerred by a workflow_run for that specific API, but that is fine and desired in that case (because we only need the check when this pipeline is immediately trigerred by the workflow_run after deployment of that specific API)
 
       - name: Publish E2E test summary (dev)
