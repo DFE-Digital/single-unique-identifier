@@ -235,13 +235,11 @@ public abstract class SearchTestsBase(
             $"Search started: traceId={traceId}, invocationId={invocationId}, {topLevelTaskName}={searchId}"
         );
 
-        if (Fixture.Config.IsLocal)
-        {
-            var observabilityLink =
-                $"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}";
-            TestOutputHelper.WriteLine($"Trace observability: {observabilityLink}");
-        }
-        else
+        var isUsingAppInsights = !string.IsNullOrWhiteSpace(
+            Fixture.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]
+        );
+
+        if (isUsingAppInsights)
         {
             var query = $"""
                 // App Insights Trace Query below:
@@ -251,6 +249,12 @@ public abstract class SearchTestsBase(
                 | extend message = coalesce(message, innermostMessage)
                 """;
             TestOutputHelper.WriteLine(query);
+        }
+        else
+        {
+            var observabilityLink =
+                $"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}";
+            TestOutputHelper.WriteLine($"Trace observability: {observabilityLink}");
         }
 
         TestOutputHelper.WriteLine("");
