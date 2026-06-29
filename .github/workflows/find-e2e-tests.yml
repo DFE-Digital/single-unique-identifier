@@ -190,7 +190,7 @@ jobs:
         working-directory: Apps/AuthEmulator/src/SUI.AuthEmulator
 
       - name: Start Find API
-        run: func start --port 7182 &
+        run: dotnet run --no-build &
         working-directory: Apps/Find/src/SUI.Find.FindApi
 
       - name: Run E2E Tests (against ephemeral environment)
