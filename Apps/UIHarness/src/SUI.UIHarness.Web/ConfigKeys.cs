@@ -6,7 +6,7 @@ public static class ConfigKeys
     /// Configuration key for the Base URL of the Find API.
     /// Required.
     /// </summary>
-    public const string FindApiBaseUrl = "FindApi:BaseUrl";
+    public const string FindApiBaseUrl = "BaseUrl";
 
     /// <summary>
     /// Configuration key for the Auth Scope to use when calling the Find API via a Gateway.
