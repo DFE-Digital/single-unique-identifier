@@ -124,9 +124,10 @@ module "web_app" {
     {
       OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
 
-      BaseUrl = coalesce(var.FindApiGatewayBaseUrl, format("https://%s%sfunc-%s-find01.azurewebsites.net/api/", var.subscription_prefix, var.environment_id, var.region_short))
+      FindApi__BaseUrl = coalesce(var.FindApiGatewayBaseUrl, format("https://%s%sfunc-%s-find01.azurewebsites.net/api/", var.subscription_prefix, var.environment_id, var.region_short))
 
       AuthSettings__AccessTokenUrl = var.AuthSettings_AccessTokenUrl
+      AuthSettings__FindApiGatewayAuthScope = var.FindApiGatewayAuthScope
 
       # Key Vault References mapped to App Settings
       UI_TEST_HARNESS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.ui_harness_password.name}/)"
