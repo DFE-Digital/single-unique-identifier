@@ -181,13 +181,13 @@ jobs:
           cp Apps/Find/src/SUI.Find.FindApi/example.local.settings.json \
              Apps/Find/src/SUI.Find.FindApi/local.settings.json
 
-      - name: Start StubCustodians API
-        run: dotnet run --no-build --launch-profile https &
-        working-directory: Apps/StubCustodians/src/SUI.StubCustodians.API
-
       - name: Start AuthEmulator API
         run: dotnet run --no-build --launch-profile https &
         working-directory: Apps/AuthEmulator/src/SUI.AuthEmulator
+        
+      - name: Start StubCustodians API
+        run: dotnet run --no-build --launch-profile https &
+        working-directory: Apps/StubCustodians/src/SUI.StubCustodians.API
 
       - name: Start Find API
         run: func start --port 7182 &
