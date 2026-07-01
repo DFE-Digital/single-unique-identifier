@@ -14,15 +14,7 @@ public class FindService : IFindService
     private readonly ILogger<FindService> _logger;
     private readonly string _matchApiKey;
     private readonly string _inboundAccessTokenUrl;
-
-    private static readonly string[] Scopes =
-    [
-        "match-record.read",
-        "find-record.write",
-        "find-record.read",
-        "fetch-record.write",
-        "fetch-record.read",
-    ];
+    private readonly string? _gatewayAuthScope;
 
     private const string ErrorPersonId = "Error";
     private const string NotFoundPersonId = "Not Found";
@@ -36,17 +28,21 @@ public class FindService : IFindService
     {
         _httpClient = httpClientFactory.CreateClient(nameof(FindService));
         _authClientProvider = authClientProvider;
-        _matchApiKey = configuration.GetValue<string>("MATCH_API_KEY") ?? "local-dev-key-change-me";
+        _matchApiKey =
+            configuration.GetValue<string>(ConfigKeys.MatchApiKey) ?? "local-dev-key-change-me";
         _inboundAccessTokenUrl =
-            configuration.GetValue<string>("AuthSettings:AccessTokenUrl")
-            ?? "https://localhost:7250/api/v1/auth/token";
+            configuration.GetValue<string>(ConfigKeys.AccessTokenUrl)
+            ?? throw new InvalidOperationException(
+                $"{ConfigKeys.AccessTokenUrl} configuration is missing"
+            );
+        _gatewayAuthScope = configuration.GetValue<string>(ConfigKeys.FindApiGatewayAuthScope);
         _logger = logger;
     }
 
     public async Task<FindMatchResult> MatchRecord(LocalPerson person, string clientId)
     {
         string personId;
-        await GetAuthTokenAsync(clientId, Scopes);
+        await GetAuthTokenAsync(clientId);
         var matchRequest = new FindMatchRequest
         {
             Metadata = [],
@@ -105,7 +101,7 @@ public class FindService : IFindService
 
     public async Task<StartSearchResult> StartSearch(string clientId, string suid, bool usePolling)
     {
-        await GetAuthTokenAsync(clientId, Scopes);
+        await GetAuthTokenAsync(clientId);
 
         try
         {
@@ -155,7 +151,7 @@ public class FindService : IFindService
         bool usePolling
     )
     {
-        await GetAuthTokenAsync(clientId, Scopes);
+        await GetAuthTokenAsync(clientId);
 
         try
         {
@@ -205,7 +201,7 @@ public class FindService : IFindService
 
     public async Task<FindCustodianRecord?> FetchRecord(string clientId, string recordId)
     {
-        await GetAuthTokenAsync(clientId, Scopes);
+        await GetAuthTokenAsync(clientId);
 
         try
         {
@@ -227,12 +223,12 @@ public class FindService : IFindService
         return null;
     }
 
-    private async Task GetAuthTokenAsync(string clientId, string[] scopes)
+    private async Task GetAuthTokenAsync(string clientId)
     {
-        var formData = new Dictionary<string, string>
+        var formData = new Dictionary<string, string?>
         {
             { "grant_type", "client_credentials" },
-            { "scope", string.Join(" ", scopes) },
+            { "scope", _gatewayAuthScope },
         };
 
         var content = new FormUrlEncodedContent(formData);
