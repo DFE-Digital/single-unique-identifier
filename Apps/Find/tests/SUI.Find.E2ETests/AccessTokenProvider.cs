@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Polly;
@@ -53,11 +54,31 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
         var retryPolicy = Policy
             .Handle<Exception>(ex =>
             {
+                bool retry;
+                if (ex is HttpRequestException httpEx)
+                {
+                    testOutputHelper.WriteLine(
+                        $"Warning: exception while attempting to get auth token: {nameof(HttpRequestException)}:{httpEx.StatusCode} - {httpEx.Message}"
+                    );
+
+                    retry = httpEx.StatusCode switch
+                    {
+                        HttpStatusCode.RequestTimeout
+                        or HttpStatusCode.TooManyRequests
+                        or HttpStatusCode.BadGateway
+                        or HttpStatusCode.ServiceUnavailable
+                        or HttpStatusCode.GatewayTimeout => true, // only retry for possible transient issues
+                        _ => false,
+                    };
+
+                    return retry;
+                }
+
                 testOutputHelper.WriteLine(
                     $"Warning: exception while attempting to get auth token: {ex.Message}"
                 );
 
-                const bool retry = true;
+                retry = false;
                 return retry;
             })
             .WaitAndRetryAsync(
@@ -96,7 +117,11 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Auth Failed: {response.StatusCode} - {error}");
+                throw new HttpRequestException(
+                    $"Auth Failed: {response.StatusCode} - {error}",
+                    statusCode: response.StatusCode,
+                    inner: null
+                );
             }
 
             var result = await response.Content.ReadFromJsonAsync<JsonElement>();
