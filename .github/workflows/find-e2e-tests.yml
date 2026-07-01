@@ -133,7 +133,7 @@ jobs:
       SSL_CERT_DIR: /home/runner/.aspnet/dev-certs/trust:/usr/lib/ssl/certs:/etc/ssl/certs
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -232,7 +232,7 @@ jobs:
       FIND_API_GATEWAY_BASE_URL: ${{ secrets.FIND_API_GATEWAY_BASE_URL || '' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
         id: env_config
