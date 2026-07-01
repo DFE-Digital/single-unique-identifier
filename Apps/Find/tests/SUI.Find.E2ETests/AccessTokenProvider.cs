@@ -63,11 +63,12 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
 
                     retry = httpEx.StatusCode switch
                     {
-                        HttpStatusCode.BadRequest
-                        or HttpStatusCode.Unauthorized
-                        or HttpStatusCode.Forbidden
-                        or HttpStatusCode.InternalServerError => false,
-                        _ => true, // default to retrying for all other http exceptions
+                        HttpStatusCode.RequestTimeout
+                        or HttpStatusCode.TooManyRequests
+                        or HttpStatusCode.BadGateway
+                        or HttpStatusCode.ServiceUnavailable
+                        or HttpStatusCode.GatewayTimeout => true, // only retry for possible transient issues
+                        _ => false,
                     };
 
                     return retry;

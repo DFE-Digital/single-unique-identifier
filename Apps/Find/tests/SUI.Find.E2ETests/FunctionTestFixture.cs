@@ -307,11 +307,12 @@ public class FunctionTestFixture : IAsyncLifetime
 
                 return httpEx.StatusCode switch
                 {
-                    HttpStatusCode.BadRequest
-                    or HttpStatusCode.Unauthorized
-                    or HttpStatusCode.Forbidden
-                    or HttpStatusCode.InternalServerError => (false, false),
-                    _ => (false, true), // default to retrying for all other http exceptions
+                    HttpStatusCode.RequestTimeout
+                    or HttpStatusCode.TooManyRequests
+                    or HttpStatusCode.BadGateway
+                    or HttpStatusCode.ServiceUnavailable
+                    or HttpStatusCode.GatewayTimeout => (false, true), // only retry for possible transient issues
+                    _ => (false, false),
                 };
             }
             catch (Exception ex)
