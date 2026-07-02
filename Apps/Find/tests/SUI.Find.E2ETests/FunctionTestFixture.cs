@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Azure;
 using Azure.Data.Tables;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http;
 using Polly;
@@ -28,6 +29,8 @@ public class FunctionTestFixture : IAsyncLifetime
     public HttpClient StubCustodiansClient { get; }
 
     public AccessTokenProvider AccessTokenProvider { get; }
+
+    private MemoryCache Cache { get; }
 
     public string StartupDiagnosticMessages => _startupDiagnosticMessages.ToString();
 
@@ -67,7 +70,9 @@ public class FunctionTestFixture : IAsyncLifetime
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
 
-        AccessTokenProvider = new AccessTokenProvider(this);
+        Cache = new MemoryCache(new MemoryCacheOptions());
+
+        AccessTokenProvider = new AccessTokenProvider(this, Cache);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
@@ -77,6 +82,7 @@ public class FunctionTestFixture : IAsyncLifetime
         // MAYBE: Delete everything in storage as a cleanup operation?
         Client.Dispose();
         StubCustodiansClient.Dispose();
+        Cache.Dispose();
         GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
     }

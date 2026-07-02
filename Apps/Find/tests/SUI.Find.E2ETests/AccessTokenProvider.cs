@@ -1,12 +1,15 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 using Polly;
 
 namespace SUI.Find.E2ETests;
 
-public class AccessTokenProvider(FunctionTestFixture testFixture)
+public class AccessTokenProvider(FunctionTestFixture testFixture, IMemoryCache cache)
 {
     public async Task<string?> GetAuthTokenAsync(
         string clientId,
@@ -27,12 +30,26 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
             ]
             ?? clientSecret;
 
-        return await GetAuthTokenWithRetryAsync(
-            scopes,
-            clientId,
-            clientSecret,
-            testOutputHelper,
-            isClientIdSensitive: clientId != originalClientId
+        var cacheKeyPlainText =
+            $"{clientId}_{clientSecret}_{string.Join("_", (scopes ?? []).Order())}";
+        var cacheKey = Convert.ToBase64String(
+            SHA256.HashData(Encoding.UTF8.GetBytes(cacheKeyPlainText))
+        );
+
+        return await cache.GetOrCreateAsync<string?>(
+            cacheKey,
+            async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
+
+                return await GetAuthTokenWithRetryAsync(
+                    scopes,
+                    clientId,
+                    clientSecret,
+                    testOutputHelper,
+                    isClientIdSensitive: clientId != originalClientId
+                );
+            }
         );
     }
 
