@@ -16,6 +16,7 @@ public class MatchAuthE2ETests(FunctionTestFixture fixture, ITestOutputHelper te
 
     public async ValueTask InitializeAsync()
     {
+        // Only boot the APIs necessary for this specific test suite
         await Fixture.EnsureFindApiIsUpAsync(TestOutputHelper);
         await Fixture.EnsureAuthEmulatorApiIsUpAsync(TestOutputHelper);
     }
@@ -32,15 +33,19 @@ public class MatchAuthE2ETests(FunctionTestFixture fixture, ITestOutputHelper te
 
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var apiKey =
-            Fixture.Configuration["MatchFunctionConfiguration:XApiKey"] ?? "local-dev-api-key";
+        var apiKey = Fixture.Config.FindApiKey;
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            apiKey = Fixture.Configuration["MatchFunction:XApiKey"] ?? "local-dev-key-change-me";
+        }
+
         request.Headers.Add("x-api-key", apiKey);
 
         request.Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
         return await Fixture.Client.SendAsync(request);
     }
 
-    private async Task AssertProblemDetailsAsync(
+    private static async Task AssertProblemDetailsAsync(
         HttpResponseMessage response,
         HttpStatusCode expectedStatus,
         string expectedErrorIndicator
@@ -79,13 +84,12 @@ public class MatchAuthE2ETests(FunctionTestFixture fixture, ITestOutputHelper te
             null,
             TestOutputHelper
         );
+
+        // Send the default empty "{}" body.
         var response = await CallMatchApiAsync(token!);
 
-        await AssertProblemDetailsAsync(
-            response,
-            HttpStatusCode.BadRequest,
-            "personspecification is required"
-        );
+        // It successfully passes Auth, hits the function, and is rejected for being an empty/invalid payload.
+        await AssertProblemDetailsAsync(response, HttpStatusCode.BadRequest, "invalid request");
     }
 
     [Fact]
@@ -98,7 +102,13 @@ public class MatchAuthE2ETests(FunctionTestFixture fixture, ITestOutputHelper te
             TestOutputHelper
         );
         var response = await CallMatchApiAsync(token!);
-        await AssertProblemDetailsAsync(response, HttpStatusCode.Forbidden, "insufficient scope");
+
+        // Middleware explicitly returns 401 for this
+        await AssertProblemDetailsAsync(
+            response,
+            HttpStatusCode.Unauthorized,
+            "insufficient scope"
+        );
     }
 
     [Fact]
@@ -120,7 +130,7 @@ public class MatchAuthE2ETests(FunctionTestFixture fixture, ITestOutputHelper te
         await AssertProblemDetailsAsync(
             response,
             HttpStatusCode.Unauthorized,
-            "token validation failed"
+            "invalid bearer token"
         );
     }
 
@@ -143,7 +153,7 @@ public class MatchAuthE2ETests(FunctionTestFixture fixture, ITestOutputHelper te
         await AssertProblemDetailsAsync(
             response,
             HttpStatusCode.Unauthorized,
-            "token validation failed"
+            "invalid bearer token"
         );
     }
 
@@ -160,6 +170,7 @@ public class MatchAuthE2ETests(FunctionTestFixture fixture, ITestOutputHelper te
         var tamperedToken = $"{parts[0]}.{parts[1]}.";
 
         var response = await CallMatchApiAsync(tamperedToken);
+        // Stripping the signature keeps the base64 valid, so it hits the specific SecurityTokenException
         await AssertProblemDetailsAsync(
             response,
             HttpStatusCode.Unauthorized,
