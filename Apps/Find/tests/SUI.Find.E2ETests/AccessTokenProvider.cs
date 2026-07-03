@@ -15,7 +15,8 @@ public class AccessTokenProvider(FunctionTestFixture testFixture, IMemoryCache c
         string clientId,
         string clientSecret,
         string?[]? scopes,
-        ITestOutputHelper testOutputHelper
+        ITestOutputHelper testOutputHelper,
+        string? mode = null
     )
     {
         var originalClientId = clientId;
@@ -31,7 +32,7 @@ public class AccessTokenProvider(FunctionTestFixture testFixture, IMemoryCache c
             ?? clientSecret;
 
         var cacheKeyPlainText =
-            $"{clientId}_{clientSecret}_{string.Join("_", (scopes ?? []).Order())}";
+            $"{clientId}_{clientSecret}_{string.Join("_", (scopes ?? []).Order())}_{mode}";
         var cacheKey = Convert.ToBase64String(
             SHA256.HashData(Encoding.UTF8.GetBytes(cacheKeyPlainText))
         );
@@ -44,7 +45,8 @@ public class AccessTokenProvider(FunctionTestFixture testFixture, IMemoryCache c
                     clientId,
                     clientSecret,
                     testOutputHelper,
-                    isClientIdSensitive: clientId != originalClientId
+                    isClientIdSensitive: clientId != originalClientId,
+                    mode // <-- Pass it down
                 ),
             new MemoryCacheEntryOptions
             {
@@ -58,7 +60,8 @@ public class AccessTokenProvider(FunctionTestFixture testFixture, IMemoryCache c
         string clientId,
         string clientSecret,
         ITestOutputHelper testOutputHelper,
-        bool isClientIdSensitive
+        bool isClientIdSensitive,
+        string? mode = null
     )
     {
         var authString = $"{clientId}:{clientSecret}";
@@ -125,6 +128,11 @@ public class AccessTokenProvider(FunctionTestFixture testFixture, IMemoryCache c
 
             request.Content = content;
             request.Headers.Authorization = clientCredentials;
+
+            if (!string.IsNullOrWhiteSpace(mode))
+            {
+                request.Headers.Add("mode", mode);
+            }
 
             testOutputHelper.WriteLine(
                 $"Requesting access token from: {request.RequestUri} for client ID: {FunctionTestFixture.MaskValue(clientId, isClientIdSensitive)}"
