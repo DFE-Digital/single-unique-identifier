@@ -36,6 +36,11 @@ public class AccessTokenProvider(FunctionTestFixture testFixture, IMemoryCache c
             SHA256.HashData(Encoding.UTF8.GetBytes(cacheKeyPlainText))
         );
 
+        if (cache.TryGetValue(cacheKey, out _))
+        {
+            testOutputHelper.WriteLine("Access token cache used");
+        }
+
         return await cache.GetOrCreateAsync<string?>(
             cacheKey,
             async _ =>
