@@ -38,17 +38,17 @@ public class AccessTokenProvider(FunctionTestFixture testFixture, IMemoryCache c
 
         return await cache.GetOrCreateAsync<string?>(
             cacheKey,
-            async entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
-
-                return await GetAuthTokenWithRetryAsync(
+            async _ =>
+                await GetAuthTokenWithRetryAsync(
                     scopes,
                     clientId,
                     clientSecret,
                     testOutputHelper,
                     isClientIdSensitive: clientId != originalClientId
-                );
+                ),
+            new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
             }
         );
     }
