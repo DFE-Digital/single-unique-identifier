@@ -89,6 +89,15 @@
         "work-item.read",
         "work-item.write"
       ]
+    },
+    {
+      "enabled": true,
+      "clientId": "CLIENT_ID_INVALID_SCOPE",
+      "organisationId": "INVALID-SCOPE-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "other-scope.read"
+      ]
     }
   ]
 }

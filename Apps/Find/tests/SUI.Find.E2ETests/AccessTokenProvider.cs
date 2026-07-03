@@ -11,7 +11,8 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
         string clientId,
         string clientSecret,
         string?[]? scopes,
-        ITestOutputHelper testOutputHelper
+        ITestOutputHelper testOutputHelper,
+        string? mode = null
     )
     {
         var originalClientId = clientId;
@@ -31,7 +32,8 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
             clientId,
             clientSecret,
             testOutputHelper,
-            isClientIdSensitive: clientId != originalClientId
+            isClientIdSensitive: clientId != originalClientId,
+            mode
         );
     }
 
@@ -40,7 +42,8 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
         string clientId,
         string clientSecret,
         ITestOutputHelper testOutputHelper,
-        bool isClientIdSensitive
+        bool isClientIdSensitive,
+        string? mode = null
     )
     {
         var authString = $"{clientId}:{clientSecret}";
@@ -87,6 +90,11 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
 
             request.Content = content;
             request.Headers.Authorization = clientCredentials;
+
+            if (!string.IsNullOrWhiteSpace(mode))
+            {
+                request.Headers.Add("mode", mode);
+            }
 
             testOutputHelper.WriteLine(
                 $"Requesting access token from: {request.RequestUri} for client ID: {FunctionTestFixture.MaskValue(clientId, isClientIdSensitive)}"

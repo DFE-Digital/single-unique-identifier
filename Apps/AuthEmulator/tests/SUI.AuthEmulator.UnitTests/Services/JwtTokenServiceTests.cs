@@ -10,10 +10,8 @@ namespace SUI.AuthEmulator.UnitTests.Services;
 
 public class JwtTokenServiceTests
 {
-    [Fact]
-    public void GenerateToken_ReturnsTokenString()
+    private static (JwtTokenService Service, TimeProvider TimeProvider) CreateTestService()
     {
-        // Arrange
         var authSettings = new AuthSettings
         {
             Issuer = "test-issuer",
@@ -38,6 +36,15 @@ public class JwtTokenServiceTests
 
         var service = new JwtTokenService(mockOptions, mockJwksKeyProvider, testTimeProvider);
 
+        return (service, testTimeProvider);
+    }
+
+    [Fact]
+    public void GenerateToken_ReturnsTokenString()
+    {
+        // Arrange
+        var (service, _) = CreateTestService();
+
         // Act
         var token = service.GenerateToken(
             "test-client-id",
@@ -53,6 +60,7 @@ public class JwtTokenServiceTests
 
         Assert.Equal("test-issuer", jwtToken.Issuer);
         Assert.Contains("test-audience", jwtToken.Audiences);
+        Assert.Equal("test-kid", jwtToken.Header.Kid);
     }
 
     [Fact]
@@ -77,5 +85,66 @@ public class JwtTokenServiceTests
             "No RSA signing keys are available from the JWKS provider.",
             exception.Message
         );
+    }
+
+    [Fact]
+    public void GenerateToken_WithModeNotYetActive_SetsNotBeforeToFuture()
+    {
+        var (service, timeProvider) = CreateTestService();
+
+        var token = service.GenerateToken("client", [], "not-yet-active");
+
+        var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+
+        // Assert that the token doesn't become valid until at least 1 hour from now
+        Assert.True(jwtToken.ValidFrom > timeProvider.GetUtcNow().UtcDateTime.AddHours(1));
+    }
+
+    [Fact]
+    public void GenerateToken_WithModeExpired_SetsValidToPast()
+    {
+        var (service, timeProvider) = CreateTestService();
+
+        var token = service.GenerateToken("client", [], "expired");
+
+        var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+
+        // Assert that the token expired at least 1 hour ago
+        Assert.True(jwtToken.ValidTo < timeProvider.GetUtcNow().UtcDateTime.AddHours(-1));
+    }
+
+    [Fact]
+    public void GenerateToken_WithModeSpoofIssuer_SetsSpoofIssuer()
+    {
+        var (service, _) = CreateTestService();
+
+        var token = service.GenerateToken("client", [], "spoof-issuer");
+
+        var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        Assert.Equal("spoof", jwtToken.Issuer);
+    }
+
+    [Fact]
+    public void GenerateToken_WithModeSpoofAudience_SetsSpoofAudience()
+    {
+        var (service, _) = CreateTestService();
+
+        var token = service.GenerateToken("client", [], "spoof-audience");
+
+        var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        Assert.Contains("spoof", jwtToken.Audiences);
+    }
+
+    [Fact]
+    public void GenerateToken_WithModeSpoofPrivateKey_UsesDifferentKeyId()
+    {
+        var (service, _) = CreateTestService();
+
+        var token = service.GenerateToken("client", [], "spoof-private-key");
+
+        var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+
+        // The mock sets the standard Kid to "test-kid". The spoofed one should generate a random Guid.
+        Assert.NotEqual("test-kid", jwtToken.Header.Kid);
     }
 }
