@@ -23,13 +23,13 @@ builder
     });
 builder.Services.AddAuthorization();
 
-var baseUrl =
-    builder.Configuration["BaseUrl"]?.EnsureTrailingSlash()
-    ?? throw new InvalidOperationException("BaseUrl configuration is missing");
+var findApiBaseUrl =
+    builder.Configuration[ConfigKeys.FindApiBaseUrl]?.EnsureTrailingSlash()
+    ?? throw new InvalidOperationException($"{ConfigKeys.FindApiBaseUrl} configuration is missing");
 
 builder.Services.AddHttpClient(
     nameof(FindService),
-    client => client.BaseAddress = new Uri(baseUrl)
+    client => client.BaseAddress = new Uri(findApiBaseUrl)
 );
 builder.Services.AddScoped<IFindService, FindService>();
 builder.Services.AddScoped<IFindApiAuthClientProvider, FindApiAuthClientProvider>();

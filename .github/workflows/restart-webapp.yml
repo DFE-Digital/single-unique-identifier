@@ -54,7 +54,7 @@ jobs:
     environment: ${{ inputs.environment }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Load tfvars for ${{ inputs.environment }}
         id: env_config

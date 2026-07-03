@@ -1,18 +1,21 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 using Polly;
 
 namespace SUI.Find.E2ETests;
 
-public class AccessTokenProvider(FunctionTestFixture testFixture)
+public class AccessTokenProvider(FunctionTestFixture testFixture, IMemoryCache cache)
 {
     public async Task<string?> GetAuthTokenAsync(
         string clientId,
         string clientSecret,
         string?[]? scopes,
-        ITestOutputHelper testOutputHelper,
-        string? mode = null
+        ITestOutputHelper testOutputHelper
     )
     {
         var originalClientId = clientId;
@@ -27,13 +30,26 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
             ]
             ?? clientSecret;
 
-        return await GetAuthTokenWithRetryAsync(
-            scopes,
-            clientId,
-            clientSecret,
-            testOutputHelper,
-            isClientIdSensitive: clientId != originalClientId,
-            mode
+        var cacheKeyPlainText =
+            $"{clientId}_{clientSecret}_{string.Join("_", (scopes ?? []).Order())}";
+        var cacheKey = Convert.ToBase64String(
+            SHA256.HashData(Encoding.UTF8.GetBytes(cacheKeyPlainText))
+        );
+
+        return await cache.GetOrCreateAsync<string?>(
+            cacheKey,
+            async _ =>
+                await GetAuthTokenWithRetryAsync(
+                    scopes,
+                    clientId,
+                    clientSecret,
+                    testOutputHelper,
+                    isClientIdSensitive: clientId != originalClientId
+                ),
+            new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
+            }
         );
     }
 
@@ -42,8 +58,7 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
         string clientId,
         string clientSecret,
         ITestOutputHelper testOutputHelper,
-        bool isClientIdSensitive,
-        string? mode = null
+        bool isClientIdSensitive
     )
     {
         var authString = $"{clientId}:{clientSecret}";
@@ -56,11 +71,31 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
         var retryPolicy = Policy
             .Handle<Exception>(ex =>
             {
+                bool retry;
+                if (ex is HttpRequestException httpEx)
+                {
+                    testOutputHelper.WriteLine(
+                        $"Warning: exception while attempting to get auth token: {nameof(HttpRequestException)}:{httpEx.StatusCode} - {httpEx.Message}"
+                    );
+
+                    retry = httpEx.StatusCode switch
+                    {
+                        HttpStatusCode.RequestTimeout
+                        or HttpStatusCode.TooManyRequests
+                        or HttpStatusCode.BadGateway
+                        or HttpStatusCode.ServiceUnavailable
+                        or HttpStatusCode.GatewayTimeout => true, // only retry for possible transient issues
+                        _ => false,
+                    };
+
+                    return retry;
+                }
+
                 testOutputHelper.WriteLine(
                     $"Warning: exception while attempting to get auth token: {ex.Message}"
                 );
 
-                const bool retry = true;
+                retry = false;
                 return retry;
             })
             .WaitAndRetryAsync(
@@ -91,11 +126,6 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
             request.Content = content;
             request.Headers.Authorization = clientCredentials;
 
-            if (!string.IsNullOrWhiteSpace(mode))
-            {
-                request.Headers.Add("mode", mode);
-            }
-
             testOutputHelper.WriteLine(
                 $"Requesting access token from: {request.RequestUri} for client ID: {FunctionTestFixture.MaskValue(clientId, isClientIdSensitive)}"
             );
@@ -104,7 +134,11 @@ public class AccessTokenProvider(FunctionTestFixture testFixture)
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Auth Failed: {response.StatusCode} - {error}");
+                throw new HttpRequestException(
+                    $"Auth Failed: {response.StatusCode} - {error}",
+                    statusCode: response.StatusCode,
+                    inner: null
+                );
             }
 
             var result = await response.Content.ReadFromJsonAsync<JsonElement>();

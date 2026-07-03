@@ -1,9 +1,11 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Azure;
 using Azure.Data.Tables;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http;
 using Polly;
@@ -27,6 +29,8 @@ public class FunctionTestFixture : IAsyncLifetime
     public HttpClient StubCustodiansClient { get; }
 
     public AccessTokenProvider AccessTokenProvider { get; }
+
+    private MemoryCache Cache { get; }
 
     public string StartupDiagnosticMessages => _startupDiagnosticMessages.ToString();
 
@@ -66,7 +70,9 @@ public class FunctionTestFixture : IAsyncLifetime
             BaseAddress = new Uri(Config.StubCustodiansBaseUrl),
         };
 
-        AccessTokenProvider = new AccessTokenProvider(this);
+        Cache = new MemoryCache(new MemoryCacheOptions());
+
+        AccessTokenProvider = new AccessTokenProvider(this, Cache);
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
@@ -76,6 +82,7 @@ public class FunctionTestFixture : IAsyncLifetime
         // MAYBE: Delete everything in storage as a cleanup operation?
         Client.Dispose();
         StubCustodiansClient.Dispose();
+        Cache.Dispose();
         GC.SuppressFinalize(this);
         return ValueTask.CompletedTask;
     }
@@ -256,7 +263,7 @@ public class FunctionTestFixture : IAsyncLifetime
         // If health check does not indicate healthy, wait and then retry
         var retryCount = (int)Math.Round(timeout / waitInterval);
         var retryPolicy = Policy
-            .HandleResult<bool>(healthy => !healthy)
+            .HandleResult(((bool healthy, bool retry) result) => result.retry)
             .WaitAndRetryAsync(
                 retryCount,
                 retryAttempt =>
@@ -268,7 +275,7 @@ public class FunctionTestFixture : IAsyncLifetime
                 }
             );
 
-        var healthy = await retryPolicy.ExecuteAsync(async () =>
+        var (healthy, retry) = await retryPolicy.ExecuteAsync(async () =>
         {
             try
             {
@@ -278,8 +285,11 @@ public class FunctionTestFixture : IAsyncLifetime
                 using var response = await client.SendAsync(request);
                 var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
 
-                return content?.Value == "Healthy"
+                var healthy =
+                    content?.Value == "Healthy"
                     && (checkBuildTimestampThreshold == null || CheckBuildTimestampThreshold());
+
+                return (healthy, !healthy); // Retry if endpoint does not return "Healthy" or timestamp threshold is not met
 
                 // When used, this check causes the tests to wait until the API responds with a build timestamp which is on or after a known point in time that confirms the latest version is in use.
                 // This resolves false failures which can occur when the e2e tests are triggered immediately after deployment.
@@ -295,13 +305,29 @@ public class FunctionTestFixture : IAsyncLifetime
                     return isBuiltSinceThreshold;
                 }
             }
+            catch (HttpRequestException httpEx)
+            {
+                testOutputHelper.WriteLine(
+                    $"Warning: health check exception ({serviceName}): {nameof(HttpRequestException)}:{httpEx.StatusCode} - {httpEx.Message}"
+                );
+
+                return httpEx.StatusCode switch
+                {
+                    HttpStatusCode.RequestTimeout
+                    or HttpStatusCode.TooManyRequests
+                    or HttpStatusCode.BadGateway
+                    or HttpStatusCode.ServiceUnavailable
+                    or HttpStatusCode.GatewayTimeout => (false, true), // only retry for possible transient issues
+                    _ => (false, false),
+                };
+            }
             catch (Exception ex)
             {
                 testOutputHelper.WriteLine(
                     $"Warning: health check exception ({serviceName}): {ex.GetType().Name}: {ex.Message}"
                 );
 
-                return false;
+                return (false, false); // Do not retry for any non-http exceptions
             }
         });
 
