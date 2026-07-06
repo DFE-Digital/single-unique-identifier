@@ -272,7 +272,7 @@ jobs:
           E2E__AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
-            --filter "Category=E2E&Suite=Standard" \
+            --filter "Category=E2E&Suite=Standard&RequiresAuthEmulator!=true" \
             --logger "console;verbosity=detailed" \
             --logger "trx;LogFileName=e2e-dev.trx" \
             --results-directory TestResults \

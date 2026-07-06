@@ -144,7 +144,7 @@ public class FunctionTestFixture : IAsyncLifetime
         );
     }
 
-    private async Task EnsureAuthEmulatorApiIsUpAsync(ITestOutputHelper testOutputHelper)
+    public async Task EnsureAuthEmulatorApiIsUpAsync(ITestOutputHelper testOutputHelper)
     {
         if (!string.IsNullOrEmpty(Config.AuthEmulatorHealthCheckEndpoint))
         {

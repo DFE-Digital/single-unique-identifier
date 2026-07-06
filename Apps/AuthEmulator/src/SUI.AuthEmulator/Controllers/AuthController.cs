@@ -74,7 +74,14 @@ public class AuthController(
             grantedScopes = requestedScopes;
         }
 
-        var token = jwtTokenService.GenerateToken(authClient.TokenRequest!.ClientId, grantedScopes);
+        var modeHeader = HttpContext.Request.Headers["mode"].FirstOrDefault();
+
+        // Pass the mode string to the token service
+        var token = jwtTokenService.GenerateToken(
+            authClient.TokenRequest!.ClientId,
+            grantedScopes,
+            modeHeader
+        );
 
         return TypedResults.Ok(
             new AuthTokenResponse
