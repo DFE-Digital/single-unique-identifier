@@ -83,9 +83,9 @@ Using Rider:
 
 Or, using the command line (from the repo root):
 
-* `cd ./Apps/Find/src/SUI.Find.FindApi/; func start --port 7182`
+* `cd ./Apps/Find/src/SUI.Find.FindApi/; dotnet run -- --port 7182`
 * `cd ./Apps/StubCustodians/src/SUI.StubCustodians.API/; dotnet run`
-* `cd ./Apps/Find/src/SUI.Find.AuditProcessor/; func start --port 7151` <- Optional to have the audit processor running
+* `cd ./Apps/Find/src/SUI.Find.AuditProcessor/; dotnet run -- --port 7151` <- Optional to have the audit processor running
 
 
 ## Test Data
