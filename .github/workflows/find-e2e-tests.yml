@@ -167,6 +167,11 @@ jobs:
 
       - name: Install Azure Functions Core Tools
         run: npm i -g azure-functions-core-tools@4
+        
+      - name: Create local.settings.json for Find API
+        run: |
+          cp Apps/Find/src/SUI.Find.FindApi/example.local.settings.json \
+             Apps/Find/src/SUI.Find.FindApi/local.settings.json
 
       - name: Build Find API
         run: dotnet build Apps/Find/src/SUI.Find.FindApi
@@ -177,11 +182,6 @@ jobs:
       - name: Build AuthEmulator API
         run: dotnet build Apps/AuthEmulator/src/SUI.AuthEmulator
 
-      - name: Create local.settings.json for Find API
-        run: |
-          cp Apps/Find/src/SUI.Find.FindApi/example.local.settings.json \
-             Apps/Find/src/SUI.Find.FindApi/local.settings.json
-
       - name: Start StubCustodians API
         run: dotnet run --no-build --launch-profile https &
         working-directory: Apps/StubCustodians/src/SUI.StubCustodians.API
@@ -191,7 +191,7 @@ jobs:
         working-directory: Apps/AuthEmulator/src/SUI.AuthEmulator
 
       - name: Start Find API
-        run: dotnet run -- --port 7182 &
+        run: dotnet run --no-build --port 7182 &
         working-directory: Apps/Find/src/SUI.Find.FindApi
         env:
           FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
