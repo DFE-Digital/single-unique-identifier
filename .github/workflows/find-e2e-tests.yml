@@ -191,7 +191,7 @@ jobs:
         working-directory: Apps/AuthEmulator/src/SUI.AuthEmulator
 
       - name: Start Find API
-        run: dotnet run -- --port 7182 &
+        run: dotnet run --no-build --port 7182 &
         working-directory: Apps/Find/src/SUI.Find.FindApi
         env:
           FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
