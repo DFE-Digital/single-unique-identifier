@@ -20,6 +20,7 @@ permissions:
   contents: read
   actions: read
   checks: write
+  id-token: write
 
 on:
   workflow_dispatch:
@@ -247,12 +248,27 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
+          
+      - name: Azure login with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Secret from Key Vault
+        uses: azure/get-keyvault-secrets@v1
+        id: kv_secrets
+        with:
+          keyvault: "${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}kv-${{ steps.env_config.outputs.region_short }}-findkv01"
+          secrets: 'find-match-api-key'
 
       - name: Run E2E Tests (against dev environment)
         if: ${{ (env.FIND_API_GATEWAY_BASE_URL || '') == '' }}
         env:
           E2E__AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
           E2E__AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
+          E2E__FindApiKey: ${{ steps.kv_secrets.outputs.find-match-api-key }}
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
             --filter "Category=E2E&Suite=Standard" \
@@ -273,6 +289,7 @@ jobs:
         env:
           E2E__AuthClientIdsJsonMap: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
           E2E__AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
+          E2E__FindApiKey: ${{ steps.kv_secrets.outputs.find-match-api-key }}
         run: |
           dotnet test Apps/Find/tests/SUI.Find.E2ETests/SUI.Find.E2ETests.csproj \
             --filter "Category=E2E&Suite=Standard&RequiresAuthEmulator!=true" \

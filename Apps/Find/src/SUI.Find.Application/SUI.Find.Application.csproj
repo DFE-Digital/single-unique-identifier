@@ -11,6 +11,7 @@
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.OpenApi.Core" />
     <PackageReference Include="Microsoft.DurableTask.Client" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
     <PackageReference Include="OneOf" />
   </ItemGroup>
 </Project>
