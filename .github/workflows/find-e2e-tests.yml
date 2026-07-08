@@ -191,11 +191,12 @@ jobs:
         working-directory: Apps/AuthEmulator/src/SUI.AuthEmulator
 
       - name: Start Find API
-        run: dotnet run --no-build --urls http://localhost:7182 &
+        run: dotnet run --no-build --no-launch-profile &
         working-directory: Apps/Find/src/SUI.Find.FindApi
         env:
           FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
           AzureWebJobsStorage: UseDevelopmentStorage=true
+          ASPNETCORE_URLS: http://localhost:7182
 
       - name: Run E2E Tests (against ephemeral environment)
         env:
