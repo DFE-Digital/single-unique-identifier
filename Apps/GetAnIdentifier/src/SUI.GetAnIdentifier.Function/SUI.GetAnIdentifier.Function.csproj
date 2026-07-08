@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AzureFunctionsVersion>V4</AzureFunctionsVersion>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.OpenTelemetry" Version="1.2.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.7.0" />
+    <PackageReference
+      Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore"
+      Version="2.1.0"
+    />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="SUI.GetAnIdentifier.Function\local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+    <None Update="SUI.GetAnIdentifier.Function\host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="SUI.GetAnIdentifier.Function\bin\Debug\net10.0\.azurefunctions\function.deps.json" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\Debug\net10.0\.azurefunctions\Microsoft.Azure.Functions.Worker.Extensions.dll" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\Debug\net10.0\.azurefunctions\Microsoft.Azure.Functions.Worker.Extensions.pdb" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\Debug\net10.0\.azurefunctions\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\Debug\net10.0\.azurefunctions\Microsoft.Azure.WebJobs.Host.Storage.dll" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\Debug\net10.0\.azurefunctions\Microsoft.WindowsAzure.Storage.dll" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\output\.azurefunctions\function.deps.json" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\output\.azurefunctions\Microsoft.Azure.Functions.Worker.Extensions.dll" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\output\.azurefunctions\Microsoft.Azure.Functions.Worker.Extensions.pdb" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\output\.azurefunctions\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\output\.azurefunctions\Microsoft.Azure.WebJobs.Host.Storage.dll" />
+    <Content Include="SUI.GetAnIdentifier.Function\bin\output\.azurefunctions\Microsoft.WindowsAzure.Storage.dll" />
+    <Content Include="SUI.GetAnIdentifier.Function\obj\Debug\net10.0\WorkerExtensions\WorkerExtensions.csproj" />
+  </ItemGroup>
+</Project>

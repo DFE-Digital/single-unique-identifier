@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SUI.GetAnIdentifier.Function": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7120"
+    }
+  }
+}
