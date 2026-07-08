@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src\SUI.GetAnIdentifier.Function\SUI.GetAnIdentifier.Function.csproj" Type="Classic C#" />
   </Folder>
-  <Folder Name="/tests/" />
-  <Project Path="tests\SUI.GetAnIdentifier.Function.Tests\SUI.GetAnIdentifier.Function.Tests.csproj" Type="Classic C#" />
+  <Folder Name="/tests/">
+    <Project Path="tests\SUI.GetAnIdentifier.Function.Tests\SUI.GetAnIdentifier.Function.Tests.csproj" Type="Classic C#" />
+  </Folder>
 </Solution>
