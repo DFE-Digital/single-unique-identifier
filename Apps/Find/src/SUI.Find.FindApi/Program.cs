@@ -33,6 +33,8 @@ Env.TraversePath().Load();
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
+builder.ConfigureFunctionsWebApplication();
+
 builder.UseOpenTelemetry();
 
 builder.Services.Configure<AuthTokenServiceConfig>(
