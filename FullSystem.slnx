@@ -27,6 +27,13 @@
     <Project Path="Apps/Find/tests/SUI.Find.Infrastructure.IntegrationTests/SUI.Find.Infrastructure.IntegrationTests.csproj" />
     <Project Path="Apps/Find/tests/SUI.Find.Infrastructure.UnitTests/SUI.Find.Infrastructure.UnitTests.csproj" />
   </Folder>
+  <Folder Name="/Apps/GetAnIdentifier/" />
+  <Folder Name="/Apps/GetAnIdentifier/src/">
+    <Project Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.Function\SUI.GetAnIdentifier.Function.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Apps/GetAnIdentifier/tests/">
+    <Project Path="Apps\GetAnIdentifier\tests\SUI.GetAnIdentifier.Function.Tests\SUI.GetAnIdentifier.Function.Tests.csproj" />
+  </Folder>
   <Folder Name="/Apps/SingleView/" />
   <Folder Name="/Apps/SingleView/src/">
     <Project Path="Apps/SingleView/src/SUI.SingleView.Application/SUI.SingleView.Application.csproj" />
