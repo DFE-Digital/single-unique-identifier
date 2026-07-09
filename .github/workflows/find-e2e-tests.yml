@@ -202,7 +202,7 @@ jobs:
       - name: Wait for Find API to be healthy
         run: |
           for i in {1..30}; do
-            body=$(curl -s http://localhost:7182/api/health)
+            body=$(curl -s http://localhost:7182/api/health || true)
             if echo "$body" | jq -e '.Value == "Healthy"' > /dev/null 2>&1; then
               echo "Find API is healthy: $body"
               exit 0
