@@ -198,25 +198,20 @@ jobs:
         env:
           FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
           AzureWebJobsStorage: UseDevelopmentStorage=true
-      
+
       - name: Wait for Find API to be healthy
         run: |
           for i in {1..30}; do
-            curl -s -o /dev/null http://localhost:7182/api/health && break
+            body=$(curl -s http://localhost:7182/api/health)
+            if echo "$body" | jq -e '.Value == "Healthy"' > /dev/null 2>&1; then
+              echo "Find API is healthy: $body"
+              exit 0
+            fi
             sleep 1
           done
-          echo "---- process status ----"
-          ps aux | grep -i "SUI.Find.FindApi\|dotnet" | grep -v grep
-          echo "---- is pid alive? ----"
-          kill -0 $(cat Apps/Find/src/SUI.Find.FindApi/find-api.pid) 2>/dev/null && echo "ALIVE" || echo "DEAD"
-          echo "---- netstat ----"
-          ss -tlnp || netstat -tlnp
-          echo "---- log file size ----"
-          wc -l Apps/Find/src/SUI.Find.FindApi/find-api.log
-          echo "---- Find API log ----"
+          echo "Find API did not become healthy in time"
           cat Apps/Find/src/SUI.Find.FindApi/find-api.log
-          echo "---- verbose curl ----"
-          curl -v http://localhost:7182/api/health || true
+          exit 1
 
       - name: Run E2E Tests (against ephemeral environment)
         env:
