@@ -191,11 +191,36 @@ jobs:
         working-directory: Apps/AuthEmulator/src/SUI.AuthEmulator
 
       - name: Start Find API
-        run: dotnet run --no-build --urls http://localhost:7182 &
+        run: |
+          dotnet run --no-build --no-launch-profile > find-api.log 2>&1 &
+          echo $! > find-api.pid
         working-directory: Apps/Find/src/SUI.Find.FindApi
         env:
           FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
           AzureWebJobsStorage: UseDevelopmentStorage=true
+          ASPNETCORE_URLS: http://localhost:7182
+          OTEL_LOGS_EXPORTER: none
+          OTEL_TRACES_EXPORTER: none
+          OTEL_METRICS_EXPORTER: none
+
+      - name: Wait for Find API to be healthy
+        run: |
+          for i in {1..30}; do
+            curl -s -o /dev/null http://localhost:7182/api/health && break
+            sleep 1
+          done
+          echo "---- process status ----"
+          ps aux | grep -i "SUI.Find.FindApi\|dotnet" | grep -v grep
+          echo "---- is pid alive? ----"
+          kill -0 $(cat Apps/Find/src/SUI.Find.FindApi/find-api.pid) 2>/dev/null && echo "ALIVE" || echo "DEAD"
+          echo "---- netstat ----"
+          ss -tlnp || netstat -tlnp
+          echo "---- log file size ----"
+          wc -l Apps/Find/src/SUI.Find.FindApi/find-api.log
+          echo "---- Find API log ----"
+          cat Apps/Find/src/SUI.Find.FindApi/find-api.log
+          echo "---- verbose curl ----"
+          curl -v http://localhost:7182/api/health || true
 
       - name: Run E2E Tests (against ephemeral environment)
         env:
