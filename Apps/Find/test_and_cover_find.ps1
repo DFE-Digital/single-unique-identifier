@@ -1,1 +1,1 @@
-& "../../test_and_cover.ps1" -SolutionPath "./Apps/Find/SUI.Find.slnx"
+& "../../scripts/test_and_cover.ps1" -SolutionPath "./Apps/Find/SUI.Find.slnx"

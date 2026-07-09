@@ -3,11 +3,14 @@
     Rudimentary script for reliably running e2e tests locally
 
     .EXAMPLE
-    dotnet pwsh ./run-find-e2e-tests.ps1
+    dotnet pwsh ./scripts/run-find-e2e-tests.ps1
         (Having already run `dotnet tool restore` as a one-off prerequisite. Using the dotnet tool alleviates PowerShell execution policy issues.)
 #>
 
 $ErrorActionPreference = "Stop"
+
+# ALWAYS execute from the repository root, regardless of where the script is invoked from
+Set-Location -Path "$PSScriptRoot/.."
 
 function SetupAndRunTests {
     docker compose --profile aspire down
