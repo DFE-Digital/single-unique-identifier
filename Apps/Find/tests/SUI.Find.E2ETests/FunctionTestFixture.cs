@@ -60,8 +60,15 @@ public class FunctionTestFixture : IAsyncLifetime
             .Handle<Exception>(IsTimeoutError)
             .WaitAndRetryAsync(retryCount: 3, sleepDurationProvider: _ => TimeSpan.FromSeconds(2));
 
-        var policyHandler = new PolicyHttpMessageHandler(retryPolicy);
-        policyHandler.InnerHandler = new HttpClientHandler();
+        var socketsHandler = new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromSeconds(1),
+        };
+
+        var policyHandler = new PolicyHttpMessageHandler(retryPolicy)
+        {
+            InnerHandler = socketsHandler,
+        };
 
         Client = new HttpClient(policyHandler) { BaseAddress = new Uri(Config.BaseUrl) };
 
