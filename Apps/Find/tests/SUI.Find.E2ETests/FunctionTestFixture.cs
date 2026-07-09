@@ -283,7 +283,19 @@ public class FunctionTestFixture : IAsyncLifetime
                 request.Headers.Authorization = accessToken;
 
                 using var response = await client.SendAsync(request);
-                var content = response.Content.ReadFromJsonAsync<HealthCheckResponse>().Result;
+
+                HealthCheckResponse? content;
+                try
+                {
+                    content = await response.Content.ReadFromJsonAsync<HealthCheckResponse>();
+                }
+                catch (JsonException jsonEx)
+                {
+                    testOutputHelper.WriteLine(
+                        $"Warning: health check response was not valid JSON ({serviceName}): {jsonEx.Message}"
+                    );
+                    return (false, true); // Treat malformed/empty body as transient — retry
+                }
 
                 var healthy =
                     content?.Value == "Healthy"
