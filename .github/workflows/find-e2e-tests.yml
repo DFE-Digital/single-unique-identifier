@@ -192,17 +192,13 @@ jobs:
 
       - name: Start Find API
         run: |
-          dotnet run --no-build --no-launch-profile > find-api.log 2>&1 &
+          dotnet run --no-build --no-launch-profile -- --port 7182 > find-api.log 2>&1 &
           echo $! > find-api.pid
         working-directory: Apps/Find/src/SUI.Find.FindApi
         env:
           FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
           AzureWebJobsStorage: UseDevelopmentStorage=true
-          ASPNETCORE_URLS: http://localhost:7182
-          OTEL_LOGS_EXPORTER: none
-          OTEL_TRACES_EXPORTER: none
-          OTEL_METRICS_EXPORTER: none
-
+      
       - name: Wait for Find API to be healthy
         run: |
           for i in {1..30}; do
