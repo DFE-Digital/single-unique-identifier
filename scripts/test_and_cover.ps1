@@ -5,11 +5,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Ensure script runs from the folder the script is in
+# Ensure script resolves the actual repository root (one level up from /scripts)
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Push-Location $ScriptRoot
+$RepoRoot = Resolve-Path "$ScriptRoot\.." | Select-Object -ExpandProperty Path
 
-Write-Host "Running script from: $ScriptRoot"
+# Emulate the old behavior by starting in the repo root
+Push-Location $RepoRoot
+
+Write-Host "Running script from: $RepoRoot"
 Write-Host "Using solution path: $SolutionPath"
 
 # Determine solution folder and file name
@@ -19,8 +22,8 @@ $solutionFileName = Split-Path $SolutionPath -Leaf
 # Switch to solution folder so dotnet commands work correctly
 Push-Location $solutionDir
 
-# Directories for coverage reports
-$resultsDir = "$ScriptRoot/coverage"
+# Directories for coverage reports (Pointing to the repo root)
+$resultsDir = "$RepoRoot/coverage"
 $finalReportDir = "$resultsDir/coveragereport"
 
 # Remove old coverage folder
