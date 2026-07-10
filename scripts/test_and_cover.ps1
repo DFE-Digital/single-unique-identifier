@@ -22,7 +22,7 @@ $solutionFileName = Split-Path $SolutionPath -Leaf
 # Switch to solution folder so dotnet commands work correctly
 Push-Location $solutionDir
 
-# Directories for coverage reports (Now correctly pointing to the repo root!)
+# Directories for coverage reports (Pointing to the repo root)
 $resultsDir = "$RepoRoot/coverage"
 $finalReportDir = "$resultsDir/coveragereport"
 
