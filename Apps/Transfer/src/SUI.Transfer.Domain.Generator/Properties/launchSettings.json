@@ -1,9 +1,0 @@
-{
-  "$schema": "https://json.schemastore.org/launchsettings.json",
-  "profiles": {
-    "DebugRoslynSourceGenerator": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "../../tests/SUI.Transfer.Domain.Generator.Tests/SUI.Transfer.Domain.Generator.Tests.csproj"
-    }
-  }
-}
