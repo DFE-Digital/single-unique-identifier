@@ -34,20 +34,6 @@
   <Folder Name="/Apps/GetAnIdentifier/tests/">
     <Project Path="Apps\GetAnIdentifier\tests\SUI.GetAnIdentifier.Function.Tests\SUI.GetAnIdentifier.Function.Tests.csproj" />
   </Folder>
-  <Folder Name="/Apps/SingleView/" />
-  <Folder Name="/Apps/SingleView/src/">
-    <Project Path="Apps/SingleView/src/SUI.SingleView.Application/SUI.SingleView.Application.csproj" />
-    <Project Path="Apps/SingleView/src/SUI.SingleView.Domain/SUI.SingleView.Domain.csproj" />
-    <Project Path="Apps/SingleView/src/SUI.SingleView.Infrastructure/SUI.SingleView.Infrastructure.csproj" />
-    <Project Path="Apps/SingleView/src/SUI.SingleView.Web/SUI.SingleView.Web.csproj" />
-  </Folder>
-  <Folder Name="/Apps/SingleView/tests/">
-    <Project Path="Apps/SingleView/tests/SUI.SingleView.Application.UnitTests/SUI.SingleView.Application.UnitTests.csproj" />
-    <Project Path="Apps/SingleView/tests/SUI.SingleView.Domain.UnitTests/SUI.SingleView.Domain.UnitTests.csproj" />
-    <Project Path="Apps/SingleView/tests/SUI.SingleView.Infrastructure.UnitTests/SUI.SingleView.Infrastructure.UnitTests.csproj" />
-    <Project Path="Apps/SingleView/tests/SUI.SingleView.IntegrationTests/SUI.SingleView.IntegrationTests.csproj" />
-    <Project Path="Apps/SingleView/tests/SUI.SingleView.Web.UnitTests/SUI.SingleView.Web.UnitTests.csproj" />
-  </Folder>
   <Folder Name="/Apps/StubCustodians/">
     <File Path="Apps/StubCustodians/readme.md" />
   </Folder>
@@ -62,23 +48,6 @@
     <Project Path="Apps/StubCustodians/tests/SUI.StubCustodians.API.Unit.Tests/SUI.StubCustodians.API.Unit.Tests.csproj" />
     <Project Path="Apps/StubCustodians/tests/SUI.StubCustodians.Application.Unit.Tests/SUI.StubCustodians.Application.Unit.Tests.csproj" />
     <Project Path="Apps/StubCustodians/tests/SUI.StubCustodians.Infrastructure.Unit.Tests/SUI.StubCustodians.Infrastructure.Unit.Tests.csproj" />
-  </Folder>
-  <Folder Name="/Apps/Transfer/" />
-  <Folder Name="/Apps/Transfer/src/">
-    <Project Path="Apps/Transfer/src/SUI.Transfer.API.Client/SUI.Transfer.API.Client.csproj" />
-    <Project Path="Apps/Transfer/src/SUI.Transfer.API/SUI.Transfer.API.csproj" />
-    <Project Path="Apps/Transfer/src/SUI.Transfer.Application/SUI.Transfer.Application.csproj" />
-    <Project Path="Apps/Transfer/src/SUI.Transfer.Domain.Generator/SUI.Transfer.Domain.Generator.csproj" />
-    <Project Path="Apps/Transfer/src/SUI.Transfer.Domain/SUI.Transfer.Domain.csproj" />
-    <Project Path="Apps/Transfer/src/SUI.Transfer.Infrastructure/SUI.Transfer.Infrastructure.csproj" />
-  </Folder>
-  <Folder Name="/Apps/Transfer/tests/">
-    <Project Path="Apps/Transfer/tests/SUI.Transfer.API.Unit.Tests/SUI.Transfer.API.Unit.Tests.csproj" />
-    <Project Path="Apps/Transfer/tests/SUI.Transfer.Application.Unit.Tests/SUI.Transfer.Application.Unit.Tests.csproj" />
-    <Project Path="Apps/Transfer/tests/SUI.Transfer.Domain.Generator.Tests/SUI.Transfer.Domain.Generator.Tests.csproj" />
-    <Project Path="Apps/Transfer/tests/SUI.Transfer.Domain.Unit.Tests/SUI.Transfer.Domain.Unit.Tests.csproj" />
-    <Project Path="Apps/Transfer/tests/SUI.Transfer.Infrastructure.Unit.Tests/SUI.Transfer.Infrastructure.Unit.Tests.csproj" />
-    <Project Path="Apps/Transfer/tests/SUI.Transfer.IntegrationTests/SUI.Transfer.IntegrationTests.csproj" />
   </Folder>
   <Folder Name="/Apps/UIHarness/" />
   <Folder Name="/Apps/UIHarness/src/">
