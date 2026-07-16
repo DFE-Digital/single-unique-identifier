@@ -19,6 +19,12 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Process" Version="1.15.1-beta.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\Data\auth-clients-inbound.json">
+      <Link>Data\auth-clients-inbound.json</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
     <SourceRevisionId>timestamp_$([System.DateTimeOffset]::UtcNow.ToString("O"))</SourceRevisionId>
   </PropertyGroup>

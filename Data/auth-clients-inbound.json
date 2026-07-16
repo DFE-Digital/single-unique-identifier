@@ -1,0 +1,103 @@
+{
+  "clients": [
+    {
+      "enabled": true,
+      "clientId": "CLIENT_ID_LOCAL_AUTHORITY_01",
+      "organisationId": "LOCAL-AUTHORITY-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write",
+        "work-item.read",
+        "work-item.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "CLIENT_ID_EDUCATION_01",
+      "organisationId": "EDUCATION-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write",
+        "work-item.read",
+        "work-item.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "CLIENT_ID_HEALTH_01",
+      "organisationId": "HEALTH-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write",
+        "work-item.read",
+        "work-item.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "CLIENT_ID_POLICE_01",
+      "organisationId": "POLICE-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write",
+        "work-item.read",
+        "work-item.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "CLIENT_ID_HOUSING_01",
+      "organisationId": "HOUSING-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write",
+        "work-item.read",
+        "work-item.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "CLIENT_ID_NO_DSA_01",
+      "organisationId": "NO-DSA-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "match-record.read",
+        "find-record.read",
+        "find-record.write",
+        "fetch-record.read",
+        "fetch-record.write",
+        "work-item.read",
+        "work-item.write"
+      ]
+    },
+    {
+      "enabled": true,
+      "clientId": "CLIENT_ID_INVALID_SCOPE",
+      "organisationId": "INVALID-SCOPE-01",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "other-scope.read"
+      ]
+    }
+  ]
+}
