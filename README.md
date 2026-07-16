@@ -253,23 +253,6 @@ Each solution is structured according to Clean Architecture principles
 - Infrastructure - External concerns (e.g. database, third party API calls)
 - Presentation/API - UI, API/Endpoints
 
-
-## Run tests and collect coverage locally
-
-You can run tests and generate coverage reports from anywhere within the repository by following the steps below.
-All required tools (PowerShell 7.5.4, ReportGenerator, etc.) are installed as local .NET tools.
-
-1. Restore local tools (This installs PowerShell and all other required tools locally.)
-    ```
-    dotnet tool restore
-    ```
-2. Run the test and coverage scripts (You can run the wrapper script for each solution i.e.: `dotnet pwsh <relative path to the solution scoped script>`)
-    ```
-    dotnet pwsh ./Apps/Find/test_and_cover_find.ps1
-    dotnet pwsh ./Apps/StubCustodians/test_and_cover_stubcustodians.ps1
-    ```
-
-
 ## Set up Private Nuget Feed
 
 We are using GitHub Packages for hosting API Clients, this feed requires you to sign in to be able to do a restore.

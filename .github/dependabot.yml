@@ -18,13 +18,13 @@ updates:
       semvar-patch-days: 7
 
   - package-ecosystem: nuget
-    directory: "/Apps/Find"
+    directory: "/Apps/GetAnIdentifier"
     schedule:
       interval: "weekly"
       day: "tuesday"
       time: "06:00"
     commit-message:
-      prefix: "[nuget][Find]-"
+      prefix: "[nuget][GetAnIdentifier]-"
     groups:
       FIND-package-updates:
         patterns:
@@ -34,27 +34,6 @@ updates:
         update-types:
           - "version-update:semver-major" # Do not allow FluentAssertions to be upgraded past v7, v8+ requires a commercial licence, whereas v7 is free-to-use commercially.
       - dependency-name: "Azure.Storage.Queues" # Stay on 12.24.0 of Azure.Storage.Queues until Azurite is updated to support the new API version
-    cooldown:
-      semver-major-days: 30
-      semver-minor-days: 7
-      semvar-patch-days: 7
-
-  - package-ecosystem: nuget
-    directory: "/Apps/StubCustodians"
-    schedule:
-      interval: "weekly"
-      day: "tuesday"
-      time: "06:00"
-    commit-message:
-      prefix: "[nuget][StubCustodians]-"
-    groups:
-      STUBS-package-updates:
-        patterns:
-          - "*"
-    ignore:
-      - dependency-name: "FluentAssertions"
-        update-types:
-          - "version-update:semver-major" # Do not allow FluentAssertions to be upgraded past v7, v8+ requires a commercial licence, whereas v7 is free-to-use commercially.
     cooldown:
       semver-major-days: 30
       semver-minor-days: 7

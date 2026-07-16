@@ -7,7 +7,7 @@ on:
         type: string
         required: true
       project_names:
-        description: JSON array of project names (e.g. ["SUI.Find.FindApi","SUI.Find.AuditProcessor"])
+        description: JSON array of project names
         type: string
         required: true
       requires_azurite:
@@ -151,7 +151,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             $coverage_arg \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
-            /d:sonar.exclusions="**/wwwroot/**,**/*Hardcoded*,**/SUI.Find.CustodianSimulation/**,**/SUI.Find.FindApi/Functions/HttpFunctions/SearchFunction.cs" \
+            /d:sonar.exclusions="**/wwwroot/** \
             /d:sonar.cpd.exclusions="**/Program.cs" \
             /d:sonar.issue.ignore.multicriteria.e1.ruleKey=csharpsquid:S6602 \
             /d:sonar.scanner.skipJreProvisioning=true \
