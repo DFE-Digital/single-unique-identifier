@@ -151,7 +151,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             $coverage_arg \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
-            /d:sonar.exclusions="**/wwwroot/** \
+            /d:sonar.exclusions="**/wwwroot/**" \
             /d:sonar.cpd.exclusions="**/Program.cs" \
             /d:sonar.issue.ignore.multicriteria.e1.ruleKey=csharpsquid:S6602 \
             /d:sonar.scanner.skipJreProvisioning=true \
