@@ -2,7 +2,7 @@ name: Upload build artifacts
 description: Upload per-project build artifacts using the Actions artifact client.
 inputs:
   projects_json:
-    description: JSON array of project names (e.g. ["SUI.Find.FindApi","SUI.Find.AuditProcessor"])
+    description: JSON array of project names
     required: true
   artifact_names:
     description: JSON map of project -> artifact name

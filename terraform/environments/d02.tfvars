@@ -11,7 +11,6 @@ app_service_plan_os_type      = "Linux"
 app_service_plan_worker_count = 1
 function_dotnet_version       = "10.0"
 webapp_dotnet_version         = "10.0"
-use_stub_custodians           = true
 use_auth_emulator             = true
 use_ui_test_harness           = true
 use_auxiliary_asp                       = true
@@ -19,19 +18,6 @@ auxiliary_app_service_plan_sku          = "B1"
 auxiliary_app_service_plan_os_type      = "Linux"
 auxiliary_app_service_plan_worker_count = 1
 key_vault_use_rbac            = false
-
-find_app_settings = {
-  NhsAuthConfig__NHS_DIGITAL_TOKEN_URL                       = "https://int.api.service.nhs.uk/oauth2/token"
-  NhsAuthConfig__NHS_DIGITAL_FHIR_ENDPOINT                   = "https://int.api.service.nhs.uk/personal-demographics/FHIR/R4/"
-  NhsAuthConfig__NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5
-}
-
-custodian_app_settings = {
-  RandomDelayMinSeconds = 1
-  RandomDelayMaxSeconds = 5
-  CustodianWorkerRandomIntervalMinSeconds = 3
-  CustodianWorkerRandomIntervalMaxSeconds = 8
-}
 
 ui_harness_app_settings = {
   ArchitectureOptionHidden = true
