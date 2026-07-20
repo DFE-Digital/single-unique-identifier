@@ -5,4 +5,4 @@ var builder = FunctionsApplication.CreateBuilder(args);
 
 builder.ConfigureFunctionsWebApplication();
 
-builder.Build().Run();
+await builder.Build().RunAsync();
