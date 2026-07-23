@@ -53,7 +53,8 @@ public class JwtAuthMiddleware(
                 req,
                 HttpStatusCode.Unauthorized,
                 nameof(HttpStatusCode.Unauthorized),
-                "Missing Authorization header."
+                "Missing Authorization header.",
+                cancellationToken: context.CancellationToken
             );
             return;
         }
@@ -65,7 +66,8 @@ public class JwtAuthMiddleware(
                 req,
                 HttpStatusCode.Unauthorized,
                 nameof(HttpStatusCode.Unauthorized),
-                "Invalid Authorization header."
+                "Invalid Authorization header.",
+                cancellationToken: context.CancellationToken
             );
             return;
         }
@@ -95,7 +97,8 @@ public class JwtAuthMiddleware(
                 req,
                 HttpStatusCode.Unauthorized,
                 nameof(HttpStatusCode.Unauthorized),
-                "Token validation failed."
+                "Token validation failed.",
+                cancellationToken: context.CancellationToken
             );
             return;
         }
@@ -106,7 +109,8 @@ public class JwtAuthMiddleware(
                 req,
                 HttpStatusCode.Unauthorized,
                 nameof(HttpStatusCode.Unauthorized),
-                "Invalid bearer token."
+                "Invalid bearer token.",
+                cancellationToken: context.CancellationToken
             );
             return;
         }
@@ -124,7 +128,8 @@ public class JwtAuthMiddleware(
                 req,
                 HttpStatusCode.Unauthorized,
                 nameof(HttpStatusCode.Unauthorized),
-                authResult.ErrorMessage
+                authResult.ErrorMessage,
+                cancellationToken: context.CancellationToken
             );
             return;
         }
@@ -137,7 +142,8 @@ public class JwtAuthMiddleware(
                 req,
                 HttpStatusCode.Unauthorized,
                 nameof(HttpStatusCode.Unauthorized),
-                "Insufficient scope for this operation."
+                "Insufficient scope for this operation.",
+                cancellationToken: context.CancellationToken
             );
             return;
         }

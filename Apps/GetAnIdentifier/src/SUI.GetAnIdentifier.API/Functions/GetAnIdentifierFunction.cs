@@ -80,7 +80,7 @@ public class GetAnIdentifierFunction(
 
         if (
             !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
-            || authObj is not AuthContext authContext
+            || authObj is not AuthContext
             || !VerifyApiKey(req)
         )
         {
