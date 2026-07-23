@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\SUI.GetAnIdentifier.API\SUI.GetAnIdentifier.API.csproj" />
     <ProjectReference Include="..\..\src\SUI.GetAnIdentifier.Infrastructure\SUI.GetAnIdentifier.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
