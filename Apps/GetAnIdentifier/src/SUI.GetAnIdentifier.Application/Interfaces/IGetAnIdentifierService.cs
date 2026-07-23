@@ -9,7 +9,6 @@ public interface IGetAnIdentifierService
 {
     Task<OneOf<NhsPersonId, DataQualityResult, NotFound, Error>> MatchPersonAsync(
         PersonSpecification request,
-        string authContextOrganisationId,
         CancellationToken ct
     );
 }

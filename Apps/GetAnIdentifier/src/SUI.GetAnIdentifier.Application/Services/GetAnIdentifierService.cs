@@ -21,7 +21,6 @@ public class GetAnIdentifierService(
 {
     public async Task<OneOf<NhsPersonId, DataQualityResult, NotFound, Error>> MatchPersonAsync(
         PersonSpecification request,
-        string authContextOrganisationId,
         CancellationToken ct
     )
     {

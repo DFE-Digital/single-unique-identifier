@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using SUI.Find.Application.Constants;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
+using SUI.GetAnIdentifier.Function.Attributes;
 using SUI.GetAnIdentifier.Function.Configuration;
 using SUI.GetAnIdentifier.Function.Models;
 using SUI.GetAnIdentifier.Function.OpenApi;
@@ -22,6 +23,7 @@ public class GetAnIdentifierFunction(
 )
 {
     [Function(nameof(GetAnIdentifier))]
+    [RequiredScopes("get-an-identifier.read")]
     // Updated Summary
     [OpenApiOperation(
         operationId: "GetAnIdentifier",
@@ -130,7 +132,6 @@ public class GetAnIdentifierFunction(
 
         var personMatch = await getAnIdentifierService.MatchPersonAsync(
             request.PersonSpecification,
-            authContext.OrganisationId,
             cancellationToken
         );
 

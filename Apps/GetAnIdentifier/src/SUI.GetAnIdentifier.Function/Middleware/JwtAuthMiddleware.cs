@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Reflection;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Logging;
@@ -8,7 +9,9 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using SUI.Find.Application.Constants;
+using SUI.GetAnIdentifier.Function.Attributes;
 using SUI.GetAnIdentifier.Function.Configuration;
+using SUI.GetAnIdentifier.Function.Models;
 using SUI.GetAnIdentifier.Function.Utility;
 
 namespace SUI.GetAnIdentifier.Function.Middleware;
@@ -126,6 +129,19 @@ public class JwtAuthMiddleware(
             return;
         }
 
+        var requiredScopes = GetRequiredScopes(context);
+
+        if (!HasAnyRequiredScope(authResult.Context, requiredScopes))
+        {
+            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                nameof(HttpStatusCode.Unauthorized),
+                "Insufficient scope for this operation."
+            );
+            return;
+        }
+
         context.Items[ApplicationConstants.Auth.AuthContextKey] = authResult.Context;
 
         await next(context);
@@ -176,5 +192,54 @@ public class JwtAuthMiddleware(
             }
             throw;
         }
+    }
+
+    private static string[] GetRequiredScopes(FunctionContext context)
+    {
+        var entryPoint = context.FunctionDefinition.EntryPoint;
+        if (string.IsNullOrWhiteSpace(entryPoint))
+        {
+            return [];
+        }
+
+        var lastDot = entryPoint.LastIndexOf('.');
+        if (lastDot < 0 || lastDot == entryPoint.Length - 1)
+        {
+            return [];
+        }
+
+        var typeName = entryPoint[..lastDot];
+        var methodName = entryPoint[(lastDot + 1)..];
+
+        var type = Type.GetType(typeName);
+        if (type is null)
+        {
+            return [];
+        }
+
+        // It is safe to bypass accessibility here because we are only reading attributes for authorization, not invoking the method.
+#pragma warning disable S3011
+        var method = type.GetMethod(
+            methodName,
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+        );
+#pragma warning restore S3011
+        if (method is null)
+        {
+            return [];
+        }
+
+        var attr = method.GetCustomAttribute<RequiredScopesAttribute>();
+        return attr?.Scopes.ToArray() ?? [];
+    }
+
+    private static bool HasAnyRequiredScope(
+        AuthContext caller,
+        IReadOnlyList<string> requiredScopes
+    )
+    {
+        return requiredScopes.Any(rs =>
+            caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
+        );
     }
 }
