@@ -53,7 +53,7 @@ public class SearchQueryBuilder
                     .ToString(PdsConstants.SearchQuery.DateFormat),
             "le"
                 + _model
-                    .BirthDate.Value.AddMonths(_dobRange)
+                    .BirthDate!.Value.AddMonths(_dobRange)
                     .ToString(PdsConstants.SearchQuery.DateFormat),
         ];
     private string[] Dob =>
