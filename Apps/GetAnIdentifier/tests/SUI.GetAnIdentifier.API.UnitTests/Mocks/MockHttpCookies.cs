@@ -9,14 +9,9 @@ public class MockHttpCookies : HttpCookies
 
     public override void Append(string name, string value)
     {
-        if (Cookies.TryGetValue(name, out var cookie))
-        {
-            Cookies[name] = StringValues.Concat(cookie, value);
-        }
-        else
-        {
-            Cookies[name] = value;
-        }
+        Cookies[name] = Cookies.TryGetValue(name, out var cookie)
+            ? StringValues.Concat(cookie, value)
+            : value;
     }
 
     public override void Append(IHttpCookie cookie)
