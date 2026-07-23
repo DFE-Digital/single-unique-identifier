@@ -104,7 +104,7 @@ public sealed class FhirAuthTokenService(
 
         var clientAssertion = GenerateClientAssertionJwt(authAddress, tokenExpiresInMinutes);
 
-        var requestBody = new FormUrlEncodedContent(
+        using var requestBody = new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
                 { "grant_type", "client_credentials" },
