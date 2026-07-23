@@ -1,4 +1,4 @@
-namespace SUI.GetAnIdentifier.Function.Constants;
+namespace SUI.GetAnIdentifier.Application.Constants;
 
 public static class PdsConstants
 {

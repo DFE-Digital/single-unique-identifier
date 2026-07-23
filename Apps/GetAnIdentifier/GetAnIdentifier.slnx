@@ -1,12 +1,12 @@
 ﻿<Solution>
   <Folder Name="/src/">
+    <Project Path="src\SUI.GetAnIdentifier.API\SUI.GetAnIdentifier.API.csproj" Type="Classic C#" />
     <Project Path="src\SUI.GetAnIdentifier.Application\SUI.GetAnIdentifier.Application.csproj" Type="Classic C#" />
-    <Project Path="src\SUI.GetAnIdentifier.Function\SUI.GetAnIdentifier.Function.csproj" Type="Classic C#" />
     <Project Path="src\SUI.GetAnIdentifier.Infrastructure\SUI.GetAnIdentifier.Infrastructure.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests\SUI.GetAnIdentifier.API.UnitTests\SUI.GetAnIdentifier.API.UnitTests.csproj" Type="Classic C#" />
     <Project Path="tests\SUI.GetAnIdentifier.Application.UnitTests\SUI.GetAnIdentifier.Application.UnitTests.csproj" Type="Classic C#" />
-    <Project Path="tests\SUI.GetAnIdentifier.Function.UnitTests\SUI.GetAnIdentifier.Function.UnitTests.csproj" Type="Classic C#" />
     <Project Path="tests\SUI.GetAnIdentifier.Infrastructure.UnitTests\SUI.GetAnIdentifier.Infrastructure.UnitTests.csproj" Type="Classic C#" />
   </Folder>
 </Solution>

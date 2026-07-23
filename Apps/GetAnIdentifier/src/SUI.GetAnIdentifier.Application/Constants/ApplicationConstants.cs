@@ -1,4 +1,4 @@
-namespace SUI.Find.Application.Constants;
+namespace SUI.GetAnIdentifier.Application.Constants;
 
 public static class ApplicationConstants
 {
