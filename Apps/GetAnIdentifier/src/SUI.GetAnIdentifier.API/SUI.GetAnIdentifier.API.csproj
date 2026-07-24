@@ -47,7 +47,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SUI.GetAnIdentifier.Application\SUI.GetAnIdentifier.Application.csproj" />
     <ProjectReference Include="..\SUI.GetAnIdentifier.Infrastructure\SUI.GetAnIdentifier.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
