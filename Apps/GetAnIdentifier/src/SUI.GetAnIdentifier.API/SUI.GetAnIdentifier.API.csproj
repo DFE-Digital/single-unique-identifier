@@ -38,7 +38,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
-    <None Remove="local.settings.json" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\Data\auth-clients-inbound.json">
