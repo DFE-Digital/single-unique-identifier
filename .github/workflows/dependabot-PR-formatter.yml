@@ -20,7 +20,7 @@ jobs:
           ref: ${{ github.head_ref }} # crucial for the git push in the later step
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
