@@ -30,11 +30,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="SUI.GetAnIdentifier.Function\local.settings.json">
+    <None Update="SUI.GetAnIdentifier.API\local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
-    <None Update="SUI.GetAnIdentifier.Function\host.json">
+    <None Update="SUI.GetAnIdentifier.API\host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
@@ -47,7 +47,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SUI.GetAnIdentifier.Application\SUI.GetAnIdentifier.Application.csproj" />
     <ProjectReference Include="..\SUI.GetAnIdentifier.Infrastructure\SUI.GetAnIdentifier.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
