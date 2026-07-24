@@ -19,6 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SUI.GetAnIdentifier.Function\SUI.GetAnIdentifier.Function.csproj" />
+    <ProjectReference Include="..\..\src\SUI.GetAnIdentifier.Application\SUI.GetAnIdentifier.Application.csproj" />
   </ItemGroup>
 </Project>
