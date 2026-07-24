@@ -68,7 +68,7 @@ jobs:
       actions: write
     with:
       directory_name: Apps/GetAnIdentifier
-      project_names: '["SUI.GetAnIdentifier.Function"]'
+      project_names: '["SUI.GetAnIdentifier.API"]'
       requires_azurite: true
       upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
       artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
