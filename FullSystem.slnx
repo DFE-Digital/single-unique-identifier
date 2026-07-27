@@ -9,10 +9,10 @@
   </Folder>
   <Folder Name="/Apps/GetAnIdentifier/" />
   <Folder Name="/Apps/GetAnIdentifier/src/">
-    <Project Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.Function\SUI.GetAnIdentifier.Function.csproj" Type="Classic C#" />
+    <Project Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.API\SUI.GetAnIdentifier.API.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Apps/GetAnIdentifier/tests/">
-    <Project Path="Apps\GetAnIdentifier\tests\SUI.GetAnIdentifier.Function.Tests\SUI.GetAnIdentifier.Function.Tests.csproj" />
+    <Project Path="Apps\GetAnIdentifier\tests\SUI.GetAnIdentifier.API.UnitTests\SUI.GetAnIdentifier.API.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Apps/UIHarness/" />
   <Folder Name="/Apps/UIHarness/src/">
