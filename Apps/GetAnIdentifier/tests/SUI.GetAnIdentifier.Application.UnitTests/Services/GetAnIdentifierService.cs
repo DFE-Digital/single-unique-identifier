@@ -60,7 +60,7 @@ public class MatchPersonAsyncTests
 
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Domain.Models.Result<SearchResult>.Fail("Simulated FHIR service error"));
+            .Returns(Application.Models.Result<SearchResult>.Fail("Simulated FHIR service error"));
 
         // Act
         var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
@@ -85,7 +85,7 @@ public class MatchPersonAsyncTests
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult { Type = SearchResult.ResultType.Unmatched }
                 )
             );
@@ -112,7 +112,7 @@ public class MatchPersonAsyncTests
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
                     {
                         Type = SearchResult.ResultType.Matched,
@@ -145,7 +145,7 @@ public class MatchPersonAsyncTests
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
                     {
                         Type = SearchResult.ResultType.Matched,
@@ -178,7 +178,7 @@ public class MatchPersonAsyncTests
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
                     {
                         Type = SearchResult.ResultType.Matched,
@@ -186,7 +186,7 @@ public class MatchPersonAsyncTests
                         NhsNumber = "9449305552",
                     }
                 ),
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
                     {
                         Type = SearchResult.ResultType.Matched,
@@ -219,7 +219,7 @@ public class MatchPersonAsyncTests
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
                     {
                         Type = SearchResult.ResultType.Matched,
@@ -252,8 +252,8 @@ public class MatchPersonAsyncTests
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Fail("Simulated FHIR service error"),
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Fail("Simulated FHIR service error"),
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
                     {
                         Type = SearchResult.ResultType.Matched,
@@ -286,7 +286,7 @@ public class MatchPersonAsyncTests
 
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
-            .Returns<Task<Domain.Models.Result<SearchResult>>>(_ =>
+            .Returns<Task<Application.Models.Result<SearchResult>>>(_ =>
                 throw new Exception("Simulated exception")
             );
 

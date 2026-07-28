@@ -1,8 +1,8 @@
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Logging;
 using SUI.GetAnIdentifier.Application.Interfaces;
+using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
-using SUI.GetAnIdentifier.Domain.Models;
 using SUI.GetAnIdentifier.Infrastructure.Factories;
 using SUI.GetAnIdentifier.Infrastructure.Interfaces;
 

@@ -2,7 +2,6 @@ using System.Text.RegularExpressions;
 using SUI.GetAnIdentifier.Application.Constants;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
-using SUI.GetAnIdentifier.Function.Constants;
 
 namespace SUI.GetAnIdentifier.Application.Services;
 

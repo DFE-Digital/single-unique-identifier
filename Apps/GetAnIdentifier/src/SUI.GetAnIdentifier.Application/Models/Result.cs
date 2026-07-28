@@ -1,4 +1,4 @@
-namespace SUI.GetAnIdentifier.Domain.Models;
+namespace SUI.GetAnIdentifier.Application.Models;
 
 public class Result<T>
     where T : class

@@ -2,7 +2,6 @@ using System.Text.RegularExpressions;
 using FluentValidation;
 using SUI.GetAnIdentifier.Application.Constants;
 using SUI.GetAnIdentifier.Application.Models;
-using SUI.GetAnIdentifier.Function.Constants;
 
 namespace SUI.GetAnIdentifier.Application.Validation;
 

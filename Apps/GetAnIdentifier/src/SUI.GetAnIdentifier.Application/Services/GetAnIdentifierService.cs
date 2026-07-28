@@ -1,14 +1,13 @@
 using Microsoft.Extensions.Logging;
 using OneOf;
 using OneOf.Types;
+using SUI.GetAnIdentifier.Application.Constants;
 using SUI.GetAnIdentifier.Application.Enum;
 using SUI.GetAnIdentifier.Application.Factories;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
 using SUI.GetAnIdentifier.Application.Validation;
-using SUI.GetAnIdentifier.Domain.Models;
-using SUI.GetAnIdentifier.Function.Constants;
 using PersonSpecificationValidation = SUI.GetAnIdentifier.Application.Validation.PersonSpecificationValidation;
 
 namespace SUI.GetAnIdentifier.Application.Services;
