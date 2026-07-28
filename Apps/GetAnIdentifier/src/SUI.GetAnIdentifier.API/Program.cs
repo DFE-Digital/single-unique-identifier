@@ -6,11 +6,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using SUI.GetAnIdentifier.Application.Factories;
-using SUI.GetAnIdentifier.Application.Interfaces;
-using SUI.GetAnIdentifier.Application.Services;
 using SUI.GetAnIdentifier.API.Configuration;
 using SUI.GetAnIdentifier.API.Middleware;
+using SUI.GetAnIdentifier.Application.Interfaces;
+using SUI.GetAnIdentifier.Application.Services;
 using SUI.GetAnIdentifier.Infrastructure;
 using SUI.GetAnIdentifier.Infrastructure.Factories;
 using SUI.GetAnIdentifier.Infrastructure.Interfaces;
@@ -66,7 +65,6 @@ builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();
 
 // Application services
 builder.Services.AddSingleton<IGetAnIdentifierService, GetAnIdentifierService>();
-builder.Services.AddSingleton<IPdsSearchFactory, PdsSearchFactory>();
 
 // Use mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();

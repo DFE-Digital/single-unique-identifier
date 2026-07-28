@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using OneOf.Types;
 using SUI.GetAnIdentifier.Application.Enum;
-using SUI.GetAnIdentifier.Application.Factories;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
