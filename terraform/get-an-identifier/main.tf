@@ -126,6 +126,10 @@ module "function_app" {
       FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
       WEBSITE_RUN_FROM_PACKAGE = "1"
       OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
+      
+      NhsAuthConfig__NHS_DIGITAL_PRIVATE_KEY = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_private_key.name}/)"
+      NhsAuthConfig__NHS_DIGITAL_KID         = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_kid.name}/)"
+      NhsAuthConfig__NHS_DIGITAL_CLIENT_ID   = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_client_id.name}/)"
     },
     var.getanidentifier_app_settings
   )
