@@ -19,6 +19,12 @@ auxiliary_app_service_plan_os_type      = "Linux"
 auxiliary_app_service_plan_worker_count = 1
 key_vault_use_rbac            = false
 
+getanidentifier_app_settings = {
+  NhsAuthConfig__NHS_DIGITAL_TOKEN_URL                       = "https://int.api.service.nhs.uk/oauth2/token"
+  NhsAuthConfig__NHS_DIGITAL_FHIR_ENDPOINT                   = "https://int.api.service.nhs.uk/personal-demographics/FHIR/R4/"
+  NhsAuthConfig__NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5
+}
+
 tags = {
   # Additional tags can be added here
   # Environment, Product, and Service Offering will be added by default
