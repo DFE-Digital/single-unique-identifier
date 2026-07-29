@@ -169,14 +169,8 @@ public sealed class FhirAuthTokenService(
     private static SigningCredentials CreateSigningCredentials(string privateKey, string kid)
     {
         var rsa = RSA.Create();
+        rsa.ImportFromPem(privateKey.ToCharArray());
 
-        var keyContents = privateKey
-            .Replace("-----BEGIN RSA PRIVATE KEY-----", "")
-            .Replace("-----END RSA PRIVATE KEY-----", "")
-            .ReplaceLineEndings("")
-            .Trim();
-
-        rsa.ImportRSAPrivateKey(Convert.FromBase64String(keyContents), out _);
         var securityKey = new RsaSecurityKey(rsa) { KeyId = kid };
 
         return new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha512)
