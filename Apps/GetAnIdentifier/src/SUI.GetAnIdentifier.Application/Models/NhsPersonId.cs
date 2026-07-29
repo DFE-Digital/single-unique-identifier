@@ -1,5 +1,3 @@
-using SUI.GetAnIdentifier.Domain.Models;
-
 namespace SUI.GetAnIdentifier.Application.Models;
 
 public class NhsPersonId

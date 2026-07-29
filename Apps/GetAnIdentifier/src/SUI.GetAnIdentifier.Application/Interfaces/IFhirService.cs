@@ -1,5 +1,5 @@
+using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
-using SUI.GetAnIdentifier.Domain.Models;
 
 namespace SUI.GetAnIdentifier.Application.Interfaces;
 

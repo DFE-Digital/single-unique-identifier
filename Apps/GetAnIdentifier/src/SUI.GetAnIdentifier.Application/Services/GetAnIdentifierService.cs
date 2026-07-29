@@ -1,21 +1,16 @@
 using Microsoft.Extensions.Logging;
 using OneOf;
 using OneOf.Types;
-using SUI.GetAnIdentifier.Application.Enum;
-using SUI.GetAnIdentifier.Application.Factories;
+using SUI.GetAnIdentifier.Application.Constants;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
 using SUI.GetAnIdentifier.Application.Validation;
-using SUI.GetAnIdentifier.Domain.Models;
-using SUI.GetAnIdentifier.Function.Constants;
-using PersonSpecificationValidation = SUI.GetAnIdentifier.Application.Validation.PersonSpecificationValidation;
 
 namespace SUI.GetAnIdentifier.Application.Services;
 
 public class GetAnIdentifierService(
     ILogger<GetAnIdentifierService> logger,
-    IPdsSearchFactory searchFactory,
     IFhirService fhirService
 ) : IGetAnIdentifierService
 {
@@ -26,40 +21,59 @@ public class GetAnIdentifierService(
     {
         try
         {
+            // 1. Validate the incoming request
             var validationResult = await new PersonSpecificationValidation().ValidateAsync(
                 request,
                 ct
             );
             var translatedResult = PersonDataQualityTranslator.Translate(request, validationResult);
+
             if (!translatedResult.hasMetRequirements)
             {
                 return translatedResult.dataQualityResult;
             }
 
-            var searchQueries = BuildSearchQueries(request);
+            // 2. Build the single PDS Query
+            var searchQuery = BuildSearchQuery(request);
 
-            var result = await PerformSearchAsync(searchQueries, ct);
+            // 3. Send directly to PDS
+            var result = await fhirService.PerformSearchAsync(searchQuery, ct);
 
-            if (result.MatchStatus == MatchStatus.Error)
+            if (!result.Success)
             {
-                logger.LogWarning(
-                    "Matching service encountered an error: {ErrorMessage}",
-                    result.ErrorMessage
-                );
+                logger.LogWarning("FHIR search encountered an error: {ErrorMessage}", result.Error);
                 return new Error();
             }
 
-            if (result.MatchStatus is not MatchStatus.Match || result.NhsNumber is null)
+            // 4. Evaluate the result and enforce the threshold
+            if (
+                result.Value is null
+                || result.Value.Type != SearchResult.ResultType.Matched
+                || string.IsNullOrWhiteSpace(result.Value.NhsNumber)
+            )
             {
+                logger.LogInformation("No confident match found or multiple matches returned.");
                 return new NotFound();
             }
 
-            var nhsPersonId = NhsPersonId.Create(result.NhsNumber);
+            var score = result.Value.Score.GetValueOrDefault();
+            if (score < MatchScoreConstants.MinMatchThreshold)
+            {
+                logger.LogInformation(
+                    "Match score {Score} was below the minimum threshold of {Threshold}.",
+                    score,
+                    MatchScoreConstants.MinMatchThreshold
+                );
+                return new NotFound();
+            }
+
+            // 5. Parse and return the NHS Number
+            var nhsPersonId = NhsPersonId.Create(result.Value.NhsNumber);
             if (nhsPersonId is not { Success: true, Value: not null })
             {
                 logger.LogError(
                     "Failed to create NhsPersonId from NHS number: {NhsNumber}",
-                    result.NhsNumber
+                    result.Value.NhsNumber
                 );
                 return new Error();
             }
@@ -77,74 +91,26 @@ public class GetAnIdentifierService(
         }
     }
 
-    private OrderedDictionary<string, SearchQuery> BuildSearchQueries(PersonSpecification request)
+    private static SearchQuery BuildSearchQuery(PersonSpecification request)
     {
-        // Version number could come from config if we need to support multiple versions
-        var searchStrategy = searchFactory.GetVersion(1);
-        return searchStrategy.BuildQuery(request);
-    }
-
-    private async Task<MatchResult> PerformSearchAsync(
-        OrderedDictionary<string, SearchQuery> searchQueries,
-        CancellationToken ct
-    )
-    {
-        var currentMatchResult = MatchResult.NoMatch();
-        // We want to keep it synchronous so we can stop as soon as we get a confident match
-        foreach (var query in searchQueries)
+        return new SearchQuery
         {
-            var result = await fhirService.PerformSearchAsync(query.Value, ct);
+            // PDS requires Given and Birthdate as arrays. Birthdate requires the "eq" prefix.
+            Given = string.IsNullOrWhiteSpace(request.Given) ? null : [request.Given],
+            Family = string.IsNullOrWhiteSpace(request.Family) ? null : request.Family,
+            Birthdate = request.BirthDate.HasValue
+                ? [$"eq{request.BirthDate.Value:yyyy-MM-dd}"]
+                : null,
+            Gender = string.IsNullOrWhiteSpace(request.Gender) ? null : request.Gender,
+            AddressPostalcode = string.IsNullOrWhiteSpace(request.AddressPostalCode)
+                ? null
+                : request.AddressPostalCode,
+            Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email,
+            Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
 
-            if (!result.Success)
-            {
-                currentMatchResult = MatchResult.Error(result.Error ?? "Unknown error");
-                logger.LogError(
-                    "FHIR service returned an error for query {QueryCode}: {ErrorMessage}",
-                    query.Key,
-                    result.Error
-                );
-                continue;
-            }
-
-            if (result.Value is not null)
-            {
-                var mappedResult = MapSearchResult(result.Value, query.Key);
-                if (mappedResult.IsBetterThan(currentMatchResult))
-                {
-                    currentMatchResult = mappedResult;
-                }
-            }
-        }
-
-        logger.LogInformation(
-            "Match result status and score: {Status} : {Score}",
-            currentMatchResult.MatchStatus.ToString(),
-            currentMatchResult.Score
-        );
-
-        return currentMatchResult;
-    }
-
-    private static MatchResult MapSearchResult(SearchResult value, string queryCode)
-    {
-        return value.Type switch
-        {
-            SearchResult.ResultType.Matched => value.Score switch
-            {
-                >= MatchScoreConstants.MinMatchThreshold => MatchResult.Match(
-                    value.Score.GetValueOrDefault(),
-                    queryCode,
-                    value.NhsNumber!
-                ),
-                >= MatchScoreConstants.MinPartialMatchThreshold => MatchResult.PotentialMatch(
-                    value.Score.GetValueOrDefault(),
-                    queryCode,
-                    value.NhsNumber!
-                ),
-                _ => MatchResult.NoMatch(),
-            },
-            SearchResult.ResultType.MultiMatched => MatchResult.ManyMatch(queryCode),
-            _ => MatchResult.NoMatch(),
+            // Enable MOAB
+            FuzzyMatch = true,
+            ExactMatch = false,
         };
     }
 }

@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using OneOf.Types;
 using SUI.GetAnIdentifier.Application.Enum;
-using SUI.GetAnIdentifier.Application.Factories;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
@@ -13,14 +12,13 @@ namespace SUI.GetAnIdentifier.Application.UnitTests.Services;
 public class MatchPersonAsyncTests
 {
     private readonly GetAnIdentifierService _sut;
-    private readonly IPdsSearchFactory _pdsSearchFactory = Substitute.For<IPdsSearchFactory>();
     private readonly IFhirService _fhirService = Substitute.For<IFhirService>();
 
     public MatchPersonAsyncTests()
     {
         var logger = Substitute.For<ILogger<GetAnIdentifierService>>();
 
-        _sut = new GetAnIdentifierService(logger, _pdsSearchFactory, _fhirService);
+        _sut = new GetAnIdentifierService(logger, _fhirService);
     }
 
     [Fact]
@@ -56,11 +54,9 @@ public class MatchPersonAsyncTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
 
-        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
-
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Domain.Models.Result<SearchResult>.Fail("Simulated FHIR service error"));
+            .Returns(Application.Models.Result<SearchResult>.Fail("Simulated FHIR service error"));
 
         // Act
         var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
@@ -80,12 +76,10 @@ public class MatchPersonAsyncTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
 
-        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
-
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult { Type = SearchResult.ResultType.Unmatched }
                 )
             );
@@ -107,12 +101,10 @@ public class MatchPersonAsyncTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
 
-        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
-
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
                     {
                         Type = SearchResult.ResultType.Matched,
@@ -140,12 +132,10 @@ public class MatchPersonAsyncTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
 
-        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
-
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
                     {
                         Type = SearchResult.ResultType.Matched,
@@ -163,47 +153,6 @@ public class MatchPersonAsyncTests
     }
 
     [Fact]
-    public async Task ShouldReturnFound_WhenAtLeastOneQueryReturnsConfidentMatch()
-    {
-        // Arrange
-        var personSpecification = new PersonSpecification
-        {
-            Given = "John",
-            Family = "Doe",
-            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
-        };
-
-        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
-
-        _fhirService
-            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
-            .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
-                    new SearchResult
-                    {
-                        Type = SearchResult.ResultType.Matched,
-                        Score = 0.85m,
-                        NhsNumber = "9449305552",
-                    }
-                ),
-                Domain.Models.Result<SearchResult>.Ok(
-                    new SearchResult
-                    {
-                        Type = SearchResult.ResultType.Matched,
-                        Score = 0.98m,
-                        NhsNumber = "9876543210",
-                    }
-                )
-            );
-
-        // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
-
-        // Assert
-        Assert.IsType<NhsPersonId>(result.Value);
-    }
-
-    [Fact]
     public async Task ShouldReturnError_WhenNhsNumberFailsToParse()
     {
         // Arrange
@@ -214,12 +163,10 @@ public class MatchPersonAsyncTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
 
-        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
-
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
             .Returns(
-                Domain.Models.Result<SearchResult>.Ok(
+                Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
                     {
                         Type = SearchResult.ResultType.Matched,
@@ -237,40 +184,6 @@ public class MatchPersonAsyncTests
     }
 
     [Fact]
-    public async Task ShouldTryNextQuery_WhenTheFirstFails_ThenPass()
-    {
-        // Arrange
-        var personSpecification = new PersonSpecification
-        {
-            Given = "John",
-            Family = "Doe",
-            BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
-        };
-
-        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
-
-        _fhirService
-            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
-            .Returns(
-                Domain.Models.Result<SearchResult>.Fail("Simulated FHIR service error"),
-                Domain.Models.Result<SearchResult>.Ok(
-                    new SearchResult
-                    {
-                        Type = SearchResult.ResultType.Matched,
-                        Score = 0.98m,
-                        NhsNumber = "9876543210",
-                    }
-                )
-            );
-
-        // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
-
-        // Assert
-        Assert.IsType<NhsPersonId>(result.Value);
-    }
-
-    [Fact]
     public async Task ShouldReturnError_IfExceptionIsThrownInSearch()
     {
         // Edge case test
@@ -282,11 +195,9 @@ public class MatchPersonAsyncTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
 
-        _pdsSearchFactory.GetVersion(Arg.Any<int>()).Returns(new PdsSearchV1());
-
         _fhirService
             .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
-            .Returns<Task<Domain.Models.Result<SearchResult>>>(_ =>
+            .Returns<Task<Application.Models.Result<SearchResult>>>(_ =>
                 throw new Exception("Simulated exception")
             );
 
