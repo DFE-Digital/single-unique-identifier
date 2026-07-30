@@ -10,9 +10,13 @@
   <Folder Name="/Apps/GetAnIdentifier/" />
   <Folder Name="/Apps/GetAnIdentifier/src/">
     <Project Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.API\SUI.GetAnIdentifier.API.csproj" Type="Classic C#" />
+    <Project Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.Application\SUI.GetAnIdentifier.Application.csproj" Type="Classic C#" />
+    <Project Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.Infrastructure\SUI.GetAnIdentifier.Infrastructure.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Apps/GetAnIdentifier/tests/">
     <Project Path="Apps\GetAnIdentifier\tests\SUI.GetAnIdentifier.API.UnitTests\SUI.GetAnIdentifier.API.UnitTests.csproj" />
+    <Project Path="Apps\GetAnIdentifier\tests\SUI.GetAnIdentifier.Application.UnitTests\SUI.GetAnIdentifier.Application.UnitTests.csproj" />
+    <Project Path="Apps\GetAnIdentifier\tests\SUI.GetAnIdentifier.Infrastructure.UnitTests\SUI.GetAnIdentifier.Infrastructure.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Apps/UIHarness/" />
   <Folder Name="/Apps/UIHarness/src/">

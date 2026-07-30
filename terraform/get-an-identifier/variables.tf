@@ -79,3 +79,21 @@ variable "key_vault_use_rbac" {
   type        = bool
   default     = false
 }
+
+variable "nhs_digital_private_key" {
+  description = "Private key for connection with NHS FHIR API"
+  type = string
+  sensitive = true
+}
+
+variable "nhs_digital_kid" {
+  description = "KID for connection with NHS FHIR API"
+  type = string
+  sensitive = true
+}
+
+variable "nhs_digital_client_id" {
+  description = "Client ID for connection with NHS FHIR API"
+  type = string
+  sensitive = true
+}

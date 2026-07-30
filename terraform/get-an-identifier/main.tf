@@ -27,7 +27,7 @@ locals {
   ])
 
   # Key Vault name
-  key_vault_descriptor = "getanidkv01"
+  key_vault_descriptor = "gaidkv01"
   key_vault_name = format(
     "%s%skv-%s-%s",
     var.subscription_prefix,
@@ -103,6 +103,39 @@ resource "azurerm_key_vault_access_policy" "terraform_operator" {
   ]
 }
 
+resource "azurerm_key_vault_secret" "nhs_digital_private_key" {
+  name            = "nhs-digital-private-key"
+  value           = var.nhs_digital_private_key
+  key_vault_id    = module.key_vault.id
+  content_type    = "text/plain"
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+
+resource "azurerm_key_vault_secret" "nhs_digital_kid" {
+  name            = "nhs-digital-kid"
+  value           = var.nhs_digital_kid
+  key_vault_id    = module.key_vault.id
+  content_type    = "text/plain"
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+
+resource "azurerm_key_vault_secret" "nhs_digital_client_id" {
+  name            = "nhs-digital-client-id"
+  value           = var.nhs_digital_client_id
+  key_vault_id    = module.key_vault.id
+  content_type    = "text/plain"
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+
 module "function_app" {
   source = "../modules/linux_function_app"
 
@@ -126,6 +159,10 @@ module "function_app" {
       FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
       WEBSITE_RUN_FROM_PACKAGE = "1"
       OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
+      
+      NhsAuthConfig__NHS_DIGITAL_PRIVATE_KEY = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_private_key.name}/)"
+      NhsAuthConfig__NHS_DIGITAL_KID         = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_kid.name}/)"
+      NhsAuthConfig__NHS_DIGITAL_CLIENT_ID   = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_client_id.name}/)"
     },
     var.getanidentifier_app_settings
   )

@@ -49,7 +49,7 @@ public class FhirAuthTokenServiceTests
     private static string GenerateDummyPrivateKey()
     {
         using var rsa = System.Security.Cryptography.RSA.Create(2048);
-        return Convert.ToBase64String(rsa.ExportRSAPrivateKey());
+        return rsa.ExportRSAPrivateKeyPem();
     }
 
     private FhirAuthTokenService CreateService()
