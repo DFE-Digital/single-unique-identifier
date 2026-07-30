@@ -27,7 +27,7 @@ locals {
   ])
 
   # Key Vault name
-  key_vault_descriptor = "getanidkv01"
+  key_vault_descriptor = "gaidkv01"
   key_vault_name = format(
     "%s%skv-%s-%s",
     var.subscription_prefix,
