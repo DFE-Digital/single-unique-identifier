@@ -57,7 +57,7 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
         catch (FhirOperationException ex)
         {
             // Handle NHS Digital Non-Success Responses (e.g. 400, 500)
-            if (ex.Outcome != null && ex.Outcome.Issue.Any())
+            if (ex.Outcome != null && ex.Outcome.Issue.Count != 0)
             {
                 var issues = string.Join(
                     " | ",
