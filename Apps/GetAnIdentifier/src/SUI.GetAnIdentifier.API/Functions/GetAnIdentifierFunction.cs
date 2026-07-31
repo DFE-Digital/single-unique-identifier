@@ -62,6 +62,12 @@ public class GetAnIdentifierFunction(
         Description = "The requested demographic information did not confidently match an individual person"
     )]
     [OpenApiResponseWithBody(
+        HttpStatusCode.BadGateway,
+        "application/json",
+        typeof(Problem),
+        Description = "The upstream PDS matching service encountered an error or timed out"
+    )]
+    [OpenApiResponseWithBody(
         HttpStatusCode.InternalServerError,
         "application/json",
         typeof(Problem),
@@ -130,39 +136,54 @@ public class GetAnIdentifierFunction(
             );
         }
 
-        var personMatch = await getAnIdentifierService.MatchPersonAsync(
-            request.PersonSpecification,
-            cancellationToken
-        );
+        try
+        {
+            var personMatch = await getAnIdentifierService.MatchPersonAsync(
+                request.PersonSpecification,
+                cancellationToken
+            );
 
-        return await personMatch.Match(
-            async id =>
-                await HttpResponseUtility.OkResponse(
-                    req,
-                    new PersonMatch(id.Value),
-                    cancellationToken
-                ),
-            async dataValidationResult =>
-                await HttpResponseUtility.BadRequestResponse(
-                    req,
-                    context.InvocationId,
-                    JsonSerializer.Serialize(dataValidationResult),
-                    "Validation error",
-                    cancellationToken
-                ),
-            async notFound =>
-                await HttpResponseUtility.NotFoundResponse(
-                    req,
-                    context.InvocationId,
-                    cancellationToken
-                ),
-            async error =>
-                await HttpResponseUtility.InternalServerErrorResponse(
-                    req,
-                    context.InvocationId,
-                    cancellationToken
-                )
-        );
+            return await personMatch.Match(
+                async id =>
+                    await HttpResponseUtility.OkResponse(
+                        req,
+                        new PersonMatch(id.Value),
+                        cancellationToken
+                    ),
+                async dataValidationResult =>
+                    await HttpResponseUtility.BadRequestResponse(
+                        req,
+                        context.InvocationId,
+                        JsonSerializer.Serialize(dataValidationResult),
+                        "Validation error",
+                        cancellationToken
+                    ),
+                async notFound =>
+                    await HttpResponseUtility.NotFoundResponse(
+                        req,
+                        context.InvocationId,
+                        cancellationToken
+                    ),
+                async error =>
+                    await HttpResponseUtility.ProblemResponse(
+                        req,
+                        HttpStatusCode.BadGateway,
+                        "Downstream API Error",
+                        "The upstream PDS matching service encountered an error or timed out. Matching cannot be completed at this time.",
+                        context.InvocationId,
+                        cancellationToken
+                    )
+            );
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unhandled exception during GetAnIdentifier execution");
+            return await HttpResponseUtility.InternalServerErrorResponse(
+                req,
+                context.InvocationId,
+                cancellationToken
+            );
+        }
     }
 
     private bool TryGetMatchResponseRequestModel(

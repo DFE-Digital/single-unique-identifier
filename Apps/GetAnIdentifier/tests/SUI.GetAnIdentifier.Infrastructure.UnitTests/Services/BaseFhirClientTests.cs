@@ -1,3 +1,4 @@
+using System.Net;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Logging;
@@ -197,5 +198,73 @@ public class TestFhirClientEntryComponentSearchNull : FhirClient
         };
 
         return await Task.FromResult<Bundle?>(bundle);
+    }
+}
+
+public class TestFhirClientOperationOutcomeError : FhirClient
+{
+    public TestFhirClientOperationOutcomeError(
+        string endpoint = "https://example.com/fhir",
+        FhirClientSettings settings = null!,
+        HttpMessageHandler messageHandler = null!
+    )
+        : base(endpoint, settings, messageHandler) { }
+
+    public override Task<Bundle?> SearchAsync<TResource>(
+        SearchParams q,
+        CancellationToken? ct = null
+    )
+    {
+        var operationOutcome = new OperationOutcome();
+        operationOutcome.Issue.Add(
+            new OperationOutcome.IssueComponent
+            {
+                Severity = OperationOutcome.IssueSeverity.Error,
+                Code = OperationOutcome.IssueType.Value,
+                Diagnostics = "Invalid NHS number format",
+            }
+        );
+
+        throw new FhirOperationException(
+            "Bad Request",
+            HttpStatusCode.BadRequest,
+            operationOutcome
+        );
+    }
+}
+
+public class TestFhirClientTimeout : FhirClient
+{
+    public TestFhirClientTimeout(
+        string endpoint = "https://example.com/fhir",
+        FhirClientSettings settings = null!,
+        HttpMessageHandler messageHandler = null!
+    )
+        : base(endpoint, settings, messageHandler) { }
+
+    public override Task<Bundle?> SearchAsync<TResource>(
+        SearchParams q,
+        CancellationToken? ct = null
+    )
+    {
+        throw new TaskCanceledException("The operation was canceled.");
+    }
+}
+
+public class TestFhirClientNetworkError : FhirClient
+{
+    public TestFhirClientNetworkError(
+        string endpoint = "https://example.com/fhir",
+        FhirClientSettings settings = null!,
+        HttpMessageHandler messageHandler = null!
+    )
+        : base(endpoint, settings, messageHandler) { }
+
+    public override Task<Bundle?> SearchAsync<TResource>(
+        SearchParams q,
+        CancellationToken? ct = null
+    )
+    {
+        throw new HttpRequestException("Name resolution failure");
     }
 }

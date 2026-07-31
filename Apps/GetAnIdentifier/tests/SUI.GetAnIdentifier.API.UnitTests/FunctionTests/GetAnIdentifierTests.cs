@@ -5,14 +5,15 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using OneOf.Types;
-using SUI.GetAnIdentifier.Application.Enum;
-using SUI.GetAnIdentifier.Application.Interfaces;
-using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.API.Configuration;
 using SUI.GetAnIdentifier.API.Functions;
 using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.API.UnitTests.Mocks;
+using SUI.GetAnIdentifier.Application.Enum;
+using SUI.GetAnIdentifier.Application.Interfaces;
+using SUI.GetAnIdentifier.Application.Models;
 
 namespace SUI.GetAnIdentifier.API.UnitTests.FunctionTests;
 
@@ -90,6 +91,7 @@ public class GetAnIdentifierTests
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
         var personId = "9876543210";
+
         _getAnIdentifierService
             .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
             .Returns(NhsPersonId.Create(personId).Value!);
@@ -114,6 +116,7 @@ public class GetAnIdentifierTests
         var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
+
         _getAnIdentifierService
             .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
             .Returns(new NotFound());
@@ -126,7 +129,7 @@ public class GetAnIdentifierTests
     }
 
     [Fact]
-    public async Task ShouldProblem_WhenErrorOccurs()
+    public async Task ShouldReturnBadGateway_WhenDownstreamErrorOccurs()
     {
         // Arrange
         var function = CreateFunction();
@@ -134,9 +137,31 @@ public class GetAnIdentifierTests
         var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
+
         _getAnIdentifierService
             .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
-            .Returns(new Error());
+            .Returns(new Error()); // Simulate the failure from the FHIR service
+
+        // Act
+        var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ShouldReturnInternalServerError_WhenUnhandledExceptionOccurs()
+    {
+        // Arrange
+        var function = CreateFunction();
+        var context = CreateContextWithAuth();
+        var validRequest = CreateMatchRequest();
+        var headers = CreateHeadersWithApiKey();
+        var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
+
+        _getAnIdentifierService
+            .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new Exception("Unexpected system crash")); // Simulate an unhandled code crash
 
         // Act
         var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
@@ -241,8 +266,6 @@ public class GetAnIdentifierTests
     [Fact]
     public async Task ShouldReturnBadRequest_WhenRequestIsMissingBody()
     {
-        // Edge case test for null body
-
         // Arrange
         var service = Substitute.For<IGetAnIdentifierService>();
         var logger = Substitute.For<ILogger<GetAnIdentifierFunction>>();

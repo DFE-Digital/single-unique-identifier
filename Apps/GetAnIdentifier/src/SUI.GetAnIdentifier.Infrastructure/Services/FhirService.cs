@@ -1,4 +1,5 @@
 using Hl7.Fhir.Model;
+using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Logging;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
@@ -30,10 +31,12 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
                 var isMultiMatch =
                     client.LastBodyAsResource is OperationOutcome outcome
                     && outcome.Issue.Any(i => i.Code == OperationOutcome.IssueType.MultipleMatches);
+
                 logger.LogInformation(
                     "Handling null bundle from FHIR API, isMultiMatch: {IsMultiMatch}",
                     isMultiMatch
                 );
+
                 return isMultiMatch
                     ? Result<SearchResult>.Ok(SearchResult.MultiMatched())
                     : Result<SearchResult>.Fail("FHIR API returned null bundle");
@@ -51,8 +54,51 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
                 _ => Result<SearchResult>.Fail("Unexpected multiple entries"),
             };
         }
+        catch (FhirOperationException ex)
+        {
+            // Handle NHS Digital Non-Success Responses (e.g. 400, 500)
+            if (ex.Outcome != null && ex.Outcome.Issue.Count != 0)
+            {
+                var issues = string.Join(
+                    " | ",
+                    ex.Outcome.Issue.Select(i =>
+                        $"Severity: {i.Severity}, Code: {i.Code}, Diagnostics: {i.Diagnostics}"
+                    )
+                );
+
+                logger.LogError(
+                    ex,
+                    "PDS API returned an OperationOutcome error. Status: {StatusCode}, Issues: {Issues}",
+                    ex.Status,
+                    issues
+                );
+            }
+            else
+            {
+                logger.LogError(
+                    ex,
+                    "PDS API returned a non-success response. Status: {StatusCode}",
+                    ex.Status
+                );
+            }
+
+            return Result<SearchResult>.Fail($"PDS API Error: {ex.Status}");
+        }
+        catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
+        {
+            // Handle Downstream Timeouts
+            logger.LogError(ex, "Request to PDS API timed out.");
+            return Result<SearchResult>.Fail("PDS API Timeout");
+        }
+        catch (HttpRequestException ex)
+        {
+            // Handle DNS/Network level failures
+            logger.LogError(ex, "Network error while connecting to PDS API.");
+            return Result<SearchResult>.Fail("PDS API Network Error");
+        }
         catch (Exception ex)
         {
+            // Catch-all
             logger.LogError(ex, "Error occurred while performing FHIR search");
             return Result<SearchResult>.Fail(ex.Message);
         }
