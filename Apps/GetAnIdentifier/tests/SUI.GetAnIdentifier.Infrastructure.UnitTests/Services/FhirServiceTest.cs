@@ -30,6 +30,54 @@ public class FhirServiceTests : BaseFhirClientTests
     }
 
     [Fact]
+    public async Task ShouldReturnFail_WhenFhirOperationExceptionIsThrown()
+    {
+        // Arrange
+        var searchQuery = new SearchQuery();
+
+        // Act
+        var testFhirClient = new TestFhirClientOperationOutcomeError(); // Assumes this mocks a FhirOperationException throw
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Contains("PDS API Error", result.Error);
+    }
+
+    [Fact]
+    public async Task ShouldReturnFail_WhenTaskCanceledExceptionIsThrown()
+    {
+        // Arrange
+        var searchQuery = new SearchQuery();
+
+        // Act
+        var testFhirClient = new TestFhirClientTimeout(); // Assumes this mocks a TaskCanceledException throw
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal("PDS API Timeout", result.Error);
+    }
+
+    [Fact]
+    public async Task ShouldReturnFail_WhenHttpRequestExceptionIsThrown()
+    {
+        // Arrange
+        var searchQuery = new SearchQuery();
+
+        // Act
+        var testFhirClient = new TestFhirClientNetworkError(); // Assumes this mocks an HttpRequestException throw
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal("PDS API Network Error", result.Error);
+    }
+
+    [Fact]
     public async Task ShouldReturnUnmatched_IfNoEntriesFound()
     {
         // Arrange
