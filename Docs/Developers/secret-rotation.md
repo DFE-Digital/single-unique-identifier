@@ -12,14 +12,14 @@ Current workflow:
 This documentation covers the current single-active secret architecture used by the supported rotation workflow.
 
 - Rotations are cutover-based. The workflow creates a new secret value, refreshes dependent configuration, and restarts the supported app where required.
-- The workflow is designed to support multiple secrets over time, but today it only supports `find-match-api-key`.
+- The workflow is designed to support multiple secrets over time, but today it only supports `get-an-id-api-key`.
 - Multi-secret overlap and true zero-downtime switchover are tracked separately.
 
 ## Supported secrets
 
-| Workflow `secret_name` | Display name | Source system | Dependent config | Scheduled rotation | Verification |
-| --- | --- | --- | --- | --- | --- |
-| `find-match-api-key` | Find Match API key | Azure Key Vault via Terraform in [`terraform/find`](../../terraform/find) | Find Function App Key Vault reference (`MatchFunction__XApiKey`) | Yes | Health check, auth token request, `matchperson` smoke test |
+| Workflow `secret_name` | Display name              | Source system | Dependent config                                                   | Scheduled rotation | Verification                                                 |
+| --- |---------------------------| --- |--------------------------------------------------------------------| --- |--------------------------------------------------------------|
+| `get-an-id-api-key` | Get an Identifier API key | Azure Key Vault via Terraform in [`terraform/get-an-identifier`](../../terraform/get-an-identifier) | Get an Identifier Function App Key Vault reference (`GetAnIdentifier__XApiKey`) | Yes | Health check, auth token request |
 
 The manifest file is the source of truth for:
 
@@ -91,20 +91,29 @@ The workflow never writes the secret value to logs or artifacts. Any secret valu
 
 Always review the workflow summary after an apply run.
 
-For the Find Match API key, the workflow currently runs the Find smoke-test subset from [`Apps/Find/tests/SUI.Find.E2ETests`](../../Apps/Find/tests/SUI.Find.E2ETests), filtered with `Suite=Smoke`.
+[//]: # (For the Get an Identifier API key, the workflow currently runs the Get an Identifier smoke-test subset from [`Apps/Find/tests/SUI.Find.E2ETests`]&#40;../../Apps/Find/tests/SUI.Find.E2ETests&#41;, filtered with `Suite=Smoke`.)
 
-Those smoke tests verify:
+[//]: # ()
+[//]: # (Those smoke tests verify:)
 
-- the Find API health endpoint returns `Healthy`
-- a bearer token can still be obtained from `/api/v1/auth/token`
-- the rotated `x-api-key` works against `/api/v1/matchperson`
+[//]: # ()
+[//]: # (- the Get an Identifier API health endpoint returns `Healthy`)
 
-If any of these checks fail:
+[//]: # (- a bearer token can still be obtained from `/api/v1/auth/token`)
 
-- review the workflow logs for the failed step
-- confirm the Function App restart completed
-- confirm the Key Vault reference refresh step completed
-- confirm the secret metadata in Key Vault has the expected new version and expiry
+[//]: # (- the rotated `x-api-key` works against `/api/v1/get-an-identifier`)
+
+[//]: # ()
+[//]: # (If any of these checks fail:)
+
+[//]: # ()
+[//]: # (- review the workflow logs for the failed step)
+
+[//]: # (- confirm the Function App restart completed)
+
+[//]: # (- confirm the Key Vault reference refresh step completed)
+
+[//]: # (- confirm the secret metadata in Key Vault has the expected new version and expiry)
 
 ## Planned vs exposed rotation
 
@@ -122,4 +131,4 @@ These modes do not yet keep old and new secrets active at the same time.
 
 This workflow does not provide overlap-based zero-downtime secret rotation.
 
-Today the supported Find API only accepts one configured API key at a time, so rotating the secret invalidates callers still using the previous value as soon as the app switches over. The current workflow is still useful for controlled cutover and operational response, but multi-secret app support is required before planned rotations can keep both old and new keys valid during switchover.
+Today the supported Get an Identifier API only accepts one configured API key at a time, so rotating the secret invalidates callers still using the previous value as soon as the app switches over. The current workflow is still useful for controlled cutover and operational response, but multi-secret app support is required before planned rotations can keep both old and new keys valid during switchover.
