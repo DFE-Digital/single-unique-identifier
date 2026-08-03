@@ -79,39 +79,3 @@ Using Rider:
 Or, using the command line (from the repo root):
 
 * `cd ./Apps/Find/src/SUI.Find.FindApi/; func start --port 7182`
-
-
-## Test Data
-
-| Given   | Family   | Birthdate  | Gender | Phone | Email | Postcode | NHS Number | Notes                                                                                                     |
-|---------|----------|------------|--------|-------|-------|----------|------------|-----------------------------------------------------------------------------------------------------------|
-| Octavia | Chislett | 2008-09-20 | female | null  | null  | KT19 0ST | 9691292211 | should return 6 records when logged in as LOCAL-AUTHORITY-01 and 4 records when logged in as EDUCATION-01 |
-| Briar   | Anderton | 2009-02-15 | male   | null  | null  | KT21 1JA | 9449306613 | should return 1 record when logged in as LOCAL-AUTHORITY-01                                               |
-| Red     | Flindall | 2011-05-17 | male   | null  | null  | KT20 6XJ | 9449306494 | should return 2 records when logged in as HEALTH-01                                                       |
-
-
-### End to end
-This is a full end to end test example using the swagger ui to execute the requests.
-
-#### Match
-Search for a person and get an SUI back
-```
-/v1/matchperson
-
-{
-  "personSpecification": {
-    "given": "Octavia",
-    "family": "Chislett",
-    "birthDate": "2008-09-20",
-    "gender": "female",
-    "phone": null,
-    "email": null,
-    "addressPostalCode": "KT19 0ST"
-  }
-}
-
-Example response
-{
-  "PersonId": "9691292211"
-}
-```
