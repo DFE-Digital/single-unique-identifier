@@ -96,9 +96,9 @@ resource "azurerm_key_vault_secret" "ui_harness_password" {
 }
 
 # 3. Look up the Find Secret using the ID from the Find remote state
-data "azurerm_key_vault_secret" "find_match_api_key" {
-  name         = "find-match-api-key"
-  key_vault_id = data.terraform_remote_state.find.outputs.key_vault_id
+data "azurerm_key_vault_secret" "get_an_id_api_key" {
+  name         = "get-an-id-api-key"
+  key_vault_id = data.terraform_remote_state.get-an-identifier.outputs.key_vault_id
 }
 
 # 4. Web App
@@ -130,7 +130,7 @@ module "web_app" {
 
       # Key Vault References mapped to App Settings
       UI_TEST_HARNESS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.ui_harness_password.name}/)"
-      MATCH_API_KEY            = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.find_match_api_key.versionless_id})"
+      GET_API_KEY            = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.get_an_id_api_key.versionless_id})"
     },
     var.ui_harness_app_settings,
 

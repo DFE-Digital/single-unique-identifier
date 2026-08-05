@@ -13,7 +13,7 @@ Looking to getting started with local development? Skip to [Getting Started](#ge
 | [Docs](./Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
 | [SystemTests](./SystemTests)      | .NET solution, providing Gherkin feature definitions of functional requirements covering the entire system. |
 | [LICENCE](./LICENCE)              | Standard DfE software licence<!-- Yes, that is spelled correctly. -->, applying to the entire system.       |
-| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repisitory. Please read before contributing.                                   |
+| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repository. Please read before contributing.                                   |
 
 
 ## What is 'Single Unique Identifier'?
@@ -75,30 +75,14 @@ facilitating information sharing by providing systems, data storage and connecti
 
 ## Glossary of Components
 
-### `MatchingService` (a.k.a. *`PDS Adapter`*)
+### `Get an Identifier`
 * Match a PDS record and return the NHS Number, given some demographic information about a child.
 
-### `MatchFunction` (a.k.a. *`Get-an-Identifier`*)
-* A service that takes basic demographic information (name, date of birth, address) and determines the most accurate identifier for a child.  
-* This service also enables agencies (custodians) to tell us that they have a record about the provided demographic information.  
-* This helps link records across multiple organisations with higher confidence.  
-* This service invokes the `MatchingService` (above), and updates the ID register. Only the SUI and custodian metadata is stored.
+### `Auth Emulator`
+* Provides a local version of an generic authentication provider which can be used for testing and local development.
 
-### `SearchFunction` (a.k.a. *`Find-a-record`*)
-* A mechanism to identify which custodians have a record relating to a child, **without sharing any case data**.  
-* This gives practitioners a starting point for collaboration.  
-* Returns record pointers for a given SUI.
-
-### `FetchRecordFunction` (a.k.a. *`Fetch-a-record`*)
-* Resolves and returns the record for a given record pointer.  
-* This may include a summary of the record, a link to a custodian system where authorised users can view the full details, or both.  
-* Some custodians may provide contact details only.  
-* This explores secure, controlled sharing of small agreed‑upon information packets between systems.  
-* This is not part of Discovery, but Discovery lays the groundwork for understanding whether and how this could be feasible.
-
-### `StubCustodians` (a.k.a. *`Stubs`*)
-* Stub API that simulates real custodians, to provide example data for testing purposes.
-
+### `UI Harness`
+* Lightweight UI built to test interaction with the Get an Identifier function.
 
 ## Record Types Reference
 
@@ -187,7 +171,7 @@ If encountering problems with the .NET dev certificate, run `dotnet dev-certs ht
     docker compose --profile aspire up -d
     docker compose --profile grafana up -d
     ```
-3. Follow the app-specific README to run locally (for example, `Apps/Find/README.md`).
+3. Follow the app-specific README to run locally (for example, `Apps/GetAnIdentifier/README.md`).
 
 ### Local OpenTelemetry
 

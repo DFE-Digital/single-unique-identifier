@@ -80,6 +80,17 @@ variable "key_vault_use_rbac" {
   default     = false
 }
 
+variable "get_an_id_api_key_ttl_days" {
+  description = "Number of days before the generated Find Match API key secret expires."
+  type        = number
+  default     = 180
+
+  validation {
+    condition     = var.get_an_id_api_key_ttl_days > 0
+    error_message = "get_an_id_api_key_ttl_days must be greater than 0."
+  }
+}
+
 variable "nhs_digital_private_key" {
   description = "Private key for connection with NHS FHIR API"
   type = string
