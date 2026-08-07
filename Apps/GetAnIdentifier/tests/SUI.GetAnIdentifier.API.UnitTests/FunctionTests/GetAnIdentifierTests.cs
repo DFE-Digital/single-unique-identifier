@@ -94,7 +94,7 @@ public class GetAnIdentifierTests
 
         _getAnIdentifierService
             .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
-            .Returns(NhsPersonId.Create(personId).Value!);
+            .Returns((NhsPersonId.Create(personId).Value!, new List<string?>()));
 
         // Act
         var response = await function.GetAnIdentifier(req, context, CancellationToken.None);

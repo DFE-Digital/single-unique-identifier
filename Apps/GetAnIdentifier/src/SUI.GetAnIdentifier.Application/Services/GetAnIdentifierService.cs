@@ -14,10 +14,9 @@ public class GetAnIdentifierService(
     IFhirService fhirService
 ) : IGetAnIdentifierService
 {
-    public async Task<OneOf<NhsPersonId, DataQualityResult, NotFound, Error>> MatchPersonAsync(
-        PersonSpecification request,
-        CancellationToken ct
-    )
+    public async Task<
+        OneOf<(NhsPersonId, IEnumerable<string?>), DataQualityResult, NotFound, Error>
+    > MatchPersonAsync(PersonSpecification request, CancellationToken ct)
     {
         try
         {
@@ -67,7 +66,7 @@ public class GetAnIdentifierService(
                 return new NotFound();
             }
 
-            // 5. Parse and return the NHS Number
+            // 5. Parse the NHS Number
             var nhsPersonId = NhsPersonId.Create(result.Value.NhsNumber);
             if (nhsPersonId is not { Success: true, Value: not null })
             {
@@ -78,7 +77,8 @@ public class GetAnIdentifierService(
                 return new Error();
             }
 
-            return nhsPersonId.Value;
+            // 6. Return the NHS Number and GP information
+            return (nhsPersonId.Value, result.Value.GeneralPractitionerInformation);
         }
         catch (Exception ex)
         {

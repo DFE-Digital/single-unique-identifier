@@ -106,6 +106,8 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
 
     private static Result<SearchResult> HandleSingleEntry(Bundle.EntryComponent entry)
     {
+        List<string?> generalPractitionerInformation = [];
+
         if (entry.Resource?.Id is null)
         {
             return Result<SearchResult>.Fail("FHIR API returned missing Resource or Id");
@@ -118,6 +120,19 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
             );
         }
 
-        return Result<SearchResult>.Ok(SearchResult.Match(entry.Resource.Id, entry.Search.Score));
+        if (entry.Resource is Patient patient)
+        {
+            generalPractitionerInformation.AddRange(
+                patient.GeneralPractitioner.Select(reference => reference.Identifier?.Value)
+            );
+        }
+
+        return Result<SearchResult>.Ok(
+            SearchResult.Match(
+                entry.Resource.Id,
+                entry.Search.Score,
+                generalPractitionerInformation
+            )
+        );
     }
 }
