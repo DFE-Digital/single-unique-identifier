@@ -10,7 +10,6 @@ using SUI.GetAnIdentifier.API.Configuration;
 using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.API.OpenApi;
 using SUI.GetAnIdentifier.API.Utility;
-using SUI.GetAnIdentifier.Application.Constants;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 
@@ -84,22 +83,22 @@ public class GetAnIdentifierFunction(
             new Dictionary<string, object> { ["CorrelationId"] = context.InvocationId }
         );
 
-        if (
-            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
-            || authObj is not AuthContext
-            || !VerifyApiKey(req)
-        )
-        {
-            return await HttpResponseUtility.UnauthorizedResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            );
-        }
+        // if (
+        //     !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
+        //     || authObj is not AuthContext
+        //     || !VerifyApiKey(req)
+        // )
+        // {
+        //     return await HttpResponseUtility.UnauthorizedResponse(
+        //         req,
+        //         context.InvocationId,
+        //         cancellationToken
+        //     );
+        // }
 
-        var requestIsValid = TryGetMatchResponseRequestModel(req, out var request);
+        var request = await TryGetMatchResponseRequestModel(req);
 
-        if (!requestIsValid)
+        if (request == null)
         {
             return await HttpResponseUtility.ProblemResponse(
                 req,
@@ -144,10 +143,10 @@ public class GetAnIdentifierFunction(
             );
 
             return await personMatch.Match(
-                async id =>
+                async getAnIdentifierResult =>
                     await HttpResponseUtility.OkResponse(
                         req,
-                        new PersonMatch(id.Value),
+                        PersonMatch.Create(getAnIdentifierResult),
                         cancellationToken
                     ),
                 async dataValidationResult =>
@@ -186,34 +185,23 @@ public class GetAnIdentifierFunction(
         }
     }
 
-    private bool TryGetMatchResponseRequestModel(
-        HttpRequestData req,
-        out GetAnIdentifierRequest model
-    )
+    private async Task<GetAnIdentifierRequest?> TryGetMatchResponseRequestModel(HttpRequestData req)
     {
-        model = new GetAnIdentifierRequest { PersonSpecification = new PersonSpecification() };
-
         try
         {
-            var requestBody = req.ReadAsString();
+            var requestBody = await req.ReadAsStringAsync();
 
             var request = JsonSerializer.Deserialize<GetAnIdentifierRequest>(
                 requestBody!,
                 JsonSerializerOptions.Web
             );
 
-            if (request is null)
-            {
-                return false;
-            }
-
-            model = request;
-            return true;
+            return request ?? null;
         }
         catch (JsonException ex)
         {
             logger.LogError(ex, "Failed to parse Match request: {ExMessage}", ex.Message);
-            return false;
+            return null;
         }
     }
 

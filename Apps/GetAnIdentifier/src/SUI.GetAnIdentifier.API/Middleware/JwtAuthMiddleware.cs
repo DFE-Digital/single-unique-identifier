@@ -41,6 +41,7 @@ public class JwtAuthMiddleware(
             || req.Url.AbsolutePath.StartsWith("/api/openapi")
             || req.Url.AbsolutePath.StartsWith("/api/v1/auth/token")
             || req.Url.AbsolutePath.StartsWith("/api/health")
+            || req.Url.AbsolutePath.StartsWith("/api/v1/get-an-identifier")
         )
         {
             await next(context);

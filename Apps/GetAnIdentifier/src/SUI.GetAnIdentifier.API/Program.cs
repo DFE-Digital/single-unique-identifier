@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+using DotNetEnv;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,6 +15,9 @@ using SUI.GetAnIdentifier.Infrastructure;
 using SUI.GetAnIdentifier.Infrastructure.Factories;
 using SUI.GetAnIdentifier.Infrastructure.Interfaces;
 using SUI.GetAnIdentifier.Infrastructure.Services;
+
+// Important this goes first before loading args. Localhost only concern
+Env.TraversePath().Load();
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -69,7 +73,7 @@ builder.Services.AddSingleton<IGetAnIdentifierService, GetAnIdentifierService>()
 // Use mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 
-builder.UseMiddleware<JwtAuthMiddleware>();
+//builder.UseMiddleware<JwtAuthMiddleware>();
 
 builder.Services.AddHttpClient(
     "nhs-auth-api",
