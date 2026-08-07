@@ -35,4 +35,30 @@ public class FhirClientFactory(
         fhirClient.RequestHeaders.Add("X-Request-ID", Guid.NewGuid().ToString());
         return fhirClient;
     }
+
+    public async Task<FhirClient> CreateFhirClientOrganisationAsync(
+        CancellationToken cancellationToken = default
+    )
+    {
+        var baseUri =
+            nhsAuthConfig.Value.NHS_DIGITAL_ORGANISATION_ENDPOINT
+            ?? throw new ArgumentNullException(
+                nhsAuthConfig.Value.NHS_DIGITAL_ORGANISATION_ENDPOINT
+            );
+
+        var fhirClient = new FhirClient(new Uri(baseUri));
+        if (fhirClient.RequestHeaders == null)
+            return fhirClient;
+
+        var accessToken = await fhirAuthTokenService
+            .GetBearerToken(cancellationToken)
+            .ConfigureAwait(false);
+
+        fhirClient.RequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            accessToken
+        );
+        fhirClient.RequestHeaders.Add("X-Request-ID", Guid.NewGuid().ToString());
+        return fhirClient;
+    }
 }

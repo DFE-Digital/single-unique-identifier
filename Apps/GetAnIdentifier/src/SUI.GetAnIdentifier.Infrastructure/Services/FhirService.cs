@@ -20,6 +20,8 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
         try
         {
             var client = await fhirClientFactory.CreateFhirClientAsync(ct);
+            // var gpClient = await fhirClientFactory.CreateFhirClientOrganisationAsync(ct);
+
             var searchParams = SearchParamsFactory.Create(searchQuery);
 
             logger.LogInformation("Searching for NHS patient record...");
@@ -46,6 +48,23 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
                 "Handling bundle with {EntryCount} entries from FHIR API",
                 bundle.Entry.Count
             );
+
+            // if (bundle.Entry[0].Resource is Patient patient)
+            // {
+            //     logger.LogInformation($"Patient record found in PDS - {patient.GeneralPractitioner.Count} GP Elements found");
+            //     var gp = patient.GeneralPractitioner.First();
+            //     var gpId = gp.Identifier!.Value!;
+            //
+            //     logger.LogInformation($"{gpId} - Identifier");
+            //
+            //     var gpResource = await gpClient.GetAsync($"Organization/{gpId}");
+            //
+            //     if (gpResource is Organization org)
+            //     {
+            //         logger.LogInformation($"{org.Name} - GP Name");
+            //     }
+            //
+            // }
 
             return bundle.Entry.Count switch
             {
