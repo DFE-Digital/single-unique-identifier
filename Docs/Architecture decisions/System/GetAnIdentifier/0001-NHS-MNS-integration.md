@@ -39,9 +39,6 @@ There is a choice between only 2 options the NHS has to send notifications to:
 - This does require 3 parts of additional infrastructure - SQS queue, Lambda function and Azure Service bus (or similar messaging system). There are some libraries that can connect to SQS but this would require additional authentication measures.
 - SQS can handle very high volumes of messages, far higher than that which we expect.
 - High throughput with notification delivery in near-real-time, however this is not a requirement for the Get An Identifier service.
-- MESH docs:
-  - <https://digital.nhs.uk/developer/api-catalogue/message-exchange-for-social-care-and-health-api#overview--mesh-api-pseudocode>
-  - <https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service#post-/subscriptions>
 
 ### Option 2: MESH
 
@@ -51,9 +48,12 @@ There is a choice between only 2 options the NHS has to send notifications to:
 - We can poll MESH fairly frequently, recommended is between 10-60 minutes on the low end and that is based on other users of MESH, however there is no lower limit and we can be more aggressive.
 - Unlike AWS SQS, MESH requires active polling, introducing processing latency (10-60 minutes) and requiring a scheduler/worker mechanism.
 - Interfacing with MESH requires installing/managing the MESH Client or writing custom API integration logic.
+- MESH docs:
+  - <https://digital.nhs.uk/developer/api-catalogue/message-exchange-for-social-care-and-health-api#overview--mesh-api-pseudocode>
+  - <https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service#post-/subscriptions>
 
 ## Advice
 
 - NHSE Product Manager for MNS, 2026-08-18 - For near-real-time notifications, SQS is the best option. However, if that is not a requirement, then either is are equally valid. If your Azure application can call the MESH API directly (or use the MESH client) and batch delivery fits your workflow, MESH does seem like the simpler path to go down.
 - Brad Park, Technical lead SUI, 2026-08-19 - MESH seems the simpler choice. Less implementation complexity and meets requirements.
-- Josh Taylor, Technical Architect SUI, 2026-08-19 - MESH seems like better choice, don't have to deal with multi i cloud. Can't see a need for instant notifications based on context. Integration should be robust enough to handle.
+- Josh Taylor, Technical Architect SUI, 2026-08-19 - MESH seems like better choice, don't have to deal with multi-cloud. Can't see a need for instant notifications based on context. Polling integration can be made robust, if we keep queues on DfE-side.
