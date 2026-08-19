@@ -8,7 +8,7 @@ Category: System/GetAnIdentifier / NHS Integration
 
 ## Status
 
-Accepted
+Draft
 
 ## Decision
 
@@ -39,6 +39,7 @@ There is a choice between only 2 options the NHS has to send notifications to:
 - This does require 3 parts of additional infrastructure - SQS queue, Lambda function and Azure Service bus (or similar messaging system). There are some libraries that can connect to SQS but this would require additional authentication measures.
 - SQS can handle very high volumes of messages, far higher than that which we expect.
 - High throughput with notification delivery in near-real-time, however this is not a requirement for the Get An Identifier service.
+- Does not require additional certificates to be managed.
 
 ### Option 2: MESH
 
@@ -51,6 +52,8 @@ There is a choice between only 2 options the NHS has to send notifications to:
 - MESH docs:
   - <https://digital.nhs.uk/developer/api-catalogue/message-exchange-for-social-care-and-health-api#overview--mesh-api-pseudocode>
   - <https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service#post-/subscriptions>
+- Potentialy a wait of up to 1 month to get through the path to live process. This involves the acceptance of our use case, MESH mailbox setup and the MESH API approval.
+- Managing of a mTLS certificated for MESH is required. We generate details for it, send them to NHS and they issue the certificate.
 
 ## Advice
 
