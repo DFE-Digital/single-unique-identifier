@@ -17,9 +17,9 @@ This documentation covers the current single-active secret architecture used by 
 
 ## Supported secrets
 
-| Workflow `secret_name` | Display name              | Source system | Dependent config                                                   | Scheduled rotation | Verification                                                 |
-| --- |---------------------------| --- |--------------------------------------------------------------------| --- |--------------------------------------------------------------|
-| `get-an-id-api-key` | Get an Identifier API key | Azure Key Vault via Terraform in [`terraform/get-an-identifier`](../../terraform/get-an-identifier) | Get an Identifier Function App Key Vault reference (`GetAnIdentifier__XApiKey`) | Yes | Health check, auth token request |
+| Workflow `secret_name` | Display name | Source system | Dependent config | Scheduled rotation | Verification |
+| --- | --- | --- | --- | --- | --- |
+| `get-an-id-api-key` | Get an Identifier API key | Azure Key Vault via Terraform in [`terraform/get-an-identifier`](../../terraform/get-an-identifier) | Get an Identifier Function App Key Vault reference (`GetAnIdentifierFunction__XApiKey`) | Yes | Rotated secret metadata inspection; no API smoke test currently runs |
 
 The manifest file is the source of truth for:
 
@@ -49,14 +49,14 @@ Run the workflow from the Actions tab:
 5. Set `apply`:
    - `false` for a plan-only run
    - `true` to rotate the secret
-6. Leave `verify` enabled unless you have a specific reason to skip the smoke checks.
+6. The `verify` input is reserved for post-rotation smoke tests. No automated API verification is currently implemented, so its value does not change the checks that run.
 
 Recommended operator flow:
 
 1. Run a plan-only execution first with `apply = false`.
 2. Review the workflow summary and confirm the target secret and environment are correct.
 3. Re-run with `apply = true`.
-4. Review the post-rotation summary and verification steps.
+4. Review the post-rotation summary and rotated secret metadata.
 
 ## Scheduled rotation
 
@@ -82,38 +82,22 @@ For supported secrets, the workflow:
 5. optionally applies the rotation
 6. refreshes Key Vault app-setting references where needed
 7. restarts the dependent app where needed so the new secret becomes active
-8. runs post-rotation smoke tests where configured
+8. inspects the rotated secret metadata; the API smoke-test step is not currently enabled
 9. writes a workflow summary showing the outcome without exposing the secret value
 
 The workflow never writes the secret value to logs or artifacts. Any secret value fetched for verification is masked before use.
 
 ## Post-rotation checks
 
-Always review the workflow summary after an apply run.
+Always review the workflow summary after an apply run. The workflow currently confirms that the new secret version and expiry exist, refreshes the Function App's Key Vault reference and restarts the dependent applications. It does not call the Get an Identifier API to prove that the new key is accepted.
 
-[//]: # (For the Get an Identifier API key, the workflow currently runs the Get an Identifier smoke-test subset from [`Apps/Find/tests/SUI.Find.E2ETests`]&#40;../../Apps/Find/tests/SUI.Find.E2ETests&#41;, filtered with `Suite=Smoke`.)
+Until automated smoke verification is implemented, operators should confirm from the workflow output that:
 
-[//]: # ()
-[//]: # (Those smoke tests verify:)
+- the Function App restart completed
+- the Key Vault reference refresh completed
+- the secret metadata contains the expected new version and expiry
 
-[//]: # ()
-[//]: # (- the Get an Identifier API health endpoint returns `Healthy`)
-
-[//]: # (- a bearer token can still be obtained from `/api/v1/auth/token`)
-
-[//]: # (- the rotated `x-api-key` works against `/api/v1/get-an-identifier`)
-
-[//]: # ()
-[//]: # (If any of these checks fail:)
-
-[//]: # ()
-[//]: # (- review the workflow logs for the failed step)
-
-[//]: # (- confirm the Function App restart completed)
-
-[//]: # (- confirm the Key Vault reference refresh step completed)
-
-[//]: # (- confirm the secret metadata in Key Vault has the expected new version and expiry)
+End-to-end verification of the rotated key is tracked separately and must not be inferred from a successful rotation workflow.
 
 ## Planned vs exposed rotation
 

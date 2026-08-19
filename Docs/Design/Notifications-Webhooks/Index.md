@@ -3,6 +3,8 @@
 **Date:** `2026-06-04`  
 **Owner:** SUI Service Team  
 
+> **Status: proposed, not implemented.** This document explores webhook functionality for the earlier distributed discovery architecture. Get an Identifier does not currently register or dispatch webhooks, and the behaviours below must not be read as an as-built description.
+
 This document outlines the key requirements, technical guidelines, and high-level design for adding Notifications to the SUI system.
 
 

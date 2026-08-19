@@ -4,6 +4,8 @@
 **Owner:** SUI Service Team  
 **Scope:** Target authentication environment strategy for local development, CI, ephemeral environments, cheaper shared non-prod environments, and at least one shared high-fidelity environment for the active inbound auth scope.
 
+> **Status: superseded planning reference.** This note describes the environment strategy for the deleted `MATCH` / `FIND` applications. It does not describe the currently deployed environment state. See the [Get an Identifier as-built design](../GetAnIdentifier/AsBuilt.md) for current application behaviour; AuthEmulator deployment and FaUAPI integration are separate delivery work.
+
 This document builds on [Authentication and API Edge Strategy](./Index.md), [Authentication Baseline and Security Model](./BaselineSecurityModel.md), and [ADR-SUI-0011: Authentication and trust boundaries for SUI APIs](../../Architecture%20decisions/Systems%20landscape/0011-authentication-and-trust-boundaries-for-sui-apis.md).
 
 It defines how the auth baseline should be exercised across environments without relying on auth bypasses as a substitute for realistic testing.

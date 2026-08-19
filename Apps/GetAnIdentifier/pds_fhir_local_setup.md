@@ -1,4 +1,4 @@
-# Setup Fhir PDS credentials locally
+# Set up PDS FHIR credentials locally
 
 ## Setting up an API credential
 
