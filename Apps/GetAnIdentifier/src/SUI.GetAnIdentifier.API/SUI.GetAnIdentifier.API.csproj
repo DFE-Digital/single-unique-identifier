@@ -12,6 +12,10 @@
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Hl7.Fhir.R4" Version="6.3.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+    <PackageReference
+      Include="Microsoft.Azure.Functions.Worker.Extensions.OpenApi"
+      Version="1.6.0"
+    />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.OpenTelemetry" Version="1.2.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.OpenApi.Core" Version="1.6.0" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.20.0" />

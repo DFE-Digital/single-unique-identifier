@@ -3,8 +3,10 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using SUI.GetAnIdentifier.API.Attributes;
 using SUI.GetAnIdentifier.API.Configuration;
 using SUI.GetAnIdentifier.API.Models;
@@ -28,6 +30,12 @@ public class GetAnIdentifierFunction(
     [OpenApiOperation(
         operationId: "GetAnIdentifier",
         Summary = "I know of this person, what is their Single Unique Identifier"
+    )]
+    [OpenApiSecurity(
+        "function_key",
+        SecuritySchemeType.ApiKey,
+        Name = "code",
+        In = OpenApiSecurityLocationType.Query
     )]
     // Wired Request Body Example
     [OpenApiRequestBody(
