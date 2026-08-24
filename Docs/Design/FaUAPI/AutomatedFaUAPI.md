@@ -57,17 +57,15 @@ Azure Functions host the executable API code.
 - Once subscribed, users authenticate requests using their assigned subscription keys and OAuth 2.
 - FaUAPI manages privacy levels on a Workspace/API/API Group level
 
-## 6. Automation in FaUAPI
+## 6. Automation in the FaUAPI Dashboard
 
-We are limited in what we can automate through FaUAPI to what is exposed to us. However we can achieve some level of automation.
+We are limited in what we can automate through FaUAPI Dashboard. There is a FaUAPI [API](https://apimanagement.education.gov.uk/api/schema/index.html) that can be triggered in pipelines to limit manual configuration. However there are things we have open questions on with the FaUAPI development team so this section is still relevant.
 
 ### 6.1 Import API
 
-We will utilise the FaUAPI schema import feature, pointing to a secure HTTPS URL hosting our OpenAPI specification. We will utilise the daily sync option to ensure changes to our endpoints are managed automatically
+We will utilise the FaUAPI schema import feature, pointing to a secure HTTPS URL hosting our OpenAPI specification. We will utilise the daily sync option to ensure changes to our endpoints are managed automatically. Currently we have an open [ticket](https://hippodigital-dfe.atlassian.net/browse/SUI-1962) to expose the `/api/swagger.json` endpoint.
 
-### 6.2 Manual Updating
-
-Import API also has the option for manual resync which we may choose to utilise if daily sync is too infrequent for our service
+Manual Updating - Import API also has the option for manual resync which we may choose to utilise if daily sync is too infrequent for our service
 
 ## 7. Automation in Azure
 
@@ -83,24 +81,51 @@ Import API takes in a single schema which is used to generate all the APIs which
 
 ### 7.3 OAuth2
 
-There should be no change to current implementation
+There should be no change to current implementation but this will be confirmed during the FaUAPI spike.
 
-## 8. Privacy
+## 8. Automation in Pipelines
 
-### 8.1 Workspace Privacy
+### 8.1 Policies
+
+Use the `APIPolicyTask` or `APIOperationPolicyTask` to create or update the policies for the endpoint rather than manually editing an XML document in the dashboard.
+
+Policies are where we will set rate limits etc...
+
+Verify it is working by looking in the dashboard
+
+### 8.2 Documentation
+
+Use the `APIDocumentTask` to create or update the the documentation subscribers see inside the FaUAPI dashboard
+
+Verify it is working by looking in the dashboard
+
+### 8.3 Release Notes
+
+Use the `APIReleaseTask` to publish our release notes for new versions.
+
+Verify it is working by looking in the dashboard
+
+## 9. Privacy
+
+### 9.1 Workspace Privacy
 
 Workspaces in FaUAPI enforce a default privacy level.
 
-### 8.2 Granular Visibility
+### 9.2 Granular Visibility
 
 Visibility can be restricted at the individual API level or via API groups.
 
-## 9. Subscription Keys
+### 9.3 Private Keys
+
+Private keys can be configured in our IaC however we need to understand what the FaUAPI team need for them to create it on their end.
+
+## 10. Subscription Keys
 
 - FaUAPI issues subscription keys upon approval of a subscription request.
 - Calls to user-restricted endpoints require OAuth 2.0 tokens and pre-registered redirect URLs.
+- When the MAIS Dashboard is built we will be to utilise the `APISubscriptionTask` API to manage the subscription requests in the MAIS Dashboard instead of the FaUAPI Dashboard
 
-## 10. Environment management
+## 11. Environment management
 
 FaUAPI offers 2 seperate environments
 
@@ -111,22 +136,13 @@ I propose that our environments are made using different workspaces with everyth
 
 FaUAPI also has sandbox workspaces which will get cleared down if it is not active, I propose that we only use sandbox workspaces as a way of testing experimental changes in isolation.
 
-## 11. Open Points Carried Forward
+## 12. Open Points Carried Forward
 
-### 11.1 Private Connectivity
+### 12.1 Import API
 
-- Do we require Azure Private Endpoints if workspace and API-level visibility are tightly restricted?
-- Confirm whether FaUAPI supports routing through Private Links for Azure Functions before including in implementation.
+Is it easier to use the FaUAPI API over the dashboard? The FaUAPI team will give us some examples of how to use the Import API as it provides a lot of configuration options, we may favour this over the dashboard.
 
-### 11.2 Automated Subscriptions
-
-We need to consult the FaUAPI platform team regarding an API or programmatic method to expedite the 3-day subscription approval process for internal consumers.
-
-### 11.3 Rate Limiting, Threat Protection, and Backend Security Patterns
-
-Consult the FaUAPI team regarding their recommended pattern for rate limiting, WAF/threat protection, and backend protection prior to introducing Azure Front-Door into the design.
-
-## 12. Immediate Implementation Implications
+## 13. Immediate Implementation Implications
 
 - Configure the FaUAPI workspace with the correct privacy defaults and register the API.
 - Configure the API using Import API instead of Add API.
