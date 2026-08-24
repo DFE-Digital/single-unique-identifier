@@ -12,7 +12,7 @@ Draft
 
 ## Decision
 
-MESH has been chosen due to having the least technical overhead and is the recommended path by NHS. MESH has a path to live process which includes development, testing and live. SQS would need to us create each one individually.
+TBA
 
 ## Context
 
@@ -29,7 +29,7 @@ There is a choice between only 2 options the NHS has to send notifications to:
 ## Options considered
 
 1. AWS SQS
-2. MESH (SELECTED)
+2. MESH
 
 ## Consequences
 
@@ -56,6 +56,8 @@ There is a choice between only 2 options the NHS has to send notifications to:
 - Managing of a mTLS certificated for MESH is required. We generate details for it, send them to NHS and they issue the certificate.
 
 ## Advice
+
+! TODO: Re-Review after updates
 
 - NHSE Product Manager for MNS, 2026-08-18 - For near-real-time notifications, SQS is the best option. However, if that is not a requirement, then either is are equally valid. If your Azure application can call the MESH API directly (or use the MESH client) and batch delivery fits your workflow, MESH does seem like the simpler path to go down.
 - Brad Park, Technical lead SUI, 2026-08-19 - MESH seems the simpler choice. Less implementation complexity and meets requirements.
