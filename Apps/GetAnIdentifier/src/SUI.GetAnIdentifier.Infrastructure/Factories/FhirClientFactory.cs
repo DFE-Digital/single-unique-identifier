@@ -13,6 +13,7 @@ public class FhirClientFactory(
 ) : IFhirClientFactory
 {
     public async Task<FhirClient> CreateFhirClientAsync(
+        string? correlationId = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -32,7 +33,10 @@ public class FhirClientFactory(
             "Bearer",
             accessToken
         );
-        fhirClient.RequestHeaders.Add("X-Request-ID", Guid.NewGuid().ToString());
+        var requestId = string.IsNullOrWhiteSpace(correlationId)
+            ? Guid.NewGuid().ToString()
+            : correlationId;
+        fhirClient.RequestHeaders.Add("X-Request-ID", requestId);
         return fhirClient;
     }
 }

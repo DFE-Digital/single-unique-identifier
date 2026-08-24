@@ -33,7 +33,7 @@ public class MatchPersonAsyncTests
         };
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
 
         // Assert
         Assert.IsType<DataQualityResult>(result.Value);
@@ -55,11 +55,15 @@ public class MatchPersonAsyncTests
         };
 
         _fhirService
-            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
+            .PerformSearchAsync(
+                Arg.Any<SearchQuery>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(Application.Models.Result<SearchResult>.Fail("Simulated FHIR service error"));
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
 
         // Assert
         Assert.IsType<Error>(result.Value);
@@ -77,7 +81,11 @@ public class MatchPersonAsyncTests
         };
 
         _fhirService
-            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
+            .PerformSearchAsync(
+                Arg.Any<SearchQuery>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(
                 Application.Models.Result<SearchResult>.Ok(
                     new SearchResult { Type = SearchResult.ResultType.Unmatched }
@@ -85,7 +93,7 @@ public class MatchPersonAsyncTests
             );
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
 
         // Assert
         Assert.IsType<NotFound>(result.Value);
@@ -102,7 +110,11 @@ public class MatchPersonAsyncTests
         };
 
         _fhirService
-            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
+            .PerformSearchAsync(
+                Arg.Any<SearchQuery>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(
                 Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
@@ -115,7 +127,7 @@ public class MatchPersonAsyncTests
             );
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
 
         // Assert
         Assert.IsType<NhsPersonId>(result.Value);
@@ -133,7 +145,11 @@ public class MatchPersonAsyncTests
         };
 
         _fhirService
-            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
+            .PerformSearchAsync(
+                Arg.Any<SearchQuery>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(
                 Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
@@ -146,7 +162,7 @@ public class MatchPersonAsyncTests
             );
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
 
         // Assert
         Assert.IsType<NotFound>(result.Value);
@@ -164,7 +180,11 @@ public class MatchPersonAsyncTests
         };
 
         _fhirService
-            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
+            .PerformSearchAsync(
+                Arg.Any<SearchQuery>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(
                 Application.Models.Result<SearchResult>.Ok(
                     new SearchResult
@@ -177,7 +197,7 @@ public class MatchPersonAsyncTests
             );
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
 
         // Assert
         Assert.IsType<Error>(result.Value);
@@ -196,13 +216,17 @@ public class MatchPersonAsyncTests
         };
 
         _fhirService
-            .PerformSearchAsync(Arg.Any<SearchQuery>(), Arg.Any<CancellationToken>())
+            .PerformSearchAsync(
+                Arg.Any<SearchQuery>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns<Task<Application.Models.Result<SearchResult>>>(_ =>
                 throw new Exception("Simulated exception")
             );
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
 
         // Assert
         Assert.IsType<Error>(result.Value);

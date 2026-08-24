@@ -36,11 +36,12 @@ public class JwtAuthMiddleware(
         }
 
         // allow swagger / openapi / health to work without auth
+        var requestPath = GetSafeAbsolutePath(req);
         if (
-            req.Url.AbsolutePath.StartsWith("/api/swagger")
-            || req.Url.AbsolutePath.StartsWith("/api/openapi")
-            || req.Url.AbsolutePath.StartsWith("/api/v1/auth/token")
-            || req.Url.AbsolutePath.StartsWith("/api/health")
+            requestPath.StartsWith("/api/swagger")
+            || requestPath.StartsWith("/api/openapi")
+            || requestPath.StartsWith("/api/v1/auth/token")
+            || requestPath.StartsWith("/api/health")
         )
         {
             await next(context);
@@ -247,5 +248,19 @@ public class JwtAuthMiddleware(
         return requiredScopes.Any(rs =>
             caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
         );
+    }
+
+    private static string GetSafeAbsolutePath(
+        Microsoft.Azure.Functions.Worker.Http.HttpRequestData req
+    )
+    {
+        try
+        {
+            return req.Url?.AbsolutePath ?? string.Empty;
+        }
+        catch (UriFormatException)
+        {
+            return string.Empty;
+        }
     }
 }
