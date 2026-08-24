@@ -4,6 +4,8 @@
 **Owner:** SUI Service Team  
 **Scope:** Proposed authentication direction for the active `MATCH` / `FIND` scope, including API edge considerations and environment strategy.
 
+> **Status: superseded planning reference.** This note describes the earlier `MATCH` / `FIND` architecture and is not current as-built guidance. The implemented service is Get an Identifier and requires `get-an-identifier.read`. See the [Get an Identifier as-built design](../GetAnIdentifier/AsBuilt.md) for current behaviour. Proposed FaUAPI work is being planned separately.
+
 This document captures the current proposed direction for authentication and API edge design in the Single Unique Identifier (SUI) project.
 
 It is intentionally **not** an Architecture Decision Record (ADR). It is a design note intended to:

@@ -4,6 +4,8 @@
 **Owner:** SUI Service Team  
 **Scope:** Target authentication model for local, CI, ephemeral, non-prod, and high-fidelity environments; for MATCH, FIND and any minimal FETCH maintenance needed to preserve existing E2E and Test Harness flows.
 
+> **Status: historical implementation plan.** This note records the work that separated AuthEmulator and introduced generic JWT validation into the earlier architecture. Its `MATCH` / `FIND` endpoint lists and ticket streams are not current guidance. The implemented service is Get an Identifier and requires `get-an-identifier.read`; see the [Get an Identifier as-built design](../GetAnIdentifier/AsBuilt.md).
+
 This document builds on:
 * [Authentication and API Edge Strategy](./Index.md),
 * [Authentication Baseline and Security Model](./BaselineSecurityModel.md),

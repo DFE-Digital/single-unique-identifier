@@ -4,6 +4,8 @@
 **Owner:** SUI Service Team  
 **Scope:** Baseline authentication and security model for the active inbound `MATCH` / `FIND` scope, the custodian polling flow, and the minimum inbound-facing `FETCH` support needed to preserve existing end-to-end flows.
 
+> **Status: superseded planning reference.** This note describes the earlier `MATCH` / `FIND` architecture and is not current as-built guidance. The implemented service is Get an Identifier and requires `get-an-identifier.read`. See the [Get an Identifier as-built design](../GetAnIdentifier/AsBuilt.md) for current behaviour.
+
 This document builds on [Authentication and API Edge Strategy](./Index.md) and [ADR-SUI-0011: Authentication and trust boundaries for SUI APIs](../../Architecture%20decisions/Systems%20landscape/0011-authentication-and-trust-boundaries-for-sui-apis.md).
 
 It defines the current baseline needed to guide implementation and follow-on design work.

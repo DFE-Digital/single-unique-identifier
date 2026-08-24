@@ -5,7 +5,9 @@ The 'Get an Identifier' app currently contains Azure Functions.
 The Get an Identifier API is part of the Single Unique Identifier (SUI) programme
 for children's social care.
 
-Get an Identifier provides an adapter for matching a set of demographics with an NHS Number via the PDS Fhir endpoint.
+Get an Identifier provides an adapter for matching a set of demographics with an NHS number via the PDS FHIR endpoint.
+
+For the current runtime flow and the boundary between implemented and proposed functionality, see the [Get an Identifier as-built design](../../Docs/Design/GetAnIdentifier/AsBuilt.md).
 
 ## Running Locally - Recommended Approach
 
@@ -24,12 +26,12 @@ The recommended approach to running the 'Get an Identifier' app locally is:
     * Docker is only required to run Azurite as a local container. Azurite provides the dependencies to run Azure Functions locally. There are other approaches to [running Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-install-azurite) that do not require Docker.
 5. If using Rider, install [Azure Toolkit for Rider](https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider)
 
-### PDS Fhir setup steps
+### PDS FHIR setup steps
 
-- Follow the (Fhir readme)[./pds_fhir_local_setup.md] for connecting locally to PDS.
-    - !Important - The .env file contains secrets so keep it away from source control and any AI ingestion tools.
+- Follow the [PDS FHIR setup guide](./pds_fhir_local_setup.md) to connect to PDS locally.
+  - **Important:** The `.env` file contains secrets. Keep it out of source control and AI ingestion tools.
 
-#### PDS Fhir setup - Troubleshooting
+#### PDS FHIR setup - troubleshooting
 
 You may need to remove these lines from your Get an Identifier API's `local.settings.json`:
 
@@ -45,19 +47,19 @@ Also, Windows only, ensure the line endings in your `.env` file are LF, not CRLF
 
 ### To run locally
 
-#### Configure x-api-key
+#### Configure `x-api-key`
 
 The Get an Identifier function requires an `x-api-key` header for authentication. Configure it in your `local.settings.json`:
 
 ```json
 {
   "Values": {
-    "GetAnIdentifierFunction__XApiKey": "local-dev-key-change-me"
+    "GetAnIdentifierFunction:XApiKey": "local-dev-key-change-me"
   }
 }
 ```
 
-This is the `x-api-key` for invoking our endpoint. It is **not** the key for PDS Fhir.
+This is the `x-api-key` for invoking our endpoint. It is **not** the key for PDS FHIR.
 For local dev, the key is not important, and it is recommended to keep the value as `local-dev-key-change-me`.
 
 In Dev/Test/Prod environments, the key is automatically retrieved from Azure Key Vault (secret name: `get-an-id-api-key`).
@@ -69,13 +71,24 @@ The operational rotation process for this secret is documented in [Docs/Develope
 docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name sui-azurite mcr.microsoft.com/azure-storage/azurite
 ```
 
-#### Run 'Find' and the 'Stub Custodians'
+#### Run AuthEmulator
 
-Using Rider:
+Get an Identifier validates bearer JWTs using OIDC discovery. For local development, start the repo's AuthEmulator:
 
-* Run the `Launch Find and Stub Custodians` profile
-* Note that [Azure Toolkit for Rider](https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider) needs to be installed
+```bash
+dotnet run --project Apps/AuthEmulator/src/SUI.AuthEmulator/SUI.AuthEmulator.csproj --launch-profile https
+```
 
-Or, using the command line (from the repo root):
+The default Get an Identifier settings use AuthEmulator at `https://localhost:7250`. Its synthetic clients are defined in [`Data/auth-clients-inbound.json`](../../Data/auth-clients-inbound.json) and include the required `get-an-identifier.read` scope.
 
-* `cd ./Apps/Find/src/SUI.Find.FindApi/; func start --port 7182`
+#### Run Get an Identifier
+
+Load the local PDS credentials and start the Function App:
+
+```bash
+cd Apps/GetAnIdentifier/src/SUI.GetAnIdentifier.API
+source .env
+func start
+```
+
+The protected operation is `POST /api/v1/get-an-identifier`. Calls require both a bearer token containing `get-an-identifier.read` and the configured `x-api-key`.
