@@ -21,6 +21,7 @@ namespace SUI.GetAnIdentifier.API.Functions;
 public class GetAnIdentifierFunction(
     ILogger<GetAnIdentifierFunction> logger,
     IGetAnIdentifierService getAnIdentifierService,
+    IAuditLogService auditLogService,
     IOptions<GetAnIdentifierConfiguration> matchFunctionConfig
 )
 {
@@ -88,46 +89,99 @@ public class GetAnIdentifierFunction(
         CancellationToken cancellationToken
     )
     {
+        var correlationId = GetCorrelationId(req, context);
+
         using var logScope = logger.BeginScope(
-            new Dictionary<string, object> { ["CorrelationId"] = context.InvocationId }
+            new Dictionary<string, object> { ["CorrelationId"] = correlationId }
         );
 
+        string callerId = "unauthenticated";
         if (
-            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
-            || authObj is not AuthContext
-            || !VerifyApiKey(req)
+            context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
+            && authObj is AuthContext authCtx
         )
         {
-            return await HttpResponseUtility.UnauthorizedResponse(
-                req,
-                context.InvocationId,
-                cancellationToken
-            );
+            callerId = authCtx.ClientId;
         }
 
         var requestIsValid = TryGetMatchResponseRequestModel(req, out var request);
 
+        // Audit incoming request
+        var incomingTimestamp = DateTimeOffset.UtcNow;
+        await auditLogService.LogIncomingRequestAsync(
+            callerId,
+            correlationId,
+            incomingTimestamp,
+            req.Method,
+            GetSafeAbsolutePath(req),
+            requestIsValid ? request : null,
+            cancellationToken
+        );
+
+        HttpResponseData response;
+        string responseSummary;
+
+        if (
+            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out _)
+            || authObj is not AuthContext
+            || !VerifyApiKey(req)
+        )
+        {
+            response = await HttpResponseUtility.UnauthorizedResponse(
+                req,
+                correlationId,
+                cancellationToken
+            );
+            responseSummary = "Unauthorized";
+            await LogResponseAndReturnAsync(
+                callerId,
+                correlationId,
+                response.StatusCode,
+                responseSummary,
+                cancellationToken
+            );
+            return response;
+        }
+
         if (!requestIsValid)
         {
-            return await HttpResponseUtility.ProblemResponse(
+            response = await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.BadRequest,
                 "Invalid request",
                 "The request body is missing or malformed.",
-                context.InvocationId,
+                correlationId,
                 cancellationToken
             );
+            responseSummary = "Invalid request - body missing or malformed";
+            await LogResponseAndReturnAsync(
+                callerId,
+                correlationId,
+                response.StatusCode,
+                responseSummary,
+                cancellationToken
+            );
+            return response;
         }
 
         if (request.PersonSpecification is null)
         {
-            return await HttpResponseUtility.BadRequestResponse(
+            response = await HttpResponseUtility.BadRequestResponse(
                 req,
-                context.InvocationId,
+                correlationId,
                 "PersonSpecification is required.",
                 "Validation error",
                 cancellationToken
             );
+            responseSummary = "PersonSpecification is required";
+            await LogResponseAndReturnAsync(
+                callerId,
+                correlationId,
+                response.StatusCode,
+                responseSummary,
+                cancellationToken
+            );
+            return response;
         }
 
         if (
@@ -135,63 +189,141 @@ public class GetAnIdentifierFunction(
             && request.Metadata.Any(k => string.IsNullOrWhiteSpace(k.RecordType))
         )
         {
-            return await HttpResponseUtility.BadRequestResponse(
+            response = await HttpResponseUtility.BadRequestResponse(
                 req,
-                context.InvocationId,
+                correlationId,
                 "RecordType is mandatory for all Metadata entries.",
                 "Validation error",
                 cancellationToken
             );
+            responseSummary = "RecordType is mandatory for all Metadata entries";
+            await LogResponseAndReturnAsync(
+                callerId,
+                correlationId,
+                response.StatusCode,
+                responseSummary,
+                cancellationToken
+            );
+            return response;
         }
 
         try
         {
             var personMatch = await getAnIdentifierService.MatchPersonAsync(
                 request.PersonSpecification,
+                correlationId,
                 cancellationToken
             );
 
-            return await personMatch.Match(
+            responseSummary = string.Empty;
+            response = await personMatch.Match(
                 async getAnIdentifierResult =>
-                    await HttpResponseUtility.OkResponse(
+                {
+                    responseSummary = "Person matched successfully";
+                    return await HttpResponseUtility.OkResponse(
                         req,
                         PersonMatch.Create(getAnIdentifierResult),
                         cancellationToken
-                    ),
+                    );
+                },
                 async dataValidationResult =>
-                    await HttpResponseUtility.BadRequestResponse(
+                {
+                    responseSummary = "Validation error";
+                    return await HttpResponseUtility.BadRequestResponse(
                         req,
-                        context.InvocationId,
+                        correlationId,
                         JsonSerializer.Serialize(dataValidationResult),
                         "Validation error",
                         cancellationToken
-                    ),
+                    );
+                },
                 async notFound =>
-                    await HttpResponseUtility.NotFoundResponse(
+                {
+                    responseSummary = "Not Found";
+                    return await HttpResponseUtility.NotFoundResponse(
                         req,
-                        context.InvocationId,
+                        correlationId,
                         cancellationToken
-                    ),
+                    );
+                },
                 async error =>
-                    await HttpResponseUtility.ProblemResponse(
+                {
+                    responseSummary = "Upstream PDS Error / Bad Gateway";
+                    return await HttpResponseUtility.ProblemResponse(
                         req,
                         HttpStatusCode.BadGateway,
                         "Downstream API Error",
                         "The upstream PDS matching service encountered an error or timed out. Matching cannot be completed at this time.",
-                        context.InvocationId,
+                        correlationId,
                         cancellationToken
-                    )
+                    );
+                }
             );
+
+            await LogResponseAndReturnAsync(
+                callerId,
+                correlationId,
+                response.StatusCode,
+                responseSummary,
+                cancellationToken
+            );
+            return response;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled exception during GetAnIdentifier execution");
-            return await HttpResponseUtility.InternalServerErrorResponse(
+            response = await HttpResponseUtility.InternalServerErrorResponse(
                 req,
-                context.InvocationId,
+                correlationId,
                 cancellationToken
             );
+            responseSummary = "Internal Server Error";
+            await LogResponseAndReturnAsync(
+                callerId,
+                correlationId,
+                response.StatusCode,
+                responseSummary,
+                cancellationToken
+            );
+            return response;
         }
+    }
+
+    private Task LogResponseAndReturnAsync(
+        string callerId,
+        string correlationId,
+        HttpStatusCode statusCode,
+        string summary,
+        CancellationToken cancellationToken
+    )
+    {
+        return auditLogService.LogOutgoingResponseAsync(
+            callerId,
+            correlationId,
+            DateTimeOffset.UtcNow,
+            (int)statusCode,
+            summary,
+            cancellationToken
+        );
+    }
+
+    private static string GetCorrelationId(HttpRequestData req, FunctionContext context)
+    {
+        if (req.Headers.TryGetValues("X-Correlation-ID", out var corValues))
+        {
+            var first = corValues.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+            if (!string.IsNullOrWhiteSpace(first))
+                return first;
+        }
+
+        if (req.Headers.TryGetValues("X-Request-ID", out var reqValues))
+        {
+            var first = reqValues.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+            if (!string.IsNullOrWhiteSpace(first))
+                return first;
+        }
+
+        return context.InvocationId;
     }
 
     private bool TryGetMatchResponseRequestModel(
@@ -247,5 +379,17 @@ public class GetAnIdentifierFunction(
         }
 
         return true;
+    }
+
+    private static string GetSafeAbsolutePath(HttpRequestData req)
+    {
+        try
+        {
+            return req.Url?.AbsolutePath ?? string.Empty;
+        }
+        catch (UriFormatException)
+        {
+            return string.Empty;
+        }
     }
 }

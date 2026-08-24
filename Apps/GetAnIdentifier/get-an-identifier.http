@@ -1,0 +1,93 @@
+### Local Testing Configuration for GetAnIdentifier API
+#
+# PREREQUISITES:
+# 1. Run Azurite (local storage for audit logs):
+#    docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name sui-azurite mcr.microsoft.com/azure-storage/azurite
+#
+# 2. Run AuthEmulator (OAuth2 Token Provider):
+#    cd Apps/AuthEmulator/src/SUI.AuthEmulator && dotnet run
+#
+# 3. Run GetAnIdentifier API:
+#    cd Apps/GetAnIdentifier/src/SUI.GetAnIdentifier.API && func start --port 7120
+
+@apiBaseUrl = http://localhost:7120
+@authBaseUrl = https://localhost:7250
+@apiKey = local-dev-key-change-me
+
+# If you manually copy the token string from Request 3, paste it here:
+@authToken = YOUR_TOKEN_HERE
+
+
+### 1. Health Check (No Auth Required)
+GET {{apiBaseUrl}}/api/health
+Accept: application/json
+
+
+### 2. Swagger UI (No Auth Required)
+GET {{apiBaseUrl}}/swagger/ui
+
+
+### 3. Obtain Access Token from AuthEmulator
+# Run this request FIRST to generate a local OAuth2 bearer token.
+#
+# @name authenticate
+POST {{authBaseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic Q0xJRU5UX0lEX0hFQUxUSF8wMTpTVUlQcm9qZWN0
+
+grant_type=client_credentials&scope=get-an-identifier.read
+
+> {%
+    client.global.set("bearer_token", response.body.access_token);
+%}
+
+
+### 4. Get An Identifier - Match Person (JetBrains Rider / IntelliJ)
+# Run Request 3 first to populate {{bearer_token}}
+POST {{apiBaseUrl}}/api/v1/get-an-identifier
+Content-Type: application/json
+x-api-key: {{apiKey}}
+X-Correlation-ID: test-correlation-001
+Authorization: Bearer {{bearer_token}}
+
+{
+  "personSpecification": {
+    "given": "Octavia",
+    "family": "Chislett",
+    "birthDate": "2022-03-17",
+    "gender": "female",
+    "addressPostalCode": "KT19 0ST"
+  },
+  "metadata": [
+    {
+      "recordType": "health.details",
+      "systemId": "SYS-XYZ",
+      "recordId": "987123"
+    }
+  ]
+}
+
+### 6. Get An Identifier - Match Person (Manual Token Override)
+# Paste token into @authToken at top of file
+POST {{apiBaseUrl}}/api/v1/get-an-identifier
+Content-Type: application/json
+x-api-key: {{apiKey}}
+X-Correlation-ID: test-correlation-003
+Authorization: Bearer {{authToken}}
+
+{
+  "personSpecification": {
+    "given": "Octavia",
+    "family": "Chislett",
+    "birthDate": "2022-03-17",
+    "gender": "female",
+    "addressPostalCode": "KT19 0ST"
+  },
+  "metadata": [
+    {
+      "recordType": "health.details",
+      "systemId": "SYS-XYZ",
+      "recordId": "987123"
+    }
+  ]
+}

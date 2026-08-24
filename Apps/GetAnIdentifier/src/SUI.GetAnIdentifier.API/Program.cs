@@ -11,6 +11,7 @@ using SUI.GetAnIdentifier.API.Middleware;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Services;
 using SUI.GetAnIdentifier.Infrastructure;
+using SUI.GetAnIdentifier.Infrastructure.Configuration;
 using SUI.GetAnIdentifier.Infrastructure.Factories;
 using SUI.GetAnIdentifier.Infrastructure.Interfaces;
 using SUI.GetAnIdentifier.Infrastructure.Services;
@@ -55,10 +56,15 @@ builder.Services.AddHealthChecks();
 builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
 
+builder.Services.Configure<AuditStorageOptions>(
+    builder.Configuration.GetSection(AuditStorageOptions.SectionName)
+);
+
 // Infrastructure services
 builder.Services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
 builder.Services.AddSingleton<IFhirService, FhirService>();
 builder.Services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
+builder.Services.AddSingleton<IAuditLogService, AuditLogService>();
 
 // Middleware services
 builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();
