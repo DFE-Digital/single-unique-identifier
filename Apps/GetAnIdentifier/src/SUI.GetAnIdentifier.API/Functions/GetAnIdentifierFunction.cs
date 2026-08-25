@@ -335,7 +335,7 @@ public class GetAnIdentifierFunction(
 
         try
         {
-            var requestBody = req.ReadAsString();
+            var requestBody = req.ReadAsStringAsync().GetAwaiter().GetResult();
 
             var request = JsonSerializer.Deserialize<GetAnIdentifierRequest>(
                 requestBody!,
