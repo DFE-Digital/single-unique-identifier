@@ -1,6 +1,6 @@
 # ADR-GetAnIdentifier-0001: MNS Integration
 
-Date: 2026-08-24
+Date: 2026-08-25
 
 Author: Stuart Maskell
 
@@ -8,11 +8,11 @@ Category: System/GetAnIdentifier / NHS Integration
 
 ## Status
 
-Draft
+Accepted
 
 ## Decision
 
-TBA
+MESH - Path of least resistance for Alpha, with the least operational overhead and maintainability risk. SQS is a valid option, but requires bespoke cross-cloud integration and operational support.
 
 ## Context
 
@@ -83,8 +83,6 @@ We need to decide on the integration standard to establish our infrastructure se
 
 ## Advice
 
-! TODO: Re-Review after updates
-
-- NHSE Product Manager for MNS, 2026-08-18 - For near-real-time notifications, SQS is the best option. However, if that is not a requirement, then either is are equally valid. If your Azure application can call the MESH API directly (or use the MESH client) and batch delivery fits your workflow, MESH does seem like the simpler path to go down.
-- Technical lead SUI, 2026-08-## - TBA
-- Technical Architect SUI, 2026-08-## - TBA
+- NHSE Product owner for MNS, 2026-08-18 - For near-real-time notifications, SQS is the best option. However, if that is not a requirement, then either is are equally valid. If your Azure application can call the MESH API directly (or use the MESH client) and batch delivery fits your workflow, MESH does seem like the simpler path to go down.
+- Technical lead SUI, 2026-08-25 - MESH - Least operational overhead for the SUI team.
+- Technical Architect SUI, 2026-08-25 - MESH - Least operational overhead for the SUI team.
