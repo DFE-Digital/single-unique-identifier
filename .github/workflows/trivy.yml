@@ -3,17 +3,38 @@ name: Trivy Repository Scan
 on:
   schedule:
     - cron: "0 0 * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.csproj"
+      - "**/*.props"
+      - "**/*.targets"
+      - "**/packages.lock.json"
+      - ".github/workflows/trivy.yml"
+      - "global.json"
+      - "nuget.config"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**/*.csproj"
+      - "**/*.props"
+      - "**/*.targets"
+      - "**/packages.lock.json"
+      - ".github/workflows/trivy.yml"
+      - "global.json"
+      - "nuget.config"
   workflow_dispatch:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   repository-scan:
     name: Trivy repository scan
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
-    permissions:
-      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -29,7 +50,7 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM,LOW
           exit-code: 0
           vuln-type: os,library
-          scanners: vuln,misconfig,license
+          scanners: vuln,misconfig
 
       - name: Publish Trivy output to summary
         shell: bash
@@ -45,3 +66,41 @@ jobs:
               echo "</details>"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Restore dependencies for licence scanning
+        run: dotnet restore FullSystem.slnx --packages .trivy-packages -p:RestoreUseStaticGraphEvaluation=true
+        env:
+          NuGetPackageSourceCredentials_DFEDigital: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print all detected licences
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .trivy-packages
+          scanners: license
+          skip-files: "**/*.deps.json"
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          format: table
+          exit-code: 0
+          skip-setup-trivy: true
+        env:
+          TRIVY_LICENSE_FULL: "true"
+
+      - name: Fail on restricted or forbidden licences
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .trivy-packages
+          scanners: license
+          skip-files: "**/*.deps.json"
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: 1
+          skip-setup-trivy: true
+        env:
+          TRIVY_LICENSE_FULL: "true"
