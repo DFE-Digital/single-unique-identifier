@@ -217,6 +217,7 @@ public class JwtAuthMiddlewareTests
 
         var items = new ConcurrentDictionary<object, object>();
         context.Items.Returns(items);
+        context.FunctionDefinition.Name.Returns("GetAnIdentifier");
         context.FunctionDefinition.EntryPoint.Returns(
             "SUI.GetAnIdentifier.API.Functions.GetAnIdentifierFunction.GetAnIdentifier"
         );
@@ -248,16 +249,15 @@ public class JwtAuthMiddlewareTests
     public class GeneralVerificationTests : JwtAuthMiddlewareTests
     {
         [Theory]
-        [InlineData("swagger")]
-        [InlineData("openapi")]
-        [InlineData("v1/auth/token")]
-        [InlineData("health")]
-        public async Task TestInvoke_WithNoAuthEndpoints_SkipsMethod(string endpoint)
+        [InlineData("RenderOAuth2Redirect")]
+        [InlineData("RenderOpenApiDocument")]
+        [InlineData("RenderSwaggerDocument")]
+        [InlineData("RenderSwaggerUI")]
+        public async Task TestInvoke_WithNoAuthFunctions_SkipsMethod(string functionName)
         {
             // Arrange
             var context = CreateMockFunctionContext(null);
-            var req = await context.GetHttpRequestDataAsync();
-            req!.Url.Returns(new Uri("https://mock.gov.uk/api/" + endpoint));
+            context.FunctionDefinition.Name.Returns(functionName);
             var sut = new JwtAuthMiddleware(
                 _mockAuthContextFactory,
                 _mockConfigManager,
@@ -270,6 +270,27 @@ public class JwtAuthMiddlewareTests
 
             // Assert
             Assert.True(_nextExecuted);
+        }
+
+        [Fact]
+        public async Task TestInvoke_WithEmptyRequestUrl_StillChecksAuth()
+        {
+            // Arrange
+            var context = CreateMockFunctionContext(null);
+            var req = await context.GetHttpRequestDataAsync();
+            req!.Url.Returns(_ => throw new UriFormatException("Invalid URI: The URI is empty."));
+            var sut = new JwtAuthMiddleware(
+                _mockAuthContextFactory,
+                _mockConfigManager,
+                _mockOptions,
+                _mockLogger
+            );
+
+            // Act
+            await sut.Invoke(context, Next);
+
+            // Assert
+            AssertAccessDenied(context, "Missing Authorization header.");
         }
 
         [Fact]

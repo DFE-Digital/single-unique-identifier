@@ -24,6 +24,13 @@ public class JwtAuthMiddleware(
 ) : IFunctionsWorkerMiddleware
 {
     private static readonly JwtSecurityTokenHandler TokenHandler = new();
+    private static readonly HashSet<string> AnonymousFunctionNames =
+    [
+        "RenderOAuth2Redirect",
+        "RenderOpenApiDocument",
+        "RenderSwaggerDocument",
+        "RenderSwaggerUI",
+    ];
 
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
@@ -35,13 +42,9 @@ public class JwtAuthMiddleware(
             return;
         }
 
-        // allow swagger / openapi / health to work without auth
-        if (
-            req.Url.AbsolutePath.StartsWith("/api/swagger")
-            || req.Url.AbsolutePath.StartsWith("/api/openapi")
-            || req.Url.AbsolutePath.StartsWith("/api/v1/auth/token")
-            || req.Url.AbsolutePath.StartsWith("/api/health")
-        )
+        // OpenAPI extension functions do not require auth. Use the function name rather than
+        // HttpRequestData.Url because Core Tools can provide an empty URL for these invocations.
+        if (AnonymousFunctionNames.Contains(context.FunctionDefinition.Name))
         {
             await next(context);
             return;
