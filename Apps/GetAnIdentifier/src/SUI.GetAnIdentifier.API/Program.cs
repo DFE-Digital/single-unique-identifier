@@ -79,6 +79,4 @@ builder.Services.AddHttpClient(
     }
 );
 
-builder.ConfigureFunctionsWebApplication();
-
 await builder.Build().RunAsync();
