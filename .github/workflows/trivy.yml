@@ -53,19 +53,24 @@ jobs:
           scanners: vuln,misconfig
 
       - name: Publish Trivy output to summary
+        if: always()
         shell: bash
         run: |
-          if [[ -s trivy-results.txt ]]; then
-            {
-              echo "### Trivy Repository Results"
+          {
+            echo "### Trivy Repository Results"
+
+            if [[ -s trivy-results.txt ]]; then
               echo "<details><summary>Click to expand</summary>"
               echo ""
               echo '```text'
               cat trivy-results.txt
               echo '```'
               echo "</details>"
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
+            else
+              echo ""
+              echo "No repository scan report was generated."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -86,12 +91,15 @@ jobs:
           skip-files: "**/*.deps.json"
           severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
           format: table
+          output: trivy-license-results.txt
           exit-code: 0
           skip-setup-trivy: true
         env:
           TRIVY_LICENSE_FULL: "true"
 
-      - name: Fail on restricted or forbidden licences
+      - name: Check for restricted or forbidden licences
+        id: licence-policy
+        continue-on-error: true
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
@@ -100,7 +108,55 @@ jobs:
           skip-files: "**/*.deps.json"
           severity: HIGH,CRITICAL
           format: table
+          output: trivy-license-policy-results.txt
           exit-code: 1
           skip-setup-trivy: true
         env:
           TRIVY_LICENSE_FULL: "true"
+
+      - name: Publish licence output to summary
+        if: always()
+        shell: bash
+        env:
+          POLICY_OUTCOME: ${{ steps.licence-policy.outcome }}
+        run: |
+          {
+            echo "### Trivy Dependency Licence Results"
+            echo ""
+
+            if [[ "$POLICY_OUTCOME" == "success" ]]; then
+              echo "- Policy check: Passed - no restricted or forbidden licences detected."
+            elif [[ "$POLICY_OUTCOME" == "failure" ]]; then
+              echo "- Policy check: Failed - restricted or forbidden licences detected."
+            else
+              echo "- Policy check: Did not complete."
+            fi
+
+            if [[ -s trivy-license-results.txt ]]; then
+              echo ""
+              echo "<details><summary>All detected licences</summary>"
+              echo ""
+              echo '```text'
+              cat trivy-license-results.txt
+              echo '```'
+              echo "</details>"
+            else
+              echo ""
+              echo "No licence scan report was generated."
+            fi
+
+            if [[ "$POLICY_OUTCOME" == "failure" && -s trivy-license-policy-results.txt ]]; then
+              echo ""
+              echo "<details open><summary>Restricted or forbidden licences</summary>"
+              echo ""
+              echo '```text'
+              cat trivy-license-policy-results.txt
+              echo '```'
+              echo "</details>"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on restricted or forbidden licences
+        if: steps.licence-policy.outcome == 'failure'
+        shell: bash
+        run: exit 1
