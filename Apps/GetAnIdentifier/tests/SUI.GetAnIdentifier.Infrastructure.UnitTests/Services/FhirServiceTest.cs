@@ -109,6 +109,23 @@ public class FhirServiceTests : BaseFhirClientTests
         Assert.Equal(SearchResult.ResultType.Matched, result.Value?.Type);
         Assert.NotNull(result.Value?.NhsNumber);
         Assert.NotEqual(0m, result.Value?.Score);
+        Assert.Equal(["B81606"], result.Value?.GeneralPractitioner);
+    }
+
+    [Fact]
+    public async Task ShouldReturnEmptyGeneralPractitioner_WhenPatientHasNoRegisteredPractice()
+    {
+        // Arrange
+        var searchQuery = new SearchQuery();
+        var testFhirClient = new TestFhirClientSinglePersonMatch(includeGeneralPractitioner: false);
+        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
+
+        // Act
+        var result = await _fhirService.PerformSearchAsync(searchQuery, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.Empty(result.Value!.GeneralPractitioner);
     }
 
     [Fact]

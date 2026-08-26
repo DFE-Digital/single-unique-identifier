@@ -92,7 +92,7 @@ public class MatchPersonAsyncTests
     }
 
     [Fact]
-    public async Task ShouldReturnNhsPersonId_WhenExactMatchFound()
+    public async Task ShouldReturnIdentifierAndGeneralPractitioner_WhenExactMatchFound()
     {
         var personSpecification = new PersonSpecification
         {
@@ -110,6 +110,7 @@ public class MatchPersonAsyncTests
                         Type = SearchResult.ResultType.Matched,
                         Score = 0.98m,
                         NhsNumber = "9876543210",
+                        GeneralPractitioner = ["B81606"],
                     }
                 )
             );
@@ -118,7 +119,9 @@ public class MatchPersonAsyncTests
         var result = await _sut.MatchPersonAsync(personSpecification, CancellationToken.None);
 
         // Assert
-        Assert.IsType<NhsPersonId>(result.Value);
+        var match = Assert.IsType<GetAnIdentifierResult>(result.Value);
+        Assert.Equal("9876543210", match.PersonId.Value);
+        Assert.Equal(["B81606"], match.GeneralPractitioner);
     }
 
     [Fact]

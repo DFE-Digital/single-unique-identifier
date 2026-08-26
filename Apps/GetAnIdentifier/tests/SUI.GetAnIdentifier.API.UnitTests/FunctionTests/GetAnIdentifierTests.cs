@@ -91,10 +91,16 @@ public class GetAnIdentifierTests
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
         var personId = "9876543210";
+        const string generalPractitionerOdsCode = "B81606";
 
         _getAnIdentifierService
             .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
-            .Returns(NhsPersonId.Create(personId).Value!);
+            .Returns(
+                new GetAnIdentifierResult(
+                    NhsPersonId.Create(personId).Value!,
+                    [generalPractitionerOdsCode]
+                )
+            );
 
         // Act
         var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
@@ -102,9 +108,16 @@ public class GetAnIdentifierTests
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         response.Body.Position = 0;
-        var responseBody = await JsonSerializer.DeserializeAsync<PersonMatch>(response.Body);
-        Assert.NotNull(responseBody);
-        Assert.Equal(personId, responseBody.PersonId);
+        using var responseBody = await JsonDocument.ParseAsync(response.Body);
+        Assert.Equal(personId, responseBody.RootElement.GetProperty("PersonId").GetString());
+        Assert.Equal(
+            generalPractitionerOdsCode,
+            responseBody
+                .RootElement.GetProperty("GeneralPractitioner")
+                .EnumerateArray()
+                .Single()
+                .GetString()
+        );
     }
 
     [Fact]
