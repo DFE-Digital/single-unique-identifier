@@ -1,6 +1,0 @@
-{
-    "$schema": "https://schemas.reqnroll.net/reqnroll-config-latest.json",
-    "runtime": {
-        "missingOrPendingStepsOutcome": "Ignore"
-    }
-}
