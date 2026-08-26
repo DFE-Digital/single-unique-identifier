@@ -26,7 +26,4 @@
     <File Path="nuget.config" />
     <File Path="README.md" />
   </Folder>
-  <Folder Name="/SystemTests/">
-    <Project Path="SystemTests/System.E2ETests/System.E2ETests.csproj" />
-  </Folder>
 </Solution>
