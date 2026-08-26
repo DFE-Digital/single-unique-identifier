@@ -118,6 +118,16 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
             );
         }
 
-        return Result<SearchResult>.Ok(SearchResult.Match(entry.Resource.Id, entry.Search.Score));
+        var generalPractitioner =
+            (entry.Resource as Patient)
+                ?.GeneralPractitioner.Select(reference => reference.Identifier?.Value)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Select(value => value!)
+                .ToArray()
+            ?? [];
+
+        return Result<SearchResult>.Ok(
+            SearchResult.Match(entry.Resource.Id, entry.Search.Score, generalPractitioner)
+        );
     }
 }

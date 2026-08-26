@@ -152,10 +152,10 @@ public class GetAnIdentifierFunction(
             );
 
             return await personMatch.Match(
-                async id =>
+                async getAnIdentifierResult =>
                     await HttpResponseUtility.OkResponse(
                         req,
-                        new PersonMatch(id.Value),
+                        PersonMatch.Create(getAnIdentifierResult),
                         cancellationToken
                     ),
                 async dataValidationResult =>

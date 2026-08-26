@@ -21,6 +21,7 @@ public class BaseFhirClientTests
     }
 
     protected class TestFhirClientSinglePersonMatch(
+        bool includeGeneralPractitioner = true,
         string endpoint = "https://example.com/fhir",
         FhirClientSettings settings = null!,
         HttpMessageHandler messageHandler = null!
@@ -37,7 +38,23 @@ public class BaseFhirClientTests
                 {
                     new()
                     {
-                        Resource = new Patient { Id = "123" },
+                        Resource = new Patient
+                        {
+                            Id = "123",
+                            GeneralPractitioner = includeGeneralPractitioner
+                                ?
+                                [
+                                    new ResourceReference
+                                    {
+                                        Type = "Organization",
+                                        Identifier = new Identifier(
+                                            "https://fhir.nhs.uk/Id/ods-organization-code",
+                                            "B81606"
+                                        ),
+                                    },
+                                ]
+                                : [],
+                        },
                         Search = new Bundle.SearchComponent()
                         {
                             Mode = Bundle.SearchEntryMode.Match,

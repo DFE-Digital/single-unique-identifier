@@ -1,6 +1,6 @@
 # Get an Identifier: as-built design
 
-**Last checked:** `2026-08-19`
+**Last checked:** `2026-08-26`
 
 **Status:** Implemented behaviour on `main`
 
@@ -27,8 +27,8 @@ sequenceDiagram
     Function->>NHSAuth: Exchange signed client assertion for NHS access token
     NHSAuth-->>Function: NHS bearer access token
     Function->>PDS: Search Patient using demographics<br/>NHS bearer token + X-Request-ID
-    PDS-->>Function: FHIR search result or error
-    Function-->>Caller: Match, not found, validation error or service error
+    PDS-->>Function: FHIR search result with generalPractitioner, or error
+    Function-->>Caller: NHS number and GP practice ODS code, or error response
 ```
 
 The application validates JWTs itself using the configured OIDC discovery document. AuthEmulator supplies this contract for local development. Integration with FaUAPI is separate planned work and is not represented as implemented here.
@@ -39,6 +39,12 @@ The operation currently requires both:
 - the configured `x-api-key`
 
 The Function App uses `AuthorizationLevel.Anonymous` because these checks are performed in application code rather than by an Azure Functions host key.
+
+## Match response
+
+A successful match returns the NHS number as `PersonId` and `GeneralPractitioner` as a collection containing the ODS code from the PDS FHIR `Patient.generalPractitioner` field. The collection is empty when PDS does not supply a registered practice, including for records where location-sensitive fields are withheld.
+
+Get an Identifier does not call the Organisation Data Service FHIR API or enrich the ODS code with practice details.
 
 ## Configuration boundaries
 

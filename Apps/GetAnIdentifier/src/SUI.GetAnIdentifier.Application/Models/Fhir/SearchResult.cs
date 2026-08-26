@@ -8,6 +8,8 @@ public class SearchResult
 
     public string? NhsNumber { get; init; }
 
+    public IReadOnlyCollection<string> GeneralPractitioner { get; init; } = [];
+
     public enum ResultType
     {
         Matched,
@@ -16,12 +18,17 @@ public class SearchResult
         Error,
     }
 
-    public static SearchResult Match(string nhsNumber, decimal? score) =>
+    public static SearchResult Match(
+        string nhsNumber,
+        decimal? score,
+        IReadOnlyCollection<string> generalPractitioner
+    ) =>
         new()
         {
             Type = ResultType.Matched,
             NhsNumber = nhsNumber,
             Score = score,
+            GeneralPractitioner = generalPractitioner,
         };
 
     public static SearchResult Unmatched() => new() { Type = ResultType.Unmatched };
