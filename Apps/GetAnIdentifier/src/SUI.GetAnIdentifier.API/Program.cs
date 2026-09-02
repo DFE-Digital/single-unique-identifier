@@ -12,7 +12,6 @@ using SUI.GetAnIdentifier.API.Middleware;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Services;
 using SUI.GetAnIdentifier.Infrastructure;
-using SUI.GetAnIdentifier.Infrastructure.Configuration;
 using SUI.GetAnIdentifier.Infrastructure.Factories;
 using SUI.GetAnIdentifier.Infrastructure.Interfaces;
 using SUI.GetAnIdentifier.Infrastructure.Services;
@@ -69,9 +68,16 @@ builder.Services.AddSingleton(x =>
     return new BlobContainerClient(connectionString, containerName);
 });
 
-builder.Services.Configure<AuditStorageOptions>(
-    builder.Configuration.GetSection(AuditStorageOptions.SectionName)
-);
+builder.Services.AddSingleton(x =>
+{
+    var connectionString =
+        builder.Configuration["AzureWebJobsStorage"]
+        ?? throw new ArgumentNullException(builder.Configuration["AzureWebJobsStorage"]);
+    var containerName =
+        builder.Configuration["AuditStorage:ContainerName"]
+        ?? throw new ArgumentNullException(builder.Configuration["AuditStorage:ContainerName"]);
+    return new BlobContainerClient(connectionString, containerName);
+});
 
 // Infrastructure services
 builder.Services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
