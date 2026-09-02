@@ -1,42 +1,48 @@
+using Azure;
 using Azure.Storage.Blobs;
-using Microsoft.Extensions.Configuration;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
-using SUI.GetAnIdentifier.Infrastructure.Configuration;
 using SUI.GetAnIdentifier.Infrastructure.Services;
-using Xunit;
+using SUI.GetAnIdentifier.Infrastructure.UnitTests.Utility;
 
 namespace SUI.GetAnIdentifier.Infrastructure.UnitTests.Services;
 
 public class AuditLogServiceTests
 {
     private readonly ILogger<AuditLogService> _logger = Substitute.For<ILogger<AuditLogService>>();
-    private readonly IConfiguration _configuration = Substitute.For<IConfiguration>();
-    private readonly IOptions<AuditStorageOptions> _options;
+    private readonly BlobContainerClient _blobContainerClient =
+        Substitute.For<BlobContainerClient>();
+    private readonly TimeProvider _timeProvider = Substitute.For<TimeProvider>();
 
     public AuditLogServiceTests()
     {
-        _options = Options.Create(
-            new AuditStorageOptions
-            {
-                ContainerName = "test-audit-logs",
-                ConnectionString = string.Empty,
-            }
-        );
+        _timeProvider
+            .GetUtcNow()
+            .Returns(_ => new DateTimeOffset(2026, 08, 31, 08, 00, 00, TimeSpan.Zero));
     }
 
     [Fact]
     public async Task LogIncomingRequestAsync_LogsInformationWithoutException()
     {
         // Arrange
-        var service = new AuditLogService(_logger, _options, _configuration, null);
+        var blobContentInfoResponse = Substitute.For<Response<BlobContentInfo>>();
+        var blobClient = Substitute.For<BlobClient>();
+        blobClient.UploadAsync(Arg.Any<Stream>()).Returns(_ => blobContentInfoResponse);
+
+        var blobContainerInfoResponse = Substitute.For<Response<BlobContainerInfo>>();
+        _blobContainerClient
+            .CreateIfNotExistsAsync()
+            .ReturnsForAnyArgs(_ => blobContainerInfoResponse);
+        _blobContainerClient.GetBlobClient(Arg.Any<string>()).Returns(x => blobClient);
+
+        var service = new AuditLogService(_logger, _blobContainerClient);
 
         // Act
         await service.LogIncomingRequestAsync(
             callerId: "test-caller",
             correlationId: "test-correlation-id",
-            timestamp: DateTimeOffset.UtcNow,
+            timestamp: _timeProvider.GetUtcNow(),
             httpMethod: "POST",
             requestPath: "/v1/get-an-identifier",
             requestData: new { Test = "Data" },
@@ -44,22 +50,31 @@ public class AuditLogServiceTests
         );
 
         // Assert
-        _logger
-            .ReceivedWithAnyArgs(1)
-            .Log(
-                LogLevel.Information,
-                Arg.Any<EventId>(),
-                Arg.Any<object>(),
-                Arg.Any<Exception>(),
-                Arg.Any<Func<object, Exception?, string>>()
-            );
+        _logger.VerifyLog(
+            LogLevel.Information,
+            "AuditLog [{EventType}] - CallerId: {CallerId}, CorrelationId: {CorrelationId}, Timestamp: {Timestamp}, HttpMethod: {HttpMethod}, RequestPath: {RequestPath}, StatusCode: {StatusCode}, ResponseSummary: {ResponseSummary}"
+        );
+
+        await blobClient
+            .Received(1)
+            .UploadAsync(Arg.Any<Stream>(), overwrite: true, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task LogOutgoingResponseAsync_LogsInformationWithoutException()
     {
         // Arrange
-        var service = new AuditLogService(_logger, _options, _configuration, null);
+        var blobContentInfoResponse = Substitute.For<Response<BlobContentInfo>>();
+        var blobClient = Substitute.For<BlobClient>();
+        blobClient.UploadAsync(Arg.Any<Stream>()).Returns(_ => blobContentInfoResponse);
+
+        var blobContainerInfoResponse = Substitute.For<Response<BlobContainerInfo>>();
+        _blobContainerClient
+            .CreateIfNotExistsAsync()
+            .ReturnsForAnyArgs(_ => blobContainerInfoResponse);
+        _blobContainerClient.GetBlobClient(Arg.Any<string>()).Returns(x => blobClient);
+
+        var service = new AuditLogService(_logger, _blobContainerClient);
 
         // Act
         await service.LogOutgoingResponseAsync(
@@ -72,14 +87,13 @@ public class AuditLogServiceTests
         );
 
         // Assert
-        _logger
-            .ReceivedWithAnyArgs(1)
-            .Log(
-                LogLevel.Information,
-                Arg.Any<EventId>(),
-                Arg.Any<object>(),
-                Arg.Any<Exception>(),
-                Arg.Any<Func<object, Exception?, string>>()
-            );
+        _logger.VerifyLog(
+            LogLevel.Information,
+            "AuditLog [{EventType}] - CallerId: {CallerId}, CorrelationId: {CorrelationId}, Timestamp: {Timestamp}, HttpMethod: {HttpMethod}, RequestPath: {RequestPath}, StatusCode: {StatusCode}, ResponseSummary: {ResponseSummary}"
+        );
+
+        await blobClient
+            .Received(1)
+            .UploadAsync(Arg.Any<Stream>(), overwrite: true, Arg.Any<CancellationToken>());
     }
 }

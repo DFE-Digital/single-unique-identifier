@@ -12,6 +12,7 @@
     "AuthSettings__Audience": "sui-find-a-record-api",
     "AuthSettings__OidcDiscoveryUrl": "https://localhost:7250/api/v1/.well-known/openid-configuration",
     "AuthSettings__AccessTokenUrl": "https://localhost:7250/api/v1/auth/token",
-    "AuthSettings__UseAuthStoreForAuthorisation": false
+    "AuthSettings__UseAuthStoreForAuthorisation": false,
+    "AuditStorage:ContainerName": "audit-logs"
   }
 }
