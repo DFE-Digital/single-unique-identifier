@@ -130,7 +130,9 @@ public class FhirServiceTests : BaseFhirClientTests
         // Arrange
         var searchQuery = new SearchQuery();
         var testFhirClient = new TestFhirClientSinglePersonMatch(includeGeneralPractitioner: false);
-        FhirClientFactoryMock.CreateFhirClientAsync().Returns(testFhirClient);
+        FhirClientFactoryMock
+            .CreateFhirClientAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(testFhirClient);
 
         // Act
         var result = await _fhirService.PerformSearchAsync(
