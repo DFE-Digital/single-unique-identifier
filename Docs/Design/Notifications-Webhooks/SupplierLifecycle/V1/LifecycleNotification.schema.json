@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SUI supplier lifecycle notification v1",
+  "description": "A notification that information previously returned by Get an Identifier may have changed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "eventType",
+    "occurredAt",
+    "affectedNhsNumber"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1",
+      "description": "The major version of the supplier lifecycle webhook payload contract."
+    },
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The stable identifier for this normalized lifecycle event. It is also the supplier idempotency key."
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "nhsNumberChanged",
+        "gpChanged"
+      ],
+      "description": "The lifecycle change that requires the supplier to rematch the affected person."
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The UTC timestamp associated with the normalized lifecycle event."
+    },
+    "affectedNhsNumber": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{9}$",
+      "format": "nhs-number",
+      "description": "An unformatted, checksum-valid NHS number. This is the old NHS number for nhsNumberChanged and the current NHS number for gpChanged."
+    }
+  }
+}

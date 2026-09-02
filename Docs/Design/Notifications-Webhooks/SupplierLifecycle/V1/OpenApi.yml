@@ -1,0 +1,163 @@
+openapi: 3.1.0
+info:
+  title: SUI supplier lifecycle webhook
+  version: 1.0.0
+  description: |
+    The HTTP contract implemented by suppliers to receive lifecycle notifications
+    from the SUI Notification Service.
+
+    The contract is currently a draft. The proposed three-second acknowledgement
+    timeout must be formally agreed before the contract is accepted.
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+
+webhooks:
+  lifecycleNotification:
+    post:
+      operationId: receiveLifecycleNotificationV1
+      summary: Receive a supplier lifecycle notification
+      description: |
+        Durably accept the notification and acknowledge it before rematching the
+        affected person asynchronously through Get an Identifier.
+      security:
+        - suiWebhookSignature: []
+      parameters:
+        - $ref: "#/components/parameters/DeliveryId"
+        - $ref: "#/components/parameters/DeliveryAttempt"
+        - $ref: "#/components/parameters/Timestamp"
+        - $ref: "#/components/parameters/KeyId"
+        - $ref: "#/components/parameters/Signature"
+        - $ref: "#/components/parameters/CorrelationId"
+      requestBody:
+        required: true
+        content:
+          application/vnd.dfe.sui.lifecycle-notification.v1+json:
+            schema:
+              $ref: "./LifecycleNotification.schema.json"
+            examples:
+              nhsNumberChanged:
+                summary: NHS number changed
+                description: The affected NHS number is the old NHS number held by suppliers.
+                value:
+                  schemaVersion: "1"
+                  eventId: 27dd8c17-e05d-432f-a14f-6b05d1f7469b
+                  eventType: nhsNumberChanged
+                  occurredAt: "2026-09-02T09:30:00Z"
+                  affectedNhsNumber: "9876543210"
+              gpChanged:
+                summary: Registered GP changed
+                description: The affected NHS number is the person's current NHS number.
+                value:
+                  schemaVersion: "1"
+                  eventId: 8ab24d4d-b1cd-4516-92d8-c854f066af59
+                  eventType: gpChanged
+                  occurredAt: "2026-09-02T09:35:00Z"
+                  affectedNhsNumber: "9434765919"
+      responses:
+        "202":
+          description: |
+            The notification has been durably accepted, or was already durably
+            accepted as a duplicate. The response has no body.
+        "400":
+          description: The request or required delivery metadata is malformed.
+        "401":
+          description: The signature, timestamp or signing key is missing or invalid.
+        "403":
+          description: The authenticated sender is not permitted to use this endpoint.
+        "408":
+          description: The supplier timed out while receiving the request. Retryable.
+        "415":
+          description: The v1 media type is not supported.
+        "425":
+          description: The supplier is not ready to accept the request. Retryable.
+        "429":
+          description: The supplier is temporarily rate limited. Retryable.
+          headers:
+            Retry-After:
+              $ref: "#/components/headers/RetryAfter"
+        "500":
+          description: The supplier failed to accept the request. Retryable.
+        "502":
+          description: A supplier dependency failed. Retryable.
+        "503":
+          description: The supplier endpoint is temporarily unavailable. Retryable.
+          headers:
+            Retry-After:
+              $ref: "#/components/headers/RetryAfter"
+        "504":
+          description: A supplier dependency timed out. Retryable.
+        "5XX":
+          description: Any other server error. Retryable.
+        default:
+          description: |
+            Any response other than 202 is not an acknowledgement. Responses not
+            explicitly classified as retryable, including redirects and other
+            2xx or 4xx responses, are non-retryable contract or configuration
+            failures.
+
+components:
+  securitySchemes:
+    suiWebhookSignature:
+      type: apiKey
+      in: header
+      name: X-SUI-Signature-256
+      description: |
+        HMAC-SHA256 signature in the form sha256=<lowercase hexadecimal digest>.
+        Verification also requires the timestamp, delivery ID and key ID headers.
+        The endpoint secret is provisioned as Base64 and decoded to its raw key
+        bytes before calculating the HMAC.
+
+  parameters:
+    DeliveryId:
+      name: X-SUI-Delivery-ID
+      in: header
+      required: true
+      description: Stable identifier for delivery of the event to this registered endpoint.
+      schema:
+        type: string
+        format: uuid
+    DeliveryAttempt:
+      name: X-SUI-Delivery-Attempt
+      in: header
+      required: true
+      description: One-based attempt number, incremented for every retry to this endpoint.
+      schema:
+        type: integer
+        minimum: 1
+    Timestamp:
+      name: X-SUI-Timestamp
+      in: header
+      required: true
+      description: Unix timestamp in whole seconds, regenerated for every attempt.
+      schema:
+        type: integer
+        format: int64
+    KeyId:
+      name: X-SUI-Key-ID
+      in: header
+      required: true
+      description: Identifies the active or grace-period endpoint-specific signing secret.
+      schema:
+        type: string
+        minLength: 1
+    Signature:
+      name: X-SUI-Signature-256
+      in: header
+      required: true
+      description: HMAC-SHA256 signature in the form sha256=<lowercase hexadecimal digest>.
+      schema:
+        type: string
+        pattern: "^sha256=[0-9a-f]{64}$"
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: true
+      description: Correlation identifier for operational tracing. It is not an idempotency key.
+      schema:
+        type: string
+        format: uuid
+
+  headers:
+    RetryAfter:
+      description: Requested delay before another attempt, expressed as seconds or an HTTP date.
+      schema:
+        type: string
