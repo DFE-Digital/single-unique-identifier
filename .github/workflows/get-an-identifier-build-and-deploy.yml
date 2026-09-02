@@ -86,6 +86,8 @@ jobs:
     secrets: inherit
     permissions:
       id-token: write
+      contents: read
+      packages: read
       actions: read
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
