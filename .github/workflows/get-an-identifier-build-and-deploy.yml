@@ -84,6 +84,9 @@ jobs:
     needs: build-and-test-GetAnIdentifier
     uses: ./.github/workflows/deploy-dotnet-functionapp.yml
     secrets: inherit
+    permissions:
+      id-token: write
+      actions: read
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       directory_name: Apps/GetAnIdentifier
