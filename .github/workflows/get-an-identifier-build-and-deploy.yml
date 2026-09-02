@@ -94,5 +94,5 @@ jobs:
       directory_name: Apps/GetAnIdentifier
       artifact_name: ${{ fromJson(needs.build-and-test-GetAnIdentifier.outputs.artifact_names)['SUI.GetAnIdentifier.API'] }}
       artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
-      component_descriptor: getanidentifier01
+      component_descriptor: getanid01
       package_path: publish
