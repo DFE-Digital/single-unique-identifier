@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Azure;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 using SUI.GetAnIdentifier.Application.Interfaces;
@@ -89,11 +90,27 @@ public class AuditLogService(
             using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
             await blobClient.UploadAsync(stream, overwrite: true, cancellationToken);
         }
+        catch (RequestFailedException ex)
+        {
+            logger.LogError(
+                ex,
+                "Error occurred in azure services while attempting to write audit logs. Correlation ID: {CorrelationId}",
+                entry.CorrelationId
+            );
+        }
+        catch (NotSupportedException ex)
+        {
+            logger.LogError(
+                ex,
+                "Error occurred during JSON serialization of audit entry. Correlation ID: {CorrelationId}",
+                entry.CorrelationId
+            );
+        }
         catch (Exception ex)
         {
             logger.LogError(
                 ex,
-                "Failed to write audit log to blob storage for correlation ID {CorrelationId}",
+                "Failed to write audit log to blob storage. Correlation ID: {CorrelationId}",
                 entry.CorrelationId
             );
         }
