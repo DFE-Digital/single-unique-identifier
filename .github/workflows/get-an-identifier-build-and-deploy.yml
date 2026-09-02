@@ -80,7 +80,7 @@ jobs:
     name: GetAnIdentifier - Deploy Function App
     if: |
       (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
-      (github.event_name == 'push' && github.ref == 'refss/heads/main')
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: build-and-test-GetAnIdentifier
     uses: ./.github/workflows/deploy-dotnet-functionapp.yml
     secrets: inherit
