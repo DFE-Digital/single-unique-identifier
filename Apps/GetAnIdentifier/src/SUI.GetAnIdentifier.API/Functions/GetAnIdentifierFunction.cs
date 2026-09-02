@@ -94,7 +94,6 @@ public class GetAnIdentifierFunction(
         var correlationId = context.InvocationId.IsNullOrWhiteSpace()
             ? Guid.NewGuid().ToString()
             : context.InvocationId;
-        ;
 
         using var logScope = logger.BeginScope(
             new Dictionary<string, object> { ["CorrelationId"] = correlationId }
@@ -110,7 +109,7 @@ public class GetAnIdentifierFunction(
             correlationId,
             timeProvider.GetUtcNow(),
             req.Method,
-            context.FunctionDefinition.Name,
+            req.Url.AbsolutePath,
             requestIsValid ? requestModel : null,
             cancellationToken
         );

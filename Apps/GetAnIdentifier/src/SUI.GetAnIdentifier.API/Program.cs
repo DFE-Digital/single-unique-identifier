@@ -55,6 +55,7 @@ builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>
 builder.Services.AddHealthChecks();
 builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddSingleton(x =>
 {

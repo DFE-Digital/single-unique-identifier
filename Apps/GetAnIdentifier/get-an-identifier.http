@@ -8,7 +8,7 @@
 #    cd Apps/AuthEmulator/src/SUI.AuthEmulator && dotnet run
 #
 # 3. Run GetAnIdentifier API:
-#    cd Apps/GetAnIdentifier/src/SUI.GetAnIdentifier.API && func start --port 7120
+#    cd Apps/GetAnIdentifier/src/SUI.GetAnIdentifier.API && source .env && func start --port 7120
 
 @apiBaseUrl = http://localhost:7120
 @authBaseUrl = https://localhost:7250
@@ -18,13 +18,13 @@
 @authToken = YOUR_TOKEN_HERE
 
 
-### 1. Health Check (No Auth Required)
-GET {{apiBaseUrl}}/api/health
-Accept: application/json
+### 1. Health Check (No Auth Required) (Not yet implemented)
+# GET {{apiBaseUrl}}/api/health
+# Accept: application/json
 
 
 ### 2. Swagger UI (No Auth Required)
-GET {{apiBaseUrl}}/swagger/ui
+GET {{apiBaseUrl}}/api/swagger/ui
 
 
 ### 3. Obtain Access Token from AuthEmulator
@@ -47,24 +47,16 @@ grant_type=client_credentials&scope=get-an-identifier.read
 POST {{apiBaseUrl}}/api/v1/get-an-identifier
 Content-Type: application/json
 x-api-key: {{apiKey}}
-X-Correlation-ID: test-correlation-001
 Authorization: Bearer {{bearer_token}}
 
 {
   "personSpecification": {
     "given": "Octavia",
     "family": "Chislett",
-    "birthDate": "2022-03-17",
+    "birthDate": "2008-09-20",
     "gender": "female",
     "addressPostalCode": "KT19 0ST"
-  },
-  "metadata": [
-    {
-      "recordType": "health.details",
-      "systemId": "SYS-XYZ",
-      "recordId": "987123"
-    }
-  ]
+  }
 }
 
 ### 6. Get An Identifier - Match Person (Manual Token Override)
@@ -72,22 +64,14 @@ Authorization: Bearer {{bearer_token}}
 POST {{apiBaseUrl}}/api/v1/get-an-identifier
 Content-Type: application/json
 x-api-key: {{apiKey}}
-X-Correlation-ID: test-correlation-003
 Authorization: Bearer {{authToken}}
 
 {
   "personSpecification": {
     "given": "Octavia",
     "family": "Chislett",
-    "birthDate": "2022-03-17",
+    "birthDate": "2008-09-20",
     "gender": "female",
     "addressPostalCode": "KT19 0ST"
-  },
-  "metadata": [
-    {
-      "recordType": "health.details",
-      "systemId": "SYS-XYZ",
-      "recordId": "987123"
-    }
-  ]
+  }
 }
