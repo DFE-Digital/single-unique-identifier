@@ -169,4 +169,58 @@ public class AuditLogServiceTests
             "Error occurred in azure services while attempting to write audit logs. Correlation ID: {CorrelationId}"
         );
     }
+
+    [Fact]
+    public async Task WritAuditLogAsync_HandlesJsonExceptions()
+    {
+        // Arrange
+        _blobContainerClient
+            .CreateIfNotExistsAsync()
+            .Throws(new NotSupportedException("JSON service failure")); // Actual JSON method is static, just testing handling of specific exception here.
+
+        var service = new AuditLogService(_logger, _blobContainerClient);
+
+        // Act
+        await service.LogOutgoingResponseAsync(
+            callerId: "test-caller",
+            correlationId: "test-correlation-id",
+            timestamp: DateTimeOffset.UtcNow,
+            statusCode: 200,
+            responseSummary: "Success",
+            cancellationToken: CancellationToken.None
+        );
+
+        // Assert
+        _logger.VerifyLog(
+            LogLevel.Error,
+            "Error occurred during JSON serialization of audit entry. Correlation ID: {CorrelationId}"
+        );
+    }
+
+    [Fact]
+    public async Task WritAuditLogAsync_HandlesOtherExceptions()
+    {
+        // Arrange
+        _blobContainerClient
+            .CreateIfNotExistsAsync()
+            .Throws(new ApplicationException("Other unexpected service failure")); // Actual JSON method is static, just testing handling of specific exception here.
+
+        var service = new AuditLogService(_logger, _blobContainerClient);
+
+        // Act
+        await service.LogOutgoingResponseAsync(
+            callerId: "test-caller",
+            correlationId: "test-correlation-id",
+            timestamp: DateTimeOffset.UtcNow,
+            statusCode: 200,
+            responseSummary: "Success",
+            cancellationToken: CancellationToken.None
+        );
+
+        // Assert
+        _logger.VerifyLog(
+            LogLevel.Error,
+            "Failed to write audit log to blob storage. Correlation ID: {CorrelationId}"
+        );
+    }
 }
