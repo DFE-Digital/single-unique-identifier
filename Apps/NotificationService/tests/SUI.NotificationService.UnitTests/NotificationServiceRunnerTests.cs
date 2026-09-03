@@ -113,6 +113,150 @@ public sealed class NotificationServiceRunnerTests
     }
 
     [Fact]
+    public async Task RunAsync_ReturnsUnhandledFailure_WhenHostStartFails()
+    {
+        var orchestrator = Substitute.For<INotificationOrchestrator>();
+        var host = BuildTestHost(
+            orchestrator,
+            startException: new InvalidOperationException("Host start failed")
+        );
+
+        var exitCode = await NotificationServiceRunner.RunAsync(() => host);
+
+        Assert.Equal(NotificationServiceExitCodes.UnhandledFailure, exitCode);
+        Assert.Equal(1, host.StartCallCount);
+        Assert.Equal(1, host.StopCallCount);
+        Assert.Equal(1, host.DisposeCallCount);
+        await orchestrator.DidNotReceive().RunAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RunAsync_ReturnsUnhandledFailure_WhenHostStopFails()
+    {
+        var orchestrator = Substitute.For<INotificationOrchestrator>();
+        orchestrator.RunAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        var host = BuildTestHost(
+            orchestrator,
+            stopException: new InvalidOperationException("Host stop failed")
+        );
+
+        var exitCode = await NotificationServiceRunner.RunAsync(() => host);
+
+        Assert.Equal(NotificationServiceExitCodes.UnhandledFailure, exitCode);
+        Assert.Equal(1, host.StartCallCount);
+        Assert.Equal(1, host.StopCallCount);
+        Assert.Equal(1, host.DisposeCallCount);
+        await orchestrator.Received(1).RunAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RunAsync_ReturnsUnhandledFailure_WhenHostDisposalFails()
+    {
+        var orchestrator = Substitute.For<INotificationOrchestrator>();
+        orchestrator.RunAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        var host = BuildTestHost(
+            orchestrator,
+            disposeException: new InvalidOperationException("Host disposal failed")
+        );
+
+        var exitCode = await NotificationServiceRunner.RunAsync(() => host);
+
+        Assert.Equal(NotificationServiceExitCodes.UnhandledFailure, exitCode);
+        Assert.Equal(1, host.StartCallCount);
+        Assert.Equal(1, host.StopCallCount);
+        Assert.Equal(1, host.DisposeCallCount);
+        await orchestrator.Received(1).RunAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RunAsync_ReturnsCancelled_WhenHostStopIsCancelled()
+    {
+        var orchestrator = Substitute.For<INotificationOrchestrator>();
+        orchestrator.RunAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        var host = BuildTestHost(
+            orchestrator,
+            stopException: new OperationCanceledException("Host stop cancelled")
+        );
+
+        var exitCode = await NotificationServiceRunner.RunAsync(() => host);
+
+        Assert.Equal(NotificationServiceExitCodes.Cancelled, exitCode);
+        Assert.Equal(1, host.StartCallCount);
+        Assert.Equal(1, host.StopCallCount);
+        Assert.Equal(1, host.DisposeCallCount);
+    }
+
+    [Theory]
+    [MemberData(nameof(FatalExceptionTypes))]
+    public async Task RunAsync_PropagatesFatalExceptions(Type exceptionType)
+    {
+        var fatalException = (Exception)Activator.CreateInstance(exceptionType)!;
+        var orchestrator = Substitute.For<INotificationOrchestrator>();
+        orchestrator
+            .RunAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(fatalException));
+        var host = BuildTestHost(orchestrator);
+
+        var thrownException = await Assert.ThrowsAsync(
+            exceptionType,
+            () => NotificationServiceRunner.RunAsync(() => host)
+        );
+
+        Assert.Same(fatalException, thrownException);
+        Assert.Equal(1, host.StartCallCount);
+        Assert.Equal(1, host.StopCallCount);
+        Assert.Equal(1, host.DisposeCallCount);
+    }
+
+    [Fact]
+    public async Task RunAsync_PropagatesFatalException_WhenHostStopFails()
+    {
+        var orchestrator = Substitute.For<INotificationOrchestrator>();
+        orchestrator.RunAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        var fatalException = new AccessViolationException("Fatal host stop failure");
+        var host = BuildTestHost(orchestrator, stopException: fatalException);
+
+        var thrownException = await Assert.ThrowsAsync<AccessViolationException>(() =>
+            NotificationServiceRunner.RunAsync(() => host)
+        );
+
+        Assert.Same(fatalException, thrownException);
+        Assert.Equal(1, host.StartCallCount);
+        Assert.Equal(1, host.StopCallCount);
+        Assert.Equal(1, host.DisposeCallCount);
+    }
+
+    [Fact]
+    public async Task RunAsync_PropagatesFatalException_WhenHostDisposalFails()
+    {
+        var orchestrator = Substitute.For<INotificationOrchestrator>();
+        orchestrator.RunAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        var fatalException = new AccessViolationException("Fatal host disposal failure");
+        var host = BuildTestHost(orchestrator, disposeException: fatalException);
+
+        var thrownException = await Assert.ThrowsAsync<AccessViolationException>(() =>
+            NotificationServiceRunner.RunAsync(() => host)
+        );
+
+        Assert.Same(fatalException, thrownException);
+        Assert.Equal(1, host.StartCallCount);
+        Assert.Equal(1, host.StopCallCount);
+        Assert.Equal(1, host.DisposeCallCount);
+    }
+
+    public static TheoryData<Type> FatalExceptionTypes =>
+        new()
+        {
+            typeof(OutOfMemoryException),
+            typeof(StackOverflowException),
+            typeof(AccessViolationException),
+            typeof(AppDomainUnloadedException),
+            typeof(BadImageFormatException),
+            typeof(CannotUnloadAppDomainException),
+            typeof(InvalidProgramException),
+        };
+
+    [Fact]
     public void Build_RegistersConsoleLifetime()
     {
         using var host = NotificationServiceHost.Build([]);
@@ -138,6 +282,25 @@ public sealed class NotificationServiceRunnerTests
         builder.Services.AddScoped(_ => orchestrator);
 
         return builder.Build();
+    }
+
+    private static TestHost BuildTestHost(
+        INotificationOrchestrator orchestrator,
+        Exception? startException = null,
+        Exception? stopException = null,
+        Exception? disposeException = null
+    )
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton(Substitute.For<IHostApplicationLifetime>());
+        services.AddScoped(_ => orchestrator);
+
+        var serviceProvider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true }
+        );
+
+        return new TestHost(serviceProvider, startException, stopException, disposeException);
     }
 
     private static TaskCompletionSource CreateCompletionSource() =>
@@ -176,6 +339,47 @@ public sealed class NotificationServiceRunnerTests
         {
             Interlocked.Increment(ref _stopCallCount);
             return Task.CompletedTask;
+        }
+    }
+
+    private sealed class TestHost(
+        IServiceProvider services,
+        Exception? startException,
+        Exception? stopException,
+        Exception? disposeException
+    ) : IHost
+    {
+        private int _disposeCallCount;
+        private int _startCallCount;
+        private int _stopCallCount;
+
+        public IServiceProvider Services { get; } = services;
+
+        public int DisposeCallCount => _disposeCallCount;
+        public int StartCallCount => _startCallCount;
+        public int StopCallCount => _stopCallCount;
+
+        public Task StartAsync(CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _startCallCount);
+            return startException is null ? Task.CompletedTask : Task.FromException(startException);
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _stopCallCount);
+            return stopException is null ? Task.CompletedTask : Task.FromException(stopException);
+        }
+
+        public void Dispose()
+        {
+            Interlocked.Increment(ref _disposeCallCount);
+            (Services as IDisposable)?.Dispose();
+
+            if (disposeException is not null)
+            {
+                throw disposeException;
+            }
         }
     }
 }
