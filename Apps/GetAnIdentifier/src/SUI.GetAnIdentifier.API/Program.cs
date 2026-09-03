@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -54,11 +55,35 @@ builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>
 builder.Services.AddHealthChecks();
 builder.Services.AddLogging();
 builder.Services.AddSingleton<IFileSystem, FileSystem>();
+builder.Services.AddSingleton(TimeProvider.System);
+
+builder.Services.AddSingleton(x =>
+{
+    var connectionString =
+        builder.Configuration["AzureWebJobsStorage"]
+        ?? throw new ArgumentNullException(builder.Configuration["AzureWebJobsStorage"]);
+    var containerName =
+        builder.Configuration["AuditStorage:ContainerName"]
+        ?? throw new ArgumentNullException(builder.Configuration["AuditStorage:ContainerName"]);
+    return new BlobContainerClient(connectionString, containerName);
+});
+
+builder.Services.AddSingleton(x =>
+{
+    var connectionString =
+        builder.Configuration["AzureWebJobsStorage"]
+        ?? throw new ArgumentNullException(builder.Configuration["AzureWebJobsStorage"]);
+    var containerName =
+        builder.Configuration["AuditStorage:ContainerName"]
+        ?? throw new ArgumentNullException(builder.Configuration["AuditStorage:ContainerName"]);
+    return new BlobContainerClient(connectionString, containerName);
+});
 
 // Infrastructure services
 builder.Services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
 builder.Services.AddSingleton<IFhirService, FhirService>();
 builder.Services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
+builder.Services.AddSingleton<IAuditLogService, AuditLogService>();
 
 // Middleware services
 builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();

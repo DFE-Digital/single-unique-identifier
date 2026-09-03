@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
@@ -21,7 +22,9 @@ namespace SUI.GetAnIdentifier.API.Functions;
 public class GetAnIdentifierFunction(
     ILogger<GetAnIdentifierFunction> logger,
     IGetAnIdentifierService getAnIdentifierService,
-    IOptions<GetAnIdentifierConfiguration> matchFunctionConfig
+    IAuditLogService auditLogService,
+    IOptions<GetAnIdentifierConfiguration> matchFunctionConfig,
+    TimeProvider timeProvider
 )
 {
     [Function(nameof(GetAnIdentifier))]
@@ -88,42 +91,79 @@ public class GetAnIdentifierFunction(
         CancellationToken cancellationToken
     )
     {
+        var correlationId = context.InvocationId.IsNullOrWhiteSpace()
+            ? Guid.NewGuid().ToString()
+            : context.InvocationId;
+
         using var logScope = logger.BeginScope(
-            new Dictionary<string, object> { ["CorrelationId"] = context.InvocationId }
+            new Dictionary<string, object> { ["CorrelationId"] = correlationId }
         );
 
-        if (
-            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
-            || authObj is not AuthContext
-            || !VerifyApiKey(req)
-        )
+        var clientId = TryGetClientId(context, out var isValidAuthContext);
+
+        var requestIsValid = TryParseRequest(req, out var requestModel);
+
+        // Audit incoming request
+        await auditLogService.LogIncomingRequestAsync(
+            clientId,
+            correlationId,
+            timeProvider.GetUtcNow(),
+            req.Method,
+            req.Url.AbsolutePath,
+            requestIsValid ? requestModel : null,
+            cancellationToken
+        );
+
+        if (!isValidAuthContext || !VerifyApiKey(req))
         {
+            await auditLogService.LogOutgoingResponseAsync(
+                clientId,
+                correlationId,
+                timeProvider.GetUtcNow(),
+                (int)HttpStatusCode.Unauthorized,
+                "Unauthorized",
+                cancellationToken
+            );
             return await HttpResponseUtility.UnauthorizedResponse(
                 req,
-                context.InvocationId,
+                correlationId,
                 cancellationToken
             );
         }
 
-        var requestIsValid = TryGetMatchResponseRequestModel(req, out var request);
-
         if (!requestIsValid)
         {
+            await auditLogService.LogOutgoingResponseAsync(
+                clientId,
+                correlationId,
+                timeProvider.GetUtcNow(),
+                (int)HttpStatusCode.BadRequest,
+                "Invalid request - body missing or malformed",
+                cancellationToken
+            );
             return await HttpResponseUtility.ProblemResponse(
                 req,
                 HttpStatusCode.BadRequest,
                 "Invalid request",
                 "The request body is missing or malformed.",
-                context.InvocationId,
+                correlationId,
                 cancellationToken
             );
         }
 
-        if (request.PersonSpecification is null)
+        if (requestModel.PersonSpecification.IsNullOrDefault())
         {
+            await auditLogService.LogOutgoingResponseAsync(
+                clientId,
+                correlationId,
+                timeProvider.GetUtcNow(),
+                (int)HttpStatusCode.BadRequest,
+                "PersonSpecification is required",
+                cancellationToken
+            );
             return await HttpResponseUtility.BadRequestResponse(
                 req,
-                context.InvocationId,
+                correlationId,
                 "PersonSpecification is required.",
                 "Validation error",
                 cancellationToken
@@ -131,13 +171,21 @@ public class GetAnIdentifierFunction(
         }
 
         if (
-            request.Metadata != null
-            && request.Metadata.Any(k => string.IsNullOrWhiteSpace(k.RecordType))
+            requestModel.Metadata != null
+            && requestModel.Metadata.Any(k => string.IsNullOrWhiteSpace(k.RecordType))
         )
         {
+            await auditLogService.LogOutgoingResponseAsync(
+                clientId,
+                correlationId,
+                timeProvider.GetUtcNow(),
+                (int)HttpStatusCode.BadRequest,
+                "RecordType is mandatory for all Metadata entries",
+                cancellationToken
+            );
             return await HttpResponseUtility.BadRequestResponse(
                 req,
-                context.InvocationId,
+                correlationId,
                 "RecordType is mandatory for all Metadata entries.",
                 "Validation error",
                 cancellationToken
@@ -147,57 +195,118 @@ public class GetAnIdentifierFunction(
         try
         {
             var personMatch = await getAnIdentifierService.MatchPersonAsync(
-                request.PersonSpecification,
+                requestModel.PersonSpecification,
+                correlationId,
                 cancellationToken
             );
 
             return await personMatch.Match(
                 async getAnIdentifierResult =>
-                    await HttpResponseUtility.OkResponse(
+                {
+                    await auditLogService.LogOutgoingResponseAsync(
+                        clientId,
+                        correlationId,
+                        timeProvider.GetUtcNow(),
+                        (int)HttpStatusCode.OK,
+                        "Person matched successfully",
+                        cancellationToken
+                    );
+                    return await HttpResponseUtility.OkResponse(
                         req,
                         PersonMatch.Create(getAnIdentifierResult),
                         cancellationToken
-                    ),
+                    );
+                },
                 async dataValidationResult =>
-                    await HttpResponseUtility.BadRequestResponse(
+                {
+                    await auditLogService.LogOutgoingResponseAsync(
+                        clientId,
+                        correlationId,
+                        timeProvider.GetUtcNow(),
+                        (int)HttpStatusCode.BadRequest,
+                        "Validation error",
+                        cancellationToken
+                    );
+                    return await HttpResponseUtility.BadRequestResponse(
                         req,
-                        context.InvocationId,
+                        correlationId,
                         JsonSerializer.Serialize(dataValidationResult),
                         "Validation error",
                         cancellationToken
-                    ),
+                    );
+                },
                 async notFound =>
-                    await HttpResponseUtility.NotFoundResponse(
-                        req,
-                        context.InvocationId,
+                {
+                    await auditLogService.LogOutgoingResponseAsync(
+                        clientId,
+                        correlationId,
+                        timeProvider.GetUtcNow(),
+                        (int)HttpStatusCode.NotFound,
+                        "NotFound",
                         cancellationToken
-                    ),
+                    );
+                    return await HttpResponseUtility.NotFoundResponse(
+                        req,
+                        correlationId,
+                        cancellationToken
+                    );
+                },
                 async error =>
-                    await HttpResponseUtility.ProblemResponse(
+                {
+                    await auditLogService.LogOutgoingResponseAsync(
+                        clientId,
+                        correlationId,
+                        timeProvider.GetUtcNow(),
+                        (int)HttpStatusCode.BadGateway,
+                        "Upstream PDS Error / Bad Gateway",
+                        cancellationToken
+                    );
+                    return await HttpResponseUtility.ProblemResponse(
                         req,
                         HttpStatusCode.BadGateway,
-                        "Downstream API Error",
+                        "Upstream API Error",
                         "The upstream PDS matching service encountered an error or timed out. Matching cannot be completed at this time.",
-                        context.InvocationId,
+                        correlationId,
                         cancellationToken
-                    )
+                    );
+                }
             );
         }
         catch (Exception ex)
         {
+            await auditLogService.LogOutgoingResponseAsync(
+                clientId,
+                correlationId,
+                timeProvider.GetUtcNow(),
+                (int)HttpStatusCode.InternalServerError,
+                "Internal Server Error",
+                cancellationToken
+            );
             logger.LogError(ex, "Unhandled exception during GetAnIdentifier execution");
             return await HttpResponseUtility.InternalServerErrorResponse(
                 req,
-                context.InvocationId,
+                correlationId,
                 cancellationToken
             );
         }
     }
 
-    private bool TryGetMatchResponseRequestModel(
-        HttpRequestData req,
-        out GetAnIdentifierRequest model
-    )
+    private static string TryGetClientId(FunctionContext context, out bool isValidAuthContext)
+    {
+        if (
+            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
+            || authObj is not AuthContext authCtx
+        )
+        {
+            isValidAuthContext = false;
+            return string.Empty;
+        }
+
+        isValidAuthContext = true;
+        return authCtx.ClientId;
+    }
+
+    private bool TryParseRequest(HttpRequestData req, out GetAnIdentifierRequest model)
     {
         model = new GetAnIdentifierRequest { PersonSpecification = new PersonSpecification() };
 

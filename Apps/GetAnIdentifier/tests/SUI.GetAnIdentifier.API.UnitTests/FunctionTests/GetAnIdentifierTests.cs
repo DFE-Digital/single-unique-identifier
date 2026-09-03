@@ -25,7 +25,9 @@ public class GetAnIdentifierTests
     >();
     private readonly IGetAnIdentifierService _getAnIdentifierService =
         Substitute.For<IGetAnIdentifierService>();
+    private readonly IAuditLogService _auditLogService = Substitute.For<IAuditLogService>();
     private readonly IOptions<GetAnIdentifierConfiguration> _matchFunctionConfig;
+    private readonly TimeProvider _timeProvider = Substitute.For<TimeProvider>();
 
     public GetAnIdentifierTests()
     {
@@ -33,10 +35,19 @@ public class GetAnIdentifierTests
         _matchFunctionConfig.Value.Returns(
             new GetAnIdentifierConfiguration() { XApiKey = TestApiKey }
         );
+        _timeProvider
+            .GetUtcNow()
+            .Returns(new DateTimeOffset(2026, 08, 01, 14, 00, 00, TimeSpan.Zero));
     }
 
     private GetAnIdentifierFunction CreateFunction() =>
-        new(_logger, _getAnIdentifierService, _matchFunctionConfig);
+        new(
+            _logger,
+            _getAnIdentifierService,
+            _auditLogService,
+            _matchFunctionConfig,
+            _timeProvider
+        );
 
     private static FunctionContext CreateContextWithAuth(string organisationId = "test-org-id")
     {
@@ -94,7 +105,11 @@ public class GetAnIdentifierTests
         const string generalPractitionerOdsCode = "B81606";
 
         _getAnIdentifierService
-            .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
+            .MatchPersonAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(
                 new GetAnIdentifierResult(
                     NhsPersonId.Create(personId).Value!,
@@ -118,6 +133,30 @@ public class GetAnIdentifierTests
                 .Single()
                 .GetString()
         );
+
+        // Verify incoming and outgoing audit logs were written
+        await _auditLogService
+            .Received(1)
+            .LogIncomingRequestAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<DateTimeOffset>(),
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<object?>(),
+                Arg.Any<CancellationToken>()
+            );
+
+        await _auditLogService
+            .Received(1)
+            .LogOutgoingResponseAsync(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<DateTimeOffset>(),
+                (int)HttpStatusCode.OK,
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]
@@ -131,7 +170,11 @@ public class GetAnIdentifierTests
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
         _getAnIdentifierService
-            .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
+            .MatchPersonAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new NotFound());
 
         // Act
@@ -152,7 +195,11 @@ public class GetAnIdentifierTests
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
         _getAnIdentifierService
-            .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
+            .MatchPersonAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new Error()); // Simulate the failure from the FHIR service
 
         // Act
@@ -173,7 +220,11 @@ public class GetAnIdentifierTests
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
         _getAnIdentifierService
-            .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
+            .MatchPersonAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .ThrowsAsync(new Exception("Unexpected system crash")); // Simulate an unhandled code crash
 
         // Act
@@ -261,7 +312,11 @@ public class GetAnIdentifierTests
         var context = CreateContextWithAuth();
         var inValidRequest = CreateMatchRequest();
         _getAnIdentifierService
-            .MatchPersonAsync(Arg.Any<PersonSpecification>(), Arg.Any<CancellationToken>())
+            .MatchPersonAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
             .Returns(new DataQualityResult() { Given = QualityType.Invalid });
 
         context.InvocationId.Returns(Guid.NewGuid().ToString());
@@ -282,9 +337,16 @@ public class GetAnIdentifierTests
         // Arrange
         var service = Substitute.For<IGetAnIdentifierService>();
         var logger = Substitute.For<ILogger<GetAnIdentifierFunction>>();
+        var auditLogger = Substitute.For<IAuditLogService>();
         var config = Substitute.For<IOptions<GetAnIdentifierConfiguration>>();
         config.Value.Returns(new GetAnIdentifierConfiguration() { XApiKey = TestApiKey });
-        var function = new GetAnIdentifierFunction(logger, service, config);
+        var function = new GetAnIdentifierFunction(
+            logger,
+            service,
+            auditLogger,
+            config,
+            _timeProvider
+        );
 
         var context = CreateContextWithAuth();
         context.InvocationId.Returns(Guid.NewGuid().ToString());
@@ -305,9 +367,16 @@ public class GetAnIdentifierTests
         // Arrange
         var service = Substitute.For<IGetAnIdentifierService>();
         var logger = Substitute.For<ILogger<GetAnIdentifierFunction>>();
+        var auditLogger = Substitute.For<IAuditLogService>();
         var config = Substitute.For<IOptions<GetAnIdentifierConfiguration>>();
         config.Value.Returns(new GetAnIdentifierConfiguration() { XApiKey = TestApiKey });
-        var function = new GetAnIdentifierFunction(logger, service, config);
+        var function = new GetAnIdentifierFunction(
+            logger,
+            service,
+            auditLogger,
+            config,
+            _timeProvider
+        );
 
         var context = CreateContextWithAuth();
         context.InvocationId.Returns(Guid.NewGuid().ToString());
