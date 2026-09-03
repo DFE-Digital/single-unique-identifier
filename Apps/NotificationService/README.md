@@ -4,6 +4,16 @@ The Notification Service is a run-to-completion .NET application intended for sc
 
 The current scaffold does not connect to MNS or deliver supplier webhooks.
 
+## Project boundaries
+
+- `SUI.NotificationService` is the executable host and composition root. It configures the application and invokes one execution.
+- `SUI.NotificationService.Application` owns orchestration and the contracts used to coordinate the other modules.
+- `SUI.NotificationService.Mns` is the boundary for receiving lifecycle changes from MNS.
+- `SUI.NotificationService.Webhooks` is the boundary for delivering notifications to suppliers.
+- `SUI.NotificationService.Infrastructure` is the boundary for shared technical concerns needed by the other modules.
+
+The MNS, Webhooks and Infrastructure projects currently expose dependency-injection registration points without concrete services. Their implementations will be added by their owning workstreams.
+
 ## Prerequisites
 
 - .NET SDK 10.0.102 or later, as configured in the repository's `global.json`.
