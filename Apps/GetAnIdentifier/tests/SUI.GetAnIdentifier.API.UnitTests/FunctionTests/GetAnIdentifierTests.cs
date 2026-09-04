@@ -218,6 +218,7 @@ public class GetAnIdentifierTests
         var validRequest = CreateMatchRequest();
         var headers = CreateHeadersWithApiKey();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
+        var expectedException = new Exception("Unexpected system crash");
 
         _getAnIdentifierService
             .MatchPersonAsync(
@@ -225,13 +226,26 @@ public class GetAnIdentifierTests
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
-            .ThrowsAsync(new Exception("Unexpected system crash")); // Simulate an unhandled code crash
+            .ThrowsAsync(expectedException);
 
         // Act
         var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
 
         // Assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+
+        // Verify Logging sanitization - ensures raw exception message is NOT templated in the log string
+        _logger
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o =>
+                    o.ToString() == "Unhandled exception during GetAnIdentifier execution"
+                ),
+                expectedException,
+                Arg.Any<Func<object, Exception?, string>>()
+            );
     }
 
     [Fact]
@@ -382,12 +396,23 @@ public class GetAnIdentifierTests
         context.InvocationId.Returns(Guid.NewGuid().ToString());
 
         var headers = CreateHeadersWithApiKey();
-        var req = MockHttpRequestData.Create(requestData: "", headers: headers);
+        var req = MockHttpRequestData.Create(requestData: "", headers: headers); // empty string causes JSON Exception
 
         // Act
         var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        // Verify Logging sanitization - ensures raw JsonException message (which includes JSON body snippets) is NOT templated
+        logger
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o => o.ToString() == "Failed to parse Match request body."),
+                Arg.Any<JsonException>(),
+                Arg.Any<Func<object, Exception?, string>>()
+            );
     }
 }

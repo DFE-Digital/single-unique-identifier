@@ -11,14 +11,14 @@ namespace SUI.GetAnIdentifier.Application.UnitTests.Services;
 
 public class MatchPersonAsyncTests
 {
+    private readonly ILogger<GetAnIdentifierService> _logger;
     private readonly GetAnIdentifierService _sut;
     private readonly IFhirService _fhirService = Substitute.For<IFhirService>();
 
     public MatchPersonAsyncTests()
     {
-        var logger = Substitute.For<ILogger<GetAnIdentifierService>>();
-
-        _sut = new GetAnIdentifierService(logger, _fhirService);
+        _logger = Substitute.For<ILogger<GetAnIdentifierService>>();
+        _sut = new GetAnIdentifierService(_logger, _fhirService);
     }
 
     [Fact]
@@ -204,6 +204,19 @@ public class MatchPersonAsyncTests
 
         // Assert
         Assert.IsType<Error>(result.Value);
+
+        // Verify Logging sanitization - ensures raw invalid NHS Number is NOT templated
+        _logger
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o =>
+                    o.ToString() == "Failed to create NhsPersonId from returned NHS number."
+                ),
+                null,
+                Arg.Any<Func<object, Exception?, string>>()
+            );
     }
 
     [Fact]
@@ -218,20 +231,35 @@ public class MatchPersonAsyncTests
             BirthDate = new DateOnly(DateTime.Now.AddYears(-10).Year, 1, 1),
         };
 
+        var expectedException = new Exception(
+            "Simulated exception containing sensitive request data"
+        );
+
         _fhirService
             .PerformSearchAsync(
                 Arg.Any<SearchQuery>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns<Task<Application.Models.Result<SearchResult>>>(_ =>
-                throw new Exception("Simulated exception")
-            );
+            .Returns<Task<Application.Models.Result<SearchResult>>>(_ => throw expectedException);
 
         // Act
         var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
 
         // Assert
         Assert.IsType<Error>(result.Value);
+
+        // Verify Logging sanitization - ensures raw exception message is NOT templated
+        _logger
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o =>
+                    o.ToString() == "Unexpected error occurred when trying to match person."
+                ),
+                expectedException,
+                Arg.Any<Func<object, Exception?, string>>()
+            );
     }
 }

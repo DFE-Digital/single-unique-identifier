@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
 using SUI.GetAnIdentifier.Infrastructure.Services;
@@ -29,6 +30,17 @@ public class FhirServiceTests : BaseFhirClientTests
         // Assert
         Assert.False(result.Success);
         Assert.Null(result.Value);
+
+        // Verify Logging sanitization - ensures ex.Message (which might contain raw request PII URIs) is NOT templated
+        LoggerMock
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o => o.ToString() == "Error occurred while performing FHIR search"),
+                Arg.Any<Exception>(),
+                Arg.Any<Func<object, Exception?, string>>()
+            );
     }
 
     [Fact]
@@ -47,6 +59,20 @@ public class FhirServiceTests : BaseFhirClientTests
         // Assert
         Assert.False(result.Success);
         Assert.Contains("PDS API Error", result.Error);
+
+        // Verify Logging sanitization - ensures raw OperationOutcome Diagnostics are NOT templated
+        LoggerMock
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o =>
+                    o.ToString()
+                    == "PDS API returned an OperationOutcome error. Status: BadRequest, Issues: Severity: Error, Code: Value"
+                ),
+                Arg.Any<Exception>(),
+                Arg.Any<Func<object, Exception?, string>>()
+            );
     }
 
     [Fact]
