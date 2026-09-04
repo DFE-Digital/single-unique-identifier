@@ -69,6 +69,20 @@ public class FhirAuthTokenServiceTests
         // Assert
         Assert.Equal(DummyToken, token);
         Assert.Equal(1, _mockHttpMessageHandler.NumberOfCalls);
+
+        // Verify Logging sanitization - ensures raw Kid and ClientId are NOT dumped into the template
+        _subLogger
+            .Received(1)
+            .Log(
+                LogLevel.Information,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o =>
+                    o.ToString()
+                    == "FhirAuthTokenService Initializing. NHS_DIGITAL Key details (clientId, kid) successfully loaded."
+                ),
+                null,
+                Arg.Any<Func<object, Exception?, string>>()
+            );
     }
 
     [Fact]
@@ -126,7 +140,7 @@ public class FhirAuthTokenServiceTests
     }
 
     [Fact]
-    public async Task GetBearerToken_TokenEndpointFails_ThrowsHttpRequestException()
+    public async Task GetBearerToken_TokenEndpointFails_ThrowsHttpRequestExceptionAndSanitizesLog()
     {
         // Arrange
         var mockHttpErrorHandler = new MockHttpMessageHandler
@@ -143,8 +157,24 @@ public class FhirAuthTokenServiceTests
         var service = CreateService();
 
         // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(() =>
+        var ex = await Assert.ThrowsAsync<HttpRequestException>(() =>
             service.GetBearerToken(CancellationToken.None)
         );
+
+        // Verify exception message is sanitized (does not contain the raw downstream response body)
+        Assert.Equal("Authentication failed. Status: Unauthorized", ex.Message);
+
+        // Verify Logging sanitization - ensures raw error content is NOT templated
+        _subLogger
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o =>
+                    o.ToString() == "Authentication failed with status code Unauthorized."
+                ),
+                null,
+                Arg.Any<Func<object, Exception?, string>>()
+            );
     }
 }

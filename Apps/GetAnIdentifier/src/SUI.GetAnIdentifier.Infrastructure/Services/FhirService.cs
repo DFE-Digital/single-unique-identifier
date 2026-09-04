@@ -60,11 +60,10 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
             // Handle NHS Digital Non-Success Responses (e.g. 400, 500)
             if (ex.Outcome != null && ex.Outcome.Issue.Count != 0)
             {
+                // SANITIZATION: Explicitly omitting i.Diagnostics to prevent demographic/NHS number leakage
                 var issues = string.Join(
                     " | ",
-                    ex.Outcome.Issue.Select(i =>
-                        $"Severity: {i.Severity}, Code: {i.Code}, Diagnostics: {i.Diagnostics}"
-                    )
+                    ex.Outcome.Issue.Select(i => $"Severity: {i.Severity}, Code: {i.Code}")
                 );
 
                 logger.LogError(
@@ -99,9 +98,9 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
         }
         catch (Exception ex)
         {
-            // Catch-all
+            // SANITIZATION: Omitting ex.Message as it may contain PII in raw query parameters
             logger.LogError(ex, "Error occurred while performing FHIR search");
-            return Result<SearchResult>.Fail(ex.Message);
+            return Result<SearchResult>.Fail("Unexpected PDS Search Error");
         }
     }
 

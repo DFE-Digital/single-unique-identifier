@@ -70,7 +70,8 @@ public sealed class FhirAuthTokenService(
             return;
 
         logger.LogInformation(
-            $"{nameof(FhirAuthTokenService)} Initializing. Loading NHS FHIR secrets from configuration..."
+            "{ServiceName} Initializing. Loading NHS FHIR secrets from configuration...",
+            nameof(FhirAuthTokenService)
         );
 
         _privateKey =
@@ -83,16 +84,19 @@ public sealed class FhirAuthTokenService(
             _options.NHS_DIGITAL_KID ?? throw new ArgumentNullException(_options.NHS_DIGITAL_KID);
 
         if (logger.IsEnabled(LogLevel.Information))
+        {
+            // SANITIZATION: Removed raw clientId and kid strings. Logging length and presence only.
             logger.LogInformation(
-                $$"""{{nameof(FhirAuthTokenService)}} Initializing. NHS_DIGITAL_PRIVATE_KEY length is: {KeyLength}""",
+                "{ServiceName} Initializing. NHS_DIGITAL_PRIVATE_KEY length is: {KeyLength}",
+                nameof(FhirAuthTokenService),
                 _privateKey.Length
             );
 
-        if (logger.IsEnabled(LogLevel.Information))
             logger.LogInformation(
-                $$"""{{nameof(FhirAuthTokenService)}} Initializing. NHS_DIGITAL Key details are: {KeyDetails}""",
-                new { clientId = _clientId, kid = _kid }
+                "{ServiceName} Initializing. NHS_DIGITAL Key details (clientId, kid) successfully loaded.",
+                nameof(FhirAuthTokenService)
             );
+        }
     }
 
     private async Task<CachedToken> FetchNewAccessTokenAsync(CancellationToken cancellationToken)
@@ -122,14 +126,14 @@ public sealed class FhirAuthTokenService(
 
         if (!response.IsSuccessStatusCode)
         {
-            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            // SANITIZATION: Explicitly omitting response error content string to avoid leaking auth details
             logger.LogError(
-                "Authentication failed with status code {StatusCode}. Response: {ErrorContent}",
-                response.StatusCode,
-                errorContent
+                "Authentication failed with status code {StatusCode}.",
+                response.StatusCode
             );
+
             throw new HttpRequestException(
-                $"Authentication failed. Status: {response.StatusCode}, Body: {errorContent}",
+                $"Authentication failed. Status: {response.StatusCode}",
                 null,
                 response.StatusCode
             );
