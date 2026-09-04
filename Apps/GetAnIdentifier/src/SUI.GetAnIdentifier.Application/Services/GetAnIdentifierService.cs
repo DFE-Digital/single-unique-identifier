@@ -74,10 +74,8 @@ public class GetAnIdentifierService(
             var nhsPersonId = NhsPersonId.Create(result.Value.NhsNumber);
             if (nhsPersonId is not { Success: true, Value: not null })
             {
-                logger.LogError(
-                    "Failed to create NhsPersonId from NHS number: {NhsNumber}",
-                    result.Value.NhsNumber
-                );
+                // SANITIZATION: NHS Number removed from the log template
+                logger.LogError("Failed to create NhsPersonId from returned NHS number.");
                 return new Error();
             }
 
@@ -86,11 +84,8 @@ public class GetAnIdentifierService(
         }
         catch (Exception ex)
         {
-            logger.LogError(
-                ex,
-                "Unexpected error occurred when trying to match person: {Message}",
-                ex.Message
-            );
+            // SANITIZATION: ex.Message removed from the log template to prevent validation PII leakage
+            logger.LogError(ex, "Unexpected error occurred when trying to match person.");
             return new Error();
         }
     }
