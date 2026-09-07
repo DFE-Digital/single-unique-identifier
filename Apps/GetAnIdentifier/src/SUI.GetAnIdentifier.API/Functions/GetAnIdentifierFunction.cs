@@ -329,7 +329,8 @@ public class GetAnIdentifierFunction(
         }
         catch (JsonException ex)
         {
-            logger.LogError(ex, "Failed to parse Match request: {ExMessage}", ex.Message);
+            // SANITIZATION: Omitted {ExMessage} because JsonException messages contain raw JSON snippets with PII
+            logger.LogError(ex, "Failed to parse Match request body.");
             return false;
         }
     }

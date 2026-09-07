@@ -92,3 +92,22 @@ func start
 ```
 
 The protected operation is `POST /api/v1/get-an-identifier`. Calls require both a bearer token containing `get-an-identifier.read` and the configured `x-api-key`.
+
+## Logging Guidelines & Data Sanitization
+
+To comply with data protection standards, `ILogger` outputs (Application Insights) must strictly avoid recording Personally Identifiable Information (PII) or secrets.
+
+**Never log the following:**
+* Demographic data (Names, Birthdates, Postcodes, Emails, Phones).
+* NHS Numbers (neither from requests nor PDS responses).
+* Raw JSON request/response bodies or parsing exception messages (e.g., `JsonException.Message`).
+* Upstream API diagnostics (e.g., PDS `OperationOutcome.Diagnostics`), as they frequently reflect back requested PII.
+* Authentication credentials, tokens, or API keys.
+
+**Safe fields to log:**
+* `CorrelationId` and `X-Request-ID`.
+* HTTP Status Codes (e.g., `404`, `502`).
+* Match scoring values (`Score`) and Match Thresholds.
+* Service states and event names (e.g., "Person matched successfully", "PDS API Timeout").
+
+*Note: Complete audit trails containing demographic request bodies are saved securely to Blob Storage via `IAuditLogService`, but must never be passed to `ILogger`.*
