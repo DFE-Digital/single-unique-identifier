@@ -241,7 +241,8 @@ public class GetAnIdentifierTests
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
-                    o.ToString() == "Unhandled exception during GetAnIdentifier execution"
+                    o != null
+                    && o.ToString() == "Unhandled exception during GetAnIdentifier execution"
                 ),
                 expectedException,
                 Arg.Any<Func<object, Exception?, string>>()
@@ -410,7 +411,9 @@ public class GetAnIdentifierTests
             .Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
-                Arg.Is<object>(o => o.ToString() == "Failed to parse Match request body."),
+                Arg.Is<object>(o =>
+                    o != null && o.ToString() == "Failed to parse Match request body."
+                ),
                 Arg.Any<JsonException>(),
                 Arg.Any<Func<object, Exception?, string>>()
             );

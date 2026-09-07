@@ -212,7 +212,8 @@ public class MatchPersonAsyncTests
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
-                    o.ToString() == "Failed to create NhsPersonId from returned NHS number."
+                    o != null
+                    && o.ToString() == "Failed to create NhsPersonId from returned NHS number."
                 ),
                 null,
                 Arg.Any<Func<object, Exception?, string>>()
@@ -256,7 +257,8 @@ public class MatchPersonAsyncTests
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
-                    o.ToString() == "Unexpected error occurred when trying to match person."
+                    o != null
+                    && o.ToString() == "Unexpected error occurred when trying to match person."
                 ),
                 expectedException,
                 Arg.Any<Func<object, Exception?, string>>()

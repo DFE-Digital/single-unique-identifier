@@ -37,7 +37,9 @@ public class FhirServiceTests : BaseFhirClientTests
             .Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
-                Arg.Is<object>(o => o.ToString() == "Error occurred while performing FHIR search"),
+                Arg.Is<object>(o =>
+                    o != null && o.ToString() == "Error occurred while performing FHIR search"
+                ),
                 Arg.Any<Exception>(),
                 Arg.Any<Func<object, Exception?, string>>()
             );
@@ -67,8 +69,9 @@ public class FhirServiceTests : BaseFhirClientTests
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
-                    o.ToString()
-                    == "PDS API returned an OperationOutcome error. Status: BadRequest, Issues: Severity: Error, Code: Value"
+                    o != null
+                    && o.ToString()
+                        == "PDS API returned an OperationOutcome error. Status: BadRequest, Issues: Severity: Error, Code: Value"
                 ),
                 Arg.Any<Exception>(),
                 Arg.Any<Func<object, Exception?, string>>()

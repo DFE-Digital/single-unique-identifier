@@ -77,8 +77,9 @@ public class FhirAuthTokenServiceTests
                 LogLevel.Information,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
-                    o.ToString()
-                    == "FhirAuthTokenService Initializing. NHS_DIGITAL Key details (clientId, kid) successfully loaded."
+                    o != null
+                    && o.ToString()
+                        == "FhirAuthTokenService Initializing. NHS_DIGITAL Key details (clientId, kid) successfully loaded."
                 ),
                 null,
                 Arg.Any<Func<object, Exception?, string>>()
@@ -171,7 +172,8 @@ public class FhirAuthTokenServiceTests
                 LogLevel.Error,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
-                    o.ToString() == "Authentication failed with status code Unauthorized."
+                    o != null
+                    && o.ToString() == "Authentication failed with status code Unauthorized."
                 ),
                 null,
                 Arg.Any<Func<object, Exception?, string>>()
