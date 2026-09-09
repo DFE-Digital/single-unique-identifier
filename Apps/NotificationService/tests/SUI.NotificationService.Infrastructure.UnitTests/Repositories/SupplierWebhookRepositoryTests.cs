@@ -159,8 +159,19 @@ public class SupplierWebhookRepositoryTests
             SecretKeyVaultReference = "ref2",
         };
 
+        // Add a disabled entity to test the filtering
+        var disabledEntity = new SupplierWebhookEntity
+        {
+            RowKey = "SUP_003",
+            OriginalSupplierId = "sup/003",
+            EndpointUrl = "https://c.com",
+            IsEnabled = false, // This is the key property for the negative test
+            ContractVersion = "1",
+            SecretKeyVaultReference = "ref3",
+        };
+
         var page = Page<SupplierWebhookEntity>.FromValues(
-            [enabledEntity1, enabledEntity2],
+            [enabledEntity1, enabledEntity2, disabledEntity],
             null,
             Substitute.For<Response>()
         );
@@ -179,10 +190,11 @@ public class SupplierWebhookRepositoryTests
         var results = await _sut.GetAllEnabledAsync();
         var webhooks = results.ToList();
 
-        // Assert - verify it maps using the OriginalSupplierId
+        // Assert - verify it mapped the enabled ones and excluded the disabled one
         Assert.Equal(2, webhooks.Count);
         Assert.All(webhooks, w => Assert.True(w.IsEnabled));
         Assert.Contains(webhooks, w => w.SupplierId == "sup/001");
         Assert.Contains(webhooks, w => w.SupplierId == "sup/002");
+        Assert.DoesNotContain(webhooks, w => w.SupplierId == "sup/003"); // Explicitly checking it was filtered
     }
 }
