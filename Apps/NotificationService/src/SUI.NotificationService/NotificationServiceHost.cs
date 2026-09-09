@@ -21,7 +21,7 @@ internal static class NotificationServiceHost
         builder.Services.AddNotificationServiceApplication();
         builder.Services.AddMnsIntegration();
         builder.Services.AddSupplierWebhookDelivery();
-        builder.Services.AddNotificationServiceInfrastructure();
+        builder.Services.AddNotificationServiceInfrastructure(builder.Configuration);
 
         return builder.Build();
     }
