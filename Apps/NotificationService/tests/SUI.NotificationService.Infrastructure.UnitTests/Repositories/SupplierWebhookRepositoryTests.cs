@@ -129,9 +129,7 @@ public class SupplierWebhookRepositoryTests
         await _tableClientMock
             .Received(1)
             .UpdateEntityAsync(
-                Arg.Is<SupplierWebhookEntity>(e =>
-                    e.IsEnabled == false && e.RowKey == expectedRowKey
-                ),
+                Arg.Is<SupplierWebhookEntity>(e => !e.IsEnabled && e.RowKey == expectedRowKey),
                 existingEntity.ETag,
                 TableUpdateMode.Replace,
                 Arg.Any<CancellationToken>()
