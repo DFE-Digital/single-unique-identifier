@@ -77,3 +77,24 @@ From the repository root, run:
 ```bash
 dotnet test Apps/NotificationService/NotificationService.slnx
 ```
+
+## Supplier Webhook Register Administration
+
+The Supplier Webhook Register is administered manually via Azure Table Storage. There is no public API or UI for this register.
+
+**Table Name:** `SupplierWebhookEntity`
+
+### Adding a new Supplier Webhook
+1. Open Azure Storage Explorer or the Azure Portal.
+2. Navigate to the `SupplierWebhookEntity` table.
+3. Add a new Entity with the following strict properties:
+    * `PartitionKey`: `SupplierWebhook` (String, Exact match required)
+    * `RowKey`: The unique Supplier ID (String)
+    * `EndpointUrl`: The supplier's webhook URL (String, **Must be HTTPS**)
+    * `IsEnabled`: `true` (Boolean)
+    * `ContractVersion`: `1` (String)
+    * `SecretKeyVaultReference`: The Key Vault URI/name for their HMAC secret (String)
+
+### Updating or Disabling a Webhook
+* To **disable** broadcasts to a supplier, edit their entity and change `IsEnabled` to `false`. (Do not delete the row, to preserve the audit trail).
+* To **update** a URL or Key Vault reference, edit the respective string values and save. Changes take effect immediately.
