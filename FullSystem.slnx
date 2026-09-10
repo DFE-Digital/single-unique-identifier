@@ -28,6 +28,8 @@
   </Folder>
   <Folder Name="/Apps/NotificationService/tests/">
     <Project Path="Apps\NotificationService\tests\SUI.NotificationService.UnitTests\SUI.NotificationService.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="Apps\NotificationService\tests\SUI.NotificationService.Infrastructure.UnitTests\SUI.NotificationService.Infrastructure.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="Apps\NotificationService\tests\SUI.NotificationService.Infrastructure.IntegrationTests\SUI.NotificationService.Infrastructure.IntegrationTests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Apps/UIHarness/" />
   <Folder Name="/Apps/UIHarness/src/">
