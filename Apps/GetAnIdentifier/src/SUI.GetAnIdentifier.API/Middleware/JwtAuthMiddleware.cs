@@ -13,6 +13,8 @@ using SUI.GetAnIdentifier.API.Configuration;
 using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.API.Utility;
 using SUI.GetAnIdentifier.Application.Constants;
+using SUI.GetAnIdentifier.Infrastructure.Interfaces;
+using SUI.GetAnIdentifier.Infrastructure.Models;
 
 namespace SUI.GetAnIdentifier.API.Middleware;
 
@@ -20,7 +22,9 @@ public class JwtAuthMiddleware(
     IAuthContextFactory authContextFactory,
     IConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
     IOptions<AuthSettings> authSettings,
-    ILogger<JwtAuthMiddleware> logger
+    ILogger<JwtAuthMiddleware> logger,
+    IAuditService auditService,
+    TimeProvider timeProvider
 ) : IFunctionsWorkerMiddleware
 {
     private static readonly JwtSecurityTokenHandler TokenHandler = new();
@@ -152,6 +156,19 @@ public class JwtAuthMiddleware(
         }
 
         context.Items[ApplicationConstants.Auth.AuthContextKey] = authResult.Context;
+
+        var auditEvent = new AuditEvent
+        {
+            EventName = "Authentication succeeded",
+            Timestamp = timeProvider.GetUtcNow(),
+            CorrelationId = context.InvocationId,
+            TraceParent = context.TraceContext.TraceParent,
+            Method = req.Method,
+            Url = req.Url.AbsolutePath,
+            CallerId = authResult.Context.ClientId,
+        };
+
+        await auditService.SendAuditEventAsync(auditEvent);
 
         await next(context);
     }

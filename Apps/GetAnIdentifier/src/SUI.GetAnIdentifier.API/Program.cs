@@ -83,7 +83,7 @@ builder.Services.AddSingleton(x =>
 builder.Services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
 builder.Services.AddSingleton<IFhirService, FhirService>();
 builder.Services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
-builder.Services.AddSingleton<IAuditLogService, AuditLogService>();
+builder.Services.AddSingleton<IAuditService, AuditService>();
 
 // Middleware services
 builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();
@@ -94,6 +94,7 @@ builder.Services.AddSingleton<IGetAnIdentifierService, GetAnIdentifierService>()
 // Use mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 
+builder.UseMiddleware<AuditMiddleware>();
 builder.UseMiddleware<JwtAuthMiddleware>();
 
 builder.Services.AddHttpClient(

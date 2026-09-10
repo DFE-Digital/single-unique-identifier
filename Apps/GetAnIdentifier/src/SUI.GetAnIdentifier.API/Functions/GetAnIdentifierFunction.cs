@@ -22,9 +22,7 @@ namespace SUI.GetAnIdentifier.API.Functions;
 public class GetAnIdentifierFunction(
     ILogger<GetAnIdentifierFunction> logger,
     IGetAnIdentifierService getAnIdentifierService,
-    IAuditLogService auditLogService,
-    IOptions<GetAnIdentifierConfiguration> matchFunctionConfig,
-    TimeProvider timeProvider
+    IOptions<GetAnIdentifierConfiguration> matchFunctionConfig
 )
 {
     [Function(nameof(GetAnIdentifier))]
@@ -91,39 +89,10 @@ public class GetAnIdentifierFunction(
         CancellationToken cancellationToken
     )
     {
-        var correlationId = context.InvocationId.IsNullOrWhiteSpace()
-            ? Guid.NewGuid().ToString()
-            : context.InvocationId;
+        var correlationId = context.InvocationId;
 
-        using var logScope = logger.BeginScope(
-            new Dictionary<string, object> { ["CorrelationId"] = correlationId }
-        );
-
-        var clientId = TryGetClientId(context, out var isValidAuthContext);
-
-        var requestIsValid = TryParseRequest(req, out var requestModel);
-
-        // Audit incoming request
-        await auditLogService.LogIncomingRequestAsync(
-            clientId,
-            correlationId,
-            timeProvider.GetUtcNow(),
-            req.Method,
-            req.Url.AbsolutePath,
-            requestIsValid ? requestModel : null,
-            cancellationToken
-        );
-
-        if (!isValidAuthContext || !VerifyApiKey(req))
+        if (!ValidateAuthContext(context) || !VerifyApiKey(req))
         {
-            await auditLogService.LogOutgoingResponseAsync(
-                clientId,
-                correlationId,
-                timeProvider.GetUtcNow(),
-                (int)HttpStatusCode.Unauthorized,
-                "Unauthorized",
-                cancellationToken
-            );
             return await HttpResponseUtility.UnauthorizedResponse(
                 req,
                 correlationId,
@@ -131,36 +100,21 @@ public class GetAnIdentifierFunction(
             );
         }
 
+        var requestIsValid = TryParseRequest(req, out var requestModel);
+
         if (!requestIsValid)
         {
-            await auditLogService.LogOutgoingResponseAsync(
-                clientId,
-                correlationId,
-                timeProvider.GetUtcNow(),
-                (int)HttpStatusCode.BadRequest,
-                "Invalid request - body missing or malformed",
-                cancellationToken
-            );
-            return await HttpResponseUtility.ProblemResponse(
+            return await HttpResponseUtility.BadRequestResponse(
                 req,
-                HttpStatusCode.BadRequest,
-                "Invalid request",
-                "The request body is missing or malformed.",
                 correlationId,
+                "The request body is missing or malformed.",
+                "Invalid request",
                 cancellationToken
             );
         }
 
         if (requestModel.PersonSpecification.IsNullOrDefault())
         {
-            await auditLogService.LogOutgoingResponseAsync(
-                clientId,
-                correlationId,
-                timeProvider.GetUtcNow(),
-                (int)HttpStatusCode.BadRequest,
-                "PersonSpecification is required",
-                cancellationToken
-            );
             return await HttpResponseUtility.BadRequestResponse(
                 req,
                 correlationId,
@@ -175,14 +129,6 @@ public class GetAnIdentifierFunction(
             && requestModel.Metadata.Any(k => string.IsNullOrWhiteSpace(k.RecordType))
         )
         {
-            await auditLogService.LogOutgoingResponseAsync(
-                clientId,
-                correlationId,
-                timeProvider.GetUtcNow(),
-                (int)HttpStatusCode.BadRequest,
-                "RecordType is mandatory for all Metadata entries",
-                cancellationToken
-            );
             return await HttpResponseUtility.BadRequestResponse(
                 req,
                 correlationId,
@@ -202,86 +148,38 @@ public class GetAnIdentifierFunction(
 
             return await personMatch.Match(
                 async getAnIdentifierResult =>
-                {
-                    await auditLogService.LogOutgoingResponseAsync(
-                        clientId,
-                        correlationId,
-                        timeProvider.GetUtcNow(),
-                        (int)HttpStatusCode.OK,
-                        "Person matched successfully",
-                        cancellationToken
-                    );
-                    return await HttpResponseUtility.OkResponse(
+                    await HttpResponseUtility.OkResponse(
                         req,
                         PersonMatch.Create(getAnIdentifierResult),
                         cancellationToken
-                    );
-                },
+                    ),
                 async dataValidationResult =>
-                {
-                    await auditLogService.LogOutgoingResponseAsync(
-                        clientId,
-                        correlationId,
-                        timeProvider.GetUtcNow(),
-                        (int)HttpStatusCode.BadRequest,
-                        "Validation error",
-                        cancellationToken
-                    );
-                    return await HttpResponseUtility.BadRequestResponse(
+                    await HttpResponseUtility.BadRequestResponse(
                         req,
                         correlationId,
                         JsonSerializer.Serialize(dataValidationResult),
                         "Validation error",
                         cancellationToken
-                    );
-                },
+                    ),
                 async notFound =>
-                {
-                    await auditLogService.LogOutgoingResponseAsync(
-                        clientId,
-                        correlationId,
-                        timeProvider.GetUtcNow(),
-                        (int)HttpStatusCode.NotFound,
-                        "NotFound",
-                        cancellationToken
-                    );
-                    return await HttpResponseUtility.NotFoundResponse(
+                    await HttpResponseUtility.NotFoundResponse(
                         req,
                         correlationId,
                         cancellationToken
-                    );
-                },
+                    ),
                 async error =>
-                {
-                    await auditLogService.LogOutgoingResponseAsync(
-                        clientId,
-                        correlationId,
-                        timeProvider.GetUtcNow(),
-                        (int)HttpStatusCode.BadGateway,
-                        "Upstream PDS Error / Bad Gateway",
-                        cancellationToken
-                    );
-                    return await HttpResponseUtility.ProblemResponse(
+                    await HttpResponseUtility.ProblemResponse(
                         req,
                         HttpStatusCode.BadGateway,
                         "Upstream API Error",
                         "The upstream PDS matching service encountered an error or timed out. Matching cannot be completed at this time.",
                         correlationId,
                         cancellationToken
-                    );
-                }
+                    )
             );
         }
         catch (Exception ex)
         {
-            await auditLogService.LogOutgoingResponseAsync(
-                clientId,
-                correlationId,
-                timeProvider.GetUtcNow(),
-                (int)HttpStatusCode.InternalServerError,
-                "Internal Server Error",
-                cancellationToken
-            );
             logger.LogError(ex, "Unhandled exception during GetAnIdentifier execution");
             return await HttpResponseUtility.InternalServerErrorResponse(
                 req,
@@ -291,19 +189,10 @@ public class GetAnIdentifierFunction(
         }
     }
 
-    private static string TryGetClientId(FunctionContext context, out bool isValidAuthContext)
+    private static bool ValidateAuthContext(FunctionContext context)
     {
-        if (
-            !context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
-            || authObj is not AuthContext authCtx
-        )
-        {
-            isValidAuthContext = false;
-            return string.Empty;
-        }
-
-        isValidAuthContext = true;
-        return authCtx.ClientId;
+        return context.Items.TryGetValue(ApplicationConstants.Auth.AuthContextKey, out var authObj)
+            && authObj is AuthContext;
     }
 
     private bool TryParseRequest(HttpRequestData req, out GetAnIdentifierRequest model)

@@ -17,6 +17,8 @@ using SUI.GetAnIdentifier.API.Configuration;
 using SUI.GetAnIdentifier.API.Middleware;
 using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.Application.Constants;
+using SUI.GetAnIdentifier.Infrastructure.Interfaces;
+using SUI.GetAnIdentifier.Infrastructure.Models;
 
 namespace SUI.GetAnIdentifier.API.UnitTests.Middleware;
 
@@ -30,6 +32,8 @@ public class JwtAuthMiddlewareTests
     private readonly ILogger<JwtAuthMiddleware> _mockLogger = Substitute.For<
         ILogger<JwtAuthMiddleware>
     >();
+    private readonly IAuditService _mockAuditService = Substitute.For<IAuditService>();
+    private readonly TimeProvider _timeProvider = Substitute.For<TimeProvider>();
 
     private readonly AuthSettings _authSettings;
     private readonly RSA _genuineRsa;
@@ -47,6 +51,9 @@ public class JwtAuthMiddlewareTests
             UseAuthStoreForAuthorisation = false, // Explicitly set for mocked AuthContextFactory predictability
         };
         _mockOptions.Value.Returns(_authSettings);
+        _timeProvider
+            .GetUtcNow()
+            .Returns(_ => new DateTimeOffset(2026, 08, 31, 08, 00, 00, TimeSpan.Zero));
     }
 
     #region Shared Helpers
@@ -262,7 +269,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -283,7 +292,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -302,7 +313,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -321,7 +334,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -358,7 +373,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -391,7 +408,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -424,7 +443,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -458,7 +479,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -466,6 +489,8 @@ public class JwtAuthMiddlewareTests
 
             // Assert
             AssertAccessAllowed(context, authContext);
+
+            await _mockAuditService.Received(1).SendAuditEventAsync(Arg.Any<AuditEvent>());
         }
 
         [Fact]
@@ -495,7 +520,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -521,7 +548,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -545,7 +574,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -568,7 +599,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -596,7 +629,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -624,7 +659,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -647,7 +684,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -675,7 +714,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -702,7 +743,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
@@ -729,7 +772,9 @@ public class JwtAuthMiddlewareTests
                 _mockAuthContextFactory,
                 _mockConfigManager,
                 _mockOptions,
-                _mockLogger
+                _mockLogger,
+                _mockAuditService,
+                _timeProvider
             );
 
             // Act
