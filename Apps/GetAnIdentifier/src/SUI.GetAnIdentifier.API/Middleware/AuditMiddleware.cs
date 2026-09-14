@@ -41,7 +41,7 @@ public class AuditMiddleware(
         {
             await AuditIncomingRequest(context, correlationId, request);
         }
-        catch (Exception)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 request,
@@ -59,7 +59,7 @@ public class AuditMiddleware(
         {
             await AuditOutgoingResponse(context, correlationId);
         }
-        catch (Exception)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 request,
