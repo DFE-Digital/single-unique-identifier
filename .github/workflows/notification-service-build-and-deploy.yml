@@ -1,4 +1,4 @@
-name: 'Build, Test, Deploy: "Notification Service" Solution'
+name: 'Build, Test: "Notification Service" Solution'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -7,22 +7,8 @@ concurrency:
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: Target environment for deployment
-        required: false
-        default: d01
-        type: choice
-        options:
-          - d01
-          - d02
-          - d03
-      deploy:
-        description: Deploy to Azure Function App
-        required: false
-        default: false
-        type: boolean
       upload_artifacts:
-        description: Upload build artifacts (auto-enabled when deploying)
+        description: Upload build artifacts
         required: false
         default: false
         type: boolean
@@ -70,8 +56,7 @@ jobs:
       directory_name: Apps/NotificationService
       project_names: '["SUI.NotificationService"]'
       requires_azurite: true
-      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_artifacts == 'true') || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
       artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
       skip_tests: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_tests == 'true' }}
       skip_scans: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_scans == 'true' }}
-      deploy_requested: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true' }}
