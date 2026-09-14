@@ -16,8 +16,13 @@ public class AuditMiddleware(
     TimeProvider timeProvider
 ) : IFunctionsWorkerMiddleware
 {
-    private const string SwaggerPathSegment = "swagger";
-    private const string TokenPathSegment = "auth/token";
+    private static readonly HashSet<string> NonAuditedFunctions =
+    [
+        "RenderOAuth2Redirect",
+        "RenderOpenApiDocument",
+        "RenderSwaggerDocument",
+        "RenderSwaggerUI",
+    ];
 
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
@@ -70,17 +75,8 @@ public class AuditMiddleware(
         HttpRequestData request
     )
     {
-        // No requirement to audit swagger or token requests
-        var isSwaggerRequest = request.Url.AbsolutePath.Contains(
-            SwaggerPathSegment,
-            StringComparison.CurrentCultureIgnoreCase
-        );
-        var isTokenRequest = request.Url.AbsolutePath.Contains(
-            TokenPathSegment,
-            StringComparison.CurrentCultureIgnoreCase
-        );
-
-        if (isSwaggerRequest || isTokenRequest)
+        // No need to audit auth and swagger requests
+        if (NonAuditedFunctions.Contains(context.FunctionDefinition.Name))
             return;
 
         var auditEvent = new AuditEvent
@@ -93,23 +89,15 @@ public class AuditMiddleware(
             Url = request.Url.AbsolutePath,
         };
 
-        try
-        {
-            await auditService.SendAuditEventAsync(auditEvent);
-        }
-        catch (Exception)
-        {
-            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
-                request,
-                HttpStatusCode.InternalServerError,
-                "Audit error",
-                $"An error occurred while attempting to audit incoming request. CorrelationId: {correlationId}"
-            );
-        }
+        await auditService.SendAuditEventAsync(auditEvent);
     }
 
     private async Task AuditOutgoingResponse(FunctionContext context, string correlationId)
     {
+        // No need to audit auth and swagger requests
+        if (NonAuditedFunctions.Contains(context.FunctionDefinition.Name))
+            return;
+
         var response = context.GetHttpResponseData();
         if (response is null)
             return;
@@ -123,20 +111,6 @@ public class AuditMiddleware(
             StatusCode = response.StatusCode,
         };
 
-        try
-        {
-            await auditService.SendAuditEventAsync(auditEvent);
-        }
-        catch (Exception)
-        {
-            var httpRequestDataAsync = await context.GetHttpRequestDataAsync();
-
-            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
-                httpRequestDataAsync!,
-                HttpStatusCode.InternalServerError,
-                "Audit error",
-                $"An error occurred while attempting to audit outgoing response.  CorrelationId: {correlationId}"
-            );
-        }
+        await auditService.SendAuditEventAsync(auditEvent);
     }
 }
