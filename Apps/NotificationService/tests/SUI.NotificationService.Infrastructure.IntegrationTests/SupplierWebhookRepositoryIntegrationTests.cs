@@ -113,4 +113,37 @@ public class SupplierWebhookRepositoryIntegrationTests : IAsyncLifetime
         var allEnabled = await _sut.GetAllEnabledAsync();
         Assert.Empty(allEnabled); // The only entry is disabled!
     }
+
+    [Fact]
+    public async Task EnableAsync_UpdatesRealDatabaseRecord()
+    {
+        // Arrange - Save a webhook that starts off disabled
+        var webhook = new SupplierWebhook("sys/admin", "https://test.com", false, "1", "kv");
+        await _sut.AddAsync(webhook);
+
+        // Verify it isn't returned initially
+        var initiallyEnabled = await _sut.GetAllEnabledAsync();
+        Assert.Empty(initiallyEnabled);
+
+        // Act - Turn it back on
+        await _sut.EnableAsync("sys/admin");
+
+        // Assert - Prove the database updated and the query now finds it
+        var allEnabled = (await _sut.GetAllEnabledAsync()).ToList();
+
+        Assert.Single(allEnabled);
+        Assert.Equal("sys/admin", allEnabled[0].SupplierId);
+        Assert.True(allEnabled[0].IsEnabled);
+    }
+
+    [Fact]
+    public async Task EnableAsync_ThrowsKeyNotFoundException_WhenWebhookDoesNotExist()
+    {
+        // Act & Assert - Attempting to enable an ID that was never added
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            _sut.EnableAsync("does/not/exist")
+        );
+
+        Assert.Contains("was not found", exception.Message);
+    }
 }

@@ -7,6 +7,7 @@ public interface ISupplierWebhookRepository
     Task AddAsync(SupplierWebhook webhook, CancellationToken cancellationToken = default);
     Task UpdateAsync(SupplierWebhook webhook, CancellationToken cancellationToken = default);
     Task DisableAsync(string supplierId, CancellationToken cancellationToken = default);
+    Task EnableAsync(string supplierId, CancellationToken cancellationToken = default);
     Task<IEnumerable<SupplierWebhook>> GetAllEnabledAsync(
         CancellationToken cancellationToken = default
     );

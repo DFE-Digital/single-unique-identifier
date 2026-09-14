@@ -97,6 +97,44 @@ public class SupplierWebhookRepository(
         }
     }
 
+    public async Task EnableAsync(string supplierId, CancellationToken cancellationToken = default)
+    {
+        var normalisedId = TableKeyNormaliser.Normalise(supplierId);
+
+        try
+        {
+            var response = await tableClient.GetEntityAsync<SupplierWebhookEntity>(
+                SupplierWebhookEntity.DefaultPartitionKey,
+                normalisedId,
+                cancellationToken: cancellationToken
+            );
+
+            var entity = response.Value;
+            entity.IsEnabled = true;
+
+            await tableClient.UpdateEntityAsync(
+                entity,
+                entity.ETag,
+                TableUpdateMode.Replace,
+                cancellationToken
+            );
+            logger.LogInformation(
+                "Successfully enabled webhook register for SupplierId: {SupplierId}",
+                supplierId
+            );
+        }
+        catch (RequestFailedException ex) when (ex.Status == 404)
+        {
+            logger.LogWarning(
+                "Attempted to enable non-existent webhook register for SupplierId: {SupplierId}",
+                supplierId
+            );
+            throw new KeyNotFoundException(
+                $"Webhook register for Supplier '{supplierId}' was not found."
+            );
+        }
+    }
+
     public async Task<IEnumerable<SupplierWebhook>> GetAllEnabledAsync(
         CancellationToken cancellationToken = default
     )

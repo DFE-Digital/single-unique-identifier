@@ -137,9 +137,54 @@ public class SupplierWebhookRepositoryTests
     }
 
     [Fact]
-    public async Task GetAllEnabledAsync_ReturnsOnlyEnabledWebhooks_MappedWithOriginalId()
+    public async Task EnableAsync_NormalisesId_AndFlipsStatusToTrue()
     {
-        // Arrange - Ensure OriginalSupplierId is populated here!
+        // Arrange - using a messy ID
+        var messyId = "sys/admin#123";
+        var expectedRowKey = "SYS_ADMIN_123";
+
+        var existingEntity = new SupplierWebhookEntity
+        {
+            RowKey = expectedRowKey,
+            OriginalSupplierId = messyId,
+            IsEnabled = false, // Starting off disabled
+            ETag = new ETag("W/\"datetime'2026-09-10T00%3A00%3A00.0000000Z'\""),
+        };
+
+        var responseMock = Substitute.For<Response<SupplierWebhookEntity>>();
+        responseMock.Value.Returns(existingEntity);
+
+        // Mock GetEntityAsync to accept the NORMALIZED key
+        _tableClientMock
+            .GetEntityAsync<SupplierWebhookEntity>(
+                SupplierWebhookEntity.DefaultPartitionKey,
+                expectedRowKey,
+                Arg.Any<IEnumerable<string>>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(Task.FromResult(responseMock));
+
+        // Act - pass the messy ID
+        await _sut.EnableAsync(messyId);
+
+        // Assert - verify it replaces the entity with IsEnabled = true
+        await _tableClientMock
+            .Received(1)
+            .UpdateEntityAsync(
+                Arg.Is<SupplierWebhookEntity>(e => e.IsEnabled && e.RowKey == expectedRowKey),
+                existingEntity.ETag,
+                TableUpdateMode.Replace,
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    [Fact]
+    public async Task GetAllEnabledAsync_QueriesDatabaseForEnabledOnly_AndMapsOriginalId()
+    {
+        // Note: The explicit filtering of disabled suppliers is tested under integration tests with actual Azure tables
+        // This test solely checks if the repository method queries Azure as expected
+
+        // Arrange - Define expected return data
         var enabledEntity1 = new SupplierWebhookEntity
         {
             RowKey = "SUP_001",
@@ -149,37 +194,20 @@ public class SupplierWebhookRepositoryTests
             ContractVersion = "1",
             SecretKeyVaultReference = "ref1",
         };
-        var enabledEntity2 = new SupplierWebhookEntity
-        {
-            RowKey = "SUP_002",
-            OriginalSupplierId = "sup/002",
-            EndpointUrl = "https://b.com",
-            IsEnabled = true,
-            ContractVersion = "1",
-            SecretKeyVaultReference = "ref2",
-        };
-
-        // Add a disabled entity to test the filtering
-        var disabledEntity = new SupplierWebhookEntity
-        {
-            RowKey = "SUP_003",
-            OriginalSupplierId = "sup/003",
-            EndpointUrl = "https://c.com",
-            IsEnabled = false, // This is the key property for the negative test
-            ContractVersion = "1",
-            SecretKeyVaultReference = "ref3",
-        };
 
         var page = Page<SupplierWebhookEntity>.FromValues(
-            [enabledEntity1, enabledEntity2, disabledEntity],
+            [enabledEntity1],
             null,
             Substitute.For<Response>()
         );
         var asyncPageable = AsyncPageable<SupplierWebhookEntity>.FromPages([page]);
 
+        // Capture the exact query string the repository sends to Azure
+        string capturedODataFilter = string.Empty;
+
         _tableClientMock
             .QueryAsync<SupplierWebhookEntity>(
-                Arg.Any<string>(),
+                Arg.Do<string>(filter => capturedODataFilter = filter), // Capture the query
                 Arg.Any<int?>(),
                 Arg.Any<IEnumerable<string>>(),
                 Arg.Any<CancellationToken>()
@@ -190,11 +218,21 @@ public class SupplierWebhookRepositoryTests
         var results = await _sut.GetAllEnabledAsync();
         var webhooks = results.ToList();
 
-        // Assert - verify it mapped the enabled ones and excluded the disabled one
-        Assert.Equal(2, webhooks.Count);
-        Assert.All(webhooks, w => Assert.True(w.IsEnabled));
-        Assert.Contains(webhooks, w => w.SupplierId == "sup/001");
-        Assert.Contains(webhooks, w => w.SupplierId == "sup/002");
-        Assert.DoesNotContain(webhooks, w => w.SupplierId == "sup/003"); // Explicitly checking it was filtered
+        // Assert 1: Prove the negative case
+        // Verify the repository strictly instructs Azure to filter out disabled records.
+        Assert.False(
+            string.IsNullOrEmpty(capturedODataFilter),
+            "Repository did not apply a filter."
+        );
+        Assert.Contains(
+            "IsEnabled eq true",
+            capturedODataFilter,
+            StringComparison.OrdinalIgnoreCase
+        );
+
+        // Assert 2: Verify the domain mapping logic works on the returned data
+        Assert.Single(webhooks);
+        Assert.Equal("sup/001", webhooks[0].SupplierId);
+        Assert.True(webhooks[0].IsEnabled);
     }
 }
