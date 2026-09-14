@@ -235,4 +235,83 @@ public class SupplierWebhookRepositoryTests
         Assert.Equal("sup/001", webhooks[0].SupplierId);
         Assert.True(webhooks[0].IsEnabled);
     }
+
+    [Fact]
+    public async Task UpdateAsync_NormalisesRowKey_AndReplacesEntity()
+    {
+        // Arrange
+        var messyId = "sys/admin#update";
+        var expectedRowKey = "SYS_ADMIN_UPDATE";
+
+        var webhook = new SupplierWebhook(
+            messyId,
+            "https://updated.com/webhook",
+            true,
+            "2",
+            "new-kv-ref"
+        );
+
+        // Act
+        await _sut.UpdateAsync(webhook);
+
+        // Assert
+        await _tableClientMock
+            .Received(1)
+            .UpdateEntityAsync(
+                Arg.Is<SupplierWebhookEntity>(e =>
+                    e.RowKey == expectedRowKey
+                    && e.OriginalSupplierId == messyId
+                    && e.EndpointUrl == "https://updated.com/webhook"
+                ),
+                ETag.All,
+                TableUpdateMode.Replace,
+                Arg.Any<CancellationToken>()
+            );
+    }
+
+    [Fact]
+    public async Task DisableAsync_ThrowsKeyNotFoundException_WhenWebhookDoesNotExist()
+    {
+        // Arrange
+        var notFoundException = new RequestFailedException(404, "Not Found");
+
+        _tableClientMock
+            .GetEntityAsync<SupplierWebhookEntity>(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<IEnumerable<string>>(),
+                Arg.Any<CancellationToken>()
+            )
+            .ThrowsAsync(notFoundException);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            _sut.DisableAsync("missing/id")
+        );
+
+        Assert.Contains("was not found", exception.Message);
+    }
+
+    [Fact]
+    public async Task EnableAsync_ThrowsKeyNotFoundException_WhenWebhookDoesNotExist()
+    {
+        // Arrange
+        var notFoundException = new RequestFailedException(404, "Not Found");
+
+        _tableClientMock
+            .GetEntityAsync<SupplierWebhookEntity>(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<IEnumerable<string>>(),
+                Arg.Any<CancellationToken>()
+            )
+            .ThrowsAsync(notFoundException);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            _sut.EnableAsync("missing/id")
+        );
+
+        Assert.Contains("was not found", exception.Message);
+    }
 }
