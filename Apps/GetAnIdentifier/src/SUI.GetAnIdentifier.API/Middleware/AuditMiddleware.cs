@@ -47,7 +47,8 @@ public class AuditMiddleware(
                 request,
                 HttpStatusCode.InternalServerError,
                 "Audit error",
-                $"An error occurred while attempting to audit incoming request. CorrelationId: {correlationId}"
+                $"An error occurred while attempting to audit incoming request. CorrelationId: {correlationId}",
+                cancellationToken: context.CancellationToken
             );
             return;
         }
@@ -64,7 +65,8 @@ public class AuditMiddleware(
                 request,
                 HttpStatusCode.InternalServerError,
                 "Audit error",
-                $"An error occurred while attempting to audit outgoing response.  CorrelationId: {correlationId}"
+                $"An error occurred while attempting to audit outgoing response.  CorrelationId: {correlationId}",
+                cancellationToken: context.CancellationToken
             );
         }
     }
