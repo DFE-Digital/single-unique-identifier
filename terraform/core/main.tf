@@ -21,6 +21,18 @@ locals {
     var.environment_id,
     var.region_short,
   )
+  container_registry_name = lower(format(
+    "%s%sacr%sservices01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  ))
+  container_app_environment_name = format(
+    "%s%scae-%s-services01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  )
   asp_name = format(
     "%s%sasp-%s-services01",
     var.subscription_prefix,
@@ -48,6 +60,8 @@ locals {
   )
 }
 
+data "azurerm_client_config" "current" {}
+
 module "resource_group" {
   source = "../modules/resource_group"
 
@@ -74,7 +88,7 @@ resource "azurerm_service_plan" "shared" {
 }
 
 resource "azurerm_service_plan" "auxiliary" {
-  count               = var.use_auxiliary_asp ? 1 : 0
+  count = var.use_auxiliary_asp ? 1 : 0
 
   name                = local.aux_asp_name
   resource_group_name = module.resource_group.name
@@ -135,6 +149,33 @@ resource "azurerm_application_insights" "shared" {
   location            = module.resource_group.location
   application_type    = "web"
   workspace_id        = azurerm_log_analytics_workspace.shared.id
+
+  tags = local.base_tags
+}
+
+resource "azurerm_container_registry" "shared" {
+  name                          = local.container_registry_name
+  resource_group_name           = module.resource_group.name
+  location                      = module.resource_group.location
+  sku                           = var.container_registry_sku
+  admin_enabled                 = false
+  anonymous_pull_enabled        = false
+  public_network_access_enabled = true
+
+  tags = local.base_tags
+}
+
+resource "azurerm_role_assignment" "terraform_operator_acr_push" {
+  scope                = azurerm_container_registry.shared.id
+  role_definition_name = "AcrPush"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_container_app_environment" "shared" {
+  name                       = local.container_app_environment_name
+  resource_group_name        = module.resource_group.name
+  location                   = module.resource_group.location
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.shared.id
 
   tags = local.base_tags
 }
