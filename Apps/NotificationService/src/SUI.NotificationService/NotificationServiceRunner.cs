@@ -40,7 +40,7 @@ internal static class NotificationServiceRunner
 
         try
         {
-            await host.StartAsync();
+            await host.StartAsync(lifetime.ApplicationStopping);
 
             await using var scope = host.Services.CreateAsyncScope();
             var orchestrator =
