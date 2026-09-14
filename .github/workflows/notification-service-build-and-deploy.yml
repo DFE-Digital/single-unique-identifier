@@ -1,12 +1,22 @@
-name: 'Build, Test: "Notification Service" Solution'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+name: "Build, Test, Deploy: Notification Service"
+run-name: Notification Service - ${{ github.event_name == 'pull_request' && 'validate' || format('deploy {0}', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
 
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: d01
+        type: choice
+        options:
+          - d01
+          - d02
+          - d03
+      image_tag:
+        description: Existing 40-character SHA image tag to deploy (leave blank to build and publish this commit)
+        required: false
+        type: string
       upload_artifacts:
         description: Upload build artifacts
         required: false
@@ -31,32 +41,285 @@ on:
     branches:
       - main
     paths:
-      - "Apps/NotificationService/**"
-      - "Data/**"
+      - Apps/NotificationService/**
+      - terraform/notification-service/**
+      - terraform/core/**
+      - terraform/environments/**
+      - .github/workflows/notification-service-build-and-deploy.yml
+      - .github/workflows/terraform-plan-and-apply.yml
   pull_request:
     branches:
       - main
     paths:
-      - "Apps/NotificationService/**"
-      - "Data/**"
+      - Apps/NotificationService/**
+      - terraform/notification-service/**
+      - terraform/core/**
+      - terraform/environments/**
+      - .github/workflows/notification-service-build-and-deploy.yml
+      - .github/workflows/terraform-plan-and-apply.yml
+
+concurrency:
+  group: notification-service-${{ github.event_name == 'workflow_dispatch' && inputs.environment || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-test-NotificationService:
-    name: NotificationService - Build Test Dotnet
+  build-and-test:
+    name: Notification Service - build and test
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets: inherit
     permissions:
-      id-token: write
       contents: read
-      pull-requests: write
       checks: write
+      pull-requests: write
       packages: read
       actions: write
     with:
       directory_name: Apps/NotificationService
       project_names: '["SUI.NotificationService"]'
       requires_azurite: true
-      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_artifacts == 'true') || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
-      skip_tests: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_tests == 'true' }}
-      skip_scans: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_scans == 'true' }}
+      deploy_requested: ${{ github.event_name != 'pull_request' }}
+      upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && inputs.upload_artifacts) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      skip_tests: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests }}
+      skip_scans: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_scans }}
+
+  resolve-image:
+    name: Resolve container image
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.image.outputs.image_tag }}
+      push_image: ${{ steps.image.outputs.push_image }}
+    steps:
+      - id: image
+        name: Select image tag
+        env:
+          REQUESTED_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || '' }}
+        run: |
+          if [ -n "$REQUESTED_TAG" ]; then
+            if ! [[ "$REQUESTED_TAG" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "image_tag must be a full, lowercase, 40-character commit SHA."
+              exit 1
+            fi
+            echo "image_tag=$REQUESTED_TAG" >> "$GITHUB_OUTPUT"
+            echo "push_image=false" >> "$GITHUB_OUTPUT"
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            echo "image_tag=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            echo "push_image=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            echo "push_image=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-and-publish-image:
+    name: Notification Service - container image
+    if: github.event_name != 'pull_request'
+    needs:
+      - build-and-test
+      - resolve-image
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Load environment naming
+        id: environment
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+
+      - name: Azure login with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve Azure Container Registry
+        id: registry
+        env:
+          REGISTRY_NAME: ${{ format('{0}{1}acr{2}services01', steps.environment.outputs.subscription_prefix, steps.environment.outputs.environment_id, steps.environment.outputs.region_short) }}
+        run: |
+          login_server=$(az acr show --name "$REGISTRY_NAME" --query loginServer --output tsv)
+          echo "name=$REGISTRY_NAME" >> "$GITHUB_OUTPUT"
+          echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to Azure Container Registry
+        if: needs.resolve-image.outputs.push_image == 'true'
+        run: az acr login --name "${{ steps.registry.outputs.name }}"
+
+      - name: Verify rollback image exists
+        if: needs.resolve-image.outputs.push_image != 'true'
+        run: |
+          az acr repository show \
+            --name "${{ steps.registry.outputs.name }}" \
+            --image "notification-service:${{ needs.resolve-image.outputs.image_tag }}" \
+            --output none
+
+      - name: Build and publish container image
+        if: needs.resolve-image.outputs.push_image == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Apps/NotificationService/Dockerfile
+          push: ${{ needs.resolve-image.outputs.push_image == 'true' }}
+          tags: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, needs.resolve-image.outputs.image_tag) }}
+
+  validate-container:
+    name: Notification Service - container validation
+    if: github.event_name == 'pull_request'
+    needs:
+      - build-and-test
+      - resolve-image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build container image without publishing
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Apps/NotificationService/Dockerfile
+          load: true
+          push: false
+          tags: notification-service:${{ needs.resolve-image.outputs.image_tag }}
+
+      - name: Verify container user, entrypoint and exit code
+        env:
+          IMAGE_TAG: ${{ needs.resolve-image.outputs.image_tag }}
+        run: |
+          image="notification-service:$IMAGE_TAG"
+          user=$(docker image inspect "$image" --format '{{.Config.User}}')
+          entrypoint=$(docker image inspect "$image" --format '{{json .Config.Entrypoint}}')
+
+          if [ -z "$user" ] || [ "$user" = "0" ] || [ "$user" = "root" ]; then
+            echo "Container must run as a non-root user; configured user was '$user'."
+            exit 1
+          fi
+          if [ "$entrypoint" != '["dotnet","SUI.NotificationService.dll"]' ]; then
+            echo "Unexpected container entrypoint: $entrypoint"
+            exit 1
+          fi
+
+          docker run --rm \
+            --env ConnectionStrings__TableStorage=UseDevelopmentStorage=true \
+            "$image"
+
+  terraform:
+    name: Notification Service - Terraform apply
+    if: github.event_name != 'pull_request'
+    # resolve-image is required directly because GitHub exposes outputs only from direct dependencies.
+    needs:
+      - build-and-publish-image
+      - resolve-image
+    uses: ./.github/workflows/terraform-plan-and-apply.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+      apply: true
+      root: terraform/notification-service
+      state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
+      terraform_variables: >-
+        {"notification_service_image_tag":"${{ needs.resolve-image.outputs.image_tag }}"}
+      terraform_output_names: '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'
+
+  smoke-test:
+    name: Notification Service - smoke test
+    if: github.event_name != 'pull_request'
+    needs: terraform
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Azure login with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Start and await smoke-test execution
+        id: execution
+        env:
+          RESOURCE_GROUP_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).resource_group_name }}
+          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name }}
+        run: |
+          test -n "$RESOURCE_GROUP_NAME"
+          test -n "$JOB_NAME"
+
+          active=$(az containerapp job execution list --resource-group "$RESOURCE_GROUP_NAME" --name "$JOB_NAME" --query "[?properties.status=='Running' || properties.status=='Processing' || properties.status=='Pending'] | length(@)" --output tsv)
+          if [ "$active" != "0" ]; then
+            echo "A Notification Service execution is already active; smoke test will not overlap it."
+            exit 1
+          fi
+
+          az containerapp job start --resource-group "$RESOURCE_GROUP_NAME" --name "$JOB_NAME"
+          for _ in {1..12}; do
+            execution_name=$(az containerapp job execution list --resource-group "$RESOURCE_GROUP_NAME" --name "$JOB_NAME" --query "sort_by(@, &properties.startTime)[-1].name" --output tsv)
+            [ -n "$execution_name" ] && break
+            sleep 5
+          done
+          test -n "${execution_name:-}"
+          echo "name=$execution_name" >> "$GITHUB_OUTPUT"
+
+          for _ in {1..72}; do
+            status=$(az containerapp job execution show --resource-group "$RESOURCE_GROUP_NAME" --name "$JOB_NAME" --job-execution-name "$execution_name" --query properties.status --output tsv)
+            echo "Execution $execution_name status: $status"
+            if [ "$status" = "Succeeded" ]; then
+              exit 0
+            fi
+            if [ "$status" = "Failed" ]; then
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "Timed out waiting for execution $execution_name."
+          exit 1
+
+      - name: Verify application logs
+        env:
+          WORKSPACE_ID: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).log_analytics_workspace_id }}
+          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name }}
+          EXECUTION_NAME: ${{ steps.execution.outputs.name }}
+        run: |
+          test -n "$WORKSPACE_ID"
+          test -n "$JOB_NAME"
+          test -n "$EXECUTION_NAME"
+          query="ContainerAppConsoleLogs_CL | where ContainerAppJobName_s == '$JOB_NAME' | where ContainerGroupName_s startswith '$EXECUTION_NAME' | where Log_s has 'Notification Service execution started' or Log_s has 'Notification Service execution completed' | summarize messages = make_set(Log_s)"
+          for _ in {1..18}; do
+            body=$(jq -cn --arg query "$query" '{query: $query}')
+            messages=$(az rest \
+              --method post \
+              --url "https://api.loganalytics.io/v1/workspaces/$WORKSPACE_ID/query" \
+              --resource "https://api.loganalytics.io" \
+              --body "$body" \
+              --query 'tables[0].rows[0][0]' \
+              --output tsv 2>/dev/null || true)
+            if [[ "$messages" == *"Notification Service execution started"* ]] && [[ "$messages" == *"Notification Service execution completed"* ]]; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Notification Service lifecycle logs were not available in Log Analytics."
+          exit 1
