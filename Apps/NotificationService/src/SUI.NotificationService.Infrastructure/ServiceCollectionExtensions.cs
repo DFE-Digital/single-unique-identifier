@@ -1,4 +1,5 @@
 using Azure.Data.Tables;
+using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SUI.NotificationService.Application.Interfaces;
@@ -19,22 +20,34 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        // Get the connection string
-        var connectionString =
-            configuration.GetConnectionString("TableStorage")
-            ?? throw new InvalidOperationException(
-                "TableStorage connection string is missing from configuration."
-            );
-
-        // Register the Azure TableClient specifically for our webhooks table
         services.AddSingleton(serviceProvider =>
         {
-            var tableClient = new TableClient(connectionString, "SupplierWebhooks");
+            var serviceUri = configuration["TableStorage:ServiceUri"];
+            if (Uri.TryCreate(serviceUri, UriKind.Absolute, out var tableServiceUri))
+            {
+                return new TableClient(
+                    tableServiceUri,
+                    "SupplierWebhooks",
+                    new DefaultAzureCredential()
+                );
+            }
 
-            // Ensures the table is created on startup if it doesn't exist in the storage account
-            tableClient.CreateIfNotExists();
+            var connectionString = configuration.GetConnectionString("TableStorage");
+            if (
+                string.Equals(
+                    connectionString,
+                    "UseDevelopmentStorage=true",
+                    StringComparison.Ordinal
+                )
+            )
+            {
+                return new TableClient(connectionString, "SupplierWebhooks");
+            }
 
-            return tableClient;
+            throw new InvalidOperationException(
+                "TableStorage:ServiceUri must be configured. "
+                    + "UseDevelopmentStorage=true is supported only for local Azurite development."
+            );
         });
 
         // Register the Repository
