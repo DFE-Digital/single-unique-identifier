@@ -63,6 +63,16 @@ output "container_app_environment_id" {
   description = "ID of the shared Azure Container Apps environment."
 }
 
+output "private_endpoints_subnet_id" {
+  value       = azurerm_subnet.private_endpoints.id
+  description = "ID of the subnet reserved for private endpoints."
+}
+
+output "function_app_integration_vnet_id" {
+  value       = azurerm_virtual_network.function_app_integration.id
+  description = "ID of the VNet shared by Function App integration, Container Apps and private endpoints."
+}
+
 output "app_insights_connection_string" {
   value       = azurerm_application_insights.shared.connection_string
   description = "Connection string for the shared Application Insights instance."
