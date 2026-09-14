@@ -23,10 +23,13 @@ public class SupplierWebhookRepository(
         try
         {
             await tableClient.AddEntityAsync(entity, cancellationToken);
-            logger.LogInformation(
-                "Successfully added webhook register for SupplierId: {SupplierId}",
-                webhook.SupplierId
-            );
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation(
+                    "Successfully added webhook register for SupplierId: {SupplierId}",
+                    webhook.SupplierId
+                );
+            }
         }
         catch (RequestFailedException ex) when (ex.Status == 409) // 409 Conflict natively prevents duplicates
         {
@@ -53,10 +56,14 @@ public class SupplierWebhookRepository(
             TableUpdateMode.Replace,
             cancellationToken
         );
-        logger.LogInformation(
-            "Successfully updated webhook register for SupplierId: {SupplierId}",
-            webhook.SupplierId
-        );
+
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation(
+                "Successfully updated webhook register for SupplierId: {SupplierId}",
+                webhook.SupplierId
+            );
+        }
     }
 
     public async Task DisableAsync(string supplierId, CancellationToken cancellationToken = default)
@@ -80,10 +87,14 @@ public class SupplierWebhookRepository(
                 TableUpdateMode.Replace,
                 cancellationToken
             );
-            logger.LogInformation(
-                "Successfully disabled webhook register for SupplierId: {SupplierId}",
-                supplierId
-            );
+
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation(
+                    "Successfully disabled webhook register for SupplierId: {SupplierId}",
+                    supplierId
+                );
+            }
         }
         catch (RequestFailedException ex) when (ex.Status == 404)
         {
@@ -118,10 +129,14 @@ public class SupplierWebhookRepository(
                 TableUpdateMode.Replace,
                 cancellationToken
             );
-            logger.LogInformation(
-                "Successfully enabled webhook register for SupplierId: {SupplierId}",
-                supplierId
-            );
+
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation(
+                    "Successfully enabled webhook register for SupplierId: {SupplierId}",
+                    supplierId
+                );
+            }
         }
         catch (RequestFailedException ex) when (ex.Status == 404)
         {
