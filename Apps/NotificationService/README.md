@@ -78,15 +78,66 @@ From the repository root, run:
 dotnet test Apps/NotificationService/NotificationService.slnx
 ```
 
+## Container image
+
+Build the same image used by CI from the repository root:
+
+```bash
+docker build --file Apps/NotificationService/Dockerfile --tag notification-service:local .
+```
+
+The runtime container uses the non-root .NET application user and returns the application's exit code.
+
+## Azure deployment
+
+The Notification Service runs as an Azure Container Apps scheduled job. The initial schedule is `0 6 * * *`, which runs once each day at 06:00 UTC. The schedule, CPU, memory, timeout, retry limit and .NET environment are configured independently in each file under `terraform/environments`.
+
+The deployment uses:
+
+- The shared Azure Container Registry and Container Apps environment from `terraform/core`.
+- A service-owned storage account and `SupplierWebhooks` table.
+- A user-assigned managed identity for ACR image pulls and Table Storage access.
+- The existing Log Analytics workspace for container console logs.
+
+No registry credentials or Table Storage keys are supplied to the application.
+
+### First deployment to an environment
+
+The shared foundations must be applied before the first image can be published. Run the `Terraform Core Infrastructure` workflow for the target environment with `apply` enabled. When preparing d01 before this branch is merged, run that existing workflow against this branch ref so the new core resources are available before the automatic main deployment.
+
+After core succeeds:
+
+1. Merging to `main` builds, publishes and deploys the current commit to d01 automatically.
+2. For d02 or d03, run the `Build, Test, Deploy: Notification Service` workflow manually and select the environment.
+3. The deployment applies the service Terraform, starts an on-demand smoke-test execution, waits for success and verifies its lifecycle logs in Log Analytics.
+
+The GitHub OIDC identity needs permission to create the `AcrPush`, `AcrPull` and `Storage Table Data Contributor` role assignments. If it does not have that permission, an Azure platform administrator must create or delegate those assignments before the first deployment.
+
+### Manual execution and logs
+
+Use the Azure Portal to start an on-demand job execution, review its execution history and inspect its console logs. The deployment workflow also starts and verifies a smoke-test execution automatically.
+
+Do not start a manual execution while another execution is running. Scheduled executions cannot overlap because the 30-minute replica timeout is shorter than the daily interval. Console logs are available in the shared Log Analytics workspace in the `ContainerAppConsoleLogs_CL` table.
+
+### Rollback
+
+Container images are published with immutable, full commit SHA tags. To roll back:
+
+1. Find the last known-good image tag in ACR or a previous successful workflow run.
+2. Manually run `Build, Test, Deploy: Notification Service` for the target environment and enter that 40-character lowercase SHA in `image_tag`.
+3. The workflow verifies the image exists, applies the previous tag to the job and runs the same smoke test.
+
+Rolling back the image does not change the shared core infrastructure or delete job execution history.
+
 ## Supplier Webhook Register Administration
 
 The Supplier Webhook Register is administered manually via Azure Table Storage. There is no public API or UI for this register.
 
-**Table Name:** `SupplierWebhookEntity`
+**Table Name:** `SupplierWebhooks`
 
 ### Adding a new Supplier Webhook
 1. Open Azure Storage Explorer or the Azure Portal.
-2. Navigate to the `SupplierWebhookEntity` table.
+2. Navigate to the `SupplierWebhooks` table.
 3. Add a new Entity with the following strict properties:
     * `PartitionKey`: `SupplierWebhook` (String, Exact match required)
     * `RowKey`: The unique Supplier ID (String)
