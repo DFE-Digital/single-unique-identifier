@@ -97,13 +97,16 @@ The deployment uses:
 - The shared Azure Container Registry and Container Apps environment from `terraform/core`.
 - A service-owned storage account and `SupplierWebhooks` table.
 - A user-assigned managed identity for ACR image pulls and Table Storage access.
+- A private Table Storage endpoint and private DNS zone linked to the Container Apps VNet.
 - The existing Log Analytics workspace for container console logs.
 
-No registry credentials or Table Storage keys are supplied to the application.
+The Storage Account's public firewall is deny-by-default, with the Azure trusted-services bypass enabled. The job reaches Table Storage through its private endpoint, while the `SupplierWebhooks` table is provisioned through Azure Resource Manager rather than the public Storage data plane. No registry credentials or Table Storage keys are supplied to the application.
 
 ### First deployment to an environment
 
 The shared foundations must be applied before the first image can be published. Run the `Terraform Core Infrastructure` workflow for the target environment with `apply` enabled. When preparing d01 before this branch is merged, run that existing workflow against this branch ref so the new core resources are available before the automatic main deployment.
+
+The core deployment creates the dedicated Container Apps subnet and changes the shared environment to a VNet-integrated workload profiles environment. If the target already has a Container Apps environment, review the Terraform plan with the platform owner and coordinate any required replacement before applying it. Do not apply this core change while unrelated Container Apps workloads still depend on the existing environment.
 
 After core succeeds:
 
@@ -131,7 +134,7 @@ Rolling back the image does not change the shared core infrastructure or delete 
 
 ## Supplier Webhook Register Administration
 
-The Supplier Webhook Register is administered manually via Azure Table Storage. There is no public API or UI for this register.
+The Supplier Webhook Register is administered manually via Azure Table Storage. There is no public API or UI for this register. Because the Storage Account has no public data-plane access, administrators must use a workstation or jump host connected to the Container Apps VNet (or an approved connected network) when using Azure Storage Explorer or the Azure Portal.
 
 **Table Name:** `SupplierWebhooks`
 

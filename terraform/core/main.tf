@@ -58,6 +58,8 @@ locals {
     var.environment_id,
     var.region_short,
   )
+  container_apps_infrastructure_subnet_name = "snet-container-apps-infrastructure"
+  private_endpoints_subnet_name             = "snet-private-endpoints"
 }
 
 data "azurerm_client_config" "current" {}
@@ -133,6 +135,35 @@ resource "azurerm_network_security_group" "function_app_integration" {
   tags = local.base_tags
 }
 
+# A workload profiles environment is required for the scheduled job to reach
+# Table Storage through its private endpoint. This subnet is dedicated to the
+# Container Apps control plane and must not host other resources.
+resource "azurerm_subnet" "container_apps_infrastructure" {
+  name                 = local.container_apps_infrastructure_subnet_name
+  resource_group_name  = module.resource_group.name
+  virtual_network_name = azurerm_virtual_network.function_app_integration.name
+  address_prefixes     = ["10.250.0.64/27"]
+
+  delegation {
+    name = "container-apps-environments-delegation"
+
+    service_delegation {
+      name    = "Microsoft.App/environments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+# Private endpoints are kept in their own subnet so that service resources can
+# remain inaccessible from public networks.
+resource "azurerm_subnet" "private_endpoints" {
+  name                              = local.private_endpoints_subnet_name
+  resource_group_name               = module.resource_group.name
+  virtual_network_name              = azurerm_virtual_network.function_app_integration.name
+  address_prefixes                  = ["10.250.0.96/27"]
+  private_endpoint_network_policies = "Disabled"
+}
+
 resource "azurerm_log_analytics_workspace" "shared" {
   name                = local.log_analytics_workspace_name
   resource_group_name = module.resource_group.name
@@ -176,6 +207,14 @@ resource "azurerm_container_app_environment" "shared" {
   resource_group_name        = module.resource_group.name
   location                   = module.resource_group.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.shared.id
+  infrastructure_subnet_id   = azurerm_subnet.container_apps_infrastructure.id
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+    minimum_count         = 0
+    maximum_count         = 3
+  }
 
   tags = local.base_tags
 }
