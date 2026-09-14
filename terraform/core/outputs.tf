@@ -38,6 +38,31 @@ output "log_analytics_workspace_id" {
   description = "ID of the shared Log Analytics workspace."
 }
 
+output "log_analytics_workspace_name" {
+  value       = azurerm_log_analytics_workspace.shared.name
+  description = "Name of the shared Log Analytics workspace."
+}
+
+output "container_registry_id" {
+  value       = azurerm_container_registry.shared.id
+  description = "ID of the shared Azure Container Registry."
+}
+
+output "container_registry_name" {
+  value       = azurerm_container_registry.shared.name
+  description = "Name of the shared Azure Container Registry."
+}
+
+output "container_registry_login_server" {
+  value       = azurerm_container_registry.shared.login_server
+  description = "Login server of the shared Azure Container Registry."
+}
+
+output "container_app_environment_id" {
+  value       = azurerm_container_app_environment.shared.id
+  description = "ID of the shared Azure Container Apps environment."
+}
+
 output "app_insights_connection_string" {
   value       = azurerm_application_insights.shared.connection_string
   description = "Connection string for the shared Application Insights instance."
