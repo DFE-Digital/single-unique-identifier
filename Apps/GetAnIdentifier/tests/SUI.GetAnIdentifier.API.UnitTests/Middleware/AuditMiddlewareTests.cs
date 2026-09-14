@@ -39,7 +39,7 @@ public class AuditMiddlewareTests
 
         requestData.Url.Returns(new Uri("https://mock.gov.uk/api/v1/searches"));
         requestData.CreateResponse().Returns(responseData);
-        responseData.Body.Returns(new MemoryStream());
+        responseData.Body.Returns(Stream.Null);
 
         var invocationResult = Substitute.For<InvocationResult>();
         context.GetInvocationResult().Returns(invocationResult);
