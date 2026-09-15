@@ -28,7 +28,9 @@ public class AuditMiddleware(
     {
         var correlationId = context.InvocationId;
 
-        logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId });
+        using var logScope = logger.BeginScope(
+            new Dictionary<string, object> { ["CorrelationId"] = correlationId }
+        );
 
         var request = await context.GetHttpRequestDataAsync();
         if (request is null)
@@ -53,7 +55,20 @@ public class AuditMiddleware(
             return;
         }
 
-        await next(context);
+        try
+        {
+            await next(context);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
+                request,
+                HttpStatusCode.InternalServerError,
+                "Internal server error",
+                $"An error occurred while processing the request. CorrelationId: {correlationId}",
+                cancellationToken: context.CancellationToken
+            );
+        }
 
         try
         {

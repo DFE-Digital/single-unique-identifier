@@ -76,6 +76,12 @@ public class AuditMiddlewareTests
     private Task<FunctionContext> Next(FunctionContext context)
     {
         _nextExecuted = true;
+
+        var responseData = Substitute.For<HttpResponseData>(context);
+        responseData.Headers.Returns(new HttpHeadersCollection());
+        responseData.StatusCode.Returns(HttpStatusCode.OK);
+
+        context.GetInvocationResult().Value = responseData;
         return Task.FromResult(context);
     }
 
@@ -100,7 +106,53 @@ public class AuditMiddlewareTests
     }
 
     [Fact]
-    public async Task TestInvoke_WithSuccessfulResponse_AuditsRequest()
+    public async Task TestInvoke_WithExceptionInFunction_CatchesAndAuditsResponse()
+    {
+        // Arrange
+        var context = CreateMockFunctionContext();
+        var sut = new AuditMiddleware(_mockLogger, _mockAuditService, _timeProvider);
+
+        // Act
+        await sut.Invoke(
+            context,
+            _ =>
+            {
+                _nextExecuted = true;
+                throw new ArgumentNullException();
+            }
+        );
+
+        // Assert
+        await _mockAuditService
+            .Received(1)
+            .SendAuditEventAsync(
+                Arg.Is<AuditEvent>(x =>
+                    x!.EventName.Equals("Incoming request - Pre-auth")
+                    && x.CorrelationId.Equals(context.InvocationId)
+                )
+            );
+        await _mockAuditService
+            .Received(1)
+            .SendAuditEventAsync(
+                Arg.Is<AuditEvent>(x =>
+                    x!.EventName.Equals("Outgoing response")
+                    && x.CorrelationId.Equals(context.InvocationId)
+                    && x.StatusCode == HttpStatusCode.InternalServerError
+                )
+            );
+        Assert.True(_nextExecuted);
+        Assert.NotNull(context.GetInvocationResult().Value);
+
+        var responseData = Assert.IsType<HttpResponseData>(
+            context.GetInvocationResult().Value,
+            exactMatch: false
+        );
+
+        Assert.Equal(HttpStatusCode.InternalServerError, responseData.StatusCode);
+    }
+
+    [Fact]
+    public async Task TestInvoke_WithSuccessfulResponse_AuditsRequestAndResponse()
     {
         // Arrange
         var context = CreateMockFunctionContext();
@@ -110,7 +162,23 @@ public class AuditMiddlewareTests
         await sut.Invoke(context, Next);
 
         // Assert
-        await _mockAuditService.Received(1).SendAuditEventAsync(Arg.Any<AuditEvent>()); // Unable to set substitute for context response, so only incoming audit is hit
+        await _mockAuditService
+            .Received(1)
+            .SendAuditEventAsync(
+                Arg.Is<AuditEvent>(x =>
+                    x!.EventName.Equals("Incoming request - Pre-auth")
+                    && x.CorrelationId.Equals(context.InvocationId)
+                )
+            );
+        await _mockAuditService
+            .Received(1)
+            .SendAuditEventAsync(
+                Arg.Is<AuditEvent>(x =>
+                    x!.EventName.Equals("Outgoing response")
+                    && x.CorrelationId.Equals(context.InvocationId)
+                    && x.StatusCode == HttpStatusCode.OK
+                )
+            );
         Assert.True(_nextExecuted);
     }
 
