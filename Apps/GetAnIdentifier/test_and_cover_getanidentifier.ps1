@@ -1,1 +1,3 @@
-& "../../scripts/test_and_cover.ps1" -SolutionPath "./Apps/GetAnIdentifier/GetAnIdentifier.slnx"
+$SharedScriptPath = Join-Path $PSScriptRoot "..\..\scripts\test_and_cover.ps1"
+
+& $SharedScriptPath -SolutionPath "./Apps/GetAnIdentifier/GetAnIdentifier.slnx"
