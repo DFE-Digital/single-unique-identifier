@@ -18,14 +18,14 @@ auxiliary_app_service_plan_sku          = "B1"
 auxiliary_app_service_plan_os_type      = "Linux"
 auxiliary_app_service_plan_worker_count = 1
 key_vault_use_rbac                      = false
-container_registry_sku        = "Basic"
+container_registry_sku                  = "Basic"
 
-notification_service_schedule_cron_expression      = "0 6 * * *"
-notification_service_cpu                           = 0.5
-notification_service_memory                        = "1Gi"
-notification_service_replica_timeout_in_seconds    = 1800
-notification_service_replica_retry_limit           = 0
-notification_service_dotnet_environment            = "Development"
+notification_service_schedule_cron_expression   = "0 6 * * *"
+notification_service_cpu                        = 0.5
+notification_service_memory                     = "1Gi"
+notification_service_replica_timeout_in_seconds = 1800
+notification_service_replica_retry_limit        = 0
+notification_service_dotnet_environment         = "Development"
 
 getanidentifier_app_settings = {
   NhsAuthConfig__NHS_DIGITAL_TOKEN_URL                       = "https://int.api.service.nhs.uk/oauth2/token"
