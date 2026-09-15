@@ -29,7 +29,7 @@ output "app_service_plan_sku" {
 }
 
 output "function_app_integration_subnet_id" {
-  value       = one(azurerm_virtual_network.function_app_integration.subnet).id
+  value       = format("%s/subnets/%s", azurerm_virtual_network.function_app_integration.id, local.function_app_integration_subnet_name)
   description = "ID of the delegated subnet used for Function App regional VNet integration."
 }
 
@@ -64,7 +64,7 @@ output "container_app_environment_id" {
 }
 
 output "private_endpoints_subnet_id" {
-  value       = azurerm_subnet.private_endpoints.id
+  value       = azapi_resource.private_endpoints_subnet.id
   description = "ID of the subnet reserved for private endpoints."
 }
 

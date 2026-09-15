@@ -94,7 +94,7 @@ The Notification Service runs as an Azure Container Apps scheduled job. The init
 
 The deployment uses:
 
-- The shared Azure Container Registry and Container Apps environment from `terraform/core`.
+- The shared Azure Container Registry and internal-only Container Apps environment from `terraform/core`.
 - A service-owned storage account and `SupplierWebhooks` table.
 - A user-assigned managed identity for ACR image pulls and Table Storage access.
 - A private Table Storage endpoint and private DNS zone linked to the Container Apps VNet.
