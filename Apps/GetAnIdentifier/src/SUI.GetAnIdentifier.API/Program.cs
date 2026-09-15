@@ -68,22 +68,11 @@ builder.Services.AddSingleton(x =>
     return new BlobContainerClient(connectionString, containerName);
 });
 
-builder.Services.AddSingleton(x =>
-{
-    var connectionString =
-        builder.Configuration["AzureWebJobsStorage"]
-        ?? throw new ArgumentNullException(builder.Configuration["AzureWebJobsStorage"]);
-    var containerName =
-        builder.Configuration["AuditStorage:ContainerName"]
-        ?? throw new ArgumentNullException(builder.Configuration["AuditStorage:ContainerName"]);
-    return new BlobContainerClient(connectionString, containerName);
-});
-
 // Infrastructure services
 builder.Services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
 builder.Services.AddSingleton<IFhirService, FhirService>();
 builder.Services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
-builder.Services.AddSingleton<IAuditLogService, AuditLogService>();
+builder.Services.AddSingleton<IAuditService, AuditService>();
 
 // Middleware services
 builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();
@@ -94,6 +83,7 @@ builder.Services.AddSingleton<IGetAnIdentifierService, GetAnIdentifierService>()
 // Use mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 
+builder.UseMiddleware<AuditMiddleware>();
 builder.UseMiddleware<JwtAuthMiddleware>();
 
 builder.Services.AddHttpClient(
