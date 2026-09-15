@@ -59,7 +59,19 @@ locals {
     var.region_short,
   )
   container_apps_infrastructure_subnet_name = "snet-container-apps-infrastructure"
-  private_endpoints_subnet_name             = "snet-private-endpoints"
+  container_apps_infrastructure_nsg_name = format(
+    "%s%snsg-%s-caeinfra01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  )
+  private_endpoints_subnet_name = "snet-private-endpoints"
+  private_endpoints_nsg_name = format(
+    "%s%snsg-%s-privateep01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  )
 }
 
 data "azurerm_client_config" "current" {}
@@ -125,6 +137,14 @@ resource "azurerm_virtual_network" "function_app_integration" {
   }
 
   tags = local.base_tags
+
+  # The Function App integration subnet is created inline with the VNet. The
+  # Container Apps and private endpoint subnets are managed as separate ARM
+  # child resources so their NSGs are present at creation time. Do not let the
+  # VNet resource attempt to reconcile or delete those child subnets.
+  lifecycle {
+    ignore_changes = [subnet]
+  }
 }
 
 resource "azurerm_network_security_group" "function_app_integration" {
@@ -138,30 +158,61 @@ resource "azurerm_network_security_group" "function_app_integration" {
 # A workload profiles environment is required for the scheduled job to reach
 # Table Storage through its private endpoint. This subnet is dedicated to the
 # Container Apps control plane and must not host other resources.
-resource "azurerm_subnet" "container_apps_infrastructure" {
-  name                 = local.container_apps_infrastructure_subnet_name
-  resource_group_name  = module.resource_group.name
-  virtual_network_name = azurerm_virtual_network.function_app_integration.name
-  address_prefixes     = ["10.250.0.64/27"]
+resource "azurerm_network_security_group" "container_apps_infrastructure" {
+  name                = local.container_apps_infrastructure_nsg_name
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
 
-  delegation {
-    name = "container-apps-environments-delegation"
+  tags = local.base_tags
+}
 
-    service_delegation {
-      name    = "Microsoft.App/environments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+resource "azapi_resource" "container_apps_infrastructure_subnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2022-07-01"
+  name      = local.container_apps_infrastructure_subnet_name
+  parent_id = azurerm_virtual_network.function_app_integration.id
+
+  body = {
+    properties = {
+      addressPrefix = "10.250.0.64/27"
+      delegations = [
+        {
+          name = "container-apps-environments-delegation"
+          properties = {
+            serviceName = "Microsoft.App/environments"
+          }
+        },
+      ]
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.container_apps_infrastructure.id
+      }
     }
   }
 }
 
 # Private endpoints are kept in their own subnet so that service resources can
 # remain inaccessible from public networks.
-resource "azurerm_subnet" "private_endpoints" {
-  name                              = local.private_endpoints_subnet_name
-  resource_group_name               = module.resource_group.name
-  virtual_network_name              = azurerm_virtual_network.function_app_integration.name
-  address_prefixes                  = ["10.250.0.96/27"]
-  private_endpoint_network_policies = "Disabled"
+resource "azurerm_network_security_group" "private_endpoints" {
+  name                = local.private_endpoints_nsg_name
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
+}
+
+resource "azapi_resource" "private_endpoints_subnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2022-07-01"
+  name      = local.private_endpoints_subnet_name
+  parent_id = azurerm_virtual_network.function_app_integration.id
+
+  body = {
+    properties = {
+      addressPrefix                  = "10.250.0.96/27"
+      privateEndpointNetworkPolicies = "Disabled"
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.private_endpoints.id
+      }
+    }
+  }
 }
 
 resource "azurerm_log_analytics_workspace" "shared" {
@@ -203,11 +254,12 @@ resource "azurerm_role_assignment" "terraform_operator_acr_push" {
 }
 
 resource "azurerm_container_app_environment" "shared" {
-  name                       = local.container_app_environment_name
-  resource_group_name        = module.resource_group.name
-  location                   = module.resource_group.location
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.shared.id
-  infrastructure_subnet_id   = azurerm_subnet.container_apps_infrastructure.id
+  name                           = local.container_app_environment_name
+  resource_group_name            = module.resource_group.name
+  location                       = module.resource_group.location
+  log_analytics_workspace_id     = azurerm_log_analytics_workspace.shared.id
+  infrastructure_subnet_id       = azapi_resource.container_apps_infrastructure_subnet.id
+  internal_load_balancer_enabled = true
 
   workload_profile {
     name                  = "Consumption"
@@ -217,4 +269,8 @@ resource "azurerm_container_app_environment" "shared" {
   }
 
   tags = local.base_tags
+
+  # Both subnets modify the same VNet. Completing them first prevents Azure
+  # from rejecting the private endpoint subnet with AnotherOperationInProgress.
+  depends_on = [azapi_resource.private_endpoints_subnet]
 }
