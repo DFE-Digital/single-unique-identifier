@@ -34,6 +34,7 @@ public class JwtAuthMiddleware(
         "RenderOpenApiDocument",
         "RenderSwaggerDocument",
         "RenderSwaggerUI",
+        "HealthCheck",
     ];
 
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
