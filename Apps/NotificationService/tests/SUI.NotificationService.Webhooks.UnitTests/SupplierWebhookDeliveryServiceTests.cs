@@ -7,7 +7,7 @@ using SUI.NotificationService.Application.Models;
 
 namespace SUI.NotificationService.Webhooks.UnitTests;
 
-public class SupplierWebhookDeliveryServiceTests
+public class SupplierWebhookDeliveryServiceTests : IDisposable
 {
     private readonly TestHttpMessageHandler _handler;
     private readonly HttpClient _httpClient;
@@ -15,6 +15,9 @@ public class SupplierWebhookDeliveryServiceTests
     private readonly TimeProvider _timeProviderMock;
     private readonly ILogger<SupplierWebhookDeliveryService> _loggerMock;
     private readonly SupplierWebhookDeliveryService _sut;
+
+    // Track explicitly created HttpResponseMessages to satisfy SonarCloud static analysis
+    private readonly List<HttpResponseMessage> _trackedResponses = new();
 
     public SupplierWebhookDeliveryServiceTests()
     {
@@ -78,7 +81,10 @@ public class SupplierWebhookDeliveryServiceTests
                 req.Content?.Headers.ContentType?.ToString()
             );
 
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Accepted));
+            // Assign, track, and return
+            var response = new HttpResponseMessage(HttpStatusCode.Accepted);
+            _trackedResponses.Add(response);
+            return Task.FromResult(response);
         };
 
         // Act
@@ -117,7 +123,10 @@ public class SupplierWebhookDeliveryServiceTests
             Assert.Throws<KeyNotFoundException>(() => root.GetProperty("newNhsNumber"));
             Assert.Throws<KeyNotFoundException>(() => root.GetProperty("demographics"));
 
-            return new HttpResponseMessage(HttpStatusCode.Accepted);
+            // Assign, track, and return
+            var response = new HttpResponseMessage(HttpStatusCode.Accepted);
+            _trackedResponses.Add(response);
+            return response;
         };
 
         // Act
@@ -184,7 +193,13 @@ public class SupplierWebhookDeliveryServiceTests
         var request = CreateBaseRequest();
         _secretClientMock.GetSecretBase64Async(Arg.Any<string>()).Returns("dGVzdC1zZWNyZXQ=");
 
-        _handler.Sender = (_, _) => Task.FromResult(new HttpResponseMessage(code));
+        _handler.Sender = (_, _) =>
+        {
+            // Assign, track, and return
+            var response = new HttpResponseMessage(code);
+            _trackedResponses.Add(response);
+            return Task.FromResult(response);
+        };
 
         // Act
         var result = await _sut.DeliverAsync(request, CancellationToken.None);
@@ -208,22 +223,41 @@ public class SupplierWebhookDeliveryServiceTests
             SecretKeyVaultReference: "kv-ref"
         );
 
+    public void Dispose()
+    {
+        // explicitly dispose all tracked mock responses
+        foreach (var response in _trackedResponses)
+        {
+            response.Dispose();
+        }
+
+        _httpClient.Dispose();
+        _handler.Dispose();
+    }
+
     // Light-weight in-memory HttpMessageHandler stub for testing
     private class TestHttpMessageHandler : HttpMessageHandler
     {
+        // Changed to nullable without default allocation
         public Func<
             HttpRequestMessage,
             CancellationToken,
             Task<HttpResponseMessage>
-        > Sender { get; set; } =
-            (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+        >? Sender { get; set; }
 
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken
         )
         {
-            return Sender(request, cancellationToken);
+            if (Sender != null)
+            {
+                return Sender(request, cancellationToken);
+            }
+
+            // Explicitly scope the temporary instance and transfer ownership via a cloned response
+            using var defaultResponse = new HttpResponseMessage(HttpStatusCode.OK);
+            return Task.FromResult(new HttpResponseMessage(defaultResponse.StatusCode));
         }
     }
 }
