@@ -10,7 +10,6 @@ using SUI.GetAnIdentifier.API.Utility;
 
 namespace SUI.GetAnIdentifier.API.Functions;
 
-[ExcludeFromCodeCoverage(Justification = "Simple health check endpoint")]
 public class HealthCheck(
     ILogger<HealthCheck> logger,
     IHostEnvironment env,
@@ -24,7 +23,6 @@ public class HealthCheck(
         tags: ["Health"],
         Summary = "Check service is up"
     )]
-    [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.OK)]
     [Function(nameof(HealthCheck))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")] HttpRequestData req
@@ -34,11 +32,18 @@ public class HealthCheck(
 
         var healthStatus = await healthCheckService.CheckHealthAsync();
 
-        return await HttpResponseUtility.OkResponse(
+        var statusCode = healthStatus.Status switch
+        {
+            HealthStatus.Healthy or HealthStatus.Degraded => HttpStatusCode.OK,
+            _ => HttpStatusCode.ServiceUnavailable,
+        };
+
+        return await HttpResponseUtility.JsonResponse(
             req,
+            statusCode,
             new
             {
-                Value = Enum.GetName(healthStatus.Status),
+                Value = healthStatus.Status.ToString(),
                 ServiceName,
                 env.EnvironmentName,
                 NowUtc = DateTimeOffset.UtcNow,

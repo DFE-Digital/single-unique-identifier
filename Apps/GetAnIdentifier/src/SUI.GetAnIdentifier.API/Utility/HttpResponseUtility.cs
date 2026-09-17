@@ -25,6 +25,19 @@ public static class HttpResponseUtility
         return res;
     }
 
+    public static async Task<HttpResponseData> JsonResponse<T>(
+        HttpRequestData req,
+        HttpStatusCode statusCode,
+        T body,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var response = req.CreateResponse(statusCode);
+        response.AddNoCacheHeaders();
+        await response.WriteAsJsonAsync(body, cancellationToken);
+        return response;
+    }
+
     public static async Task<HttpResponseData> ForbiddenResponse(
         HttpRequestData req,
         string traceId,
