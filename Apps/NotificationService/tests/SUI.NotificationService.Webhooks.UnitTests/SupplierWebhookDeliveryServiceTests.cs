@@ -233,6 +233,7 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
 
         _httpClient.Dispose();
         _handler.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     // Light-weight in-memory HttpMessageHandler stub for testing
