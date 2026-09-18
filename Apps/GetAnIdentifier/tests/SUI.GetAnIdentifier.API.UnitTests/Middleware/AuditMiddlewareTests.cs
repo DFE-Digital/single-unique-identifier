@@ -90,6 +90,7 @@ public class AuditMiddlewareTests
     [InlineData("RenderOpenApiDocument")]
     [InlineData("RenderSwaggerDocument")]
     [InlineData("RenderSwaggerUI")]
+    [InlineData("HealthCheck")]
     public async Task TestInvoke_WithNonAuditedFunctions_SkipsMethod(string functionName)
     {
         // Arrange

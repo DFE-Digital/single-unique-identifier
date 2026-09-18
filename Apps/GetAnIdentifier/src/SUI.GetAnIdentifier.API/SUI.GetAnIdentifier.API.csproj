@@ -6,7 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
+  <PropertyGroup>
+    <SourceRevisionId>timestamp_$([System.DateTimeOffset]::UtcNow.ToString("O"))</SourceRevisionId>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Hl7.Fhir.R4" Version="6.3.0" />

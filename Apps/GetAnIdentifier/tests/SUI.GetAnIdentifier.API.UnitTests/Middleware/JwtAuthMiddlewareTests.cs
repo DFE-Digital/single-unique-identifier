@@ -260,6 +260,7 @@ public class JwtAuthMiddlewareTests
         [InlineData("RenderOpenApiDocument")]
         [InlineData("RenderSwaggerDocument")]
         [InlineData("RenderSwaggerUI")]
+        [InlineData("HealthCheck")]
         public async Task TestInvoke_WithNoAuthFunctions_SkipsMethod(string functionName)
         {
             // Arrange
