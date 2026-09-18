@@ -118,8 +118,9 @@ public class SupplierWebhookDeliveryService(
                 Duration: stopwatch.Elapsed
             );
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
+            // The caller DID NOT cancel, meaning HttpClient timed out internally.
             stopwatch.Stop();
             logger.LogWarning(
                 "Webhook delivery {DeliveryId} timed out after {Duration}ms.",
@@ -135,6 +136,7 @@ public class SupplierWebhookDeliveryService(
                 Duration: stopwatch.Elapsed
             );
         }
+        // Note: If cancellationToken.IsCancellationRequested IS true, the exception naturally bubbles up here to the caller.
         catch (HttpRequestException ex)
         {
             stopwatch.Stop();
