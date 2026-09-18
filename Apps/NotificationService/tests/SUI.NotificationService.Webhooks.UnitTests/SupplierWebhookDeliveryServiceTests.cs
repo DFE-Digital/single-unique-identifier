@@ -187,6 +187,8 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
     [InlineData(HttpStatusCode.TooManyRequests)] // 429
     [InlineData(HttpStatusCode.InternalServerError)] // 500
     [InlineData(HttpStatusCode.BadRequest)] // 400
+    [InlineData(HttpStatusCode.Redirect)] // 302 - Redirect test
+    [InlineData(HttpStatusCode.MovedPermanently)] // 301 - Redirect test
     public async Task DeliverAsync_CapturesVariousStatusCodes(HttpStatusCode code)
     {
         // Arrange
