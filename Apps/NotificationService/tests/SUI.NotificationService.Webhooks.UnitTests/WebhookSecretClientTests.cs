@@ -17,16 +17,14 @@ public class WebhookSecretClientTests : IDisposable
 {
     private readonly SecretClient _secretClientMock;
     private readonly MemoryCache _realMemoryCache;
-    private readonly ILogger<WebhookSecretClient> _loggerMock;
     private readonly WebhookSecretClient _sut;
 
     public WebhookSecretClientTests()
     {
         _secretClientMock = Substitute.For<SecretClient>();
         _realMemoryCache = new MemoryCache(new MemoryCacheOptions());
-        _loggerMock = Substitute.For<ILogger<WebhookSecretClient>>();
 
-        _sut = new WebhookSecretClient(_secretClientMock, _realMemoryCache, _loggerMock);
+        _sut = new WebhookSecretClient(_secretClientMock, _realMemoryCache);
     }
 
     [Fact]

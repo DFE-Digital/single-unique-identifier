@@ -9,20 +9,14 @@ public class WebhookSecretClient : IWebhookSecretClient
 {
     private readonly SecretClient _secretClient;
     private readonly IMemoryCache _cache;
-    private readonly ILogger<WebhookSecretClient> _logger;
 
     // Cache the secret to prevent throttling and reduce latency on high-volume webhooks
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(4);
 
-    public WebhookSecretClient(
-        SecretClient secretClient,
-        IMemoryCache cache,
-        ILogger<WebhookSecretClient> logger
-    )
+    public WebhookSecretClient(SecretClient secretClient, IMemoryCache cache)
     {
         _secretClient = secretClient;
         _cache = cache;
-        _logger = logger;
     }
 
     public async Task<string> GetSecretBase64Async(
