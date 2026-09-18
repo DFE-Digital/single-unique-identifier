@@ -211,6 +211,32 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
         Assert.Equal((int)code, result.HttpStatusCode);
     }
 
+    [Fact]
+    public async Task DeliverAsync_ThrowsOperationCanceledException_WhenCallerCancelsToken()
+    {
+        // Arrange
+        var request = CreateBaseRequest();
+        _secretClientMock
+            .GetSecretBase64Async(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns("dGVzdC1zZWNyZXQ=");
+
+        _handler.Sender = async (_, ct) =>
+        {
+            // Simulate a hanging network request that respects cancellation
+            await Task.Delay(Timeout.Infinite, ct);
+            return new HttpResponseMessage();
+        };
+
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync(); // Caller cancels the token, simulating app shutdown
+
+        // Act & Assert
+        // Verifies the requirement that the exception comes up natively rather than being swallowed into a WebhookDeliveryResult
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _sut.DeliverAsync(request, cts.Token)
+        );
+    }
+
     private static WebhookDeliveryRequest CreateBaseRequest() =>
         new(
             SourceEventId: Guid.NewGuid(),
