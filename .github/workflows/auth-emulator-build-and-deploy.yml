@@ -83,6 +83,11 @@ jobs:
     needs: build-and-test-AuthEmulator
     uses: ./.github/workflows/deploy-dotnet-webapp.yml
     secrets: inherit
+    permissions:
+      actions: read
+      id-token: write
+      contents: read
+      packages: read
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       directory_name: Apps/AuthEmulator
