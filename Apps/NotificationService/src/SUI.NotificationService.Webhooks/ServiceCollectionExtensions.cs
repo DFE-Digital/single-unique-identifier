@@ -9,8 +9,9 @@ namespace SUI.NotificationService.Webhooks;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Provides the composition point for supplier webhook delivery services. Concrete
-    /// registrations are intentionally deferred until the webhook workstream is implemented.
+    /// Registers the supplier webhook delivery services and their dependencies,
+    /// including the specifically configured HTTP client, Key Vault secret client,
+    /// and time providers required for secure webhook dispatch.
     /// </summary>
     public static IServiceCollection AddSupplierWebhookDelivery(
         this IServiceCollection services,
@@ -26,11 +27,15 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(sp =>
         {
             var keyVaultUri =
-                configuration.GetValue<string>("KeyVaultUri")
-                ?? throw new InvalidOperationException("KeyVaultUri configuration is missing.");
+                configuration.GetValue<string>("KeyVault:VaultUri")
+                ?? throw new InvalidOperationException(
+                    "KeyVault:VaultUri configuration is missing."
+                );
 
             return new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential());
         });
+
+        services.AddSingleton(TimeProvider.System);
 
         services.AddSingleton<IWebhookSecretClient, WebhookSecretClient>();
 
