@@ -118,11 +118,12 @@ public class SupplierWebhookDeliveryService(
                 Duration: stopwatch.Elapsed
             );
         }
-        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             // The caller DID NOT cancel, meaning HttpClient timed out internally.
             stopwatch.Stop();
             logger.LogWarning(
+                ex,
                 "Webhook delivery {DeliveryId} timed out after {Duration}ms.",
                 request.DeliveryId,
                 stopwatch.ElapsedMilliseconds
@@ -141,6 +142,7 @@ public class SupplierWebhookDeliveryService(
         {
             stopwatch.Stop();
             logger.LogWarning(
+                ex,
                 "Webhook delivery {DeliveryId} suffered connection failure in {Duration}ms. Error: {Message}",
                 request.DeliveryId,
                 stopwatch.ElapsedMilliseconds,

@@ -33,10 +33,10 @@ public class SupplierWebhookTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_InvalidSupplierId_ThrowsArgumentException(string invalidSupplierId)
+    public void Constructor_InvalidSupplierId_ThrowsArgumentException(string? invalidSupplierId)
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-            new SupplierWebhook(invalidSupplierId, ValidEndpoint, true, ValidContract, ValidKvRef)
+            new SupplierWebhook(invalidSupplierId!, ValidEndpoint, true, ValidContract, ValidKvRef)
         );
 
         Assert.Equal("supplierId", ex.ParamName);
@@ -47,10 +47,10 @@ public class SupplierWebhookTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_InvalidContractVersion_ThrowsArgumentException(string invalidContract)
+    public void Constructor_InvalidContractVersion_ThrowsArgumentException(string? invalidContract)
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-            new SupplierWebhook(ValidSupplierId, ValidEndpoint, true, invalidContract, ValidKvRef)
+            new SupplierWebhook(ValidSupplierId, ValidEndpoint, true, invalidContract!, ValidKvRef)
         );
 
         Assert.Equal("contractVersion", ex.ParamName);
@@ -61,10 +61,10 @@ public class SupplierWebhookTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_InvalidKeyVaultReference_ThrowsArgumentException(string invalidKvRef)
+    public void Constructor_InvalidKeyVaultReference_ThrowsArgumentException(string? invalidKvRef)
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-            new SupplierWebhook(ValidSupplierId, ValidEndpoint, true, ValidContract, invalidKvRef)
+            new SupplierWebhook(ValidSupplierId, ValidEndpoint, true, ValidContract, invalidKvRef!)
         );
 
         Assert.Equal("secretKeyVaultReference", ex.ParamName);
@@ -78,10 +78,10 @@ public class SupplierWebhookTests
     [InlineData("/relative/path/webhook")]
     [InlineData("http://insecure.com/webhook")] // Fails the HTTPS check
     [InlineData("ftp://files.com/webhook")]
-    public void Constructor_InvalidEndpointUrl_ThrowsArgumentException(string invalidUrl)
+    public void Constructor_InvalidEndpointUrl_ThrowsArgumentException(string? invalidUrl)
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-            new SupplierWebhook(ValidSupplierId, invalidUrl, true, ValidContract, ValidKvRef)
+            new SupplierWebhook(ValidSupplierId, invalidUrl!, true, ValidContract, ValidKvRef)
         );
 
         Assert.Equal("endpointUrl", ex.ParamName);

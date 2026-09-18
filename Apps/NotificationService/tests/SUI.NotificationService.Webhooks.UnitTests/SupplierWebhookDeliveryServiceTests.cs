@@ -160,7 +160,7 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
                 LogLevel.Warning,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o => !o.ToString()!.Contains(request.AffectedNhsNumber)),
-                null,
+                Arg.Any<Exception>(),
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }

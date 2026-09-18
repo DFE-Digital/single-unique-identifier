@@ -19,11 +19,11 @@ public class TableKeyNormaliserTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")] // Tests the IsNullOrWhiteSpace condition
-    public void Normalise_NullOrWhiteSpace_ThrowsArgumentException(string invalidInput)
+    public void Normalise_NullOrWhiteSpace_ThrowsArgumentException(string? invalidInput)
     {
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() =>
-            TableKeyNormaliser.Normalise(invalidInput)
+            TableKeyNormaliser.Normalise(invalidInput!)
         );
 
         // Asserting the exact message ensures nobody accidentally changes the validation

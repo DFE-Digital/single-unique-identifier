@@ -26,11 +26,11 @@ public class WebhookSecretClient : IWebhookSecretClient
     }
 
     public async Task<string> GetSecretBase64Async(
-        string secretName,
+        string keyVaultReference,
         CancellationToken cancellationToken = default
     )
     {
-        var cacheKey = $"webhook-secret-{secretName}";
+        var cacheKey = $"webhook-secret-{keyVaultReference}";
 
         // Try to get it from local memory first (no latency)
         if (_cache.TryGetValue(cacheKey, out string? cachedSecret) && cachedSecret != null)
@@ -42,7 +42,7 @@ public class WebhookSecretClient : IWebhookSecretClient
         {
             // Fallback to Azure Key Vault if not cached
             KeyVaultSecret secret = await _secretClient.GetSecretAsync(
-                secretName,
+                keyVaultReference,
                 cancellationToken: cancellationToken
             );
             var secretValue = secret.Value;
@@ -52,15 +52,18 @@ public class WebhookSecretClient : IWebhookSecretClient
 
             return secretValue;
         }
+        catch (OperationCanceledException)
+        {
+            // Prevent task cancellations from being incorrectly wrapped up as Key Vault failures
+            throw;
+        }
         catch (Exception ex)
         {
-            // Log the secret name which is a safe identifier but NEVER the secret value.
-            _logger.LogError(
-                ex,
-                "Failed to retrieve webhook secret from Key Vault for reference: {SecretName}",
-                secretName
+            // Wrap the exception with context
+            throw new InvalidOperationException(
+                $"Failed to retrieve webhook secret from Key Vault for reference: {keyVaultReference}",
+                ex
             );
-            throw;
         }
     }
 }

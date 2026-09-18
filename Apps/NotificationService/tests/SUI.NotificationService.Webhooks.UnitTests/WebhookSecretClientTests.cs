@@ -16,7 +16,7 @@ namespace SUI.NotificationService.Webhooks.UnitTests;
 public class WebhookSecretClientTests : IDisposable
 {
     private readonly SecretClient _secretClientMock;
-    private readonly IMemoryCache _realMemoryCache;
+    private readonly MemoryCache _realMemoryCache;
     private readonly ILogger<WebhookSecretClient> _loggerMock;
     private readonly WebhookSecretClient _sut;
 
@@ -83,31 +83,28 @@ public class WebhookSecretClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetSecretBase64Async_LogsErrorAndThrows_WhenKeyVaultFails()
+    public async Task GetSecretBase64Async_ThrowsInvalidOperationException_WhenKeyVaultFails()
     {
         // Arrange
         var secretName = "supplier-c-hmac";
-        var exception = new RequestFailedException("Key Vault is down");
+        var originalException = new RequestFailedException("Key Vault is down");
 
         _secretClientMock
             .GetSecretAsync("dummy", cancellationToken: default)
-            .ReturnsForAnyArgs(Task.FromException<Response<KeyVaultSecret>>(exception));
+            .ReturnsForAnyArgs(
+                Task.FromException<Azure.Response<Azure.Security.KeyVault.Secrets.KeyVaultSecret>>(
+                    originalException
+                )
+            );
 
         // Act & Assert
-        await Assert.ThrowsAsync<RequestFailedException>(() =>
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _sut.GetSecretBase64Async(secretName)
         );
 
-        // Verify the logger was called without leaking sensitive data
-        _loggerMock
-            .Received(1)
-            .Log(
-                LogLevel.Error,
-                Arg.Any<EventId>(),
-                Arg.Is<object>(o => o.ToString()!.Contains("Failed to retrieve webhook secret")),
-                exception,
-                Arg.Any<Func<object, Exception?, string>>()
-            );
+        // Verify the exception was wrapped correctly with context
+        Assert.Contains("Failed to retrieve webhook secret", ex.Message);
+        Assert.Equal(originalException, ex.InnerException); // Proves we didn't lose the original stack trace
     }
 
     public void Dispose()
