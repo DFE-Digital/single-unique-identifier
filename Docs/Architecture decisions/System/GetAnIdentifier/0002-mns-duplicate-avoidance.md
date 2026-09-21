@@ -59,7 +59,7 @@ Additional, except for Option 4 - We could de-duplicate at the point of forwardi
 - **Positive:** Subscribe to all incoming requests immediately and deal with duplicates later - no delay to sending subscriptions.
 - **Positive:** Deals well with concurrency as it's a batch DELETE on a background task.
 - **Negative:** As it's a batch delete, we would need to traverse the entire list of subscriptions and have logic to keep only 1 for each person.
-- **Negative:** Could lead to duplicates in the short term, meaning possible double or more notifications for the same person. This does depend on how often we check for duplicates. This is mitigated by a terms of use for the client handle duplication.
+- **Negative:** Could lead to duplicates in the short term, meaning possible double or more notifications for the same person. This does depend on how often we check for duplicates. Clients will need to handle duplicate notifications until the clean-up task has removed the duplicate subscriptions.
 
 ### Option 3: Keyed HMAC-SHA256 of the NHS number
 
