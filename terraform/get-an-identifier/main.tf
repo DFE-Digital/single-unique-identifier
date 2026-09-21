@@ -191,7 +191,7 @@ module "function_app" {
       NhsAuthConfig__NHS_DIGITAL_CLIENT_ID   = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_client_id.name}/)"
     },
     
-    var.getanidentifier_app_settings
+    var.getanidentifier_app_settings,
 
     # AuthClientCredentials:
     {
