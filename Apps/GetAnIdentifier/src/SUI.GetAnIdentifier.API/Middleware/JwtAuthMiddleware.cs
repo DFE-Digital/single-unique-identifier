@@ -148,8 +148,8 @@ public class JwtAuthMiddleware(
         {
             context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
                 req,
-                HttpStatusCode.Unauthorized,
-                nameof(HttpStatusCode.Unauthorized),
+                HttpStatusCode.Forbidden,
+                nameof(HttpStatusCode.Forbidden),
                 "Insufficient scope for this operation.",
                 cancellationToken: context.CancellationToken
             );

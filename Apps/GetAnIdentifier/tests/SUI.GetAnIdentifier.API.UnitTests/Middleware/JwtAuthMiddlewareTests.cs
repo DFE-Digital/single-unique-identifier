@@ -71,7 +71,8 @@ public class JwtAuthMiddlewareTests
     private void AssertAccessDenied(
         FunctionContext context,
         string expectedResponseContains,
-        string? expectedSecurityErrorContains = null
+        string? expectedSecurityErrorContains = null,
+        HttpStatusCode expectedStatusCode = HttpStatusCode.Unauthorized
     )
     {
         Assert.False(_nextExecuted);
@@ -84,7 +85,8 @@ public class JwtAuthMiddlewareTests
             exactMatch: false
         );
 
-        Assert.Equal(HttpStatusCode.Unauthorized, responseData.StatusCode);
+        // Assert against the requested status code (defaults to 401)
+        Assert.Equal(expectedStatusCode, responseData.StatusCode);
 
         responseData.Body.Seek(0, SeekOrigin.Begin);
         using var streamReader = new StreamReader(responseData.Body);
@@ -452,8 +454,12 @@ public class JwtAuthMiddlewareTests
             // Act
             await sut.Invoke(context, Next);
 
-            // Assert
-            AssertAccessDenied(context, "Insufficient scope for this operation");
+            // Assert: Expect HTTP 403 Forbidden because authentication passed, but authorization (scopes) failed.
+            AssertAccessDenied(
+                context,
+                "Insufficient scope for this operation",
+                expectedStatusCode: HttpStatusCode.Forbidden
+            );
         }
 
         [Fact]
