@@ -8,13 +8,13 @@ Category: System/GetAnIdentifier / NHS Integration
 
 ## Status
 
-Draft
+Accepted
 
 Related to: [ADR-GetAnIdentifier-0001](0001-NHS-MNS-integration.md)
 
 ## Decision
 
-To be decided.
+Option 2 - Async task to remove duplicates AFTER subscribing. This gives us the fasted path to development whilst keeping dupicate handling.
 
 ## Context
 
@@ -73,4 +73,6 @@ These have been confirmed with NHS and are fixed constraints on any option we ch
 
 ## Advice
 
-<!-- Advice to be gathered before this decision is accepted. -->
+Tech lead: Option 2 - fasted to deployment.
+Senior Dev A: Option 2
+Senior Dev B: Option 2
