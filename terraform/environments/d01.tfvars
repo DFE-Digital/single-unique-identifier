@@ -23,7 +23,7 @@ getanidentifier_app_settings = {
   NhsAuthConfig__NHS_DIGITAL_TOKEN_URL                       = "https://int.api.service.nhs.uk/oauth2/token"
   NhsAuthConfig__NHS_DIGITAL_FHIR_ENDPOINT                   = "https://int.api.service.nhs.uk/personal-demographics/FHIR/R4/"
   NhsAuthConfig__NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES = 5
-  AuthSettings__UseAuthStoreForAuthorisation"                = true
+  AuthSettings__UseAuthStoreForAuthorisation                 = true
 }
 
 tags = {
