@@ -18,11 +18,15 @@ Option 2 - Async task to remove duplicates AFTER subscribing. This gives us the 
 
 ## Context
 
-We are going to be integrating with the NHS MNS service. We would prefer to avoid creating duplicate subscriptions as they are unnecessary. However, we have a strong directive to not store NHS numbers in our service. MNS also does not have its own duplicate avoidance system. The subscription service we will use to send subscriptions to MNS will be an asynchronous Task.
+We are going to be integrating with the NHS MNS service. 
+We would prefer to avoid creating duplicate subscriptions as they are unnecessary. 
+However, we have a strong directive to not store NHS numbers in our service. MNS also does not have its own duplicate avoidance system. 
+The subscription service we will use to send subscriptions to MNS will be an asynchronous Task.
 
 ### Scale
 
 We are expecting approximately **50,000 subscriptions** for the Alpha stage.
+As subscribing will be an asynchronous task, the speed of which we need to process subscriptions is not critical.
 
 ### MNS API constraints
 
@@ -34,26 +38,28 @@ These have been confirmed with NHS and are fixed constraints on any option we ch
 ## Options considered
 
 1. Get all subscriptions and traverse the list to look for an existing NHS number.
-2. Async task to remove duplicates AFTER subscribing.
+2. Do nothing for subscribing, then have a async task to remove duplicates AFTER subscribing.
 3. Hold subscription IDs against a keyed HMAC-SHA256 of the NHS number.
 4. Do nothing.
 
+Additional, except for Option 4 - We could de-duplicate at the point of forwarding to webhooks. If on the batch we see two of the same NHS numbers, we could collapse the duplicates and send one notification.
+
 ## Consequences
 
-### Option 1: Get all subscriptions and traverse the list
+### Option 1: Get all subscriptions and traverse the list to look for an existing NHS number.
 
 - **Positive:** Requires no additional infrastructure or database management as we can query all our subscriptions from the NHS MNS endpoint to look for existing subscriptions.
-- **Negative:** Heavy and slow operation if the list is huge.
+- **Negative:** We would need to use the pagination as our subscription count will go well beyond the 500 subscription limit per page.
 - **Negative:** Could have concurrency issues if two requests come in at near enough the same time and both see no existing subscriptions.
 - **Negative:** Possibly a heavy operation for NHS depending on whether they cache or not.
-- **Negative:** Could hit rate limits if we need to get the list on every request and often.
+- **Negative:** Could hit rate limits if we need to get the list on every request.
 
-### Option 2: Async task to remove duplicates AFTER subscribing
+### Option 2: Do nothing before subscribing, then have a async task to remove duplicates AFTER subscribing.
 
 - **Positive:** Subscribe to all incoming requests immediately and deal with duplicates later - no delay to sending subscriptions.
 - **Positive:** Deals well with concurrency as it's a batch DELETE on a background task.
 - **Negative:** As it's a batch delete, we would need to traverse the entire list of subscriptions and have logic to keep only 1 for each person.
-- **Negative:** Could lead to duplicates in the short term, meaning possible double or more notifications for the same person. This does depend on how often we check for duplicates.
+- **Negative:** Could lead to duplicates in the short term, meaning possible double or more notifications for the same person. This does depend on how often we check for duplicates. This is mitigated by a terms of use for the client handle duplication.
 
 ### Option 3: Keyed HMAC-SHA256 of the NHS number
 
@@ -67,9 +73,8 @@ These have been confirmed with NHS and are fixed constraints on any option we ch
 ### Option 4: Do nothing
 
 - **Positive:** Let duplicates happen, no additional logic or MNS calls for de-duplication.
-- **Positive:** We could de-duplicate at the point of forwarding. If on the batch we see two of the same NHS numbers, we could just send one notification.
 - **Negative:** We could end up with many notifications for the same person at the same time due to duplicates.
-- **Negative:** Still makes more subscriptions than needed.
+- **Negative:** Makes more subscriptions than needed.
 
 ## Advice
 
