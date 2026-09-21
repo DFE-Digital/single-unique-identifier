@@ -7,9 +7,9 @@ locals {
   find_state_key    = format("%s/find.tfstate", var.environment_id)
   service_state_key = format("%s/ui_test_harness.tfstate", var.environment_id)
 
-  web_app_descriptor   = "uiharness01"
-  web_app_name = format("%s%sapp-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.web_app_descriptor)
-  
+  web_app_descriptor = "uiharness01"
+  web_app_name       = format("%s%sapp-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.web_app_descriptor)
+
   key_vault_descriptor = "uihrnskv01" // gitleaks:allow
   key_vault_name       = format("%s%skv-%s-%s", var.subscription_prefix, var.environment_id, var.region_short, local.key_vault_descriptor)
 
@@ -108,9 +108,9 @@ module "web_app" {
   name                = local.web_app_name
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
-  
+
   # UPDATED: Use auxiliary plan if it exists, otherwise fall back to the shared plan
-  service_plan_id     = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id : data.terraform_remote_state.core.outputs.app_service_plan_id
+  service_plan_id = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id : data.terraform_remote_state.core.outputs.app_service_plan_id
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -122,7 +122,7 @@ module "web_app" {
 
   app_settings = merge(
     {
-      OTEL_RESOURCE_ATTRIBUTES              = local.otel_resource_attributes
+      OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
 
       BaseUrl = format("https://%s%sfunc-%s-find01.azurewebsites.net/api/", var.subscription_prefix, var.environment_id, var.region_short)
 
@@ -130,23 +130,23 @@ module "web_app" {
 
       # Key Vault References mapped to App Settings
       UI_TEST_HARNESS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.ui_harness_password.name}/)"
-      GET_API_KEY            = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.get_an_id_api_key.versionless_id})"
+      GET_API_KEY              = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.get_an_id_api_key.versionless_id})"
     },
     var.ui_harness_app_settings,
 
     # AuthClientCredentials:
     {
       # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
-      AuthClientIdsJsonMap = sensitive(var.AuthClientIdsJsonMap),
+      AuthClientIdsJsonMap     = sensitive(var.AuthClientIdsJsonMap),
       AuthClientSecretsJsonMap = sensitive(var.AuthClientSecretsJsonMap),
     },
     {
       for clientId, newClientId in jsondecode(nonsensitive(coalesce(var.AuthClientIdsJsonMap, "{}"))) :
-        "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
+      "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
     },
     {
       for clientId, newClientSecret in jsondecode(nonsensitive(coalesce(var.AuthClientSecretsJsonMap, "{}"))) :
-        "AuthClientCredentials__${clientId}__NewClientSecret" => sensitive(newClientSecret)
+      "AuthClientCredentials__${clientId}__NewClientSecret" => sensitive(newClientSecret)
     },
   )
   tags = var.tags

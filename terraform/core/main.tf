@@ -74,7 +74,7 @@ resource "azurerm_service_plan" "shared" {
 }
 
 resource "azurerm_service_plan" "auxiliary" {
-  count               = var.use_auxiliary_asp ? 1 : 0
+  count = var.use_auxiliary_asp ? 1 : 0
 
   name                = local.aux_asp_name
   resource_group_name = module.resource_group.name
