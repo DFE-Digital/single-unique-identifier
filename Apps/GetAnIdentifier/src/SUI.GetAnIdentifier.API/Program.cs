@@ -61,10 +61,14 @@ builder.Services.AddSingleton(x =>
 {
     var connectionString =
         builder.Configuration["AzureWebJobsStorage"]
-        ?? throw new ArgumentNullException(builder.Configuration["AzureWebJobsStorage"]);
+        ?? throw new InvalidOperationException(
+            "Missing required configuration value 'AzureWebJobsStorage'."
+        );
     var containerName =
         builder.Configuration["AuditStorage:ContainerName"]
-        ?? throw new ArgumentNullException(builder.Configuration["AuditStorage:ContainerName"]);
+        ?? throw new InvalidOperationException(
+            "Missing required configuration value 'AuditStorage:ContainerName'."
+        );
     return new BlobContainerClient(connectionString, containerName);
 });
 
