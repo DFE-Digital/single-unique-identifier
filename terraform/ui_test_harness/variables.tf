@@ -111,4 +111,3 @@ variable "use_ui_test_harness" {
   type        = bool
   default     = false
 }
-}

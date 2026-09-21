@@ -40,7 +40,7 @@ variable "storage_account_replication_type" {
   default     = "LRS"
 
   validation {
-    condition = contains(["LRS", "GRS", "RAGRS", "GZRS", "RAGZRS"], var.storage_account_replication_type)
+    condition     = contains(["LRS", "GRS", "RAGRS", "GZRS", "RAGZRS"], var.storage_account_replication_type)
     error_message = "storage_account_replication_type must be one of LRS, GRS, RAGRS, GZRS, or RAGZRS."
   }
 }

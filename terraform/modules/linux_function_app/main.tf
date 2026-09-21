@@ -1,8 +1,8 @@
 locals {
   base_app_settings = merge(
     {
-      FUNCTIONS_WORKER_RUNTIME    = "dotnet-isolated"
-      WEBSITE_RUN_FROM_PACKAGE    = "1"
+      FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
+      WEBSITE_RUN_FROM_PACKAGE = "1"
     },
     var.environment_tag == null ? {} : { AZURE_FUNCTIONS_ENVIRONMENT = var.environment_tag },
   )
@@ -20,11 +20,11 @@ locals {
 # Accepted until Alpha while the DR posture for Function App storage is still under review.
 #trivy:ignore:AZU-0058
 resource "azurerm_storage_account" "this" {
-  name                               = var.storage_account_name
-  resource_group_name                = var.resource_group_name
-  location                           = var.location
-  account_tier                       = "Standard"
-  account_replication_type           = var.storage_account_replication_type
+  name                              = var.storage_account_name
+  resource_group_name               = var.resource_group_name
+  location                          = var.location
+  account_tier                      = "Standard"
+  account_replication_type          = var.storage_account_replication_type
   infrastructure_encryption_enabled = true
 
   allow_nested_items_to_be_public = false
@@ -58,7 +58,7 @@ data "azurerm_monitor_diagnostic_categories" "storage_service" {
     queue = "${azurerm_storage_account.this.id}/queueServices/default"
     table = "${azurerm_storage_account.this.id}/tableServices/default"
   }
-  
+
   resource_id = each.value
 }
 
@@ -124,7 +124,7 @@ resource "azurerm_linux_function_app" "this" {
     health_check_eviction_time_in_min = var.health_check_path == null ? null : 5
 
     application_stack {
-      dotnet_version               = var.dotnet_version
+      dotnet_version              = var.dotnet_version
       use_dotnet_isolated_runtime = true
     }
 

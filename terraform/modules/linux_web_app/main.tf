@@ -1,7 +1,7 @@
 locals {
   base_app_settings = merge(
     {
-      WEBSITE_RUN_FROM_PACKAGE = "1"
+      WEBSITE_RUN_FROM_PACKAGE              = "1"
       APPLICATIONINSIGHTS_CONNECTION_STRING = sensitive(var.application_insights_connection_string)
     },
     var.application_insights_connection_string == null ? {} : { ApplicationInsightsAgent_EXTENSION_VERSION = "~3" },
