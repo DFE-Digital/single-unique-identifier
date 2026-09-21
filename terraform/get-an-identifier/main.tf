@@ -196,10 +196,10 @@ module "function_app" {
     # AuthClientCredentials:
     {
       # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
-      AuthClientIdsJsonMap = sensitive(var.AuthClientIdsJsonMap),
+      AuthClientIdsJsonMap = sensitive(var.auth_client_ids_json_map),
     },
     {
-      for clientId, newClientId in jsondecode(nonsensitive(coalesce(var.AuthClientIdsJsonMap, "{}"))) :
+      for clientId, newClientId in jsondecode(nonsensitive(coalesce(var.auth_client_ids_json_map, "{}"))) :
       "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
     }
   )
