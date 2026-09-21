@@ -14,7 +14,7 @@ Related to: [ADR-GetAnIdentifier-0001](0001-NHS-MNS-integration.md)
 
 ## Decision
 
-Option 2 - Async task to remove duplicates AFTER subscribing. This gives us the fasted path to development whilst keeping dupicate handling.
+Option 2 - Async task to remove duplicates AFTER subscribing. This gives us the fastest path to development whilst keeping duplicate handling.
 
 ## Context
 
@@ -42,7 +42,7 @@ These have been confirmed with NHS and are fixed constraints on any option we ch
 3. Hold subscription IDs against a keyed HMAC-SHA256 of the NHS number.
 4. Do nothing.
 
-Additional, except for Option 4 - We could de-duplicate at the point of forwarding to webhooks. If on the batch we see two of the same NHS numbers, we could collapse the duplicates and send one notification.
+Additionally, except for Option 4 - We could de-duplicate at the point of forwarding to webhooks. If on the batch we see two of the same NHS numbers, we could collapse the duplicates and send one notification.
 
 ## Consequences
 
@@ -78,6 +78,6 @@ Additional, except for Option 4 - We could de-duplicate at the point of forwardi
 
 ## Advice
 
-Tech lead: Option 2 - fasted to deployment.
+Tech lead: Option 2 - fastest to deploy.
 Senior Dev A: Option 2
 Senior Dev B: Option 2
