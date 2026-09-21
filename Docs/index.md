@@ -6,6 +6,10 @@ This project is in the Discovery Phase. This means everything in this repository
 
 ## Contents
 
+### Integration
+
+* [System integration documentation pack](./Integration/Index.md)
+
 ### Architecture
 
 * [Architecture models & diagrams](./Architecture%20models/c4models.md)
