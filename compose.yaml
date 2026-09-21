@@ -28,6 +28,23 @@ services:
       - "3000:3000"
       - "4317:4317"
       - "4318:4318"
+  mesh_sandbox:
+    build:
+      context: https://github.com/NHSDigital/mesh-sandbox.git#refs/tags/v1.0.114
+    ports:
+      - "8700:443"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    healthcheck:
+      test: curl -ksf https://localhost/health || exit 1
+      interval: 3s
+      timeout: 10s
+    environment:
+      - SHARED_KEY=TestKey
+      - SSL=yes
+      # - STORE_MODE=file   # persists data to disk instead of memory
 
 volumes:
   azurite-data:
