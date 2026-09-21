@@ -75,12 +75,12 @@ jobs:
       # The secret below is required for the UI Test Harness, and is transmitted from Github Secrets to the Azure Key Vault.
       TF_VAR_ui_test_harness_password: ${{ secrets.UI_TEST_HARNESS_PASSWORD }}
       # Ability to pass sensitive Auth Settings (these values can be checked for debugging purposes by looking at the app settings in the Azure Portal):
-      TF_VAR_AuthSettings_Issuer: ${{ secrets.AUTH_SETTINGS__ISSUER }}
-      TF_VAR_AuthSettings_Audience: ${{ secrets.AUTH_SETTINGS__AUDIENCE }}
-      TF_VAR_AuthSettings_OidcDiscoveryUrl: ${{ secrets.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}
-      TF_VAR_AuthSettings_AccessTokenUrl: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
+      TF_VAR_auth_settings_issuer: ${{ secrets.AUTH_SETTINGS__ISSUER }}
+      TF_VAR_auth_settings_audience: ${{ secrets.AUTH_SETTINGS__AUDIENCE }}
+      TF_VAR_auth_settings_oidc_discovery_url: ${{ secrets.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}
+      TF_VAR_auth_settings_access_token_url: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
       TF_VAR_auth_client_ids_json_map: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
-      TF_VAR_AuthClientSecretsJsonMap: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
+      TF_VAR_auth_client_secrets_json_map: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
 
     steps:
       - name: Checkout repository

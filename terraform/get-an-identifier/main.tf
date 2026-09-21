@@ -181,6 +181,11 @@ module "function_app" {
 
   app_settings = merge(
     {
+      AuthSettings__Issuer           = var.auth_settings_issuer
+      AuthSettings__Audience         = var.auth_settings_audience
+      AuthSettings__OidcDiscoveryUrl = var.auth_settings_oidc_discovery_url
+      AuthSettings__AccessTokenUrl   = var.auth_settings_access_token_url
+      
       FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
       WEBSITE_RUN_FROM_PACKAGE = "1"
       OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes

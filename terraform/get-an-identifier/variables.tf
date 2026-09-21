@@ -115,3 +115,27 @@ variable "auth_client_ids_json_map" {
   default     = null
   sensitive   = true
 }
+
+variable "auth_settings_issuer" {
+  description = "The expected OAuth Issuer of authentic access tokens"
+  type        = string
+  sensitive   = true
+}
+
+variable "auth_settings_audience" {
+  description = "The expected OAuth Audience of authentic access tokens"
+  type        = string
+  sensitive   = true
+}
+
+variable "auth_settings_oidc_discovery_url" {
+  description = "The URL to discover the OpenID Connect configuration of the Issuer of authentic access tokens"
+  type        = string
+  sensitive   = true
+}
+
+variable "auth_settings_access_token_url" {
+  description = "Inbound Access Token URL (to be able to request tokens to use the Get an Identifier API)"
+  type        = string
+  sensitive   = true
+}
