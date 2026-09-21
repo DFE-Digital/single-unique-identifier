@@ -2,7 +2,7 @@
 
 **Contract version:** `1`
 
-**Status:** Draft
+**Status:** Draft - not for production use
 
 **Owner:** SUI Service Team
 
