@@ -9,11 +9,17 @@ public class MockAuthStoreService : IAuthStoreService
     private readonly IFileSystem _fileSystem;
     private readonly IConfiguration _configuration;
     private readonly Lazy<AuthStore> _authStore;
+    private readonly ILogger<MockAuthStoreService> _logger;
 
-    public MockAuthStoreService(IFileSystem fileSystem, IConfiguration configuration)
+    public MockAuthStoreService(
+        IFileSystem fileSystem,
+        IConfiguration configuration,
+        ILogger<MockAuthStoreService> logger
+    )
     {
         _fileSystem = fileSystem;
         _configuration = configuration;
+        _logger = logger;
         _authStore = new Lazy<AuthStore>(LoadStore);
     }
 
@@ -22,6 +28,8 @@ public class MockAuthStoreService : IAuthStoreService
         var store = _authStore.Value;
 
         store.Clients ??= [];
+
+        _logger.LogInformation("{ClientsCount} clients found in store", store.Clients.Count);
 
         var client = store.Clients.FirstOrDefault(c =>
             c.ClientId == clientId && c.ClientSecret == clientSecret && c.Enabled

@@ -1,5 +1,6 @@
 using System.IO.Abstractions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.Extensions;
 using SUI.GetAnIdentifier.API.Middleware;
@@ -12,6 +13,9 @@ public class MockAuthStoreServiceTests
     private const string ExpectedOrganisationId = "LOCAL-AUTHORITY-01";
     private readonly IFileSystem _mockFileSystem = Substitute.For<IFileSystem>();
     private readonly IConfiguration _mockConfiguration = Substitute.For<IConfiguration>();
+    private readonly ILogger<MockAuthStoreService> _mockLogger = Substitute.For<
+        ILogger<MockAuthStoreService>
+    >();
     private readonly MockAuthStoreService _sut;
     private readonly string _realStoreFilePath;
     private static readonly string[] ExpectedScopes = ["get-an-identifier.read"];
@@ -20,7 +24,7 @@ public class MockAuthStoreServiceTests
     {
         _mockConfiguration.ReturnsForAll((string?)null);
 
-        _sut = new MockAuthStoreService(_mockFileSystem, _mockConfiguration);
+        _sut = new MockAuthStoreService(_mockFileSystem, _mockConfiguration, _mockLogger);
         _realStoreFilePath = Path.Join(
             AppContext.BaseDirectory,
             "Data",

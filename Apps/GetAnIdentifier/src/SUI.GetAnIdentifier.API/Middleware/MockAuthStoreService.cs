@@ -1,6 +1,7 @@
 using System.IO.Abstractions;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SUI.GetAnIdentifier.Infrastructure.Models;
 
 namespace SUI.GetAnIdentifier.API.Middleware;
@@ -15,17 +16,25 @@ public class MockAuthStoreService : IAuthStoreService
     private readonly IFileSystem _fileSystem;
     private readonly IConfiguration _configuration;
     private readonly Lazy<AuthStore> _authStore;
+    private readonly ILogger<MockAuthStoreService> _logger;
 
-    public MockAuthStoreService(IFileSystem fileSystem, IConfiguration configuration)
+    public MockAuthStoreService(
+        IFileSystem fileSystem,
+        IConfiguration configuration,
+        ILogger<MockAuthStoreService> logger
+    )
     {
         _fileSystem = fileSystem;
         _configuration = configuration;
+        _logger = logger;
         _authStore = new Lazy<AuthStore>(LoadStore);
     }
 
     public AuthClient? GetClientById(string clientId)
     {
         var store = _authStore.Value;
+
+        _logger.LogInformation("{ClientsCount} clients found in store", store.Clients?.Count ?? 0);
 
         var client = store.Clients?.FirstOrDefault(x => x.ClientId == clientId);
 
