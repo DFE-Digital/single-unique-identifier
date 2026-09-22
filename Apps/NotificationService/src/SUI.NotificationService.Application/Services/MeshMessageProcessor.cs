@@ -6,6 +6,7 @@ namespace SUI.NotificationService.Application.Services;
 public interface IMeshMessageProcessor
 {
     Task ProcessMeshMessagesAsync(CancellationToken cancellationToken);
+    Task AcknowledgeMessageAsync(string messageId, CancellationToken cancellationToken);
 }
 
 public class MeshMessageProcessor(
@@ -32,6 +33,11 @@ public class MeshMessageProcessor(
 
             await ProcessMessageAsync(messageId, cancellationToken);
         }
+    }
+
+    public Task AcknowledgeMessageAsync(string messageId, CancellationToken cancellationToken)
+    {
+        return meshInboxClient.AcknowledgeMessageAsync(messageId, cancellationToken);
     }
 
     private async Task ProcessMessageAsync(string messageId, CancellationToken cancellationToken)
