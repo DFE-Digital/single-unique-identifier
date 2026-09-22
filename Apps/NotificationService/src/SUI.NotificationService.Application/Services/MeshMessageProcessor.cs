@@ -31,7 +31,21 @@ public class MeshMessageProcessor(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await ProcessMessageAsync(messageId, cancellationToken);
+            try
+            {
+                await ProcessMessageAsync(messageId, cancellationToken);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                // One unreadable message must not cost this execution the rest of the mailbox. The
+                // message stays unacknowledged, so MESH redelivers it on the next run; cancellation
+                // is not a message failure and is left to end the execution.
+                logger.LogError(
+                    exception,
+                    "MESH message {MessageId} could not be processed and was left unacknowledged",
+                    messageId
+                );
+            }
         }
     }
 
