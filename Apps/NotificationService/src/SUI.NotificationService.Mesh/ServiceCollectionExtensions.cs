@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<NhsMeshAuthHandler>();
 
         var meshHttpClientBuilder = services
-            .AddHttpClient<IMeshMessageReceiver, MeshInboxClient>(
+            .AddHttpClient<IMeshInboxClient, MeshInboxClient>(
                 MeshInboxClient.HttpClientName,
                 static (serviceProvider, client) =>
                 {

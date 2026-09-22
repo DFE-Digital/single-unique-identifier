@@ -7,7 +7,7 @@ namespace SUI.NotificationService.Application.Interfaces;
 /// Implementations are responsible for transport concerns only; deciding when to read and when to
 /// acknowledge belongs to orchestration.
 /// </summary>
-public interface IMeshMessageReceiver
+public interface IMeshInboxClient
 {
     /// <summary>
     /// Returns the identifiers of every message currently waiting in the MESH mailbox, following

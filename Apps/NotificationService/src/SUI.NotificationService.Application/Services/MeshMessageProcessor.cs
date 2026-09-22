@@ -10,7 +10,7 @@ public interface IMeshMessageProcessor
 
 public class MeshMessageProcessor(
     ILogger<MeshMessageProcessor> logger,
-    IMeshMessageReceiver messageReceiver
+    IMeshInboxClient meshInboxClient
 ) : IMeshMessageProcessor
 {
     /// <summary>
@@ -19,7 +19,7 @@ public class MeshMessageProcessor(
     /// <param name="cancellationToken"></param>
     public async Task ProcessMeshMessagesAsync(CancellationToken cancellationToken)
     {
-        var messageIds = await messageReceiver.GetMessageIdsAsync(cancellationToken);
+        var messageIds = await meshInboxClient.GetMessageIdsAsync(cancellationToken);
 
         logger.LogInformation(
             "MESH mailbox holds {MessageCount} message(s) to read in this execution",
@@ -36,7 +36,7 @@ public class MeshMessageProcessor(
 
     private async Task ProcessMessageAsync(string messageId, CancellationToken cancellationToken)
     {
-        var message = await messageReceiver.ReadMessageAsync(messageId, cancellationToken);
+        var message = await meshInboxClient.ReadMessageAsync(messageId, cancellationToken);
 
         logger.LogInformation(
             "MESH message {MessageId} received: {Content}",
