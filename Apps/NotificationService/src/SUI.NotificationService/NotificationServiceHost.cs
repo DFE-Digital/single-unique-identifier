@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SUI.NotificationService.Application;
 using SUI.NotificationService.Infrastructure;
-using SUI.NotificationService.Mns;
+using SUI.NotificationService.Mesh;
 using SUI.NotificationService.Webhooks;
 
 namespace SUI.NotificationService;
@@ -19,7 +19,7 @@ internal static class NotificationServiceHost
         var builder = Host.CreateApplicationBuilder(settings);
 
         builder.Services.AddNotificationServiceApplication();
-        builder.Services.AddMnsIntegration();
+        builder.Services.AddMeshIntegration(builder.Environment);
         builder.Services.AddSupplierWebhookDelivery(builder.Configuration);
         builder.Services.AddNotificationServiceInfrastructure(builder.Configuration);
 
