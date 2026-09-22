@@ -35,6 +35,12 @@ public class MeshMessageProcessor(
         }
     }
 
+    /// <summary>
+    /// Acknowledges a message in the MESH mailbox so that it is removed from the inbox.
+    /// </summary>
+    /// <param name="messageId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task AcknowledgeMessageAsync(string messageId, CancellationToken cancellationToken)
     {
         return meshInboxClient.AcknowledgeMessageAsync(messageId, cancellationToken);
@@ -48,7 +54,7 @@ public class MeshMessageProcessor(
         {
             // Leaving the message unacknowledged keeps it in the mailbox so MESH redelivers it
             // rather than the change event being silently dropped. The cost is that it is re-read
-            // and re-logged on every run, so a repeat of this entry needs a human.
+            // and re-logged on every run, so a repeat of this entry needs a manual check.
             logger.LogError(
                 "MESH message {MessageId} could not be parsed and was left unacknowledged",
                 messageId
@@ -56,19 +62,10 @@ public class MeshMessageProcessor(
             return;
         }
 
-        // The body carries an NHS number in its additional-context.subject part, so it is never
-        // logged; the MESH and Bundle identifiers are enough to tie this entry to the notification.
         logger.LogInformation(
             "MESH message {MessageId} received carrying pds-record-change-2 Bundle {BundleId}",
             message.MessageId,
             notification.Id
         );
-
-        // Later workstreams will read the NHS number out of the Bundle and broadcast the change to
-        // suppliers through the Webhooks boundary here. Acknowledgement must stay after that step:
-        // acknowledging removes the message from the MESH mailbox, so acknowledging before a
-        // successful broadcast would lose it.
-
-        // logger.LogInformation("MESH message {MessageId} acknowledged", message.MessageId);
     }
 }
