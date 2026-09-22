@@ -32,18 +32,31 @@ public class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshConfig> mesh
         var messageIds = new List<string>();
         var requestUri = $"/messageexchange/{_mailboxId}/inbox";
 
+        var fetched = new HashSet<string>(StringComparer.Ordinal) { requestUri };
+
         while (requestUri is not null)
         {
             var inbox = await GetInboxPageAsync(requestUri, cancellationToken);
-            if (inbox?.Messages is not { Length: > 0 })
+
+            if (inbox?.Messages is { Length: > 0 })
+            {
+                messageIds.AddRange(inbox.Messages);
+            }
+
+            var next = inbox?.Links?.Next;
+            if (string.IsNullOrWhiteSpace(next))
             {
                 break;
             }
 
-            messageIds.AddRange(inbox.Messages);
+            if (!fetched.Add(next))
+            {
+                throw new InvalidOperationException(
+                    $"MESH inbox paging revisited '{next}', so the mailbox cannot be read in full."
+                );
+            }
 
-            var next = inbox.Links?.Next;
-            requestUri = string.IsNullOrWhiteSpace(next) ? null : next;
+            requestUri = next;
         }
 
         return messageIds;
