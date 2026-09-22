@@ -25,7 +25,7 @@ public class GetAnIdentifierFunction(
     IOptions<GetAnIdentifierConfiguration> matchFunctionConfig
 )
 {
-    [Function(nameof(GetAnIdentifier))]
+    [Function(nameof(GetAnIdentifierFunction))]
     [RequiredScopes("get-an-identifier.read")]
     // Updated Summary
     [OpenApiOperation(

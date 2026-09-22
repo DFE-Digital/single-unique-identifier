@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -10,8 +9,8 @@ using SUI.GetAnIdentifier.API.Utility;
 
 namespace SUI.GetAnIdentifier.API.Functions;
 
-public class HealthCheck(
-    ILogger<HealthCheck> logger,
+public class HealthCheckFunction(
+    ILogger<HealthCheckFunction> logger,
     IHostEnvironment env,
     HealthCheckService healthCheckService
 )
@@ -23,7 +22,7 @@ public class HealthCheck(
         tags: ["Health"],
         Summary = "Check service is up"
     )]
-    [Function(nameof(HealthCheck))]
+    [Function(nameof(HealthCheckFunction))]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")] HttpRequestData req
     )

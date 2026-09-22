@@ -15,9 +15,9 @@ using SUI.GetAnIdentifier.Application.Enum;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 
-namespace SUI.GetAnIdentifier.API.UnitTests.FunctionTests;
+namespace SUI.GetAnIdentifier.API.UnitTests.Functions;
 
-public class GetAnIdentifierTests
+public class GetAnIdentifierFunctionTests
 {
     private const string TestApiKey = "test-api-key";
     private readonly ILogger<GetAnIdentifierFunction> _logger = Substitute.For<
@@ -27,7 +27,7 @@ public class GetAnIdentifierTests
         Substitute.For<IGetAnIdentifierService>();
     private readonly IOptions<GetAnIdentifierConfiguration> _matchFunctionConfig;
 
-    public GetAnIdentifierTests()
+    public GetAnIdentifierFunctionTests()
     {
         _matchFunctionConfig = Substitute.For<IOptions<GetAnIdentifierConfiguration>>();
         _matchFunctionConfig.Value.Returns(

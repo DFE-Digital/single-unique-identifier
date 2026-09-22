@@ -6,15 +6,15 @@ using NSubstitute;
 using SUI.GetAnIdentifier.API.Functions;
 using SUI.GetAnIdentifier.API.UnitTests.Mocks;
 
-namespace SUI.GetAnIdentifier.API.UnitTests.FunctionTests;
+namespace SUI.GetAnIdentifier.API.UnitTests.Functions;
 
-public class HealthCheckTests
+public class HealthCheckFunctionTests
 {
-    private readonly ILogger<HealthCheck> _logger = Substitute.For<ILogger<HealthCheck>>();
+    private readonly ILogger<HealthCheckFunction> _logger = Substitute.For<ILogger<HealthCheckFunction>>();
     private readonly HealthCheckService _healthCheckService = Substitute.For<HealthCheckService>();
     private readonly IHostEnvironment _hostEnvironment = Substitute.For<IHostEnvironment>();
 
-    private HealthCheck CreateFunction() => new(_logger, _hostEnvironment, _healthCheckService);
+    private HealthCheckFunction CreateFunction() => new(_logger, _hostEnvironment, _healthCheckService);
 
     [Theory]
     [InlineData(HealthStatus.Healthy, HttpStatusCode.OK)]

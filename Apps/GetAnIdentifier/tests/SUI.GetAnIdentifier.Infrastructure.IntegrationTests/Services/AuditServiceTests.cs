@@ -6,14 +6,14 @@ using NSubstitute;
 using SUI.GetAnIdentifier.Infrastructure.Models;
 using SUI.GetAnIdentifier.Infrastructure.Services;
 
-namespace SUI.GetAnIdentifier.Infrastructure.IntegrationTests;
+namespace SUI.GetAnIdentifier.Infrastructure.IntegrationTests.Services;
 
-public class AuditServiceIntegrationTests : IAsyncLifetime
+public class AuditServiceTests : IAsyncLifetime
 {
     private readonly AuditService _sut;
     private readonly BlobContainerClient _blobContainerClient;
 
-    public AuditServiceIntegrationTests()
+    public AuditServiceTests()
     {
         var logger = Substitute.For<ILogger<AuditService>>();
         const string blobName = "auditlogs";

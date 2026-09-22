@@ -10,13 +10,13 @@ using SUI.GetAnIdentifier.Application.Services;
 
 namespace SUI.GetAnIdentifier.Application.UnitTests.Services;
 
-public class MatchPersonAsyncTests
+public class GetAnIdentifierServiceTests
 {
     private readonly ILogger<GetAnIdentifierService> _logger;
     private readonly GetAnIdentifierService _sut;
     private readonly IFhirService _fhirService = Substitute.For<IFhirService>();
 
-    public MatchPersonAsyncTests()
+    public GetAnIdentifierServiceTests()
     {
         _logger = Substitute.For<ILogger<GetAnIdentifierService>>();
         _sut = new GetAnIdentifierService(_logger, _fhirService);
