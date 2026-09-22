@@ -50,8 +50,8 @@ module "web_app" {
     {
       OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
 
-      AuthSettings__Issuer   = var.AuthSettings_Issuer
-      AuthSettings__Audience = var.AuthSettings_Audience
+      AuthSettings__Issuer   = var.auth_settings_issuer
+      AuthSettings__Audience = var.auth_settings_audience
 
       # Map the environment's dynamic base URL down to the Auth Emulator config
       AuthSettings__BaseUrl = format("https://%s%sapp-%s-authemulator01.azurewebsites.net/", var.subscription_prefix, var.environment_id, var.region_short)
@@ -61,15 +61,15 @@ module "web_app" {
     # AuthClientCredentials:
     {
       # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
-      AuthClientIdsJsonMap     = sensitive(var.AuthClientIdsJsonMap),
-      AuthClientSecretsJsonMap = sensitive(var.AuthClientSecretsJsonMap),
+      AuthClientIdsJsonMap     = sensitive(var.auth_client_ids_json_map),
+      AuthClientSecretsJsonMap = sensitive(var.auth_client_secrets_json_map),
     },
     {
-      for clientId, newClientId in jsondecode(nonsensitive(coalesce(var.AuthClientIdsJsonMap, "{}"))) :
+      for clientId, newClientId in jsondecode(nonsensitive(coalesce(var.auth_client_ids_json_map, "{}"))) :
       "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
     },
     {
-      for clientId, newClientSecret in jsondecode(nonsensitive(coalesce(var.AuthClientSecretsJsonMap, "{}"))) :
+      for clientId, newClientSecret in jsondecode(nonsensitive(coalesce(var.auth_client_secrets_json_map, "{}"))) :
       "AuthClientCredentials__${clientId}__NewClientSecret" => sensitive(newClientSecret)
     },
   )

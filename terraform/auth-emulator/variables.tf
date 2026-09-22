@@ -80,26 +80,26 @@ variable "use_auth_emulator" {
   default     = false
 }
 
-variable "AuthSettings_Issuer" {
+variable "auth_settings_issuer" {
   description = "The OAuth Issuer to use when signing access tokens"
   type        = string
   sensitive   = true
 }
 
-variable "AuthSettings_Audience" {
+variable "auth_settings_audience" {
   description = "The OAuth Audience to use when signing access tokens"
   type        = string
   sensitive   = true
 }
 
-variable "AuthClientIdsJsonMap" {
+variable "auth_client_ids_json_map" {
   description = "Optional string containing a JSON map to transform the Client IDs in the sample data. Could contain sensitive data, should be masked."
   type        = string
   default     = null
   sensitive   = true
 }
 
-variable "AuthClientSecretsJsonMap" {
+variable "auth_client_secrets_json_map" {
   description = "Optional string containing a JSON map to transform the Client Secrets in the sample data. Contains sensitive data, must be masked."
   type        = string
   default     = null
