@@ -2,17 +2,19 @@
 
 The Notification Service is a run-to-completion .NET application intended for scheduled execution. Each invocation creates an application scope, runs the notification orchestration once, and then exits.
 
-The current scaffold does not connect to MNS or deliver supplier webhooks.
+Each execution drains the NHS MESH mailbox: it reads every message waiting in the inbox, then acknowledges it. Every message is a [`pds-record-change-2` event](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event): a FHIR Bundle describing a change to a PDS record, such as a change of NHS number. Subscribing to those events is owned by another service; this one only receives what lands in the mailbox. Supplier webhook delivery is not yet implemented.
 
 ## Project boundaries
 
 - `SUI.NotificationService` is the executable host and composition root. It configures the application and invokes one execution.
 - `SUI.NotificationService.Application` owns orchestration and the contracts used to coordinate the other modules.
-- `SUI.NotificationService.Mns` is the boundary for receiving lifecycle changes from MNS.
+- `SUI.NotificationService.Mesh` is the boundary for receiving messages from an NHS MESH mailbox. It implements `IMeshMessageReceiver` over the MESH REST API and owns transport only - orchestration decides when messages are read and acknowledged.
 - `SUI.NotificationService.Webhooks` is the boundary for delivering notifications to suppliers.
 - `SUI.NotificationService.Infrastructure` is the boundary for shared technical concerns needed by the other modules.
 
-The MNS, Webhooks and Infrastructure projects currently expose dependency-injection registration points without concrete services. Their implementations will be added by their owning workstreams.
+The Webhooks project currently exposes a dependency-injection registration point without concrete services. Its implementation will be added by its owning workstream.
+
+This process is not a poller. It reads whatever is waiting, acknowledges it and exits; the schedule that starts the process owns how often that happens.
 
 ## Prerequisites
 
@@ -58,7 +60,43 @@ dotnet run --project Apps/NotificationService/src/SUI.NotificationService/SUI.No
   --Logging:LogLevel:Default Debug
 ```
 
+### NHS MESH
+
+Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig` section:
+
+| Setting | Meaning |
+|---------|---------|
+| `MailboxBaseUrl` | Base URL of the MESH instance. |
+| `MailboxId` | The mailbox to read from. |
+| `MailboxPassword` | Mailbox password used to build the `NHSMESH` authorisation header. |
+| `SharedKey` | Shared key used to HMAC that header. |
+
+All four are required and validated at startup, so a missing or malformed value fails the run
+immediately rather than at the first request. `appsettings.Development.json` points at the local
+MESH sandbox in `compose.yaml`, whose self-signed certificate is trusted only in the `Development`
+environment.
+
 Do not commit secrets to the configuration files. Supply sensitive local values through environment variables or an approved secret-management mechanism when later workstreams introduce them.
+
+### Message payloads
+
+The mailbox receives [`pds-record-change-2` events](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event)
+published by the NHS Multicast Notification Service (MNS). They arrive under the MESH workflow
+identifier `PDSRECORDCHANGE_2`, and each body is a FHIR Bundle (`type: history`) wrapping a
+`Parameters` resource that conforms to the R4 Subscriptions Backport `SubscriptionStatus` profile.
+
+This service does not yet interpret that payload: it reads the body as a string, logs it and
+acknowledges the message. It also does not filter on the workflow identifier, so the mailbox is
+assumed to carry these events only. Parsing the Bundle into a domain event belongs with the
+supplier webhook workstream.
+
+To put a realistic event into the local MESH sandbox without running this application, use
+`scripts/send-mesh-test-message.ps1`, which posts the payload in
+`scripts/pds-record-change-2-notification.template.json`:
+
+```bash
+dotnet pwsh ./scripts/send-mesh-test-message.ps1
+```
 
 ## Exit codes
 
