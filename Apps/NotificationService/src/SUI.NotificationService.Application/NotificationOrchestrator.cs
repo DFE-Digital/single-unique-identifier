@@ -14,8 +14,11 @@ internal sealed class NotificationOrchestrator(
 
         logger.LogInformation("Notification Service execution started");
 
-        await meshMessageProcessor.ProcessMeshMessagesAsync(cancellationToken);
+        var notifications = await meshMessageProcessor.ProcessMeshMessagesAsync(cancellationToken);
 
-        logger.LogInformation("Notification Service execution completed");
+        logger.LogInformation(
+            "Notification Service execution completed with {NotificationCount} record change notification(s)",
+            notifications.Count
+        );
     }
 }
