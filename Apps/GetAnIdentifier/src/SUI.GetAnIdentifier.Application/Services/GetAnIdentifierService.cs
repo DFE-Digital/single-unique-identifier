@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using OneOf;
 using OneOf.Types;
 using SUI.GetAnIdentifier.Application.Constants;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
@@ -84,8 +85,10 @@ public class GetAnIdentifierService(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // SANITIZATION: Exception object omitted to prevent validation or demographic leakage in ex.Message
-            logger.LogError("Unexpected error occurred when trying to match person.");
+            logger.LogError(
+                ex.Sanitize("Unexpected error during person match."),
+                "Unexpected error occurred when trying to match person."
+            );
             return new Error();
         }
     }

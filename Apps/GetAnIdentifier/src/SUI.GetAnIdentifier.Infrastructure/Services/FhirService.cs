@@ -1,6 +1,7 @@
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Logging;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
@@ -67,6 +68,7 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
                 );
 
                 logger.LogError(
+                    ex.Sanitize("PDS API returned an OperationOutcome error."),
                     "PDS API returned an OperationOutcome error. Status: {StatusCode}, Issues: {Issues}",
                     ex.Status,
                     issues
@@ -75,6 +77,7 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
             else
             {
                 logger.LogError(
+                    ex.Sanitize("PDS API returned a non-success response."),
                     "PDS API returned a non-success response. Status: {StatusCode}",
                     ex.Status
                 );
@@ -96,8 +99,10 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // SANITIZATION: Exception object omitted as ex.Message can contain PII in raw query parameters or response bodies
-            logger.LogError("Error occurred while performing FHIR search");
+            logger.LogError(
+                ex.Sanitize("Unhandled exception during FHIR search."),
+                "Error occurred while performing FHIR search"
+            );
             return Result<SearchResult>.Fail("Unexpected PDS Search Error");
         }
     }

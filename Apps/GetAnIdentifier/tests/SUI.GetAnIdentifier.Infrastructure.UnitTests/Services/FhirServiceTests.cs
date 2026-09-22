@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
 using SUI.GetAnIdentifier.Infrastructure.Services;
 
@@ -52,7 +53,6 @@ public class FhirServiceTests : BaseFhirClientTests
         Assert.Null(result.Value);
 
         // Verify Logging sanitization - ensures ex.Message (which might contain raw request PII URIs) is NOT templated
-        // PROOF: Ex parameter is asserting 'null' instead of 'Arg.Any<Exception>()'
         LoggerMock
             .Received(1)
             .Log(
@@ -61,7 +61,7 @@ public class FhirServiceTests : BaseFhirClientTests
                 Arg.Is<object>(o =>
                     o != null && o.ToString() == "Error occurred while performing FHIR search"
                 ),
-                null,
+                Arg.Any<SanitizedException>(),
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }
@@ -84,7 +84,6 @@ public class FhirServiceTests : BaseFhirClientTests
         Assert.Contains("PDS API Error", result.Error);
 
         // Verify Logging sanitization - ensures raw OperationOutcome Diagnostics are NOT templated
-        // PROOF: Ex parameter is asserting 'null' instead of 'Arg.Any<Exception>()'
         LoggerMock
             .Received(1)
             .Log(
@@ -95,7 +94,7 @@ public class FhirServiceTests : BaseFhirClientTests
                     && o.ToString()
                         == "PDS API returned an OperationOutcome error. Status: BadRequest, Issues: Severity: Error, Code: Value"
                 ),
-                null,
+                Arg.Any<SanitizedException>(),
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }
@@ -118,7 +117,7 @@ public class FhirServiceTests : BaseFhirClientTests
         Assert.False(result.Success);
         Assert.Equal("PDS API Timeout", result.Error);
 
-        // Verify Logging explicitly does not contain an exception object
+        // Verify Logging explicitly does not contain an exception object since the original code does not pass one here
         LoggerMock
             .Received(1)
             .Log(

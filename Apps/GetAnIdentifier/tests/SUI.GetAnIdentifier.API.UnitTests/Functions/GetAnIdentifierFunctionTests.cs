@@ -12,6 +12,7 @@ using SUI.GetAnIdentifier.API.Functions;
 using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.API.UnitTests.Mocks;
 using SUI.GetAnIdentifier.Application.Enum;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 
@@ -240,7 +241,6 @@ public class GetAnIdentifierFunctionTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
         // Verify Logging sanitization - ensures raw exception message is NOT templated in the log string
-        // PROOF: The exception parameter is now asserting 'null' instead of 'expectedException'
         _logger
             .Received(1)
             .Log(
@@ -248,9 +248,11 @@ public class GetAnIdentifierFunctionTests
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o != null
-                    && o.ToString() == "Unhandled exception during GetAnIdentifier execution"
+                    && o.ToString() == "Unhandled exception during GetAnIdentifier execution."
                 ),
-                null,
+                Arg.Is<Exception>(e =>
+                    e is SanitizedException && !e.Message.Contains(expectedException.Message)
+                ),
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }
@@ -397,17 +399,16 @@ public class GetAnIdentifierFunctionTests
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-        // Verify Logging sanitization - ensures raw JsonException message (which includes JSON body snippets) is NOT templated
-        // PROOF: The exception parameter is asserting 'null' instead of 'Arg.Any<JsonException>()'
+        // Verify Logging sanitization - ensures raw JsonException (which includes JSON body snippets in its message) is NOT templated
         logger
             .Received(1)
             .Log(
-                LogLevel.Error,
+                LogLevel.Warning,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o != null && o.ToString() == "Failed to parse Match request body."
                 ),
-                null,
+                Arg.Is<Exception>(e => e is SanitizedException),
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }

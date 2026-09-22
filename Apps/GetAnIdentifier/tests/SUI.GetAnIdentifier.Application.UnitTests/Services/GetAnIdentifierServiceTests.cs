@@ -3,6 +3,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using OneOf.Types;
 using SUI.GetAnIdentifier.Application.Enum;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
@@ -275,7 +276,6 @@ public class GetAnIdentifierServiceTests
         Assert.IsType<Error>(result.Value);
 
         // Verify Logging sanitization - ensures raw exception message is NOT templated
-        // PROOF: The exception parameter is now asserting 'null' instead of 'expectedException'
         _logger
             .Received(1)
             .Log(
@@ -285,7 +285,7 @@ public class GetAnIdentifierServiceTests
                     o != null
                     && o.ToString() == "Unexpected error occurred when trying to match person."
                 ),
-                null,
+                Arg.Any<SanitizedException>(),
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }

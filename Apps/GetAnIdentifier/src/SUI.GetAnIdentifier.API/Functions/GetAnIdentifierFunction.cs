@@ -14,6 +14,7 @@ using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.API.OpenApi;
 using SUI.GetAnIdentifier.API.Utility;
 using SUI.GetAnIdentifier.Application.Constants;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 
@@ -188,7 +189,10 @@ public class GetAnIdentifierFunction(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // SANITIZATION: Exception object explicitly omitted to prevent leaking PII in ex.Message
-            logger.LogError("Unhandled exception during GetAnIdentifier execution");
+            logger.LogError(
+                ex.Sanitize("Unhandled execution error."),
+                "Unhandled exception during GetAnIdentifier execution."
+            );
             return await HttpResponseUtility.InternalServerErrorResponse(
                 req,
                 correlationId,
@@ -224,10 +228,12 @@ public class GetAnIdentifierFunction(
             model = request;
             return true;
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            // SANITIZATION: Exception object omitted because JsonException messages contain raw JSON snippets with PII
-            logger.LogError("Failed to parse Match request body.");
+            logger.LogWarning(
+                ex.Sanitize("Malformed JSON format in request body."),
+                "Failed to parse Match request body."
+            );
             return false;
         }
     }
