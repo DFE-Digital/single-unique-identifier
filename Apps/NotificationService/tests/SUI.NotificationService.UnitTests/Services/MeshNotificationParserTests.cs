@@ -1,5 +1,6 @@
 using Hl7.Fhir.Model;
 using SUI.NotificationService.Application.Services;
+using SUI.NotificationService.UnitTests.Fixtures;
 
 namespace SUI.NotificationService.UnitTests.Services;
 
@@ -12,7 +13,7 @@ public sealed class MeshNotificationParserTests
 
         Assert.True(parsed);
         Assert.NotNull(bundle);
-        Assert.Equal("d8f1a2b4-0c3d-4e5f-9a6b-7c8d9e0f1a2b", bundle.Id);
+        Assert.Equal(MeshNotificationFixtures.BundleId, bundle.Id);
         Assert.Equal(Bundle.BundleType.History, bundle.Type);
     }
 
@@ -80,63 +81,56 @@ public sealed class MeshNotificationParserTests
         Assert.Null(bundle);
     }
 
-    /// <summary>
-    /// A realistic pds-record-change-2 notification, matching
-    /// scripts/pds-record-change-2-notification.template.json with its placeholders filled in.
-    /// </summary>
-    private static string BuildNotification() =>
-        $$"""
-            {
-              "resourceType": "Bundle",
-              "id": "d8f1a2b4-0c3d-4e5f-9a6b-7c8d9e0f1a2b",
-              "type": "history",
-              "timestamp": "2026-09-22T09:15:00+00:00",
-              "entry": [
-                {
-                  "fullUrl": "urn:uuid:3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f",
-                  "resource": {
-                    "resourceType": "Parameters",
-                    "meta": {
-                      "profile": [
-                        "{{MeshNotificationParser.SubscriptionStatusProfile}}"
-                      ]
-                    },
-                    "id": "3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f",
-                    "parameter": [
-                      {
-                        "name": "subscription",
-                        "valueReference": { "reference": "Subscription/00000000-0000-0000-0000-000000000001" }
-                      },
-                      { "name": "status", "valueCode": "active" },
-                      { "name": "type", "valueCode": "event-notification" },
-                      {
-                        "name": "notification-event",
-                        "part": [
-                          { "name": "event-number", "valueString": "1" },
-                          { "name": "timestamp", "valueInstant": "2026-09-22T09:15:00+00:00" }
-                        ]
-                      },
-                      {
-                        "name": "additional-context",
-                        "part": [
-                          { "name": "event-type", "valueString": "pds-record-change-2" },
-                          { "name": "source", "valueUri": "https://fhir.nhs.uk/Id/nhsSpineASID/477121000324" },
-                          {
-                            "name": "subject",
-                            "valueReference": { "identifier": { "value": "9000000009" } }
-                          },
-                          { "name": "version-id", "valueString": "W/\"2\"" }
-                        ]
-                      }
-                    ]
-                  },
-                  "request": {
-                    "method": "GET",
-                    "url": "Subscription/00000000-0000-0000-0000-000000000001"
-                  },
-                  "response": { "status": "200" }
-                }
-              ]
-            }
-            """;
+    [Fact]
+    public void TryGetNhsNumber_ReturnsNhsNumber_WhenNotificationCarriesASubject()
+    {
+        var bundle = Parse(BuildNotification());
+
+        var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
+
+        Assert.True(found);
+        Assert.Equal(MeshNotificationFixtures.NhsNumber, nhsNumber);
+    }
+
+    [Fact]
+    public void TryGetNhsNumber_ReturnsFalse_WhenSubjectPartIsMissing()
+    {
+        var bundle = Parse(BuildNotification(nhsNumber: null));
+
+        var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
+
+        Assert.False(found);
+        Assert.Null(nhsNumber);
+    }
+
+    [Fact]
+    public void TryGetNhsNumber_ReturnsFalse_WhenSubjectIdentifierIsBlank()
+    {
+        // An empty identifier is not valid FHIR and never gets this far, so blank means whitespace.
+        var bundle = Parse(BuildNotification("   "));
+
+        var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
+
+        Assert.False(found);
+        Assert.Null(nhsNumber);
+    }
+
+    [Fact]
+    public void TryGetNhsNumber_ReturnsFalse_WhenBundleHasNoParametersEntry()
+    {
+        var found = MeshNotificationParser.TryGetNhsNumber(new Bundle(), out var nhsNumber);
+
+        Assert.False(found);
+        Assert.Null(nhsNumber);
+    }
+
+    private static Bundle Parse(string content)
+    {
+        Assert.True(MeshNotificationParser.TryParse(content, out var bundle));
+        return bundle!;
+    }
+
+    private static string BuildNotification(
+        string? nhsNumber = MeshNotificationFixtures.NhsNumber
+    ) => MeshNotificationFixtures.BuildNotification(nhsNumber);
 }

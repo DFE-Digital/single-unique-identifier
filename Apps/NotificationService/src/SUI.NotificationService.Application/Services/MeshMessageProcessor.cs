@@ -1,11 +1,14 @@
 using Microsoft.Extensions.Logging;
 using SUI.NotificationService.Application.Interfaces;
+using SUI.NotificationService.Application.Models;
 
 namespace SUI.NotificationService.Application.Services;
 
 public interface IMeshMessageProcessor
 {
-    Task ProcessMeshMessagesAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<PdsRecordChangeNotification>> ProcessMeshMessagesAsync(
+        CancellationToken cancellationToken
+    );
     Task AcknowledgeMessageAsync(string messageId, CancellationToken cancellationToken);
 }
 
@@ -15,10 +18,14 @@ public class MeshMessageProcessor(
 ) : IMeshMessageProcessor
 {
     /// <summary>
-    /// A single execution drains whatever is waiting in the MESH mailbox and then completes.
+    /// A single execution drains whatever is waiting in the MESH mailbox and then completes,
+    /// returning the record changes it understood so the caller can act on them. Messages that
+    /// could not be read or understood are left out and stay in the mailbox.
     /// </summary>
     /// <param name="cancellationToken"></param>
-    public async Task ProcessMeshMessagesAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PdsRecordChangeNotification>> ProcessMeshMessagesAsync(
+        CancellationToken cancellationToken
+    )
     {
         var messageIds = await meshInboxClient.GetMessageIdsAsync(cancellationToken);
 
@@ -27,13 +34,20 @@ public class MeshMessageProcessor(
             messageIds.Count
         );
 
+        var notifications = new List<PdsRecordChangeNotification>();
+
         foreach (var messageId in messageIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                await ProcessMessageAsync(messageId, cancellationToken);
+                var notification = await ProcessMessageAsync(messageId, cancellationToken);
+
+                if (notification is not null)
+                {
+                    notifications.Add(notification);
+                }
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
@@ -47,6 +61,8 @@ public class MeshMessageProcessor(
                 );
             }
         }
+
+        return notifications;
     }
 
     /// <summary>
@@ -60,7 +76,10 @@ public class MeshMessageProcessor(
         return meshInboxClient.AcknowledgeMessageAsync(messageId, cancellationToken);
     }
 
-    private async Task ProcessMessageAsync(string messageId, CancellationToken cancellationToken)
+    private async Task<PdsRecordChangeNotification?> ProcessMessageAsync(
+        string messageId,
+        CancellationToken cancellationToken
+    )
     {
         var message = await meshInboxClient.ReadMessageAsync(messageId, cancellationToken);
 
@@ -73,7 +92,18 @@ public class MeshMessageProcessor(
                 "MESH message {MessageId} could not be parsed and was left unacknowledged",
                 messageId
             );
-            return;
+            return null;
+        }
+
+        if (!MeshNotificationParser.TryGetNhsNumber(notification, out var nhsNumber))
+        {
+            // Without an NHS number there is nothing to distribute, so the message is left
+            // unacknowledged for the same reason as an unparseable one.
+            logger.LogError(
+                "MESH message {MessageId} carried no NHS number and was left unacknowledged",
+                messageId
+            );
+            return null;
         }
 
         logger.LogInformation(
@@ -81,5 +111,7 @@ public class MeshMessageProcessor(
             message.MessageId,
             notification.Id
         );
+
+        return new PdsRecordChangeNotification(message.MessageId, nhsNumber);
     }
 }

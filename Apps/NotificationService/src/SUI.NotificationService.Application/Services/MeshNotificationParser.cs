@@ -19,6 +19,9 @@ internal static class MeshNotificationParser
     internal const string SubscriptionStatusProfile =
         "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4";
 
+    private const string AdditionalContextParameter = "additional-context";
+    private const string SubjectPart = "subject";
+
     private static readonly JsonSerializerOptions FhirJsonOptions =
         new JsonSerializerOptions().ForFhir();
 
@@ -54,6 +57,35 @@ internal static class MeshNotificationParser
         }
 
         bundle = parsed;
+        return true;
+    }
+
+    /// <summary>
+    /// Reads the NHS number the notification is about: the <c>subject</c> part of the
+    /// <c>additional-context</c> parameter. Returns false when it is missing or blank, so the caller
+    /// can leave a notification it cannot act on unacknowledged.
+    /// </summary>
+    public static bool TryGetNhsNumber(Bundle bundle, [NotNullWhen(true)] out string? nhsNumber)
+    {
+        nhsNumber = null;
+
+        if (bundle.Entry.FirstOrDefault()?.Resource is not Parameters parameters)
+        {
+            return false;
+        }
+
+        var subject = parameters
+            .Parameter.FirstOrDefault(parameter => parameter.Name == AdditionalContextParameter)
+            ?.Part.FirstOrDefault(part => part.Name == SubjectPart);
+
+        var value = (subject?.Value as ResourceReference)?.Identifier?.Value;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        nhsNumber = value;
         return true;
     }
 
