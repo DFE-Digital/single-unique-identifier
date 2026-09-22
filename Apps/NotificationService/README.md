@@ -8,7 +8,7 @@ Each execution drains the NHS MESH mailbox: it reads every message waiting in th
 
 - `SUI.NotificationService` is the executable host and composition root. It configures the application and invokes one execution.
 - `SUI.NotificationService.Application` owns orchestration and the contracts used to coordinate the other modules.
-- `SUI.NotificationService.Mesh` is the boundary for receiving messages from an NHS MESH mailbox. It implements `IMeshMessageReceiver` over the MESH REST API and owns transport only - orchestration decides when messages are read and acknowledged.
+- `SUI.NotificationService.Mesh` is the boundary for receiving messages from an NHS MESH mailbox. It implements `IMeshInboxClient` over the MESH REST API and owns transport only - orchestration decides when messages are read and acknowledged.
 - `SUI.NotificationService.Webhooks` is the boundary for delivering notifications to suppliers.
 - `SUI.NotificationService.Infrastructure` is the boundary for shared technical concerns needed by the other modules.
 
