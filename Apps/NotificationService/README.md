@@ -2,7 +2,7 @@
 
 The Notification Service is a run-to-completion .NET application intended for scheduled execution. Each invocation creates an application scope, runs the notification orchestration once, and then exits.
 
-Each execution drains the NHS MESH mailbox: it reads every message waiting in the inbox, then acknowledges it. Every message is a [`pds-record-change-2` event](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event): a FHIR Bundle describing a change to a PDS record, such as a change of NHS number. Subscribing to those events is owned by another service; this one only receives what lands in the mailbox. Supplier webhook delivery is not yet implemented.
+Each execution drains the NHS MESH mailbox: it reads every message waiting in the inbox, parses the FHIR Bundle it carries, then acknowledges it. Every message is a [`pds-record-change-2` event](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event): a FHIR Bundle describing a change to a PDS record, such as a change of NHS number. Subscribing to those events is owned by another service; this one only receives what lands in the mailbox. Supplier webhook delivery is not yet implemented.
 
 ## Project boundaries
 
@@ -85,10 +85,29 @@ published by the NHS Multicast Notification Service (MNS). They arrive under the
 identifier `PDSRECORDCHANGE_2`, and each body is a FHIR Bundle (`type: history`) wrapping a
 `Parameters` resource that conforms to the R4 Subscriptions Backport `SubscriptionStatus` profile.
 
-This service does not yet interpret that payload: it reads the body as a string, logs it and
-acknowledges the message. It also does not filter on the workflow identifier, so the mailbox is
-assumed to carry these events only. Parsing the Bundle into a domain event belongs with the
-supplier webhook workstream.
+The MESH boundary returns each body as raw text; the application layer parses it into a typed
+`Hl7.Fhir.Model.Bundle` with the Firely FHIR SDK (`Hl7.Fhir.R4`) and checks it is the expected
+shape: a `history` Bundle whose first entry is a `Parameters` resource declaring the
+[R4 Subscriptions Backport `SubscriptionStatus` profile](http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4).
+Parsing is deliberately an application concern rather than a transport one, because what to do
+with an unusable payload is an acknowledgement decision.
+
+The payload carries an NHS number in its `additional-context.subject` part, so the body is never
+logged. A processed message is identified in the logs by its MESH message identifier, event type,
+event number and version identifier only. Turning the notification into a supplier broadcast
+belongs with the supplier webhook workstream.
+
+The service does not filter on the workflow identifier, so the mailbox is assumed to carry these
+events only.
+
+#### Messages that cannot be parsed
+
+A message whose body is not a valid pds-record-change-2 notification is logged and skipped:
+it is **not** acknowledged, and the rest of the mailbox is still drained. Leaving it unacknowledged
+means MESH redelivers it rather than the change event being silently dropped - the safer default
+while supplier delivery does not exist yet. The cost is that an unparseable message is re-read,
+re-logged and re-skipped on every scheduled run until someone intervenes, so a repeated
+`could not be parsed and was left unacknowledged` entry needs a human.
 
 To put a realistic event into the local MESH sandbox without running this application, use
 `scripts/send-mesh-test-message.ps1`, which posts the payload in

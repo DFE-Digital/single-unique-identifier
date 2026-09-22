@@ -10,12 +10,9 @@ namespace SUI.NotificationService.Application.Interfaces;
 public interface IMeshMessageReceiver
 {
     /// <summary>
-    /// Returns the number of messages currently waiting in the MESH mailbox.
-    /// </summary>
-    Task<int> GetMessageCountAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Returns the identifiers of the messages currently waiting in the MESH mailbox.
+    /// Returns the identifiers of every message currently waiting in the MESH mailbox, following
+    /// MESH's inbox paging so a mailbox holding more messages than fit in one response is reported
+    /// in full.
     /// </summary>
     Task<IReadOnlyList<string>> GetMessageIdsAsync(CancellationToken cancellationToken = default);
 
