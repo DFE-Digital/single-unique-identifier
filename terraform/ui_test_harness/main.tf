@@ -2,7 +2,7 @@ module "app" {
   source = "./app"
 
   # The Toggle Switch
-  count  = var.use_ui_test_harness ? 1 : 0
+  count = var.use_ui_test_harness ? 1 : 0
 
   # Passing all variables down
   subscription_prefix           = var.subscription_prefix

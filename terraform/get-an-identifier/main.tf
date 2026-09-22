@@ -113,10 +113,10 @@ resource "time_static" "get_an_id_api_key_expiry_base" {}
 # Accepted until Alpha while API key and auth decisions are still being worked through.
 #trivy:ignore:AZU-0017
 resource "azurerm_key_vault_secret" "get_an_id_api_key" {
-  name            = "get-an-id-api-key"
-  value           = random_password.get_an_id_api_key.result
-  key_vault_id    = module.key_vault.id
-  content_type    = "text/plain"
+  name         = "get-an-id-api-key"
+  value        = random_password.get_an_id_api_key.result
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
   expiration_date = timeadd(
     time_static.get_an_id_api_key_expiry_base.rfc3339,
     format("%dh", var.get_an_id_api_key_ttl_days * 24),
@@ -129,10 +129,10 @@ resource "azurerm_key_vault_secret" "get_an_id_api_key" {
 }
 
 resource "azurerm_key_vault_secret" "nhs_digital_private_key" {
-  name            = "nhs-digital-private-key"
-  value           = var.nhs_digital_private_key
-  key_vault_id    = module.key_vault.id
-  content_type    = "text/plain"
+  name         = "nhs-digital-private-key"
+  value        = var.nhs_digital_private_key
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
   depends_on = [
     module.rbac_assignments_terraform_operator,
     azurerm_key_vault_access_policy.terraform_operator
@@ -140,10 +140,10 @@ resource "azurerm_key_vault_secret" "nhs_digital_private_key" {
 }
 
 resource "azurerm_key_vault_secret" "nhs_digital_kid" {
-  name            = "nhs-digital-kid"
-  value           = var.nhs_digital_kid
-  key_vault_id    = module.key_vault.id
-  content_type    = "text/plain"
+  name         = "nhs-digital-kid"
+  value        = var.nhs_digital_kid
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
   depends_on = [
     module.rbac_assignments_terraform_operator,
     azurerm_key_vault_access_policy.terraform_operator
@@ -151,10 +151,10 @@ resource "azurerm_key_vault_secret" "nhs_digital_kid" {
 }
 
 resource "azurerm_key_vault_secret" "nhs_digital_client_id" {
-  name            = "nhs-digital-client-id"
-  value           = var.nhs_digital_client_id
-  key_vault_id    = module.key_vault.id
-  content_type    = "text/plain"
+  name         = "nhs-digital-client-id"
+  value        = var.nhs_digital_client_id
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
   depends_on = [
     module.rbac_assignments_terraform_operator,
     azurerm_key_vault_access_policy.terraform_operator
@@ -195,7 +195,7 @@ module "function_app" {
       NhsAuthConfig__NHS_DIGITAL_KID         = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_kid.name}/)"
       NhsAuthConfig__NHS_DIGITAL_CLIENT_ID   = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_client_id.name}/)"
     },
-    
+
     var.getanidentifier_app_settings,
 
     # AuthClientCredentials:

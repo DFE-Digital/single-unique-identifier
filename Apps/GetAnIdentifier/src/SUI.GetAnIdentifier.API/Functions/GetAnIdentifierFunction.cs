@@ -65,6 +65,12 @@ public class GetAnIdentifierFunction(
         Description = "Request was refused because it lacks valid authentication credentials"
     )]
     [OpenApiResponseWithBody(
+        HttpStatusCode.Forbidden,
+        "application/json",
+        typeof(Problem),
+        Description = "Request was refused because it lacks required scopes"
+    )]
+    [OpenApiResponseWithBody(
         HttpStatusCode.NotFound,
         "application/json",
         typeof(Problem),

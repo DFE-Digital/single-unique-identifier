@@ -40,5 +40,5 @@ module "web_app" {
     },
     var.app_settings,
   )
-  tags           = var.tags
+  tags = var.tags
 }

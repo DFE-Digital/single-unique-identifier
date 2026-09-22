@@ -28,15 +28,15 @@ data "terraform_remote_state" "core" {
 }
 
 module "web_app" {
-  count   = var.use_auth_emulator ? 1 : 0
+  count  = var.use_auth_emulator ? 1 : 0
   source = "../modules/linux_web_app"
 
   name                = local.web_app_name
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
-  
+
   # UPDATED: Use auxiliary plan if it exists, otherwise fall back to the shared plan
-  service_plan_id     = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id : data.terraform_remote_state.core.outputs.app_service_plan_id
+  service_plan_id = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id : data.terraform_remote_state.core.outputs.app_service_plan_id
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -61,19 +61,19 @@ module "web_app" {
     # AuthClientCredentials:
     {
       # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
-      AuthClientIdsJsonMap = sensitive(var.auth_client_ids_json_map),
+      AuthClientIdsJsonMap     = sensitive(var.auth_client_ids_json_map),
       AuthClientSecretsJsonMap = sensitive(var.auth_client_secrets_json_map),
     },
     {
       for clientId, newClientId in jsondecode(nonsensitive(coalesce(var.auth_client_ids_json_map, "{}"))) :
-        "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
+      "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
     },
     {
       for clientId, newClientSecret in jsondecode(nonsensitive(coalesce(var.auth_client_secrets_json_map, "{}"))) :
-        "AuthClientCredentials__${clientId}__NewClientSecret" => sensitive(newClientSecret)
+      "AuthClientCredentials__${clientId}__NewClientSecret" => sensitive(newClientSecret)
     },
   )
-  tags           = var.tags
+  tags = var.tags
 }
 
 moved {
