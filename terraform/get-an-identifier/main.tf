@@ -186,6 +186,8 @@ module "function_app" {
       AuthSettings__OidcDiscoveryUrl = var.auth_settings_oidc_discovery_url
       AuthSettings__AccessTokenUrl   = var.auth_settings_access_token_url
 
+      AuditStorage__ContainerName = "audit-logs"
+
       FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
       WEBSITE_RUN_FROM_PACKAGE = "1"
       OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
