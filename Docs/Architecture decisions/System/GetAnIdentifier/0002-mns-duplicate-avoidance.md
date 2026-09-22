@@ -49,7 +49,6 @@ Additionally, except for Option 4 - We could de-duplicate at the point of forwar
 ### Option 1: Get all subscriptions and traverse the list to look for an existing NHS number.
 
 - **Positive:** Requires no additional infrastructure or database management as we can query all our subscriptions from the NHS MNS endpoint to look for existing subscriptions.
-- **Negative:** We would need to use the pagination as our subscription count will go well beyond the 500 subscription limit per page.
 - **Negative:** Could have concurrency issues if two requests come in at near enough the same time and both see no existing subscriptions.
 - **Negative:** Possibly a heavy operation for NHS depending on whether they cache or not.
 - **Negative:** Could hit rate limits if we need to get the list on every request.
