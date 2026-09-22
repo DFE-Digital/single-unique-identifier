@@ -15,6 +15,26 @@ public class FhirServiceTests : BaseFhirClientTests
     }
 
     [Fact]
+    public async Task ShouldBubbleUpCancellation_WhenCallerCancelsFhirSearch()
+    {
+        // Arrange
+        var searchQuery = new SearchQuery();
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync(); // Token is cancelled natively by caller
+
+        var testFhirClient = new TestFhirClientTimeout(); // Throws TaskCanceledException
+        FhirClientFactoryMock
+            .CreateFhirClientAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(testFhirClient);
+
+        // Act & Assert
+        // Proves the TaskCanceledException bypasses the timeout catch block because the token was legitimately cancelled
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _fhirService.PerformSearchAsync(searchQuery, ct: cts.Token)
+        );
+    }
+
+    [Fact]
     public async Task ShouldReturnError_IfFhirClientHasError()
     {
         // Arrange
@@ -32,6 +52,7 @@ public class FhirServiceTests : BaseFhirClientTests
         Assert.Null(result.Value);
 
         // Verify Logging sanitization - ensures ex.Message (which might contain raw request PII URIs) is NOT templated
+        // PROOF: Ex parameter is asserting 'null' instead of 'Arg.Any<Exception>()'
         LoggerMock
             .Received(1)
             .Log(
@@ -40,7 +61,7 @@ public class FhirServiceTests : BaseFhirClientTests
                 Arg.Is<object>(o =>
                     o != null && o.ToString() == "Error occurred while performing FHIR search"
                 ),
-                Arg.Any<Exception>(),
+                null,
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }
@@ -63,6 +84,7 @@ public class FhirServiceTests : BaseFhirClientTests
         Assert.Contains("PDS API Error", result.Error);
 
         // Verify Logging sanitization - ensures raw OperationOutcome Diagnostics are NOT templated
+        // PROOF: Ex parameter is asserting 'null' instead of 'Arg.Any<Exception>()'
         LoggerMock
             .Received(1)
             .Log(
@@ -73,7 +95,7 @@ public class FhirServiceTests : BaseFhirClientTests
                     && o.ToString()
                         == "PDS API returned an OperationOutcome error. Status: BadRequest, Issues: Severity: Error, Code: Value"
                 ),
-                Arg.Any<Exception>(),
+                null,
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }
@@ -83,17 +105,29 @@ public class FhirServiceTests : BaseFhirClientTests
     {
         // Arrange
         var searchQuery = new SearchQuery();
+        using var cts = new CancellationTokenSource(); // Token is NOT cancelled, so it treats it as a timeout
 
         // Act
         var testFhirClient = new TestFhirClientTimeout(); // Assumes this mocks a TaskCanceledException throw
         FhirClientFactoryMock
             .CreateFhirClientAsync(Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(testFhirClient);
-        var result = await _fhirService.PerformSearchAsync(searchQuery, ct: CancellationToken.None);
+        var result = await _fhirService.PerformSearchAsync(searchQuery, ct: cts.Token);
 
         // Assert
         Assert.False(result.Success);
         Assert.Equal("PDS API Timeout", result.Error);
+
+        // Verify Logging explicitly does not contain an exception object
+        LoggerMock
+            .Received(1)
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Is<object>(o => o != null && o.ToString() == "Request to PDS API timed out."),
+                null,
+                Arg.Any<Func<object, Exception?, string>>()
+            );
     }
 
     [Fact]

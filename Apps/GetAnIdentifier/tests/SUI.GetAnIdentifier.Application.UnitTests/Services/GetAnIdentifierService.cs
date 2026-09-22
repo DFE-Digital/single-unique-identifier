@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using OneOf.Types;
 using SUI.GetAnIdentifier.Application.Enum;
 using SUI.GetAnIdentifier.Application.Interfaces;
@@ -19,6 +20,29 @@ public class MatchPersonAsyncTests
     {
         _logger = Substitute.For<ILogger<GetAnIdentifierService>>();
         _sut = new GetAnIdentifierService(_logger, _fhirService);
+    }
+
+    [Fact]
+    public async Task ShouldBubbleUpCancellation_WhenCallerCancelsServiceRequest()
+    {
+        // Arrange
+        var personSpecification = new PersonSpecification { Given = "John", Family = "Doe" };
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync(); // Simulate caller hanging up
+
+        _fhirService
+            .PerformSearchAsync(
+                Arg.Any<SearchQuery>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
+            .ThrowsAsync(new OperationCanceledException(cts.Token));
+
+        // Act & Assert
+        // Proves that it throws instead of being caught by the generic Exception handler
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _sut.MatchPersonAsync(personSpecification, ct: cts.Token)
+        );
     }
 
     [Fact]
@@ -251,6 +275,7 @@ public class MatchPersonAsyncTests
         Assert.IsType<Error>(result.Value);
 
         // Verify Logging sanitization - ensures raw exception message is NOT templated
+        // PROOF: The exception parameter is now asserting 'null' instead of 'expectedException'
         _logger
             .Received(1)
             .Log(
@@ -260,7 +285,7 @@ public class MatchPersonAsyncTests
                     o != null
                     && o.ToString() == "Unexpected error occurred when trying to match person."
                 ),
-                expectedException,
+                null,
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }

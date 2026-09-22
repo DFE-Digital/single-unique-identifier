@@ -184,9 +184,11 @@ public class GetAnIdentifierFunction(
                     )
             );
         }
-        catch (Exception ex)
+        // Allows cancellation to bypass generic exceptions and bubble up to Azure Functions Host layer
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError(ex, "Unhandled exception during GetAnIdentifier execution");
+            // SANITIZATION: Exception object explicitly omitted to prevent leaking PII in ex.Message
+            logger.LogError("Unhandled exception during GetAnIdentifier execution");
             return await HttpResponseUtility.InternalServerErrorResponse(
                 req,
                 correlationId,
@@ -222,10 +224,10 @@ public class GetAnIdentifierFunction(
             model = request;
             return true;
         }
-        catch (JsonException ex)
+        catch (JsonException)
         {
-            // SANITIZATION: Omitted {ExMessage} because JsonException messages contain raw JSON snippets with PII
-            logger.LogError(ex, "Failed to parse Match request body.");
+            // SANITIZATION: Exception object omitted because JsonException messages contain raw JSON snippets with PII
+            logger.LogError("Failed to parse Match request body.");
             return false;
         }
     }

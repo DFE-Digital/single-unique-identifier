@@ -82,10 +82,10 @@ public class GetAnIdentifierService(
             // 6. Return the NHS Number and registered GP practice ODS code
             return new GetAnIdentifierResult(nhsPersonId.Value, result.Value.GeneralPractitioner);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // SANITIZATION: ex.Message removed from the log template to prevent validation PII leakage
-            logger.LogError(ex, "Unexpected error occurred when trying to match person.");
+            // SANITIZATION: Exception object omitted to prevent validation or demographic leakage in ex.Message
+            logger.LogError("Unexpected error occurred when trying to match person.");
             return new Error();
         }
     }
