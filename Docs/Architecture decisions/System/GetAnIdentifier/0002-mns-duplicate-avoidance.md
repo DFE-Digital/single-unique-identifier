@@ -73,7 +73,7 @@ Additionally, except for Option 4 - We could de-duplicate at the point of forwar
 
 - **Positive:** Let duplicates happen, no additional logic or MNS calls for de-duplication.
 - **Negative:** We could end up with many notifications for the same person at the same time due to duplicates.
-- **Negative:** Makes more subscriptions than needed.
+- **Negative:** Makes more subscriptions than needed and list would grow over time without any limit.
 
 ## Advice
 
