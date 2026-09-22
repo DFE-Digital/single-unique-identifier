@@ -2,8 +2,9 @@
     .DESCRIPTION
     Sends a realistic "pds-record-change-2" MNS (Multicast Notification Service) event notification
     into a local MESH mailbox (see mesh-sandbox: https://github.com/NHSDigital/mesh-sandbox), without
-    needing to run the GetAnIdentifier app. Mirrors TestMeshSendMessageFunction and NhsMeshAuthHandler
-    in src/SUI.GetAnIdentifier.API, computing the NHSMESH authorization header the same way.
+    needing to run the NotificationService app. Mirrors NhsMeshAuthHandler in
+    Apps/NotificationService/src/SUI.NotificationService.Mesh, computing the NHSMESH authorization
+    header the same way.
 
     The payload is a FHIR Bundle (type: history) wrapping a Parameters resource conforming to the
     R4 Subscriptions Backport "SubscriptionStatus" profile that NHS Digital publishes for this event.
