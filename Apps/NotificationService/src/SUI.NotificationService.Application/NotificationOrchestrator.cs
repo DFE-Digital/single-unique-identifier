@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Application.Services;
 
 namespace SUI.NotificationService.Application;

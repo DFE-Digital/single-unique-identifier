@@ -5,4 +5,4 @@ namespace SUI.NotificationService.Application.Models;
 /// </summary>
 /// <param name="MessageId">MESH message identifier used to acknowledge the message once it has been processed.</param>
 /// <param name="Content">The raw message body exactly as it was delivered to the mailbox: a FHIR Bundle.</param>
-public sealed record MeshMailboxMessage(string MessageId, string Content); // TODO: USe the FHIR sdk and get the Bundle type for content
+public sealed record MeshMailboxMessage(string MessageId, string Content);
