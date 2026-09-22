@@ -1,6 +1,5 @@
 ﻿using System.IO.Abstractions;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.Extensions;
 using SUI.AuthEmulator.Services;
@@ -14,15 +13,12 @@ public class MockAuthStoreServiceTests
     private readonly IConfiguration _mockConfiguration = Substitute.For<IConfiguration>();
     private readonly MockAuthStoreService _sut;
     private readonly string _realStoreFilePath;
-    private readonly ILogger<MockAuthStoreService> _mockLogger = Substitute.For<
-        ILogger<MockAuthStoreService>
-    >();
 
     public MockAuthStoreServiceTests()
     {
         _mockConfiguration.ReturnsForAll((string?)null);
 
-        _sut = new MockAuthStoreService(_mockFileSystem, _mockConfiguration, _mockLogger);
+        _sut = new MockAuthStoreService(_mockFileSystem, _mockConfiguration);
         _realStoreFilePath = Path.Join(
             AppContext.BaseDirectory,
             "Data",
