@@ -7,6 +7,8 @@
     <Project Path="src\SUI.NotificationService.Webhooks\SUI.NotificationService.Webhooks.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests\SUI.NotificationService.Webhooks.UnitTests\SUI.NotificationService.Webhooks.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="tests\SUI.NotificationService.Application.UnitTests\SUI.NotificationService.Application.UnitTests.csproj" Type="Classic C#" />
     <Project Path="tests\SUI.NotificationService.Infrastructure.IntegrationTests\SUI.NotificationService.Infrastructure.IntegrationTests.csproj" Type="Classic C#" />
     <Project Path="tests\SUI.NotificationService.Infrastructure.UnitTests\SUI.NotificationService.Infrastructure.UnitTests.csproj" Type="Classic C#" />
     <Project Path="tests\SUI.NotificationService.UnitTests\SUI.NotificationService.UnitTests.csproj" Type="Classic C#" />
