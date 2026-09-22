@@ -11,7 +11,7 @@ namespace SUI.NotificationService.Mesh;
 /// Reads messages from an NHS MESH mailbox over the MESH REST API.
 /// </summary>
 internal sealed class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshConfig> meshConfig)
-    : IMeshMessageReceiver
+    : IMeshInboxClient
 {
     public const string HttpClientName = "nhs-mesh-api";
 
