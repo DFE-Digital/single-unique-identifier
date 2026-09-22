@@ -27,8 +27,7 @@ internal sealed class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshCon
     )
     {
         // MESH caps each inbox response at 500 message ids, so a single request only describes part
-        // of a busy mailbox. The dedicated /count endpoint that used to report the true total is
-        // deprecated - MESH's documented poll cycle is to read the inbox and keep following
+        // of a busy mailbox. MESH's documented poll cycle is to read the inbox and keep following
         // "links.next" until no further page is offered.
         var messageIds = new List<string>();
         var requestUri = $"/messageexchange/{_mailboxId}/inbox";
@@ -42,7 +41,9 @@ internal sealed class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshCon
             }
 
             messageIds.AddRange(inbox.Messages);
-            requestUri = ResolveNextPageUri(inbox.Links?.Next);
+
+            var next = inbox.Links?.Next;
+            requestUri = string.IsNullOrWhiteSpace(next) ? null : next;
         }
 
         return messageIds;
@@ -98,52 +99,9 @@ internal sealed class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshCon
         return await response.Content.ReadFromJsonAsync<MeshInboxResponse>(cancellationToken);
     }
 
-    /// <summary>
-    /// Turns the "links.next" value MESH returns into the next request URI, or null when the inbox
-    /// has no further pages. MESH documents this as a relative link; anything pointing at another
-    /// host is rejected rather than followed, so a bad link can never redirect mailbox credentials
-    /// somewhere else.
-    /// </summary>
-    private string? ResolveNextPageUri(string? next)
-    {
-        if (string.IsNullOrWhiteSpace(next))
-        {
-            return null;
-        }
-
-        if (!Uri.TryCreate(next, UriKind.RelativeOrAbsolute, out var nextUri))
-        {
-            throw new InvalidOperationException(
-                $"MESH returned an inbox paging link that is not a valid URI: '{next}'."
-            );
-        }
-
-        if (!nextUri.IsAbsoluteUri)
-        {
-            return next;
-        }
-
-        var isSameHost =
-            httpClient.BaseAddress is not null
-            && Uri.Compare(
-                nextUri,
-                httpClient.BaseAddress,
-                UriComponents.SchemeAndServer,
-                UriFormat.UriEscaped,
-                StringComparison.OrdinalIgnoreCase
-            ) == 0;
-
-        if (!isSameHost)
-        {
-            throw new InvalidOperationException(
-                "MESH returned an inbox paging link pointing at a different host; refusing to follow it."
-            );
-        }
-
-        return nextUri.PathAndQuery;
-    }
-
     private sealed record MeshInboxResponse(string[]? Messages, MeshInboxLinks? Links);
 
+    // For the Links.Next, see Response section in
+    // https://digital.nhs.uk/developer/api-catalogue/message-exchange-for-social-care-and-health-api#get-/messageexchange/-mailbox_id-/inbox
     private sealed record MeshInboxLinks(string? Next);
 }
