@@ -2,7 +2,9 @@
 
 The Notification Service is a run-to-completion .NET application intended for scheduled execution. Each invocation creates an application scope, runs the notification orchestration once, and then exits.
 
-Each execution drains the NHS MESH mailbox: it reads every message waiting in the inbox, parses the FHIR Bundle it carries, then acknowledges it. Every message is a [`pds-record-change-2` event](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event): a FHIR Bundle describing a change to a PDS record, such as a change of NHS number. Subscribing to those events is owned by another service; this one only receives what lands in the mailbox. Supplier webhook delivery is not yet implemented.
+Each execution reads every message waiting in the NHS MESH mailbox and parses the FHIR Bundle it carries. Every message is a [`pds-record-change-2` event](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event): a FHIR Bundle describing a change to a PDS record, such as a change of NHS number. Subscribing to those events is owned by another service; this one only receives what lands in the mailbox.
+
+A message is to be acknowledged - and so removed from the mailbox - only once the change has been successfully delivered to suppliers by webhook. Supplier webhook delivery is not yet implemented, so at present no message is acknowledged and every message stays in the mailbox to be read again on the next run.
 
 ## Project boundaries
 
@@ -14,21 +16,45 @@ Each execution drains the NHS MESH mailbox: it reads every message waiting in th
 
 The Webhooks project currently exposes a dependency-injection registration point without concrete services. Its implementation will be added by its owning workstream.
 
-This process is not a poller. It reads whatever is waiting, acknowledges it and exits; the schedule that starts the process owns how often that happens.
+This process is not a poller. It reads whatever is waiting, processes it and exits; the schedule that starts the process owns how often that happens.
 
 ## Prerequisites
 
 - .NET SDK 10.0.102 or later, as configured in the repository's `global.json`.
+- Docker or Podman (or another container runtime), to run the local [NHS MESH sandbox](https://github.com/NHSDigital/mesh-sandbox) that stands in for a real MESH mailbox during local development.
+
+## Local MESH sandbox
+
+Local development and CI never connect to a live MESH environment. Instead they use `mesh_sandbox`, a
+local container built from NHS Digital's [mesh-sandbox](https://github.com/NHSDigital/mesh-sandbox)
+(pinned to `v1.0.114` in the repository's `compose.yaml`) that simulates the MESH API. Start it from
+the repository root before running the application:
+
+```bash
+docker compose up -d mesh_sandbox
+```
+
+The sandbox listens on `https://localhost:8700` with a self-signed certificate and uses the shared
+key `TestKey`, which matches `appsettings.Development.json`. It exposes a `/health` endpoint used by
+the container health check:
+
+```bash
+curl -k https://localhost:8700/health
+```
+
+The sandbox stores messages in memory by default, so they are lost when the container restarts. To
+keep them across restarts, uncomment `STORE_MODE=file` in `compose.yaml`.
 
 ## Run one execution locally
 
-From the repository root, run:
+With the [local MESH sandbox](#local-mesh-sandbox) running, from the repository root run:
 
 ```bash
 dotnet run --project Apps/NotificationService/src/SUI.NotificationService/SUI.NotificationService.csproj
 ```
 
-The scaffold logs the start and completion of the execution, then exits with code `0`.
+The launch profile sets `DOTNET_ENVIRONMENT=Development`, which is what points the application at
+the sandbox. The scaffold logs the start and completion of the execution, then exits with code `0`.
 
 ## Local configuration
 
@@ -72,17 +98,17 @@ Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig`
 | `SharedKey` | Shared key used to HMAC that header. |
 
 All four are required and validated at startup, so a missing or malformed value fails the run
-immediately rather than at the first request. `appsettings.Development.json` points at the local
-MESH sandbox in `compose.yaml`, whose self-signed certificate is trusted only in the `Development`
-environment.
+immediately rather than at the first request. `appsettings.Development.json` points at the
+[local MESH sandbox](#local-mesh-sandbox), whose self-signed certificate is trusted only in the
+`Development` environment.
 
 Do not commit secrets to the configuration files. Supply sensitive local values through environment variables or an approved secret-management mechanism when later workstreams introduce them.
 
 ### Message payloads
 
 The mailbox receives [`pds-record-change-2` events](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event)
-published by the NHS Multicast Notification Service (MNS). They arrive under the MESH workflow
-identifier `PDSRECORDCHANGE_2`, and each body is a FHIR Bundle (`type: history`) wrapping a
+published by the NHS Multicast Notification Service (MNS). The MESH workflow identifier they arrive
+under is **TBA** - it is not yet known. Each body is a FHIR Bundle (`type: history`) wrapping a
 `Parameters` resource that conforms to the R4 Subscriptions Backport `SubscriptionStatus` profile.
 
 The MESH boundary returns each body as raw text; the application layer parses it into a typed
@@ -102,20 +128,23 @@ events only.
 
 #### Messages that cannot be parsed
 
-A message whose body is not a valid pds-record-change-2 notification is logged and skipped:
-it is **not** acknowledged, and the rest of the mailbox is still drained. Leaving it unacknowledged
-means MESH redelivers it rather than the change event being silently dropped - the safer default
-while supplier delivery does not exist yet. The cost is that an unparseable message is re-read,
-re-logged and re-skipped on every scheduled run until someone intervenes, so a repeated
-`could not be parsed and was left unacknowledged` entry needs a human.
+A message whose body is not a valid pds-record-change-2 notification is logged and skipped,
+and the rest of the mailbox is still read. It will **not** be acknowledged even once supplier
+webhook delivery exists, so MESH redelivers it rather than the change event being silently
+dropped. The cost is that an unparseable message is re-read, re-logged and re-skipped on every
+scheduled run until someone intervenes, so a repeated `could not be parsed and was left
+unacknowledged` entry needs a human.
 
-To put a realistic event into the local MESH sandbox without running this application, use
-`scripts/send-mesh-test-message.ps1`, which posts the payload in
+To put a realistic event into the [local MESH sandbox](#local-mesh-sandbox) without running this
+application, use `scripts/send-mesh-test-message.ps1`, which posts the payload in
 `scripts/pds-record-change-2-notification.template.json`:
 
 ```bash
 dotnet pwsh ./scripts/send-mesh-test-message.ps1
 ```
+
+The script's default workflow identifier, `PDSRECORDCHANGE_2`, is a placeholder while the real one
+is TBA; override it with `-WorkflowId` if needed.
 
 ## Exit codes
 
