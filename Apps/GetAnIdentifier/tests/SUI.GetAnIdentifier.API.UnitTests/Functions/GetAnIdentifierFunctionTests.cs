@@ -71,15 +71,6 @@ public class GetAnIdentifierFunctionTests
                 Family = "Doe",
                 BirthDate = DateOnly.Parse("1990-01-01"),
             },
-            Metadata =
-            [
-                new GetAnIdentifierRequestMetadata
-                {
-                    RecordType = "Test RecordType",
-                    SystemId = "Test System",
-                    RecordId = "9999999999",
-                },
-            ],
         };
 
     [Fact]
