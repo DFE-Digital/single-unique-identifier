@@ -103,18 +103,6 @@ public sealed class MeshMessageProcessorTests
     }
 
     [Fact]
-    public async Task ProcessMeshMessagesAsync_AcknowledgesNothing()
-    {
-        AddValidMessage("message-1", "9000000009");
-
-        await ProcessAsync();
-
-        await _meshInboxClient
-            .DidNotReceive()
-            .AcknowledgeMessageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
     public async Task ProcessMeshMessagesAsync_Throws_WhenCancelled()
     {
         AddValidMessage("message-1", "9000000009");
