@@ -131,20 +131,6 @@ public class GetAnIdentifierFunction(
             );
         }
 
-        if (
-            requestModel.Metadata != null
-            && requestModel.Metadata.Any(k => string.IsNullOrWhiteSpace(k.RecordType))
-        )
-        {
-            return await HttpResponseUtility.BadRequestResponse(
-                req,
-                correlationId,
-                "RecordType is mandatory for all Metadata entries.",
-                "Validation error",
-                cancellationToken
-            );
-        }
-
         try
         {
             var personMatch = await getAnIdentifierService.MatchPersonAsync(

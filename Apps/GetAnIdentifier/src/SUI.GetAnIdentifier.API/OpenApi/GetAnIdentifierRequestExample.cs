@@ -30,15 +30,6 @@ public class GetAnIdentifierRequestExample : OpenApiExample<GetAnIdentifierReque
                         Gender = PdsConstants.Gender.Female,
                         AddressPostalCode = "KT19 0ST",
                     },
-                    Metadata =
-                    [
-                        new GetAnIdentifierRequestMetadata
-                        {
-                            RecordType = "health.details",
-                            SystemId = "SYS-XYZ",
-                            RecordId = "987123",
-                        },
-                    ],
                 },
                 namingStrategy
             )

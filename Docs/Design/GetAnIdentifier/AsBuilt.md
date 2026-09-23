@@ -62,12 +62,6 @@ The application reads NHS OAuth and PDS configuration through `NhsAuthConfig`. T
 
 The runtime-generated API description is available from `/api/openapi/v3.json`, with Swagger UI at `/api/swagger/ui`. It does not currently declare the bearer-token and API-key security requirements, even though the operation enforces both at runtime.
 
-## Request metadata
-
-The request contract currently accepts optional metadata containing `RecordType`, `SystemId` and `RecordId`. `RecordType` is validated when metadata is supplied, but the metadata is not passed to the matching service, persisted or used in the PDS request.
-
-Metadata-driven identifier/custodian association and lifecycle behaviour is therefore **not implemented**. The metadata fields should not be interpreted as proof that those wider behaviours exist.
-
 ## Proposed functionality not in the current service
 
 The following capabilities appear in discovery documents or draft ADRs but are not implemented by Get an Identifier:
