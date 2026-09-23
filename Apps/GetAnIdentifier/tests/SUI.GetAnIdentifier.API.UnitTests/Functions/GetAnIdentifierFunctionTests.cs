@@ -12,12 +12,13 @@ using SUI.GetAnIdentifier.API.Functions;
 using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.API.UnitTests.Mocks;
 using SUI.GetAnIdentifier.Application.Enum;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 
-namespace SUI.GetAnIdentifier.API.UnitTests.FunctionTests;
+namespace SUI.GetAnIdentifier.API.UnitTests.Functions;
 
-public class GetAnIdentifierTests
+public class GetAnIdentifierFunctionTests
 {
     private const string TestApiKey = "test-api-key";
     private readonly ILogger<GetAnIdentifierFunction> _logger = Substitute.For<
@@ -27,7 +28,7 @@ public class GetAnIdentifierTests
         Substitute.For<IGetAnIdentifierService>();
     private readonly IOptions<GetAnIdentifierConfiguration> _matchFunctionConfig;
 
-    public GetAnIdentifierTests()
+    public GetAnIdentifierFunctionTests()
     {
         _matchFunctionConfig = Substitute.For<IOptions<GetAnIdentifierConfiguration>>();
         _matchFunctionConfig.Value.Returns(
@@ -80,6 +81,46 @@ public class GetAnIdentifierTests
                 },
             ],
         };
+
+    [Fact]
+    public async Task ShouldBubbleUpCancellation_WhenCallerCancelsRequest()
+    {
+        // Arrange
+        var function = CreateFunction();
+        var context = CreateContextWithAuth();
+        var req = MockHttpRequestData.CreateJson(
+            CreateMatchRequest(),
+            headers: CreateHeadersWithApiKey()
+        );
+
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync(); // Simulate caller hanging up
+
+        _getAnIdentifierService
+            .MatchPersonAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
+            .ThrowsAsync(new OperationCanceledException(cts.Token));
+
+        // Act & Assert
+        // Proves that it throws instead of being caught and returning 500/502
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            function.GetAnIdentifier(req, context, cts.Token)
+        );
+
+        // Proves no error log was written because it successfully bypassed the catch blocks
+        _logger
+            .DidNotReceive()
+            .Log(
+                LogLevel.Error,
+                Arg.Any<EventId>(),
+                Arg.Any<object>(),
+                Arg.Any<Exception>(),
+                Arg.Any<Func<object, Exception?, string>>()
+            );
+    }
 
     [Fact]
     public async Task ShouldReturnOk_WithSuid_WhenMatchIsSuccessful()
@@ -207,9 +248,11 @@ public class GetAnIdentifierTests
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o != null
-                    && o.ToString() == "Unhandled exception during GetAnIdentifier execution"
+                    && o.ToString() == "Unhandled exception during GetAnIdentifier execution."
                 ),
-                expectedException,
+                Arg.Is<Exception>(e =>
+                    e is SanitizedException && !e.Message.Contains(expectedException.Message)
+                ),
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }
@@ -356,16 +399,16 @@ public class GetAnIdentifierTests
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-        // Verify Logging sanitization - ensures raw JsonException message (which includes JSON body snippets) is NOT templated
+        // Verify Logging sanitization - ensures raw JsonException (which includes JSON body snippets in its message) is NOT templated
         logger
             .Received(1)
             .Log(
-                LogLevel.Error,
+                LogLevel.Warning,
                 Arg.Any<EventId>(),
                 Arg.Is<object>(o =>
                     o != null && o.ToString() == "Failed to parse Match request body."
                 ),
-                Arg.Any<JsonException>(),
+                Arg.Is<Exception>(e => e is SanitizedException),
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }

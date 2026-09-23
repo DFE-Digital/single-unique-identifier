@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using OneOf.Types;
 using SUI.GetAnIdentifier.Application.Enum;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
@@ -9,16 +11,39 @@ using SUI.GetAnIdentifier.Application.Services;
 
 namespace SUI.GetAnIdentifier.Application.UnitTests.Services;
 
-public class MatchPersonAsyncTests
+public class GetAnIdentifierServiceTests
 {
     private readonly ILogger<GetAnIdentifierService> _logger;
     private readonly GetAnIdentifierService _sut;
     private readonly IFhirService _fhirService = Substitute.For<IFhirService>();
 
-    public MatchPersonAsyncTests()
+    public GetAnIdentifierServiceTests()
     {
         _logger = Substitute.For<ILogger<GetAnIdentifierService>>();
         _sut = new GetAnIdentifierService(_logger, _fhirService);
+    }
+
+    [Fact]
+    public async Task ShouldBubbleUpCancellation_WhenCallerCancelsServiceRequest()
+    {
+        // Arrange
+        var personSpecification = new PersonSpecification { Given = "John", Family = "Doe" };
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync(); // Simulate caller hanging up
+
+        _fhirService
+            .PerformSearchAsync(
+                Arg.Any<SearchQuery>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            )
+            .ThrowsAsync(new OperationCanceledException(cts.Token));
+
+        // Act & Assert
+        // Proves that it throws instead of being caught by the generic Exception handler
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _sut.MatchPersonAsync(personSpecification, ct: cts.Token)
+        );
     }
 
     [Fact]
@@ -260,7 +285,7 @@ public class MatchPersonAsyncTests
                     o != null
                     && o.ToString() == "Unexpected error occurred when trying to match person."
                 ),
-                expectedException,
+                Arg.Any<SanitizedException>(),
                 Arg.Any<Func<object, Exception?, string>>()
             );
     }

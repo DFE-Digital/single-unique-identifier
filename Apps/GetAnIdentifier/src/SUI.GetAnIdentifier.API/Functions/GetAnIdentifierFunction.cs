@@ -14,6 +14,7 @@ using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.API.OpenApi;
 using SUI.GetAnIdentifier.API.Utility;
 using SUI.GetAnIdentifier.Application.Constants;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 
@@ -25,7 +26,7 @@ public class GetAnIdentifierFunction(
     IOptions<GetAnIdentifierConfiguration> matchFunctionConfig
 )
 {
-    [Function(nameof(GetAnIdentifier))]
+    [Function(nameof(GetAnIdentifierFunction))]
     [RequiredScopes("get-an-identifier.read")]
     // Updated Summary
     [OpenApiOperation(
@@ -184,9 +185,14 @@ public class GetAnIdentifierFunction(
                     )
             );
         }
-        catch (Exception ex)
+        // Allows cancellation to bypass generic exceptions and bubble up to Azure Functions Host layer
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError(ex, "Unhandled exception during GetAnIdentifier execution");
+            // SANITIZATION: Exception object explicitly omitted to prevent leaking PII in ex.Message
+            logger.LogError(
+                ex.Sanitize("Unhandled execution error."),
+                "Unhandled exception during GetAnIdentifier execution."
+            );
             return await HttpResponseUtility.InternalServerErrorResponse(
                 req,
                 correlationId,
@@ -224,8 +230,10 @@ public class GetAnIdentifierFunction(
         }
         catch (JsonException ex)
         {
-            // SANITIZATION: Omitted {ExMessage} because JsonException messages contain raw JSON snippets with PII
-            logger.LogError(ex, "Failed to parse Match request body.");
+            logger.LogWarning(
+                ex.Sanitize("Malformed JSON format in request body."),
+                "Failed to parse Match request body."
+            );
             return false;
         }
     }

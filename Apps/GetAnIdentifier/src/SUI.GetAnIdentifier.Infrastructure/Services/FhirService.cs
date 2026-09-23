@@ -1,6 +1,7 @@
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Rest;
 using Microsoft.Extensions.Logging;
+using SUI.GetAnIdentifier.Application.Exceptions;
 using SUI.GetAnIdentifier.Application.Interfaces;
 using SUI.GetAnIdentifier.Application.Models;
 using SUI.GetAnIdentifier.Application.Models.Fhir;
@@ -60,14 +61,14 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
             // Handle NHS Digital Non-Success Responses (e.g. 400, 500)
             if (ex.Outcome != null && ex.Outcome.Issue.Count != 0)
             {
-                // SANITIZATION: Explicitly omitting i.Diagnostics to prevent demographic/NHS number leakage
+                // SANITIZATION: Explicitly omitting i.Diagnostics and ex object (which contains request URIs with PII in ex.Message)
                 var issues = string.Join(
                     " | ",
                     ex.Outcome.Issue.Select(i => $"Severity: {i.Severity}, Code: {i.Code}")
                 );
 
                 logger.LogError(
-                    ex,
+                    ex.Sanitize("PDS API returned an OperationOutcome error."),
                     "PDS API returned an OperationOutcome error. Status: {StatusCode}, Issues: {Issues}",
                     ex.Status,
                     issues
@@ -76,7 +77,7 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
             else
             {
                 logger.LogError(
-                    ex,
+                    ex.Sanitize("PDS API returned a non-success response."),
                     "PDS API returned a non-success response. Status: {StatusCode}",
                     ex.Status
                 );
@@ -84,22 +85,24 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
 
             return Result<SearchResult>.Fail($"PDS API Error: {ex.Status}");
         }
-        catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
+        catch (TaskCanceledException) when (!ct.IsCancellationRequested)
         {
             // Handle Downstream Timeouts
-            logger.LogError(ex, "Request to PDS API timed out.");
+            logger.LogError("Request to PDS API timed out.");
             return Result<SearchResult>.Fail("PDS API Timeout");
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
             // Handle DNS/Network level failures
-            logger.LogError(ex, "Network error while connecting to PDS API.");
+            logger.LogError("Network error while connecting to PDS API.");
             return Result<SearchResult>.Fail("PDS API Network Error");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // SANITIZATION: Omitting ex.Message as it may contain PII in raw query parameters
-            logger.LogError(ex, "Error occurred while performing FHIR search");
+            logger.LogError(
+                ex.Sanitize("Unhandled exception during FHIR search."),
+                "Error occurred while performing FHIR search"
+            );
             return Result<SearchResult>.Fail("Unexpected PDS Search Error");
         }
     }
