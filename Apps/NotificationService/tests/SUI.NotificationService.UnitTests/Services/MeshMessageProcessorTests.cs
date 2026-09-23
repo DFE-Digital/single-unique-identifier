@@ -10,13 +10,12 @@ namespace SUI.NotificationService.UnitTests.Services;
 
 public sealed class MeshMessageProcessorTests
 {
-    private readonly IMeshInboxClient _meshInboxClient = Substitute.For<IMeshInboxClient>();
+    private readonly List<string> _messageIds = [];
+    private readonly IMeshInboxClient _meshInboxClient = CreateMeshInboxClient();
 
     [Fact]
     public async Task ProcessMeshMessagesAsync_ReturnsEmpty_WhenMailboxIsEmpty()
     {
-        GivenMailbox();
-
         var notifications = await ProcessAsync();
 
         Assert.Empty(notifications);
@@ -25,7 +24,7 @@ public sealed class MeshMessageProcessorTests
     [Fact]
     public async Task ProcessMeshMessagesAsync_ReturnsMessageIdAndNhsNumber_ForEveryMessageRead()
     {
-        GivenMailbox(("message-1", "9000000009"), ("message-2", "9000000017"));
+        AddValidMessages(("message-1", "9000000009"), ("message-2", "9000000017"));
 
         var notifications = await ProcessAsync();
 
@@ -41,9 +40,8 @@ public sealed class MeshMessageProcessorTests
     [Fact]
     public async Task ProcessMeshMessagesAsync_LeavesOutUnparseableMessages()
     {
-        GivenMailbox(("message-1", "9000000009"));
-        GivenMessage("message-unparseable", "not a FHIR Bundle");
-        GivenMessageIds("message-unparseable", "message-1");
+        AddValidMessage("message-1", "9000000009");
+        AddUnparseableMessage("message-unparseable");
 
         var notifications = await ProcessAsync();
 
@@ -53,12 +51,8 @@ public sealed class MeshMessageProcessorTests
     [Fact]
     public async Task ProcessMeshMessagesAsync_LeavesOutMessagesCarryingNoNhsNumber()
     {
-        GivenMailbox(("message-1", "9000000009"));
-        GivenMessage(
-            "message-no-nhs-number",
-            MeshNotificationFixtures.BuildNotification(nhsNumber: null)
-        );
-        GivenMessageIds("message-no-nhs-number", "message-1");
+        AddValidMessage("message-1", "9000000009");
+        AddValidMessage("message-no-nhs-number");
 
         var notifications = await ProcessAsync();
 
@@ -68,11 +62,8 @@ public sealed class MeshMessageProcessorTests
     [Fact]
     public async Task ProcessMeshMessagesAsync_KeepsReadingTheMailbox_WhenAMessageCannotBeRead()
     {
-        GivenMailbox(("message-1", "9000000009"));
-        _meshInboxClient
-            .ReadMessageAsync("message-unreadable", Arg.Any<CancellationToken>())
-            .ThrowsAsync(new HttpRequestException("MESH read failed"));
-        GivenMessageIds("message-unreadable", "message-1");
+        AddValidMessage("message-1", "9000000009");
+        AddUnreadableMessage("message-unreadable", new HttpRequestException("MESH read failed"));
 
         var notifications = await ProcessAsync();
 
@@ -80,9 +71,41 @@ public sealed class MeshMessageProcessorTests
     }
 
     [Fact]
+    public async Task ProcessMeshMessagesAsync_KeepsReadingTheMailbox_WhenAMessageReadTimesOut()
+    {
+        // Simulates HttpClient's own request timeout, which throws TaskCanceledException - an
+        // OperationCanceledException unrelated to this execution's cancellation token.
+        AddValidMessage("message-1", "9000000009");
+        AddUnreadableMessage("message-timeout", new TaskCanceledException("The request timed out"));
+
+        var notifications = await ProcessAsync();
+
+        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+    }
+
+    [Fact]
+    public async Task ProcessMeshMessagesAsync_PropagatesCancellation_WhenTheCallersTokenIsCancelled()
+    {
+        AddValidMessage("message-1", "9000000009");
+        using var cancellation = new CancellationTokenSource();
+        _meshInboxClient
+            .ReadMessageAsync("message-cancelled", Arg.Any<CancellationToken>())
+            .Returns<MeshMailboxMessage>(_ =>
+            {
+                cancellation.Cancel();
+                throw new OperationCanceledException(cancellation.Token);
+            });
+        TrackMessageId("message-cancelled");
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            CreateProcessor().ProcessMeshMessagesAsync(cancellation.Token)
+        );
+    }
+
+    [Fact]
     public async Task ProcessMeshMessagesAsync_AcknowledgesNothing()
     {
-        GivenMailbox(("message-1", "9000000009"));
+        AddValidMessage("message-1", "9000000009");
 
         await ProcessAsync();
 
@@ -94,7 +117,7 @@ public sealed class MeshMessageProcessorTests
     [Fact]
     public async Task ProcessMeshMessagesAsync_Throws_WhenCancelled()
     {
-        GivenMailbox(("message-1", "9000000009"));
+        AddValidMessage("message-1", "9000000009");
         using var cancellation = new CancellationTokenSource();
         await cancellation.CancelAsync();
 
@@ -119,23 +142,48 @@ public sealed class MeshMessageProcessorTests
     private MeshMessageProcessor CreateProcessor() =>
         new(NullLogger<MeshMessageProcessor>.Instance, _meshInboxClient);
 
-    private void GivenMailbox(params (string MessageId, string NhsNumber)[] messages)
+    private static IMeshInboxClient CreateMeshInboxClient()
+    {
+        var client = Substitute.For<IMeshInboxClient>();
+        client.GetMessageIdsAsync(Arg.Any<CancellationToken>()).Returns([]);
+        return client;
+    }
+
+    private void AddValidMessages(params (string MessageId, string? NhsNumber)[] messages)
     {
         foreach (var (messageId, nhsNumber) in messages)
         {
-            GivenMessage(messageId, MeshNotificationFixtures.BuildNotification(nhsNumber));
+            AddValidMessage(messageId, nhsNumber);
         }
-
-        GivenMessageIds(messages.Select(message => message.MessageId).ToArray());
     }
 
-    private void GivenMessage(string messageId, string content) =>
+    private void AddValidMessage(string messageId, string? nhsNumber = null) =>
+        AddMessage(messageId, MeshNotificationFixtures.BuildNotification(nhsNumber));
+
+    private void AddUnparseableMessage(string messageId, string content = "not a FHIR Bundle") =>
+        AddMessage(messageId, content);
+
+    private void AddUnreadableMessage(string messageId, Exception exception)
+    {
+        _meshInboxClient
+            .ReadMessageAsync(messageId, Arg.Any<CancellationToken>())
+            .ThrowsAsync(exception);
+        TrackMessageId(messageId);
+    }
+
+    private void AddMessage(string messageId, string content)
+    {
         _meshInboxClient
             .ReadMessageAsync(messageId, Arg.Any<CancellationToken>())
             .Returns(new MeshMailboxMessage(messageId, content));
+        TrackMessageId(messageId);
+    }
 
-    private void GivenMessageIds(params string[] messageIds) =>
-        _meshInboxClient
-            .GetMessageIdsAsync(Arg.Any<CancellationToken>())
-            .Returns(messageIds.ToList());
+    // Re-stubs GetMessageIdsAsync with the running set, so adding a message is enough on its own -
+    // callers never need a separate GetMessageIdsAsync setup call.
+    private void TrackMessageId(string messageId)
+    {
+        _messageIds.Add(messageId);
+        _meshInboxClient.GetMessageIdsAsync(Arg.Any<CancellationToken>()).Returns([.. _messageIds]);
+    }
 }
