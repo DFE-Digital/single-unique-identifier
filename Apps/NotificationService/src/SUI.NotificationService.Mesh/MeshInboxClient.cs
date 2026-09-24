@@ -69,7 +69,7 @@ public class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshConfig> mesh
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(messageId);
 
-        var response = await httpClient.GetAsync(
+        using var response = await httpClient.GetAsync(
             $"/messageexchange/{_mailboxId}/inbox/{messageId}",
             cancellationToken
         );
@@ -94,7 +94,7 @@ public class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshConfig> mesh
             $"/messageexchange/{_mailboxId}/inbox/{messageId}/status/acknowledged"
         );
 
-        var response = await httpClient.SendAsync(request, cancellationToken);
+        using var response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 
@@ -106,7 +106,7 @@ public class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshConfig> mesh
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(MeshV2MediaType));
 
-        var response = await httpClient.SendAsync(request, cancellationToken);
+        using var response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<MeshInboxResponse>(cancellationToken);

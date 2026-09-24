@@ -33,4 +33,18 @@ internal sealed class StubHttpMessageHandler : HttpMessageHandler
         Requests.Add(request);
         return Task.FromResult(_responses.Dequeue());
     }
+
+    // Dequeued responses belong to the caller; only those a test queued but never consumed are ours.
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            while (_responses.TryDequeue(out var response))
+            {
+                response.Dispose();
+            }
+        }
+
+        base.Dispose(disposing);
+    }
 }
