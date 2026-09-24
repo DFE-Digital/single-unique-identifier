@@ -96,7 +96,7 @@ Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig`
 | `MailboxId` | The mailbox to read from. |
 | `MailboxPassword` | Mailbox password used to build the `NHSMESH` authorisation header. |
 | `SharedKey` | Shared key used to HMAC that header. |
-| `AcceptLocalDevCert` | Optional, default `false`. Accepts the local sandbox's self-signed certificate. |
+| `AcceptLocalDevCert` | Optional, default `false`. Accepts the local sandbox's self-signed certificate. Startup fails if this is `true` and `MailboxBaseUrl` is not a loopback address. |
 
 All four are required and validated at startup, so a missing or malformed value fails the run
 immediately rather than at the first request. `appsettings.Development.json` points at the
