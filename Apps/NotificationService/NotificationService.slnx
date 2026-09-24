@@ -11,6 +11,7 @@
     <Project Path="tests\SUI.NotificationService.Application.UnitTests\SUI.NotificationService.Application.UnitTests.csproj" Type="Classic C#" />
     <Project Path="tests\SUI.NotificationService.Infrastructure.IntegrationTests\SUI.NotificationService.Infrastructure.IntegrationTests.csproj" Type="Classic C#" />
     <Project Path="tests\SUI.NotificationService.Infrastructure.UnitTests\SUI.NotificationService.Infrastructure.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="tests\SUI.NotificationService.Mesh.UnitTests\SUI.NotificationService.Mesh.UnitTests.csproj" Type="Classic C#" />
     <Project Path="tests\SUI.NotificationService.UnitTests\SUI.NotificationService.UnitTests.csproj" Type="Classic C#" />
   </Folder>
 </Solution>
