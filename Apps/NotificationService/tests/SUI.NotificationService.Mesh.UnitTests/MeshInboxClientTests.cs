@@ -4,12 +4,21 @@ using SUI.NotificationService.Mesh.Configuration;
 
 namespace SUI.NotificationService.Mesh.UnitTests;
 
-public sealed class MeshInboxClientTests
+public sealed class MeshInboxClientTests : IDisposable
 {
     private const string MailboxId = "X26ABC1";
     private const string InboxUri = $"/messageexchange/{MailboxId}/inbox";
 
     private readonly StubHttpMessageHandler _handler = new();
+    private readonly HttpClient _httpClient;
+
+    public MeshInboxClientTests()
+    {
+        _httpClient = new HttpClient(_handler) { BaseAddress = new Uri("https://localhost:8700") };
+    }
+
+    // Disposing the HttpClient also disposes the handler it owns.
+    public void Dispose() => _httpClient.Dispose();
 
     [Fact]
     public async Task GetMessageIdsAsync_RequestsTheV2InboxRepresentation()
@@ -115,7 +124,7 @@ public sealed class MeshInboxClientTests
 
     private MeshInboxClient CreateClient() =>
         new(
-            new HttpClient(_handler) { BaseAddress = new Uri("https://localhost:8700") },
+            _httpClient,
             Options.Create(
                 new NhsMeshConfig
                 {
