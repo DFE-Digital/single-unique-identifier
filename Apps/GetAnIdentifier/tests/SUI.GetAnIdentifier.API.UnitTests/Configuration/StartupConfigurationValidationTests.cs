@@ -8,7 +8,7 @@ namespace SUI.GetAnIdentifier.API.UnitTests.Configuration;
 
 public class StartupConfigurationValidationTests
 {
-    private static IServiceProvider BuildServiceProviderWithConfig(
+    private static ServiceProvider BuildServiceProviderWithConfig(
         Dictionary<string, string?> inMemorySettings
     )
     {
