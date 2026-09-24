@@ -17,7 +17,7 @@ internal static class MeshNotificationParser
     /// <see cref="Parameters"/> resource it wraps.
     /// </summary>
     internal const string SubscriptionStatusProfile =
-        "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4";
+        "https://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4";
 
     private const string AdditionalContextParameter = "additional-context";
     private const string SubjectPart = "subject";

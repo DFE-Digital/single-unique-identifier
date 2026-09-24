@@ -114,7 +114,7 @@ under is **TBA** - it is not yet known. Each body is a FHIR Bundle (`type: histo
 The MESH boundary returns each body as raw text; the application layer parses it into a typed
 `Hl7.Fhir.Model.Bundle` with the Firely FHIR SDK (`Hl7.Fhir.R4`) and checks it is the expected
 shape: a `history` Bundle whose first entry is a `Parameters` resource declaring the
-[R4 Subscriptions Backport `SubscriptionStatus` profile](http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4).
+[R4 Subscriptions Backport `SubscriptionStatus` profile](https://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4).
 Parsing is deliberately an application concern rather than a transport one, because what to do
 with an unusable payload is an acknowledgement decision.
 
