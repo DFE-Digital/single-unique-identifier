@@ -38,7 +38,7 @@ These have been confirmed with NHS and are fixed constraints on any option we ch
 ## Options considered
 
 1. Get all subscriptions and traverse the list to look for an existing NHS number.
-2. Do nothing for subscribing, then have a async task to remove duplicates AFTER subscribing.
+2. Create a subscription for each NHS number requested, then have a regular background task to clean up duplicates 
 3. Hold subscription IDs against a keyed HMAC-SHA256 of the NHS number.
 4. Do nothing.
 
