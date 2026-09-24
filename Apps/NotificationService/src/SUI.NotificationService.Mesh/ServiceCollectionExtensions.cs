@@ -14,13 +14,9 @@ public static class ServiceCollectionExtensions
     /// authentication and mailbox reading. Orchestration decides when messages are read; this
     /// boundary only owns the transport.
     /// </summary>
-    public static IServiceCollection AddMeshIntegration(
-        this IServiceCollection services,
-        IHostEnvironment environment
-    )
+    public static IServiceCollection AddMeshIntegration(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(environment);
 
         services
             .AddOptions<NhsMeshConfig>()
@@ -43,7 +39,12 @@ public static class ServiceCollectionExtensions
             )
             .AddHttpMessageHandler<NhsMeshAuthHandler>();
 
-        if (environment.IsDevelopment())
+        // Get the NhsMeshConfig from the service provider to check if we are in development environment
+        var serviceProvider = services.BuildServiceProvider();
+        var config = serviceProvider.GetRequiredService<IOptions<NhsMeshConfig>>().Value;
+        var acceptLocalDevCert = config.AcceptLocalDevCert;
+
+        if (acceptLocalDevCert)
         {
             // The local MESH sandbox (see compose.yaml) presents a self-signed certificate.
             meshHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(() =>
