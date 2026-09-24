@@ -22,11 +22,15 @@ public static class ServiceCollectionExtensions
             .AddOptions<NhsMeshConfig>()
             .BindConfiguration(NhsMeshConfig.SectionName)
             .ValidateDataAnnotations()
+            .Validate(
+                static config => !config.AcceptLocalDevCert || IsLoopback(config.MailboxBaseUrl),
+                $"{nameof(NhsMeshConfig.AcceptLocalDevCert)} is only permitted against a loopback MESH sandbox."
+            )
             .ValidateOnStart();
 
         services.AddTransient<NhsMeshAuthHandler>();
 
-        var meshHttpClientBuilder = services
+        services
             .AddHttpClient<IMeshInboxClient, MeshInboxClient>(
                 MeshInboxClient.HttpClientName,
                 static (serviceProvider, client) =>
@@ -37,25 +41,39 @@ public static class ServiceCollectionExtensions
                     client.BaseAddress = new Uri(config.MailboxBaseUrl);
                 }
             )
-            .AddHttpMessageHandler<NhsMeshAuthHandler>();
-
-        // Get the NhsMeshConfig from the service provider to check if we are in development environment
-        var serviceProvider = services.BuildServiceProvider();
-        var config = serviceProvider.GetRequiredService<IOptions<NhsMeshConfig>>().Value;
-        var acceptLocalDevCert = config.AcceptLocalDevCert;
-
-        if (acceptLocalDevCert)
-        {
-            // The local MESH sandbox (see compose.yaml) presents a self-signed certificate.
-            meshHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(() =>
-                new HttpClientHandler
+            .AddHttpMessageHandler<NhsMeshAuthHandler>()
+            .ConfigurePrimaryHttpMessageHandler(
+                static (handler, serviceProvider) =>
                 {
-                    ServerCertificateCustomValidationCallback =
-                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+                    var config = serviceProvider
+                        .GetRequiredService<IOptions<NhsMeshConfig>>()
+                        .Value;
+
+                    if (config.AcceptLocalDevCert)
+                    {
+                        if (handler is not SocketsHttpHandler socketsHandler)
+                        {
+                            throw new InvalidOperationException(
+                                $"Expected {nameof(SocketsHttpHandler)} as the MESH primary handler but got {handler.GetType().Name}."
+                            );
+                        }
+
+                        // The local MESH sandbox (see compose.yaml) presents a self-signed certificate.
+                        // Options validation restricts this to a loopback MailboxBaseUrl, so real MESH
+                        // traffic always has its server certificate verified.
+                        socketsHandler.SslOptions.RemoteCertificateValidationCallback = static (
+                            _,
+                            _,
+                            _,
+                            _
+                        ) => true;
+                    }
                 }
             );
-        }
 
         return services;
     }
+
+    private static bool IsLoopback(string mailboxBaseUrl) =>
+        Uri.TryCreate(mailboxBaseUrl, UriKind.Absolute, out var uri) && uri.IsLoopback;
 }

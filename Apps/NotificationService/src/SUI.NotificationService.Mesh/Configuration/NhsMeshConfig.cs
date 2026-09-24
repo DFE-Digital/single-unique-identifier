@@ -21,7 +21,8 @@ public class NhsMeshConfig
 
     /// <summary>
     /// Accepts the self-signed certificate presented by the local MESH sandbox.
-    /// This MUST be false when not in CI or local development
+    /// This MUST be false when not in CI or local development; validation rejects it unless
+    /// <see cref="MailboxBaseUrl"/> is a loopback address.
     /// </summary>
     public bool AcceptLocalDevCert { get; init; } = false;
 }
