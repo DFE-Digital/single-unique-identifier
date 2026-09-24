@@ -19,7 +19,7 @@ internal static class NotificationServiceHost
         var builder = Host.CreateApplicationBuilder(settings);
 
         builder.Services.AddNotificationServiceApplication();
-        builder.Services.AddMeshIntegration(builder.Environment);
+        builder.Services.AddMeshIntegration();
         builder.Services.AddSupplierWebhookDelivery(builder.Configuration);
         builder.Services.AddNotificationServiceInfrastructure(builder.Configuration);
 

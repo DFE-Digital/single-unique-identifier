@@ -52,10 +52,35 @@ public sealed class MeshNotificationParserTests
     }
 
     [Fact]
-    public void TryParse_ReturnsFalse_WhenFirstEntryIsNotASubscriptionStatus()
+    public void TryParse_ReturnsBundle_RegardlessOfDeclaredProfile()
     {
-        var content = BuildNotification()
-            .Replace(MeshNotificationParser.SubscriptionStatusProfile, "http://example.org/other");
+        var content = BuildNotification().Replace("http://hl7.org/", "https://hl7.org/");
+
+        var parsed = MeshNotificationParser.TryParse(content, out var bundle);
+
+        Assert.True(parsed);
+        Assert.NotNull(bundle);
+    }
+
+    [Fact]
+    public void TryParse_ReturnsFalse_WhenFirstEntryIsNotParameters()
+    {
+        var content = """
+            {
+              "resourceType": "Bundle",
+              "id": "d8f1a2b4-0c3d-4e5f-9a6b-7c8d9e0f1a2b",
+              "type": "history",
+              "timestamp": "2026-09-22T09:15:00+00:00",
+              "entry": [
+                {
+                  "fullUrl": "urn:uuid:3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f",
+                  "resource": { "resourceType": "Basic", "id": "3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f" },
+                  "request": { "method": "GET", "url": "Basic/3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f" },
+                  "response": { "status": "200" }
+                }
+              ]
+            }
+            """;
 
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
 
