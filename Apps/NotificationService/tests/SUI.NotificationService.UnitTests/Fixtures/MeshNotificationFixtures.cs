@@ -1,5 +1,3 @@
-using SUI.NotificationService.Application.Services;
-
 namespace SUI.NotificationService.UnitTests.Fixtures;
 
 /// <summary>
@@ -39,7 +37,7 @@ internal static class MeshNotificationFixtures
                     "resourceType": "Parameters",
                     "meta": {
                       "profile": [
-                        "{{MeshNotificationParser.SubscriptionStatusProfile}}"
+                        "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4"
                       ]
                     },
                     "id": "3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f",
