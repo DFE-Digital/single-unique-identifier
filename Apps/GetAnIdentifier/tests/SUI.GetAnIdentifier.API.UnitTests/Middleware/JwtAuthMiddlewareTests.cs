@@ -46,8 +46,10 @@ public class JwtAuthMiddlewareTests
         _genuineRsa = RSA.Create(2048);
         _authSettings = new AuthSettings
         {
-            Issuer = "https://sandbox.api.example.gov.uk/find-a-record/auth",
-            Audience = "sui-find-a-record-api",
+            Issuer = "https://sandbox.api.example.gov.uk/sui-get-an-identifier/auth",
+            Audience = "sui-get-an-identifier-api",
+            AccessTokenUrl = "https://localhost:7250/api/v1/auth/token",
+            OidcDiscoveryUrl = "https://localhost:7250/api/v1/.well-known/openid-configuration",
             UseAuthStoreForAuthorisation = false, // Explicitly set for mocked AuthContextFactory predictability
         };
         _mockOptions.Value.Returns(_authSettings);

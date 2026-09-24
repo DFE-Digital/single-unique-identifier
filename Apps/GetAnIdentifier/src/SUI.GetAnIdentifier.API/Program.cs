@@ -18,19 +18,24 @@ using SUI.GetAnIdentifier.Infrastructure.Services;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
-builder.Services.Configure<AuthTokenServiceConfig>(
-    builder.Configuration.GetSection(AuthTokenServiceConfig.SectionName)
-);
+// Strongly Typed Configuration Validation on Startup
+builder
+    .Services.AddOptions<AuthTokenServiceConfig>()
+    .BindConfiguration(AuthTokenServiceConfig.SectionName)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
-// Bind AuthSettings to configuration
-builder.Services.Configure<AuthSettings>(
-    builder.Configuration.GetSection(AuthSettings.SectionName)
-);
+builder
+    .Services.AddOptions<AuthSettings>()
+    .BindConfiguration(AuthSettings.SectionName)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 builder
     .Services.AddOptions<GetAnIdentifierConfiguration>()
     .BindConfiguration(GetAnIdentifierConfiguration.SectionName)
-    .ValidateDataAnnotations();
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // Register OpenID Connect ConfigurationManager as a Singleton to cache public keys across function invocations
 builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(sp =>
@@ -72,29 +77,31 @@ builder.Services.AddSingleton(x =>
     return new BlobContainerClient(connectionString, containerName);
 });
 
-// Infrastructure services
+// Infrastructure & Middleware services
 builder.Services.AddSingleton<IFhirClientFactory, FhirClientFactory>();
 builder.Services.AddSingleton<IFhirService, FhirService>();
 builder.Services.AddSingleton<IFhirAuthTokenService, FhirAuthTokenService>();
 builder.Services.AddSingleton<IAuditService, AuditService>();
-
-// Middleware services
 builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();
 
 // Application services
 builder.Services.AddSingleton<IGetAnIdentifierService, GetAnIdentifierService>();
 
-// Use mock services for all environments for now while in prototype
+// Mock services for all environments for now while in prototype
 builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
 
+// Middleware pipeline
 builder.UseMiddleware<AuditMiddleware>();
 builder.UseMiddleware<JwtAuthMiddleware>();
 
+// HTTP Clients
 builder.Services.AddHttpClient(
     "nhs-auth-api",
-    client =>
+    (sp, client) =>
     {
-        client.BaseAddress = new Uri(builder.Configuration["NhsAuthConfig:NHS_DIGITAL_TOKEN_URL"]!);
+        // Using the strongly-typed, validated configuration
+        var config = sp.GetRequiredService<IOptions<AuthTokenServiceConfig>>().Value;
+        client.BaseAddress = new Uri(config.NHS_DIGITAL_TOKEN_URL!);
     }
 );
 

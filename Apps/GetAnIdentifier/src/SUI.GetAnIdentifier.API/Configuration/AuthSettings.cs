@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SUI.GetAnIdentifier.API.Configuration;
 
 public class AuthSettings
@@ -7,12 +9,18 @@ public class AuthSettings
     public bool UseAuthStoreForAuthorisation { get; set; }
 
     // OIDC Discovery configuration properties
-    public string Issuer { get; set; } =
-        "https://sandbox.api.example.gov.uk/sui-find-a-record/auth";
-    public string Audience { get; set; } = "sui-find-a-record-api";
-    public string OidcDiscoveryUrl { get; set; } =
-        "https://localhost:7250/api/v1/.well-known/openid-configuration";
+    [Required(ErrorMessage = "OIDC Issuer is required")]
+    public required string Issuer { get; set; }
+
+    [Required(ErrorMessage = "OIDC Audience is required")]
+    public required string Audience { get; set; }
+
+    [Required(ErrorMessage = "OIDC Discovery URL is required")]
+    [Url(ErrorMessage = "OIDC Discovery URL must be a valid URL")]
+    public required string OidcDiscoveryUrl { get; set; }
 
     // The AccessTokenUrl is specifically needed for the OpenAPI spec generation.
-    public string AccessTokenUrl { get; set; } = "https://localhost:7250/api/v1/auth/token";
+    [Required(ErrorMessage = "Access Token URL is required for OpenAPI generation")]
+    [Url(ErrorMessage = "Access Token URL must be a valid URL")]
+    public required string AccessTokenUrl { get; set; }
 }
