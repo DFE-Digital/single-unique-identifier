@@ -18,4 +18,10 @@ public class NhsMeshConfig
 
     [Required]
     public required string MailboxPassword { get; set; }
+
+    /// <summary>
+    /// Accepts the self-signed certificate presented by the local MESH sandbox.
+    /// This MUST be false when not in CI or local development
+    /// </summary>
+    public bool AcceptLocalDevCert { get; init; } = false;
 }

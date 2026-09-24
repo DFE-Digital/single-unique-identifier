@@ -96,6 +96,7 @@ Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig`
 | `MailboxId` | The mailbox to read from. |
 | `MailboxPassword` | Mailbox password used to build the `NHSMESH` authorisation header. |
 | `SharedKey` | Shared key used to HMAC that header. |
+| `AcceptLocalDevCert` | Optional, default `false`. Accepts the local sandbox's self-signed certificate. |
 
 All four are required and validated at startup, so a missing or malformed value fails the run
 immediately rather than at the first request. `appsettings.Development.json` points at the
@@ -113,9 +114,10 @@ under is **TBA** - it is not yet known. Each body is a FHIR Bundle (`type: histo
 
 The MESH boundary returns each body as raw text; the application layer parses it into a typed
 `Hl7.Fhir.Model.Bundle` with the Firely FHIR SDK (`Hl7.Fhir.R4`) and checks it is the expected
-shape: a `history` Bundle whose first entry is a `Parameters` resource declaring the
-[R4 Subscriptions Backport `SubscriptionStatus` profile](https://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4).
-Parsing is deliberately an application concern rather than a transport one, because what to do
+shape: a `history` Bundle whose first entry is a `Parameters` resource. The declared `meta.profile`
+is deliberately not checked: every Subscriptions Backport notification declares the same profile, so
+it cannot tell a pds-record-change-2 event from any other, and an exact match on it only adds a way
+to reject valid messages. Parsing is deliberately an application concern rather than a transport one, because what to do
 with an unusable payload is an acknowledgement decision.
 
 The payload carries an NHS number in its `additional-context.subject` part, so the body is never
