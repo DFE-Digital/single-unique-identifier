@@ -6,7 +6,7 @@ using SUI.NotificationService.Application.Models;
 using SUI.NotificationService.Application.Services;
 using SUI.NotificationService.UnitTests.Fixtures;
 
-namespace SUI.NotificationService.UnitTests.Services;
+namespace SUI.NotificationService.Application.UnitTests.Services;
 
 public sealed class MeshMessageProcessorTests
 {
