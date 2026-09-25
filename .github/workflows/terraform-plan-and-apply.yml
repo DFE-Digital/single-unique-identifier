@@ -18,6 +18,20 @@ on:
         description: Optional override for backend state key
         required: false
         type: string
+      terraform_variables:
+        description: JSON object of additional non-sensitive Terraform variables
+        required: false
+        type: string
+        default: "{}"
+      terraform_output_names:
+        description: JSON array of non-sensitive string outputs to return to the caller
+        required: false
+        type: string
+        default: "[]"
+    outputs:
+      terraform_outputs:
+        description: JSON object containing the requested non-sensitive Terraform outputs
+        value: ${{ jobs.terraform.outputs.terraform_outputs }}
     secrets:
       AZURE_CLIENT_ID:
         required: true
@@ -64,6 +78,8 @@ jobs:
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     environment: ${{ inputs.environment }}
+    outputs:
+      terraform_outputs: ${{ steps.terraform_outputs.outputs.values }}
     env:
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
       ARM_USE_OIDC: true
@@ -112,6 +128,20 @@ jobs:
         uses: ./.github/actions/load-tfvars
         with:
           environment: ${{ env.TARGET_ENVIRONMENT }}
+
+      - name: Set additional Terraform variables
+        env:
+          TERRAFORM_VARIABLES: ${{ inputs.terraform_variables }}
+        run: |
+          echo "$TERRAFORM_VARIABLES" | jq -e '
+            type == "object"
+            and all(
+              to_entries[];
+              (.key | test("^[A-Za-z_][A-Za-z0-9_]*$"))
+              and (.value | type == "string" and test("^[^\\r\\n]*$"))
+            )
+          ' >/dev/null
+          echo "$TERRAFORM_VARIABLES" | jq -r 'to_entries[] | "TF_VAR_\(.key)=\(.value)"' >> "$GITHUB_ENV"
 
       - name: Terraform init backend (${{ steps.env_config.outputs.state_rg }})
         env:
@@ -181,6 +211,27 @@ jobs:
       - name: Terraform apply ${{ inputs.root }} (tfplan)
         if: inputs.apply == true
         run: terraform -chdir=${{ inputs.root }} apply -input=false tfplan
+
+      - name: Capture Terraform outputs
+        id: terraform_outputs
+        if: always()
+        env:
+          TF_ROOT: ${{ inputs.root }}
+          TERRAFORM_OUTPUT_NAMES: ${{ inputs.terraform_output_names }}
+        run: |
+          echo "$TERRAFORM_OUTPUT_NAMES" | jq -e 'type == "array" and all(.[]; type == "string")' >/dev/null
+
+          values='{}'
+          while IFS= read -r output_name; do
+            value=$(terraform -chdir="$TF_ROOT" output -raw "$output_name")
+            values=$(jq -cn \
+              --argjson current "$values" \
+              --arg name "$output_name" \
+              --arg value "$value" \
+              '$current + {($name): $value}')
+          done < <(echo "$TERRAFORM_OUTPUT_NAMES" | jq -r '.[]')
+
+          echo "values=$values" >> "$GITHUB_OUTPUT"
 
       - name: Write workflow summary
         if: always()
