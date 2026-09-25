@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -28,7 +29,19 @@ public class StartupConfigurationValidationTests
             .Bind(configuration.GetSection(AuthTokenServiceConfig.SectionName))
             .ValidateDataAnnotations();
 
+        services.AddSingleton<
+            IValidateOptions<AuthTokenServiceConfig>,
+            AuthTokenServiceConfigValidator
+        >();
+
         return services.BuildServiceProvider();
+    }
+
+    // Helper to generate a valid RSA private key dynamically for the tests
+    private static string GenerateValidRsaPem()
+    {
+        using var rsa = RSA.Create();
+        return rsa.ExportRSAPrivateKeyPem();
     }
 
     [Fact]
@@ -148,7 +161,10 @@ public class StartupConfigurationValidationTests
             // AuthTokenServiceConfig
             { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_CLIENT_ID", "client-123" },
             { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_KID", "kid-123" },
-            { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_PRIVATE_KEY", "secret" },
+            {
+                $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_PRIVATE_KEY",
+                GenerateValidRsaPem()
+            },
             {
                 $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_FHIR_ENDPOINT",
                 "https://valid.com/fhir"
@@ -199,5 +215,79 @@ public class StartupConfigurationValidationTests
         );
 
         Assert.Contains("OIDC Issuer must be an absolute HTTPS URI", exception.Message);
+    }
+
+    [Fact]
+    public void AuthTokenServiceConfig_ThrowsValidationException_WhenPrivateKeyIsMalformed()
+    {
+        // Arrange
+        var settings = new Dictionary<string, string?>
+        {
+            { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_CLIENT_ID", "client-id" },
+            { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_KID", "kid" },
+            // Pass a malformed string instead of a valid PEM
+            { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_PRIVATE_KEY", "not-a-valid-pem" },
+            {
+                $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_FHIR_ENDPOINT",
+                "https://valid.com/"
+            },
+            {
+                $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_TOKEN_URL",
+                "https://valid.com/token"
+            },
+            {
+                $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES",
+                "5"
+            },
+        };
+
+        var provider = BuildServiceProviderWithConfig(settings);
+
+        // Act & Assert
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            provider.GetRequiredService<IOptions<AuthTokenServiceConfig>>().Value
+        );
+
+        Assert.Contains(
+            "NHS Digital private key must be a valid PEM-encoded RSA private key.",
+            exception.Message
+        );
+    }
+
+    [Fact]
+    public void AuthTokenServiceConfig_ResolvesSuccessfully_WhenPrivateKeyIsValidRSA()
+    {
+        // Arrange
+        var settings = new Dictionary<string, string?>
+        {
+            { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_CLIENT_ID", "client-id" },
+            { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_KID", "kid" },
+            // Use the helper to pass a mathematically valid RSA key
+            {
+                $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_PRIVATE_KEY",
+                GenerateValidRsaPem()
+            },
+            {
+                $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_FHIR_ENDPOINT",
+                "https://valid.com/"
+            },
+            {
+                $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_TOKEN_URL",
+                "https://valid.com/token"
+            },
+            {
+                $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES",
+                "5"
+            },
+        };
+
+        var provider = BuildServiceProviderWithConfig(settings);
+
+        // Act
+        var options = provider.GetRequiredService<IOptions<AuthTokenServiceConfig>>().Value;
+
+        // Assert
+        Assert.NotNull(options.NHS_DIGITAL_PRIVATE_KEY);
+        Assert.StartsWith("-----BEGIN RSA PRIVATE KEY-----", options.NHS_DIGITAL_PRIVATE_KEY);
     }
 }

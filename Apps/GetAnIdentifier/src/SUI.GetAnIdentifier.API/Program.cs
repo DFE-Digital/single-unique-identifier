@@ -20,12 +20,6 @@ var builder = FunctionsApplication.CreateBuilder(args);
 
 // Strongly Typed Configuration Validation on Startup
 builder
-    .Services.AddOptions<AuthTokenServiceConfig>()
-    .BindConfiguration(AuthTokenServiceConfig.SectionName)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-builder
     .Services.AddOptions<AuthSettings>()
     .BindConfiguration(AuthSettings.SectionName)
     .ValidateDataAnnotations()
@@ -36,6 +30,18 @@ builder
     .BindConfiguration(GetAnIdentifierConfiguration.SectionName)
     .ValidateDataAnnotations()
     .ValidateOnStart();
+
+builder
+    .Services.AddOptions<AuthTokenServiceConfig>()
+    .BindConfiguration(AuthTokenServiceConfig.SectionName)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+// Register the custom PEM validator
+builder.Services.AddSingleton<
+    IValidateOptions<AuthTokenServiceConfig>,
+    AuthTokenServiceConfigValidator
+>();
 
 // Register OpenID Connect ConfigurationManager as a Singleton to cache public keys across function invocations
 builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(sp =>
