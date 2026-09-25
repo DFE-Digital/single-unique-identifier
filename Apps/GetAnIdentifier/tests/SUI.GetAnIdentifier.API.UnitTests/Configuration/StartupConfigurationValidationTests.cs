@@ -141,7 +141,7 @@ public class StartupConfigurationValidationTests
         var settings = new Dictionary<string, string?>
         {
             // AuthSettings
-            { $"{AuthSettings.SectionName}:Issuer", "issuer" },
+            { $"{AuthSettings.SectionName}:Issuer", "https://valid.com/issuer" },
             { $"{AuthSettings.SectionName}:Audience", "audience" },
             { $"{AuthSettings.SectionName}:OidcDiscoveryUrl", "https://valid.com/.well-known" },
             { $"{AuthSettings.SectionName}:AccessTokenUrl", "https://valid.com/token" },
@@ -172,5 +172,32 @@ public class StartupConfigurationValidationTests
         // Assert - No exceptions thrown and validation passed
         Assert.NotNull(authSettings);
         Assert.NotNull(nhsConfig);
+    }
+
+    [Theory]
+    [InlineData("not-a-url")]
+    [InlineData("http://insecure.com/auth")] // Fails HTTPS check
+    [InlineData("/relative/path")] // Fails Absolute URI check
+    public void AuthSettings_ThrowsValidationException_WhenIssuerIsNotAbsoluteHttpsUri(
+        string invalidIssuer
+    )
+    {
+        // Arrange
+        var settings = new Dictionary<string, string?>
+        {
+            { $"{AuthSettings.SectionName}:Issuer", invalidIssuer },
+            { $"{AuthSettings.SectionName}:Audience", "audience" },
+            { $"{AuthSettings.SectionName}:OidcDiscoveryUrl", "https://valid.com/.well-known" },
+            { $"{AuthSettings.SectionName}:AccessTokenUrl", "https://valid.com/token" },
+        };
+
+        var provider = BuildServiceProviderWithConfig(settings);
+
+        // Act & Assert
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            provider.GetRequiredService<IOptions<AuthSettings>>().Value
+        );
+
+        Assert.Contains("OIDC Issuer must be an absolute HTTPS URI", exception.Message);
     }
 }

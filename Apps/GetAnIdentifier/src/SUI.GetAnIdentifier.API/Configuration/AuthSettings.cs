@@ -10,6 +10,7 @@ public class AuthSettings
 
     // OIDC Discovery configuration properties
     [Required(ErrorMessage = "OIDC Issuer is required")]
+    [AbsoluteHttpsUri(ErrorMessage = "OIDC Issuer must be an absolute HTTPS URI")]
     public required string Issuer { get; set; }
 
     [Required(ErrorMessage = "OIDC Audience is required")]
