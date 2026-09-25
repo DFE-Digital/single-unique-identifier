@@ -10,7 +10,7 @@ namespace SUI.NotificationService.Application.Services;
 /// Parsing lives in the application layer rather than the MESH boundary because what to do with an
 /// unusable payload is an acknowledgement decision, not a transport one.
 /// </summary>
-internal static class MeshNotificationParser
+public static class MeshNotificationParser
 {
     private const string AdditionalContextParameter = "additional-context";
     private const string SubjectPart = "subject";
