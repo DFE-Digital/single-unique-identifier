@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SUI.GetAnIdentifier.API.Configuration;
 using SUI.GetAnIdentifier.Infrastructure;
@@ -19,20 +20,7 @@ public class StartupConfigurationValidationTests
 
         var services = new ServiceCollection();
 
-        services
-            .AddOptions<AuthSettings>()
-            .Bind(configuration.GetSection(AuthSettings.SectionName))
-            .ValidateDataAnnotations();
-
-        services
-            .AddOptions<AuthTokenServiceConfig>()
-            .Bind(configuration.GetSection(AuthTokenServiceConfig.SectionName))
-            .ValidateDataAnnotations();
-
-        services.AddSingleton<
-            IValidateOptions<AuthTokenServiceConfig>,
-            AuthTokenServiceConfigValidator
-        >();
+        services.AddStartupConfigurationValidation(configuration);
 
         return services.BuildServiceProvider();
     }
@@ -289,5 +277,52 @@ public class StartupConfigurationValidationTests
         // Assert
         Assert.NotNull(options.NHS_DIGITAL_PRIVATE_KEY);
         Assert.StartsWith("-----BEGIN RSA PRIVATE KEY-----", options.NHS_DIGITAL_PRIVATE_KEY);
+    }
+
+    [Fact]
+    public async Task StartAsync_ThrowsOptionsValidationException_WhenConfigurationIsInvalid()
+    {
+        // Arrange - Provide an invalid configuration (e.g., malformed Issuer)
+        var invalidSettings = new Dictionary<string, string?>
+        {
+            { $"{AuthSettings.SectionName}:Issuer", "not-a-valid-url" },
+            { $"{AuthSettings.SectionName}:Audience", "audience" },
+            { $"{AuthSettings.SectionName}:OidcDiscoveryUrl", "https://valid.com/.well-known" },
+            { $"{AuthSettings.SectionName}:AccessTokenUrl", "https://valid.com/token" },
+        };
+
+        var hostBuilder = Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration(configBuilder =>
+            {
+                configBuilder.AddInMemoryCollection(invalidSettings);
+            })
+            .ConfigureServices(
+                (context, services) =>
+                {
+                    // Wire up the EXACT same extension method used by Program.cs
+                    services.AddStartupConfigurationValidation(context.Configuration);
+                }
+            );
+
+        using var host = hostBuilder.Build();
+
+        // Act & Assert
+        // The Host startup process runs all registered validators. If multiple configurations
+        // are invalid (or completely missing, as in this test), it wraps them all in an AggregateException.
+        var aggregateException = await Assert.ThrowsAsync<AggregateException>(() =>
+            host.StartAsync()
+        );
+
+        // Flatten the aggregate to make it easy to inspect all the inner validation errors
+        var flatExceptions = aggregateException.Flatten();
+
+        // Verify that at least one of the inner exceptions is our expected OptionsValidationException
+        // containing the specific OIDC Issuer message.
+        Assert.Contains(
+            flatExceptions.InnerExceptions,
+            ex =>
+                ex is OptionsValidationException
+                && ex.Message.Contains("OIDC Issuer must be an absolute HTTPS URI")
+        );
     }
 }

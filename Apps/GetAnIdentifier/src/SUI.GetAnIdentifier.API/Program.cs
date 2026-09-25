@@ -19,29 +19,7 @@ using SUI.GetAnIdentifier.Infrastructure.Services;
 var builder = FunctionsApplication.CreateBuilder(args);
 
 // Strongly Typed Configuration Validation on Startup
-builder
-    .Services.AddOptions<AuthSettings>()
-    .BindConfiguration(AuthSettings.SectionName)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-builder
-    .Services.AddOptions<GetAnIdentifierConfiguration>()
-    .BindConfiguration(GetAnIdentifierConfiguration.SectionName)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-builder
-    .Services.AddOptions<AuthTokenServiceConfig>()
-    .BindConfiguration(AuthTokenServiceConfig.SectionName)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-
-// Register the custom PEM validator
-builder.Services.AddSingleton<
-    IValidateOptions<AuthTokenServiceConfig>,
-    AuthTokenServiceConfigValidator
->();
+builder.Services.AddStartupConfigurationValidation(builder.Configuration);
 
 // Register OpenID Connect ConfigurationManager as a Singleton to cache public keys across function invocations
 builder.Services.AddSingleton<IConfigurationManager<OpenIdConnectConfiguration>>(sp =>
