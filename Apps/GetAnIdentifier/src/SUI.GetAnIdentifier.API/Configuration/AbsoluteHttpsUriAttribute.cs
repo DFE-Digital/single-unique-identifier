@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SUI.GetAnIdentifier.API.Configuration;
 
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public class AbsoluteHttpsUriAttribute : ValidationAttribute
 {
     public override bool IsValid(object? value)
