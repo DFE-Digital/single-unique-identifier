@@ -31,6 +31,8 @@ public class FhirAuthTokenServiceTests
                 NHS_DIGITAL_PRIVATE_KEY = GenerateDummyPrivateKey(),
                 NHS_DIGITAL_KID = DummyKid,
                 NHS_DIGITAL_CLIENT_ID = DummyClientId,
+                NHS_DIGITAL_FHIR_ENDPOINT = "https://test.dummyfhir.api/fhir",
+                NHS_DIGITAL_TOKEN_URL = "https://test.dummynhs.api/token",
             }
         );
 
