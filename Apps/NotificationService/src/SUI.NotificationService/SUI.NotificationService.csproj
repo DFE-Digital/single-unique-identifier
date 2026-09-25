@@ -13,7 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SUI.NotificationService.Application\SUI.NotificationService.Application.csproj" />
     <ProjectReference Include="..\SUI.NotificationService.Infrastructure\SUI.NotificationService.Infrastructure.csproj" />
-    <ProjectReference Include="..\SUI.NotificationService.Mns\SUI.NotificationService.Mns.csproj" />
+    <ProjectReference Include="..\SUI.NotificationService.Mesh\SUI.NotificationService.Mesh.csproj" />
     <ProjectReference Include="..\SUI.NotificationService.Webhooks\SUI.NotificationService.Webhooks.csproj" />
   </ItemGroup>
 

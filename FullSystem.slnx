@@ -23,12 +23,13 @@
     <Project Path="Apps\NotificationService\src\SUI.NotificationService\SUI.NotificationService.csproj" Type="Classic C#" />
     <Project Path="Apps\NotificationService\src\SUI.NotificationService.Application\SUI.NotificationService.Application.csproj" Type="Classic C#" />
     <Project Path="Apps\NotificationService\src\SUI.NotificationService.Infrastructure\SUI.NotificationService.Infrastructure.csproj" Type="Classic C#" />
-    <Project Path="Apps\NotificationService\src\SUI.NotificationService.Mns\SUI.NotificationService.Mns.csproj" Type="Classic C#" />
+    <Project Path="Apps\NotificationService\src\SUI.NotificationService.Mesh\SUI.NotificationService.Mesh.csproj" Type="Classic C#" />
     <Project Path="Apps\NotificationService\src\SUI.NotificationService.Webhooks\SUI.NotificationService.Webhooks.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Apps/NotificationService/tests/">
     <Project Path="Apps\NotificationService\tests\SUI.NotificationService.UnitTests\SUI.NotificationService.UnitTests.csproj" Type="Classic C#" />
     <Project Path="Apps\NotificationService\tests\SUI.NotificationService.Infrastructure.UnitTests\SUI.NotificationService.Infrastructure.UnitTests.csproj" Type="Classic C#" />
+    <Project Path="Apps/NotificationService/tests/SUI.NotificationService.Application.UnitTests/SUI.NotificationService.Application.UnitTests.csproj" Type="Classic C#" />
     <Project Path="Apps\NotificationService\tests\SUI.NotificationService.Infrastructure.IntegrationTests\SUI.NotificationService.Infrastructure.IntegrationTests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Apps/UIHarness/" />
