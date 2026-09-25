@@ -101,7 +101,7 @@ builder.Services.AddHttpClient(
     {
         // Using the strongly-typed, validated configuration
         var config = sp.GetRequiredService<IOptions<AuthTokenServiceConfig>>().Value;
-        client.BaseAddress = new Uri(config.NHS_DIGITAL_TOKEN_URL!);
+        client.BaseAddress = new Uri(config.NHS_DIGITAL_TOKEN_URL);
     }
 );
 
