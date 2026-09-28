@@ -15,4 +15,7 @@ public class AuthSettings
 
     // The AccessTokenUrl is specifically needed for the OpenAPI spec generation.
     public string AccessTokenUrl { get; set; } = "https://localhost:7250/api/v1/auth/token";
+
+    // Required for OpenAPI spec generation - should be replaced with value from FaUAPI
+    public string OauthScope { get; set; } = "suigetanidd01";
 }
