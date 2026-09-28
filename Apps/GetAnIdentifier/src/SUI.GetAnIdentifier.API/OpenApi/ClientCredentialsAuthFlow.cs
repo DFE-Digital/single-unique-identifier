@@ -1,8 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
 using Microsoft.OpenApi.Models;
 
 namespace SUI.GetAnIdentifier.API.OpenApi;
 
+[ExcludeFromCodeCoverage(
+    Justification = "OpenAPI auth flow does not contain any logic to be tested."
+)]
 public class ClientCredentialsAuthFlow : OpenApiOAuthSecurityFlows
 {
     public ClientCredentialsAuthFlow()
