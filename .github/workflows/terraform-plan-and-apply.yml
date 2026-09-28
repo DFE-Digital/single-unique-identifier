@@ -44,6 +44,8 @@ on:
         required: false
       AUTH_SETTINGS__ACCESS_TOKEN_URL:
         required: false
+      AUTH_SETTINGS__OAUTH_SCOPE:
+        required: false
       AUTH_CLIENT_IDS_JSON_MAP:
         required: false
       AUTH_CLIENT_SECRETS_JSON_MAP:
@@ -79,6 +81,7 @@ jobs:
       TF_VAR_auth_settings_audience: ${{ secrets.AUTH_SETTINGS__AUDIENCE }}
       TF_VAR_auth_settings_oidc_discovery_url: ${{ secrets.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}
       TF_VAR_auth_settings_access_token_url: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
+      TF_VAR_auth_settings_oauth_scope: ${{ secrets.AUTH_SETTINGS__OAUTH_SCOPE }}
       TF_VAR_auth_client_ids_json_map: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
       TF_VAR_auth_client_secrets_json_map: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
 
