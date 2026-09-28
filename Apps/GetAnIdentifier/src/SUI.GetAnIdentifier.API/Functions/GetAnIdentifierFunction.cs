@@ -31,7 +31,8 @@ public class GetAnIdentifierFunction(
     // Updated Summary
     [OpenApiOperation(
         operationId: "GetAnIdentifier",
-        Summary = "I know of this person, what is their Single Unique Identifier"
+        Summary = "Get an Identifier",
+        Description = "I know of this person, what is their Single Unique Identifier"
     )]
     [OpenApiSecurity(
         "Oauth Token",

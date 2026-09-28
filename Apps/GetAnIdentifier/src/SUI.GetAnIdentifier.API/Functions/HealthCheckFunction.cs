@@ -20,7 +20,8 @@ public class HealthCheckFunction(
     [OpenApiOperation(
         operationId: "health-check",
         tags: ["Health"],
-        Summary = "Check service is up"
+        Summary = "Health check",
+        Description = "Check service is up"
     )]
     [Function(nameof(HealthCheckFunction))]
     public async Task<HttpResponseData> Run(
