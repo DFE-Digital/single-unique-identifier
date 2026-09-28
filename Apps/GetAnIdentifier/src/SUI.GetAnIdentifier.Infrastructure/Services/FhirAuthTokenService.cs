@@ -102,9 +102,7 @@ public sealed class FhirAuthTokenService(
     private async Task<CachedToken> FetchNewAccessTokenAsync(CancellationToken cancellationToken)
     {
         var authAddress = _httpClient.BaseAddress!.ToString();
-        var tokenExpiresInMinutes =
-            _options.NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES
-            ?? FhirConstants.AccountTokenExpiresInMinutes;
+        var tokenExpiresInMinutes = _options.NHS_DIGITAL_ACCESS_TOKEN_EXPIRES_IN_MINUTES;
 
         var clientAssertion = GenerateClientAssertionJwt(authAddress, tokenExpiresInMinutes);
 
