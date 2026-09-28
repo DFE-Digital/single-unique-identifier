@@ -110,11 +110,12 @@ The core deployment creates the dedicated Container Apps subnet and changes the 
 
 After core succeeds:
 
-1. Merging to `main` builds, publishes and deploys the current commit to d01 automatically.
-2. For d02 or d03, run the `Build, Test, Deploy: Notification Service` workflow manually and select the environment.
-3. The deployment applies the service Terraform, starts an on-demand smoke-test execution, waits for success and verifies its lifecycle logs in Log Analytics.
+1. Replace the temporary `if: ${{ false }}` gate on the Notification Service image-publish job with `if: github.event_name != 'pull_request'` only after the required Azure RBAC delegation is available. Until then, pull requests and `main` builds still validate the service, but image publishing, Terraform apply and smoke testing are skipped.
+2. Merging to `main` then builds, publishes and deploys the current commit to d01 automatically.
+3. For d02 or d03, run the `Build, Test, Deploy: Notification Service` workflow manually and select the environment.
+4. The deployment applies the service Terraform, starts an on-demand smoke-test execution, waits for success and verifies its lifecycle logs in Log Analytics.
 
-The GitHub OIDC identity needs permission to create the `AcrPush`, `AcrPull` and `Storage Table Data Contributor` role assignments. If it does not have that permission, an Azure platform administrator must create or delegate those assignments before the first deployment.
+The GitHub OIDC identity needs permission to create the `AcrPush`, `AcrPull` and `Storage Table Data Contributor` role assignments. While that delegation is pending, `notification_service_acr_push_enabled` remains `false` in each environment tfvars file, so core infrastructure can still be applied without creating the `AcrPush` assignment. Set it to `true` only once the deployment identity can create role assignments. The Notification Service workflow has a separate temporary deployment gate.
 
 ### Manual execution and logs
 
