@@ -84,6 +84,12 @@ variable "container_registry_sku" {
   }
 }
 
+variable "notification_service_acr_push_enabled" {
+  description = "Whether Terraform should assign AcrPush on the shared registry to the deployment identity."
+  type        = bool
+  default     = false
+}
+
 variable "function_app_integration_vnet_address_space" {
   description = "Address space for the dedicated VNet used by App Service regional VNet integration."
   type        = list(string)

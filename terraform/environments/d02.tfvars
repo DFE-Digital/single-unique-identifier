@@ -19,6 +19,7 @@ auxiliary_app_service_plan_os_type      = "Linux"
 auxiliary_app_service_plan_worker_count = 1
 key_vault_use_rbac                      = false
 container_registry_sku                  = "Basic"
+notification_service_acr_push_enabled   = false
 
 notification_service_schedule_cron_expression   = "0 6 * * *"
 notification_service_cpu                        = 0.5

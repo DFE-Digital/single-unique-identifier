@@ -80,7 +80,7 @@ jobs:
       directory_name: Apps/NotificationService
       project_names: '["SUI.NotificationService"]'
       requires_azurite: true
-      deploy_requested: ${{ github.event_name != 'pull_request' }}
+      deploy_requested: false
       upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && inputs.upload_artifacts) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
       artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
       skip_tests: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests }}
@@ -116,7 +116,9 @@ jobs:
 
   build-and-publish-image:
     name: Notification Service - container image
-    if: github.event_name != 'pull_request'
+    # Deployment is opt-in while the required Azure RBAC delegation is pending.
+    # Replace `false` with `github.event_name != 'pull_request'` once RBAC is available.
+    if: ${{ false }}
     needs:
       - build-and-test
       - resolve-image
