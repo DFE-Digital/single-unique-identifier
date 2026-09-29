@@ -154,7 +154,7 @@ jobs:
           echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Authenticate to Azure Container Registry
         if: needs.resolve-image.outputs.push_image == 'true'
@@ -170,7 +170,7 @@ jobs:
 
       - name: Build and publish container image
         if: needs.resolve-image.outputs.push_image == 'true'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Apps/NotificationService/Dockerfile
@@ -191,10 +191,10 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build container image without publishing
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Apps/NotificationService/Dockerfile
