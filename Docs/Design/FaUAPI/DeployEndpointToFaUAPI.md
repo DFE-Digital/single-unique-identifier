@@ -87,7 +87,7 @@ Navigate to **Environment** and configure as follows:
 ### Step 7: Inbound Policy Configuration
 
 1. Navigate to **Policies**.
-2. Select and edit the **Live Environment** scope policy.
+2. Select **Edit** on the **live** environment scope policy.
 3. Add or update the `<inbound>` block with the following rate-limiting configuration:
 
 ```xml
