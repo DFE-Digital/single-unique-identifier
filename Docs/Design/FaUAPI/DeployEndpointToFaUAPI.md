@@ -27,7 +27,7 @@ Before starting, ensure you have downloaded the schema from the Azure Function o
 
 - **API Name**: `SUI Get An ID d02 - PoC 1 API`
 - **API Codename**: `sui-get-an-id-d02-poc1-api`
-- **Description**: `The SUI Get and Id API is part of the Single Unique Identifier (SUI) programme for improving multi-agency information sharing in relation to safeguarding and welfare of children. This specific API represents a proof-of-concept for fetching a child's ID`
+- **Description**: `The SUI Get an Id API is part of the Single Unique Identifier (SUI) programme for improving multi-agency information sharing in relation to safeguarding and welfare of children. This specific API represents a proof-of-concept for fetching a child's ID.`
 - **Backend Type**: Select `HTTP`
 - **Major Version Identifier**: `0`
 - **Version Scheme**: Select `URL suffix`
