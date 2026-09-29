@@ -32,7 +32,7 @@ Before starting, ensure you have downloaded the schema from the Azure Function o
 - **Major Version Identifier**: `0`
 - **Version Scheme**: Select `URL suffix`
 
-1. Click **Save changes**.
+1. Select **Save changes**.
 
 ### Step 2: Upload OpenAPI Schema
 
@@ -53,8 +53,8 @@ Navigate to the **Metadata** section and update the following settings:
 
 ### Step 4: Add Initial Release
 
-1. Go to the **Releases** tab.
-2. Click **Add** and configure the release settings:
+1. Navigate to the **Releases** section.
+2. Select **Add** and configure the release settings:
 
 - **Name:** `pre-release-1`
 - **Status:** `Planned`
@@ -75,12 +75,14 @@ Navigate to **Environment** and configure as follows:
 
 ### Step 6: Authentication & Scope Setup
 
-1. Go to **Authentication** and set up according to your target environment requirements.
+1. Navigate to **Authentication** and select **Add an authentication method**.
+2. Select the relevant method for your application and select **Save changes**.
+
 2. Configure settings:
 
 - **Enabled:** Tick
 - **Auto Enforcement:** Tick
-- **Custom Scope:** `suigetanid{environment}`
+- **Custom OAuth Scopes:** `suigetanid{environment}`
 - **Use delegated permissions:** Tick
 - **Enable openid scope:** Tick
 
