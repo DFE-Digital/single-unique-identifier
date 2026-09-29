@@ -82,7 +82,7 @@ Navigate to **Environment** and configure as follows:
 - **Auto Enforcement:** Tick
 - **Custom Scope:** `suigetanid{environment}`
 - **Use delegated permissions:** Tick
-- **OpenID Scope:** Tick
+- **Enable openid scope:** Tick
 
 ### Step 7: Inbound Policy Configuration
 
