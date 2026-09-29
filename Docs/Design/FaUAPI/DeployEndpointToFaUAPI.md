@@ -36,7 +36,9 @@ Before starting, ensure you have downloaded the schema from the Azure Function o
 
 ### Step 2: Upload OpenAPI Schema
 
-1. Select **Upload Schema**.
+1. Next to "Schema" select **Change**.
+2. Select Schema type **Swagger**.
+
 2. Upload the JSON schema file created during the **Prerequisites** step.
 3. Click **Apply Schema**.
 
