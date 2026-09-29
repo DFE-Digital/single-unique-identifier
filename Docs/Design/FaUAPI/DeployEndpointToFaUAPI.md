@@ -22,7 +22,8 @@ Before starting, ensure you have downloaded the schema from the Azure Function o
 ### Step 1: Add New API & Fill Details
 
 1. In the relevant Workspace, navigate to **Overview**, and in the APIs subsection, select **Add**.
-2. Complete the **Enter the details of your API** form using the values appropriate for your environment (see example values below):
+2. Select **Hosted**.
+3. Complete the **Enter the details of your API** form using the values appropriate for your environment (see example values below):
 
 - **API Name**: `SUI Get An ID d02 - PoC 1 API`
 - **API Codename**: `sui-get-an-id-d02-poc1-api`
