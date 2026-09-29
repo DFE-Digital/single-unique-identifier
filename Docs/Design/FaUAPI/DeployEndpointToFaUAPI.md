@@ -40,7 +40,9 @@ Before starting, ensure you have downloaded the schema from the Azure Function o
 2. Select Schema type **Swagger**.
 
 2. Upload the JSON schema file created during the **Prerequisites** step.
-3. Click **Apply Schema**.
+3. Select **Upload schema**.
+4. Verify that the schema import present is as expected.
+5. If correct, select **Apply schema**
 
 ### Step 3: Configure Metadata
 
