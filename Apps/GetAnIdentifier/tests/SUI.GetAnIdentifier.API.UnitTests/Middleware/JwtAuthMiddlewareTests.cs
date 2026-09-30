@@ -50,7 +50,8 @@ public class JwtAuthMiddlewareTests
             Audience = "sui-get-an-identifier-api",
             AccessTokenUrl = "https://localhost:7250/api/v1/auth/token",
             OidcDiscoveryUrl = "https://localhost:7250/api/v1/.well-known/openid-configuration",
-            UseAuthStoreForAuthorisation = false, // Explicitly set for mocked AuthContextFactory predictability
+            UseAuthStoreForAuthorisation = false, // Explicitly set for mocked AuthContextFactory predictability,
+            OauthScope = "scope./default",
         };
         _mockOptions.Value.Returns(_authSettings);
         _timeProvider
@@ -264,7 +265,7 @@ public class JwtAuthMiddlewareTests
         [InlineData("RenderOpenApiDocument")]
         [InlineData("RenderSwaggerDocument")]
         [InlineData("RenderSwaggerUI")]
-        [InlineData("HealthCheck")]
+        [InlineData("HealthCheckFunction")]
         public async Task TestInvoke_WithNoAuthFunctions_SkipsMethod(string functionName)
         {
             // Arrange

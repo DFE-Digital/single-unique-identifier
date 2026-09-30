@@ -31,13 +31,20 @@ public class GetAnIdentifierFunction(
     // Updated Summary
     [OpenApiOperation(
         operationId: "GetAnIdentifier",
-        Summary = "I know of this person, what is their Single Unique Identifier"
+        Summary = "Get an Identifier",
+        Description = "I know of this person, what is their Single Unique Identifier"
     )]
     [OpenApiSecurity(
-        "function_key",
+        "Oauth Token",
+        SecuritySchemeType.OAuth2,
+        In = OpenApiSecurityLocationType.Header,
+        Flows = typeof(ClientCredentialsAuthFlow)
+    )]
+    [OpenApiSecurity(
+        "API key",
         SecuritySchemeType.ApiKey,
-        Name = "code",
-        In = OpenApiSecurityLocationType.Query
+        Name = "x-api-key",
+        In = OpenApiSecurityLocationType.Header
     )]
     // Wired Request Body Example
     [OpenApiRequestBody(
