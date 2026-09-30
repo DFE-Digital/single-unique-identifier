@@ -78,7 +78,7 @@ on:
       artifact_store:
         description: Storage backend for build artifacts (github or azure)
         required: false
-        default: azure
+        default: github
         type: string
 
 permissions:
@@ -90,7 +90,6 @@ permissions:
 jobs:
   deploy:
     name: Deploy function app (${{ inputs.component_descriptor || github.event.inputs.component_descriptor || inputs.function_app_name || github.event.inputs.function_app_name || inputs.artifact_name || github.event.inputs.artifact_name }}) to ${{ inputs.environment || github.event.inputs.environment }}
-    # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     environment: ${{ inputs.environment || github.event.inputs.environment }}
     env:
@@ -151,7 +150,7 @@ jobs:
           name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}
           path: ${{ inputs.package_path || github.event.inputs.package_path }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
 
-      - name: Download build artifact (Azure)
+      - name: Download build artifact (Azure Fallback Migration)
         if: (inputs.artifact_store || github.event.inputs.artifact_store) == 'azure'
         uses: ./.github/actions/download-blob-artifact
         with:
@@ -160,6 +159,10 @@ jobs:
           account_name: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT || vars.AZURE_ARTIFACTS_ACCOUNT }}
           container_name: ${{ secrets.AZURE_ARTIFACTS_CONTAINER || vars.AZURE_ARTIFACTS_CONTAINER }}
           sas_token: ${{ secrets.AZURE_ARTIFACTS_SAS }}
+      
+      - name: Deprecation Notice for Azure Blob
+        if: (inputs.artifact_store || github.event.inputs.artifact_store) == 'azure'
+        run: echo "::warning::Downloading artifacts from Azure Blob is a temporary read-only migration fallback and will be removed by 2027-01-01."
 
       - name: Verify publish output
         run: |
