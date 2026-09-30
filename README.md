@@ -138,11 +138,15 @@ Other none essential but good-to-do long-term items include:
 
 ## Development Environments
 
-| Environment ID | Purpose                                                                                                                                                                | Trigger                                                                                            |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `d01`          | **Primary development environment**. Used by the engineering team to test and verify changes. Possibly may contain broken functionality, although that is undesirable. | **Automatically trigerred deployments** (from changes to `main`).                                  |
-| `d02`          | **Demo environment**. Stable environment that should not contain broken functionality. Used in presentations and in research sessions.                                 | **Manually trigerred deployments**. Deployments must be scheduled and coordinated with whole team. |
-| `d03`          | **Sandbox environment**. Used for trialling potential changes and configurations, for example trialling integrating with FaUAPI.                                       | **Manually trigerred deployments**                                                                 |
+The current deployment plan promotes builds sequentially through `d01` → `d02` → `d03`. Later environments receive a promoted build rather than deploying independently from `main`.
+
+| Environment ID | Purpose                                                                                                                                                                     | Deployment trigger                                          |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `d01`          | **Development environment**. Receives the latest changes from `main` for engineering verification. May contain unstable or incomplete functionality.                        | Automatic deployment from `main`.                           |
+| `d02`          | **Controlled testing and demonstration environment**. Provides a more stable build for testing, demonstrations and research, with deployment timing controlled by the team. | Manual promotion of a build successfully deployed to `d01`. |
+| `d03`          | **Pre-production environment**. Supports validation before any future production release.                                                                                   | Manual promotion of a build from `d02` only.                |
+
+This is the current environment strategy and may evolve as the programme progresses.
 
 ## Getting Started
 
