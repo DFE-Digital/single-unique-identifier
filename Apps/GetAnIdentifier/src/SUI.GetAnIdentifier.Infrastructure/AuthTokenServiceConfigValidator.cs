@@ -21,7 +21,7 @@ public sealed class AuthTokenServiceConfigValidator : IValidateOptions<AuthToken
 
             // ImportFromPem accepts public keys too. Signing confirms this is
             // a usable RSA private key for the SHA-512 client assertion.
-            _ = rsa.SignData(new byte[] { 0 }, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+            _ = rsa.SignData(new byte[] { 0 }, HashAlgorithmName.SHA512, RSASignaturePadding.Pss);
 
             return ValidateOptionsResult.Success;
         }
