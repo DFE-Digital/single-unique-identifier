@@ -146,6 +146,7 @@ public class StartupConfigurationValidationTests
             { $"{AuthSettings.SectionName}:Audience", "audience" },
             { $"{AuthSettings.SectionName}:OidcDiscoveryUrl", "https://valid.com/.well-known" },
             { $"{AuthSettings.SectionName}:AccessTokenUrl", "https://valid.com/token" },
+            { $"{AuthSettings.SectionName}:OauthScope", "scope/.default" },
             // AuthTokenServiceConfig
             { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_CLIENT_ID", "client-123" },
             { $"{AuthTokenServiceConfig.SectionName}:NHS_DIGITAL_KID", "kid-123" },

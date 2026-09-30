@@ -24,4 +24,8 @@ public class AuthSettings
     [Required(ErrorMessage = "Access Token URL is required for OpenAPI generation")]
     [Url(ErrorMessage = "Access Token URL must be a valid URL")]
     public required string AccessTokenUrl { get; set; }
+
+    // Required for OpenAPI spec generation - should be replaced with value from FaUAPI
+    [Required(ErrorMessage = "OAuth Scope is required for OpenAPI generation")]
+    public required string OauthScope { get; set; }
 }

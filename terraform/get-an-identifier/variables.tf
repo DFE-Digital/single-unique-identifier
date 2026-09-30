@@ -139,3 +139,9 @@ variable "auth_settings_access_token_url" {
   type        = string
   sensitive   = true
 }
+
+variable "auth_settings_oauth_scope" {
+  description = "Scope of deployed Get an Identifier endpoint, required for OpenAPI specification"
+  type        = string
+  sensitive   = true
+}

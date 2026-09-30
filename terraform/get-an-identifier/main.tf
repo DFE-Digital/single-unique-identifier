@@ -185,6 +185,7 @@ module "function_app" {
       AuthSettings__Audience         = var.auth_settings_audience
       AuthSettings__OidcDiscoveryUrl = var.auth_settings_oidc_discovery_url
       AuthSettings__AccessTokenUrl   = var.auth_settings_access_token_url
+      AuthSettings__OauthScope       = var.auth_settings_oauth_scope
 
       AuditStorage__ContainerName = "audit-logs"
 
