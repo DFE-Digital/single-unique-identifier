@@ -73,6 +73,23 @@ variable "log_analytics_retention_in_days" {
   default     = 30
 }
 
+variable "container_registry_sku" {
+  description = "SKU for the shared Azure Container Registry."
+  type        = string
+  default     = "Basic"
+
+  validation {
+    condition     = contains(["Basic", "Standard", "Premium"], var.container_registry_sku)
+    error_message = "container_registry_sku must be Basic, Standard, or Premium."
+  }
+}
+
+variable "notification_service_acr_push_enabled" {
+  description = "Whether Terraform should assign AcrPush on the shared registry to the deployment identity."
+  type        = bool
+  default     = false
+}
+
 variable "function_app_integration_vnet_address_space" {
   description = "Address space for the dedicated VNet used by App Service regional VNet integration."
   type        = list(string)
