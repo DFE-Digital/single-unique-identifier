@@ -6,10 +6,8 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Extensions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using SUI.GetAnIdentifier.API.Attributes;
-using SUI.GetAnIdentifier.API.Configuration;
 using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.API.OpenApi;
 using SUI.GetAnIdentifier.API.Utility;
@@ -22,8 +20,7 @@ namespace SUI.GetAnIdentifier.API.Functions;
 
 public class GetAnIdentifierFunction(
     ILogger<GetAnIdentifierFunction> logger,
-    IGetAnIdentifierService getAnIdentifierService,
-    IOptions<GetAnIdentifierConfiguration> matchFunctionConfig
+    IGetAnIdentifierService getAnIdentifierService
 )
 {
     [Function(nameof(GetAnIdentifierFunction))]
@@ -39,12 +36,6 @@ public class GetAnIdentifierFunction(
         SecuritySchemeType.OAuth2,
         In = OpenApiSecurityLocationType.Header,
         Flows = typeof(ClientCredentialsAuthFlow)
-    )]
-    [OpenApiSecurity(
-        "API key",
-        SecuritySchemeType.ApiKey,
-        Name = "x-api-key",
-        In = OpenApiSecurityLocationType.Header
     )]
     // Wired Request Body Example
     [OpenApiRequestBody(
@@ -105,7 +96,7 @@ public class GetAnIdentifierFunction(
     {
         var correlationId = context.InvocationId;
 
-        if (!ValidateAuthContext(context) || !VerifyApiKey(req))
+        if (!ValidateAuthContext(context))
         {
             return await HttpResponseUtility.UnauthorizedResponse(
                 req,
@@ -161,6 +152,7 @@ public class GetAnIdentifierFunction(
                         "Validation error",
                         cancellationToken
                     ),
+                // ReSharper disable UnusedParameter.Local
                 async notFound =>
                     await HttpResponseUtility.NotFoundResponse(
                         req,
@@ -229,29 +221,5 @@ public class GetAnIdentifierFunction(
             );
             return false;
         }
-    }
-
-    private bool VerifyApiKey(HttpRequestData req)
-    {
-        if (!req.Headers.Contains("x-api-key"))
-        {
-            logger.LogInformation("Missing x-api-key header");
-            return false;
-        }
-
-        var apiKey = req.Headers.GetValues("x-api-key").FirstOrDefault();
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            logger.LogInformation("Empty x-api-key header");
-            return false;
-        }
-
-        if (apiKey != matchFunctionConfig.Value.XApiKey)
-        {
-            logger.LogWarning("Invalid x-api-key header value");
-            return false;
-        }
-
-        return true;
     }
 }

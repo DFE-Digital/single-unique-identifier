@@ -24,12 +24,6 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services
-            .AddOptions<GetAnIdentifierConfiguration>()
-            .Bind(configuration.GetSection(GetAnIdentifierConfiguration.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
         // Register the custom PEM validator
         services.AddSingleton<
             IValidateOptions<AuthTokenServiceConfig>,
