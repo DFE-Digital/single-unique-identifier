@@ -27,5 +27,5 @@ public class AuthSettings
 
     // Required for OpenAPI spec generation - should be replaced with value from FaUAPI
     [Required(ErrorMessage = "OAuth Scope is required for OpenAPI generation")]
-    public string OauthScope { get; set; }
+    public required string OauthScope { get; set; }
 }
