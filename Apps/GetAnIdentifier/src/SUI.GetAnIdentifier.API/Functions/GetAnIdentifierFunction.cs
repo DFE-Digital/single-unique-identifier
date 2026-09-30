@@ -173,11 +173,13 @@ public class GetAnIdentifierFunction(
         // Allows cancellation to bypass generic exceptions and bubble up to Azure Functions Host layer
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+#pragma warning disable S6667
             // SANITIZATION: Exception object explicitly omitted to prevent leaking PII in ex.Message
             logger.LogError(
                 ex.Sanitize("Unhandled execution error."),
                 "Unhandled exception during GetAnIdentifier execution."
             );
+#pragma warning restore S6667
             return await HttpResponseUtility.InternalServerErrorResponse(
                 req,
                 correlationId,
@@ -215,10 +217,12 @@ public class GetAnIdentifierFunction(
         }
         catch (JsonException ex)
         {
+#pragma warning disable S6667
             logger.LogWarning(
                 ex.Sanitize("Malformed JSON format in request body."),
                 "Failed to parse Match request body."
             );
+#pragma warning restore S6667
             return false;
         }
     }
