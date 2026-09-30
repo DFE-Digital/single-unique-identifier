@@ -1,6 +1,8 @@
 # Architecture models
 
-This directory contains architecture models for the Single Unique Identifier (SUI) service. These models are the authoritative source for the target architecture.
+This directory contains architecture models for the Single Unique Identifier (SUI) service. These models describe target data flows, not deployed or fully implemented behaviour. Read them alongside the [current Alpha scope](../../../README.md#current-service-direction), [Get an Identifier as-built design](../../Design/GetAnIdentifier/AsBuilt.md), [Notification Service README](../../../Apps/NotificationService/README.md) and [draft supplier lifecycle webhook contract](../../Design/Notifications-Webhooks/SupplierLifecycle/V1/Index.md).
+
+The data model includes MNS subscriptions, MESH reception and duplicate cleanup that are not implemented end to end on `main`. Its references to forwarding events or updating supplier records must not be interpreted as sending raw NHS events or replacement NHS numbers / GP details to suppliers: the Alpha direction is to send change notifications, then suppliers rematch through Get an Identifier. The draft lifecycle contract defines the proposed webhook payload boundary.
 
 Currently, the models cover 1 architecture layer:
 

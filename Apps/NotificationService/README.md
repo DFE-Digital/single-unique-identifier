@@ -2,17 +2,25 @@
 
 The Notification Service is a run-to-completion .NET application intended for scheduled execution. Each invocation creates an application scope, runs the notification orchestration once, and then exits.
 
-The current scaffold does not connect to MNS or deliver supplier webhooks.
+For Alpha, this separate service is intended to receive NHS England MNS lifecycle notifications through MESH and notify registered supplier webhook endpoints when information previously returned by Get an Identifier may have changed. Suppliers then rematch affected records through Get an Identifier; notifications do not supply replacement NHS numbers, GP details or demographic information.
+
+## Implementation status
+
+On `main`, the host and finite-execution orchestration scaffold exist. The supplier webhook register repository, Key Vault secret client and HMAC-SHA256 HTTP delivery component are implemented and registered, but the orchestrator does not invoke them. Its current execution only logs start and completion; it does not retrieve MESH messages or deliver lifecycle notifications end to end.
+
+MESH is the [accepted Alpha transport](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md). MESH message retrieval and lifecycle-to-webhook orchestration are not yet implemented. Get an Identifier does not yet create MNS subscriptions.
+
+The [supplier lifecycle webhook contract v1](../../Docs/Design/Notifications-Webhooks/SupplierLifecycle/V1/Index.md) remains Draft pending technical and information-governance reviews and agreement of the acknowledgement timeout. The delivery component currently uses a three-second HTTP timeout; this does not make the proposed contract timeout an agreed SLA. Retry coordination and lifecycle-to-delivery orchestration remain to be implemented.
 
 ## Project boundaries
 
 - `SUI.NotificationService` is the executable host and composition root. It configures the application and invokes one execution.
 - `SUI.NotificationService.Application` owns orchestration and the contracts used to coordinate the other modules.
-- `SUI.NotificationService.Mns` is the boundary for receiving lifecycle changes from MNS.
+- `SUI.NotificationService.Mns` is the current placeholder boundary for MNS lifecycle notifications, intended to be received through MESH.
 - `SUI.NotificationService.Webhooks` is the boundary for delivering notifications to suppliers.
 - `SUI.NotificationService.Infrastructure` is the boundary for shared technical concerns needed by the other modules.
 
-The MNS, Webhooks and Infrastructure projects currently expose dependency-injection registration points without concrete services. Their implementations will be added by their owning workstreams.
+The Mns project currently exposes a dependency-injection registration point without concrete services. Webhooks and Infrastructure contain concrete delivery and register implementations; wiring them into lifecycle processing remains separate work.
 
 ## Prerequisites
 
@@ -62,11 +70,11 @@ Do not commit secrets to the configuration files. Supply sensitive local values 
 
 ## Exit codes
 
-| Code | Meaning |
-|------|---------|
-| `0` | Execution completed successfully. |
-| `1` | An unhandled startup, orchestration, shutdown or disposal failure occurred. |
-| `2` | Execution was cancelled gracefully. |
+| Code | Meaning                                                                     |
+| ---- | --------------------------------------------------------------------------- |
+| `0`  | Execution completed successfully.                                           |
+| `1`  | An unhandled startup, orchestration, shutdown or disposal failure occurred. |
+| `2`  | Execution was cancelled gracefully.                                         |
 
 Ctrl+C and termination signals request graceful cancellation through the application cancellation token.
 
@@ -104,7 +112,7 @@ The Storage Account's public firewall is deny-by-default, with the Azure trusted
 
 ### First deployment to an environment
 
-The shared foundations must be applied before the first image can be published. Run the `Terraform Core Infrastructure` workflow for the target environment with `apply` enabled. When preparing d01 before this branch is merged, run that existing workflow against this branch ref so the new core resources are available before the automatic main deployment.
+The shared foundations must be applied before the first image can be published. Run the `Terraform Core Infrastructure` workflow for the target environment with `apply` enabled.
 
 The core deployment creates the dedicated Container Apps subnet and changes the shared environment to a VNet-integrated workload profiles environment. If the target already has a Container Apps environment, review the Terraform plan with the platform owner and coordinate any required replacement before applying it. Do not apply this core change while unrelated Container Apps workloads still depend on the existing environment.
 
@@ -140,16 +148,18 @@ The Supplier Webhook Register is administered manually via Azure Table Storage. 
 **Table Name:** `SupplierWebhooks`
 
 ### Adding a new Supplier Webhook
+
 1. Open Azure Storage Explorer or the Azure Portal.
 2. Navigate to the `SupplierWebhooks` table.
 3. Add a new Entity with the following strict properties:
-    * `PartitionKey`: `SupplierWebhook` (String, Exact match required)
-    * `RowKey`: The unique Supplier ID (String)
-    * `EndpointUrl`: The supplier's webhook URL (String, **Must be HTTPS**)
-    * `IsEnabled`: `true` (Boolean)
-    * `ContractVersion`: `1` (String)
-    * `SecretKeyVaultReference`: The Key Vault URI/name for their HMAC secret (String)
+   - `PartitionKey`: `SupplierWebhook` (String, Exact match required)
+   - `RowKey`: The unique Supplier ID (String)
+   - `EndpointUrl`: The supplier's webhook URL (String, **Must be HTTPS**)
+   - `IsEnabled`: `true` (Boolean)
+   - `ContractVersion`: `1` (String)
+   - `SecretKeyVaultReference`: The Key Vault URI/name for their HMAC secret (String)
 
 ### Updating or Disabling a Webhook
-* To **disable** broadcasts to a supplier, edit their entity and change `IsEnabled` to `false`. (Do not delete the row, to preserve the audit trail).
-* To **update** a URL or Key Vault reference, edit the respective string values and save. Changes take effect immediately.
+
+- To **disable** broadcasts to a supplier, edit their entity and change `IsEnabled` to `false`. (Do not delete the row, to preserve the audit trail).
+- To **update** a URL or Key Vault reference, edit the respective string values and save. The repository reads enabled registrations from Table Storage when queried, but the current orchestrator does not query it or dispatch notifications.

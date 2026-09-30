@@ -1,6 +1,6 @@
 # Get an Identifier: as-built design
 
-**Last checked:** `2026-08-26`
+**Last checked:** `2026-09-30`
 
 **Status:** Implemented behaviour on `main`
 
@@ -60,16 +60,19 @@ After validating a token, the current `AuthContextFactory` always resolves its c
 
 The application reads NHS OAuth and PDS configuration through `NhsAuthConfig`. The private key, key identifier, NHS client ID and Get an Identifier API key are supplied to deployed environments through Key Vault references.
 
-The runtime-generated API description is available from `/api/openapi/v3.json`, with Swagger UI at `/api/swagger/ui`. It does not currently declare the bearer-token and API-key security requirements, even though the operation enforces both at runtime.
+The runtime-generated API description is available from `/api/openapi/v3.json`, with Swagger UI at `/api/swagger/ui`. The operation declares OAuth2 client-credentials and `x-api-key` security schemes. At runtime, the operation requires both a bearer JWT with `get-an-identifier.read` and the configured API key.
 
-## Proposed functionality not in the current service
+## Alpha direction and implementation boundaries
 
-The following capabilities appear in discovery documents or draft ADRs but are not implemented by Get an Identifier:
+Get an Identifier is the main vendor-facing API for Alpha. The agreed direction extends matching with MNS subscriptions for matched people. Relevant lifecycle changes are to be received through MESH by the separate Notification Service, which will notify registered supplier webhook endpoints. Suppliers then rematch affected records through Get an Identifier; webhook notifications do not return replacement NHS numbers, GP details or demographics.
 
-- MNS/NEMS subscriptions and processing of PDS record-change events
-- persistence of identifier-to-custodian associations
-- registration, signing, queuing or delivery of webhooks
-- lifecycle notification and remediation flows
-- the wider polling-based `FIND`, `FETCH`, jobs and results architecture
+The current Get an Identifier request path stops after PDS matching and returning the response. It does not create MNS subscriptions, maintain identifier-to-custodian associations, or register or deliver webhooks.
 
-The relevant documents retain value as proposed or historical design material, but their status must be checked before using them as implementation guidance. In particular, the [notifications and webhooks design](../Notifications-Webhooks/Index.md) is explicitly proposed, and the [MNS architecture decision](../../Architecture%20decisions/Systems%20landscape/0014-demographic-event-integration-nems-mns.md) remains a draft work in progress.
+The accepted decisions are:
+
+- [MNS integration](../../architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md): use MESH as the Alpha notification transport.
+- [Duplicate MNS subscription avoidance](../../architecture/decisions/System/GetAnIdentifier/0002-mns-duplicate-avoidance.md): subscribe first and remove duplicates asynchronously. Subscription creation and cleanup are not implemented in this request path.
+
+The [Notification Service README](../../../Apps/NotificationService/README.md) describes its current host, register and signed delivery components and the remaining orchestration work. MESH message retrieval is not yet implemented. The [supplier lifecycle webhook contract v1](../Notifications-Webhooks/SupplierLifecycle/V1/Index.md) remains Draft.
+
+The earlier [distributed discovery webhook design](../Notifications-Webhooks/Index.md), polling-based `FIND` / `FETCH`, jobs and results material does not describe the current primary Alpha scope. The older [NEMS / MNS landscape ADR](../../architecture/decisions/Systems%20landscape/0014-demographic-event-integration-nems-mns.md) remains Draft; use the accepted Get an Identifier MNS decisions above for the current transport and subscription approach.

@@ -7,13 +7,12 @@ To view our technical documentation, please visit the [Docs](./Docs/index.md) di
 
 Looking to getting started with local development? Skip to [Getting Started](#getting-started).
 
-| Directory/File                    | Description                                                                                                 |
-|-----------------------------------|-------------------------------------------------------------------------------------------------------------|
-| [Apps](./Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
-| [Docs](./Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
-| [LICENCE](./LICENCE)              | Standard DfE software licence<!-- Yes, that is spelled correctly. -->, applying to the entire system.       |
-| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repository. Please read before contributing.                                   |
-
+| Directory/File                    | Description                                                                                           |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [Apps](./Apps)                    | The Apps and Components created for the single unique identifier programme.                           |
+| [Docs](./Docs)                    | Programme technical documentation, including architecture models and decisions.                       |
+| [LICENCE](./LICENCE)              | Standard DfE software licence<!-- Yes, that is spelled correctly. -->, applying to the entire system. |
+| [Contributing](./CONTRIBUTING.md) | Contributions guide for this repository. Please read before contributing.                             |
 
 ## What is 'Single Unique Identifier'?
 
@@ -21,24 +20,36 @@ Today, information about a child is distributed across many independent systems 
 
 This project investigates the technical foundations required to help practitioners improve safeguarding and welfare of children by accessing the right information at the right time, while maintaining strong standards of privacy, security, and data minimisation.
 
-This project is in the Discovery Phase.  This means everything in this repository should be considered exploratory, not production‑ready.
+The programme is now working towards **Alpha**. Code, infrastructure, tests, security controls, operability, observability and documentation are treated as production-grade engineering work. Alpha includes learning and iteration; temporary or experimental approaches must be explicitly identified rather than assumed to apply to the whole repository.
 
-### What This Discovery Phase Is Exploring
+### Current service direction
 
-This Discovery phase is focused on learning, prototyping, and testing.  It does **not** create a final service — it explores what could work.
+**Get an Identifier** is the main vendor-facing API. Vendors (system suppliers) send demographic data to the service, which searches NHS England's Personal Demographics Service (PDS) and returns the matched NHS number and GP practice ODS code where available.
 
-Key areas of exploration include:
+The agreed Alpha lifecycle flow is:
 
-1. Improving Identity Matching ("Match")
-2. Finding Who Holds Information ("Find")
-3. Understanding Future Data Exchange ("Fetch")
+1. Get an Identifier subscribes matched people to NHS England's Multicast Notification Service (MNS).
+2. MNS delivers relevant lifecycle changes through MESH (Message Exchange for Social Care and Health).
+3. The separate **Notification Service** processes those notifications and notifies registered supplier webhook endpoints that previously returned information may have changed.
+4. Suppliers rematch affected records through Get an Identifier. Webhook notifications do not provide replacement NHS numbers, GP details or demographic information.
 
-The Discovery phase aims to understand needs, test technical feasibility, explore architectural options, identify risks, engage system suppliers, produce evidence to inform future Alpha and Beta phases, and validate whether the approach could support a future national service.
+This direction is not yet implemented end to end:
+
+| Area                      | Current state on `main`                                                                                                                                                                                               |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Get an Identifier         | PDS matching and the NHS number / GP practice ODS code response are implemented. MNS subscription creation is not yet implemented.                                                                                    |
+| MNS and MESH              | MESH is the accepted notification transport. Duplicate-subscription cleanup is an accepted approach, not an implemented task.                                                                                         |
+| Notification Service      | The finite-execution host, supplier webhook register and signed delivery components exist. The orchestrator currently only logs execution; MESH ingestion and lifecycle-to-webhook orchestration are not implemented. |
+| Supplier webhook contract | Draft, pending acknowledgement-timeout agreement and technical / information-governance reviews.                                                                                                                      |
+
+See the [Get an Identifier as-built design](./Docs/Design/GetAnIdentifier/AsBuilt.md), [Notification Service README](./Apps/NotificationService/README.md), [accepted MNS decisions](./Docs/architecture/decisions/index.md#accepted-get-an-identifier-decisions) and [draft supplier lifecycle contract](./Docs/Design/Notifications-Webhooks/SupplierLifecycle/V1/Index.md) for the evidence and detailed boundaries.
+
+Earlier `MATCH`, `FIND`, `FETCH`, distributed discovery, custodian polling and jobs designs remain as historical or proposed architectural material. They do not define the current primary Alpha service scope. MESH mailbox polling and scheduled Notification Service execution are separate from that earlier distributed discovery model.
 
 ### Security, Trust, and Privacy
 
 A core principle of this work is that **safeguarding information must be protected**.  
-The Discovery phase therefore emphasises:
+Alpha engineering therefore requires:
 
 - Data minimisation
 - Clear audit logging
@@ -47,76 +58,91 @@ The Discovery phase therefore emphasises:
 - No central store of case data
 - Only the minimum metadata required to support safe decision‑making
 
-This project explores _how_ a safe, trusted, multi‑agency approach could be implemented — not just the technology, but the standards and safeguards required.
-
+These safeguards apply to the implemented service and to work extending it for Alpha. Follow app-specific logging and audit rules; never put demographic data, NHS numbers, secrets or raw sensitive payloads in application logs.
 
 ## Glossary of Terms
 
 ### Organisation (a.k.a. Agency)
-* Organisations are agencies or public bodies involved in safeguarding and protecting children. Specifically, these include the
-police, local authorities, and health services. They also include organisations and agencies that provide placements for
-children, for example: foster and residential care, probation services, youth offending services, early education and childcare
-settings, schools, colleges and other education providers.
-* In this codebase, Organisations are also referred to as Providers.
+
+- Organisations are agencies or public bodies involved in safeguarding and protecting children. Specifically, these include the
+  police, local authorities, and health services. They also include organisations and agencies that provide placements for
+  children, for example: foster and residential care, probation services, youth offending services, early education and childcare
+  settings, schools, colleges and other education providers.
+- In this codebase, Organisations are also referred to as Providers.
+
+The Searcher and Custodian terms below describe the earlier distributed discovery model; they do not imply current Alpha API capabilities.
 
 ### Searcher
-* A Searcher is an Organisation that is performing a search for data to make decisions related to safeguarding and protecting
-children. A Searcher is always an Organisation, but is not necessarily a Custodian of a specific child's information.
+
+- A Searcher is an Organisation that is performing a search for data to make decisions related to safeguarding and protecting
+  children. A Searcher is always an Organisation, but is not necessarily a Custodian of a specific child's information.
 
 ### Custodian
-* A Custodian is an Organisation that holds information, which may include data related to a specific child.
+
+- A Custodian is an Organisation that holds information, which may include data related to a specific child.
 
 ### Supplier
-* In the context of multi-agency information sharing, a Supplier is a business that provides systems to Organisations.
-* In this codebase, a Supplier is not considered an Organisation, a Custodian, or a Searcher. However, Suppliers do take part in
-facilitating information sharing by providing systems, data storage and connectivity.
 
+- In the context of multi-agency information sharing, a Supplier is a business that provides systems to Organisations.
+- In this codebase, a Supplier is not considered an Organisation, a Custodian, or a Searcher. However, Suppliers do take part in
+  facilitating information sharing by providing systems, data storage and connectivity.
 
 ## Glossary of Components
 
 ### `Get an Identifier`
-* Match a PDS record and return the NHS Number, given some demographic information about a child.
+
+- Main vendor-facing API: search PDS using demographics and return the matched NHS number and GP practice ODS code where available. MNS subscription creation is part of the Alpha direction, not the current request path.
+
+### `Notification Service`
+
+- Separate service intended to process MNS lifecycle notifications received through MESH and notify registered supplier webhooks so suppliers can rematch. Delivery components exist, but the end-to-end flow is not yet implemented.
 
 ### `Auth Emulator`
-* Provides a local version of an generic authentication provider which can be used for testing and local development.
+
+- Provides a local version of an generic authentication provider which can be used for testing and local development.
 
 ### `UI Harness`
-* Lightweight UI built to test interaction with the Get an Identifier function.
+
+- Lightweight UI built to test interaction with the Get an Identifier function.
 
 ## Record Types Reference
 
-| C# Type Name                     | Record Type ID             | Schema URI                                                                |
-|----------------------------------|----------------------------|---------------------------------------------------------------------------|
-| `ChildrensServicesDetailsRecord` | childrens-services.details | https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json  |
-| `CrimeDataRecord`                | crime-justice.details      | https://schemas.example.gov.uk/sui/CrimeDataRecordV1.json                 |
-| `EducationDetailsRecord`         | education.details          | https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json          |
-| `HealthDataRecord`               | health.details             | https://schemas.example.gov.uk/sui/HealthDataRecordV1.json                |
-| `PersonalDetailsRecord`          | personal.details           | https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json           |
+These record types relate to earlier record-discovery / exchange designs, not the current Get an Identifier response contract.
 
+| C# Type Name                     | Record Type ID             | Schema URI                                                               |
+| -------------------------------- | -------------------------- | ------------------------------------------------------------------------ |
+| `ChildrensServicesDetailsRecord` | childrens-services.details | https://schemas.example.gov.uk/sui/ChildrensServicesDetailsRecordV1.json |
+| `CrimeDataRecord`                | crime-justice.details      | https://schemas.example.gov.uk/sui/CrimeDataRecordV1.json                |
+| `EducationDetailsRecord`         | education.details          | https://schemas.example.gov.uk/sui/EducationDetailsRecordV1.json         |
+| `HealthDataRecord`               | health.details             | https://schemas.example.gov.uk/sui/HealthDataRecordV1.json               |
+| `PersonalDetailsRecord`          | personal.details           | https://schemas.example.gov.uk/sui/PersonalDetailsRecordV1.json          |
 
 ## Productionisation
 
-Productionisation / getting ready to handle real data should include:
+Production-grade engineering is the baseline for Alpha; it does not mean the service is approved or ready to handle real data. Readiness requires assurance of security, privacy, failure handling, testing, observability, operations and rollback across the implemented service.
 
-* Review all occurrences of `#trivy:ignore`. They must be removed and resolved correctly before handling any real data.
-* Update the mock Custodian Service (Org Directory) and mock Auth Store to be real.
-    * The goal here is for DfE IT Operations to be able to securely configure the SUI System without them needing to make code changes nor redeploy the infrastructure or software.
-    * The current thinking is that good candidates for the solution are Azure Key Vault or Azure App Configuration.
+The existing readiness notes below include dependencies from earlier designs. In particular, mock custodian-directory work is not evidence of current Alpha scope; validate its relevance before treating it as a delivery requirement.
+
+Recorded readiness items include:
+
+- Review all occurrences of `#trivy:ignore`. They must be removed and resolved correctly before handling any real data.
+- Update the mock Custodian Service (Org Directory) and mock Auth Store to be real.
+  - The goal here is for DfE IT Operations to be able to securely configure the SUI System without them needing to make code changes nor redeploy the infrastructure or software.
+  - The current thinking is that good candidates for the solution are Azure Key Vault or Azure App Configuration.
 
 Other none essential but good-to-do long-term items include:
-* Upgrade SonarQube licence, rather than using free tier licence.
-    * So that the connection from GitHub to SonarQube can use a machine-machine token or ideally federated credentials.
-    * The current SonarQube licence does not allow more advanced connections than a short-lived personal access token.
 
+- Upgrade SonarQube licence, rather than using free tier licence.
+  - So that the connection from GitHub to SonarQube can use a machine-machine token or ideally federated credentials.
+  - The current SonarQube licence does not allow more advanced connections than a short-lived personal access token.
 
 ## Development Environments
 
 | Environment ID | Purpose                                                                                                                                                                | Trigger                                                                                            |
-|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `d01`          | **Primary development environment**. Used by the engineering team to test and verify changes. Possibly may contain broken functionality, although that is undesirable. | **Automatically trigerred deployments** (from changes to `main`).                                  |
 | `d02`          | **Demo environment**. Stable environment that should not contain broken functionality. Used in presentations and in research sessions.                                 | **Manually trigerred deployments**. Deployments must be scheduled and coordinated with whole team. |
 | `d03`          | **Sandbox environment**. Used for trialling potential changes and configurations, for example trialling integrating with FaUAPI.                                       | **Manually trigerred deployments**                                                                 |
-
 
 ## Getting Started
 
@@ -152,24 +178,25 @@ SUI_SKIP_GITLEAKS=1 git commit
 ```
 
 Also, ensure the .NET self-signed certificate is installed (to enable HTTPS use locally):
+
 ```bash
 dotnet dev-certs https --trust
 ```
-If encountering problems with the .NET dev certificate, run `dotnet dev-certs https --clean` first, then run `dotnet dev-certs https --trust`.
 
+If encountering problems with the .NET dev certificate, run `dotnet dev-certs https --clean` first, then run `dotnet dev-certs https --trust`.
 
 ## Quick Run
 
 1. Complete the Getting Started steps above.
 2. Start local dependencies (Azurite) from the repo root:
-    ```bash
-    docker compose up -d
-    ```
-    To include an observability stack, use a profile (this also starts Azurite):
-    ```bash
-    docker compose --profile aspire up -d
-    docker compose --profile grafana up -d
-    ```
+   ```bash
+   docker compose up -d
+   ```
+   To include an observability stack, use a profile (this also starts Azurite):
+   ```bash
+   docker compose --profile aspire up -d
+   docker compose --profile grafana up -d
+   ```
 3. Follow the app-specific README to run locally (for example, `Apps/GetAnIdentifier/README.md`).
 
 ### Local OpenTelemetry
@@ -201,7 +228,6 @@ OTEL_SERVICE_NAME=Your.App.Name
 Open `http://localhost:3000` (admin/admin) and use Explore to view logs and traces.
 If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
-
 ## CI workflows
 
 Workflow structure and inputs are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md). Self-hosted runner and Azure artifact storage details (including the rate-limit workaround and switchback flags) are in [Docs/Developers/ci-self-hosted-runner.md](./Docs/Developers/ci-self-hosted-runner.md).
@@ -211,7 +237,6 @@ Security scanning is layered:
 - `Trivy IaC Scan` blocks pull requests and pushes to `main` on `HIGH` and `CRITICAL` infrastructure-as-code findings.
 - `TruffleHog Secret Scan` blocks pull requests and pushes to `main` on new verified or unknown secret findings.
 - `Trivy Repository Scan` and `TruffleHog Deep Secret Scan` run as broader scheduled/manual hygiene scans.
-
 
 ## Repository structure
 
@@ -225,7 +250,6 @@ Apps/AppOrComponentName/
     YourCsTestProject.Unit.Tests/
     YourCsTestProject.Integration.Tests/
 ```
-
 
 ## Clean architecture
 
@@ -262,7 +286,6 @@ Example:
 GITHUB_USERNAME=YourGitHubUsername GITHUB_TOKEN_DFENUGET=YourTokenHere dotnet watch run --launch-profile https
 ```
 
-
 ## Configuring Non-public Client IDs and Secrets for Authentication
 
 While having client secrets in a public repo is fine for local development and ephemeral environments, deployed environments should use actual secret values (rather than pretend secret values that have been publicly published) so that unauthorised people cannot authenticate with our deployed environments.
@@ -270,31 +293,42 @@ While having client secrets in a public repo is fine for local development and e
 This is achieved via the `AuthClientCredentials` configuration functionality that enables overriding the Client IDs and Secrets in the sample data.
 
 Ultimately this is driven by GitHub Environment Secrets called:
+
 - `AUTH_CLIENT_IDS_JSON_MAP`
 - `AUTH_CLIENT_SECRETS_JSON_MAP`
 
 Both secrets must be JSON maps, where the key is the original Client ID and the value is the corresponding private value.
 
 `AUTH_CLIENT_IDS_JSON_MAP` expects a map of `OriginalClientId` to `SensitiveClientId`, for example:
+
 ```json
-{"CLIENT_ID_LOCAL_AUTHORITY_01":"sensitive-client-id-1", "CLIENT_ID_EDUCATION_01":"sensitive-client-id-2"}
+{
+  "CLIENT_ID_LOCAL_AUTHORITY_01": "sensitive-client-id-1",
+  "CLIENT_ID_EDUCATION_01": "sensitive-client-id-2"
+}
 ```
 
 `AUTH_CLIENT_SECRETS_JSON_MAP` expects a map of `OriginalClientId` to `SensitiveClientSecret`, for example:
+
 ```json
-{"CLIENT_ID_LOCAL_AUTHORITY_01":"sensitive-client-secret-1", "CLIENT_ID_EDUCATION_01":"sensitive-client-secret-2"}
+{
+  "CLIENT_ID_LOCAL_AUTHORITY_01": "sensitive-client-secret-1",
+  "CLIENT_ID_EDUCATION_01": "sensitive-client-secret-2"
+}
 ```
 
-**It is important to note that these values must be a single line.  They must not be multi-line.  Newline characters break the GitHub workflows!**
+**It is important to note that these values must be a single line. They must not be multi-line. Newline characters break the GitHub workflows!**
 
 The PowerShell script `scripts/generate-auth-client-credentials-secrets.ps1` exists to help generate the values.
 
 To generate secret values:
+
 ```bash
 dotnet pwsh ./scripts/generate-auth-client-credentials-secrets.ps1
 ```
 
 To generate template values:
+
 ```bash
 dotnet pwsh ./scripts/generate-auth-client-credentials-secrets.ps1 -TemplateMode
 ```
