@@ -38,6 +38,11 @@ on:
         required: false
         default: false
         type: boolean
+      deploy:
+        description: Trigger deployment jobs
+        required: false
+        default: false
+        type: boolean
       notification_service_image_tag:
         description: Existing 40-char SHA image tag to deploy for Notification Service (optional)
         required: false
@@ -191,7 +196,9 @@ jobs:
 
   build-and-publish-image:
     name: Notification Service - container image
+    if: github.event_name != 'pull_request' && (needs.path-filter.outputs.notification_service == 'true' || github.event.inputs.force_deploy_all == 'true')
     needs:
+      - path-filter
       - build-notification-service
     runs-on: ubuntu-latest
     outputs:
@@ -268,6 +275,25 @@ jobs:
           file: Apps/NotificationService/Dockerfile
           push: true
           tags: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, steps.image.outputs.image_tag) }}
+
+  validate-container:
+    name: Notification Service - validate container
+    if: github.event_name == 'pull_request' && needs.path-filter.outputs.notification_service == 'true'
+    needs: path-filter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build container image without publishing
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Apps/NotificationService/Dockerfile
+          load: true
+          push: false
+          tags: notification-service:${{ github.sha }}
 
   cut-release:
     name: Cut Immutable Release
@@ -426,7 +452,10 @@ jobs:
 
   deploy-notification-service:
     name: Notification Service - Terraform apply
-    if: needs.path-filter.outputs.notification_service == 'true' && github.event_name != 'pull_request'
+    if: |
+      needs.path-filter.outputs.notification_service == 'true' &&
+      ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
     needs:
       - path-filter
       - build-and-publish-image
