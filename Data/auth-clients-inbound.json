@@ -78,7 +78,8 @@
       "organisationId": "INVALID-SCOPE-01",
       "clientSecret": "SUIProject",
       "allowedScopes": [
-        "other-scope.read"
+        "other-scope.read",
+        "other-scope.write"
       ]
     }
   ]
