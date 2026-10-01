@@ -47,24 +47,6 @@ Also, Windows only, ensure the line endings in your `.env` file are LF, not CRLF
 
 ### To run locally
 
-#### Configure `x-api-key`
-
-The Get an Identifier function requires an `x-api-key` header for authentication. Configure it in your `local.settings.json`:
-
-```json
-{
-  "Values": {
-    "GetAnIdentifierFunction:XApiKey": "local-dev-key-change-me"
-  }
-}
-```
-
-This is the `x-api-key` for invoking our endpoint. It is **not** the key for PDS FHIR.
-For local dev, the key is not important, and it is recommended to keep the value as `local-dev-key-change-me`.
-
-In Dev/Test/Prod environments, the key is automatically retrieved from Azure Key Vault (secret name: `get-an-id-api-key`).
-The operational rotation process for this secret is documented in [Docs/Developers/secret-rotation.md](../../Docs/Developers/secret-rotation.md).
-
 #### Run Azurite
 
 ```
@@ -91,7 +73,7 @@ source .env
 func start
 ```
 
-The protected operation is `POST /api/v1/get-an-identifier`. Calls require both a bearer token containing `get-an-identifier.read` and the configured `x-api-key`.
+The protected operation is `POST /api/v1/get-an-identifier`. Calls require a bearer token containing `get-an-identifier.read` for environments that don't use the auth store for authorisation.
 
 ## Logging Guidelines & Data Sanitization
 
