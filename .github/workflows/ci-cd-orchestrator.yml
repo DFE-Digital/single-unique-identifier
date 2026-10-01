@@ -278,8 +278,6 @@ jobs:
       - build-ui-harness
       - build-notification-service
       - build-and-publish-image
-    # We use always() so that it still cuts a release for the modules that DID build even if some modules were skipped
-    # Wait, actually if a job is conditionally skipped, it evaluates as 'success' for needs. 
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -356,7 +354,6 @@ jobs:
             --draft \
             --target "${GITHUB_SHA}"
 
-  # Deployment jobs follow...
   deploy-auth-emulator:
     name: AuthEmulator - Deploy Web App
     if: |
@@ -429,7 +426,6 @@ jobs:
 
   deploy-notification-service:
     name: Notification Service - Terraform apply
-    # Notification service uses terraform output for deployment
     if: needs.path-filter.outputs.notification_service == 'true' && github.event_name != 'pull_request'
     needs:
       - path-filter
