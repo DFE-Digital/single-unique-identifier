@@ -30,7 +30,7 @@ public class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshConfig> mesh
         // of a busy mailbox. MESH's documented poll cycle is to read the inbox and keep following
         // "links.next" until no further page is offered.
         var messageIds = new List<string>();
-        var requestUri = $"/messageexchange/{_mailboxId}/inbox";
+        string? requestUri = $"/messageexchange/{_mailboxId}/inbox";
 
         var fetched = new HashSet<string>(StringComparer.Ordinal) { requestUri };
 
@@ -44,19 +44,14 @@ public class MeshInboxClient(HttpClient httpClient, IOptions<NhsMeshConfig> mesh
             }
 
             var next = inbox?.Links?.Next;
-            if (string.IsNullOrWhiteSpace(next))
-            {
-                break;
-            }
+            requestUri = string.IsNullOrWhiteSpace(next) ? null : next;
 
-            if (!fetched.Add(next))
+            if (requestUri is not null && !fetched.Add(requestUri))
             {
                 throw new InvalidOperationException(
-                    $"MESH inbox paging revisited '{next}', so the mailbox cannot be read in full."
+                    $"MESH inbox paging revisited '{requestUri}', so the mailbox cannot be read in full."
                 );
             }
-
-            requestUri = next;
         }
 
         return messageIds;
