@@ -3,11 +3,9 @@ using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using OneOf.Types;
-using SUI.GetAnIdentifier.API.Configuration;
 using SUI.GetAnIdentifier.API.Functions;
 using SUI.GetAnIdentifier.API.Models;
 using SUI.GetAnIdentifier.API.UnitTests.Mocks;
@@ -20,24 +18,13 @@ namespace SUI.GetAnIdentifier.API.UnitTests.Functions;
 
 public class GetAnIdentifierFunctionTests
 {
-    private const string TestApiKey = "test-api-key";
     private readonly ILogger<GetAnIdentifierFunction> _logger = Substitute.For<
         ILogger<GetAnIdentifierFunction>
     >();
     private readonly IGetAnIdentifierService _getAnIdentifierService =
         Substitute.For<IGetAnIdentifierService>();
-    private readonly IOptions<GetAnIdentifierConfiguration> _matchFunctionConfig;
 
-    public GetAnIdentifierFunctionTests()
-    {
-        _matchFunctionConfig = Substitute.For<IOptions<GetAnIdentifierConfiguration>>();
-        _matchFunctionConfig.Value.Returns(
-            new GetAnIdentifierConfiguration() { XApiKey = TestApiKey }
-        );
-    }
-
-    private GetAnIdentifierFunction CreateFunction() =>
-        new(_logger, _getAnIdentifierService, _matchFunctionConfig);
+    private GetAnIdentifierFunction CreateFunction() => new(_logger, _getAnIdentifierService);
 
     private static FunctionContext CreateContextWithAuth(string organisationId = "test-org-id")
     {
@@ -50,16 +37,6 @@ public class GetAnIdentifierFunctionTests
         );
         context.InvocationId.Returns(Guid.NewGuid().ToString());
         return context;
-    }
-
-    private static HttpHeadersCollection CreateHeadersWithApiKey(string? apiKey = TestApiKey)
-    {
-        var headers = new HttpHeadersCollection();
-        if (apiKey != null)
-        {
-            headers.Add("x-api-key", new[] { apiKey });
-        }
-        return headers;
     }
 
     private static GetAnIdentifierRequest CreateMatchRequest() =>
@@ -81,7 +58,7 @@ public class GetAnIdentifierFunctionTests
         var context = CreateContextWithAuth();
         var req = MockHttpRequestData.CreateJson(
             CreateMatchRequest(),
-            headers: CreateHeadersWithApiKey()
+            headers: new HttpHeadersCollection()
         );
 
         using var cts = new CancellationTokenSource();
@@ -120,7 +97,7 @@ public class GetAnIdentifierFunctionTests
         var function = CreateFunction();
         var context = CreateContextWithAuth();
         var validRequest = CreateMatchRequest();
-        var headers = CreateHeadersWithApiKey();
+        var headers = new HttpHeadersCollection();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
         var personId = "9876543210";
         const string generalPractitionerOdsCode = "B81606";
@@ -163,7 +140,7 @@ public class GetAnIdentifierFunctionTests
         var function = CreateFunction();
         var context = CreateContextWithAuth();
         var validRequest = CreateMatchRequest();
-        var headers = CreateHeadersWithApiKey();
+        var headers = new HttpHeadersCollection();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
         _getAnIdentifierService
@@ -188,7 +165,7 @@ public class GetAnIdentifierFunctionTests
         var function = CreateFunction();
         var context = CreateContextWithAuth();
         var validRequest = CreateMatchRequest();
-        var headers = CreateHeadersWithApiKey();
+        var headers = new HttpHeadersCollection();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
         _getAnIdentifierService
@@ -213,7 +190,7 @@ public class GetAnIdentifierFunctionTests
         var function = CreateFunction();
         var context = CreateContextWithAuth();
         var validRequest = CreateMatchRequest();
-        var headers = CreateHeadersWithApiKey();
+        var headers = new HttpHeadersCollection();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
         var expectedException = new Exception("Unexpected system crash");
 
@@ -257,58 +234,7 @@ public class GetAnIdentifierFunctionTests
         context.Items.Returns(new Dictionary<object, object>());
         context.InvocationId.Returns(Guid.NewGuid().ToString());
         var validRequest = CreateMatchRequest();
-        var headers = CreateHeadersWithApiKey();
-        var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
-
-        // Act
-        var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task ShouldReturnUnauthorized_WhenApiKeyMissing()
-    {
-        // Arrange
-        var function = CreateFunction();
-        var context = CreateContextWithAuth();
-        var validRequest = CreateMatchRequest();
-        var headers = CreateHeadersWithApiKey(null);
-        var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
-
-        // Act
-        var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task ShouldReturnUnauthorized_WhenApiKeyIsInvalid()
-    {
-        // Arrange
-        var function = CreateFunction();
-        var context = CreateContextWithAuth();
-        var validRequest = CreateMatchRequest();
-        var headers = CreateHeadersWithApiKey("wrong-api-key");
-        var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
-
-        // Act
-        var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task ShouldReturnUnauthorized_WhenApiKeyIsEmpty()
-    {
-        // Arrange
-        var function = CreateFunction();
-        var context = CreateContextWithAuth();
-        var validRequest = CreateMatchRequest();
-        var headers = CreateHeadersWithApiKey("");
+        var headers = new HttpHeadersCollection();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
         // Act
@@ -335,7 +261,7 @@ public class GetAnIdentifierFunctionTests
 
         context.InvocationId.Returns(Guid.NewGuid().ToString());
 
-        var headers = CreateHeadersWithApiKey();
+        var headers = new HttpHeadersCollection();
         var req = MockHttpRequestData.CreateJson(inValidRequest, headers: headers);
 
         // Act
@@ -351,14 +277,12 @@ public class GetAnIdentifierFunctionTests
         // Arrange
         var service = Substitute.For<IGetAnIdentifierService>();
         var logger = Substitute.For<ILogger<GetAnIdentifierFunction>>();
-        var config = Substitute.For<IOptions<GetAnIdentifierConfiguration>>();
-        config.Value.Returns(new GetAnIdentifierConfiguration() { XApiKey = TestApiKey });
-        var function = new GetAnIdentifierFunction(logger, service, config);
+        var function = new GetAnIdentifierFunction(logger, service);
 
         var context = CreateContextWithAuth();
         context.InvocationId.Returns(Guid.NewGuid().ToString());
 
-        var headers = CreateHeadersWithApiKey();
+        var headers = new HttpHeadersCollection();
         var req = MockHttpRequestData.Create(requestData: null!, headers: headers);
 
         // Act
@@ -374,14 +298,12 @@ public class GetAnIdentifierFunctionTests
         // Arrange
         var service = Substitute.For<IGetAnIdentifierService>();
         var logger = Substitute.For<ILogger<GetAnIdentifierFunction>>();
-        var config = Substitute.For<IOptions<GetAnIdentifierConfiguration>>();
-        config.Value.Returns(new GetAnIdentifierConfiguration { XApiKey = TestApiKey });
-        var function = new GetAnIdentifierFunction(logger, service, config);
+        var function = new GetAnIdentifierFunction(logger, service);
 
         var context = CreateContextWithAuth();
         context.InvocationId.Returns(Guid.NewGuid().ToString());
 
-        var headers = CreateHeadersWithApiKey();
+        var headers = new HttpHeadersCollection();
         var req = MockHttpRequestData.Create(requestData: "", headers: headers); // empty string causes JSON Exception
 
         // Act

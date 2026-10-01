@@ -12,7 +12,6 @@
 
 @apiBaseUrl = http://localhost:7120
 @authBaseUrl = https://localhost:7250
-@apiKey = local-dev-key-change-me
 
 # If you manually copy the token string from Request 3, paste it here:
 @authToken = YOUR_TOKEN_HERE
@@ -46,7 +45,6 @@ grant_type=client_credentials&scope=get-an-identifier.read
 # Run Request 3 first to populate {{bearer_token}}
 POST {{apiBaseUrl}}/api/v1/get-an-identifier
 Content-Type: application/json
-x-api-key: {{apiKey}}
 Authorization: Bearer {{bearer_token}}
 
 {
@@ -63,7 +61,6 @@ Authorization: Bearer {{bearer_token}}
 # Paste token into @authToken at top of file
 POST {{apiBaseUrl}}/api/v1/get-an-identifier
 Content-Type: application/json
-x-api-key: {{apiKey}}
 Authorization: Bearer {{authToken}}
 
 {
