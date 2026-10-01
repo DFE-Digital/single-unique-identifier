@@ -47,6 +47,10 @@ public static class ServiceCollectionExtensions
                 }
             )
             .AddHttpMessageHandler<NhsMeshAuthHandler>()
+            // Local sandbox only: no client certificate is presented, so connections to a real MESH
+            // environment (INT/LIVE), which requires mutual TLS with an NHS-issued certificate, will
+            // fail the TLS handshake. Client certificate support is deferred until a deployed
+            // environment exists - see the README's NHS MESH section.
             .ConfigurePrimaryHttpMessageHandler(
                 static (handler, serviceProvider) =>
                 {

@@ -103,6 +103,13 @@ immediately rather than at the first request. `appsettings.Development.json` poi
 [local MESH sandbox](#local-mesh-sandbox), whose self-signed certificate is trusted only in the
 `Development` environment.
 
+> [!IMPORTANT]
+> The client currently works only against the local sandbox. Real MESH environments (INT and LIVE)
+> require mutual TLS with an NHS-issued client certificate, and the client does not present one yet,
+> so connections to them will fail during the TLS handshake. Client certificate support (loading
+> the certificate and key from Key Vault, plus any CA chain MESH needs) is deferred until there is a
+> deployed environment. See [ADR 0001](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md).
+
 Do not commit secrets to the configuration files. Supply sensitive local values through environment variables or an approved secret-management mechanism when later workstreams introduce them.
 
 ### Message payloads
