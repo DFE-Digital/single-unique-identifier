@@ -104,14 +104,21 @@ jobs:
 
   smoke-test-GetAnIdentifier:
     name: GetAnIdentifier - Post-Deploy Smoke Tests
-    needs: [deploy-GetAnIdentifier]
+    needs: [ deploy-GetAnIdentifier ]
     if: |
       always() &&
       !cancelled() &&
-      !contains(needs.*.result, 'failure') &&
       (
-        (github.event_name == 'workflow_dispatch' && (inputs.deploy == true || inputs.run_smoke_tests == true)) ||
-        (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        (
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          needs.deploy-GetAnIdentifier.result == 'success'
+        ) ||
+        (
+          github.event_name == 'workflow_dispatch' &&
+          (inputs.run_smoke_tests == true || inputs.run_smoke_tests == 'true') &&
+          needs.deploy-GetAnIdentifier.result != 'failure'
+        )
       )
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     permissions:
