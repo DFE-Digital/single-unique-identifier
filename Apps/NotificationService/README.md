@@ -121,7 +121,10 @@ under is **TBA** - it is not yet known. Each body is a FHIR Bundle (`type: histo
 
 The MESH boundary returns each body as raw text; the application layer parses it into a typed
 `Hl7.Fhir.Model.Bundle` with the Firely FHIR SDK (`Hl7.Fhir.R4`) and checks it is the expected
-shape: a `history` Bundle whose first entry is a `Parameters` resource. The declared `meta.profile`
+shape: a `history` Bundle whose first entry is a `Parameters` resource with
+`additional-context.event-type` of exactly `pds-record-change-2`. Other MNS events share the same
+Bundle and `Parameters` shape, so the event type is checked defensively to stop a subscription
+mistake being treated as a PDS record change. The declared `meta.profile`
 is deliberately not checked: every Subscriptions Backport notification declares the same profile, so
 it cannot tell a pds-record-change-2 event from any other, and an exact match on it only adds a way
 to reject valid messages. Parsing is deliberately an application concern rather than a transport one, because what to do
@@ -133,7 +136,7 @@ event number and version identifier only. Turning the notification into a suppli
 belongs with the supplier webhook workstream.
 
 The service does not filter on the workflow identifier, so the mailbox is assumed to carry these
-events only.
+events only; the `event-type` check above is the backstop if that assumption is ever wrong.
 
 #### Messages that cannot be parsed
 

@@ -15,13 +15,17 @@ public static class MeshNotificationParser
 {
     private const string AdditionalContextParameter = "additional-context";
     private const string SubjectPart = "subject";
+    private const string EventTypePart = "event-type";
+    private const string RecordChangeEventType = "pds-record-change-2";
 
     private static readonly JsonSerializerOptions FhirJsonOptions =
         new JsonSerializerOptions().ForFhir();
 
     /// <summary>
     /// Parses a MESH message body and confirms it is the shape a pds-record-change-2 notification
-    /// takes: a <c>history</c> Bundle whose first entry is a <see cref="Parameters"/> resource.
+    /// takes: a <c>history</c> Bundle whose first entry is a <see cref="Parameters"/> resource with
+    /// <c>additional-context.event-type</c> of <c>pds-record-change-2</c>. Other MNS events share the
+    /// Bundle shape, so the event type is what stops a mis-subscribed event being treated as one.
     /// Returns false for anything else so the caller can leave the message unacknowledged.
     /// </summary>
     public static bool TryParse(string? content, [NotNullWhen(true)] out Bundle? bundle)
@@ -63,14 +67,7 @@ public static class MeshNotificationParser
     {
         nhsNumber = null;
 
-        if (bundle.Entry.FirstOrDefault()?.Resource is not Parameters parameters)
-        {
-            return false;
-        }
-
-        var subject = parameters
-            .Parameter.FirstOrDefault(parameter => parameter.Name == AdditionalContextParameter)
-            ?.Part.FirstOrDefault(part => part.Name == SubjectPart);
+        var subject = GetAdditionalContextPart(bundle, SubjectPart);
 
         var value = (subject?.Value as ResourceReference)?.Identifier?.Value;
 
@@ -85,5 +82,15 @@ public static class MeshNotificationParser
 
     private static bool IsRecordChangeNotification(Bundle bundle) =>
         bundle.Type == Bundle.BundleType.History
-        && bundle.Entry.FirstOrDefault()?.Resource is Parameters;
+        && bundle.Entry.FirstOrDefault()?.Resource is Parameters
+        && (GetAdditionalContextPart(bundle, EventTypePart)?.Value as FhirString)?.Value
+            == RecordChangeEventType;
+
+    private static Parameters.ParameterComponent? GetAdditionalContextPart(
+        Bundle bundle,
+        string partName
+    ) =>
+        (bundle.Entry.FirstOrDefault()?.Resource as Parameters)
+            ?.Parameter.FirstOrDefault(parameter => parameter.Name == AdditionalContextParameter)
+            ?.Part.FirstOrDefault(part => part.Name == partName);
 }

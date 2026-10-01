@@ -62,6 +62,66 @@ public sealed class MeshNotificationParserTests
         Assert.NotNull(bundle);
     }
 
+    [Theory]
+    [InlineData("pds-record-change-1")]
+    [InlineData("PDS-RECORD-CHANGE-2")]
+    [InlineData("some-other-event")]
+    [InlineData("")]
+    public void TryParse_ReturnsFalse_WhenEventTypeIsNotPdsRecordChange2(string eventType)
+    {
+        var content = BuildNotification()
+            .Replace(
+                "\"valueString\": \"pds-record-change-2\"",
+                $"\"valueString\": \"{eventType}\""
+            );
+
+        var parsed = MeshNotificationParser.TryParse(content, out var bundle);
+
+        Assert.False(parsed);
+        Assert.Null(bundle);
+    }
+
+    [Fact]
+    public void TryParse_ReturnsFalse_WhenEventTypePartIsMissing()
+    {
+        var content = BuildNotification()
+            .Replace(
+                "{ \"name\": \"event-type\", \"valueString\": \"pds-record-change-2\" },",
+                string.Empty
+            );
+
+        var parsed = MeshNotificationParser.TryParse(content, out var bundle);
+
+        Assert.False(parsed);
+        Assert.Null(bundle);
+    }
+
+    [Fact]
+    public void TryParse_ReturnsFalse_WhenAdditionalContextIsMissing()
+    {
+        var content = BuildNotification().Replace("\"additional-context\"", "\"something-else\"");
+
+        var parsed = MeshNotificationParser.TryParse(content, out var bundle);
+
+        Assert.False(parsed);
+        Assert.Null(bundle);
+    }
+
+    [Fact]
+    public void TryParse_ReturnsFalse_WhenEventTypeIsNotAString()
+    {
+        var content = BuildNotification()
+            .Replace(
+                "\"valueString\": \"pds-record-change-2\"",
+                "\"valueCode\": \"pds-record-change-2\""
+            );
+
+        var parsed = MeshNotificationParser.TryParse(content, out var bundle);
+
+        Assert.False(parsed);
+        Assert.Null(bundle);
+    }
+
     [Fact]
     public void TryParse_ReturnsFalse_WhenFirstEntryIsNotParameters()
     {
