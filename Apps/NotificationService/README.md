@@ -142,7 +142,7 @@ application, use `scripts/send-mesh-test-message.ps1`, which posts the payload i
 `scripts/pds-record-change-2-notification.template.json`:
 
 ```bash
-dotnet pwsh ./scripts/send-mesh-test-message.ps1
+pwsh ./scripts/send-mesh-test-message.ps1
 ```
 
 The script's default workflow identifier, `PDSRECORDCHANGE_2`, is a placeholder while the real one
