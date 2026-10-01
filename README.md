@@ -146,7 +146,7 @@ The current deployment plan promotes builds sequentially through `d01` → `d02`
 | `d02`          | **Controlled testing and demonstration environment**. Provides a more stable build for testing, demonstrations and research, with deployment timing controlled by the team. | Manual promotion of a build successfully deployed to `d01`. |
 | `d03`          | **Pre-production environment**. Supports validation before any future production release.                                                                                   | Manual promotion of a build from `d02` only.                |
 
-This is the current environment strategy and may evolve as the programme progresses.
+This is the current environment strategy and may evolve as the programme progresses. The [Get an Identifier authentication matrix](./Docs/Design/GetAnIdentifier/AsBuilt.md#authentication-by-environment) explains the intended gateway and issuer setup for each environment, its purpose, and which settings require deployment verification.
 
 ## Getting Started
 
@@ -306,19 +306,13 @@ Both secrets must be JSON maps, where the key is the original Client ID and the 
 `AUTH_CLIENT_IDS_JSON_MAP` expects a map of `OriginalClientId` to `SensitiveClientId`, for example:
 
 ```json
-{
-  "CLIENT_ID_LOCAL_AUTHORITY_01": "sensitive-client-id-1",
-  "CLIENT_ID_EDUCATION_01": "sensitive-client-id-2"
-}
+{"CLIENT_ID_LOCAL_AUTHORITY_01":"sensitive-client-id-1","CLIENT_ID_EDUCATION_01":"sensitive-client-id-2"}
 ```
 
 `AUTH_CLIENT_SECRETS_JSON_MAP` expects a map of `OriginalClientId` to `SensitiveClientSecret`, for example:
 
 ```json
-{
-  "CLIENT_ID_LOCAL_AUTHORITY_01": "sensitive-client-secret-1",
-  "CLIENT_ID_EDUCATION_01": "sensitive-client-secret-2"
-}
+{"CLIENT_ID_LOCAL_AUTHORITY_01":"sensitive-client-secret-1","CLIENT_ID_EDUCATION_01":"sensitive-client-secret-2"}
 ```
 
 **It is important to note that these values must be a single line. They must not be multi-line. Newline characters break the GitHub workflows!**

@@ -110,6 +110,8 @@ This index and the ADR set should be read with that progression in mind.
 
 These are decisions, not claims that the full flow is implemented. The [ADR file inventory](./overview.md) includes links to the individual landscape and system records; each record's own status is authoritative.
 
+For the intended environment-specific gateway and authentication choices and their rationale, see the [Get an Identifier authentication matrix](../../Design/GetAnIdentifier/AsBuilt.md#authentication-by-environment). That section distinguishes the target strategy from repository configuration and live settings that still need verification.
+
 ## Maintaining this index
 
 This index is expected to evolve.
