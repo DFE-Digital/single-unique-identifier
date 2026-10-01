@@ -86,6 +86,20 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
         Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
     }
 
+    [Theory]
+    [InlineData(typeof(InvalidOperationException))]
+    [InlineData(typeof(NullReferenceException))]
+    [InlineData(typeof(OutOfMemoryException))]
+    public async Task ProcessMeshMessagesAsync_Propagates_WhenAMessageFailsUnexpectedly(
+        Type exceptionType
+    )
+    {
+        AddValidMessage("message-1", "9000000009");
+        AddUnreadableMessage("message-faulty", (Exception)Activator.CreateInstance(exceptionType)!);
+
+        await Assert.ThrowsAsync(exceptionType, () => ProcessAsync());
+    }
+
     [Fact]
     public async Task ProcessMeshMessagesAsync_PropagatesCancellation_WhenTheCallersTokenIsCancelled()
     {

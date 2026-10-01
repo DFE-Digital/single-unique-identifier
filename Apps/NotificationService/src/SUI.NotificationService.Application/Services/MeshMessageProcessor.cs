@@ -49,13 +49,13 @@ public class MeshMessageProcessor(
                     notifications.Add(notification);
                 }
             }
-            catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
+            catch (Exception exception)
+                when (IsExpectedTransportFailure(exception, cancellationToken))
             {
                 // One unreadable message must not cost this execution the rest of the mailbox. The
-                // message stays unacknowledged, so MESH redelivers it on the next run. This also
-                // catches TaskCanceledException raised by HttpClient's own request timeout, which
-                // is an OperationCanceledException but unrelated to this execution's cancellation
-                // token; only cancellation of that token is left to end the execution early.
+                // message stays unacknowledged, so MESH redelivers it on the next run. Only
+                // per-message transport failures are tolerated here; programming faults and fatal
+                // exceptions propagate to NotificationServiceRunner so the run fails visibly.
                 logger.LogError(
                     exception,
                     "MESH message {MessageId} could not be processed and was left unacknowledged",
@@ -66,6 +66,20 @@ public class MeshMessageProcessor(
 
         return notifications;
     }
+
+    // HttpClient surfaces a non-success status as HttpRequestException and its own request timeout
+    // as TaskCanceledException, which is an OperationCanceledException unrelated to this
+    // execution's token; cancellation of that token is left to end the execution early.
+    private static bool IsExpectedTransportFailure(
+        Exception exception,
+        CancellationToken cancellationToken
+    ) =>
+        exception switch
+        {
+            HttpRequestException => true,
+            TaskCanceledException => !cancellationToken.IsCancellationRequested,
+            _ => false,
+        };
 
     /// <summary>
     /// Acknowledges a message in the MESH mailbox so that it is removed from the inbox.
