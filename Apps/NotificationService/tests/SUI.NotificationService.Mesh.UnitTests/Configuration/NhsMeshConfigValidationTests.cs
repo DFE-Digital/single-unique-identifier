@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using SUI.NotificationService.Mesh.Configuration;
 
@@ -11,9 +12,11 @@ public sealed class NhsMeshConfigValidationTests
     [InlineData("https://localhost:8700")]
     [InlineData("https://127.0.0.1:8700")]
     [InlineData("https://[::1]:8700")]
-    public void AcceptLocalDevCert_IsPermitted_ForLoopbackMailboxBaseUrl(string mailboxBaseUrl)
+    public async Task AcceptLocalDevCert_IsPermitted_ForLoopbackMailboxBaseUrl(
+        string mailboxBaseUrl
+    )
     {
-        var config = ResolveConfig(mailboxBaseUrl, acceptLocalDevCert: true);
+        var config = await StartHostAndResolveConfigAsync(mailboxBaseUrl, acceptLocalDevCert: true);
 
         Assert.True(config.AcceptLocalDevCert);
     }
@@ -21,10 +24,12 @@ public sealed class NhsMeshConfigValidationTests
     [Theory]
     [InlineData("https://msg.intspineservices.nhs.uk")]
     [InlineData("https://mesh-sandbox:8700")]
-    public void AcceptLocalDevCert_IsRejected_ForNonLoopbackMailboxBaseUrl(string mailboxBaseUrl)
+    public async Task AcceptLocalDevCert_IsRejected_ForNonLoopbackMailboxBaseUrl(
+        string mailboxBaseUrl
+    )
     {
-        var exception = Assert.Throws<OptionsValidationException>(() =>
-            ResolveConfig(mailboxBaseUrl, acceptLocalDevCert: true)
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() =>
+            StartHostAndResolveConfigAsync(mailboxBaseUrl, acceptLocalDevCert: true)
         );
 
         Assert.Contains(
@@ -34,10 +39,10 @@ public sealed class NhsMeshConfigValidationTests
     }
 
     [Fact]
-    public void AcceptLocalDevCert_IsRejected_WhenMailboxBaseUrlIsNotAnAbsoluteUrl()
+    public async Task AcceptLocalDevCert_IsRejected_WhenMailboxBaseUrlIsNotAnAbsoluteUrl()
     {
-        var exception = Assert.Throws<OptionsValidationException>(() =>
-            ResolveConfig("not-a-url", acceptLocalDevCert: true)
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() =>
+            StartHostAndResolveConfigAsync("not-a-url", acceptLocalDevCert: true)
         );
 
         Assert.Contains(
@@ -47,9 +52,9 @@ public sealed class NhsMeshConfigValidationTests
     }
 
     [Fact]
-    public void NonLoopbackMailboxBaseUrl_IsPermitted_WhenAcceptLocalDevCertIsFalse()
+    public async Task NonLoopbackMailboxBaseUrl_IsPermitted_WhenAcceptLocalDevCertIsFalse()
     {
-        var config = ResolveConfig(
+        var config = await StartHostAndResolveConfigAsync(
             "https://msg.intspineservices.nhs.uk",
             acceptLocalDevCert: false
         );
@@ -60,10 +65,10 @@ public sealed class NhsMeshConfigValidationTests
     [Theory]
     [InlineData("http://msg.intspineservices.nhs.uk")]
     [InlineData("http://localhost:8700")]
-    public void HttpMailboxBaseUrl_IsRejected(string mailboxBaseUrl)
+    public async Task HttpMailboxBaseUrl_IsRejected(string mailboxBaseUrl)
     {
-        var exception = Assert.Throws<OptionsValidationException>(() =>
-            ResolveConfig(mailboxBaseUrl, acceptLocalDevCert: false)
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() =>
+            StartHostAndResolveConfigAsync(mailboxBaseUrl, acceptLocalDevCert: false)
         );
 
         Assert.Contains(
@@ -72,7 +77,10 @@ public sealed class NhsMeshConfigValidationTests
         );
     }
 
-    private static NhsMeshConfig ResolveConfig(string mailboxBaseUrl, bool acceptLocalDevCert)
+    private static async Task<NhsMeshConfig> StartHostAndResolveConfigAsync(
+        string mailboxBaseUrl,
+        bool acceptLocalDevCert
+    )
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(
@@ -88,11 +96,20 @@ public sealed class NhsMeshConfigValidationTests
             )
             .Build();
 
-        var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(configuration);
-        services.AddMeshIntegration();
+        using var host = new HostBuilder()
+            .ConfigureAppConfiguration(builder => builder.AddConfiguration(configuration))
+            .ConfigureServices((context, services) => services.AddMeshIntegration())
+            .Build();
 
-        using var serviceProvider = services.BuildServiceProvider();
-        return serviceProvider.GetRequiredService<IOptions<NhsMeshConfig>>().Value;
+        // ValidateOnStart() validators run when the host starts, not when IOptions is resolved.
+        await host.StartAsync();
+        try
+        {
+            return host.Services.GetRequiredService<IOptions<NhsMeshConfig>>().Value;
+        }
+        finally
+        {
+            await host.StopAsync();
+        }
     }
 }
