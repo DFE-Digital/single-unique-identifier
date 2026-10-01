@@ -137,12 +137,14 @@ events only.
 
 #### Messages that cannot be parsed
 
-A message whose body is not a valid pds-record-change-2 notification is logged and skipped,
+A message whose body is not a valid pds-record-change-2 notification, or whose
+`additional-context.subject` is missing or is not a valid NHS number (ten digits, not starting with
+zero, with a valid Modulus 11 check digit, checked by `SUI.Shared.NhsNumberValidator`), is logged and skipped,
 and the rest of the mailbox is still read. It will **not** be acknowledged even once supplier
 webhook delivery exists, so MESH redelivers it rather than the change event being silently
 dropped. The cost is that an unparseable message is re-read, re-logged and re-skipped on every
 scheduled run until someone intervenes, so a repeated `could not be parsed and was left
-unacknowledged` entry needs a human.
+unacknowledged` or `carried no valid NHS number and was left unacknowledged` entry needs a human.
 
 To put a realistic event into the [local MESH sandbox](#local-mesh-sandbox) without running this
 application, use `scripts/send-mesh-test-message.ps1`, which posts the payload in

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Serialization;
+using SUI.Shared;
 
 namespace SUI.NotificationService.Application.Services;
 
@@ -54,8 +55,9 @@ public static class MeshNotificationParser
 
     /// <summary>
     /// Reads the NHS number the notification is about: the <c>subject</c> part of the
-    /// <c>additional-context</c> parameter. Returns false when it is missing or blank, so the caller
-    /// can leave a notification it cannot act on unacknowledged.
+    /// <c>additional-context</c> parameter. Returns false when it is missing or is not a valid NHS
+    /// number, so the caller can leave a notification it cannot act on unacknowledged rather than
+    /// pass malformed source data on to suppliers.
     /// </summary>
     public static bool TryGetNhsNumber(Bundle bundle, [NotNullWhen(true)] out string? nhsNumber)
     {
@@ -72,7 +74,7 @@ public static class MeshNotificationParser
 
         var value = (subject?.Value as ResourceReference)?.Identifier?.Value;
 
-        if (string.IsNullOrWhiteSpace(value))
+        if (!NhsNumberValidator.IsValid(value))
         {
             return false;
         }

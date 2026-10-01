@@ -42,6 +42,7 @@ on:
       - main
     paths:
       - Apps/NotificationService/**
+      - Libs/**
       - terraform/notification-service/**
       - terraform/core/**
       - terraform/environments/**
@@ -52,6 +53,7 @@ on:
       - main
     paths:
       - Apps/NotificationService/**
+      - Libs/**
       - terraform/notification-service/**
       - terraform/core/**
       - terraform/environments/**

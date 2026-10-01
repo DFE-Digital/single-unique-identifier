@@ -52,6 +52,17 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
     }
 
     [Fact]
+    public async Task ProcessMeshMessagesAsync_LeavesOutMessagesCarryingAnInvalidNhsNumber()
+    {
+        AddValidMessage("message-1", "9000000009");
+        AddValidMessage("message-invalid-nhs-number", "9000000008");
+
+        var notifications = await ProcessAsync();
+
+        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+    }
+
+    [Fact]
     public async Task ProcessMeshMessagesAsync_KeepsReadingTheMailbox_WhenAMessageCannotBeRead()
     {
         AddValidMessage("message-1", "9000000009");

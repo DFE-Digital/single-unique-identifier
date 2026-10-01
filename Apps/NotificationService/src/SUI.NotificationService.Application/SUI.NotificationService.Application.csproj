@@ -14,6 +14,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Libs\src\SUI.Shared\SUI.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="SUI.NotificationService.UnitTests" />
   </ItemGroup>
 </Project>

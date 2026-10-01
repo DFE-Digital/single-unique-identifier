@@ -99,10 +99,10 @@ public class MeshMessageProcessor(
 
         if (!MeshNotificationParser.TryGetNhsNumber(notification, out var nhsNumber))
         {
-            // Without an NHS number there is nothing to distribute, so the message is left
+            // Without a valid NHS number there is nothing to distribute, so the message is left
             // unacknowledged for the same reason as an unparseable one.
             logger.LogError(
-                "MESH message {MessageId} carried no NHS number and was left unacknowledged",
+                "MESH message {MessageId} carried no valid NHS number and was left unacknowledged",
                 messageId
             );
             return null;

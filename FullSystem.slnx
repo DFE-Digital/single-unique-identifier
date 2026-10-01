@@ -37,6 +37,13 @@
   <Folder Name="/Apps/UIHarness/src/">
     <Project Path="Apps/UIHarness/src/SUI.UIHarness.Web/SUI.UIHarness.Web.csproj" />
   </Folder>
+  <Folder Name="/Libs/" />
+  <Folder Name="/Libs/src/">
+    <Project Path="Libs\src\SUI.Shared\SUI.Shared.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Libs/tests/">
+    <Project Path="Libs\tests\SUI.Shared.UnitTests\SUI.Shared.UnitTests.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path="nuget.config" />
     <File Path="README.md" />

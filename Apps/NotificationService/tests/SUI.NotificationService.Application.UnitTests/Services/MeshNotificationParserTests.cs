@@ -141,6 +141,17 @@ public sealed class MeshNotificationParserTests
     }
 
     [Fact]
+    public void TryGetNhsNumber_ReturnsFalse_WhenSubjectIdentifierIsNotAValidNhsNumber()
+    {
+        var bundle = Parse(BuildNotification("9000000008"));
+
+        var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
+
+        Assert.False(found);
+        Assert.Null(nhsNumber);
+    }
+
+    [Fact]
     public void TryGetNhsNumber_ReturnsFalse_WhenBundleHasNoParametersEntry()
     {
         var found = MeshNotificationParser.TryGetNhsNumber(new Bundle(), out var nhsNumber);
