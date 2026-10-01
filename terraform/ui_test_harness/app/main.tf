@@ -95,13 +95,7 @@ resource "azurerm_key_vault_secret" "ui_harness_password" {
   ]
 }
 
-# 3. Look up the Find Secret using the ID from the Find remote state
-data "azurerm_key_vault_secret" "get_an_id_api_key" {
-  name         = "get-an-id-api-key"
-  key_vault_id = data.terraform_remote_state.get-an-identifier.outputs.key_vault_id
-}
-
-# 4. Web App
+# 3. Web App
 module "web_app" {
   source = "../../modules/linux_web_app"
 
@@ -130,7 +124,6 @@ module "web_app" {
 
       # Key Vault References mapped to App Settings
       UI_TEST_HARNESS_PASSWORD = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.ui_harness_password.name}/)"
-      GET_API_KEY              = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault_secret.get_an_id_api_key.versionless_id})"
     },
     var.ui_harness_app_settings,
 
@@ -152,7 +145,7 @@ module "web_app" {
   tags = var.tags
 }
 
-# 5. Grant Web App access to its own Key Vault
+# 4. Grant Web App access to its own Key Vault
 module "rbac_assignments_ui_harness_app" {
   source = "../../modules/rbac_assignments"
   scope  = module.key_vault.id
@@ -175,7 +168,7 @@ resource "azurerm_key_vault_access_policy" "ui_harness_app" {
   secret_permissions = ["Get", "List"]
 }
 
-# 6. Grant Web App access to the Find Key Vault
+# 5. Grant Web App access to the Find Key Vault
 module "rbac_assignments_find_kv" {
   source = "../../modules/rbac_assignments"
   scope  = data.terraform_remote_state.find.outputs.key_vault_id
