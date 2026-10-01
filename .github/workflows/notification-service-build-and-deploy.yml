@@ -65,6 +65,12 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  NhsMeshConfig__MailboxBaseUrl: ${{ vars.NHS_MESH_CONFIG_BASE_URL }}
+  NhsMeshConfig__SharedKey: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
+  NhsMeshConfig__MailboxId: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
+  NhsMeshConfig__MailboxPassword: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
+
 jobs:
   build-and-test:
     name: Notification Service - build and test
