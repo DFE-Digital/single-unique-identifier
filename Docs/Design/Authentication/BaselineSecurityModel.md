@@ -137,11 +137,6 @@ The baseline at this boundary is:
 - operation-level permissions based on scopes or roles
 - job and result access checks tied to the calling organisation
 
-Current implementation note:
-
-- the current `MATCH` endpoint also requires an `x-api-key` header in addition to bearer token authentication
-- that extra API key gate is a current implementation detail, not part of the desired long-term baseline for this boundary
-
 ### 4.4 Custodian -> SUI service
 
 The custodian-side inbound boundary is always unattended.

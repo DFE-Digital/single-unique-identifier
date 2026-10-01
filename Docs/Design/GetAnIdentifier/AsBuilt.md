@@ -18,11 +18,11 @@ sequenceDiagram
 
     Caller->>Issuer: Request bearer token
     Issuer-->>Caller: Signed JWT with get-an-identifier.read
-    Caller->>Function: POST /api/v1/get-an-identifier<br/>Bearer JWT + x-api-key + demographics
+    Caller->>Function: POST /api/v1/get-an-identifier<br/>Bearer JWT + demographics
     Function->>Issuer: Load or refresh OIDC discovery document and JWKS
     Function->>Function: Validate JWT signature, issuer, audience and lifetime
     Function->>Function: Resolve client and organisation from the auth store
-    Function->>Function: Require get-an-identifier.read and validate x-api-key
+    Function->>Function: Require get-an-identifier.read
     Function->>Function: Validate and translate demographics
     Function->>NHSAuth: Exchange signed client assertion for NHS access token
     NHSAuth-->>Function: NHS bearer access token
@@ -33,10 +33,7 @@ sequenceDiagram
 
 The application validates JWTs itself using the configured OIDC discovery document. AuthEmulator supplies this contract for local development. Integration with FaUAPI is separate planned work and is not represented as implemented here.
 
-The operation currently requires both:
-
-- a bearer JWT with the `get-an-identifier.read` scope
-- the configured `x-api-key`
+The operation requires a valid bearer JWT and the `get-an-identifier.read` permission. Permissions are resolved from the configured auth store or token scopes according to `AuthSettings:UseAuthStoreForAuthorisation`.
 
 The Function App uses `AuthorizationLevel.Anonymous` because these checks are performed in application code rather than by an Azure Functions host key.
 
@@ -58,9 +55,9 @@ Inbound authentication is provider-neutral and configured through `AuthSettings`
 
 After validating a token, the current `AuthContextFactory` always resolves its client and organisation against the bundled auth store. `UseAuthStoreForAuthorisation` controls whether permissions come from that store or from token scopes; it does not disable the client lookup.
 
-The application reads NHS OAuth and PDS configuration through `NhsAuthConfig`. The private key, key identifier, NHS client ID and Get an Identifier API key are supplied to deployed environments through Key Vault references.
+The application reads NHS OAuth and PDS configuration through `NhsAuthConfig`. The private key, key identifier and NHS client ID are supplied to deployed environments through Key Vault references.
 
-The runtime-generated API description is available from `/api/openapi/v3.json`, with Swagger UI at `/api/swagger/ui`. The operation declares OAuth2 client-credentials and `x-api-key` security schemes. At runtime, the operation requires both a bearer JWT with `get-an-identifier.read` and the configured API key.
+The runtime-generated API description is available from `/api/openapi/v3.json`, with Swagger UI at `/api/swagger/ui`. The operation declares an OAuth2 client-credentials security scheme. At runtime, the operation requires a valid bearer JWT and the `get-an-identifier.read` permission.
 
 ## Alpha direction and implementation boundaries
 

@@ -75,7 +75,7 @@ source .env
 func start
 ```
 
-The protected operation is `POST /api/v1/get-an-identifier`. Calls require a bearer token containing `get-an-identifier.read` for environments that don't use the auth store for authorisation.
+The protected operation is `POST /api/v1/get-an-identifier`. Calls require a valid bearer JWT and the `get-an-identifier.read` permission. Permissions are resolved from the configured auth store or token scopes according to `AuthSettings:UseAuthStoreForAuthorisation`.
 
 ## Logging Guidelines & Data Sanitization
 
