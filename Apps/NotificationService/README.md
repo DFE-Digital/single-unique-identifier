@@ -92,7 +92,7 @@ Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig`
 
 | Setting | Meaning |
 |---------|---------|
-| `MailboxBaseUrl` | Base URL of the MESH instance. |
+| `MailboxBaseUrl` | Base URL of the MESH instance. Must be `https://`; startup fails otherwise. |
 | `MailboxId` | The mailbox to read from. |
 | `MailboxPassword` | Mailbox password used to build the `NHSMESH` authorisation header. |
 | `SharedKey` | Shared key used to HMAC that header. |

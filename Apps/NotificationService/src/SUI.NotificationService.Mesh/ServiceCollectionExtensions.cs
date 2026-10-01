@@ -22,6 +22,11 @@ public static class ServiceCollectionExtensions
             .AddOptions<NhsMeshConfig>()
             .BindConfiguration(NhsMeshConfig.SectionName)
             .ValidateDataAnnotations()
+            // [Url] also accepts http://, which would send the NHSMESH authorisation header in plaintext.
+            .Validate(
+                static config => IsHttps(config.MailboxBaseUrl),
+                $"{nameof(NhsMeshConfig.MailboxBaseUrl)} must be an absolute https:// URL."
+            )
             .Validate(
                 static config => !config.AcceptLocalDevCert || IsLoopback(config.MailboxBaseUrl),
                 $"{nameof(NhsMeshConfig.AcceptLocalDevCert)} is only permitted against a loopback MESH sandbox."
@@ -73,6 +78,10 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+    private static bool IsHttps(string mailboxBaseUrl) =>
+        Uri.TryCreate(mailboxBaseUrl, UriKind.Absolute, out var uri)
+        && uri.Scheme == Uri.UriSchemeHttps;
 
     private static bool IsLoopback(string mailboxBaseUrl) =>
         Uri.TryCreate(mailboxBaseUrl, UriKind.Absolute, out var uri) && uri.IsLoopback;

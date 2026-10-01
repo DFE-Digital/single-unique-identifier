@@ -57,6 +57,21 @@ public sealed class NhsMeshConfigValidationTests
         Assert.False(config.AcceptLocalDevCert);
     }
 
+    [Theory]
+    [InlineData("http://msg.intspineservices.nhs.uk")]
+    [InlineData("http://localhost:8700")]
+    public void HttpMailboxBaseUrl_IsRejected(string mailboxBaseUrl)
+    {
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            ResolveConfig(mailboxBaseUrl, acceptLocalDevCert: false)
+        );
+
+        Assert.Contains(
+            exception.Failures,
+            failure => failure.Contains(nameof(NhsMeshConfig.MailboxBaseUrl))
+        );
+    }
+
     private static NhsMeshConfig ResolveConfig(string mailboxBaseUrl, bool acceptLocalDevCert)
     {
         var configuration = new ConfigurationBuilder()
