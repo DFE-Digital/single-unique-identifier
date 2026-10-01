@@ -32,10 +32,10 @@ locals {
     var.region_short,
   )
   image = format(
-    "%s/%s:%s",
+    "%s/%s@%s",
     data.terraform_remote_state.core.outputs.container_registry_login_server,
     var.notification_service_image_name,
-    var.notification_service_image_tag,
+    var.notification_service_image_digest,
   )
   tags = merge(
     {
