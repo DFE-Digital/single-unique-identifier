@@ -151,19 +151,24 @@ public class GetAnIdentifierSmokeTests : IDisposable
 
     private static StringContent CreateSyntheticPayload()
     {
-        // We are stripping out DateOnly to prove that date parsing is crashing the request
         var json = """
             {
-              "personSpecification": {
-                "given": "Octavia",
-                "family": "Chislett",
-                "gender": "female",
-                "addressPostalCode": "KT19 0ST"
+              "PersonSpecification": {
+                "Given": "Octavia",
+                "Family": "Chislett",
+                "BirthDate": "2022-03-17",
+                "Gender": "female",
+                "AddressPostalCode": "KT19 0ST"
               }
             }
             """;
 
-        return new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        var content = new StringContent(json, System.Text.Encoding.UTF8);
+
+        // Strip charset to ensure strict "application/json" matching
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+        return content;
     }
 
     public void Dispose()
