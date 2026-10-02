@@ -7,3 +7,4 @@ Entry point for technical design documents.
 - [Authentication Baseline and Security Model (superseded planning reference)](./Authentication/BaselineSecurityModel.md)
 - [Authentication Environment Strategy (superseded planning reference)](./Authentication/EnvironmentStrategy.md)
 - [Notifications and webhooks (proposed, not implemented)](./Notifications-Webhooks/Index.md)
+- [Notification Service duplicate message handling (proposed)](./NotificationService/DuplicateHandling.md)
