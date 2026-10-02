@@ -73,7 +73,8 @@ public class MeshMessageProcessor(
 
     // HttpClient surfaces a non-success status as HttpRequestException and its own request timeout
     // as TaskCanceledException, which is an OperationCanceledException unrelated to this
-    // execution's token; cancellation of that token is left to end the execution early.
+    // execution's token; cancellation of that token is left to end the execution early. The
+    // resilience pipeline's timeouts surface as TimeoutException (Polly's TimeoutRejectedException).
     private static bool IsExpectedTransportFailure(
         Exception exception,
         CancellationToken cancellationToken
@@ -81,6 +82,7 @@ public class MeshMessageProcessor(
         exception switch
         {
             HttpRequestException => true,
+            TimeoutException => true,
             TaskCanceledException => !cancellationToken.IsCancellationRequested,
             _ => false,
         };
