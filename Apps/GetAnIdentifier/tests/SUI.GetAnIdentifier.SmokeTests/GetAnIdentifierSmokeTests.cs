@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using SUI.GetAnIdentifier.Application.Models;
+using Xunit.Abstractions;
 
 namespace SUI.GetAnIdentifier.SmokeTests;
 
@@ -14,11 +15,13 @@ namespace SUI.GetAnIdentifier.SmokeTests;
 [Trait("Category", "Smoke")]
 public class GetAnIdentifierSmokeTests : IDisposable
 {
+    private readonly ITestOutputHelper _testOutputHelper;
     private readonly HttpClient _client;
     private string? _bearerToken;
 
-    public GetAnIdentifierSmokeTests()
+    public GetAnIdentifierSmokeTests(ITestOutputHelper testOutputHelper)
     {
+        _testOutputHelper = testOutputHelper;
         var baseUrl =
             Environment.GetEnvironmentVariable("SMOKE_TEST_BASE_URL")
             ?? throw new InvalidOperationException("SMOKE_TEST_BASE_URL is missing.");
@@ -132,6 +135,21 @@ public class GetAnIdentifierSmokeTests : IDisposable
     {
         var token = await GetBearerTokenAsync();
 
+        // TEMPORARY DEBUG: Decode the JWT payload to see the claims
+        var tokenParts = token.Split('.');
+        if (tokenParts.Length >= 2)
+        {
+            var payload = tokenParts[1];
+            payload = payload.Replace('-', '+').Replace('_', '/');
+            payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
+            var decodedPayload = System.Text.Encoding.UTF8.GetString(
+                Convert.FromBase64String(payload)
+            );
+
+            // If the request fails, print this decoded token to read the claims
+            _testOutputHelper.WriteLine("DEBUG TOKEN PAYLOAD: " + decodedPayload);
+        }
+
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/get-an-identifier");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         request.Content = CreateSyntheticPayload();
@@ -143,9 +161,26 @@ public class GetAnIdentifierSmokeTests : IDisposable
             : string.Empty;
 
         var validOutcomes = new[] { HttpStatusCode.OK, HttpStatusCode.NotFound };
+
+        // Include the decoded claims in the failure message
+        var debugClaims =
+            tokenParts.Length >= 2
+                ? System.Text.Encoding.UTF8.GetString(
+                    Convert.FromBase64String(
+                        tokenParts[1]
+                            .Replace('-', '+')
+                            .Replace('_', '/')
+                            .PadRight(
+                                tokenParts[1].Length + (4 - tokenParts[1].Length % 4) % 4,
+                                '='
+                            )
+                    )
+                )
+                : "N/A";
+
         Assert.True(
             validOutcomes.Contains(response.StatusCode),
-            $"Expected OK or NotFound, but got {response.StatusCode}. API Error Body: {errorBody}"
+            $"Expected OK or NotFound, but got {response.StatusCode}. API Error: {errorBody}. Token Payload: {debugClaims}"
         );
     }
 
