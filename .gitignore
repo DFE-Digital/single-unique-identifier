@@ -63,3 +63,8 @@ coverage/
 
 # C# source generation
 *.g.cs
+
+# Hosted documentation site
+public-docs/_site/
+public-docs/node_modules/
+public-docs/content/assets/_generated-path-prefix.scss
