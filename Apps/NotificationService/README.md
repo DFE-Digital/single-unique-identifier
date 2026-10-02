@@ -110,6 +110,25 @@ immediately rather than at the first request. `appsettings.Development.json` poi
 > the certificate and key from Key Vault, plus any CA chain MESH needs) is deferred until there is a
 > deployed environment. See [ADR 0001](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md).
 
+#### Deployed configuration
+
+The deployed Container Apps job receives these values from GitHub environment configuration
+(per environment `d01`–`d03`), passed through `terraform-plan-and-apply.yml` as Terraform variables:
+
+| GitHub | Terraform variable | App setting |
+|--------|--------------------|-------------|
+| variable `NHS_MESH_CONFIG_BASE_URL` | `nhs_mesh_mailbox_base_url` | `NhsMeshConfig__MailboxBaseUrl` |
+| secret `NHS_MESH_CONFIG_SHARED_KEY` | `nhs_mesh_shared_key` | `NhsMeshConfig__SharedKey` |
+| secret `NHS_MESH_CONFIG_MAILBOX_ID` | `nhs_mesh_mailbox_id` | `NhsMeshConfig__MailboxId` |
+| secret `NHS_MESH_CONFIG_MAILBOX_PASSWORD` | `nhs_mesh_mailbox_password` | `NhsMeshConfig__MailboxPassword` |
+
+The three secrets are stored as Container App job secrets and referenced by the container's
+environment. Terraform also sets `NhsMeshConfig__AcceptLocalDevCert=false`, overriding
+`appsettings.Development.json`, which the deployed `Development` environment would otherwise inherit.
+
+The PR container validation does not use these values: it starts the local MESH sandbox on the runner
+and runs the image with the `Development` configuration.
+
 Do not commit secrets to the configuration files. Supply sensitive local values through environment variables or an approved secret-management mechanism when later workstreams introduce them.
 
 ### Message payloads

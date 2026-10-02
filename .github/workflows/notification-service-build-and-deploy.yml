@@ -67,12 +67,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  NhsMeshConfig__MailboxBaseUrl: ${{ vars.NHS_MESH_CONFIG_BASE_URL }}
-  NhsMeshConfig__SharedKey: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
-  NhsMeshConfig__MailboxId: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
-  NhsMeshConfig__MailboxPassword: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
-
 jobs:
   build-and-test:
     name: Notification Service - build and test
@@ -210,6 +204,9 @@ jobs:
           push: false
           tags: notification-service:${{ needs.resolve-image.outputs.image_tag }}
 
+      - name: Start MESH sandbox
+        run: docker compose up -d --wait mesh_sandbox
+
       - name: Verify container user, entrypoint and exit code
         env:
           IMAGE_TAG: ${{ needs.resolve-image.outputs.image_tag }}
@@ -227,9 +224,17 @@ jobs:
             exit 1
           fi
 
+          # Development config (appsettings.Development.json) targets the local MESH sandbox on
+          # https://localhost:8700, so the container shares the runner's network.
           docker run --rm \
+            --network host \
+            --env DOTNET_ENVIRONMENT=Development \
             --env ConnectionStrings__TableStorage=UseDevelopmentStorage=true \
             "$image"
+
+      - name: Stop MESH sandbox
+        if: always()
+        run: docker compose down mesh_sandbox
 
   terraform:
     name: Notification Service - Terraform apply
