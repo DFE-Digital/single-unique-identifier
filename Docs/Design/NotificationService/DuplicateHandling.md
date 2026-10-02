@@ -83,6 +83,8 @@ Within one execution, the list of notifications returned for delivery contains e
 
 The rule throughout is that anything that fails stays in the MESH mailbox and is handled again on the next execution.
 
+The MESH HTTP client retries transient failures (connection errors, timeouts, 408, 429 and 5xx) up to twice with backoff before reporting a failure. The table below describes what happens once those retries are exhausted.
+
 | Situation | Behaviour |
 |---|---|
 | Acknowledging a duplicate fails with an HTTP or timeout failure | Log a warning with the duplicate's MESH message ID and continue with the remaining duplicates. The duplicate stays in the mailbox. The execution's exit code is not affected. |
