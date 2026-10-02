@@ -20,6 +20,15 @@
     },
     {
       "enabled": true,
+      "clientId": "CLIENT_ID_UJ",
+      "organisationId": "UJ-Test",
+      "clientSecret": "SUIProject",
+      "allowedScopes": [
+        "get-an-identifier.read"
+      ]
+    },
+    {
+      "enabled": true,
       "clientId": "CLIENT_ID_LOCAL_AUTHORITY_01",
       "organisationId": "LOCAL-AUTHORITY-01",
       "clientSecret": "SUIProject",
