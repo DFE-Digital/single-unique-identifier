@@ -34,16 +34,34 @@ public class GetAnIdentifierSmokeTests : IDisposable
             Environment.GetEnvironmentVariable("SMOKE_TEST_TOKEN_URL")
             ?? throw new InvalidOperationException("SMOKE_TEST_TOKEN_URL is missing.");
 
-        var clientId =
-            Environment.GetEnvironmentVariable("SMOKE_TEST_CLIENT_ID")
-            ?? throw new InvalidOperationException("SMOKE_TEST_CLIENT_ID is missing.");
+        var clientIdsJson =
+            Environment.GetEnvironmentVariable("SMOKE_TEST_CLIENT_IDS_JSON_MAP")
+            ?? throw new InvalidOperationException("SMOKE_TEST_CLIENT_IDS_JSON_MAP is missing.");
 
-        var clientSecret =
-            Environment.GetEnvironmentVariable("SMOKE_TEST_CLIENT_SECRET")
-            ?? throw new InvalidOperationException("SMOKE_TEST_CLIENT_SECRET is missing.");
+        var clientSecretsJson =
+            Environment.GetEnvironmentVariable("SMOKE_TEST_CLIENT_SECRETS_JSON_MAP")
+            ?? throw new InvalidOperationException(
+                "SMOKE_TEST_CLIENT_SECRETS_JSON_MAP is missing."
+            );
 
         // Scope is optional
         var scope = Environment.GetEnvironmentVariable("SMOKE_TEST_AUTH_SCOPE");
+
+        var clientIds =
+            JsonSerializer.Deserialize<Dictionary<string, string>>(clientIdsJson)
+            ?? throw new InvalidOperationException("Failed to parse Client IDs map.");
+
+        var clientSecrets =
+            JsonSerializer.Deserialize<Dictionary<string, string>>(clientSecretsJson)
+            ?? throw new InvalidOperationException("Failed to parse Client Secrets map.");
+
+        // Grab the first valid client ID key from the dictionary
+        var clientKey =
+            clientIds.Keys.FirstOrDefault()
+            ?? throw new InvalidOperationException("Client IDs map is empty.");
+
+        var clientId = clientIds[clientKey];
+        var clientSecret = clientSecrets[clientKey];
 
         using var authClient = new HttpClient();
 
@@ -72,6 +90,7 @@ public class GetAnIdentifierSmokeTests : IDisposable
         using var requestContent = new FormUrlEncodedContent(formValues);
         var response = await authClient.PostAsync(tokenUrl, requestContent);
 
+        //response.EnsureSuccessStatusCode();
         if (!response.IsSuccessStatusCode)
         {
             var errorBody = await response.Content.ReadAsStringAsync();

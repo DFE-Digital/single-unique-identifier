@@ -157,6 +157,6 @@ jobs:
         env:
           SMOKE_TEST_BASE_URL: "https://${{ steps.env_config.outputs.subscription_prefix }}${{ steps.env_config.outputs.environment_id }}func-${{ steps.env_config.outputs.region_short }}-getanid01.azurewebsites.net"
           SMOKE_TEST_TOKEN_URL: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
-          SMOKE_TEST_CLIENT_ID: ${{ secrets.SMOKE_TEST_CLIENT_ID }}
-          SMOKE_TEST_CLIENT_SECRET: ${{ secrets.SMOKE_TEST_CLIENT_SECRET }}
-          SMOKE_TEST_AUTH_SCOPE: ${{ secrets.AUTH_SETTINGS__OAUTH_SCOPE }}
+          SMOKE_TEST_CLIENT_IDS_JSON_MAP: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
+          SMOKE_TEST_CLIENT_SECRETS_JSON_MAP: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
+          SMOKE_TEST_AUTH_SCOPE: ${{ env.TARGET_ENVIRONMENT != 'd01' && secrets.AUTH_SETTINGS__OAUTH_SCOPE || '' }}
