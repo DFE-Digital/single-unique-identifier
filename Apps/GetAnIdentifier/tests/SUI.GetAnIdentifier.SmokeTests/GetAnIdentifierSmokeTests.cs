@@ -119,6 +119,15 @@ public class GetAnIdentifierSmokeTests : IDisposable
 
         using var response = await _client.SendAsync(request);
 
+        //TODO: tidy up after testing
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"Token request failed with status {response.StatusCode}. Error Body: {errorBody}"
+            );
+        }
+
         var validOutcomes = new[] { HttpStatusCode.OK, HttpStatusCode.NotFound };
         Assert.True(
             validOutcomes.Contains(response.StatusCode),
