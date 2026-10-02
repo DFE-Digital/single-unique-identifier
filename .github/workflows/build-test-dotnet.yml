@@ -34,6 +34,10 @@ on:
         description: If true, publish and upload per-project build artifacts
         default: false
         type: boolean
+      upload_release_assets:
+        description: Upload deployment ZIPs explicitly for the immutable release
+        default: false
+        type: boolean
     secrets:
       AZURE_ARTIFACTS_ACCOUNT:
         required: false
@@ -203,11 +207,18 @@ jobs:
           echo "map=$(echo "$map" | jq -c .)" >> "$GITHUB_OUTPUT"
 
       - name: Generate Artifact Attestations for ZIPs
-        if: inputs.upload_artifacts == true
+        if: inputs.upload_artifacts == true || inputs.upload_release_assets == true
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: '*.zip'
           
+      - name: Upload release ZIPs explicitly
+        if: inputs.upload_release_assets == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-zips-${{ github.job }}
+          path: '*.zip'
+
       - name: Upload per-project artifacts (GitHub)
         if: inputs.upload_artifacts == true
         uses: ./.github/actions/upload-artifacts
