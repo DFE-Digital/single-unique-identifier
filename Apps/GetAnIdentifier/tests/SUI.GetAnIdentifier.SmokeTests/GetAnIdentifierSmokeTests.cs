@@ -149,25 +149,21 @@ public class GetAnIdentifierSmokeTests : IDisposable
         );
     }
 
-    private static JsonContent CreateSyntheticPayload()
+    private static StringContent CreateSyntheticPayload()
     {
-        var requestPayload = new GetAnIdentifierRequest
-        {
-            PersonSpecification = new PersonSpecification
+        // We are stripping out DateOnly to prove that date parsing is crashing the request
+        var json = """
             {
-                Given = "Octavia",
-                Family = "Chislett",
-                BirthDate = new DateOnly(2022, 3, 17),
-                Gender = "female",
-                AddressPostalCode = "KT19 0ST",
-            },
-        };
+              "personSpecification": {
+                "given": "Octavia",
+                "family": "Chislett",
+                "gender": "female",
+                "addressPostalCode": "KT19 0ST"
+              }
+            }
+            """;
 
-        // This guarantees the serialized JSON perfectly matches the API's configured deserializer
-        return JsonContent.Create(
-            requestPayload,
-            options: new JsonSerializerOptions(JsonSerializerDefaults.Web)
-        );
+        return new StringContent(json, System.Text.Encoding.UTF8, "application/json");
     }
 
     public void Dispose()
