@@ -55,6 +55,7 @@ public class GetAnIdentifierSmokeTests : IDisposable
             JsonSerializer.Deserialize<Dictionary<string, string>>(clientSecretsJson)
             ?? throw new InvalidOperationException("Failed to parse Client Secrets map.");
 
+        // Grab the first valid client ID key from the dictionary
         var clientKey =
             clientIds.Keys.FirstOrDefault()
             ?? throw new InvalidOperationException("Client IDs map is empty.");
@@ -63,6 +64,14 @@ public class GetAnIdentifierSmokeTests : IDisposable
         var clientSecret = clientSecrets[clientKey];
 
         using var authClient = new HttpClient();
+
+        var authString = Convert.ToBase64String(
+            System.Text.Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}")
+        );
+        authClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Basic",
+            authString
+        );
 
         var formValues = new List<KeyValuePair<string, string>>
         {
@@ -85,7 +94,7 @@ public class GetAnIdentifierSmokeTests : IDisposable
         {
             var errorBody = await response.Content.ReadAsStringAsync();
             throw new HttpRequestException(
-                $"Token request failed with status {response.StatusCode}. URL: {tokenUrl}. Body: {errorBody}"
+                $"Token request failed ({response.StatusCode}). ClientID: '{clientId}'. URL: {tokenUrl}. Body: {errorBody}"
             );
         }
 
