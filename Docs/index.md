@@ -1,5 +1,7 @@
 # What is 'single unique identifier'?
 
+Approved public integration and onboarding guidance will be published through the [documentation site](../public-docs/README.md). This site is being established; existing material remains in this repository until it has been reviewed for publication.
+
 This project investigates the technical foundations required to help practitioners improve safeguarding and welfare of children by accessing the right information at the right time, while maintaining strong standards of privacy, security, and data minimisation.
 
 The programme is working towards **Alpha**, with production-grade expectations for code, infrastructure, testing, security, operability, observability and documentation. Explicitly experimental work should be labelled as such.

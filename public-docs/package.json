@@ -1,0 +1,15 @@
+{
+  "name": "single-unique-identifier-docs",
+  "version": "1.0.0",
+  "description": "Public documentation for the Single Unique Identifier programme",
+  "type": "module",
+  "scripts": {
+    "prebuild:css": "node generate-sass-prefix.js",
+    "build": "npm run prebuild:css && eleventy",
+    "start": "npm run prebuild:css && eleventy --serve"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0",
+    "@x-govuk/govuk-eleventy-plugin": "^9.0.0"
+  }
+}
