@@ -137,10 +137,14 @@ public class GetAnIdentifierSmokeTests : IDisposable
 
         using var response = await _client.SendAsync(request);
 
+        var errorBody = !response.IsSuccessStatusCode
+            ? await response.Content.ReadAsStringAsync()
+            : string.Empty;
+
         var validOutcomes = new[] { HttpStatusCode.OK, HttpStatusCode.NotFound };
         Assert.True(
             validOutcomes.Contains(response.StatusCode),
-            $"Expected OK or NotFound, but got {response.StatusCode}. This indicates NHS OAuth or PDS connectivity failed."
+            $"Expected OK or NotFound, but got {response.StatusCode}. API Error Body: {errorBody}"
         );
     }
 
