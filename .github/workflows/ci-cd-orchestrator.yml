@@ -276,6 +276,14 @@ jobs:
           push: true
           tags: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, steps.image.outputs.image_tag) }}
 
+      - name: Scan published image for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ format('{0}/notification-service@{1}', steps.registry.outputs.login_server, steps.build-image.outputs.digest || steps.get-digest.outputs.digest) }}
+          format: table
+          exit-code: 1
+          severity: HIGH,CRITICAL
+
   validate-container:
     name: Notification Service - validate container
     if: github.event_name == 'pull_request' && needs.path-filter.outputs.notification_service == 'true'
@@ -294,6 +302,14 @@ jobs:
           load: true
           push: false
           tags: notification-service:${{ github.sha }}
+
+      - name: Scan local image for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: notification-service:${{ github.sha }}
+          format: table
+          exit-code: 1
+          severity: HIGH,CRITICAL
 
   cut-release:
     name: Cut Immutable Release
