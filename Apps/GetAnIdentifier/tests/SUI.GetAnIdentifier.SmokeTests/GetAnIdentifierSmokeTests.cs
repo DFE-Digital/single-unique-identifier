@@ -148,21 +148,23 @@ public class GetAnIdentifierSmokeTests : IDisposable
         );
     }
 
-    private static JsonContent CreateSyntheticPayload()
+    private static StringContent CreateSyntheticPayload()
     {
-        var syntheticData = new
-        {
-            given = "Octavia",
-            family = "Chislett",
-            birthDate = "2022-03-17",
-            gender = "female",
-            addressPostalCode = "KT19 0ST",
-        };
+        // Using a raw JSON string guarantees the exact shape and encoding
+        // expected by the GetAnIdentifierRequest and PersonSpecification models.
+        var json = """
+            {
+              "personSpecification": {
+                "given": "Octavia",
+                "family": "Chislett",
+                "birthDate": "2022-03-17",
+                "gender": "female",
+                "addressPostalCode": "KT19 0ST"
+              }
+            }
+            """;
 
-        return JsonContent.Create(
-            syntheticData,
-            options: new JsonSerializerOptions(JsonSerializerDefaults.Web)
-        );
+        return new StringContent(json, System.Text.Encoding.UTF8, "application/json");
     }
 
     public void Dispose()
