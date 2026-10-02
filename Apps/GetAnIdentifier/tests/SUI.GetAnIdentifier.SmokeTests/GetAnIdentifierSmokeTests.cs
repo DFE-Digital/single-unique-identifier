@@ -77,7 +77,8 @@ public class GetAnIdentifierSmokeTests : IDisposable
             formValues.Add(new("scope", scope));
         }
 
-        var response = await authClient.PostAsync(tokenUrl, new FormUrlEncodedContent(formValues));
+        using var requestContent = new FormUrlEncodedContent(formValues);
+        var response = await authClient.PostAsync(tokenUrl, requestContent);
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadFromJsonAsync<JsonObject>();
@@ -93,19 +94,17 @@ public class GetAnIdentifierSmokeTests : IDisposable
     [Fact]
     public async Task HealthEndpoint_ShouldReturnOk()
     {
-        var response = await _client.GetAsync("/api/health");
+        using var response = await _client.GetAsync("/api/health");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task GetAnIdentifier_WithoutBearerToken_ShouldReturnUnauthorized()
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/get-an-identifier")
-        {
-            Content = CreateSyntheticPayload(),
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/get-an-identifier");
+        request.Content = CreateSyntheticPayload();
 
-        var response = await _client.SendAsync(request);
+        using var response = await _client.SendAsync(request);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
@@ -114,11 +113,11 @@ public class GetAnIdentifierSmokeTests : IDisposable
     {
         var token = await GetBearerTokenAsync();
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/get-an-identifier");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/get-an-identifier");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         request.Content = CreateSyntheticPayload();
 
-        var response = await _client.SendAsync(request);
+        using var response = await _client.SendAsync(request);
 
         var validOutcomes = new[] { HttpStatusCode.OK, HttpStatusCode.NotFound };
         Assert.True(
