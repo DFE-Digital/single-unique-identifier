@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src\SUI.Shared\SUI.Shared.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\SUI.Shared.UnitTests\SUI.Shared.UnitTests.csproj" Type="Classic C#" />
+  </Folder>
+</Solution>
