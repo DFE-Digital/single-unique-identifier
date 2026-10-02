@@ -64,6 +64,8 @@ public class MeshMessageProcessor(
             }
         }
 
+        (notifications, var duplicateMessageIds) = SeparateDuplicates(notifications);
+
         return notifications;
     }
 
@@ -90,6 +92,35 @@ public class MeshMessageProcessor(
     public Task AcknowledgeMessageAsync(string messageId, CancellationToken cancellationToken)
     {
         return meshInboxClient.AcknowledgeMessageAsync(messageId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Returns 2 lists. 1 of non duplicate notifications and 1 of duplicate message ids.
+    /// </summary>
+    /// <returns></returns>
+    private static (
+        List<PdsRecordChangeNotification> notifications,
+        List<string> duplicateMessageIds
+    ) SeparateDuplicates(List<PdsRecordChangeNotification> notifications)
+    {
+        var nonDuplicateNotifications = new List<PdsRecordChangeNotification>();
+        var duplicateMessageIds = new List<string>();
+
+        var seenNhsNumbers = new HashSet<string>();
+
+        foreach (var notification in notifications)
+        {
+            if (!seenNhsNumbers.Add(notification.NhsNumber))
+            {
+                duplicateMessageIds.Add(notification.MessageId);
+            }
+            else
+            {
+                nonDuplicateNotifications.Add(notification);
+            }
+        }
+
+        return (nonDuplicateNotifications, duplicateMessageIds);
     }
 
     private async Task<PdsRecordChangeNotification?> ProcessMessageAsync(
