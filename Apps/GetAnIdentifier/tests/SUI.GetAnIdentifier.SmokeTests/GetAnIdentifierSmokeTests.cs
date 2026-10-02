@@ -79,7 +79,15 @@ public class GetAnIdentifierSmokeTests : IDisposable
 
         using var requestContent = new FormUrlEncodedContent(formValues);
         var response = await authClient.PostAsync(tokenUrl, requestContent);
-        response.EnsureSuccessStatusCode();
+
+        //response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"Token request failed with status {response.StatusCode}. URL: {tokenUrl}. Body: {errorBody}"
+            );
+        }
 
         var json = await response.Content.ReadFromJsonAsync<JsonObject>();
         _bearerToken =
@@ -118,15 +126,6 @@ public class GetAnIdentifierSmokeTests : IDisposable
         request.Content = CreateSyntheticPayload();
 
         using var response = await _client.SendAsync(request);
-
-        //TODO: tidy up after testing
-        if (!response.IsSuccessStatusCode)
-        {
-            var errorBody = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException(
-                $"Token request failed with status {response.StatusCode}. Error Body: {errorBody}"
-            );
-        }
 
         var validOutcomes = new[] { HttpStatusCode.OK, HttpStatusCode.NotFound };
         Assert.True(
