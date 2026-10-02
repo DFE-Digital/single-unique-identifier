@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using SUI.GetAnIdentifier.Application.Models;
 
 namespace SUI.GetAnIdentifier.SmokeTests;
 
@@ -148,23 +149,25 @@ public class GetAnIdentifierSmokeTests : IDisposable
         );
     }
 
-    private static StringContent CreateSyntheticPayload()
+    private static JsonContent CreateSyntheticPayload()
     {
-        // Using a raw JSON string guarantees the exact shape and encoding
-        // expected by the GetAnIdentifierRequest and PersonSpecification models.
-        var json = """
+        var requestPayload = new GetAnIdentifierRequest
+        {
+            PersonSpecification = new PersonSpecification
             {
-              "personSpecification": {
-                "given": "Octavia",
-                "family": "Chislett",
-                "birthDate": "2022-03-17",
-                "gender": "female",
-                "addressPostalCode": "KT19 0ST"
-              }
-            }
-            """;
+                Given = "Octavia",
+                Family = "Chislett",
+                BirthDate = new DateOnly(2022, 3, 17),
+                Gender = "female",
+                AddressPostalCode = "KT19 0ST",
+            },
+        };
 
-        return new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        // This guarantees the serialized JSON perfectly matches the API's configured deserializer
+        return JsonContent.Create(
+            requestPayload,
+            options: new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        );
     }
 
     public void Dispose()
