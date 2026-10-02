@@ -35,12 +35,12 @@ The agreed Alpha lifecycle flow is:
 
 This direction is not yet implemented end to end:
 
-| Area                      | Current state on `main`                                                                                                                                                                                               |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Get an Identifier         | PDS matching and the NHS number / GP practice ODS code response are implemented. MNS subscription creation is not yet implemented.                                                                                    |
-| MNS and MESH              | MESH is the accepted notification transport. Duplicate-subscription cleanup is an accepted approach, not an implemented task.                                                                                         |
+| Area                      | Current state on `main`                                                                                                                                                                                                       |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Get an Identifier         | PDS matching and the NHS number / GP practice ODS code response are implemented. MNS subscription creation is not yet implemented.                                                                                            |
+| MNS and MESH              | MESH is the accepted notification transport. Duplicate-subscription cleanup is an accepted approach, not an implemented task.                                                                                                 |
 | Notification Service      | The orchestrator retrieves and parses MESH messages. Supplier webhook register and signed delivery components exist but are not invoked; webhook dispatch and MESH acknowledgement are not yet wired into the lifecycle flow. |
-| Supplier webhook contract | Draft, pending acknowledgement-timeout agreement and technical / information-governance reviews.                                                                                                                      |
+| Supplier webhook contract | Draft, pending acknowledgement-timeout agreement and technical / information-governance reviews.                                                                                                                              |
 
 See the [Get an Identifier as-built design](./Docs/Design/GetAnIdentifier/AsBuilt.md), [Notification Service README](./Apps/NotificationService/README.md), [accepted MNS decisions](./Docs/architecture/decisions/index.md#accepted-get-an-identifier-decisions) and [draft supplier lifecycle contract](./Docs/Design/Notifications-Webhooks/SupplierLifecycle/V1/Index.md) for the evidence and detailed boundaries.
 

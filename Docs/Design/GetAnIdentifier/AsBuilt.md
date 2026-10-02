@@ -69,12 +69,12 @@ The runtime-generated API description is available from `/api/openapi/v3.json`, 
 
 The intended environment strategy separates gateway routing from token issuance:
 
-| Environment | Intended access and authentication | Purpose |
-| --- | --- | --- |
-| Local | Call the local Function App directly using a JWT from local AuthEmulator. | Fast, self-contained development without a FaUAPI dependency. |
-| `d01` | Route through FaUAPI while using AuthEmulator for tokens. | Exercise hosted routing while keeping authentication close to local development. |
-| `d02` | Use FaUAPI for routing and its configured authentication provider for tokens. | Exercise the integrated gateway and authentication path; compare with `d01` when diagnosing integration issues. |
-| `d03` | Use the intended production gateway and authentication path. | Pre-production validation with a clean environment and production-like configuration. |
+| Environment | Intended access and authentication                                            | Purpose                                                                                                         |
+| ----------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Local       | Call the local Function App directly using a JWT from local AuthEmulator.     | Fast, self-contained development without a FaUAPI dependency.                                                   |
+| `d01`       | Route through FaUAPI while using AuthEmulator for tokens.                     | Exercise hosted routing while keeping authentication close to local development.                                |
+| `d02`       | Use FaUAPI for routing and its configured authentication provider for tokens. | Exercise the integrated gateway and authentication path; compare with `d01` when diagnosing integration issues. |
+| `d03`       | Use the intended production gateway and authentication path.                  | Pre-production validation with a clean environment and production-like configuration.                           |
 
 This table records the target strategy, not a verified inventory of live gateway policies or Azure app settings. The repository confirms the following configuration:
 

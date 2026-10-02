@@ -100,12 +100,12 @@ dotnet run --project Apps/NotificationService/src/SUI.NotificationService/SUI.No
 
 Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig` section:
 
-| Setting | Meaning |
-|---------|---------|
-| `MailboxBaseUrl` | Base URL of the MESH instance. Must be `https://`; startup fails otherwise. |
-| `MailboxId` | The mailbox to read from. |
-| `MailboxPassword` | Mailbox password used to build the `NHSMESH` authorisation header. |
-| `SharedKey` | Shared key used to HMAC that header. |
+| Setting              | Meaning                                                                                                                                                         |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MailboxBaseUrl`     | Base URL of the MESH instance. Must be `https://`; startup fails otherwise.                                                                                     |
+| `MailboxId`          | The mailbox to read from.                                                                                                                                       |
+| `MailboxPassword`    | Mailbox password used to build the `NHSMESH` authorisation header.                                                                                              |
+| `SharedKey`          | Shared key used to HMAC that header.                                                                                                                            |
 | `AcceptLocalDevCert` | Optional, default `false`. Accepts the local sandbox's self-signed certificate. Startup fails if this is `true` and `MailboxBaseUrl` is not a loopback address. |
 
 All four are required and validated at startup, so a missing or malformed value fails the run
@@ -125,11 +125,11 @@ immediately rather than at the first request. `appsettings.Development.json` poi
 The deployed Container Apps job receives these values from GitHub environment configuration
 (per environment `d01`–`d03`), passed through `terraform-plan-and-apply.yml` as Terraform variables:
 
-| GitHub | Terraform variable | App setting |
-|--------|--------------------|-------------|
-| variable `NHS_MESH_CONFIG_BASE_URL` | `nhs_mesh_mailbox_base_url` | `NhsMeshConfig__MailboxBaseUrl` |
-| secret `NHS_MESH_CONFIG_SHARED_KEY` | `nhs_mesh_shared_key` | `NhsMeshConfig__SharedKey` |
-| secret `NHS_MESH_CONFIG_MAILBOX_ID` | `nhs_mesh_mailbox_id` | `NhsMeshConfig__MailboxId` |
+| GitHub                                    | Terraform variable          | App setting                      |
+| ----------------------------------------- | --------------------------- | -------------------------------- |
+| variable `NHS_MESH_CONFIG_BASE_URL`       | `nhs_mesh_mailbox_base_url` | `NhsMeshConfig__MailboxBaseUrl`  |
+| secret `NHS_MESH_CONFIG_SHARED_KEY`       | `nhs_mesh_shared_key`       | `NhsMeshConfig__SharedKey`       |
+| secret `NHS_MESH_CONFIG_MAILBOX_ID`       | `nhs_mesh_mailbox_id`       | `NhsMeshConfig__MailboxId`       |
 | secret `NHS_MESH_CONFIG_MAILBOX_PASSWORD` | `nhs_mesh_mailbox_password` | `NhsMeshConfig__MailboxPassword` |
 
 The three secrets are stored as Container App job secrets and referenced by the container's
@@ -191,11 +191,11 @@ is TBA; override it with `-WorkflowId` if needed.
 
 ## Exit codes
 
-| Code | Meaning |
-|------|---------|
-| `0` | Execution completed successfully. |
-| `1` | An unhandled startup, orchestration, shutdown or disposal failure occurred. |
-| `2` | Execution was cancelled gracefully. |
+| Code | Meaning                                                                     |
+| ---- | --------------------------------------------------------------------------- |
+| `0`  | Execution completed successfully.                                           |
+| `1`  | An unhandled startup, orchestration, shutdown or disposal failure occurred. |
+| `2`  | Execution was cancelled gracefully.                                         |
 
 Ctrl+C and termination signals request graceful cancellation through the application cancellation token.
 
@@ -269,16 +269,18 @@ The Supplier Webhook Register is administered manually via Azure Table Storage. 
 **Table Name:** `SupplierWebhooks`
 
 ### Adding a new Supplier Webhook
+
 1. Open Azure Storage Explorer or the Azure Portal.
 2. Navigate to the `SupplierWebhooks` table.
 3. Add a new Entity with the following strict properties:
-    * `PartitionKey`: `SupplierWebhook` (String, Exact match required)
-    * `RowKey`: The unique Supplier ID (String)
-    * `EndpointUrl`: The supplier's webhook URL (String, **Must be HTTPS**)
-    * `IsEnabled`: `true` (Boolean)
-    * `ContractVersion`: `1` (String)
-    * `SecretKeyVaultReference`: The Key Vault URI/name for their HMAC secret (String)
+   - `PartitionKey`: `SupplierWebhook` (String, Exact match required)
+   - `RowKey`: The unique Supplier ID (String)
+   - `EndpointUrl`: The supplier's webhook URL (String, **Must be HTTPS**)
+   - `IsEnabled`: `true` (Boolean)
+   - `ContractVersion`: `1` (String)
+   - `SecretKeyVaultReference`: The Key Vault URI/name for their HMAC secret (String)
 
 ### Updating or Disabling a Webhook
-* To **disable** broadcasts to a supplier, edit their entity and change `IsEnabled` to `false`. (Do not delete the row, to preserve the audit trail).
-* To **update** a URL or Key Vault reference, edit the respective string values and save. The repository reads enabled registrations from Table Storage when queried, but the current orchestrator does not query it or dispatch notifications.
+
+- To **disable** broadcasts to a supplier, edit their entity and change `IsEnabled` to `false`. (Do not delete the row, to preserve the audit trail).
+- To **update** a URL or Key Vault reference, edit the respective string values and save. The repository reads enabled registrations from Table Storage when queried, but the current orchestrator does not query it or dispatch notifications.
