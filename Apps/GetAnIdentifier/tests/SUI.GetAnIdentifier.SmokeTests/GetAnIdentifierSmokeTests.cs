@@ -152,14 +152,11 @@ public class GetAnIdentifierSmokeTests : IDisposable
     {
         var syntheticData = new
         {
-            personSpecification = new
-            {
-                given = "Octavia",
-                family = "Chislett",
-                birthDate = "2022-03-17",
-                gender = "female",
-                addressPostalCode = "KT19 0ST",
-            },
+            given = "Octavia",
+            family = "Chislett",
+            birthDate = "2022-03-17",
+            gender = "female",
+            addressPostalCode = "KT19 0ST",
         };
 
         return JsonContent.Create(
