@@ -1,0 +1,30 @@
+@use "generated-path-prefix" as *;
+
+$_font-family: 'Inter', sans-serif;
+
+@use "pkg:govuk-frontend/dist/govuk" with (
+  $govuk-assets-path: '#{$path-prefix}assets/',
+  $govuk-font-family: $_font-family,
+);
+
+@use "pkg:@x-govuk/govuk-eleventy-plugin";
+
+
+.govuk-header__homepage-link {
+  img {
+    height: 30px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  &:focus {
+    background-image: url('#{$path-prefix}assets/images/department-for-education_black.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: left center;
+
+    img {
+      visibility: hidden;
+    }
+  }
+}

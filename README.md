@@ -11,6 +11,7 @@ Looking to getting started with local development? Skip to [Getting Started](#ge
 |-----------------------------------|-------------------------------------------------------------------------------------------------------------|
 | [Apps](./Apps)                    | The Apps and Components created for the single unique identifier programme.                                 |
 | [Docs](./Docs)                    | Programme technical documentation, including architecture models and decisions.                             |
+| [Public documentation site](./public-docs) | DfE-branded site for approved public integration and onboarding guidance. |
 | [LICENCE](./LICENCE)              | Standard DfE software licence<!-- Yes, that is spelled correctly. -->, applying to the entire system.       |
 | [Contributing](./CONTRIBUTING.md) | Contributions guide for this repository. Please read before contributing.                                   |
 
