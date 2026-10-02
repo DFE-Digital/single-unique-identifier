@@ -35,8 +35,7 @@ Out of scope:
 
 ### What counts as a duplicate
 
-A message is a duplicate when its NHS number has already been seen on another message in the same execution. Nothing else is compared: not the event type, the Bundle, the MESH message metadata or the time of the change.
-
+A message is a duplicate when its NHS number has already been seen on a message with a different MESH message ID in the same execution. Nothing else is compared: not the event type, the Bundle, the MESH message metadata or the time of the change.
 This is safe because the supplier payload carries only `eventType` and `affectedNhsNumber`, and suppliers rematch against current PDS data. Collapsing two messages for the same NHS number loses nothing a supplier would act on. It relies on `nhsNumberChanged` being the only event type received; if a second event type is ever subscribed to, this rule must be revisited, because a message of one type could then hide a message of the other.
 
 Only messages that were read and parsed successfully take part. A message that cannot be read, cannot be parsed or carries no valid NHS number has no known NHS number, so it is never treated as a duplicate or as a survivor. It is logged and left unacknowledged, as described in the [Notification Service README](../../../Apps/NotificationService/README.md).

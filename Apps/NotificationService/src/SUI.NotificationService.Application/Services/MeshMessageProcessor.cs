@@ -64,9 +64,11 @@ public class MeshMessageProcessor(
             }
         }
 
-        (notifications, var duplicateMessageIds) = SeparateDuplicates(notifications);
+        var (survivors, duplicates) = SeparateDuplicates(notifications);
 
-        return notifications;
+        await AcknowledgeDuplicatesAsync(duplicates, cancellationToken);
+
+        return survivors;
     }
 
     // HttpClient surfaces a non-success status as HttpRequestException and its own request timeout
@@ -95,32 +97,89 @@ public class MeshMessageProcessor(
     }
 
     /// <summary>
-    /// Returns 2 lists. 1 of non duplicate notifications and 1 of duplicate message ids.
+    /// Splits notifications by NHS number into the first notification seen for each NHS number
+    /// (the survivors) and every later copy (the duplicates), each paired with the message ID of
+    /// the survivor it duplicates for logging purposes.
     /// </summary>
-    /// <returns></returns>
     private static (
-        List<PdsRecordChangeNotification> notifications,
-        List<string> duplicateMessageIds
+        List<PdsRecordChangeNotification> Survivors,
+        List<(string DuplicateMessageId, string SurvivorMessageId)> Duplicates
     ) SeparateDuplicates(List<PdsRecordChangeNotification> notifications)
     {
-        var nonDuplicateNotifications = new List<PdsRecordChangeNotification>();
-        var duplicateMessageIds = new List<string>();
+        var survivors = new List<PdsRecordChangeNotification>();
+        var duplicates = new List<(string DuplicateMessageId, string SurvivorMessageId)>();
 
-        var seenNhsNumbers = new HashSet<string>();
+        var survivorMessageIdByNhsNumber = new Dictionary<string, string>();
 
         foreach (var notification in notifications)
         {
-            if (!seenNhsNumbers.Add(notification.NhsNumber))
+            if (survivorMessageIdByNhsNumber.TryAdd(notification.NhsNumber, notification.MessageId))
             {
-                duplicateMessageIds.Add(notification.MessageId);
+                survivors.Add(notification);
             }
             else
             {
-                nonDuplicateNotifications.Add(notification);
+                duplicates.Add(
+                    (notification.MessageId, survivorMessageIdByNhsNumber[notification.NhsNumber])
+                );
             }
         }
 
-        return (nonDuplicateNotifications, duplicateMessageIds);
+        return (survivors, duplicates);
+    }
+
+    /// <summary>
+    /// Acknowledges each duplicate so MESH removes it from the mailbox. This cannot lose a change,
+    /// because the survivor carrying the same NHS number stays in the mailbox until it is handled.
+    /// </summary>
+    private async Task AcknowledgeDuplicatesAsync(
+        List<(string DuplicateMessageId, string SurvivorMessageId)> duplicates,
+        CancellationToken cancellationToken
+    )
+    {
+        if (duplicates.Count == 0)
+        {
+            return;
+        }
+
+        var acknowledgedCount = 0;
+        var failedCount = 0;
+
+        foreach (var (duplicateMessageId, survivorMessageId) in duplicates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                await AcknowledgeMessageAsync(duplicateMessageId, cancellationToken);
+                acknowledgedCount++;
+
+                logger.LogInformation(
+                    "MESH message {DuplicateMessageId} acknowledged as a duplicate of {SurvivorMessageId}",
+                    duplicateMessageId,
+                    survivorMessageId
+                );
+            }
+            catch (Exception exception)
+                when (IsExpectedTransportFailure(exception, cancellationToken))
+            {
+                // A duplicate left in the mailbox is collapsed again on the next execution, so this
+                // corrects itself and must not cost this execution the remaining duplicates.
+                failedCount++;
+
+                logger.LogWarning(
+                    exception,
+                    "MESH message {DuplicateMessageId} could not be acknowledged as a duplicate and was left in the mailbox",
+                    duplicateMessageId
+                );
+            }
+        }
+
+        logger.LogInformation(
+            "{AcknowledgedCount} duplicate MESH message(s) acknowledged, {FailedCount} acknowledgement(s) failed",
+            acknowledgedCount,
+            failedCount
+        );
     }
 
     private async Task<PdsRecordChangeNotification?> ProcessMessageAsync(
