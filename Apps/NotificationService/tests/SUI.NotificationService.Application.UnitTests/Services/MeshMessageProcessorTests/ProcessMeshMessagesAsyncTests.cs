@@ -130,4 +130,25 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
             CreateProcessor().ProcessMeshMessagesAsync(cancellation.Token)
         );
     }
+
+    [Fact]
+    public async Task ShouldRemoveDuplicates_FromReturnedList_WhenDuplicatesExist()
+    {
+        AddValidMessages(
+            ("message-1", "9000000009"),
+            ("message-2", "9000000017"),
+            ("message-3", "9000000009"),
+            ("message-4", "9000000017")
+        );
+
+        var notifications = await ProcessAsync();
+
+        Assert.Equal(
+            [
+                new PdsRecordChangeNotification("message-1", "9000000009"),
+                new PdsRecordChangeNotification("message-2", "9000000017"),
+            ],
+            notifications
+        );
+    }
 }
