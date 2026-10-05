@@ -1,22 +1,24 @@
 using Microsoft.Extensions.Logging;
+using SUI.NotificationService.Application.Services;
 
 namespace SUI.NotificationService.Application;
 
-internal sealed class NotificationOrchestrator(ILogger<NotificationOrchestrator> logger)
-    : INotificationOrchestrator
+internal sealed class NotificationOrchestrator(
+    IMeshMessageProcessor meshMessageProcessor,
+    ILogger<NotificationOrchestrator> logger
+) : INotificationOrchestrator
 {
-    public Task RunAsync(CancellationToken cancellationToken)
+    public async Task RunAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         logger.LogInformation("Notification Service execution started");
 
-        // Later workstreams will extend this orchestration point to receive lifecycle changes
-        // through the MNS boundary, coordinate them in Application, and broadcast supplier
-        // notifications through the Webhooks boundary before this finite execution completes.
+        var notifications = await meshMessageProcessor.ProcessMeshMessagesAsync(cancellationToken);
 
-        logger.LogInformation("Notification Service execution completed");
-
-        return Task.CompletedTask;
+        logger.LogInformation(
+            "Notification Service execution completed with {NotificationCount} record change notification(s)",
+            notifications.Count
+        );
     }
 }

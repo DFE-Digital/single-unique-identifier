@@ -96,6 +96,49 @@ variable "notification_service_dotnet_environment" {
   default     = "Development"
 }
 
+variable "nhs_mesh_mailbox_base_url" {
+  description = "Base URL of the NHS MESH instance (NhsMeshConfig__MailboxBaseUrl)."
+  type        = string
+
+  validation {
+    condition     = can(regex("^https://", var.nhs_mesh_mailbox_base_url))
+    error_message = "nhs_mesh_mailbox_base_url must be an absolute https:// URL."
+  }
+}
+
+variable "nhs_mesh_shared_key" {
+  description = "NHS MESH shared key used to HMAC the authorisation header."
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = length(var.nhs_mesh_shared_key) > 0
+    error_message = "nhs_mesh_shared_key must not be empty."
+  }
+}
+
+variable "nhs_mesh_mailbox_id" {
+  description = "NHS MESH mailbox ID to read from."
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = length(var.nhs_mesh_mailbox_id) > 0
+    error_message = "nhs_mesh_mailbox_id must not be empty."
+  }
+}
+
+variable "nhs_mesh_mailbox_password" {
+  description = "NHS MESH mailbox password."
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = length(var.nhs_mesh_mailbox_password) > 0
+    error_message = "nhs_mesh_mailbox_password must not be empty."
+  }
+}
+
 # The variables below are declared because all service roots consume the shared
 # environment tfvars files. They are not used by the Notification Service root.
 variable "app_service_plan_sku" {

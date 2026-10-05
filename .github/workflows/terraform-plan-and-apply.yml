@@ -46,6 +46,13 @@ on:
         required: true
       NHS_DIGITAL_PRIVATE_KEY:
         required: true
+      # NHS MESH mailbox credentials required for the Notification Service job.
+      NHS_MESH_CONFIG_SHARED_KEY:
+        required: false
+      NHS_MESH_CONFIG_MAILBOX_ID:
+        required: false
+      NHS_MESH_CONFIG_MAILBOX_PASSWORD:
+        required: false
       # Secret that grants end-users access to the deployed UI Test Harness
       UI_TEST_HARNESS_PASSWORD:
         required: false
@@ -90,6 +97,11 @@ jobs:
       TF_VAR_nhs_digital_client_id: ${{ secrets.NHS_DIGITAL_CLIENT_ID}}
       TF_VAR_nhs_digital_kid: ${{ secrets.NHS_DIGITAL_KID}}
       TF_VAR_nhs_digital_private_key: ${{ secrets.NHS_DIGITAL_PRIVATE_KEY}}
+      # NHS MESH config for the Notification Service container job (secrets become Container App job secrets).
+      TF_VAR_nhs_mesh_mailbox_base_url: ${{ vars.NHS_MESH_CONFIG_BASE_URL }}
+      TF_VAR_nhs_mesh_shared_key: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
+      TF_VAR_nhs_mesh_mailbox_id: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
+      TF_VAR_nhs_mesh_mailbox_password: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
       # The secret below is required for the UI Test Harness, and is transmitted from Github Secrets to the Azure Key Vault.
       TF_VAR_ui_test_harness_password: ${{ secrets.UI_TEST_HARNESS_PASSWORD }}
       # Ability to pass sensitive Auth Settings (these values can be checked for debugging purposes by looking at the app settings in the Azure Portal):

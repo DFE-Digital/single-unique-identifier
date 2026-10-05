@@ -192,6 +192,21 @@ resource "azurerm_container_app_job" "notification_service" {
     replica_completion_count = 1
   }
 
+  secret {
+    name  = "nhs-mesh-shared-key"
+    value = var.nhs_mesh_shared_key
+  }
+
+  secret {
+    name  = "nhs-mesh-mailbox-id"
+    value = var.nhs_mesh_mailbox_id
+  }
+
+  secret {
+    name  = "nhs-mesh-mailbox-password"
+    value = var.nhs_mesh_mailbox_password
+  }
+
   template {
     container {
       name   = "notification-service"
@@ -207,6 +222,33 @@ resource "azurerm_container_app_job" "notification_service" {
       env {
         name  = "TableStorage__ServiceUri"
         value = azurerm_storage_account.notification_service.primary_table_endpoint
+      }
+
+      env {
+        name  = "NhsMeshConfig__MailboxBaseUrl"
+        value = var.nhs_mesh_mailbox_base_url
+      }
+
+      env {
+        name        = "NhsMeshConfig__SharedKey"
+        secret_name = "nhs-mesh-shared-key"
+      }
+
+      env {
+        name        = "NhsMeshConfig__MailboxId"
+        secret_name = "nhs-mesh-mailbox-id"
+      }
+
+      env {
+        name        = "NhsMeshConfig__MailboxPassword"
+        secret_name = "nhs-mesh-mailbox-password"
+      }
+
+      # appsettings.Development.json enables this for the local sandbox; it must never be
+      # true against a deployed MESH endpoint (the app rejects it for non-loopback URLs).
+      env {
+        name  = "NhsMeshConfig__AcceptLocalDevCert"
+        value = "false"
       }
     }
   }
