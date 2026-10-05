@@ -159,4 +159,6 @@ jobs:
           SMOKE_TEST_TOKEN_URL: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
           SMOKE_TEST_CLIENT_IDS_JSON_MAP: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
           SMOKE_TEST_CLIENT_SECRETS_JSON_MAP: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
+          # D01 does not need a scope if the token is to be tested as of present, due to the use of the AuthEmulator
+          # D02, and D03 will use FaUAPI entirely and this requires different Azure Auth config values to D01
           SMOKE_TEST_AUTH_SCOPE: ${{ env.TARGET_ENVIRONMENT != 'd01' && secrets.AUTH_SETTINGS__OAUTH_SCOPE || '' }}
