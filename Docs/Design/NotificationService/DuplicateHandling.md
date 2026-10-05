@@ -3,9 +3,9 @@
 **Date:** `2026-10-02`  
 **Owner:** SUI Service Team
 
-> **Status: proposed, not implemented.** This page describes how the Notification Service should handle duplicate MESH messages. It is not yet a description of what the service does.
+> **Status: proposed, not implemented.**
 
-This page describes how the Notification Service collapses MESH messages that carry the same NHS number, so that the supplier webhooks are given at most one notification per NHS number in each execution. An execution is one invocation of the Notification Service console app, which drains the mailbox and exits. Run instructions, configuration, exit codes and the general MESH behaviour are in the [Notification Service README](../../../Apps/NotificationService/README.md).
+This page describes how the Notification Service collapses MESH messages that carry the same NHS number, so that the supplier webhooks are given at most one notification per NHS number in each execution. An execution is one invocation of the Notification Service, which drains the mailbox and exits. Run instructions, configuration, exit codes and the general MESH behaviour are in the [Notification Service README](../../../Apps/NotificationService/README.md).
 
 ## Context
 
