@@ -13,7 +13,7 @@ Get an Identifier subscribes to NHS Multicast Notification Service (MNS) events 
 
 Without handling, each of those messages would become its own supplier notification for the same person. Suppliers rematch through Get an Identifier on every notification, so the extra notifications cost them, and us, repeated work for no benefit.
 
-The only event type subscribed to is `nhsNumberChanged`. Subscriptions are controlled by SUI, so no other event type reaches the mailbox.
+The only MNS event type subscribed to is `pds-record-change-2`, and subscriptions are created with the `changed_nhsnumber` filter, so only NHS number changes reach the mailbox. Subscriptions are controlled by SUI, so no other event type reaches the mailbox. (`nhsNumberChanged` is a different thing: the `eventType` of the supplier webhook payload.)
 
 ## Scope
 
@@ -35,7 +35,7 @@ Out of scope:
 ### What counts as a duplicate
 
 A message is a duplicate when its NHS number has already been seen on a message with a different MESH message ID in the same execution. Nothing else is compared: not the event type, the Bundle, the MESH message metadata or the time of the change.
-This is safe because the supplier payload carries only `eventType` and `affectedNhsNumber`, and suppliers rematch against current PDS data. Collapsing two messages for the same NHS number loses nothing a supplier would act on. It relies on `nhsNumberChanged` being the only event type received; if a second event type is ever subscribed to, this rule must be revisited, because a message of one type could then hide a message of the other.
+This is safe because the supplier payload carries only `eventType` and `affectedNhsNumber`, and suppliers rematch against current PDS data. Collapsing two messages for the same NHS number loses nothing a supplier would act on. It relies on `pds-record-change-2` filtered to `changed_nhsnumber` being the only kind of change received; if a second event type or filter is ever subscribed to, this rule must be revisited, because a message of one kind could then hide a message of the other. The parser checks the event type but cannot see the filter, so the filter is only enforced by how subscriptions are created.
 
 Only messages that were read and parsed successfully take part. A message that cannot be read, cannot be parsed or carries no valid NHS number has no known NHS number, so it is never treated as a duplicate or as a survivor. It is logged and left unacknowledged, as described in the [Notification Service README](../../../Apps/NotificationService/README.md).
 
