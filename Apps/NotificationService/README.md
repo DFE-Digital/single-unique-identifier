@@ -2,31 +2,69 @@
 
 The Notification Service is a run-to-completion .NET application intended for scheduled execution. Each invocation creates an application scope, runs the notification orchestration once, and then exits.
 
-The current scaffold does not connect to MNS or deliver supplier webhooks.
+For Alpha, this separate service receives NHS England MNS lifecycle notifications through MESH and is intended to notify registered supplier webhook endpoints when information previously returned by Get an Identifier may have changed. Suppliers then rematch affected records through Get an Identifier; notifications do not supply replacement NHS numbers, GP details or demographic information.
+
+## Implementation status
+
+Each execution retrieves the messages listed in the NHS MESH mailbox and parses supported [`pds-record-change-2` events](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event). The application returns record-change notifications to the orchestrator. Messages that cannot be read or parsed, or that contain no valid NHS number, remain in the mailbox.
+
+The supplier webhook register repository, Key Vault secret client and HMAC-SHA256 HTTP delivery component are implemented and registered, but the orchestrator does not invoke them. End-to-end lifecycle notification delivery and retry coordination remain to be implemented.
+
+The intended acknowledgement boundary is successful webhook delivery to suppliers. The current orchestrator does not acknowledge any MESH messages, so messages remain available for retrieval on subsequent executions.
+
+MESH is the [accepted Alpha transport](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md). Subscription creation belongs to Get an Identifier and is not yet implemented.
+
+The [supplier lifecycle webhook contract v1](../../Docs/Design/Notifications-Webhooks/SupplierLifecycle/V1/Index.md) remains Draft pending technical and information-governance reviews and agreement of the acknowledgement timeout. The delivery component currently uses a three-second HTTP timeout; this does not make the proposed contract timeout an agreed SLA.
 
 ## Project boundaries
 
 - `SUI.NotificationService` is the executable host and composition root. It configures the application and invokes one execution.
 - `SUI.NotificationService.Application` owns orchestration and the contracts used to coordinate the other modules.
-- `SUI.NotificationService.Mns` is the boundary for receiving lifecycle changes from MNS.
+- `SUI.NotificationService.Mesh` is the boundary for receiving messages from an NHS MESH mailbox. It implements `IMeshInboxClient` over the MESH REST API and owns transport only - orchestration decides when messages are read and acknowledged.
 - `SUI.NotificationService.Webhooks` is the boundary for delivering notifications to suppliers.
 - `SUI.NotificationService.Infrastructure` is the boundary for shared technical concerns needed by the other modules.
 
-The MNS, Webhooks and Infrastructure projects currently expose dependency-injection registration points without concrete services. Their implementations will be added by their owning workstreams.
+The Mesh project contains the mailbox transport implementation. Webhooks and Infrastructure contain concrete delivery and register implementations; wiring them into lifecycle processing remains separate work.
+
+This process is not a poller. It reads whatever is waiting, processes it and exits; the schedule that starts the process owns how often that happens.
 
 ## Prerequisites
 
 - .NET SDK 10.0.102 or later, as configured in the repository's `global.json`.
+- Docker or Podman (or another container runtime), to run the local [NHS MESH sandbox](https://github.com/NHSDigital/mesh-sandbox) that stands in for a real MESH mailbox during local development.
+
+## Local MESH sandbox
+
+Local development and CI never connect to a live MESH environment. Instead they use `mesh_sandbox`, a
+local container built from NHS Digital's [mesh-sandbox](https://github.com/NHSDigital/mesh-sandbox)
+(pinned to `v1.0.114` in the repository's `compose.yaml`) that simulates the MESH API. Start it from
+the repository root before running the application:
+
+```bash
+docker compose up -d mesh_sandbox
+```
+
+The sandbox listens on `https://localhost:8700` with a self-signed certificate and uses the shared
+key `TestKey`, which matches `appsettings.Development.json`. It exposes a `/health` endpoint used by
+the container health check:
+
+```bash
+curl -k https://localhost:8700/health
+```
+
+The sandbox stores messages in memory by default, so they are lost when the container restarts. To
+keep them across restarts, uncomment `STORE_MODE=file` in `compose.yaml`.
 
 ## Run one execution locally
 
-From the repository root, run:
+With the [local MESH sandbox](#local-mesh-sandbox) running, from the repository root run:
 
 ```bash
 dotnet run --project Apps/NotificationService/src/SUI.NotificationService/SUI.NotificationService.csproj
 ```
 
-The scaffold logs the start and completion of the execution, then exits with code `0`.
+The launch profile sets `DOTNET_ENVIRONMENT=Development`, which is what points the application at
+the sandbox. The scaffold logs the start and completion of the execution, then exits with code `0`.
 
 ## Local configuration
 
@@ -58,15 +96,106 @@ dotnet run --project Apps/NotificationService/src/SUI.NotificationService/SUI.No
   --Logging:LogLevel:Default Debug
 ```
 
+### NHS MESH
+
+Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig` section:
+
+| Setting              | Meaning                                                                                                                                                         |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MailboxBaseUrl`     | Base URL of the MESH instance. Must be `https://`; startup fails otherwise.                                                                                     |
+| `MailboxId`          | The mailbox to read from.                                                                                                                                       |
+| `MailboxPassword`    | Mailbox password used to build the `NHSMESH` authorisation header.                                                                                              |
+| `SharedKey`          | Shared key used to HMAC that header.                                                                                                                            |
+| `AcceptLocalDevCert` | Optional, default `false`. Accepts the local sandbox's self-signed certificate. Startup fails if this is `true` and `MailboxBaseUrl` is not a loopback address. |
+
+All four are required and validated at startup, so a missing or malformed value fails the run
+immediately rather than at the first request. `appsettings.Development.json` points at the
+[local MESH sandbox](#local-mesh-sandbox), whose self-signed certificate is trusted only in the
+`Development` environment.
+
+> [!IMPORTANT]
+> The client currently works only against the local sandbox. Real MESH environments (INT and LIVE)
+> require mutual TLS with an NHS-issued client certificate, and the client does not present one yet,
+> so connections to them will fail during the TLS handshake. Client certificate support (loading
+> the certificate and key from Key Vault, plus any CA chain MESH needs) is deferred until there is a
+> deployed environment. See [ADR 0001](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md).
+
+#### Deployed configuration
+
+The deployed Container Apps job receives these values from GitHub environment configuration
+(per environment `d01`–`d03`), passed through `terraform-plan-and-apply.yml` as Terraform variables:
+
+| GitHub                                    | Terraform variable          | App setting                      |
+| ----------------------------------------- | --------------------------- | -------------------------------- |
+| variable `NHS_MESH_CONFIG_BASE_URL`       | `nhs_mesh_mailbox_base_url` | `NhsMeshConfig__MailboxBaseUrl`  |
+| secret `NHS_MESH_CONFIG_SHARED_KEY`       | `nhs_mesh_shared_key`       | `NhsMeshConfig__SharedKey`       |
+| secret `NHS_MESH_CONFIG_MAILBOX_ID`       | `nhs_mesh_mailbox_id`       | `NhsMeshConfig__MailboxId`       |
+| secret `NHS_MESH_CONFIG_MAILBOX_PASSWORD` | `nhs_mesh_mailbox_password` | `NhsMeshConfig__MailboxPassword` |
+
+The three secrets are stored as Container App job secrets and referenced by the container's
+environment. Terraform also sets `NhsMeshConfig__AcceptLocalDevCert=false`, overriding
+`appsettings.Development.json`, which the deployed `Development` environment would otherwise inherit.
+
+The PR container validation does not use these values: it starts the local MESH sandbox on the runner
+and runs the image with the `Development` configuration.
+
 Do not commit secrets to the configuration files. Supply sensitive local values through environment variables or an approved secret-management mechanism when later workstreams introduce them.
+
+### Message payloads
+
+The mailbox receives [`pds-record-change-2` events](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event)
+published by the NHS Multicast Notification Service (MNS). The MESH workflow identifier they arrive
+under is **TBA** - it is not yet known. Each body is a FHIR Bundle (`type: history`) wrapping a
+`Parameters` resource that conforms to the R4 Subscriptions Backport `SubscriptionStatus` profile.
+
+The MESH boundary returns each body as raw text; the application layer parses it into a typed
+`Hl7.Fhir.Model.Bundle` with the Firely FHIR SDK (`Hl7.Fhir.R4`) and checks it is the expected
+shape: a `history` Bundle whose first entry is a `Parameters` resource with
+`additional-context.event-type` of exactly `pds-record-change-2`. Other MNS events share the same
+Bundle and `Parameters` shape, so the event type is checked defensively to stop a subscription
+mistake being treated as a PDS record change. The declared `meta.profile`
+is deliberately not checked: every Subscriptions Backport notification declares the same profile, so
+it cannot tell a pds-record-change-2 event from any other, and an exact match on it only adds a way
+to reject valid messages. Parsing is deliberately an application concern rather than a transport one, because what to do
+with an unusable payload is an acknowledgement decision.
+
+The payload carries an NHS number in its `additional-context.subject` part, so the body is never
+logged. A processed message is identified in the logs by its MESH message identifier, event type,
+event number and version identifier only. Turning the notification into a supplier broadcast
+belongs with the supplier webhook workstream.
+
+The service does not filter on the workflow identifier, so the mailbox is assumed to carry these
+events only; the `event-type` check above is the backstop if that assumption is ever wrong.
+
+#### Messages that cannot be parsed
+
+A message whose body is not a valid pds-record-change-2 notification, or whose
+`additional-context.subject` is missing or is not a valid NHS number (ten digits, not starting with
+zero, with a valid Modulus 11 check digit, checked by `SUI.Shared.NhsNumberValidator`), is logged and skipped,
+and the rest of the mailbox is still read. It will **not** be acknowledged even once supplier
+webhook delivery exists, so MESH redelivers it rather than the change event being silently
+dropped. The cost is that an unparseable message is re-read, re-logged and re-skipped on every
+scheduled run until someone intervenes, so a repeated `could not be parsed and was left
+unacknowledged` or `carried no valid NHS number and was left unacknowledged` entry needs a human.
+
+To put a realistic event into the [local MESH sandbox](#local-mesh-sandbox) without running this
+application, use `scripts/send-mesh-test-message.ps1`, which posts the payload in
+`scripts/pds-record-change-2-notification.template.json`:
+
+```bash
+pwsh ./scripts/send-mesh-test-message.ps1
+```
+
+The script's default workflow identifier, `PDSRECORDCHANGE_2`, is a placeholder while the real one
+is TBA; override it with `-WorkflowId` if needed.
 
 ## Exit codes
 
-| Code | Meaning |
-|------|---------|
-| `0` | Execution completed successfully. |
-| `1` | An unhandled startup, orchestration, shutdown or disposal failure occurred. |
-| `2` | Execution was cancelled gracefully. |
+| Code | Meaning                                                                     |
+| ---- | --------------------------------------------------------------------------- |
+| `0`  | Execution completed successfully.                                           |
+| `1`  | An unhandled startup, orchestration, shutdown or disposal failure occurred. |
+| `2`  | Execution was cancelled gracefully.                                         |
 
 Ctrl+C and termination signals request graceful cancellation through the application cancellation token.
 
@@ -104,7 +233,7 @@ The Storage Account's public firewall is deny-by-default, with the Azure trusted
 
 ### First deployment to an environment
 
-The shared foundations must be applied before the first image can be published. Run the `Terraform Core Infrastructure` workflow for the target environment with `apply` enabled. When preparing d01 before this branch is merged, run that existing workflow against this branch ref so the new core resources are available before the automatic main deployment.
+The shared foundations must be applied before the first image can be published. Run the `Terraform Core Infrastructure` workflow for the target environment with `apply` enabled.
 
 The core deployment creates the dedicated Container Apps subnet and changes the shared environment to a VNet-integrated workload profiles environment. If the target already has a Container Apps environment, review the Terraform plan with the platform owner and coordinate any required replacement before applying it. Do not apply this core change while unrelated Container Apps workloads still depend on the existing environment.
 
@@ -140,16 +269,18 @@ The Supplier Webhook Register is administered manually via Azure Table Storage. 
 **Table Name:** `SupplierWebhooks`
 
 ### Adding a new Supplier Webhook
+
 1. Open Azure Storage Explorer or the Azure Portal.
 2. Navigate to the `SupplierWebhooks` table.
 3. Add a new Entity with the following strict properties:
-    * `PartitionKey`: `SupplierWebhook` (String, Exact match required)
-    * `RowKey`: The unique Supplier ID (String)
-    * `EndpointUrl`: The supplier's webhook URL (String, **Must be HTTPS**)
-    * `IsEnabled`: `true` (Boolean)
-    * `ContractVersion`: `1` (String)
-    * `SecretKeyVaultReference`: The Key Vault URI/name for their HMAC secret (String)
+   - `PartitionKey`: `SupplierWebhook` (String, Exact match required)
+   - `RowKey`: The unique Supplier ID (String)
+   - `EndpointUrl`: The supplier's webhook URL (String, **Must be HTTPS**)
+   - `IsEnabled`: `true` (Boolean)
+   - `ContractVersion`: `1` (String)
+   - `SecretKeyVaultReference`: The Key Vault URI/name for their HMAC secret (String)
 
 ### Updating or Disabling a Webhook
-* To **disable** broadcasts to a supplier, edit their entity and change `IsEnabled` to `false`. (Do not delete the row, to preserve the audit trail).
-* To **update** a URL or Key Vault reference, edit the respective string values and save. Changes take effect immediately.
+
+- To **disable** broadcasts to a supplier, edit their entity and change `IsEnabled` to `false`. (Do not delete the row, to preserve the audit trail).
+- To **update** a URL or Key Vault reference, edit the respective string values and save. The repository reads enabled registrations from Table Storage when queried, but the current orchestrator does not query it or dispatch notifications.

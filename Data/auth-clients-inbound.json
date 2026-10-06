@@ -20,8 +20,8 @@
     },
     {
       "enabled": true,
-      "clientId": "CLIENT_ID_UJ",
-      "organisationId": "UJ-Test",
+      "clientId": "CLIENT_ID_TEST",
+      "organisationId": "TEST",
       "clientSecret": "SUIProject",
       "allowedScopes": [
         "get-an-identifier.read"

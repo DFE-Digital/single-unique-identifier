@@ -1,0 +1,58 @@
+{
+  "resourceType": "Bundle",
+  "id": "{{BUNDLE_ID}}",
+  "type": "history",
+  "timestamp": "{{TIMESTAMP}}",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:{{PARAMETERS_ID}}",
+      "resource": {
+        "resourceType": "Parameters",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4"
+          ]
+        },
+        "id": "{{PARAMETERS_ID}}",
+        "parameter": [
+          {
+            "name": "subscription",
+            "valueReference": { "reference": "{{SUBSCRIPTION_REFERENCE}}" }
+          },
+          {
+            "name": "status",
+            "valueCode": "active"
+          },
+          {
+            "name": "type",
+            "valueCode": "event-notification"
+          },
+          {
+            "name": "notification-event",
+            "part": [
+              { "name": "event-number", "valueString": "{{EVENT_NUMBER}}" },
+              { "name": "timestamp", "valueInstant": "{{TIMESTAMP}}" }
+            ]
+          },
+          {
+            "name": "additional-context",
+            "part": [
+              { "name": "event-type", "valueString": "pds-record-change-2" },
+              { "name": "source", "valueUri": "https://fhir.nhs.uk/Id/nhsSpineASID/477121000324" },
+              {
+                "name": "subject",
+                "valueReference": { "identifier": { "value": "{{NHS_NUMBER}}" } }
+              },
+              { "name": "version-id", "valueString": "W/\"{{VERSION_ID}}\"" }
+            ]
+          }
+        ]
+      },
+      "request": {
+        "method": "GET",
+        "url": "{{SUBSCRIPTION_REFERENCE}}"
+      },
+      "response": { "status": "200" }
+    }
+  ]
+}
