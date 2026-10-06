@@ -411,6 +411,7 @@ jobs:
       - name: Create Draft GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           tag="release-${GITHUB_RUN_ID}-${GITHUB_SHA::7}"
           gh release create "$tag" *.zip release-manifest.json \
