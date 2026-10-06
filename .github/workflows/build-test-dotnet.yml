@@ -158,6 +158,7 @@ jobs:
             /o:"dfe-digital" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.qualitygate.wait=true \
             $coverage_arg \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
             /d:sonar.exclusions="**/wwwroot/**" \

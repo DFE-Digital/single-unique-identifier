@@ -315,6 +315,18 @@ jobs:
           exit-code: 1
           severity: HIGH,CRITICAL
 
+  trufflehog-scan:
+    name: Trufflehog secret scan
+    uses: ./.github/workflows/trufflehog.yml
+
+  trivy-scan:
+    name: Trivy repository scan
+    uses: ./.github/workflows/trivy.yml
+    secrets: inherit
+    
+  trivy-iac-scan:
+    name: Trivy IaC scan
+    uses: ./.github/workflows/trivy-iac.yml
   cut-release:
     name: Cut Immutable Release
     if: >-
@@ -341,6 +353,9 @@ jobs:
       - build-ui-harness
       - build-notification-service
       - build-and-publish-image
+      - trufflehog-scan
+      - trivy-scan
+      - trivy-iac-scan
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -26,6 +26,7 @@ on:
       - "global.json"
       - "nuget.config"
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
