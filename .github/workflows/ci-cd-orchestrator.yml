@@ -408,7 +408,7 @@ jobs:
         with:
           subject-path: '*.zip'
 
-      - name: Create Draft GitHub Release
+      - name: Create Immutable GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -417,7 +417,6 @@ jobs:
           gh release create "$tag" *.zip release-manifest.json \
             --title "Deployable Build ${GITHUB_SHA::7}" \
             --notes "Automated build release from commit ${GITHUB_SHA}" \
-            --draft \
             --target "${GITHUB_SHA}"
 
   deploy-auth-emulator:
