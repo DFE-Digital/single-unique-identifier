@@ -317,7 +317,24 @@ jobs:
 
   cut-release:
     name: Cut Immutable Release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      ${{
+        !cancelled() &&
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        !contains(needs.*.result, 'failure') &&
+        !contains(needs.*.result, 'cancelled') &&
+        (
+          needs.build-auth-emulator.result == 'success' ||
+          needs.build-get-an-id.result == 'success' ||
+          needs.build-ui-harness.result == 'success' ||
+          needs.build-notification-service.result == 'success'
+        ) &&
+        (
+          needs.build-notification-service.result != 'success' ||
+          needs.build-and-publish-image.result == 'success'
+        )
+      }}
     needs: 
       - build-auth-emulator
       - build-get-an-id
