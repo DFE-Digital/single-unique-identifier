@@ -25,7 +25,7 @@ on:
       artifact_store:
         description: Artifact storage backend (github or azure)
         required: false
-        default: azure
+        default: github
         type: string
       skip_tests:
         description: Skip tests and related setup
@@ -65,7 +65,8 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
+  attestations: write
 
 jobs:
   build-and-test:
@@ -73,7 +74,8 @@ jobs:
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets: inherit
     permissions:
-      contents: read
+      contents: write
+      attestations: write
       checks: write
       pull-requests: write
       packages: read
@@ -84,7 +86,7 @@ jobs:
       requires_azurite: true
       deploy_requested: false
       upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && inputs.upload_artifacts) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'github' }}
       skip_tests: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests }}
       skip_scans: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_scans }}
 

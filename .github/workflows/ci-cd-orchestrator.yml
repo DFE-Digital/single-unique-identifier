@@ -118,7 +118,7 @@ jobs:
       directory_name: Apps/AuthEmulator
       project_names: '["SUI.AuthEmulator"]'
       upload_artifacts: true
-      upload_release_assets: true
+      prepare_release_assets: true
       artifact_store: 'github'
       skip_tests: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests || false }}
       skip_scans: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_scans || false }}
@@ -143,7 +143,7 @@ jobs:
       project_names: '["SUI.GetAnIdentifier.API"]'
       requires_azurite: true
       upload_artifacts: true
-      upload_release_assets: true
+      prepare_release_assets: true
       artifact_store: 'github'
       skip_tests: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests || false }}
       skip_scans: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_scans || false }}
@@ -167,7 +167,7 @@ jobs:
       directory_name: Apps/UIHarness
       project_names: '["SUI.UIHarness.Web"]'
       upload_artifacts: true
-      upload_release_assets: true
+      prepare_release_assets: true
       artifact_store: 'github'
       skip_tests: true
       skip_scans: true
