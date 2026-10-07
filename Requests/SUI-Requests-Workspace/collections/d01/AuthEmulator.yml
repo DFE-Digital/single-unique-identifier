@@ -1,0 +1,23 @@
+info:
+  name: AuthEmulator
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{access_token_url}}"
+  headers:
+    - name: Authorization
+      value: Basic {{encoded_credentials}}
+  body:
+    type: form-urlencoded
+    data:
+      - name: grant_type
+        value: client_credentials
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

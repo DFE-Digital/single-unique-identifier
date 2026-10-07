@@ -1,0 +1,17 @@
+name: d02
+variables:
+  - secret: true
+    name: base_url
+    description: Base url for Get an Identifier
+  - secret: true
+    name: access_token_url
+    description: Url for authentication
+  - secret: true
+    name: client_id
+    description: FaUAPI Subscription Client ID
+  - secret: true
+    name: client_secret
+    description: FaUAPI Subscription Client Secret
+  - secret: true
+    name: auth_scope
+    description: FaUAPI Authentication Scope
