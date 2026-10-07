@@ -1,14 +1,14 @@
 name: d01
 variables:
   - secret: true
-    name: auth_token
-    description: Bearer token generated from authentication endpoint
-  - secret: true
-    name: encoded_credentials
-    description: Base64 encoded client credentials in the form client_id:client_secret
-  - secret: true
     name: base_url
     description: Base url for Get an Identifier
   - secret: true
     name: access_token_url
     description: Url for authentication
+  - secret: true
+    name: client_id
+    description: Azure Client ID
+  - secret: true
+    name: client_secret
+    description: Azure Client secret

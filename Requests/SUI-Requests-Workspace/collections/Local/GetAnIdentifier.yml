@@ -21,8 +21,20 @@ http:
         }
       }
   auth:
-    type: bearer
-    token: "{{auth_token}}"
+    type: oauth2
+    flow: client_credentials
+    accessTokenUrl: "{{access_token_url}}"
+    credentials:
+      clientId: "{{client_id}}"
+      clientSecret: "{{client_secret}}"
+      placement: basic_auth_header
+    tokenConfig:
+      id: Authorization
+      placement:
+        header: Bearer
+      source: access_token
+    settings:
+      autoFetchToken: true
 
 settings:
   encodeUrl: true

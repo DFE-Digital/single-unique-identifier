@@ -1,11 +1,11 @@
 info:
   name: GetAnIdentifier
   type: http
-  seq: 4
+  seq: 2
 
 http:
   method: POST
-  url: "{{base_url}}/api/v1/get-an-identifier"
+  url: "{{base_url}}/v1/get-an-identifier"
   body:
     type: json
     data: |-
@@ -21,8 +21,21 @@ http:
         }
       }
   auth:
-    type: bearer
-    token: "{{auth_token}}"
+    type: oauth2
+    flow: client_credentials
+    accessTokenUrl: "{{access_token_url}}"
+    credentials:
+      clientId: "{{client_id}}"
+      clientSecret: "{{client_secret}}"
+      placement: basic_auth_header
+    tokenConfig:
+      id: Authorization
+      placement:
+        header: Bearer
+      source: access_token
+    settings:
+      autoFetchToken: true
+      autoRefreshToken: false
 
 settings:
   encodeUrl: true
