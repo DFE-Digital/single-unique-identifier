@@ -117,14 +117,14 @@ public class GetAnIdentifierSmokeTests : IDisposable
     [Fact]
     public async Task HealthEndpoint_ShouldReturnOk()
     {
-        using var response = await _client.GetAsync("/api/health");
+        using var response = await _client.GetAsync("/health");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task GetAnIdentifier_WithoutBearerToken_ShouldReturnUnauthorized()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/get-an-identifier");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/get-an-identifier");
         request.Content = CreateSyntheticPayload();
 
         using var response = await _client.SendAsync(request);
@@ -136,7 +136,7 @@ public class GetAnIdentifierSmokeTests : IDisposable
     {
         var token = await GetBearerTokenAsync();
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/get-an-identifier");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/get-an-identifier");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         request.Content = CreateSyntheticPayload();
 
