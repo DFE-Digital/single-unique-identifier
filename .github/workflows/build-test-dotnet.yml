@@ -199,6 +199,8 @@ jobs:
           sha="${GITHUB_SHA::7}"
           full_sha="${GITHUB_SHA}"
           date=$(date +%Y%m%d)
+          sdk_version=$(dotnet --version)
+          locks_json=$(find "./${{ inputs.directory_name }}" -name "packages.lock.json" 2>/dev/null | jq -R -s -c 'split("\n")[:-1]')
           map='{}'
           for proj in $(echo "$PROJECTS_JSON" | jq -r '.[]'); do
             out="publish/$proj"
@@ -208,6 +210,17 @@ jobs:
             map=$(echo "$map" | jq --arg k "$proj" --arg v "$name" '. + {($k):$v}')
             zip_name="${name}.zip"
             (cd "$out" && zip -r "../../${zip_name}" .)
+            
+            tfm=$(grep -oPm1 '(?<=<TargetFramework>)[^<]+' "${{ inputs.directory_name }}/src/$proj/$proj.csproj" || echo "unknown")
+            cat <<EOF > "${name}.meta.json"
+            {
+              "component": "$app",
+              "dotnet_sdk": "$sdk_version",
+              "target_framework": "$tfm",
+              "runtime_identifier": null,
+              "nuget_lock_files": $locks_json
+            }
+          EOF
           done
           echo "map=$(echo "$map" | jq -c .)" >> "$GITHUB_OUTPUT"
 
@@ -222,7 +235,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-zips-${{ github.job }}
-          path: '*.zip'
+          path: |
+            *.zip
+            *.meta.json
 
       - name: Upload per-project artifacts (GitHub)
         if: inputs.upload_artifacts == true

@@ -207,6 +207,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_digest: ${{ steps.build-image.outputs.digest || steps.get-digest.outputs.digest }}
+      login_server: ${{ steps.registry.outputs.login_server }}
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
     permissions:
       contents: write
@@ -378,6 +379,10 @@ jobs:
           echo "  \"commit_sha\": \"${GITHUB_SHA}\"," >> $manifest
           echo "  \"workflow_run_id\": \"${GITHUB_RUN_ID}\"," >> $manifest
           echo "  \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"," >> $manifest
+          echo "  \"quality_checks\": {" >> $manifest
+          echo "    \"secret_scan\": \"${{ needs.trufflehog-scan.result }}\"," >> $manifest
+          echo "    \"iac_scan\": \"${{ needs.trivy-iac-scan.result }}\"" >> $manifest
+          echo "  }," >> $manifest
           echo "  \"assets\": [" >> $manifest
           first=true
 
@@ -386,6 +391,33 @@ jobs:
             digest=$(sha256sum "${zip}" | awk '{print $1}')
             size=$(stat -c%s "${zip}")
             name=$(basename "${zip}")
+            meta_file="${zip%.zip}.meta.json"
+            
+            if [ -f "$meta_file" ]; then
+              component=$(jq -r '.component' "$meta_file")
+              sdk=$(jq -r '.dotnet_sdk' "$meta_file")
+              tfm=$(jq -r '.target_framework' "$meta_file")
+              rid=$(jq -r '.runtime_identifier' "$meta_file")
+              locks=$(jq -c '.nuget_lock_files' "$meta_file")
+            else
+              component="Unknown"
+              sdk=""
+              tfm=""
+              rid="null"
+              locks="[]"
+            fi
+            
+            if [ "$component" == "AuthEmulator" ]; then
+              tests_result="${{ needs.build-auth-emulator.result }}"
+            elif [ "$component" == "GetAnIdentifier" ]; then
+              tests_result="${{ needs.build-get-an-id.result }}"
+            elif [ "$component" == "UIHarness" ]; then
+              tests_result="${{ needs.build-ui-harness.result }}"
+            elif [ "$component" == "NotificationService" ]; then
+              tests_result="${{ needs.build-notification-service.result }}"
+            else
+              tests_result="unknown"
+            fi
             
             if [ "$first" = true ]; then
               first=false
@@ -393,10 +425,24 @@ jobs:
               echo "  ," >> $manifest
             fi
             echo "    {" >> $manifest
+            echo "      \"component\": \"${component}\"," >> $manifest
             echo "      \"file\": \"${name}\"," >> $manifest
             echo "      \"sha256\": \"${digest}\"," >> $manifest
             echo "      \"size\": ${size}," >> $manifest
-            echo "      \"quality_gate\": \"passed\"" >> $manifest
+            echo "      \"quality_checks\": {" >> $manifest
+            echo "        \"tests\": \"${tests_result}\"," >> $manifest
+            echo "        \"sonar_quality_gate\": \"${tests_result}\"" >> $manifest
+            echo "      }," >> $manifest
+            echo "      \"build_inputs\": {" >> $manifest
+            echo "        \"dotnet_sdk\": \"${sdk}\"," >> $manifest
+            echo "        \"target_framework\": \"${tfm}\"," >> $manifest
+            if [ "$rid" == "null" ]; then
+              echo "        \"runtime_identifier\": null," >> $manifest
+            else
+              echo "        \"runtime_identifier\": \"${rid}\"," >> $manifest
+            fi
+            echo "        \"nuget_lock_files\": ${locks}" >> $manifest
+            echo "      }" >> $manifest
             echo "    }" >> $manifest
 
             # Flatten directory structure so we can upload them easily
@@ -409,8 +455,16 @@ jobs:
             if [ "$first" = false ]; then echo "  ," >> $manifest; fi
             echo "    {" >> $manifest
             echo "      \"component\": \"NotificationServiceContainer\"," >> $manifest
-            echo "      \"digest\": \"${digest}\"," >> $manifest
-            echo "      \"quality_gate\": \"passed\"" >> $manifest
+            echo "      \"image_repository\": \"${{ needs.build-and-publish-image.outputs.login_server }}/notification-service\"," >> $manifest
+            if [[ "$digest" == sha256:* ]]; then
+              echo "      \"digest\": \"${digest}\"," >> $manifest
+            else
+              echo "      \"digest\": \"sha256:${digest}\"," >> $manifest
+            fi
+            echo "      \"quality_checks\": {" >> $manifest
+            echo "        \"tests\": \"${{ needs.build-notification-service.result }}\"," >> $manifest
+            echo "        \"image_vulnerability_scan\": \"${{ needs.build-and-publish-image.result }}\"" >> $manifest
+            echo "      }" >> $manifest
             echo "    }" >> $manifest
           fi
 
