@@ -61,8 +61,10 @@ public class GetAnIdentifierSmokeTests : IDisposable
 
         // Prefer the dedicated test client, fallback to the first available if not found
         var clientKey =
-            clientIds.Keys.FirstOrDefault()
-            ?? throw new InvalidOperationException("Client IDs map is empty.");
+            clientIds.ContainsKey("CLIENT_ID_TEST") && clientSecrets.ContainsKey("CLIENT_ID_TEST")
+                ? "CLIENT_ID_TEST"
+                : clientIds.Keys.FirstOrDefault()
+                    ?? throw new InvalidOperationException("Client IDs map is empty.");
 
         var clientId = clientIds[clientKey];
         var clientSecret = clientSecrets[clientKey];
