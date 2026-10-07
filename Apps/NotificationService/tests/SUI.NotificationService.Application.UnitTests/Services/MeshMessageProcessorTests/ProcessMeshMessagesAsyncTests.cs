@@ -154,7 +154,7 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
     }
 
     [Fact]
-    public async Task ShouldAcknowledgeEveryLaterCopy_AndNotTheSurvivor_WhenMessagesShareAnNhsNumber()
+    public async Task ShouldAcknowledgeEveryLaterCopy_AndNotTheNonDuplicate_WhenMessagesShareAnNhsNumber()
     {
         AddValidMessages(
             ("message-1", "9000000009"),
@@ -194,7 +194,7 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
     [Theory]
     [InlineData(typeof(HttpRequestException))]
     [InlineData(typeof(TaskCanceledException))]
-    public async Task ShouldKeepAcknowledgingAndReturnSurvivors_WhenADuplicateAcknowledgementFails(
+    public async Task ShouldKeepAcknowledgingAndReturnNonDuplicates_WhenADuplicateAcknowledgementFails(
         Type exceptionType
     )
     {

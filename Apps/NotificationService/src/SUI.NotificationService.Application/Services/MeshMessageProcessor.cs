@@ -64,11 +64,11 @@ public class MeshMessageProcessor(
             }
         }
 
-        var (survivors, duplicates) = SeparateDuplicates(notifications);
+        var (nonDuplicates, duplicates) = SeparateDuplicates(notifications);
 
         await AcknowledgeDuplicatesAsync(duplicates, cancellationToken);
 
-        return survivors;
+        return nonDuplicates;
     }
 
     // HttpClient surfaces a non-success status as HttpRequestException and its own request timeout
@@ -100,42 +100,50 @@ public class MeshMessageProcessor(
 
     /// <summary>
     /// Splits notifications by NHS number into the first notification seen for each NHS number
-    /// (the survivors) and every later copy (the duplicates), each paired with the message ID of
-    /// the survivor it duplicates for logging purposes.
+    /// (the nonDuplicates) and every later copy (the duplicates), each paired with the message ID of
+    /// the remaining it duplicates for logging purposes.
     /// </summary>
     private static (
-        List<PdsRecordChangeNotification> Survivors,
-        List<(string DuplicateMessageId, string SurvivorMessageId)> Duplicates
+        List<PdsRecordChangeNotification> NonDuplicates,
+        List<(string DuplicateMessageId, string NonDuplicateMessageId)> Duplicates
     ) SeparateDuplicates(List<PdsRecordChangeNotification> notifications)
     {
-        var survivors = new List<PdsRecordChangeNotification>();
-        var duplicates = new List<(string DuplicateMessageId, string SurvivorMessageId)>();
+        var nonDuplicates = new List<PdsRecordChangeNotification>();
+        var duplicates = new List<(string DuplicateMessageId, string NonDuplicateMessageId)>();
 
-        var survivorMessageIdByNhsNumber = new Dictionary<string, string>();
+        var nonDuplicateMessageIdByNhsNumber = new Dictionary<string, string>();
 
         foreach (var notification in notifications)
         {
-            if (survivorMessageIdByNhsNumber.TryAdd(notification.NhsNumber, notification.MessageId))
+            if (
+                nonDuplicateMessageIdByNhsNumber.TryAdd(
+                    notification.NhsNumber,
+                    notification.MessageId
+                )
+            )
             {
-                survivors.Add(notification);
+                nonDuplicates.Add(notification);
             }
             else
             {
                 duplicates.Add(
-                    (notification.MessageId, survivorMessageIdByNhsNumber[notification.NhsNumber])
+                    (
+                        notification.MessageId,
+                        nonDuplicateMessageIdByNhsNumber[notification.NhsNumber]
+                    )
                 );
             }
         }
 
-        return (survivors, duplicates);
+        return (nonDuplicates, duplicates);
     }
 
     /// <summary>
     /// Acknowledges each duplicate so MESH removes it from the mailbox. This cannot lose a change,
-    /// because the survivor carrying the same NHS number stays in the mailbox until it is handled.
+    /// because the non-duplicate carrying the same NHS number stays in the mailbox until it is handled.
     /// </summary>
     private async Task AcknowledgeDuplicatesAsync(
-        List<(string DuplicateMessageId, string SurvivorMessageId)> duplicates,
+        List<(string DuplicateMessageId, string NonDuplicateMessageId)> duplicates,
         CancellationToken cancellationToken
     )
     {
@@ -147,7 +155,7 @@ public class MeshMessageProcessor(
         var acknowledgedCount = 0;
         var failedCount = 0;
 
-        foreach (var (duplicateMessageId, survivorMessageId) in duplicates)
+        foreach (var (duplicateMessageId, nonDuplicateMessageId) in duplicates)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -157,9 +165,9 @@ public class MeshMessageProcessor(
                 acknowledgedCount++;
 
                 logger.LogInformation(
-                    "MESH message {DuplicateMessageId} acknowledged as a duplicate of {SurvivorMessageId}",
+                    "MESH message {DuplicateMessageId} acknowledged as a duplicate of {NonDuplicateMessageId}",
                     duplicateMessageId,
-                    survivorMessageId
+                    nonDuplicateMessageId
                 );
             }
             catch (Exception exception)
