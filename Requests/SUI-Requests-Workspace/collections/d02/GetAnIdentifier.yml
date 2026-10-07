@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{base_url}}/api/v1/get-an-identifier"
+  url: "{{base_url}}/v1/get-an-identifier"
   body:
     type: json
     data: |-
