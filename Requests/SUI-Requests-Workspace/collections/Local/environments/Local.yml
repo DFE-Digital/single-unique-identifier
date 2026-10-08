@@ -2,7 +2,7 @@ name: Local
 variables:
   - secret: true
     name: base_url
-    description: Base url for Get an Identifier
+    description: Base url for Get an Identifier (ending in /api)
   - secret: true
     name: access_token_url
     description: Url for authentication
