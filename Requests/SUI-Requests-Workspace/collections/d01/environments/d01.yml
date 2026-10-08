@@ -1,0 +1,14 @@
+name: d01
+variables:
+  - secret: true
+    name: base_url
+    description: Base url for Get an Identifier
+  - secret: true
+    name: access_token_url
+    description: Url for authentication
+  - secret: true
+    name: client_id
+    description: Azure Client ID
+  - secret: true
+    name: client_secret
+    description: Azure Client secret
