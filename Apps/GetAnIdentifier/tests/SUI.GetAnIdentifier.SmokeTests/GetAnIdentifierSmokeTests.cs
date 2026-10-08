@@ -123,7 +123,14 @@ public class GetAnIdentifierSmokeTests : IDisposable
     [Fact]
     public async Task HealthEndpoint_ShouldReturnOk()
     {
-        using var response = await _client.GetAsync("health");
+        // Fetching the token here ensures d02/d03 pass the FaUAPI gateway.
+        // d01 will gracefully ignore the token since the underlying function endpoint is anonymous.
+        var token = await GetBearerTokenAsync();
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "health");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var response = await _client.SendAsync(request);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
