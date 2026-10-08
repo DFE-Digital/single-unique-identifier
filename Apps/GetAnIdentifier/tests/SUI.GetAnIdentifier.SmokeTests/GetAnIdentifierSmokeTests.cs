@@ -26,6 +26,12 @@ public class GetAnIdentifierSmokeTests : IDisposable
             Environment.GetEnvironmentVariable("SMOKE_TEST_BASE_URL")
             ?? throw new InvalidOperationException("SMOKE_TEST_BASE_URL is missing.");
 
+        // Ensure trailing slash so HttpClient doesn't truncate the base path
+        if (!baseUrl.EndsWith('/'))
+        {
+            baseUrl += "/";
+        }
+
         _client = new HttpClient { BaseAddress = new Uri(baseUrl) };
     }
 
@@ -117,14 +123,14 @@ public class GetAnIdentifierSmokeTests : IDisposable
     [Fact]
     public async Task HealthEndpoint_ShouldReturnOk()
     {
-        using var response = await _client.GetAsync("/health");
+        using var response = await _client.GetAsync("health");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
     public async Task GetAnIdentifier_WithoutBearerToken_ShouldReturnUnauthorized()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/get-an-identifier");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "v1/get-an-identifier");
         request.Content = CreateSyntheticPayload();
 
         using var response = await _client.SendAsync(request);
@@ -136,7 +142,7 @@ public class GetAnIdentifierSmokeTests : IDisposable
     {
         var token = await GetBearerTokenAsync();
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/get-an-identifier");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "v1/get-an-identifier");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         request.Content = CreateSyntheticPayload();
 
@@ -158,12 +164,14 @@ public class GetAnIdentifierSmokeTests : IDisposable
     {
         var json = """
             {
-              "PersonSpecification": {
-                "Given": "Octavia",
-                "Family": "Chislett",
-                "BirthDate": "2022-03-17",
-                "Gender": "female",
-                "AddressPostalCode": "KT19 0ST"
+              "personSpecification": {
+                "given": "Octavia",
+                "family": "Chislett",
+                "birthDate": "2008-09-20",
+                "gender": "female",
+                "phone": null,
+                "email": null,
+                "addressPostalCode": "KT19 0ST"
               }
             }
             """;
