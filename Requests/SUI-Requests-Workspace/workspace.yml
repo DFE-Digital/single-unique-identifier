@@ -1,0 +1,18 @@
+opencollection: 1.0.0
+info:
+  name: "SUI-Requests-Workspace"
+  type: workspace
+
+collections:
+  - name: "Local"
+    path: "collections/Local"
+  - name: "d01"
+    path: "collections/d01"
+  - name: "d02"
+    path: "collections/d02"
+  - name: "d03"
+    path: "collections/d03"
+
+specs:
+
+docs: ''

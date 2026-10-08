@@ -1,0 +1,44 @@
+info:
+  name: GetAnIdentifier
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{base_url}}/v1/get-an-identifier"
+  body:
+    type: json
+    data: |-
+      {
+        "personSpecification": {
+          "given": "Octavia",
+          "family": "Chislett",
+          "birthDate": "2008-09-20",
+          "gender": "female",
+          "phone": null,
+          "email": null,
+          "addressPostalCode": "KT19 0ST"
+        }
+      }
+  auth:
+    type: oauth2
+    flow: client_credentials
+    accessTokenUrl: "{{access_token_url}}"
+    credentials:
+      clientId: "{{client_id}}"
+      clientSecret: "{{client_secret}}"
+      placement: basic_auth_header
+    tokenConfig:
+      id: Authorization
+      placement:
+        header: Bearer
+      source: access_token
+    settings:
+      autoFetchToken: true
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
