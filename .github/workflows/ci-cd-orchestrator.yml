@@ -1,0 +1,583 @@
+name: "CI/CD Orchestrator"
+run-name: CI/CD Orchestrator - ${{ github.event_name == 'pull_request' && 'validate' || format('{0}', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment for deployment
+        required: true
+        default: d01
+        type: choice
+        options:
+          - d01
+          - d02
+          - d03
+      upload_artifacts:
+        description: Upload build artifacts
+        required: false
+        default: false
+        type: boolean
+      artifact_store:
+        description: Artifact storage backend (github or azure)
+        required: false
+        default: azure
+        type: string
+      skip_tests:
+        description: Skip tests and related setup
+        required: false
+        default: false
+        type: boolean
+      skip_scans:
+        description: Skip SonarCloud scans
+        required: false
+        default: false
+        type: boolean
+      force_deploy_all:
+        description: Force deploy all components regardless of changes
+        required: false
+        default: false
+        type: boolean
+      deploy:
+        description: Trigger deployment jobs
+        required: false
+        default: false
+        type: boolean
+      notification_service_image_tag:
+        description: Existing 40-char SHA image tag to deploy for Notification Service (optional)
+        required: false
+        type: string
+
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ci-cd-orchestrator-${{ github.event_name == 'workflow_dispatch' && inputs.environment || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  attestations: write
+  pull-requests: write
+  checks: write
+  packages: read
+  actions: write
+  id-token: write
+
+jobs:
+  path-filter:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      auth_emulator: ${{ steps.filter.outputs.auth_emulator }}
+      get_an_id: ${{ steps.filter.outputs.get_an_id }}
+      notification_service: ${{ steps.filter.outputs.notification_service }}
+      ui_harness: ${{ steps.filter.outputs.ui_harness }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Paths Filter
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            auth_emulator:
+              - 'Apps/AuthEmulator/**'
+              - 'Data/**'
+            get_an_id:
+              - 'Apps/GetAnIdentifier/**'
+              - 'Data/**'
+            notification_service:
+              - 'Apps/NotificationService/**'
+              - 'terraform/notification-service/**'
+              - 'terraform/core/**'
+              - 'terraform/environments/**'
+            ui_harness:
+              - 'Apps/UIHarness/**'
+              - 'Data/**'
+
+  build-auth-emulator:
+    name: AuthEmulator - Build Test Dotnet
+    needs: path-filter
+    if: needs.path-filter.outputs.auth_emulator == 'true' || github.event.inputs.force_deploy_all == 'true'
+    uses: ./.github/workflows/build-test-dotnet.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+      pull-requests: write
+      checks: write
+      packages: read
+      actions: write
+    with:
+      directory_name: Apps/AuthEmulator
+      project_names: '["SUI.AuthEmulator"]'
+      upload_artifacts: true
+      prepare_release_assets: true
+      artifact_store: 'github'
+      skip_tests: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests || false }}
+      skip_scans: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_scans || false }}
+      deploy_requested: false
+
+  build-get-an-id:
+    name: GetAnIdentifier - Build Test Dotnet
+    needs: path-filter
+    if: needs.path-filter.outputs.get_an_id == 'true' || github.event.inputs.force_deploy_all == 'true'
+    uses: ./.github/workflows/build-test-dotnet.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+      pull-requests: write
+      checks: write
+      packages: read
+      actions: write
+    with:
+      directory_name: Apps/GetAnIdentifier
+      project_names: '["SUI.GetAnIdentifier.API"]'
+      requires_azurite: true
+      upload_artifacts: true
+      prepare_release_assets: true
+      artifact_store: 'github'
+      skip_tests: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests || false }}
+      skip_scans: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_scans || false }}
+      deploy_requested: false
+
+  build-ui-harness:
+    name: UIHarness - Build Test Dotnet
+    needs: path-filter
+    if: needs.path-filter.outputs.ui_harness == 'true' || github.event.inputs.force_deploy_all == 'true'
+    uses: ./.github/workflows/build-test-dotnet.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+      pull-requests: write
+      checks: write
+      packages: read
+      actions: write
+    with:
+      directory_name: Apps/UIHarness
+      project_names: '["SUI.UIHarness.Web"]'
+      upload_artifacts: true
+      prepare_release_assets: true
+      artifact_store: 'github'
+      skip_tests: true
+      skip_scans: true
+      deploy_requested: false
+
+  build-notification-service:
+    name: Notification Service - Build Test Dotnet
+    needs: path-filter
+    if: needs.path-filter.outputs.notification_service == 'true' || github.event.inputs.force_deploy_all == 'true'
+    uses: ./.github/workflows/build-test-dotnet.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+      pull-requests: write
+      checks: write
+      packages: read
+      actions: write
+    with:
+      directory_name: Apps/NotificationService
+      project_names: '["SUI.NotificationService"]'
+      requires_azurite: true
+      deploy_requested: false
+      upload_artifacts: true
+      upload_release_assets: true
+      artifact_store: 'github'
+      skip_tests: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests || false }}
+      skip_scans: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_scans || false }}
+
+  build-and-publish-image:
+    name: Notification Service - container image
+    if: github.event_name != 'pull_request' && (needs.path-filter.outputs.notification_service == 'true' || github.event.inputs.force_deploy_all == 'true')
+    needs:
+      - path-filter
+      - build-notification-service
+    runs-on: ubuntu-latest
+    outputs:
+      image_digest: ${{ steps.build-image.outputs.digest || steps.get-digest.outputs.digest }}
+      login_server: ${{ steps.registry.outputs.login_server }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+    permissions:
+      contents: write
+      attestations: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Load environment naming
+        id: environment
+        uses: ./.github/actions/load-tfvars
+        with:
+          environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+
+      - name: Azure login with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Resolve Azure Container Registry
+        id: registry
+        env:
+          REGISTRY_NAME: ${{ format('{0}{1}acr{2}services01', steps.environment.outputs.subscription_prefix, steps.environment.outputs.environment_id, steps.environment.outputs.region_short) }}
+        run: |
+          login_server=$(az acr show --name "$REGISTRY_NAME" --query loginServer --output tsv)
+          echo "name=$REGISTRY_NAME" >> "$GITHUB_OUTPUT"
+          echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Authenticate to Azure Container Registry
+        run: az acr login --name "${{ steps.registry.outputs.name }}"
+
+      - name: Resolve image tag
+        id: image
+        env:
+          REQUESTED_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.notification_service_image_tag || '' }}
+        run: |
+          if [ -n "$REQUESTED_TAG" ]; then
+            echo "image_tag=$REQUESTED_TAG" >> "$GITHUB_OUTPUT"
+            echo "push_image=false" >> "$GITHUB_OUTPUT"
+          elif [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            echo "image_tag=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            echo "push_image=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            echo "push_image=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify rollback image exists and get digest
+        id: get-digest
+        if: steps.image.outputs.push_image != 'true'
+        run: |
+          digest=$(az acr repository show \
+            --name "${{ steps.registry.outputs.name }}" \
+            --image "notification-service:${{ steps.image.outputs.image_tag }}" \
+            --query digest --output tsv)
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish container image
+        id: build-image
+        if: steps.image.outputs.push_image == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Apps/NotificationService/Dockerfile
+          push: true
+          tags: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, steps.image.outputs.image_tag) }}
+
+      - name: Scan published image for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ format('{0}/notification-service@{1}', steps.registry.outputs.login_server, steps.build-image.outputs.digest || steps.get-digest.outputs.digest) }}
+          format: table
+          exit-code: 1
+          severity: HIGH,CRITICAL
+
+  validate-container:
+    name: Notification Service - validate container
+    if: github.event_name == 'pull_request' && needs.path-filter.outputs.notification_service == 'true'
+    needs: path-filter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build container image without publishing
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Apps/NotificationService/Dockerfile
+          load: true
+          push: false
+          tags: notification-service:${{ github.sha }}
+
+      - name: Scan local image for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: notification-service:${{ github.sha }}
+          format: table
+          exit-code: 1
+          severity: HIGH,CRITICAL
+
+  trufflehog-scan:
+    name: Trufflehog secret scan
+    uses: ./.github/workflows/trufflehog.yml
+
+  trivy-scan:
+    name: Trivy repository scan
+    uses: ./.github/workflows/trivy.yml
+    secrets: inherit
+    
+  trivy-iac-scan:
+    name: Trivy IaC scan
+    uses: ./.github/workflows/trivy-iac.yml
+  cut-release:
+    name: Cut Immutable Release
+    if: >-
+      ${{
+        !cancelled() &&
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        !contains(needs.*.result, 'failure') &&
+        !contains(needs.*.result, 'cancelled') &&
+        (
+          needs.build-auth-emulator.result == 'success' ||
+          needs.build-get-an-id.result == 'success' ||
+          needs.build-ui-harness.result == 'success' ||
+          needs.build-notification-service.result == 'success'
+        ) &&
+        (
+          needs.build-notification-service.result != 'success' ||
+          needs.build-and-publish-image.result == 'success'
+        )
+      }}
+    needs: 
+      - build-auth-emulator
+      - build-get-an-id
+      - build-ui-harness
+      - build-notification-service
+      - build-and-publish-image
+      - trufflehog-scan
+      - trivy-scan
+      - trivy-iac-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      attestations: write
+      id-token: write
+    steps:
+      - name: Download all release zips
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-zips-*
+          path: drop
+          merge-multiple: true
+
+      - name: Generate release manifest
+        id: manifest
+        run: |
+          manifest="release-manifest.json"
+          echo "{" > $manifest
+          echo "  \"release_id\": \"${GITHUB_RUN_ID}-${GITHUB_SHA}\"," >> $manifest
+          echo "  \"commit_sha\": \"${GITHUB_SHA}\"," >> $manifest
+          echo "  \"workflow_run_id\": \"${GITHUB_RUN_ID}\"," >> $manifest
+          echo "  \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"," >> $manifest
+          echo "  \"quality_checks\": {" >> $manifest
+          echo "    \"secret_scan\": \"${{ needs.trufflehog-scan.result }}\"," >> $manifest
+          echo "    \"iac_scan\": \"${{ needs.trivy-iac-scan.result }}\"" >> $manifest
+          echo "  }," >> $manifest
+          echo "  \"assets\": [" >> $manifest
+          first=true
+
+          # Find all zips in the dropped artifact folders
+          for zip in $(find drop -name "*.zip"); do
+            digest=$(sha256sum "${zip}" | awk '{print $1}')
+            size=$(stat -c%s "${zip}")
+            name=$(basename "${zip}")
+            meta_file="${zip%.zip}.meta.json"
+            
+            if [ -f "$meta_file" ]; then
+              component=$(jq -r '.component' "$meta_file")
+              sdk=$(jq -r '.dotnet_sdk' "$meta_file")
+              tfm=$(jq -r '.target_framework' "$meta_file")
+              rid=$(jq -r '.runtime_identifier' "$meta_file")
+              locks=$(jq -c '.nuget_lock_files' "$meta_file")
+            else
+              component="Unknown"
+              sdk=""
+              tfm=""
+              rid="null"
+              locks="[]"
+            fi
+            
+            if [ "$component" == "AuthEmulator" ]; then
+              tests_result="${{ needs.build-auth-emulator.result }}"
+            elif [ "$component" == "GetAnIdentifier" ]; then
+              tests_result="${{ needs.build-get-an-id.result }}"
+            elif [ "$component" == "UIHarness" ]; then
+              tests_result="${{ needs.build-ui-harness.result }}"
+            elif [ "$component" == "NotificationService" ]; then
+              tests_result="${{ needs.build-notification-service.result }}"
+            else
+              tests_result="unknown"
+            fi
+            
+            if [ "$first" = true ]; then
+              first=false
+            else
+              echo "  ," >> $manifest
+            fi
+            echo "    {" >> $manifest
+            echo "      \"component\": \"${component}\"," >> $manifest
+            echo "      \"file\": \"${name}\"," >> $manifest
+            echo "      \"sha256\": \"${digest}\"," >> $manifest
+            echo "      \"size\": ${size}," >> $manifest
+            echo "      \"quality_checks\": {" >> $manifest
+            echo "        \"tests\": \"${tests_result}\"," >> $manifest
+            echo "        \"sonar_quality_gate\": \"${tests_result}\"" >> $manifest
+            echo "      }," >> $manifest
+            echo "      \"build_inputs\": {" >> $manifest
+            echo "        \"dotnet_sdk\": \"${sdk}\"," >> $manifest
+            echo "        \"target_framework\": \"${tfm}\"," >> $manifest
+            if [ "$rid" == "null" ]; then
+              echo "        \"runtime_identifier\": null," >> $manifest
+            else
+              echo "        \"runtime_identifier\": \"${rid}\"," >> $manifest
+            fi
+            echo "        \"nuget_lock_files\": ${locks}" >> $manifest
+            echo "      }" >> $manifest
+            echo "    }" >> $manifest
+
+            # Flatten directory structure so we can upload them easily
+            mv "${zip}" "./${name}"
+          done
+
+          # Capture the Docker digest for notification service
+          digest="${{ needs.build-and-publish-image.outputs.image_digest }}"
+          if [ -n "$digest" ]; then
+            if [ "$first" = false ]; then echo "  ," >> $manifest; fi
+            echo "    {" >> $manifest
+            echo "      \"component\": \"NotificationServiceContainer\"," >> $manifest
+            echo "      \"image_repository\": \"${{ needs.build-and-publish-image.outputs.login_server }}/notification-service\"," >> $manifest
+            if [[ "$digest" == sha256:* ]]; then
+              echo "      \"digest\": \"${digest}\"," >> $manifest
+            else
+              echo "      \"digest\": \"sha256:${digest}\"," >> $manifest
+            fi
+            echo "      \"quality_checks\": {" >> $manifest
+            echo "        \"tests\": \"${{ needs.build-notification-service.result }}\"," >> $manifest
+            echo "        \"image_vulnerability_scan\": \"${{ needs.build-and-publish-image.result }}\"" >> $manifest
+            echo "      }" >> $manifest
+            echo "    }" >> $manifest
+          fi
+
+          echo "  ]" >> $manifest
+          echo "}" >> $manifest
+          cat $manifest
+
+      - name: Generate Artifact Attestations for ZIPs
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: '*.zip'
+
+      - name: Create Immutable GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="release-${GITHUB_RUN_ID}-${GITHUB_SHA::7}"
+          gh release create "$tag" *.zip release-manifest.json \
+            --title "Deployable Build ${GITHUB_SHA::7}" \
+            --notes "Automated build release from commit ${GITHUB_SHA}" \
+            --target "${GITHUB_SHA}"
+
+  deploy-auth-emulator:
+    name: AuthEmulator - Deploy Web App
+    if: |
+      needs.path-filter.outputs.auth_emulator == 'true' &&
+      ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    needs: 
+      - path-filter
+      - build-auth-emulator
+      - cut-release
+    uses: ./.github/workflows/deploy-dotnet-webapp.yml
+    secrets: inherit
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+      packages: read
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+      directory_name: Apps/AuthEmulator
+      artifact_name: ${{ fromJson(needs.build-auth-emulator.outputs.artifact_names)['SUI.AuthEmulator'] }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      component_descriptor: authemulator01
+      package_path: drop
+
+  deploy-get-an-id:
+    name: GetAnIdentifier - Deploy Function App
+    if: |
+      needs.path-filter.outputs.get_an_id == 'true' &&
+      ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    needs: 
+      - path-filter
+      - build-get-an-id
+      - cut-release
+    uses: ./.github/workflows/deploy-dotnet-functionapp.yml
+    secrets: inherit
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+      packages: read
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+      directory_name: Apps/GetAnIdentifier
+      artifact_name: ${{ fromJson(needs.build-get-an-id.outputs.artifact_names)['SUI.GetAnIdentifier.API'] }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      component_descriptor: getanid01
+      package_path: drop
+
+  deploy-ui-harness:
+    name: UIHarness - Deploy Web App
+    if: |
+      needs.path-filter.outputs.ui_harness == 'true' &&
+      ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    needs: 
+      - path-filter
+      - build-ui-harness
+      - cut-release
+    uses: ./.github/workflows/deploy-dotnet-webapp.yml
+    secrets: inherit
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+      directory_name: Apps/UIHarness
+      artifact_name: ${{ fromJson(needs.build-ui-harness.outputs.artifact_names)['SUI.UIHarness.Web'] }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      component_descriptor: uiharness01
+      package_path: drop
+
+  deploy-notification-service:
+    name: Notification Service - Terraform apply
+    if: |
+      needs.path-filter.outputs.notification_service == 'true' &&
+      ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    needs:
+      - path-filter
+      - build-and-publish-image
+      - cut-release
+    uses: ./.github/workflows/terraform-plan-and-apply.yml
+    secrets: inherit
+    permissions:
+      contents: write
+      id-token: write
+    with:
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+      apply: true
+      root: terraform/notification-service
+      state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
+      terraform_variables: >-
+        {"notification_service_image_digest":"${{ needs.build-and-publish-image.outputs.image_digest }}"}
+      terraform_output_names: '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'
