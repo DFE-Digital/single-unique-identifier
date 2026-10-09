@@ -10,7 +10,7 @@ Each execution retrieves the messages listed in the NHS MESH mailbox and parses 
 
 The supplier webhook register repository, Key Vault secret client and HMAC-SHA256 HTTP delivery component are implemented and registered, but the orchestrator does not invoke them. End-to-end lifecycle notification delivery and retry coordination remain to be implemented.
 
-The intended acknowledgement boundary is successful webhook delivery to suppliers. The current orchestrator does not acknowledge any MESH messages, so messages remain available for retrieval on subsequent executions.
+The intended acknowledgement boundary is successful webhook delivery to suppliers. When several messages in an execution carry the same NHS number, the duplicates are acknowledged during processing and one non-duplicate message is kept; see [duplicate message handling](../../Docs/Design/NotificationService/DuplicateHandling.md). The non-duplicate message remains unacknowledged pending successful webhook delivery, so it remains available for retrieval on subsequent executions.
 
 MESH is the [accepted Alpha transport](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md). Subscription creation belongs to Get an Identifier and is not yet implemented.
 

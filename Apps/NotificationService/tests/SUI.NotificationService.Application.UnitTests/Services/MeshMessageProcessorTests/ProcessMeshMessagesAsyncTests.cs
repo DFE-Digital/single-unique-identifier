@@ -1,4 +1,5 @@
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using SUI.NotificationService.Application.Models;
 
 namespace SUI.NotificationService.Application.UnitTests.Services.MeshMessageProcessorTests;
@@ -129,5 +130,124 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             CreateProcessor().ProcessMeshMessagesAsync(cancellation.Token)
         );
+    }
+
+    [Fact]
+    public async Task ShouldRemoveDuplicates_FromReturnedList_WhenDuplicatesExist()
+    {
+        AddValidMessages(
+            ("message-1", "9000000009"),
+            ("message-2", "9000000017"),
+            ("message-3", "9000000009"),
+            ("message-4", "9000000017")
+        );
+
+        var notifications = await ProcessAsync();
+
+        Assert.Equal(
+            [
+                new PdsRecordChangeNotification("message-1", "9000000009"),
+                new PdsRecordChangeNotification("message-2", "9000000017"),
+            ],
+            notifications
+        );
+    }
+
+    [Fact]
+    public async Task ShouldAcknowledgeEveryLaterCopy_AndNotTheNonDuplicate_WhenMessagesShareAnNhsNumber()
+    {
+        AddValidMessages(
+            ("message-1", "9000000009"),
+            ("message-2", "9000000009"),
+            ("message-3", "9000000009"),
+            ("message-4", "9000000017")
+        );
+
+        await ProcessAsync();
+
+        await MeshInboxClient
+            .Received(1)
+            .AcknowledgeMessageAsync("message-2", Arg.Any<CancellationToken>());
+        await MeshInboxClient
+            .Received(1)
+            .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
+        await MeshInboxClient
+            .DidNotReceive()
+            .AcknowledgeMessageAsync("message-1", Arg.Any<CancellationToken>());
+        await MeshInboxClient
+            .DidNotReceive()
+            .AcknowledgeMessageAsync("message-4", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ShouldNotAcknowledgeAnything_WhenNoNhsNumberIsRepeated()
+    {
+        AddValidMessages(("message-1", "9000000009"), ("message-2", "9000000017"));
+        AddUnparseableMessage("message-unparseable");
+        AddValidMessage("message-no-nhs-number");
+
+        await ProcessAsync();
+
+        await MeshInboxClient.DidNotReceiveWithAnyArgs().AcknowledgeMessageAsync(default!, default);
+    }
+
+    [Theory]
+    [InlineData(typeof(HttpRequestException))]
+    [InlineData(typeof(TaskCanceledException))]
+    public async Task ShouldKeepAcknowledgingAndReturnNonDuplicates_WhenADuplicateAcknowledgementFails(
+        Type exceptionType
+    )
+    {
+        AddValidMessages(
+            ("message-1", "9000000009"),
+            ("message-2", "9000000009"),
+            ("message-3", "9000000009")
+        );
+        MeshInboxClient
+            .AcknowledgeMessageAsync("message-2", Arg.Any<CancellationToken>())
+            .ThrowsAsync((Exception)Activator.CreateInstance(exceptionType)!);
+
+        var notifications = await ProcessAsync();
+
+        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+        await MeshInboxClient
+            .Received(1)
+            .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ShouldPropagate_WhenADuplicateAcknowledgementFailsUnexpectedly()
+    {
+        AddValidMessages(("message-1", "9000000009"), ("message-2", "9000000009"));
+        MeshInboxClient
+            .AcknowledgeMessageAsync("message-2", Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => ProcessAsync());
+    }
+
+    [Fact]
+    public async Task ShouldStopAcknowledging_WhenCancelledDuringAcknowledgement()
+    {
+        AddValidMessages(
+            ("message-1", "9000000009"),
+            ("message-2", "9000000009"),
+            ("message-3", "9000000009")
+        );
+        using var cancellation = new CancellationTokenSource();
+        MeshInboxClient
+            .AcknowledgeMessageAsync("message-2", Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                cancellation.Cancel();
+                throw new OperationCanceledException(cancellation.Token);
+            });
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            CreateProcessor().ProcessMeshMessagesAsync(cancellation.Token)
+        );
+        await MeshInboxClient
+            .DidNotReceive()
+            .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
     }
 }
