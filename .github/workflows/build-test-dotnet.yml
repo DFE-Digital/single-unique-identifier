@@ -164,7 +164,7 @@ jobs:
 
       - name: Run tests
         if: inputs.skip_tests != true
-        run: dotnet test ./${{ inputs.directory_name }} --no-build --verbosity normal --settings ${{ inputs.directory_name }}/tests.runsettings --filter "Category!=E2E"
+        run: dotnet test ./${{ inputs.directory_name }} --no-build --verbosity normal --settings ${{ inputs.directory_name }}/tests.runsettings --filter "Category!=Smoke"
 
       - name: Generate coverage report
         if: inputs.skip_tests != true
