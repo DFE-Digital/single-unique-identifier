@@ -18,6 +18,12 @@ on:
         required: true
         default: false
         type: boolean
+  pull_request: 
+    branches:
+      - main
+    paths:
+      - "terraform/auth-emulator/**"
+      - ".github/workflows/terraform-authemulator.yml"
 
 permissions:
   id-token: write
@@ -30,6 +36,6 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
-      apply: ${{ inputs.apply }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == 'true' }}
       root: terraform/auth-emulator
       state_key: ${{ format('{0}/authemulator.tfstate', inputs.environment) }}

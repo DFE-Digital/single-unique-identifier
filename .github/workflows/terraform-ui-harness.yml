@@ -18,6 +18,12 @@ on:
         required: true
         default: false
         type: boolean
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "terraform/ui_test_harness/**"
+      - ".github/workflows/terraform-ui-harness.yml"      
 
 permissions:
   id-token: write
@@ -30,6 +36,6 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
-      apply: ${{ inputs.apply }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == 'true' }}
       root: terraform/ui_test_harness
       state_key: ${{ format('{0}/ui_test_harness.tfstate', inputs.environment) }}

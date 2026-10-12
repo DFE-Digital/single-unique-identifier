@@ -18,6 +18,12 @@ on:
         required: true
         default: false
         type: boolean
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "terraform/service-example/**"
+      - ".github/workflows/terraform-service-example.yml"
 
 permissions:
   id-token: write
@@ -32,6 +38,6 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
-      apply: ${{ inputs.apply }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == 'true' }}
       root: terraform/service-example
       state_key: ${{ format('{0}/service-example.tfstate', inputs.environment) }}
