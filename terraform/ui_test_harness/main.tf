@@ -21,7 +21,7 @@ module "app" {
   app_service_plan_os_type      = var.app_service_plan_os_type
   app_service_plan_worker_count = var.app_service_plan_worker_count
   ui_test_harness_password      = var.ui_test_harness_password
-  AuthSettings_AccessTokenUrl   = var.AuthSettings_AccessTokenUrl
+  auth_settings_access_token_url   = var.auth_settings_access_token_url
   AuthClientIdsJsonMap          = var.AuthClientIdsJsonMap
   AuthClientSecretsJsonMap      = var.AuthClientSecretsJsonMap
 }
