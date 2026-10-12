@@ -1,0 +1,58 @@
+name: Post coverage PR comment
+description: Create or update this component's PR coverage comment
+
+inputs:
+  directory_name:
+    description: Component directory, used to find and identify its coverage summary
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Create or update coverage comment
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+      env:
+        COVERAGE_SUMMARY_PATH: ${{ github.workspace }}/${{ inputs.directory_name }}/CoverageReport/SummaryGithub.md
+        COVERAGE_COMMENT_KEY: ${{ inputs.directory_name }}
+      with:
+        script: |
+          const fs = require('fs');
+
+          const summary = fs.readFileSync(
+            process.env.COVERAGE_SUMMARY_PATH,
+            'utf8'
+          ).trimEnd();
+          const marker = `<!-- sui-coverage:${process.env.COVERAGE_COMMENT_KEY} -->`;
+          const body = `${summary}\n${marker}`;
+          const { owner, repo } = context.repo;
+          const issue_number = context.payload.pull_request.number;
+
+          const comments = await github.paginate(
+            github.rest.issues.listComments,
+            { owner, repo, issue_number, per_page: 100 }
+          );
+
+          const existing = comments.find(comment =>
+            comment.user?.login === 'github-actions[bot]' &&
+            comment.body?.includes(marker)
+          );
+
+          if (existing?.body === body) {
+            return;
+          }
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner,
+              repo,
+              comment_id: existing.id,
+              body
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number,
+              body
+            });
+          }
