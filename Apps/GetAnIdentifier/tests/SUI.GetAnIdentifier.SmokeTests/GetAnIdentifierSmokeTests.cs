@@ -26,7 +26,7 @@ public class GetAnIdentifierSmokeTests : IDisposable
             Environment.GetEnvironmentVariable("SMOKE_TEST_BASE_URL")
             ?? throw new InvalidOperationException("SMOKE_TEST_BASE_URL is missing.");
 
-        // Ensure trailing slash so HttpClient doesn't truncate the base path
+        // Ensure trailing slash so HttpClient does NOT truncate the base path
         if (!baseUrl.EndsWith('/'))
         {
             baseUrl += "/";
