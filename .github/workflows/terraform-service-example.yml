@@ -37,7 +37,7 @@ jobs:
     uses: ./.github/workflows/terraform-plan-and-apply.yml
     secrets: inherit
     with:
-      environment: ${{ inputs.environment }}
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
       apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == 'true' }}
       root: terraform/service-example
       state_key: ${{ format('{0}/service-example.tfstate', inputs.environment) }}
