@@ -173,17 +173,7 @@ module "function_app" {
       NhsAuthConfig__NHS_DIGITAL_CLIENT_ID   = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/${azurerm_key_vault_secret.nhs_digital_client_id.name}/)"
     },
 
-    var.getanidentifier_app_settings,
-
-    # AuthClientCredentials:
-    {
-      # Provided for debugging and ease of updating, because these value can be retrieved from the app settings in the Azure Portal:
-      AuthClientIdsJsonMap = sensitive(var.auth_client_ids_json_map),
-    },
-    {
-      for clientId, newClientId in jsondecode(nonsensitive(coalesce(var.auth_client_ids_json_map, "{}"))) :
-      "AuthClientCredentials__${clientId}__NewClientId" => sensitive(newClientId)
-    }
+    var.getanidentifier_app_settings
   )
 
   application_insights_connection_string = data.terraform_remote_state.core.outputs.app_insights_connection_string

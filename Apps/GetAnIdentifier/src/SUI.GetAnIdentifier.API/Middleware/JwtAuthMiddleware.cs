@@ -123,10 +123,7 @@ public class JwtAuthMiddleware(
             return;
         }
 
-        var authResult = authContextFactory.FromJwt(
-            jwt,
-            authSettings.Value.UseAuthStoreForAuthorisation
-        );
+        var authResult = authContextFactory.FromJwt(jwt);
 
         if (!authResult.IsSuccess)
         {
