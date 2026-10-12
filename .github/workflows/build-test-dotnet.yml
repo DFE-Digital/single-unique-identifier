@@ -217,8 +217,7 @@ jobs:
           sas_token: ${{ secrets.AZURE_ARTIFACTS_SAS }}
 
       - name: Add Coverage PR Comment
-        uses: ./.github/actions/post-coverage-comment
-        if: github.event_name == 'pull_request' && inputs.skip_tests != true
-        with:
-          recreate: true
-          path: ${{ inputs.directory_name }}/CoverageReport/SummaryGithub.md
+          if: github.event_name == 'pull_request' && inputs.skip_tests != true
+          uses: ./.github/actions/post-coverage-comment
+          with:
+            directory_name: ${{ inputs.directory_name }}
