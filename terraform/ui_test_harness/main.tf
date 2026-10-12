@@ -5,25 +5,25 @@ module "app" {
   count = var.use_ui_test_harness ? 1 : 0
 
   # Passing all variables down
-  subscription_prefix           = var.subscription_prefix
-  environment_id                = var.environment_id
-  environment_tag               = var.environment_tag
-  region_short                  = var.region_short
-  descriptor                    = var.descriptor
-  location                      = var.location
-  product                       = var.product
-  service_offering              = var.service_offering
-  tags                          = var.tags
-  key_vault_use_rbac            = var.key_vault_use_rbac
-  ui_harness_app_settings       = var.ui_harness_app_settings
-  webapp_dotnet_version         = var.webapp_dotnet_version
-  app_service_plan_sku          = var.app_service_plan_sku
-  app_service_plan_os_type      = var.app_service_plan_os_type
-  app_service_plan_worker_count = var.app_service_plan_worker_count
-  ui_test_harness_password      = var.ui_test_harness_password
-  auth_settings_access_token_url   = var.auth_settings_access_token_url
-  AuthClientIdsJsonMap          = var.AuthClientIdsJsonMap
-  AuthClientSecretsJsonMap      = var.AuthClientSecretsJsonMap
+  subscription_prefix            = var.subscription_prefix
+  environment_id                 = var.environment_id
+  environment_tag                = var.environment_tag
+  region_short                   = var.region_short
+  descriptor                     = var.descriptor
+  location                       = var.location
+  product                        = var.product
+  service_offering               = var.service_offering
+  tags                           = var.tags
+  key_vault_use_rbac             = var.key_vault_use_rbac
+  ui_harness_app_settings        = var.ui_harness_app_settings
+  webapp_dotnet_version          = var.webapp_dotnet_version
+  app_service_plan_sku           = var.app_service_plan_sku
+  app_service_plan_os_type       = var.app_service_plan_os_type
+  app_service_plan_worker_count  = var.app_service_plan_worker_count
+  ui_test_harness_password       = var.ui_test_harness_password
+  auth_settings_access_token_url = var.auth_settings_access_token_url
+  AuthClientIdsJsonMap           = var.AuthClientIdsJsonMap
+  AuthClientSecretsJsonMap       = var.AuthClientSecretsJsonMap
 }
 
 # Moving top-level resources down into the conditional 'app' sub-module to prevent destroy/recreate during refactoring.
