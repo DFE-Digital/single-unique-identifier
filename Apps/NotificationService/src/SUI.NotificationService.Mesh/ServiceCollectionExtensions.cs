@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
+using Polly;
 using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Mesh.Configuration;
 using SUI.NotificationService.Mesh.Handlers;
@@ -35,52 +36,77 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<NhsMeshAuthHandler>();
 
-        services
-            .AddHttpClient<IMeshInboxClient, MeshInboxClient>(
-                MeshInboxClient.HttpClientName,
-                static (serviceProvider, client) =>
-                {
-                    var config = serviceProvider
-                        .GetRequiredService<IOptions<NhsMeshConfig>>()
-                        .Value;
-                    client.BaseAddress = new Uri(config.MailboxBaseUrl);
-                }
-            )
-            .AddHttpMessageHandler<NhsMeshAuthHandler>()
-            // Local sandbox only: no client certificate is presented, so connections to a real MESH
-            // environment (INT/LIVE), which requires mutual TLS with an NHS-issued certificate, will
-            // fail the TLS handshake. Client certificate support is deferred until a deployed
-            // environment exists - see the README's NHS MESH section.
-            .ConfigurePrimaryHttpMessageHandler(
-                static (handler, serviceProvider) =>
-                {
-                    var config = serviceProvider
-                        .GetRequiredService<IOptions<NhsMeshConfig>>()
-                        .Value;
+        var meshHttpClient = services.AddHttpClient<IMeshInboxClient, MeshInboxClient>(
+            MeshInboxClient.HttpClientName,
+            static (serviceProvider, client) =>
+            {
+                var config = serviceProvider.GetRequiredService<IOptions<NhsMeshConfig>>().Value;
+                client.BaseAddress = new Uri(config.MailboxBaseUrl);
+            }
+        );
 
-                    if (config.AcceptLocalDevCert)
+        // Must be registered before the auth handler: handlers run in registration order, so the
+        // retry then wraps it and every attempt gets a freshly built Authorization header (the
+        // MESH header carries a nonce and timestamp and must not be replayed).
+        meshHttpClient.AddResilienceHandler("mesh-transient-retry", ConfigureTransientRetry);
+        meshHttpClient.AddHttpMessageHandler<NhsMeshAuthHandler>();
+
+        meshHttpClient
+        // Local sandbox only: no client certificate is presented, so connections to a real MESH
+        // environment (INT/LIVE), which requires mutual TLS with an NHS-issued certificate, will
+        // fail the TLS handshake. Client certificate support is deferred until a deployed
+        // environment exists - see the README's NHS MESH section.
+        .ConfigurePrimaryHttpMessageHandler(
+            static (handler, serviceProvider) =>
+            {
+                var config = serviceProvider.GetRequiredService<IOptions<NhsMeshConfig>>().Value;
+
+                if (config.AcceptLocalDevCert)
+                {
+                    if (handler is not SocketsHttpHandler socketsHandler)
                     {
-                        if (handler is not SocketsHttpHandler socketsHandler)
-                        {
-                            throw new InvalidOperationException(
-                                $"Expected {nameof(SocketsHttpHandler)} as the MESH primary handler but got {handler.GetType().Name}."
-                            );
-                        }
-
-                        // The local MESH sandbox (see compose.yaml) presents a self-signed certificate.
-                        // Options validation restricts this to a loopback MailboxBaseUrl, so real MESH
-                        // traffic always has its server certificate verified.
-                        socketsHandler.SslOptions.RemoteCertificateValidationCallback = static (
-                            _,
-                            _,
-                            _,
-                            _
-                        ) => true;
+                        throw new InvalidOperationException(
+                            $"Expected {nameof(SocketsHttpHandler)} as the MESH primary handler but got {handler.GetType().Name}."
+                        );
                     }
+
+                    // The local MESH sandbox (see compose.yaml) presents a self-signed certificate.
+                    // Options validation restricts this to a loopback MailboxBaseUrl, so real MESH
+                    // traffic always has its server certificate verified.
+                    socketsHandler.SslOptions.RemoteCertificateValidationCallback = static (
+                        _,
+                        _,
+                        _,
+                        _
+                    ) => true;
                 }
-            );
+            }
+        );
 
         return services;
+    }
+
+    // Retries only transient failures (connection errors, timeouts, 408, 429 and 5xx), honouring
+    // Retry-After. Client errors such as 401/403/404 are not retried. No circuit breaker: the app is a
+    // run-to-completion job. Exhausted retries surface as the usual HttpRequestException, which
+    // MeshMessageProcessor handles by leaving the message in the mailbox.
+    private static void ConfigureTransientRetry(
+        ResiliencePipelineBuilder<HttpResponseMessage> builder
+    )
+    {
+        builder
+            .AddTimeout(TimeSpan.FromSeconds(30))
+            .AddRetry(
+                new HttpRetryStrategyOptions
+                {
+                    MaxRetryAttempts = 3,
+                    Delay = TimeSpan.FromSeconds(1),
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true,
+                    ShouldRetryAfterHeader = true,
+                }
+            )
+            .AddTimeout(TimeSpan.FromSeconds(12));
     }
 
     private static bool IsHttps(string mailboxBaseUrl) =>

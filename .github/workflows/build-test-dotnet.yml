@@ -176,7 +176,7 @@ jobs:
 
       - name: Run tests
         if: inputs.skip_tests != true
-        run: dotnet test ./${{ inputs.directory_name }} -c Release --no-build --verbosity normal --settings ${{ inputs.directory_name }}/tests.runsettings --filter "Category!=E2E"
+        run: dotnet test ./${{ inputs.directory_name }} -c Release --no-build --verbosity normal --settings ${{ inputs.directory_name }}/tests.runsettings --filter "Category!=Smoke"
 
       - name: Generate coverage report
         if: inputs.skip_tests != true
@@ -248,8 +248,7 @@ jobs:
           artifact_root: ${{ github.workspace }}/publish
 
       - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v3
         if: github.event_name == 'pull_request' && inputs.skip_tests != true
+        uses: ./.github/actions/post-coverage-comment
         with:
-          recreate: true
-          path: ${{ inputs.directory_name }}/CoverageReport/SummaryGithub.md
+          directory_name: ${{ inputs.directory_name }}
