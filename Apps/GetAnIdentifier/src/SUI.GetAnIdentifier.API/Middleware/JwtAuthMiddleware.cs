@@ -139,19 +139,19 @@ public class JwtAuthMiddleware(
             return;
         }
 
-        var requiredScopes = GetRequiredScopes(context);
+        // var requiredScopes = GetRequiredScopes(context);
 
-        if (!HasAnyRequiredScope(authResult.Context, requiredScopes))
-        {
-            context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
-                req,
-                HttpStatusCode.Forbidden,
-                nameof(HttpStatusCode.Forbidden),
-                "Insufficient scope for this operation.",
-                cancellationToken: context.CancellationToken
-            );
-            return;
-        }
+        // if (!HasAnyRequiredScope(authResult.Context, requiredScopes))
+        // {
+        //     context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
+        //         req,
+        //         HttpStatusCode.Forbidden,
+        //         nameof(HttpStatusCode.Forbidden),
+        //         "Insufficient scope for this operation.",
+        //         cancellationToken: context.CancellationToken
+        //     );
+        //     return;
+        // }
 
         context.Items[ApplicationConstants.Auth.AuthContextKey] = authResult.Context;
 
@@ -257,13 +257,13 @@ public class JwtAuthMiddleware(
         return attr?.Scopes.ToArray() ?? [];
     }
 
-    private static bool HasAnyRequiredScope(
-        AuthContext caller,
-        IReadOnlyList<string> requiredScopes
-    )
-    {
-        return requiredScopes.Any(rs =>
-            caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
-        );
-    }
+    // private static bool HasAnyRequiredScope(
+    //     AuthContext caller,
+    //     IReadOnlyList<string> requiredScopes
+    // )
+    // {
+    //     return requiredScopes.Any(rs =>
+    //         caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
+    //     );
+    // }
 }

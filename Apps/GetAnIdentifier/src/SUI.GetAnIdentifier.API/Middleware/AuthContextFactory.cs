@@ -21,9 +21,9 @@ public class AuthContextFactory : IAuthContextFactory
                 "Token did not contain client_id, azp, or sub."
             );
 
-        var scopes = GetScopesFromToken(jwt);
+        // var scopes = GetScopesFromToken(jwt);
 
-        var context = new AuthContext(clientId, scopes);
+        var context = new AuthContext(clientId);
         return AuthResult.Success(context);
 
         static string Get(JwtSecurityToken t, string type) =>

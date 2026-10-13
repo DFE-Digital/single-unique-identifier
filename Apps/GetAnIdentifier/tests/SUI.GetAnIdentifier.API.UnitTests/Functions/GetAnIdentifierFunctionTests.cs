@@ -32,7 +32,7 @@ public class GetAnIdentifierFunctionTests
         context.Items.Returns(
             new Dictionary<object, object>
             {
-                { "AuthContext", new AuthContext(Guid.NewGuid().ToString(), []) },
+                { "AuthContext", new AuthContext(Guid.NewGuid().ToString()) },
             }
         );
         context.InvocationId.Returns(Guid.NewGuid().ToString());
