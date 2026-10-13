@@ -139,20 +139,6 @@ public class JwtAuthMiddleware(
             return;
         }
 
-        // var requiredScopes = GetRequiredScopes(context);
-
-        // if (!HasAnyRequiredScope(authResult.Context, requiredScopes))
-        // {
-        //     context.GetInvocationResult().Value = await HttpResponseUtility.ProblemResponse(
-        //         req,
-        //         HttpStatusCode.Forbidden,
-        //         nameof(HttpStatusCode.Forbidden),
-        //         "Insufficient scope for this operation.",
-        //         cancellationToken: context.CancellationToken
-        //     );
-        //     return;
-        // }
-
         context.Items[ApplicationConstants.Auth.AuthContextKey] = authResult.Context;
 
         var auditEvent = new AuditEvent
@@ -217,53 +203,4 @@ public class JwtAuthMiddleware(
             throw;
         }
     }
-
-    private static string[] GetRequiredScopes(FunctionContext context)
-    {
-        var entryPoint = context.FunctionDefinition.EntryPoint;
-        if (string.IsNullOrWhiteSpace(entryPoint))
-        {
-            return [];
-        }
-
-        var lastDot = entryPoint.LastIndexOf('.');
-        if (lastDot < 0 || lastDot == entryPoint.Length - 1)
-        {
-            return [];
-        }
-
-        var typeName = entryPoint[..lastDot];
-        var methodName = entryPoint[(lastDot + 1)..];
-
-        var type = Type.GetType(typeName);
-        if (type is null)
-        {
-            return [];
-        }
-
-        // It is safe to bypass accessibility here because we are only reading attributes for authorization, not invoking the method.
-#pragma warning disable S3011
-        var method = type.GetMethod(
-            methodName,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-        );
-#pragma warning restore S3011
-        if (method is null)
-        {
-            return [];
-        }
-
-        var attr = method.GetCustomAttribute<RequiredScopesAttribute>();
-        return attr?.Scopes.ToArray() ?? [];
-    }
-
-    // private static bool HasAnyRequiredScope(
-    //     AuthContext caller,
-    //     IReadOnlyList<string> requiredScopes
-    // )
-    // {
-    //     return requiredScopes.Any(rs =>
-    //         caller.Scopes.Contains(rs, StringComparer.OrdinalIgnoreCase)
-    //     );
-    // }
 }

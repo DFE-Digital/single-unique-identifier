@@ -10,7 +10,6 @@ namespace SUI.GetAnIdentifier.API.UnitTests.Middleware;
 public class AuthContextFactoryTests
 {
     private const string ClientId = "CLIENT_ID_EDUCATION_01";
-    private const string OrganisationId = "EDUCATION-01";
     private readonly AuthContextFactory _sut;
 
     public AuthContextFactoryTests()
@@ -57,13 +56,6 @@ public class AuthContextFactoryTests
         var claims = new List<Claim> { new("azp", "AZP-CLIENT-01"), new("sub", "SUB-CLIENT-01") };
         var jwt = new JwtSecurityToken(claims: claims);
 
-        var validClient = new AuthClient
-        {
-            Enabled = true,
-            OrganisationId = "ORG-01",
-            AllowedScopes = ["test.scope.azp"],
-        };
-
         // Act
         var result = _sut.FromJwt(jwt);
 
@@ -83,13 +75,6 @@ public class AuthContextFactoryTests
             new("sub", "SUB-CLIENT-01"),
         };
         var jwt = new JwtSecurityToken(claims: claims);
-
-        var validClient = new AuthClient
-        {
-            Enabled = true,
-            OrganisationId = "ORG-01",
-            AllowedScopes = ["test.scope.main"],
-        };
 
         // Act
         var result = _sut.FromJwt(jwt);
@@ -118,8 +103,6 @@ public class AuthContextFactoryTests
     public void TestFromJwt_WithValidInputs_UsingTokenScopes_ReturnsAuthContext()
     {
         // Arrange
-        List<string> scopesList = ["file.read", "file.write"];
-
         var claims = new List<Claim>
         {
             new("client_id", ClientId),
@@ -133,6 +116,5 @@ public class AuthContextFactoryTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(ClientId, result.Context!.ClientId);
-        // Assert.Equal(scopesList, result.Context.Scopes);
     }
 }

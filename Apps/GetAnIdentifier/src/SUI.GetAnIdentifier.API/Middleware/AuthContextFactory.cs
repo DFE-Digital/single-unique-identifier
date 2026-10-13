@@ -21,26 +21,10 @@ public class AuthContextFactory : IAuthContextFactory
                 "Token did not contain client_id, azp, or sub."
             );
 
-        // var scopes = GetScopesFromToken(jwt);
-
         var context = new AuthContext(clientId);
         return AuthResult.Success(context);
 
         static string Get(JwtSecurityToken t, string type) =>
             t.Claims.FirstOrDefault(c => c.Type == type)?.Value ?? string.Empty;
-    }
-
-    private static List<string> GetScopesFromToken(JwtSecurityToken jwt)
-    {
-        return jwt
-            .Claims.Where(c => c.Type is "scp" or "scope" or "roles" or "role")
-            .SelectMany(c =>
-                c.Value.Split(
-                    ' ',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-            )
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
     }
 }
