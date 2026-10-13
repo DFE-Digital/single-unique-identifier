@@ -26,13 +26,13 @@ public class GetAnIdentifierFunctionTests
 
     private GetAnIdentifierFunction CreateFunction() => new(_logger, _getAnIdentifierService);
 
-    private static FunctionContext CreateContextWithAuth(string organisationId = "test-org-id")
+    private static FunctionContext CreateContextWithAuth()
     {
         var context = Substitute.For<FunctionContext>();
         context.Items.Returns(
             new Dictionary<object, object>
             {
-                { "AuthContext", new AuthContext(Guid.NewGuid().ToString(), organisationId, []) },
+                { "AuthContext", new AuthContext(Guid.NewGuid().ToString()) },
             }
         );
         context.InvocationId.Returns(Guid.NewGuid().ToString());

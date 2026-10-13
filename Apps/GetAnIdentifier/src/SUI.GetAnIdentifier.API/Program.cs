@@ -71,9 +71,6 @@ builder.Services.AddSingleton<IAuthContextFactory, AuthContextFactory>();
 // Application services
 builder.Services.AddSingleton<IGetAnIdentifierService, GetAnIdentifierService>();
 
-// Mock services for all environments for now while in prototype
-builder.Services.AddSingleton<IAuthStoreService, MockAuthStoreService>();
-
 // Middleware pipeline
 builder.UseMiddleware<AuditMiddleware>();
 builder.UseMiddleware<JwtAuthMiddleware>();

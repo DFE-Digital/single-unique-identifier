@@ -3,9 +3,9 @@ using SUI.GetAnIdentifier.API.Models;
 
 namespace SUI.GetAnIdentifier.API.Middleware;
 
-public class AuthContextFactory(IAuthStoreService storeService) : IAuthContextFactory
+public class AuthContextFactory : IAuthContextFactory
 {
-    public AuthResult FromJwt(JwtSecurityToken jwt, bool useAuthStoreForAuthorisation)
+    public AuthResult FromJwt(JwtSecurityToken jwt)
     {
         var clientId = Get(jwt, "client_id");
 
@@ -21,47 +21,10 @@ public class AuthContextFactory(IAuthStoreService storeService) : IAuthContextFa
                 "Token did not contain client_id, azp, or sub."
             );
 
-        var client = storeService.GetClientById(clientId);
-
-        if (client == null)
-            return AuthResult.Failure(
-                AuthFailureReason.ClientNotFound,
-                "No matching client found in auth store."
-            );
-
-        if (!client.Enabled)
-            return AuthResult.Failure(AuthFailureReason.ClientDisabled, "Client is disabled.");
-
-        var organisationId = client.OrganisationId;
-
-        if (string.IsNullOrWhiteSpace(organisationId))
-            return AuthResult.Failure(
-                AuthFailureReason.MissingOrganisationId,
-                "No Organisation ID found for client in auth store."
-            );
-
-        var scopes = useAuthStoreForAuthorisation
-            ? client.AllowedScopes ?? []
-            : GetScopesFromToken(jwt);
-
-        var context = new AuthContext(clientId, organisationId, scopes);
+        var context = new AuthContext(clientId);
         return AuthResult.Success(context);
 
         static string Get(JwtSecurityToken t, string type) =>
             t.Claims.FirstOrDefault(c => c.Type == type)?.Value ?? string.Empty;
-    }
-
-    private static List<string> GetScopesFromToken(JwtSecurityToken jwt)
-    {
-        return jwt
-            .Claims.Where(c => c.Type is "scp" or "scope" or "roles" or "role")
-            .SelectMany(c =>
-                c.Value.Split(
-                    ' ',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-            )
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
     }
 }

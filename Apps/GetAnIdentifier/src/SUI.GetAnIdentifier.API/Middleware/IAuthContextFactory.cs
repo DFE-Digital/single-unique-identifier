@@ -5,5 +5,5 @@ namespace SUI.GetAnIdentifier.API.Middleware;
 
 public interface IAuthContextFactory
 {
-    AuthResult FromJwt(JwtSecurityToken jwt, bool useAuthStoreForAuthorisation);
+    AuthResult FromJwt(JwtSecurityToken jwt);
 }

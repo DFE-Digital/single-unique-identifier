@@ -98,12 +98,7 @@ variable "nhs_digital_client_id" {
   sensitive   = true
 }
 
-variable "auth_client_ids_json_map" {
-  description = "Optional string containing a JSON map to transform the Client IDs in the sample data. Could contain sensitive data, should be masked."
-  type        = string
-  default     = null
-  sensitive   = true
-}
+
 
 variable "auth_settings_issuer" {
   description = "The expected OAuth Issuer of authentic access tokens"
