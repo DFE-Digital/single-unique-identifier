@@ -1,18 +1,20 @@
-# Self-hosted runner and artifact storage
+# ⚠️ DEPRECATED: Self-hosted runner and artifact storage
 
-The self-hosted runner and Azure Blob artifact storage are in place as a **workaround for GitHub Actions rate/budget limits** on this private repo. There are flags to switch back to GitHub-hosted runners and GitHub artifact storage when needed.
+**Notice:** As part of the GitHub Actions Security Hardening initiative, the CI/CD pipelines have been heavily optimized and locked down to use GitHub-hosted `ubuntu-latest` runners.
 
-## Self-hosted runner
+To enforce strict supply-chain security and improve build speeds, dynamic runtime installations of `az`, `azcopy`, `zip`, and `unzip` were removed from the workflow files. Because the `myoung34` self-hosted runner image does not include these tools natively, **this self-hosted runner configuration is currently incompatible with the deployment pipelines and is officially retired.**
 
+*The documentation below is preserved for historical context only.*
+
+---
+
+## Self-hosted runner (Retired)
 - Hosted in Azure Container Apps using the [myoung34 GitHub runner image](https://github.com/myoung34/docker-github-actions-runner).
 - Registered at the repo level.
 - Labels: `self-hosted`, `ubuntu-latest`, `linux`, `ghrunner`.
 - **No Docker daemon** in Container Apps, so Docker-based actions and `services:` containers will fail.
 - Azurite is started as a local process when tests require it.
 - The runner authenticates via the org‑managed GitHub App **sui-self-hosted-runner**.
-  - Key env vars: `APP_ID`, `APP_PRIVATE_KEY`, `APP_LOGIN`, `RUNNER_SCOPE=repo`, and `REPO_URL`.
-  - Required permissions: **Administration: read & write** on the repo (to create runner registration tokens); **Actions: read** and **Metadata: read** are also recommended.
-- The deploy workflows install Azure CLI at runtime because the self-hosted runner image does not include `az` by default. See [`deploy-dotnet-webapp.yml`](../../.github/workflows/deploy-dotnet-webapp.yml) and [`deploy-dotnet-functionapp.yml`](../../.github/workflows/deploy-dotnet-functionapp.yml).
 
 ## Runner selection via RUNNER_LABELS
 
