@@ -54,7 +54,6 @@ permissions:
 
 jobs:
   build-test-dotnet:
-    # Added sensible timeout to prevent runaway billing
     timeout-minutes: 30
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
