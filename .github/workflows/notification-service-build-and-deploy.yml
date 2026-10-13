@@ -77,7 +77,6 @@ jobs:
       checks: write
       pull-requests: write
       packages: read
-      actions: write
     with:
       directory_name: Apps/NotificationService
       project_names: '["SUI.NotificationService"]'
@@ -91,6 +90,7 @@ jobs:
   resolve-image:
     name: Resolve container image
     needs: build-and-test
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.image.outputs.image_tag }}
@@ -124,6 +124,7 @@ jobs:
     needs:
       - build-and-test
       - resolve-image
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
     permissions:
@@ -185,6 +186,7 @@ jobs:
     needs:
       - build-and-test
       - resolve-image
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -261,6 +263,7 @@ jobs:
     name: Notification Service - smoke test
     if: github.event_name != 'pull_request'
     needs: terraform
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
     permissions:

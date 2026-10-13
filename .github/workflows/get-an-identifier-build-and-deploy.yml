@@ -70,7 +70,6 @@ jobs:
       pull-requests: write
       checks: write
       packages: read
-      actions: write
     with:
       directory_name: Apps/GetAnIdentifier
       project_names: '["SUI.GetAnIdentifier.API"]'
@@ -92,8 +91,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-      packages: read
-      actions: read
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       directory_name: Apps/GetAnIdentifier
@@ -104,6 +101,7 @@ jobs:
 
   smoke-test-GetAnIdentifier:
     name: GetAnIdentifier - Post-Deploy Smoke Tests
+    timeout-minutes: 15
     needs: [ deploy-GetAnIdentifier ]
     if: |
       always() &&

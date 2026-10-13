@@ -65,7 +65,6 @@ jobs:
       pull-requests: write
       checks: write
       packages: read
-      actions: write
     with:
       directory_name: Apps/UIHarness
       project_names: '["SUI.UIHarness.Web"]'
@@ -84,6 +83,9 @@ jobs:
     needs: build-and-test-UIHarness
     uses: ./.github/workflows/deploy-dotnet-webapp.yml
     secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       directory_name: Apps/UIHarness

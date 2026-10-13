@@ -11,9 +11,8 @@ permissions:
 jobs:
   deep-secret-scan:
     name: TruffleHog deep secret scan
+    timeout-minutes: 30
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
-    permissions:
-      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
