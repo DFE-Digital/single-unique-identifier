@@ -87,7 +87,9 @@ jobs:
     timeout-minutes: 60
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
-    environment: ${{ inputs.environment }}
+    environment: 
+      name: ${{ inputs.environment }}
+      deployment: ${{ inputs.apply }}  
     outputs:
       terraform_outputs: ${{ steps.terraform_outputs.outputs.values }}
     env:

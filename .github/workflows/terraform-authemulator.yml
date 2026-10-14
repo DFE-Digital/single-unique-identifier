@@ -18,6 +18,16 @@ on:
         required: true
         default: false
         type: boolean
+  pull_request: 
+    branches:
+      - main
+    paths:
+      - "terraform/auth-emulator/**"
+      - "terraform/modules/**"
+      - "terraform/environments/d01.tfvars"
+      - ".github/workflows/terraform-authemulator.yml"
+      - ".github/workflows/terraform-plan-and-apply.yml"
+      - ".github/actions/load-tfvars/**"
 
 permissions:
   id-token: write
@@ -36,7 +46,7 @@ jobs:
       AUTH_CLIENT_IDS_JSON_MAP: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
       AUTH_CLIENT_SECRETS_JSON_MAP: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
     with:
-      environment: ${{ inputs.environment }}
-      apply: ${{ inputs.apply }}
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply }}
       root: terraform/auth-emulator
-      state_key: ${{ format('{0}/authemulator.tfstate', inputs.environment) }}
+      state_key: ${{ format('{0}/authemulator.tfstate', (github.event_name == 'workflow_dispatch' && inputs.environment || 'd01')) }}
