@@ -4,8 +4,8 @@ title: Integrate with Get an Identifier
 includeInBreadcrumbs: true
 eleventyNavigation:
   key: Get an Identifier integration
-  parent: Home
-  order: 30
+  parent: Developer documentation
+  order: 20
 ---
 
 This guide is for teams integrating a system with Get an Identifier through the Find and Use API (FaUAPI). It describes the request and response contract implemented by Get an Identifier. FaUAPI supplies the consumer-facing API address and onboarding details for each environment.

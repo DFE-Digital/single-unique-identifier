@@ -4,11 +4,11 @@ title: Adding content
 includeInBreadcrumbs: true
 eleventyNavigation:
   key: Adding content
-  parent: Home
-  order: 10
+  parent: Developer documentation
+  order: 30
 ---
 
-Use this guide when adding an approved public page to the Single Unique Identifier documentation site. The [example integration guide](../example-integration-guide/) shows one way to structure a longer page.
+Use this guide when adding an approved public page to the Single Unique Identifier documentation site.
 
 ## Before you write
 
@@ -29,7 +29,7 @@ title: Page title
 includeInBreadcrumbs: true
 eleventyNavigation:
   key: Page title
-  parent: Home
+  parent: Developer documentation
   order: 30
 ---
 ```
