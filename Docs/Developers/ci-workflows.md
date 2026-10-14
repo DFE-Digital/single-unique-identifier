@@ -6,28 +6,30 @@ This repo uses reusable workflows. The goal is to keep the top-level workflows t
 
 Top-level app workflows live in [`.github/workflows/*-build-and-deploy.yml`](../../.github/workflows) and call these reusable workflows:
 
-- [`build-test-dotnet.yml`](../../.github/workflows/build-test-dotnet.yml) - builds, tests, scans, publishes per-project artifacts and creates Immutable Draft Releases.
+- [`build-test-dotnet.yml`](../../.github/workflows/build-test-dotnet.yml) - builds, tests, scans, and publishes per-project artifacts.
 - [`deploy-dotnet-webapp.yml`](../../.github/workflows/deploy-dotnet-webapp.yml) - deploys a web app from a build artifact.
 - [`deploy-dotnet-functionapp.yml`](../../.github/workflows/deploy-dotnet-functionapp.yml) - deploys a function app from a build artifact.
 
-## Artifact storage backends & Releases
+## Artifact storage backends
 
-Artifacts can be stored in GitHub native or (deprecated) Azure Blob, controlled by the `artifact_store` input:
+Artifacts can be stored in either GitHub or Azure Blob, controlled by the `artifact_store` input:
 
 - `github` - uses GitHub Actions artifacts.
-- `azure` - deprecated migration fallback (read-only for deployments, with removal date). Uploads to Azure Blob have been disabled.
+- `azure` - uploads to Azure Blob using AzCopy.
 
-**GitHub Immutable Releases:**  
-A successful build from protected `main` will automatically create an immutable draft GitHub Release for that commit and attach deployment ZIPs along with a `release-manifest.json` and a signed provenance digest. 
-These immutables Releases serve as the source of truth for deployment across `d01`, `d02`, `d03`.
+Manual runs default to `azure`. For push runs, set the repo variable `ARTIFACT_STORE` to `azure` or `github`. These flags make it easy to switch back when GitHub rate/budget limits are no longer an issue.
 
-### Azure Blob settings (Deprecation Fallback)
+### Azure Blob settings
 
-Azure downloads are handled by a local composite action for legacy deployments (removal date 2027-01-01):
+Azure uploads/downloads are handled by local composite actions:
 
+- [`.github/actions/upload-blob-artifacts`](../../.github/actions/upload-blob-artifacts)
 - [`.github/actions/download-blob-artifact`](../../.github/actions/download-blob-artifact)
 
+These create a zip per project (matching the GitHub artifact structure) and unzip on download.
+
 Required secrets/vars:
+
 - `AZURE_ARTIFACTS_SAS` (secret) - container SAS token.
 - `AZURE_ARTIFACTS_ACCOUNT` (secret or repo variable) - storage account name.
 - `AZURE_ARTIFACTS_CONTAINER` (secret or repo variable) - container name.
@@ -55,7 +57,7 @@ Required inputs when running manually:
 
 - `artifact_name` - the exact build artifact name (without a `.zip` suffix), e.g. `Find-SUI.Find.FindApi-20260220-4b3e5b2-build`.
 - Either `component_descriptor` or the full app name override (`web_app_name` / `function_app_name`), e.g. `find01` or `s270d01func-ukw-01-find01`.
-- `artifact_store` - `github` or `azure` (defaults to `azure` for manual deploys, but will print a deprecation warning), e.g. `azure`.
+- `artifact_store` - `github` or `azure` (defaults to `azure` for manual deploys), e.g. `azure`.
 
 ## Adding a new app workflow
 
@@ -66,6 +68,7 @@ Required inputs when running manually:
 
 ## Troubleshooting
 
+- If Azure uploads fail with missing inputs, ensure secrets/vars are set at the repo level (not just environment scope).
 - If deployments fail due to artifacts not found, verify the artifact names and storage backend match across build and deploy jobs.
 
 ## Security scanning
@@ -87,8 +90,20 @@ If you configure GitHub branch protection for `main`, set these required checks:
 The repo currently uses a 60-day default retention policy for artifacts and logs (check repo settings for changes).
 If you need to clear artifacts manually, run [`cleanup-artifacts.sh`](../../.github/scripts/cleanup-artifacts.sh) with `--help`.
 
-## Environment Labels
+# Pipeline & Security Escalation Routes
 
-- **d01**: experimental (Auth Emulator, FaUAPI front end)
-- **d02**: stable testing (FaUAPI auth)
-- **d03**: staging/pre-production (production-like FaUAPI auth)
+To ensure operational resilience and rapid response to supply-chain or infrastructure issues, all automated pipelines have documented owners. If a scheduled scan, deployment, or update fails, use the escalation routes below.
+
+| Failure Type                     | Coverage Examples                                                                                                 | Primary Owner             | Checking & Escalation Route                                                                                                                                         |
+|:---------------------------------|:------------------------------------------------------------------------------------------------------------------|:--------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Security Scans**               | Weekly CodeQL, scheduled TruffleHog (Deep Scan) and Trivy (Repo), plus PR-triggered scans (Trivy IaC, SonarCloud) | SUI Engineering Team      | Monitored manually by the team. Failures should be reported to the internal engineering Slack channel.                                                                   |
+| **Automatic Deployments**        | Pushes to `main` triggering automatic deployments (e.g., Get An Identifier, Auth Emulator, UI Harness, etc.)      | SUI Engineering Team      | Monitored manually by the team. Failures should be reported to the internal engineering Slack channel. The SUI Technical Lead assigns an engineer if further investigation is needed. |
+| **Manual Deployments**           | Manual workflow dispatches to `d01`, `d02`, `d03`, and targeted Terraform Applies                                 | Person running deployment | The person running the deployment is responsible for checking the run and reporting failures to the internal engineering Slack channel. |
+| **Dependency Updates**           | Dependabot PRs (NuGet & Actions) failing checks or blocked by policy                                              | SUI Engineering Team      | Reviewed in bi-weekly sprint planning or reported to the internal engineering Slack channel.                                                                            |
+| **Credential / Key Expirations** | Azure OIDC failures, Azure Blob SAS token expiry, NHS MESH / Digital certificate expiry                           | SUI Technical Lead        | *Automated rotation is not currently implemented.* Manual renewals and unexpected authentication failures are managed by the SUI Technical Lead via the internal engineering Slack channel. |
+
+## Escalation Process
+
+1. **Report & Acknowledge:** Automatic deployment failures on pushes to `main` and scheduled workflow failures must be checked manually by the SUI Engineering Team and reported to the internal engineering Slack channel. For manual deployments, the person triggering the deployment is responsible for checking the logs and reporting the failure.
+2. **Investigate:** Review the GitHub Actions run logs. The SUI Technical Lead will assign an engineer if the issue requires further investigation.
+3. **Resolve / Escalate:** Escalate to the SUI Technical Lead if nobody takes ownership or the assigned engineer needs support.
