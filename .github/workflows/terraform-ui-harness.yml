@@ -27,7 +27,7 @@ on:
       - "terraform/environments/d01.tfvars"
       - ".github/workflows/terraform-ui-harness.yml"      
       - ".github/workflows/terraform-plan-and-apply.yml"
-      - ".github/actions/load-tfvars"
+      - ".github/actions/load-tfvars/**"
 
 permissions:
   id-token: write
