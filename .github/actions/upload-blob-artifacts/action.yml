@@ -23,21 +23,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install packages
-      shell: bash
-      run: |
-        if ! command -v zip >/dev/null 2>&1; then
-          sudo apt-get update -y
-          sudo apt-get install -y zip
-        fi
-        if ! command -v azcopy >/dev/null 2>&1; then
-          ubuntu_version="$(lsb_release -rs)"
-          curl -sSL "https://packages.microsoft.com/config/ubuntu/${ubuntu_version}/packages-microsoft-prod.deb" -o /tmp/packages-microsoft-prod.deb
-          sudo dpkg -i /tmp/packages-microsoft-prod.deb
-          sudo apt-get update -y
-          sudo apt-get install -y azcopy
-        fi
-
     - name: Upload per-project artifacts to Azure Blob
       shell: bash
       env:

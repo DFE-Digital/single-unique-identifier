@@ -84,12 +84,11 @@ on:
 permissions:
   id-token: write
   contents: read
-  packages: read
-  actions: read
 
 jobs:
   deploy:
     name: Deploy web app (${{ inputs.component_descriptor || github.event.inputs.component_descriptor || inputs.web_app_name || github.event.inputs.web_app_name || inputs.artifact_name || github.event.inputs.artifact_name }}) to ${{ inputs.environment || github.event.inputs.environment }}
+    timeout-minutes: 30
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     environment: ${{ inputs.environment || github.event.inputs.environment }}
@@ -101,12 +100,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-
-      - name: Install Azure CLI
-        run: |
-          if ! command -v az >/dev/null 2>&1; then
-            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          fi
 
       - name: Azure login with OIDC for ${{ inputs.environment || github.event.inputs.environment }}
         uses: azure/login@v3

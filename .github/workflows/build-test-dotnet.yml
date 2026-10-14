@@ -41,6 +41,8 @@ on:
         required: false
       AZURE_ARTIFACTS_SAS:
         required: false
+      SONAR_TOKEN:
+        required: false
     outputs:
       artifact_names:
         description: JSON map of project -> artifact name
@@ -51,10 +53,10 @@ permissions:
   pull-requests: write
   checks: write
   packages: read
-  actions: write
 
 jobs:
   build-test-dotnet:
+    timeout-minutes: 30
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     env:

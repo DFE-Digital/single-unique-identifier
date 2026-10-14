@@ -27,7 +27,11 @@ jobs:
   terraform:
     name: Terraform UI Harness for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
     uses: ./.github/workflows/terraform-plan-and-apply.yml
-    secrets: inherit
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      UI_TEST_HARNESS_PASSWORD: ${{ secrets.UI_TEST_HARNESS_PASSWORD }}
     with:
       environment: ${{ inputs.environment }}
       apply: ${{ inputs.apply }}

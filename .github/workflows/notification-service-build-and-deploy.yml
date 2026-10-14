@@ -71,13 +71,16 @@ jobs:
   build-and-test:
     name: Notification Service - build and test
     uses: ./.github/workflows/build-test-dotnet.yml
-    secrets: inherit
+    secrets:
+      AZURE_ARTIFACTS_ACCOUNT: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT }}
+      AZURE_ARTIFACTS_CONTAINER: ${{ secrets.AZURE_ARTIFACTS_CONTAINER }}
+      AZURE_ARTIFACTS_SAS: ${{ secrets.AZURE_ARTIFACTS_SAS }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       contents: read
       checks: write
       pull-requests: write
       packages: read
-      actions: write
     with:
       directory_name: Apps/NotificationService
       project_names: '["SUI.NotificationService"]'
@@ -91,6 +94,7 @@ jobs:
   resolve-image:
     name: Resolve container image
     needs: build-and-test
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.image.outputs.image_tag }}
@@ -124,6 +128,7 @@ jobs:
     needs:
       - build-and-test
       - resolve-image
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
     permissions:
@@ -185,6 +190,7 @@ jobs:
     needs:
       - build-and-test
       - resolve-image
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -244,7 +250,13 @@ jobs:
       - build-and-publish-image
       - resolve-image
     uses: ./.github/workflows/terraform-plan-and-apply.yml
-    secrets: inherit
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      NHS_MESH_CONFIG_SHARED_KEY: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
+      NHS_MESH_CONFIG_MAILBOX_ID: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
+      NHS_MESH_CONFIG_MAILBOX_PASSWORD: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
     permissions:
       contents: read
       id-token: write
@@ -261,6 +273,7 @@ jobs:
     name: Notification Service - smoke test
     if: github.event_name != 'pull_request'
     needs: terraform
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
     permissions:
