@@ -411,14 +411,19 @@ jobs:
             
             if [ "$component" == "AuthEmulator" ]; then
               tests_result="${{ needs.build-auth-emulator.result }}"
+              sonar_result="${{ needs.build-auth-emulator.result }}"
             elif [ "$component" == "GetAnIdentifier" ]; then
               tests_result="${{ needs.build-get-an-id.result }}"
+              sonar_result="${{ needs.build-get-an-id.result }}"
             elif [ "$component" == "UIHarness" ]; then
-              tests_result="${{ needs.build-ui-harness.result }}"
+              tests_result="skipped"
+              sonar_result="skipped"
             elif [ "$component" == "NotificationService" ]; then
               tests_result="${{ needs.build-notification-service.result }}"
+              sonar_result="${{ needs.build-notification-service.result }}"
             else
               tests_result="unknown"
+              sonar_result="unknown"
             fi
             
             if [ "$first" = true ]; then
@@ -433,7 +438,7 @@ jobs:
             echo "      \"size\": ${size}," >> $manifest
             echo "      \"quality_checks\": {" >> $manifest
             echo "        \"tests\": \"${tests_result}\"," >> $manifest
-            echo "        \"sonar_quality_gate\": \"${tests_result}\"" >> $manifest
+            echo "        \"sonar_quality_gate\": \"${sonar_result}\"" >> $manifest
             echo "      }," >> $manifest
             echo "      \"build_inputs\": {" >> $manifest
             echo "        \"dotnet_sdk\": \"${sdk}\"," >> $manifest
