@@ -47,9 +47,11 @@ on:
 
 permissions:
   id-token: write
+  contents: read
 
 jobs:
   restart-web-app:
+    timeout-minutes: 10
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     environment: ${{ inputs.environment }}
     steps:

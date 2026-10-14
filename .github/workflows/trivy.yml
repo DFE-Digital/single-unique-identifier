@@ -42,11 +42,11 @@ on:
 
 permissions:
   contents: read
-  packages: read
 
 jobs:
   repository-scan:
     name: Trivy repository scan
+    timeout-minutes: 20
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     steps:
       - name: Checkout code

@@ -18,6 +18,16 @@ on:
         required: true
         default: false
         type: boolean
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "terraform/core/**"
+      - "terraform/modules/**"
+      - "terraform/environments/d01.tfvars"
+      - ".github/workflows/terraform-core.yml"
+      - ".github/workflows/terraform-plan-and-apply.yml"
+      - ".github/actions/load-tfvars/**"
 
 permissions:
   id-token: write
@@ -27,8 +37,11 @@ jobs:
   terraform:
     name: Terraform core for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
     uses: ./.github/workflows/terraform-plan-and-apply.yml
-    secrets: inherit
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     with:
-      environment: ${{ inputs.environment }}
-      apply: ${{ inputs.apply }}
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply }}
       root: terraform/core

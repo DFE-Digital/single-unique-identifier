@@ -11,6 +11,7 @@ permissions:
 jobs:
   format-csproj-xml-files:
     if: startsWith(github.head_ref, 'dependabot/nuget')
+    timeout-minutes: 10
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     steps:

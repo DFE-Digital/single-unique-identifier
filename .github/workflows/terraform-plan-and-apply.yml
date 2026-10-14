@@ -41,11 +41,11 @@ on:
         required: true
       # The NHS secrets below are required for the Get an Identifier Function.
       NHS_DIGITAL_CLIENT_ID:
-        required: true
+        required: false
       NHS_DIGITAL_KID:
-        required: true
+        required: false
       NHS_DIGITAL_PRIVATE_KEY:
-        required: true
+        required: false
       # NHS MESH mailbox credentials required for the Notification Service job.
       NHS_MESH_CONFIG_SHARED_KEY:
         required: false
@@ -84,9 +84,12 @@ permissions:
 jobs:
   terraform:
     name: Terraform ${{ inputs.root }} for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
+    timeout-minutes: 60
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
-    environment: ${{ inputs.environment }}
+    environment: 
+      name: ${{ inputs.environment }}
+      deployment: ${{ inputs.apply }}  
     outputs:
       terraform_outputs: ${{ steps.terraform_outputs.outputs.values }}
     env:
@@ -124,12 +127,6 @@ jobs:
 
       - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v4
-
-      - name: Install Azure CLI
-        run: |
-          if ! command -v az >/dev/null 2>&1; then
-            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          fi
 
       - name: Azure login with OIDC for ${{ inputs.environment }}
         uses: azure/login@v3
