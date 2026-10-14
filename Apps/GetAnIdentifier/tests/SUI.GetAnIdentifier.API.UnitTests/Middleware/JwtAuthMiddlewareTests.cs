@@ -370,9 +370,7 @@ public class JwtAuthMiddlewareTests
                 "Client is disabled."
             );
 
-            _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
-                .Returns(authResult);
+            _mockAuthContextFactory.FromJwt(Arg.Any<JwtSecurityToken>()).Returns(authResult);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
             var sut = new JwtAuthMiddleware(
@@ -430,42 +428,6 @@ public class JwtAuthMiddlewareTests
     public class AsymmetricVerificationTests : JwtAuthMiddlewareTests
     {
         [Fact]
-        public async Task Scenario0_ValidToken_WhenScopesIncorrect_ShouldDenyAccess()
-        {
-            // Arrange
-            var token = GenerateAsymmetricToken(_genuineRsa, _genuineKid, scope: "wrong.scope");
-            var config = CreateOidcConfig(_genuineRsa, _genuineKid);
-            _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
-
-            var authContext = new AuthContext("clientId", "organisationId", ["wrong.scope"]);
-            var authResult = AuthResult.Success(authContext);
-
-            _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
-                .Returns(authResult);
-
-            var context = CreateMockFunctionContext($"Bearer {token}");
-            var sut = new JwtAuthMiddleware(
-                _mockAuthContextFactory,
-                _mockConfigManager,
-                _mockOptions,
-                _mockLogger,
-                _mockAuditService,
-                _timeProvider
-            );
-
-            // Act
-            await sut.Invoke(context, Next);
-
-            // Assert: Expect HTTP 403 Forbidden because authentication passed, but authorization (scopes) failed.
-            AssertAccessDenied(
-                context,
-                "Insufficient scope for this operation",
-                expectedStatusCode: HttpStatusCode.Forbidden
-            );
-        }
-
-        [Fact]
         public async Task Scenario1_ValidToken_ShouldAllowAccessAndPopulateAuthContext()
         {
             // Arrange
@@ -473,16 +435,10 @@ public class JwtAuthMiddlewareTests
             var config = CreateOidcConfig(_genuineRsa, _genuineKid);
             _mockConfigManager.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(config);
 
-            var authContext = new AuthContext(
-                "clientId",
-                "organisationId",
-                ["get-an-identifier.read"]
-            );
+            var authContext = new AuthContext("clientId");
             var authResult = AuthResult.Success(authContext);
 
-            _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
-                .Returns(authResult);
+            _mockAuthContextFactory.FromJwt(Arg.Any<JwtSecurityToken>()).Returns(authResult);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
             var sut = new JwtAuthMiddleware(
@@ -514,16 +470,10 @@ public class JwtAuthMiddlewareTests
                 .GetConfigurationAsync(Arg.Any<CancellationToken>())
                 .Returns(emptyConfig, refreshedConfig);
 
-            var authContext = new AuthContext(
-                "clientId",
-                "organisationId",
-                ["get-an-identifier.read"]
-            );
+            var authContext = new AuthContext("clientId");
             var authResult = AuthResult.Success(authContext);
 
-            _mockAuthContextFactory
-                .FromJwt(Arg.Any<JwtSecurityToken>(), Arg.Any<bool>())
-                .Returns(authResult);
+            _mockAuthContextFactory.FromJwt(Arg.Any<JwtSecurityToken>()).Returns(authResult);
 
             var context = CreateMockFunctionContext($"Bearer {token}");
             var sut = new JwtAuthMiddleware(
