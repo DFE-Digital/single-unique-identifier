@@ -23,7 +23,11 @@ on:
       - main
     paths:
       - "terraform/ui_test_harness/**"
+      - "terraform/modules/**"
+      - "terraform/environments/d01.tfvars"
       - ".github/workflows/terraform-ui-harness.yml"      
+      - ".github/workflows/terraform-plan-and-apply.yml"
+      - ".github/actions/load-tfvars"
 
 permissions:
   id-token: write
@@ -36,6 +40,6 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == 'true' }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply }}
       root: terraform/ui_test_harness
-      state_key: ${{ format('{0}/ui_test_harness.tfstate', inputs.environment) }}
+      state_key: ${{ format('{0}/ui_test_harness.tfstate', (github.event_name == 'workflow_dispatch' && inputs.environment || 'd01')) }}

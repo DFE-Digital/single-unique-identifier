@@ -23,7 +23,11 @@ on:
       - main
     paths:
       - "terraform/service-example/**"
+      - "terraform/modules/**"
+      - "terraform/environments/d01.tfvars"
       - ".github/workflows/terraform-service-example.yml"
+      - ".github/workflows/terraform-plan-and-apply.yml"
+      - ".github/actions/load-tfvars"
 
 permissions:
   id-token: write
@@ -38,6 +42,6 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == 'true' }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply }}
       root: terraform/service-example
-      state_key: ${{ format('{0}/service-example.tfstate', inputs.environment) }}
+      state_key: ${{ format('{0}/service-example.tfstate', (github.event_name == 'workflow_dispatch' && inputs.environment || 'd01')) }}
