@@ -323,6 +323,8 @@ jobs:
   trivy-scan:
     name: Trivy repository scan
     uses: ./.github/workflows/trivy.yml
+    with:
+      enforce_vulnerability_gate: true
     secrets: inherit
     
   trivy-iac-scan:
