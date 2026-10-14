@@ -1,7 +1,8 @@
 ---
-layout: page
+layout: sub-navigation
 title: Adding content
 includeInBreadcrumbs: true
+sectionKey: Developer documentation
 eleventyNavigation:
   key: Adding content
   parent: Developer documentation
@@ -27,6 +28,7 @@ Start the file with front matter:
 layout: page
 title: Page title
 includeInBreadcrumbs: true
+sectionKey: Developer documentation
 eleventyNavigation:
   key: Page title
   parent: Developer documentation

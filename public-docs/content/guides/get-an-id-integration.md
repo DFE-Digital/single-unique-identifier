@@ -1,7 +1,8 @@
 ---
-layout: page
+layout: sub-navigation
 title: Integrate with Get an Identifier
 includeInBreadcrumbs: true
+sectionKey: Developer documentation
 eleventyNavigation:
   key: Get an Identifier integration
   parent: Developer documentation

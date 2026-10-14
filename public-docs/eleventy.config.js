@@ -23,19 +23,10 @@ export default function(eleventyConfig) {
     serviceNavigation: {
       serviceName: 'Single Unique Identifier',
       serviceUrl: pathPrefix,
-      menuButtonText: 'Developer documentation',
       navigation: [
         {
           href: '/guides/developer-documentation/',
           text: 'Developer documentation'
-        },
-        {
-          href: '/guides/get-an-id-integration/',
-          text: 'Get an Identifier integration'
-        },
-        {
-          href: '/guides/adding-content/',
-          text: 'Adding content'
         }
       ]
     },

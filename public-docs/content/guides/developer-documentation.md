@@ -1,7 +1,8 @@
 ---
-layout: page
+layout: sub-navigation
 title: Developer documentation
 includeInBreadcrumbs: true
+sectionKey: Developer documentation
 eleventyNavigation:
   key: Developer documentation
   parent: Home
