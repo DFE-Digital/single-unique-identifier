@@ -41,6 +41,8 @@ on:
         required: false
       AZURE_ARTIFACTS_SAS:
         required: false
+      SONAR_TOKEN:
+        required: false
     outputs:
       artifact_names:
         description: JSON map of project -> artifact name

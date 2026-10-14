@@ -63,7 +63,11 @@ jobs:
   build-and-test-GetAnIdentifier:
     name: GetAnIdentifier - Build Test Dotnet
     uses: ./.github/workflows/build-test-dotnet.yml
-    secrets: inherit
+    secrets:
+      AZURE_ARTIFACTS_ACCOUNT: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT }}
+      AZURE_ARTIFACTS_CONTAINER: ${{ secrets.AZURE_ARTIFACTS_CONTAINER }}
+      AZURE_ARTIFACTS_SAS: ${{ secrets.AZURE_ARTIFACTS_SAS }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       id-token: write
       contents: read
@@ -87,7 +91,13 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: build-and-test-GetAnIdentifier
     uses: ./.github/workflows/deploy-dotnet-functionapp.yml
-    secrets: inherit
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_ARTIFACTS_ACCOUNT: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT }}
+      AZURE_ARTIFACTS_CONTAINER: ${{ secrets.AZURE_ARTIFACTS_CONTAINER }}
+      AZURE_ARTIFACTS_SAS: ${{ secrets.AZURE_ARTIFACTS_SAS }}
     permissions:
       id-token: write
       contents: read

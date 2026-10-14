@@ -27,7 +27,13 @@ jobs:
   terraform:
     name: Terraform Get An Identifier for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
     uses: ./.github/workflows/terraform-plan-and-apply.yml
-    secrets: inherit
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      NHS_DIGITAL_CLIENT_ID: ${{ secrets.NHS_DIGITAL_CLIENT_ID }}
+      NHS_DIGITAL_KID: ${{ secrets.NHS_DIGITAL_KID }}
+      NHS_DIGITAL_PRIVATE_KEY: ${{ secrets.NHS_DIGITAL_PRIVATE_KEY }}
     with:
       environment: ${{ inputs.environment }}
       apply: ${{ inputs.apply }}

@@ -71,7 +71,11 @@ jobs:
   build-and-test:
     name: Notification Service - build and test
     uses: ./.github/workflows/build-test-dotnet.yml
-    secrets: inherit
+    secrets:
+      AZURE_ARTIFACTS_ACCOUNT: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT }}
+      AZURE_ARTIFACTS_CONTAINER: ${{ secrets.AZURE_ARTIFACTS_CONTAINER }}
+      AZURE_ARTIFACTS_SAS: ${{ secrets.AZURE_ARTIFACTS_SAS }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       contents: read
       checks: write
@@ -246,7 +250,13 @@ jobs:
       - build-and-publish-image
       - resolve-image
     uses: ./.github/workflows/terraform-plan-and-apply.yml
-    secrets: inherit
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      NHS_MESH_CONFIG_SHARED_KEY: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
+      NHS_MESH_CONFIG_MAILBOX_ID: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
+      NHS_MESH_CONFIG_MAILBOX_PASSWORD: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
     permissions:
       contents: read
       id-token: write
