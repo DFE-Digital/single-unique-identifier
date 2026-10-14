@@ -30,6 +30,10 @@ export default function(eleventyConfig) {
         {
           href: '/guides/example-integration-guide/',
           text: 'Example integration guide'
+        },
+        {
+          href: '/guides/get-an-id-integration/',
+          text: 'Get an Identifier integration'
         }
       ]
     },
