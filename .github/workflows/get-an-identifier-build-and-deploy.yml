@@ -34,7 +34,7 @@ on:
       artifact_store:
         description: Artifact storage backend (github or azure)
         required: false
-        default: github
+        default: azure
         type: string
       skip_tests:
         description: Skip tests and related setup
@@ -70,8 +70,7 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       id-token: write
-      contents: write
-      attestations: write
+      contents: read
       pull-requests: write
       checks: write
       packages: read
@@ -80,7 +79,7 @@ jobs:
       project_names: '["SUI.GetAnIdentifier.API"]'
       requires_azurite: true
       upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'github' }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
       skip_tests: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_tests == 'true' }}
       skip_scans: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_scans == 'true' }}
       deploy_requested: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true' }}
@@ -106,7 +105,7 @@ jobs:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       directory_name: Apps/GetAnIdentifier
       artifact_name: ${{ fromJson(needs.build-and-test-GetAnIdentifier.outputs.artifact_names)['SUI.GetAnIdentifier.API'] }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'github' }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
       component_descriptor: getanid01
       package_path: publish
 

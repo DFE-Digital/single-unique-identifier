@@ -50,13 +50,13 @@ variable "notification_service_image_name" {
   default     = "notification-service"
 }
 
-variable "notification_service_image_digest" {
+variable "notification_service_image_tag" {
   description = "Immutable image tag to deploy."
   type        = string
 
   validation {
-    condition     = can(regex("^sha256:[0-9a-f]{64}$", var.notification_service_image_digest))
-    error_message = "notification_service_image_digest must be a sha256 digest."
+    condition     = can(regex("^[0-9a-f]{40}$", var.notification_service_image_tag))
+    error_message = "notification_service_image_tag must be a 40-character lowercase commit SHA."
   }
 }
 

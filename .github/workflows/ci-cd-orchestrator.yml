@@ -1,28 +1,10 @@
-name: "CI/CD Orchestrator"
-run-name: CI/CD Orchestrator - ${{ github.event_name == 'pull_request' && 'validate' || format('{0}', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
+# Release groundwork only. Automatic triggers and activation are deferred.
+name: "CI/CD Orchestrator (inactive release groundwork)"
+run-name: Inactive release groundwork - ${{ github.ref_name }}
 
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: Target environment for deployment
-        required: true
-        default: d01
-        type: choice
-        options:
-          - d01
-          - d02
-          - d03
-      upload_artifacts:
-        description: Upload build artifacts
-        required: false
-        default: false
-        type: boolean
-      artifact_store:
-        description: Artifact storage backend (github or azure)
-        required: false
-        default: azure
-        type: string
       skip_tests:
         description: Skip tests and related setup
         required: false
@@ -34,29 +16,14 @@ on:
         default: false
         type: boolean
       force_deploy_all:
-        description: Force deploy all components regardless of changes
+        description: Force build all components regardless of changes
         required: false
         default: false
         type: boolean
-      deploy:
-        description: Trigger deployment jobs
-        required: false
-        default: false
-        type: boolean
-      notification_service_image_tag:
-        description: Existing 40-char SHA image tag to deploy for Notification Service (optional)
-        required: false
-        type: string
 
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
 
 concurrency:
-  group: ci-cd-orchestrator-${{ github.event_name == 'workflow_dispatch' && inputs.environment || github.ref }}
+  group: ci-cd-orchestrator-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -71,6 +38,8 @@ permissions:
 jobs:
   path-filter:
     name: Detect Changes
+    # Remove this guard only after the release workflow is reviewed and validated.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     outputs:
       auth_emulator: ${{ steps.filter.outputs.auth_emulator }}
@@ -104,7 +73,7 @@ jobs:
     name: AuthEmulator - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.auth_emulator == 'true' || github.event.inputs.force_deploy_all == 'true'
-    uses: ./.github/workflows/build-test-dotnet.yml
+    uses: ./.github/workflows/build-test-dotnet-release.yml
     secrets: inherit
     permissions:
       id-token: write
@@ -128,7 +97,7 @@ jobs:
     name: GetAnIdentifier - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.get_an_id == 'true' || github.event.inputs.force_deploy_all == 'true'
-    uses: ./.github/workflows/build-test-dotnet.yml
+    uses: ./.github/workflows/build-test-dotnet-release.yml
     secrets: inherit
     permissions:
       id-token: write
@@ -153,7 +122,7 @@ jobs:
     name: UIHarness - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.ui_harness == 'true' || github.event.inputs.force_deploy_all == 'true'
-    uses: ./.github/workflows/build-test-dotnet.yml
+    uses: ./.github/workflows/build-test-dotnet-release.yml
     secrets: inherit
     permissions:
       id-token: write
@@ -177,7 +146,7 @@ jobs:
     name: Notification Service - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.notification_service == 'true' || github.event.inputs.force_deploy_all == 'true'
-    uses: ./.github/workflows/build-test-dotnet.yml
+    uses: ./.github/workflows/build-test-dotnet-release.yml
     secrets: inherit
     permissions:
       id-token: write
@@ -193,7 +162,7 @@ jobs:
       requires_azurite: true
       deploy_requested: false
       upload_artifacts: true
-      upload_release_assets: true
+      prepare_release_assets: true
       artifact_store: 'github'
       skip_tests: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_tests || false }}
       skip_scans: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_scans || false }}
@@ -208,7 +177,7 @@ jobs:
     outputs:
       image_digest: ${{ steps.build-image.outputs.digest || steps.get-digest.outputs.digest }}
       login_server: ${{ steps.registry.outputs.login_server }}
-    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+    environment: d01
     permissions:
       contents: write
       attestations: write
@@ -221,7 +190,7 @@ jobs:
         id: environment
         uses: ./.github/actions/load-tfvars
         with:
-          environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
+          environment: d01
 
       - name: Azure login with OIDC
         uses: azure/login@v3
@@ -248,7 +217,7 @@ jobs:
       - name: Resolve image tag
         id: image
         env:
-          REQUESTED_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.notification_service_image_tag || '' }}
+          REQUESTED_TAG: ''
         run: |
           if [ -n "$REQUESTED_TAG" ]; then
             echo "image_tag=$REQUESTED_TAG" >> "$GITHUB_OUTPUT"
@@ -494,97 +463,3 @@ jobs:
             --title "Deployable Build ${GITHUB_SHA::7}" \
             --notes "Automated build release from commit ${GITHUB_SHA}" \
             --target "${GITHUB_SHA}"
-
-  deploy-auth-emulator:
-    name: AuthEmulator - Deploy Web App
-    if: |
-      needs.path-filter.outputs.auth_emulator == 'true' &&
-      ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
-    needs: 
-      - path-filter
-      - build-auth-emulator
-      - cut-release
-    uses: ./.github/workflows/deploy-dotnet-webapp.yml
-    secrets: inherit
-    permissions:
-      actions: read
-      id-token: write
-      contents: write
-      packages: read
-    with:
-      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      directory_name: Apps/AuthEmulator
-      artifact_name: ${{ fromJson(needs.build-auth-emulator.outputs.artifact_names)['SUI.AuthEmulator'] }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
-      component_descriptor: authemulator01
-      package_path: drop
-
-  deploy-get-an-id:
-    name: GetAnIdentifier - Deploy Function App
-    if: |
-      needs.path-filter.outputs.get_an_id == 'true' &&
-      ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
-    needs: 
-      - path-filter
-      - build-get-an-id
-      - cut-release
-    uses: ./.github/workflows/deploy-dotnet-functionapp.yml
-    secrets: inherit
-    permissions:
-      actions: read
-      id-token: write
-      contents: write
-      packages: read
-    with:
-      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      directory_name: Apps/GetAnIdentifier
-      artifact_name: ${{ fromJson(needs.build-get-an-id.outputs.artifact_names)['SUI.GetAnIdentifier.API'] }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
-      component_descriptor: getanid01
-      package_path: drop
-
-  deploy-ui-harness:
-    name: UIHarness - Deploy Web App
-    if: |
-      needs.path-filter.outputs.ui_harness == 'true' &&
-      ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
-    needs: 
-      - path-filter
-      - build-ui-harness
-      - cut-release
-    uses: ./.github/workflows/deploy-dotnet-webapp.yml
-    secrets: inherit
-    with:
-      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      directory_name: Apps/UIHarness
-      artifact_name: ${{ fromJson(needs.build-ui-harness.outputs.artifact_names)['SUI.UIHarness.Web'] }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
-      component_descriptor: uiharness01
-      package_path: drop
-
-  deploy-notification-service:
-    name: Notification Service - Terraform apply
-    if: |
-      needs.path-filter.outputs.notification_service == 'true' &&
-      ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
-    needs:
-      - path-filter
-      - build-and-publish-image
-      - cut-release
-    uses: ./.github/workflows/terraform-plan-and-apply.yml
-    secrets: inherit
-    permissions:
-      contents: write
-      id-token: write
-    with:
-      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: true
-      root: terraform/notification-service
-      state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
-      terraform_variables: >-
-        {"notification_service_image_digest":"${{ needs.build-and-publish-image.outputs.image_digest }}"}
-      terraform_output_names: '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'

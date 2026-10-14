@@ -29,7 +29,7 @@ on:
       artifact_store:
         description: Artifact storage backend (github or azure)
         required: false
-        default: github
+        default: azure
         type: string
       skip_tests:
         description: Skip tests and related setup
@@ -65,8 +65,7 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       id-token: write
-      contents: write
-      attestations: write
+      contents: read
       pull-requests: write
       checks: write
       packages: read
@@ -74,7 +73,7 @@ jobs:
       directory_name: Apps/UIHarness
       project_names: '["SUI.UIHarness.Web"]'
       upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'github' }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
       # Below settings are uniquely changed for the UI Harness to enable deployment
       deploy_requested: false
       skip_tests: true
@@ -101,6 +100,6 @@ jobs:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       directory_name: Apps/UIHarness
       artifact_name: ${{ fromJson(needs.build-and-test-UIHarness.outputs.artifact_names)['SUI.UIHarness.Web'] }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'github' }}
+      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
       component_descriptor: uiharness01
       package_path: publish
