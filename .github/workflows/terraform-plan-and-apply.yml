@@ -41,11 +41,11 @@ on:
         required: true
       # The NHS secrets below are required for the Get an Identifier Function.
       NHS_DIGITAL_CLIENT_ID:
-        required: true
+        required: false
       NHS_DIGITAL_KID:
-        required: true
+        required: false
       NHS_DIGITAL_PRIVATE_KEY:
-        required: true
+        required: false
       # NHS MESH mailbox credentials required for the Notification Service job.
       NHS_MESH_CONFIG_SHARED_KEY:
         required: false
