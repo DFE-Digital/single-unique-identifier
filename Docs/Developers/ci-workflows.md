@@ -107,3 +107,30 @@ To ensure operational resilience and rapid response to supply-chain or infrastru
 1. **Report & Acknowledge:** Automatic deployment failures on pushes to `main` and scheduled workflow failures must be checked manually by the SUI Engineering Team and reported to the internal engineering Slack channel. For manual deployments, the person triggering the deployment is responsible for checking the logs and reporting the failure.
 2. **Investigate:** Review the GitHub Actions run logs. The SUI Technical Lead will assign an engineer if the issue requires further investigation.
 3. **Resolve / Escalate:** Escalate to the SUI Technical Lead if nobody takes ownership or the assigned engineer needs support.
+
+## Release groundwork (SUI-2078)
+
+The immutable-release flow is not enabled yet. SUI-2078 remains open until the
+release implementation is completed and validated.
+
+- `ci-cd-orchestrator.yml` has only a manual trigger and an explicit disabled
+  guard on change detection. It is retained for follow-up development; do not
+  run or enable it as an operational workflow yet.
+- `build-test-dotnet-release.yml` contains the isolated release build, ZIP and
+  attestation groundwork. Existing app workflows continue to call
+  `build-test-dotnet.yml` and use the existing deployment paths.
+- Existing GitHub/Azure Blob artifact backend support is retained for now.
+  Retiring Azure deployment artifact storage is deferred to the follow-up.
+  Terraform state storage and locking are unchanged.
+- Finish release change detection, manifest inputs/outcomes and end-to-end
+  validation before restoring automatic protected-main release creation and
+  removing the disabled guard. Keep the passing security gates and build-time
+  ZIP attestations in that path.
+- Promotion and deployment from immutable releases belong to SUI-2079. The
+  release orchestrator does not deploy applications or apply Terraform.
+
+## Environment Labels
+
+- **d01**: experimental (Auth Emulator, FaUAPI front end)
+- **d02**: stable testing (FaUAPI auth)
+- **d03**: staging/pre-production (production-like FaUAPI auth)
