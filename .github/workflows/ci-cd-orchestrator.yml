@@ -48,10 +48,10 @@ jobs:
       ui_harness: ${{ steps.filter.outputs.ui_harness }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Paths Filter
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
         with:
           filters: |
             auth_emulator:
@@ -184,7 +184,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Load environment naming
         id: environment
@@ -193,7 +193,7 @@ jobs:
           environment: d01
 
       - name: Azure login with OIDC
-        uses: azure/login@v3
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -209,7 +209,7 @@ jobs:
           echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Authenticate to Azure Container Registry
         run: az acr login --name "${{ steps.registry.outputs.name }}"
@@ -243,7 +243,7 @@ jobs:
       - name: Build and publish container image
         id: build-image
         if: steps.image.outputs.push_image == 'true'
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           file: Apps/NotificationService/Dockerfile
@@ -251,7 +251,7 @@ jobs:
           tags: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, steps.image.outputs.image_tag) }}
 
       - name: Scan published image for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ format('{0}/notification-service@{1}', steps.registry.outputs.login_server, steps.build-image.outputs.digest || steps.get-digest.outputs.digest) }}
           format: table
@@ -265,11 +265,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
       - name: Build container image without publishing
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           file: Apps/NotificationService/Dockerfile
@@ -278,7 +278,7 @@ jobs:
           tags: notification-service:${{ github.sha }}
 
       - name: Scan local image for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: notification-service:${{ github.sha }}
           format: table
@@ -335,7 +335,7 @@ jobs:
       id-token: write
     steps:
       - name: Download all release zips
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: release-zips-*
           path: drop
@@ -449,7 +449,7 @@ jobs:
           cat $manifest
 
       - name: Generate Artifact Attestations for ZIPs
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         with:
           subject-path: '*.zip'
 
