@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v7
       - name: Paths Filter
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             auth_emulator:
@@ -335,7 +335,7 @@ jobs:
       id-token: write
     steps:
       - name: Download all release zips
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: release-zips-*
           path: drop
@@ -449,7 +449,7 @@ jobs:
           cat $manifest
 
       - name: Generate Artifact Attestations for ZIPs
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: '*.zip'
 

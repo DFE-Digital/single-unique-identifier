@@ -229,13 +229,13 @@ jobs:
 
       - name: Generate Artifact Attestations for ZIPs
         if: inputs.upload_artifacts == true || inputs.prepare_release_assets == true
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: '*.zip'
 
       - name: Upload release ZIPs explicitly
         if: inputs.prepare_release_assets == true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.publish.outputs.release_artifact_name }}
           path: |
