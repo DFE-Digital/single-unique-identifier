@@ -130,6 +130,11 @@ jobs:
       - name: Show deployment context
         run: |
           echo "Environment: ${{ inputs.environment || github.event.inputs.environment }}"
+          echo "Artifact name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}"
+          echo "Artifact store: ${{ inputs.artifact_store || github.event.inputs.artifact_store }}"
+          echo "Package path: ${{ inputs.package_path || github.event.inputs.package_path }}"
+          echo "Component descriptor: ${{ inputs.component_descriptor || github.event.inputs.component_descriptor }}"
+          echo "Function app override: ${{ inputs.function_app_name || github.event.inputs.function_app_name }}"
           echo "Computed function app name: ${{ steps.app_name.outputs.functionapp_name }}"
 
       - name: Download build artifact (GitHub)
