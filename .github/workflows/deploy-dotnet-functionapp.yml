@@ -186,6 +186,11 @@ jobs:
           fi
           echo "rg=$rg" >> "$GITHUB_OUTPUT"
           
+          # Capture the original state of the master switch so we can restore it exactly
+          orig_pna=$(az functionapp show --resource-group "$rg" --name "$APP_NAME" --query publicNetworkAccess -o tsv)
+          echo "Original publicNetworkAccess is: $orig_pna"
+          echo "orig_pna=$orig_pna" >> "$GITHUB_OUTPUT"
+          
           echo "Adding IP $RUNNER_IP to $APP_NAME in resource group $rg (SCM/Kudu and Main Site)..."
           
           # Whitelist the deployment endpoint (Kudu)
@@ -206,6 +211,12 @@ jobs:
             --action Allow \
             --ip-address "$RUNNER_IP/32" \
             --priority 100
+          
+          # Turn on the master switch (if it was disabled)
+          if [ "$orig_pna" != "Enabled" ]; then
+            echo "Temporarily enabling publicNetworkAccess master switch..."
+            az functionapp update --resource-group "$rg" --name "$APP_NAME" --set publicNetworkAccess=Enabled
+          fi
           
           echo "Waiting for Azure firewall to propagate..."
           
@@ -242,10 +253,16 @@ jobs:
         env:
           APP_NAME: ${{ steps.app_name.outputs.functionapp_name }}
           RG: ${{ steps.whitelist.outputs.rg }}
+          ORIG_PNA: ${{ steps.whitelist.outputs.orig_pna }}
         run: |
           if [ -n "$RG" ] && [ -n "$APP_NAME" ]; then
-            echo "Removing IP from access restrictions..."
+            # Restore the master switch to its original secure state first
+            if [ "$ORIG_PNA" != "Enabled" ] && [ -n "$ORIG_PNA" ]; then
+              echo "Reverting publicNetworkAccess back to $ORIG_PNA..."
+              az functionapp update --resource-group "$RG" --name "$APP_NAME" --set publicNetworkAccess="$ORIG_PNA"
+            fi
           
+            echo "Removing IP from access restrictions..."
             az functionapp config access-restriction remove \
               --resource-group "$RG" \
               --name "$APP_NAME" \
