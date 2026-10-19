@@ -130,11 +130,6 @@ jobs:
       - name: Show deployment context
         run: |
           echo "Environment: ${{ inputs.environment || github.event.inputs.environment }}"
-          echo "Artifact name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}"
-          echo "Artifact store: ${{ inputs.artifact_store || github.event.inputs.artifact_store }}"
-          echo "Package path: ${{ inputs.package_path || github.event.inputs.package_path }}"
-          echo "Component descriptor: ${{ inputs.component_descriptor || github.event.inputs.component_descriptor }}"
-          echo "Function app override: ${{ inputs.function_app_name || github.event.inputs.function_app_name }}"
           echo "Computed function app name: ${{ steps.app_name.outputs.functionapp_name }}"
 
       - name: Download build artifact (GitHub)
@@ -163,8 +158,80 @@ jobs:
           test -f "$AZURE_FUNCTIONAPP_PACKAGE_PATH/host.json"
           test -f "$AZURE_FUNCTIONAPP_PACKAGE_PATH/functions.metadata"
 
+      # --- Dynamic IP Whitelisting Start ---
+      - name: Discover Runner IP
+        id: ip
+        run: |
+          ipv4=$(curl -s https://api.ipify.org)
+          echo "Runner IP is $ipv4"
+          echo "ipv4=$ipv4" >> "$GITHUB_OUTPUT"
+
+      - name: Temporarily Whitelist Runner IP
+        id: whitelist
+        env:
+          APP_NAME: ${{ steps.app_name.outputs.functionapp_name }}
+          RUNNER_IP: ${{ steps.ip.outputs.ipv4 }}
+        run: |
+          # Dynamically look up the Resource Group for the app
+          rg=$(az functionapp show --name "$APP_NAME" --query "resourceGroup" -o tsv)
+          if [ -z "$rg" ]; then
+            echo "Could not find Resource Group for $APP_NAME"
+            exit 1
+          fi
+          echo "rg=$rg" >> "$GITHUB_OUTPUT"
+
+          echo "Adding IP $RUNNER_IP to $APP_NAME (SCM/Kudu and Main Site)..."
+          
+          # Whitelist the deployment endpoint (Kudu)
+          az functionapp config access-restriction add \
+            --resource-group "$rg" \
+            --name "$APP_NAME" \
+            --rule-name "GitHubActionsDeploy" \
+            --action Allow \
+            --ip-address "$RUNNER_IP/32" \
+            --priority 100 \
+            --scm-site true
+
+          # Whitelist the main site (sometimes required by the action to verify state)
+          az functionapp config access-restriction add \
+            --resource-group "$rg" \
+            --name "$APP_NAME" \
+            --rule-name "GitHubActionsDeploy" \
+            --action Allow \
+            --ip-address "$RUNNER_IP/32" \
+            --priority 100
+
+          # Azure RM takes a moment to propagate networking rules
+          echo "Waiting 30 seconds for Azure firewall propagation..."
+          sleep 30
+      # --- Dynamic IP Whitelisting End ---
+
       - name: Deploy to Azure Function App
         uses: Azure/functions-action@c5060b3b8bb1ebbcb531abd00c822ecbaa8ea656 # v1
         with:
           app-name: ${{ steps.app_name.outputs.functionapp_name }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+
+      # --- Revert IP Whitelisting ---
+      - name: Remove Runner IP Whitelist
+        if: always() # Guarantee cleanup runs even if deployment fails
+        env:
+          APP_NAME: ${{ steps.app_name.outputs.functionapp_name }}
+          RG: ${{ steps.whitelist.outputs.rg }}
+        run: |
+          if [ -n "$RG" ] && [ -n "$APP_NAME" ]; then
+            echo "Removing IP from access restrictions..."
+          
+            az functionapp config access-restriction remove \
+              --resource-group "$RG" \
+              --name "$APP_NAME" \
+              --rule-name "GitHubActionsDeploy" \
+              --scm-site true || true
+          
+            az functionapp config access-restriction remove \
+              --resource-group "$RG" \
+              --name "$APP_NAME" \
+              --rule-name "GitHubActionsDeploy" || true
+          else
+            echo "Skipping cleanup: RG or APP_NAME is empty."
+          fi
