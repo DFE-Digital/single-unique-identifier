@@ -177,15 +177,16 @@ jobs:
           APP_NAME: ${{ steps.app_name.outputs.functionapp_name }}
           RUNNER_IP: ${{ steps.ip.outputs.ipv4 }}
         run: |
-          # Dynamically look up the Resource Group for the app
-          rg=$(az functionapp show --name "$APP_NAME" --query "resourceGroup" -o tsv)
+          # Search the subscription to find the Resource Group for the app
+          rg=$(az functionapp list --query "[?name=='$APP_NAME'].resourceGroup" -o tsv)
+          
           if [ -z "$rg" ]; then
             echo "Could not find Resource Group for $APP_NAME"
             exit 1
           fi
           echo "rg=$rg" >> "$GITHUB_OUTPUT"
-
-          echo "Adding IP $RUNNER_IP to $APP_NAME (SCM/Kudu and Main Site)..."
+          
+          echo "Adding IP $RUNNER_IP to $APP_NAME in resource group $rg (SCM/Kudu and Main Site)..."
           
           # Whitelist the deployment endpoint (Kudu)
           az functionapp config access-restriction add \
