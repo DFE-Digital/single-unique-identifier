@@ -206,10 +206,28 @@ jobs:
             --action Allow \
             --ip-address "$RUNNER_IP/32" \
             --priority 100
-
-          # Azure RM takes a moment to propagate networking rules
-          echo "Waiting 30 seconds for Azure firewall propagation..."
-          sleep 30
+          
+          echo "Waiting for Azure firewall to propagate..."
+          
+          # Smart polling: ping the SCM endpoint until it stops returning 403
+          # We expect a 401 (Unauthorized) because our curl lacks credentials, 
+          # but 401 proves the network firewall has allowed our IP through.
+          SCM_URL="https://${APP_NAME}.scm.azurewebsites.net"
+          
+          end=$((SECONDS+180)) # 3 minute maximum timeout
+          while [ $SECONDS -lt $end ]; do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "$SCM_URL")
+            if [ "$status" != "403" ] && [ "$status" != "000" ]; then
+              echo "✅ Firewall propagated! Kudu returned HTTP $status"
+              break
+            fi
+            echo "Still getting 403 (Forbidden)... waiting 10s for Azure to sync..."
+            sleep 10
+          done
+          
+          if [ $SECONDS -ge $end ]; then
+            echo "⚠️ Warning: Firewall propagation timed out after 3 minutes. Deployment may fail."
+          fi
       # --- Dynamic IP Whitelisting End ---
 
       - name: Deploy to Azure Function App
