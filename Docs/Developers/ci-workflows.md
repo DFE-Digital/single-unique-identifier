@@ -10,6 +10,12 @@ Top-level app workflows live in [`.github/workflows/*-build-and-deploy.yml`](../
 - [`deploy-dotnet-webapp.yml`](../../.github/workflows/deploy-dotnet-webapp.yml) - deploys a web app from a build artifact.
 - [`deploy-dotnet-functionapp.yml`](../../.github/workflows/deploy-dotnet-functionapp.yml) - deploys a function app from a build artifact.
 
+Both .NET build workflows select the exact patched SDK in `global.json` and log
+its version. The release build restores committed NuGet locks in locked mode,
+then builds, tests and publishes deployment output with `--no-build`. When the
+SDK changes, regenerate affected locks with that SDK and validate locked
+restore before merging.
+
 ## Artifact storage backends
 
 Artifacts can be stored in either GitHub or Azure Blob, controlled by the `artifact_store` input:
