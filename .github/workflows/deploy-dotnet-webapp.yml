@@ -31,10 +31,9 @@ on:
         required: false
         default: publish
         type: string
-      artifact_store:
-        description: Storage backend for build artifacts (github or azure)
+      artifact_run_id:
+        description: Workflow run containing the GitHub Actions artifact (defaults to this workflow run)
         required: false
-        default: github
         type: string
     secrets:
       AZURE_CLIENT_ID:
@@ -43,12 +42,6 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
-      AZURE_ARTIFACTS_ACCOUNT:
-        required: false
-      AZURE_ARTIFACTS_CONTAINER:
-        required: false
-      AZURE_ARTIFACTS_SAS:
-        required: false
   workflow_dispatch:
     inputs:
       environment:
@@ -75,15 +68,15 @@ on:
         required: false
         default: publish
         type: string
-      artifact_store:
-        description: Storage backend for build artifacts (github or azure)
-        required: false
-        default: azure
+      artifact_run_id:
+        description: Workflow run ID that uploaded the GitHub Actions artifact
+        required: true
         type: string
 
 permissions:
   id-token: write
   contents: read
+  actions: read
 
 jobs:
   deploy:
@@ -131,28 +124,19 @@ jobs:
         run: |
           echo "Environment: ${{ inputs.environment || github.event.inputs.environment }}"
           echo "Artifact name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}"
-          echo "Artifact store: ${{ inputs.artifact_store || github.event.inputs.artifact_store }}"
+          echo "Artifact workflow run: ${{ inputs.artifact_run_id || github.event.inputs.artifact_run_id || github.run_id }}"
           echo "Package path: ${{ inputs.package_path || github.event.inputs.package_path }}"
           echo "Component descriptor: ${{ inputs.component_descriptor || github.event.inputs.component_descriptor }}"
           echo "Web app override: ${{ inputs.web_app_name || github.event.inputs.web_app_name }}"
           echo "Computed web app name: ${{ steps.app_name.outputs.webapp_name }}"
 
       - name: Download build artifact (GitHub)
-        if: (inputs.artifact_store || github.event.inputs.artifact_store) != 'azure'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}
           path: ${{ (inputs.package_path || github.event.inputs.package_path) }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
-
-      - name: Download build artifact (Azure)
-        if: (inputs.artifact_store || github.event.inputs.artifact_store) == 'azure'
-        uses: ./.github/actions/download-blob-artifact
-        with:
-          artifact_name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}
-          destination_path: ${{ (inputs.package_path || github.event.inputs.package_path) }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
-          account_name: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT || vars.AZURE_ARTIFACTS_ACCOUNT }}
-          container_name: ${{ secrets.AZURE_ARTIFACTS_CONTAINER || vars.AZURE_ARTIFACTS_CONTAINER }}
-          sas_token: ${{ secrets.AZURE_ARTIFACTS_SAS }}
+          run-id: ${{ inputs.artifact_run_id || github.event.inputs.artifact_run_id || github.run_id }}
+          github-token: ${{ github.token }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3
