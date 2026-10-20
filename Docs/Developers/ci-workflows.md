@@ -114,7 +114,7 @@ To ensure operational resilience and rapid response to supply-chain or infrastru
 2. **Investigate:** Review the GitHub Actions run logs. The SUI Technical Lead will assign an engineer if the issue requires further investigation.
 3. **Resolve / Escalate:** Escalate to the SUI Technical Lead if nobody takes ownership or the assigned engineer needs support.
 
-## Release validation (SUI-2078)
+## Release validation
 
 The release orchestrator currently validates pull requests and supports manual
 validation. It selects affected components from changed paths, with shared SDK,
@@ -122,7 +122,8 @@ NuGet, library and release-workflow changes selecting every affected app. A
 manual run can select all components with `force_deploy_all`.
 
 - `ci-cd-orchestrator.yml` builds and scans selected components, including a
-  local Notification Service container build. It does not publish container
+  local Notification Service container build from its tested deployment ZIP.
+  The final image is scanned locally and the workflow does not publish container
   images or create GitHub Releases.
 - `build-test-dotnet-release.yml` contains the isolated release build, ZIP and
   attestation groundwork. Existing app workflows continue to call
@@ -149,7 +150,7 @@ manual run can select all components with `force_deploy_all`.
 - Complete manifest inputs/outcomes and end-to-end validation before restoring
   automatic protected-main release creation. Keep the security gates and
   build-time ZIP attestations in that path.
-- Promotion and deployment from immutable releases belong to SUI-2079. The
+- Promotion and deployment from immutable releases are handled separately. The
   release orchestrator does not deploy applications or apply Terraform.
 
 ## Environment Labels
