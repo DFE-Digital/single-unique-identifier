@@ -1,0 +1,9 @@
+# Build context must be the extracted, tested SUI.NotificationService publish output.
+# Pin the Linux amd64 manifest digest returned by Microsoft Container Registry.
+FROM mcr.microsoft.com/dotnet/runtime:10.0@sha256:d8f92f5f384147888849cf5cf88a296127721f87bba0182391422c02f8d759b4
+
+WORKDIR /app
+COPY . .
+
+USER $APP_UID
+ENTRYPOINT ["dotnet", "SUI.NotificationService.dll"]

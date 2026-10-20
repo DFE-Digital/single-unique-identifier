@@ -209,13 +209,20 @@ dotnet test Apps/NotificationService/NotificationService.slnx
 
 ## Container image
 
-Build the same image used by CI from the repository root:
+The existing `Dockerfile` builds from source for the current deployment workflow. The release
+workflow uses `Dockerfile.release` to package the already-tested publish output without
+restoring, building or publishing the application again. Extract the Notification Service ZIP
+created by the release build, then pass that output directory as the Docker build context:
 
 ```bash
-docker build --file Apps/NotificationService/Dockerfile --tag notification-service:local .
+Apps/NotificationService/scripts/build-release-image.sh \
+  ./notification-service-publish notification-service:release-local
 ```
 
-The runtime container uses the non-root .NET application user and returns the application's exit code.
+The output directory must contain `SUI.NotificationService.dll`. The release Dockerfile pins the
+Microsoft .NET 10 runtime image to its Linux amd64 manifest digest, uses the non-root .NET
+application user, and returns the application's exit code. The release workflow must extract the
+tested ZIP and use that directory as the build context; it must not rebuild the application.
 
 ## Azure deployment
 
