@@ -92,11 +92,18 @@ jobs:
           global-json-file: global.json
           cache: true
           cache-dependency-path: |
+            global.json
+            nuget.config
             ${{ inputs.directory_name }}/**/*.csproj
-            ${{ inputs.directory_name }}/Directory.Packages.props
+            ${{ inputs.directory_name }}/**/packages.lock.json
+            Libs/**/*.csproj
+            Libs/**/packages.lock.json
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+      - name: Log .NET SDK version
+        run: dotnet --version
 
       - name: Setup Java 21
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
