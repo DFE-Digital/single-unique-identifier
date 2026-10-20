@@ -114,24 +114,27 @@ To ensure operational resilience and rapid response to supply-chain or infrastru
 2. **Investigate:** Review the GitHub Actions run logs. The SUI Technical Lead will assign an engineer if the issue requires further investigation.
 3. **Resolve / Escalate:** Escalate to the SUI Technical Lead if nobody takes ownership or the assigned engineer needs support.
 
-## Release groundwork (SUI-2078)
+## Release validation (SUI-2078)
 
-The immutable-release flow is not enabled yet. SUI-2078 remains open until the
-release implementation is completed and validated.
+The release orchestrator currently validates pull requests and supports manual
+validation. It selects affected components from changed paths, with shared SDK,
+NuGet, library and release-workflow changes selecting every affected app. A
+manual run can select all components with `force_deploy_all`.
 
-- `ci-cd-orchestrator.yml` has only a manual trigger and an explicit disabled
-  guard on change detection. It is retained for follow-up development; do not
-  run or enable it as an operational workflow yet.
+- `ci-cd-orchestrator.yml` builds and scans selected components, including a
+  local Notification Service container build. It does not publish container
+  images or create GitHub Releases.
 - `build-test-dotnet-release.yml` contains the isolated release build, ZIP and
   attestation groundwork. Existing app workflows continue to call
   `build-test-dotnet.yml` and use the existing deployment paths.
+- Automatic protected-main release creation remains disabled until the full
+  release path is validated and deliberately activated.
 - Existing GitHub/Azure Blob artifact backend support is retained for now.
   Retiring Azure deployment artifact storage is deferred to the follow-up.
   Terraform state storage and locking are unchanged.
-- Finish release change detection, manifest inputs/outcomes and end-to-end
-  validation before restoring automatic protected-main release creation and
-  removing the disabled guard. Keep the passing security gates and build-time
-  ZIP attestations in that path.
+- Complete manifest inputs/outcomes and end-to-end validation before restoring
+  automatic protected-main release creation. Keep the security gates and
+  build-time ZIP attestations in that path.
 - Promotion and deployment from immutable releases belong to SUI-2079. The
   release orchestrator does not deploy applications or apply Terraform.
 
