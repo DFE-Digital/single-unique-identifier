@@ -26,11 +26,6 @@ on:
         required: false
         default: false
         type: boolean
-      artifact_store:
-        description: Artifact storage backend (github or azure)
-        required: false
-        default: azure
-        type: string
       skip_tests:
         description: Skip tests and related setup
         required: false
@@ -59,9 +54,6 @@ jobs:
     name: AuthEmulator - Build Test Dotnet
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets:
-      AZURE_ARTIFACTS_ACCOUNT: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT }}
-      AZURE_ARTIFACTS_CONTAINER: ${{ secrets.AZURE_ARTIFACTS_CONTAINER }}
-      AZURE_ARTIFACTS_SAS: ${{ secrets.AZURE_ARTIFACTS_SAS }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       id-token: write
@@ -73,7 +65,6 @@ jobs:
       directory_name: Apps/AuthEmulator
       project_names: '["SUI.AuthEmulator"]'
       upload_artifacts: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.deploy == 'true' || github.event.inputs.upload_artifacts == 'true')) || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
       skip_tests: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_tests == 'true' }}
       skip_scans: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.skip_scans == 'true' }}
       deploy_requested: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true' }}
@@ -89,16 +80,14 @@ jobs:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZURE_ARTIFACTS_ACCOUNT: ${{ secrets.AZURE_ARTIFACTS_ACCOUNT }}
-      AZURE_ARTIFACTS_CONTAINER: ${{ secrets.AZURE_ARTIFACTS_CONTAINER }}
-      AZURE_ARTIFACTS_SAS: ${{ secrets.AZURE_ARTIFACTS_SAS }}
     permissions:
       id-token: write
       contents: read
+      actions: read
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'd01' }}
       directory_name: Apps/AuthEmulator
       artifact_name: ${{ fromJson(needs.build-and-test-AuthEmulator.outputs.artifact_names)['SUI.AuthEmulator'] }}
-      artifact_store: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.artifact_store || vars.ARTIFACT_STORE || 'azure' }}
+      artifact_run_id: ${{ github.run_id }}
       component_descriptor: authemulator01
       package_path: publish

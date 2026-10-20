@@ -1,6 +1,6 @@
 # CI workflows
 
-This repo uses reusable workflows. The goal is to keep the top-level workflows thin and move shared logic into reusable workflows and local actions. Self-hosted runner details (and the Azure artifact storage workaround) live in [Docs/Developers/ci-self-hosted-runner.md](./ci-self-hosted-runner.md).
+This repo uses reusable workflows. The goal is to keep the top-level workflows thin and move shared logic into reusable workflows and local actions. Historical self-hosted runner details are in [ci-self-hosted-runner.md](./ci-self-hosted-runner.md).
 
 ## Workflow layout
 
@@ -16,29 +16,16 @@ then builds, tests and publishes deployment output with `--no-build`. When the
 SDK changes, regenerate affected locks with that SDK and validate locked
 restore before merging.
 
-## Artifact storage backends
+## Application build artifacts
 
-Artifacts can be stored in either GitHub or Azure Blob, controlled by the `artifact_store` input:
-
-- `github` - uses GitHub Actions artifacts.
-- `azure` - uploads to Azure Blob using AzCopy.
-
-Manual runs default to `azure`. For push runs, set the repo variable `ARTIFACT_STORE` to `azure` or `github`. These flags make it easy to switch back when GitHub rate/budget limits are no longer an issue.
-
-### Azure Blob settings
-
-Azure uploads/downloads are handled by local composite actions:
-
-- [`.github/actions/upload-blob-artifacts`](../../.github/actions/upload-blob-artifacts)
-- [`.github/actions/download-blob-artifact`](../../.github/actions/download-blob-artifact)
-
-These create a zip per project (matching the GitHub artifact structure) and unzip on download.
-
-Required secrets/vars:
-
-- `AZURE_ARTIFACTS_SAS` (secret) - container SAS token.
-- `AZURE_ARTIFACTS_ACCOUNT` (secret or repo variable) - storage account name.
-- `AZURE_ARTIFACTS_CONTAINER` (secret or repo variable) - container name.
+Application deployment artifacts are uploaded to GitHub Actions by the shared
+build workflow and downloaded by the deploy workflows. The build and deploy
+jobs in the app workflows use the same workflow run. When starting a deploy
+workflow separately, provide both the exact artifact name and the ID of the
+workflow run that uploaded it (`artifact_run_id`). The run must belong to this
+repository and the artifact must still be retained; the current default
+retention period is 60 days. Terraform state continues to use the existing
+Azure Blob backend and locking.
 
 ## Manual run inputs
 
@@ -48,34 +35,32 @@ Top-level workflows accept the following inputs on `workflow_dispatch`:
 - `upload_artifacts` - allows artifact upload without deploying.
 - `skip_tests` - skips tests and Azurite/coverage setup.
 - `skip_scans` - skips SonarCloud scanning steps.
-- `artifact_store` - `github` or `azure`.
 
 Deployments are blocked when `skip_tests` or `skip_scans` is true.
 
 ## Manual deploy workflows
 
-You can run the deploy workflows directly (without a build) and provide an existing artifact name:
+You can run the deploy workflows directly (without a build) and provide an existing GitHub Actions artifact:
 
 - [`deploy-dotnet-webapp.yml`](../../.github/workflows/deploy-dotnet-webapp.yml)
 - [`deploy-dotnet-functionapp.yml`](../../.github/workflows/deploy-dotnet-functionapp.yml)
 
 Required inputs when running manually:
 
-- `artifact_name` - the exact build artifact name (without a `.zip` suffix), e.g. `Find-SUI.Find.FindApi-20260220-4b3e5b2-build`.
+- `artifact_name` - the exact build artifact name, e.g. `Find-SUI.Find.FindApi-20260220-4b3e5b2-build`.
+- `artifact_run_id` - the workflow run ID that uploaded the artifact.
 - Either `component_descriptor` or the full app name override (`web_app_name` / `function_app_name`), e.g. `find01` or `s270d01func-ukw-01-find01`.
-- `artifact_store` - `github` or `azure` (defaults to `azure` for manual deploys), e.g. `azure`.
 
 ## Adding a new app workflow
 
 1. Add a new `*-build-and-deploy.yml` in [`.github/workflows`](../../.github/workflows).
-2. Call `build-test-dotnet.yml` with `project_names`, `directory_name`, and `artifact_store`.
+2. Call `build-test-dotnet.yml` with `project_names` and `directory_name`.
 3. Call the appropriate deploy workflow and pass the artifact name from `build-test-dotnet.yml` outputs.
 4. Keep `runs-on` consistent with the `RUNNER_LABELS` variable (JSON array). Default is `["ubuntu-latest"]`.
 
 ## Troubleshooting
 
-- If Azure uploads fail with missing inputs, ensure secrets/vars are set at the repo level (not just environment scope).
-- If deployments fail due to artifacts not found, verify the artifact names and storage backend match across build and deploy jobs.
+- If deployments fail because an artifact cannot be found, verify the artifact name, source run ID, repository and retention period.
 
 ## Security scanning
 
@@ -106,7 +91,7 @@ To ensure operational resilience and rapid response to supply-chain or infrastru
 | **Automatic Deployments**        | Pushes to `main` triggering automatic deployments (e.g., Get An Identifier, Auth Emulator, UI Harness, etc.)      | SUI Engineering Team      | Monitored manually by the team. Failures should be reported to the internal engineering Slack channel. The SUI Technical Lead assigns an engineer if further investigation is needed. |
 | **Manual Deployments**           | Manual workflow dispatches to `d01`, `d02`, `d03`, and targeted Terraform Applies                                 | Person running deployment | The person running the deployment is responsible for checking the run and reporting failures to the internal engineering Slack channel. |
 | **Dependency Updates**           | Dependabot PRs (NuGet & Actions) failing checks or blocked by policy                                              | SUI Engineering Team      | Reviewed in bi-weekly sprint planning or reported to the internal engineering Slack channel.                                                                            |
-| **Credential / Key Expirations** | Azure OIDC failures, Azure Blob SAS token expiry, NHS MESH / Digital certificate expiry                           | SUI Technical Lead        | *Automated rotation is not currently implemented.* Manual renewals and unexpected authentication failures are managed by the SUI Technical Lead via the internal engineering Slack channel. |
+| **Credential / Key Expirations** | Azure OIDC failures, NHS MESH / Digital certificate expiry                                                        | SUI Technical Lead        | *Automated rotation is not currently implemented.* Manual renewals and unexpected authentication failures are managed by the SUI Technical Lead via the internal engineering Slack channel. |
 
 ## Escalation Process
 
@@ -144,9 +129,8 @@ manual run can select all components with `force_deploy_all`.
   from that tag. The manifest always includes `container`, set to `null` unless
   Notification Service is selected; otherwise it records the immutable image
   and pinned runtime base digest.
-- Existing GitHub/Azure Blob artifact backend support is retained for now.
-  Retiring Azure deployment artifact storage is deferred to the follow-up.
-  Terraform state storage and locking are unchanged.
+- Application deployment artifacts use GitHub Actions artifacts. Terraform
+  state storage and locking continue to use Azure Blob and are unchanged.
 - Complete manifest inputs/outcomes and end-to-end validation before restoring
   automatic protected-main release creation. Keep the security gates and
   build-time ZIP attestations in that path.
