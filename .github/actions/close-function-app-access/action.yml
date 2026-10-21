@@ -1,0 +1,72 @@
+name: Close Function App SCM Access
+description: Restores publicNetworkAccess to Disabled and removes the temporary runner IP whitelist.
+
+inputs:
+  app_name:
+    description: Name of the Azure Function App
+    required: true
+  resource_group:
+    description: Resource Group of the Azure Function App
+    required: false
+    default: ""
+  rule_name:
+    description: Unique name for the temporary access restriction rule to remove
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Remove Runner IP Whitelist
+      shell: bash
+      env:
+        APP_NAME: ${{ inputs.app_name }}
+        RG: ${{ inputs.resource_group }}
+        RULE_NAME: ${{ inputs.rule_name }}
+      run: |
+        if [ -z "$RG" ] || [ -z "$APP_NAME" ]; then
+          echo "Skipping cleanup: RG or APP_NAME is empty."
+          exit 0
+        fi
+
+        echo "Starting robust cleanup for $APP_NAME..."
+        cleanup_failed=false
+
+        chmod +x .github/scripts/retry-command.sh
+        source .github/scripts/retry-command.sh
+
+        echo "1. Restoring publicNetworkAccess to Disabled..."
+        if ! retry_command az functionapp update --resource-group "$RG" --name "$APP_NAME" --set publicNetworkAccess=Disabled; then
+          echo "::error::Failed to disable publicNetworkAccess after multiple attempts."
+          cleanup_failed=true
+        fi
+
+        echo "2. Removing IP from SCM access restrictions..."
+        if ! retry_command az functionapp config access-restriction remove --resource-group "$RG" --name "$APP_NAME" --rule-name "$RULE_NAME" --scm-site true; then
+          echo "::error::Failed to remove SCM access restriction after multiple attempts."
+          cleanup_failed=true
+        fi
+
+        echo "3. Verifying final security state..."
+
+        pna=$(az functionapp show --resource-group "$RG" --name "$APP_NAME" --query publicNetworkAccess -o tsv)
+        if [ "$pna" != "Disabled" ]; then
+          echo "::error::Verification failed: publicNetworkAccess is '$pna', expected 'Disabled'."
+          cleanup_failed=true
+        else
+          echo "✅ publicNetworkAccess successfully verified as Disabled."
+        fi
+
+        rules=$(az functionapp config access-restriction show --resource-group "$RG" --name "$APP_NAME" --query "scmIpSecurityRestrictions[?name=='$RULE_NAME'] | length(@)" -o tsv)
+        if [ "$rules" != "0" ]; then
+          echo "::error::Verification failed: Rule '$RULE_NAME' still exists."
+          cleanup_failed=true
+        else
+          echo "✅ Temporary access restriction successfully verified as removed."
+        fi
+
+        if [ "$cleanup_failed" = true ]; then
+          echo "::error::Cleanup did not complete successfully. Azure resources may be exposed!"
+          exit 1
+        fi
+
+        echo "Cleanup completed successfully!"
