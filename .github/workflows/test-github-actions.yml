@@ -1,0 +1,43 @@
+name: GitHub action tests
+
+on:
+  pull_request:
+    paths:
+      - .github/actions/**
+      - .github/workflows/test-github-actions.yml
+  push:
+    branches:
+      - main
+    paths:
+      - .github/actions/**
+      - .github/workflows/test-github-actions.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test GitHub action helpers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+
+      - name: Run GitHub action tests
+        shell: bash
+        run: |
+          mapfile -d '' test_files < <(find .github/actions -type f \
+            \( -name '*.test.js' -o -name '*.spec.js' -o -name '*.test.mjs' -o -name '*.spec.mjs' \
+            -o -name '*.test.cjs' -o -name '*.spec.cjs' \) -print0)
+
+          if (( ${#test_files[@]} == 0 )); then
+            echo 'No GitHub action tests found.'
+            exit 0
+          fi
+
+          node --test "${test_files[@]}"
