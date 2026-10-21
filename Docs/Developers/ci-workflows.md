@@ -129,6 +129,20 @@ manual run can select all components with `force_deploy_all`.
   `build-test-dotnet.yml` and use the existing deployment paths.
 - Automatic protected-main release creation remains disabled until the full
   release path is validated and deliberately activated.
+- The release build uploads one ZIP artifact per selected component. On a main
+  push, `attest-release-zips.yml` signs the exact downloaded ZIP bytes with
+  `actions/attest`; PR and manual validation cannot call this signing workflow
+  or receive its attestation permissions. The release
+  manifest validator checks the selected ZIPs, their SHA-256 hashes and byte
+  sizes, source commit, workflow run and attempt, and actual quality gate
+  outcomes. UIHarness records its intentional test and Sonar exemptions as
+  `skipped`; other components require `success` for both gates. The source
+  commit and signed attestation identify the SDK, lock files and publish
+  settings without duplicating them in the manifest. The manifest uses the
+  immutable tag and source SHA; consumers can resolve the GitHub release ID
+  from that tag. The manifest always includes `container`, set to `null` unless
+  Notification Service is selected; otherwise it records the immutable image
+  and pinned runtime base digest.
 - Existing GitHub/Azure Blob artifact backend support is retained for now.
   Retiring Azure deployment artifact storage is deferred to the follow-up.
   Terraform state storage and locking are unchanged.

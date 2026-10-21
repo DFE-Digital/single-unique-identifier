@@ -28,18 +28,15 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
-  attestations: write
-  pull-requests: write
-  checks: write
-  packages: read
-  actions: write
-  id-token: write
+  contents: read
 
 jobs:
   path-filter:
     name: Detect Changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       auth_emulator: ${{ steps.filter.outputs.auth_emulator }}
       get_an_id: ${{ steps.filter.outputs.get_an_id }}
@@ -50,7 +47,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Paths Filter
         id: filter
-        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4, enterprise-approved SHA
         with:
           filters: |
             auth_emulator:
@@ -62,6 +59,7 @@ jobs:
               - 'Directory.Build.targets'
               - 'Directory.Packages.props'
               - '.github/workflows/build-test-dotnet-release.yml'
+              - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
               - '.github/scripts/**'
             get_an_id:
@@ -73,6 +71,7 @@ jobs:
               - 'Directory.Build.targets'
               - 'Directory.Packages.props'
               - '.github/workflows/build-test-dotnet-release.yml'
+              - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
               - '.github/scripts/**'
             notification_service:
@@ -87,6 +86,7 @@ jobs:
               - 'Directory.Build.targets'
               - 'Directory.Packages.props'
               - '.github/workflows/build-test-dotnet-release.yml'
+              - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
               - '.github/scripts/**'
             ui_harness:
@@ -98,6 +98,7 @@ jobs:
               - 'Directory.Build.targets'
               - 'Directory.Packages.props'
               - '.github/workflows/build-test-dotnet-release.yml'
+              - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
               - '.github/scripts/**'
 
@@ -106,92 +107,68 @@ jobs:
     needs: path-filter
     if: needs.path-filter.outputs.auth_emulator == 'true' || inputs.force_deploy_all
     uses: ./.github/workflows/build-test-dotnet-release.yml
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
-      id-token: write
-      contents: write
-      attestations: write
+      contents: read
       pull-requests: write
-      checks: write
       packages: read
-      actions: write
     with:
       directory_name: Apps/AuthEmulator
       project_names: '["SUI.AuthEmulator"]'
-      upload_artifacts: true
-      prepare_release_assets: true
       skip_tests: ${{ inputs.skip_tests || false }}
       skip_scans: ${{ inputs.skip_scans || false }}
-      deploy_requested: false
 
   build-get-an-id:
     name: GetAnIdentifier - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.get_an_id == 'true' || inputs.force_deploy_all
     uses: ./.github/workflows/build-test-dotnet-release.yml
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
-      id-token: write
-      contents: write
-      attestations: write
+      contents: read
       pull-requests: write
-      checks: write
       packages: read
-      actions: write
     with:
       directory_name: Apps/GetAnIdentifier
       project_names: '["SUI.GetAnIdentifier.API"]'
       requires_azurite: true
-      upload_artifacts: true
-      prepare_release_assets: true
       skip_tests: ${{ inputs.skip_tests || false }}
       skip_scans: ${{ inputs.skip_scans || false }}
-      deploy_requested: false
 
   build-ui-harness:
     name: UIHarness - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.ui_harness == 'true' || inputs.force_deploy_all
     uses: ./.github/workflows/build-test-dotnet-release.yml
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
-      id-token: write
-      contents: write
-      attestations: write
+      contents: read
       pull-requests: write
-      checks: write
       packages: read
-      actions: write
     with:
       directory_name: Apps/UIHarness
       project_names: '["SUI.UIHarness.Web"]'
-      upload_artifacts: true
-      prepare_release_assets: true
       skip_tests: true
       skip_scans: true
-      deploy_requested: false
 
   build-notification-service:
     name: Notification Service - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.notification_service == 'true' || inputs.force_deploy_all
     uses: ./.github/workflows/build-test-dotnet-release.yml
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
-      id-token: write
-      contents: write
-      attestations: write
+      contents: read
       pull-requests: write
-      checks: write
       packages: read
-      actions: write
     with:
       directory_name: Apps/NotificationService
       project_names: '["SUI.NotificationService"]'
       requires_azurite: true
-      deploy_requested: false
-      upload_artifacts: true
-      prepare_release_assets: true
       skip_tests: ${{ inputs.skip_tests || false }}
       skip_scans: ${{ inputs.skip_scans || false }}
 
@@ -236,3 +213,24 @@ jobs:
   trivy-iac-scan:
     name: Trivy IaC scan
     uses: ./.github/workflows/trivy-iac.yml
+
+  attest-release-zips:
+    name: Attest tested deployment ZIPs
+    needs: [path-filter, build-auth-emulator, build-get-an-id, build-ui-harness, build-notification-service]
+    if: >-
+      ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          (needs.path-filter.outputs.auth_emulator == 'true' ||
+           needs.path-filter.outputs.get_an_id == 'true' ||
+           needs.path-filter.outputs.ui_harness == 'true' ||
+           needs.path-filter.outputs.notification_service == 'true') &&
+          (needs.path-filter.outputs.auth_emulator != 'true' || needs.build-auth-emulator.result == 'success') &&
+          (needs.path-filter.outputs.get_an_id != 'true' || needs.build-get-an-id.result == 'success') &&
+          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') &&
+          (needs.path-filter.outputs.notification_service != 'true' || needs.build-notification-service.result == 'success') }}
+    uses: ./.github/workflows/attest-release-zips.yml
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write

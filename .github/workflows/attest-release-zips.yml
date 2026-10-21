@@ -1,0 +1,35 @@
+name: Attest tested release ZIPs
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  attest:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - name: Download tested deployment ZIPs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: release-zips-*
+          path: drop
+          merge-multiple: true
+      - name: Require deployment ZIPs
+        shell: bash
+        run: |
+          shopt -s nullglob
+          zips=(drop/*.zip)
+          (( ${#zips[@]} > 0 ))
+      - name: Attest exact deployment ZIPs
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: 'drop/*.zip'
