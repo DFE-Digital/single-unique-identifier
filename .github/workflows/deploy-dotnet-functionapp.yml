@@ -201,6 +201,9 @@ jobs:
           RUNNER_IP: ${{ steps.ip.outputs.ipv4 }}
           RULE_NAME: ${{ env.RULE_NAME }}
         run: |
+          chmod +x .github/scripts/retry-command.sh
+          source .github/scripts/retry-command.sh
+          
           # Search the subscription to find the Resource Group for the app
           rg=$(az functionapp list --query "[?name=='$APP_NAME'].resourceGroup" -o tsv)
           
@@ -212,19 +215,32 @@ jobs:
 
           echo "Sweeping for stale deployment rules from interrupted runs..."
           stale_rules=$(az functionapp config access-restriction show --resource-group "$rg" --name "$APP_NAME" --query "scmIpSecurityRestrictions[?starts_with(name, 'github-deploy-')].name" -o tsv)
+          if [ $? -ne 0 ]; then
+            echo "::error::Failed to query existing access restrictions."
+            exit 1
+          fi
           
           for stale_rule in $stale_rules; do
             echo "Removing orphaned rule: $stale_rule"
-            az functionapp config access-restriction remove --resource-group "$rg" --name "$APP_NAME" --rule-name "$stale_rule" --scm-site true || true
+            if ! retry_command az functionapp config access-restriction remove --resource-group "$rg" --name "$APP_NAME" --rule-name "$stale_rule" --scm-site true; then
+               echo "::error::Failed to remove stale rule $stale_rule after retries."
+               exit 1
+            fi
           done
-
+          
+          remaining_stale=$(az functionapp config access-restriction show --resource-group "$rg" --name "$APP_NAME" --query "scmIpSecurityRestrictions[?starts_with(name, 'github-deploy-')].name" -o tsv)
+          if [ -n "$remaining_stale" ]; then
+            echo "::error::Stale rules still remain after cleanup attempt."
+            exit 1
+          fi
+          
           echo "Running preflight security checks..."
           
           pna=$(az functionapp show --resource-group "$rg" --name "$APP_NAME" --query publicNetworkAccess -o tsv)
           echo "Current publicNetworkAccess: $pna"
           
           if [ "$pna" != "Disabled" ]; then
-            echo "Error: publicNetworkAccess must be Disabled before deployment starts."
+            echo "::error::publicNetworkAccess must be Disabled before deployment starts."
             exit 1
           fi
 
@@ -235,18 +251,24 @@ jobs:
           use_main=$(echo "$restrictions" | jq -r '.scmIpSecurityRestrictionsUseMain')
           
           if [ "$main_default" != "Deny" ] || [ "$scm_default" != "Deny" ]; then
-            echo "Error: Default access restriction action is not Deny (Main: $main_default, SCM: $scm_default)."
+            echo "::error::Default access restriction action is not Deny (Main: $main_default, SCM: $scm_default)."
             exit 1
           fi
           
           if [ "$use_main" != "false" ]; then
-            echo "Error: SCM is inheriting main site restrictions (scmIpSecurityRestrictionsUseMain is true)."
+            echo "::error::SCM is inheriting main site restrictions (scmIpSecurityRestrictionsUseMain is true)."
             exit 1
           fi
           
-          open_rules=$(echo "$restrictions" | jq -r '[.ipSecurityRestrictions[], .scmIpSecurityRestrictions[] | select(.action=="Allow" and (.ipAddress=="Any" or .ipAddress=="0.0.0.0/0"))] | length')
-          if [ "$open_rules" -gt 0 ]; then
-            echo "Error: Found unexpected public Allow rules (0.0.0.0/0)."
+          main_allow_rules=$(echo "$restrictions" | jq -r '[.ipSecurityRestrictions[] | select(.action=="Allow")] | length')
+          if [ "$main_allow_rules" -gt 0 ]; then
+            echo "::error::Found $main_allow_rules unexpected Allow rule(s) on the main API. The main API must have zero allow rules during deployment."
+            exit 1
+          fi
+          
+          scm_open_rules=$(echo "$restrictions" | jq -r '[.scmIpSecurityRestrictions[] | select(.action=="Allow" and (.ipAddress=="Any" or .ipAddress=="0.0.0.0/0"))] | length')
+          if [ "$scm_open_rules" -gt 0 ]; then
+            echo "::error::Found unexpected public Allow rules (0.0.0.0/0) on the SCM endpoint."
             exit 1
           fi
           
@@ -312,34 +334,18 @@ jobs:
 
           echo "Starting robust cleanup for $APP_NAME..."
           cleanup_failed=false
-
-          retry_command() {
-            local cmd="$1"
-            local max_attempts=3
-            local attempt=1
-            local delay=5
-
-            while [ $attempt -le $max_attempts ]; do
-              echo "Executing (Attempt $attempt): $cmd"
-              if eval "$cmd"; then
-                return 0
-              fi
-              echo "Command failed. Retrying in $delay seconds..."
-              sleep $delay
-              attempt=$((attempt + 1))
-              delay=$((delay * 2))
-            done
-            return 1
-          }
-
+          
+          chmod +x .github/scripts/retry-command.sh
+          source .github/scripts/retry-command.sh
+          
           echo "1. Restoring publicNetworkAccess to Disabled..."
-          if ! retry_command "az functionapp update --resource-group \"$RG\" --name \"$APP_NAME\" --set publicNetworkAccess=Disabled"; then
+          if ! retry_command az functionapp update --resource-group "$RG" --name "$APP_NAME" --set publicNetworkAccess=Disabled; then
             echo "::error::Failed to disable publicNetworkAccess after multiple attempts."
             cleanup_failed=true
           fi
 
           echo "2. Removing IP from SCM access restrictions..."
-          if ! retry_command "az functionapp config access-restriction remove --resource-group \"$RG\" --name \"$APP_NAME\" --rule-name \"$RULE_NAME\" --scm-site true"; then
+          if ! retry_command az functionapp config access-restriction remove --resource-group "$RG" --name "$APP_NAME" --rule-name "$RULE_NAME" --scm-site true; then
             echo "::error::Failed to remove SCM access restriction after multiple attempts."
             cleanup_failed=true
           fi
