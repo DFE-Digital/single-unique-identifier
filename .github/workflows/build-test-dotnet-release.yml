@@ -1,4 +1,4 @@
-name: Build and Test Dotnet Project (release groundwork)
+name: Build and Test Dotnet Project (release)
 
 on:
   workflow_call:
@@ -22,64 +22,34 @@ on:
         description: Skip SonarCloud scan steps
         default: false
         type: boolean
-      deploy_requested:
-        description: Indicates a deploy is intended (used to enforce tests/scans)
-        default: false
-        type: boolean
-      artifact_store:
-        description: Storage backend for build artifacts (github or azure)
-        default: github
-        type: string
-      upload_artifacts:
-        description: If true, publish and upload per-project build artifacts
-        default: false
-        type: boolean
-      prepare_release_assets:
-        description: Prepare and upload explicit release deployment ZIPs
-        default: false
-        type: boolean
     secrets:
-      AZURE_ARTIFACTS_ACCOUNT:
-        required: false
-      AZURE_ARTIFACTS_CONTAINER:
-        required: false
-      AZURE_ARTIFACTS_SAS:
-        required: false
       SONAR_TOKEN:
         required: false
     outputs:
-      artifact_names:
-        description: JSON map of project -> artifact name
-        value: ${{ jobs.build-test-dotnet.outputs.artifact_names }}
-      release_artifact_name:
-        description: Name of the GitHub Actions artifact containing release ZIPs
-        value: ${{ jobs.build-test-dotnet.outputs.release_artifact_name }}
+      tests:
+        description: Actual test step outcome
+        value: ${{ jobs.build-test-dotnet.outputs.tests }}
+      sonar_quality_gate:
+        description: Actual SonarCloud step outcome
+        value: ${{ jobs.build-test-dotnet.outputs.sonar_quality_gate }}
 
 permissions:
-  contents: write
-  attestations: write
-  id-token: write
-  pull-requests: write
-  checks: write
-  packages: read
+  contents: read
 
 jobs:
   build-test-dotnet:
     timeout-minutes: 30
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
+    permissions:
+      contents: read
+      pull-requests: write
+      packages: read
     env:
       PROJECTS_JSON: ${{ inputs.project_names }}
     outputs:
-      artifact_names: ${{ steps.publish.outputs.map }}
-      release_artifact_name: ${{ steps.publish.outputs.release_artifact_name }}
+      tests: ${{ steps.run-tests.outcome }}
+      sonar_quality_gate: ${{ steps.sonar-end.outcome }}
     steps:
-      - name: Validate deploy requires tests and scans
-        if: inputs.deploy_requested == true && (inputs.skip_tests == true || inputs.skip_scans == true)
-        run: |
-          echo "Deployment requires tests and scans."
-          echo "Re-run with skip_tests=false and skip_scans=false."
-          exit 1
-
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -184,6 +154,7 @@ jobs:
           dotnet build ./${{ inputs.directory_name }} -c Release --no-restore --no-incremental
 
       - name: Run tests
+        id: run-tests
         if: inputs.skip_tests != true
         run: dotnet test ./${{ inputs.directory_name }} -c Release --no-build --verbosity normal --settings ${{ inputs.directory_name }}/tests.runsettings --filter "Category!=Smoke"
 
@@ -194,68 +165,35 @@ jobs:
           dotnet coverage merge --reports "${{ inputs.directory_name }}/**/coverage.cobertura.xml" -f cobertura -o ${{ inputs.directory_name }}/coverage/coverage.xml
 
       - name: End SonarCloud Scanner
+        id: sonar-end
         if: inputs.skip_scans != true
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         env:
           NuGetPackageSourceCredentials_DFEDigital: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish projects
-        id: publish
-        if: inputs.upload_artifacts == true
+      - name: Package tested publish output
+        id: package
         run: |
           app="${{ inputs.directory_name }}"
           app="${app##*/}"
           sha="${GITHUB_SHA::7}"
-          full_sha="${GITHUB_SHA}"
           date=$(date +%Y%m%d)
-          sdk_version=$(dotnet --version)
-          locks_json=$(find "./${{ inputs.directory_name }}" -name "packages.lock.json" 2>/dev/null | jq -R -s -c 'split("\n")[:-1]')
-          map='{}'
           for proj in $(echo "$PROJECTS_JSON" | jq -r '.[]'); do
             out="publish/$proj"
             mkdir -p "$out"
             dotnet publish "${{ inputs.directory_name }}/src/$proj/$proj.csproj" -c Release --no-build -o "$out"
             name="${app}-${proj}-${date}-${sha}-build"
-            map=$(echo "$map" | jq --arg k "$proj" --arg v "$name" '. + {($k):$v}')
             zip_name="${name}.zip"
             (cd "$out" && zip -r "../../${zip_name}" .)
-
-            tfm=$(grep -oPm1 '(?<=<TargetFramework>)[^<]+' "${{ inputs.directory_name }}/src/$proj/$proj.csproj" || echo "unknown")
-            cat <<EOF > "${name}.meta.json"
-            {
-              "component": "$app",
-              "dotnet_sdk": "$sdk_version",
-              "target_framework": "$tfm",
-              "runtime_identifier": null,
-              "nuget_lock_files": $locks_json
-            }
-          EOF
           done
-          echo "map=$(echo "$map" | jq -c .)" >> "$GITHUB_OUTPUT"
           echo "release_artifact_name=release-zips-${app}" >> "$GITHUB_OUTPUT"
 
-      - name: Generate Artifact Attestations for ZIPs
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (inputs.upload_artifacts == true || inputs.prepare_release_assets == true)
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+      - name: Upload deployment ZIPs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          subject-path: '*.zip'
-
-      - name: Upload release ZIPs explicitly
-        if: inputs.prepare_release_assets == true
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: ${{ steps.publish.outputs.release_artifact_name }}
-          path: |
-            *.zip
-            *.meta.json
-
-      - name: Upload per-project artifacts (GitHub)
-        if: inputs.upload_artifacts == true
-        uses: ./.github/actions/upload-artifacts
-        with:
-          projects_json: ${{ inputs.project_names }}
-          artifact_names: ${{ steps.publish.outputs.map }}
-          artifact_root: ${{ github.workspace }}/publish
+          name: ${{ steps.package.outputs.release_artifact_name }}
+          path: '*.zip'
+          if-no-files-found: error
 
       - name: Add Coverage PR Comment
         if: github.event_name == 'pull_request' && inputs.skip_tests != true

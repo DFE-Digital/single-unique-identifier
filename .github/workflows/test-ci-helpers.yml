@@ -1,23 +1,26 @@
-name: GitHub action tests
+name: CI helper tests
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - .github/actions/**
-      - .github/workflows/test-github-actions.yml
+      - .github/scripts/**
+      - .github/workflows/test-ci-helpers.yml
   push:
     branches:
       - main
     paths:
       - .github/actions/**
-      - .github/workflows/test-github-actions.yml
+      - .github/scripts/**
+      - .github/workflows/test-ci-helpers.yml
 
 permissions:
   contents: read
 
 jobs:
   test:
-    name: Test GitHub action helpers
+    name: Test CI helpers
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -28,10 +31,10 @@ jobs:
         with:
           node-version: 24
 
-      - name: Run GitHub action tests
+      - name: Run JavaScript helper tests
         shell: bash
         run: |
-          mapfile -d '' test_files < <(find .github/actions -type f \
+          mapfile -d '' test_files < <(find .github/actions .github/scripts -type f \
             \( -name '*.test.js' -o -name '*.spec.js' -o -name '*.test.mjs' -o -name '*.spec.mjs' \
             -o -name '*.test.cjs' -o -name '*.spec.cjs' \) -print0)
 
@@ -40,4 +43,5 @@ jobs:
             exit 0
           fi
 
-          node --test "${test_files[@]}"
+          node --test --test-isolation=none "${test_files[@]}"
+
