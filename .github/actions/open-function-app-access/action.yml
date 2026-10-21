@@ -1,24 +1,24 @@
-name: 'Open Function App SCM Access'
-description: 'Temporarily whitelists a runner IP on the Function App SCM endpoint and enables publicNetworkAccess.'
+name: Open Function App SCM Access
+description: Temporarily whitelists a runner IP on the Function App SCM endpoint and enables publicNetworkAccess.
 
 inputs:
   app_name:
-    description: 'Name of the Azure Function App'
+    description: Name of the Azure Function App
     required: true
   runner_ip:
-    description: 'IP address of the GitHub Actions runner'
+    description: IP address of the GitHub Actions runner
     required: true
   rule_name:
-    description: 'Unique name for the temporary access restriction rule'
+    description: Unique name for the temporary access restriction rule
     required: true
 
 outputs:
   resource_group:
-    description: 'The resolved resource group of the Function App'
+    description: The resolved resource group of the Function App
     value: ${{ steps.whitelist.outputs.rg }}
 
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Temporarily Whitelist Runner IP
       id: whitelist
