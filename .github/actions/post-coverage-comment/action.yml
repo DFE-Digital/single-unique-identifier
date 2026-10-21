@@ -14,16 +14,40 @@ runs:
       env:
         COVERAGE_SUMMARY_PATH: ${{ github.workspace }}/${{ inputs.directory_name }}/CoverageReport/SummaryGithub.md
         COVERAGE_COMMENT_KEY: ${{ inputs.directory_name }}
+        COVERAGE_WORKFLOW: ${{ github.workflow }}
+        COVERAGE_SHA: ${{ github.sha }}
+        COVERAGE_RUN_ID: ${{ github.run_id }}
+        COVERAGE_RUN_NUMBER: ${{ github.run_number }}
+        COVERAGE_RUN_ATTEMPT: ${{ github.run_attempt }}
+        COVERAGE_SERVER_URL: ${{ github.server_url }}
+        COVERAGE_REPOSITORY: ${{ github.repository }}
       with:
         script: |
           const fs = require('fs');
+          const {
+            buildCommentBody,
+            shouldUpdateComment
+          } = require(`${process.env.GITHUB_WORKSPACE}/.github/actions/post-coverage-comment/comment-state.js`);
 
           const summary = fs.readFileSync(
             process.env.COVERAGE_SUMMARY_PATH,
             'utf8'
           ).trimEnd();
+          const run = {
+            id: Number(process.env.COVERAGE_RUN_ID),
+            attempt: Number(process.env.COVERAGE_RUN_ATTEMPT)
+          };
+          const body = buildCommentBody({
+            summary,
+            component: process.env.COVERAGE_COMMENT_KEY,
+            workflow: process.env.COVERAGE_WORKFLOW,
+            sha: process.env.COVERAGE_SHA,
+            run,
+            runNumber: process.env.COVERAGE_RUN_NUMBER,
+            serverUrl: process.env.COVERAGE_SERVER_URL,
+            repository: process.env.COVERAGE_REPOSITORY
+          });
           const marker = `<!-- sui-coverage:${process.env.COVERAGE_COMMENT_KEY} -->`;
-          const body = `${summary}\n${marker}`;
           const { owner, repo } = context.repo;
           const issue_number = context.payload.pull_request.number;
 
@@ -36,6 +60,11 @@ runs:
             comment.user?.login === 'github-actions[bot]' &&
             comment.body?.includes(marker)
           );
+
+          if (existing && !shouldUpdateComment(existing.body, run)) {
+            console.log('A newer coverage run already updated this component comment.');
+            return;
+          }
 
           if (existing?.body === body) {
             return;
