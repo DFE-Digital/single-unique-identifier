@@ -86,33 +86,22 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: Deploy function app (${{ inputs.component_descriptor || github.event.inputs.component_descriptor || inputs.function_app_name || github.event.inputs.function_app_name || inputs.artifact_name || github.event.inputs.artifact_name }}) to ${{ inputs.environment || github.event.inputs.environment }}
-    timeout-minutes: 30
+  resolve-app:
+    name: Resolve function app name
+    timeout-minutes: 10
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
-    environment: ${{ inputs.environment || github.event.inputs.environment }}
-    env:
-      TARGET_ENVIRONMENT: ${{ inputs.environment || github.event.inputs.environment }}
-      AZURE_FUNCTIONAPP_PACKAGE_PATH: ${{ github.workspace }}/${{ inputs.package_path || github.event.inputs.package_path }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
-      ARM_USE_OIDC: true
-
+    outputs:
+      functionapp_name: ${{ steps.app_name.outputs.functionapp_name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Azure login with OIDC for ${{ inputs.environment || github.event.inputs.environment }}
-        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Load tfvars for ${{ env.TARGET_ENVIRONMENT }}
+      - name: Load tfvars
         id: env_config
         uses: ./.github/actions/load-tfvars
         with:
-          environment: ${{ env.TARGET_ENVIRONMENT }}
+          environment: ${{ inputs.environment || github.event.inputs.environment }}
 
       - name: Compute function app name
         id: app_name
@@ -127,6 +116,32 @@ jobs:
           fi
           echo "functionapp_name=$functionapp_name" >> "$GITHUB_OUTPUT"
 
+  deploy:
+    name: Deploy function app (${{ needs.resolve-app.outputs.functionapp_name || inputs.artifact_name || github.event.inputs.artifact_name }}) to ${{ inputs.environment || github.event.inputs.environment }}
+    needs: resolve-app
+    concurrency:
+      group: deploy-function-${{ needs.resolve-app.outputs.functionapp_name }}
+      cancel-in-progress: false
+    timeout-minutes: 30
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
+    environment: ${{ inputs.environment || github.event.inputs.environment }}
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.environment || github.event.inputs.environment }}
+      AZURE_FUNCTIONAPP_PACKAGE_PATH: ${{ github.workspace }}/${{ inputs.package_path || github.event.inputs.package_path }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
+      ARM_USE_OIDC: true
+      RULE_NAME: github-deploy-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Azure login with OIDC for ${{ inputs.environment || github.event.inputs.environment }}
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Show deployment context
         run: |
           echo "Environment: ${{ inputs.environment || github.event.inputs.environment }}"
@@ -135,7 +150,7 @@ jobs:
           echo "Package path: ${{ inputs.package_path || github.event.inputs.package_path }}"
           echo "Component descriptor: ${{ inputs.component_descriptor || github.event.inputs.component_descriptor }}"
           echo "Function app override: ${{ inputs.function_app_name || github.event.inputs.function_app_name }}"
-          echo "Computed function app name: ${{ steps.app_name.outputs.functionapp_name }}"
+          echo "Computed function app name: ${{ needs.resolve-app.outputs.functionapp_name }}"
 
       - name: Download build artifact (GitHub)
         if: (inputs.artifact_store || github.event.inputs.artifact_store) != 'azure'
@@ -167,15 +182,24 @@ jobs:
       - name: Discover Runner IP
         id: ip
         run: |
-          ipv4=$(curl -s https://api.ipify.org)
-          echo "Runner IP is $ipv4"
+          echo "Fetching runner IP address..."
+          ipv4=$(curl --fail --silent --show-error https://api.ipify.org)
+          
+          # Validate the response is a proper IPv4 address using regex
+          if [[ ! "$ipv4" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+            echo "::error::Failed to resolve a valid IPv4 address. Received: $ipv4"
+            exit 1
+          fi
+          
+          echo "Runner IP is valid: $ipv4"
           echo "ipv4=$ipv4" >> "$GITHUB_OUTPUT"
 
       - name: Temporarily Whitelist Runner IP
         id: whitelist
         env:
-          APP_NAME: ${{ steps.app_name.outputs.functionapp_name }}
+          APP_NAME: ${{ needs.resolve-app.outputs.functionapp_name }}
           RUNNER_IP: ${{ steps.ip.outputs.ipv4 }}
+          RULE_NAME: ${{ env.RULE_NAME }}
         run: |
           # Search the subscription to find the Resource Group for the app
           rg=$(az functionapp list --query "[?name=='$APP_NAME'].resourceGroup" -o tsv)
@@ -185,39 +209,61 @@ jobs:
             exit 1
           fi
           echo "rg=$rg" >> "$GITHUB_OUTPUT"
+
+          echo "Sweeping for stale deployment rules from interrupted runs..."
+          stale_rules=$(az functionapp config access-restriction show --resource-group "$rg" --name "$APP_NAME" --query "scmIpSecurityRestrictions[?starts_with(name, 'github-deploy-')].name" -o tsv)
           
-          # Capture the original state of the master switch so we can restore it exactly
-          orig_pna=$(az functionapp show --resource-group "$rg" --name "$APP_NAME" --query publicNetworkAccess -o tsv)
-          echo "Original publicNetworkAccess is: $orig_pna"
-          echo "orig_pna=$orig_pna" >> "$GITHUB_OUTPUT"
+          for stale_rule in $stale_rules; do
+            echo "Removing orphaned rule: $stale_rule"
+            az functionapp config access-restriction remove --resource-group "$rg" --name "$APP_NAME" --rule-name "$stale_rule" --scm-site true || true
+          done
+
+          echo "Running preflight security checks..."
           
-          echo "Adding IP $RUNNER_IP to $APP_NAME in resource group $rg (SCM/Kudu and Main Site)..."
+          pna=$(az functionapp show --resource-group "$rg" --name "$APP_NAME" --query publicNetworkAccess -o tsv)
+          echo "Current publicNetworkAccess: $pna"
           
-          # Whitelist the deployment endpoint (Kudu)
+          if [ "$pna" != "Disabled" ]; then
+            echo "Error: publicNetworkAccess must be Disabled before deployment starts."
+            exit 1
+          fi
+
+          restrictions=$(az functionapp config access-restriction show --resource-group "$rg" --name "$APP_NAME")
+          
+          main_default=$(echo "$restrictions" | jq -r '.ipSecurityRestrictionsDefaultAction')
+          scm_default=$(echo "$restrictions" | jq -r '.scmIpSecurityRestrictionsDefaultAction')
+          use_main=$(echo "$restrictions" | jq -r '.scmIpSecurityRestrictionsUseMain')
+          
+          if [ "$main_default" != "Deny" ] || [ "$scm_default" != "Deny" ]; then
+            echo "Error: Default access restriction action is not Deny (Main: $main_default, SCM: $scm_default)."
+            exit 1
+          fi
+          
+          if [ "$use_main" != "false" ]; then
+            echo "Error: SCM is inheriting main site restrictions (scmIpSecurityRestrictionsUseMain is true)."
+            exit 1
+          fi
+          
+          open_rules=$(echo "$restrictions" | jq -r '[.ipSecurityRestrictions[], .scmIpSecurityRestrictions[] | select(.action=="Allow" and (.ipAddress=="Any" or .ipAddress=="0.0.0.0/0"))] | length')
+          if [ "$open_rules" -gt 0 ]; then
+            echo "Error: Found unexpected public Allow rules (0.0.0.0/0)."
+            exit 1
+          fi
+          
+          echo "Preflight checks passed! Adding IP $RUNNER_IP to $APP_NAME SCM/Kudu endpoint only..."
+          
           az functionapp config access-restriction add \
             --resource-group "$rg" \
             --name "$APP_NAME" \
-            --rule-name "GitHubActionsDeploy" \
+            --rule-name "$RULE_NAME" \
             --action Allow \
             --ip-address "$RUNNER_IP/32" \
             --priority 100 \
             --scm-site true
 
-          # Whitelist the main site (sometimes required by the action to verify state)
-          az functionapp config access-restriction add \
-            --resource-group "$rg" \
-            --name "$APP_NAME" \
-            --rule-name "GitHubActionsDeploy" \
-            --action Allow \
-            --ip-address "$RUNNER_IP/32" \
-            --priority 100
-          
-          # Turn on the master switch (if it was disabled)
-          if [ "$orig_pna" != "Enabled" ]; then
-            echo "Temporarily enabling publicNetworkAccess master switch..."
-            az functionapp update --resource-group "$rg" --name "$APP_NAME" --set publicNetworkAccess=Enabled
-          fi
-          
+          echo "Temporarily enabling publicNetworkAccess master switch..."
+          az functionapp update --resource-group "$rg" --name "$APP_NAME" --set publicNetworkAccess=Enabled
+
           echo "Waiting for Azure firewall to propagate..."
           
           # Smart polling: ping the SCM endpoint until it stops returning 403
@@ -226,53 +272,99 @@ jobs:
           SCM_URL="https://${APP_NAME}.scm.azurewebsites.net"
           
           end=$((SECONDS+180)) # 3 minute maximum timeout
+          ready=false
+          
           while [ $SECONDS -lt $end ]; do
             status=$(curl -s -o /dev/null -w "%{http_code}" "$SCM_URL")
-            if [ "$status" != "403" ] && [ "$status" != "000" ]; then
-              echo "✅ Firewall propagated! Kudu returned HTTP $status"
+            if [ "$status" == "401" ]; then
+              echo "✅ Firewall propagated! Kudu returned HTTP $status (Unauthorized - Expected)"
+              ready=true
               break
             fi
-            echo "Still getting 403 (Forbidden)... waiting 10s for Azure to sync..."
+            echo "Still waiting for firewall to sync... (HTTP $status). Retrying in 10s..."
             sleep 10
           done
           
-          if [ $SECONDS -ge $end ]; then
-            echo "⚠️ Warning: Firewall propagation timed out after 3 minutes. Deployment may fail."
+          if [ "$ready" = false ]; then
+            echo "::error::Firewall propagation timed out after 3 minutes. Could not verify Kudu connectivity."
+            exit 1
           fi
       # --- Dynamic IP Whitelisting End ---
 
       - name: Deploy to Azure Function App
         uses: Azure/functions-action@c5060b3b8bb1ebbcb531abd00c822ecbaa8ea656 # v1
         with:
-          app-name: ${{ steps.app_name.outputs.functionapp_name }}
+          app-name: ${{ needs.resolve-app.outputs.functionapp_name }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
 
       # --- Revert IP Whitelisting ---
       - name: Remove Runner IP Whitelist
         if: always() # Guarantee cleanup runs even if deployment fails
         env:
-          APP_NAME: ${{ steps.app_name.outputs.functionapp_name }}
+          APP_NAME: ${{ needs.resolve-app.outputs.functionapp_name }}
           RG: ${{ steps.whitelist.outputs.rg }}
-          ORIG_PNA: ${{ steps.whitelist.outputs.orig_pna }}
+          RULE_NAME: ${{ env.RULE_NAME }}
         run: |
-          if [ -n "$RG" ] && [ -n "$APP_NAME" ]; then
-            # Restore the master switch to its original secure state first
-            if [ "$ORIG_PNA" != "Enabled" ] && [ -n "$ORIG_PNA" ]; then
-              echo "Reverting publicNetworkAccess back to $ORIG_PNA..."
-              az functionapp update --resource-group "$RG" --name "$APP_NAME" --set publicNetworkAccess="$ORIG_PNA"
-            fi
-          
-            echo "Removing IP from access restrictions..."
-            az functionapp config access-restriction remove \
-              --resource-group "$RG" \
-              --name "$APP_NAME" \
-              --rule-name "GitHubActionsDeploy" \
-              --scm-site true || true
-          
-            az functionapp config access-restriction remove \
-              --resource-group "$RG" \
-              --name "$APP_NAME" \
-              --rule-name "GitHubActionsDeploy" || true
-          else
+          if [ -z "$RG" ] || [ -z "$APP_NAME" ]; then
             echo "Skipping cleanup: RG or APP_NAME is empty."
+            exit 0
           fi
+
+          echo "Starting robust cleanup for $APP_NAME..."
+          cleanup_failed=false
+
+          retry_command() {
+            local cmd="$1"
+            local max_attempts=3
+            local attempt=1
+            local delay=5
+
+            while [ $attempt -le $max_attempts ]; do
+              echo "Executing (Attempt $attempt): $cmd"
+              if eval "$cmd"; then
+                return 0
+              fi
+              echo "Command failed. Retrying in $delay seconds..."
+              sleep $delay
+              attempt=$((attempt + 1))
+              delay=$((delay * 2))
+            done
+            return 1
+          }
+
+          echo "1. Restoring publicNetworkAccess to Disabled..."
+          if ! retry_command "az functionapp update --resource-group \"$RG\" --name \"$APP_NAME\" --set publicNetworkAccess=Disabled"; then
+            echo "::error::Failed to disable publicNetworkAccess after multiple attempts."
+            cleanup_failed=true
+          fi
+
+          echo "2. Removing IP from SCM access restrictions..."
+          if ! retry_command "az functionapp config access-restriction remove --resource-group \"$RG\" --name \"$APP_NAME\" --rule-name \"$RULE_NAME\" --scm-site true"; then
+            echo "::error::Failed to remove SCM access restriction after multiple attempts."
+            cleanup_failed=true
+          fi
+
+          echo "3. Verifying final security state..."
+          
+          pna=$(az functionapp show --resource-group "$RG" --name "$APP_NAME" --query publicNetworkAccess -o tsv)
+          if [ "$pna" != "Disabled" ]; then
+            echo "::error::Verification failed: publicNetworkAccess is '$pna', expected 'Disabled'."
+            cleanup_failed=true
+          else
+            echo "✅ publicNetworkAccess successfully verified as Disabled."
+          fi
+
+          rules=$(az functionapp config access-restriction show --resource-group "$RG" --name "$APP_NAME" --query "scmIpSecurityRestrictions[?name=='$RULE_NAME'] | length(@)" -o tsv)
+          if [ "$rules" != "0" ]; then
+            echo "::error::Verification failed: Rule '$RULE_NAME' still exists."
+            cleanup_failed=true
+          else
+            echo "✅ Temporary access restriction successfully verified as removed."
+          fi
+
+          if [ "$cleanup_failed" = true ]; then
+            echo "::error::Cleanup did not complete successfully. Azure resources may be exposed!"
+            exit 1
+          fi
+          
+          echo "Cleanup completed successfully!"

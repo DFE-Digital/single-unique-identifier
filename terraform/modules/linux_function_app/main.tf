@@ -130,6 +130,13 @@ resource "azurerm_linux_function_app" "this" {
     }
 
     application_insights_connection_string = sensitive(var.application_insights_connection_string)
+
+    # Main application: reject all traffic via the public endpoint.
+    ip_restriction_default_action = "Deny"
+
+    # SCM/Kudu: use a separate rule collection.
+    scm_use_main_ip_restriction       = false
+    scm_ip_restriction_default_action = "Deny"
   }
 
   app_settings = merge(
