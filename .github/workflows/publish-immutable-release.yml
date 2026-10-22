@@ -1,0 +1,157 @@
+name: Publish immutable release
+
+on:
+  workflow_call:
+    inputs:
+      assets_artifact_name:
+        description: Actions artifact containing the release manifest and assets
+        required: true
+        type: string
+      attested_asset_glob:
+        description: Filename pattern, relative to the artifact, for assets requiring build attestation verification
+        required: true
+        type: string
+      manifest_filename:
+        description: Required release manifest filename in the artifact
+        required: true
+        type: string
+      release_tag:
+        required: true
+        type: string
+      source_sha:
+        required: true
+        type: string
+      source_ref:
+        description: Trusted source ref expected in each build attestation
+        required: true
+        type: string
+      signer_workflow:
+        description: Trusted workflow identity expected in each build attestation
+        required: true
+        type: string
+      release_title:
+        required: true
+        type: string
+      release_notes:
+        required: true
+        type: string
+    secrets:
+      release_settings_read_token:
+        description: Token with repository Administration read access
+        required: true
+    outputs:
+      release_id:
+        description: Published GitHub Release ID
+        value: ${{ jobs.publish.outputs.release_id }}
+      release_url:
+        description: Published GitHub Release URL
+        value: ${{ jobs.publish.outputs.release_url }}
+
+permissions:
+  contents: read
+
+jobs:
+  check-release-settings:
+    if: github.event_name == 'push' && github.ref == inputs.source_ref
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Verify immutable releases are enabled
+        env:
+          GH_TOKEN: ${{ secrets.release_settings_read_token }}
+        run: |
+          set -euo pipefail
+          test -n "$GH_TOKEN"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" --jq .enabled)" = true
+
+  publish:
+    if: github.event_name == 'push' && github.ref == inputs.source_ref
+    needs: check-release-settings
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      attestations: read
+    outputs:
+      release_id: ${{ steps.published.outputs.release_id }}
+      release_url: ${{ steps.published.outputs.release_url }}
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ inputs.assets_artifact_name }}
+          path: release-assets
+
+      - name: Verify release asset inventory and build attestations
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASSET_GLOB: ${{ inputs.attested_asset_glob }}
+          MANIFEST_FILENAME: ${{ inputs.manifest_filename }}
+          SIGNER_WORKFLOW: ${{ inputs.signer_workflow }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$SOURCE_SHA" == "$GITHUB_SHA" ]]
+          [[ -n "$RELEASE_TAG" && -n "$SIGNER_WORKFLOW" && -n "$SOURCE_REF" && -n "$ASSET_GLOB" ]]
+          [[ "$MANIFEST_FILENAME" != */* ]]
+          test -s "release-assets/$MANIFEST_FILENAME"
+          jq -e --arg tag "$RELEASE_TAG" --arg sha "$SOURCE_SHA" \
+            '.release.tag == $tag and .release.source_sha == $sha' \
+            "release-assets/$MANIFEST_FILENAME" >/dev/null
+
+          mapfile -d '' release_files < <(find release-assets -maxdepth 1 -type f -print0)
+          (( ${#release_files[@]} > 1 ))
+          mapfile -d '' attested_assets < <(find release-assets -maxdepth 1 -type f -name "$ASSET_GLOB" -print0)
+          (( ${#attested_assets[@]} > 0 ))
+          for asset in "${attested_assets[@]}"; do
+            gh attestation verify "$asset" --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$SIGNER_WORKFLOW" \
+              --source-digest "$SOURCE_SHA" --source-ref "$SOURCE_REF"
+          done
+
+      - name: Create and publish immutable release
+        id: published
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SETTINGS_READ_TOKEN: ${{ secrets.release_settings_read_token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          RELEASE_TITLE: ${{ inputs.release_title }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          set -euo pipefail
+          tag_ref=$(jq -rn --arg tag "$RELEASE_TAG" '$tag | @uri')
+          ref="repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag_ref}"
+          if output=$(gh api "$ref" 2>&1); then
+            echo "Tag already exists for ${RELEASE_TAG}; refusing to modify it." >&2
+            exit 1
+          elif [[ "$output" != *"(HTTP 404)"* ]]; then
+            printf '%s\n' "$output" >&2
+            exit 1
+          fi
+
+          mapfile -d '' release_files < <(find release-assets -maxdepth 1 -type f -print0)
+          gh release create "$RELEASE_TAG" "${release_files[@]}" \
+            --repo "$GITHUB_REPOSITORY" --draft --target "$SOURCE_SHA" \
+            --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES"
+
+          tag_object=$(gh api "$ref" --jq '.object | [.type,.sha] | @tsv')
+          test "$tag_object" = $'commit\t'"$SOURCE_SHA"
+          draft=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --json isDraft,targetCommitish --jq '[.isDraft,.targetCommitish] | @tsv')
+          test "$draft" = $'true\t'"$SOURCE_SHA"
+          immutable=$(GH_TOKEN="$RELEASE_SETTINGS_READ_TOKEN" \
+            gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" --jq .enabled)
+          test "$immutable" = true
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+
+          release=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${tag_ref}")
+          test "$(jq -r .immutable <<< "$release")" = true
+          echo "release_id=$(jq -r .id <<< "$release")" >> "$GITHUB_OUTPUT"
+          echo "release_url=$(jq -r .html_url <<< "$release")" >> "$GITHUB_OUTPUT"

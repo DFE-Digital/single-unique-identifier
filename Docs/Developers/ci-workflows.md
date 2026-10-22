@@ -107,41 +107,58 @@ To ensure operational resilience and rapid response to supply-chain or infrastru
 2. **Investigate:** Review the GitHub Actions run logs. The SUI Technical Lead will assign an engineer if the issue requires further investigation.
 3. **Resolve / Escalate:** Escalate to the SUI Technical Lead if nobody takes ownership or the assigned engineer needs support.
 
-## Release validation
+## Immutable application releases
 
-The release orchestrator currently validates pull requests and supports manual
-validation. It selects affected components from changed paths, with shared SDK,
-NuGet, library and release-workflow changes selecting every affected app. A
-manual run can select all components with `force_deploy_all`.
+The release orchestrator validates pull requests and supports manual validation
+without publishing images or releases. A protected-main push selects changed
+components and publishes an immutable GitHub Release only after their build
+gates and the secret, repository and IaC scans succeed. Shared SDK/NuGet and
+release-workflow changes select all apps; Notification Service also responds
+to shared-library changes. Manual validation can select all components with
+`force_deploy_all`. Main pushes use separate runs so a later push cannot cancel
+a pending release for another component.
 
-- `ci-cd-orchestrator.yml` builds and scans selected components, including a
-  local Notification Service container build from its tested deployment ZIP.
-  The final image is scanned locally and the workflow does not publish container
-  images or create GitHub Releases.
-- `build-test-dotnet-release.yml` contains the isolated release build, ZIP and
-  attestation groundwork. Existing app workflows continue to call
+- `ci-cd-orchestrator.yml` builds and scans selected components. On PR/manual
+  runs it packages and scans Notification Service locally. On main it uses the
+  same Docker Buildx actions to package and scan that tested output, then pushes
+  the scanned image to ACR before creating the GitHub Release. The image digest,
+  not a mutable tag, is recorded.
+- `build-test-dotnet-release.yml` contains the isolated release build. It
+  uploads the tested deployment ZIP. The main-only
+  `attest-release-zips.yml` workflow signs its exact downloaded bytes;
+  PR/manual validation cannot call that workflow or receive its permissions.
+  Existing app workflows continue to call
   `build-test-dotnet.yml` and use the existing deployment paths.
-- Automatic protected-main release creation remains disabled until the full
-  release path is validated and deliberately activated.
-- The release build uploads one ZIP artifact per selected component. On a main
-  push, `attest-release-zips.yml` signs the exact downloaded ZIP bytes with
-  `actions/attest`; PR and manual validation cannot call this signing workflow
-  or receive its attestation permissions. The release
-  manifest validator checks the selected ZIPs, their SHA-256 hashes and byte
-  sizes, source commit, workflow run and attempt, and actual quality gate
-  outcomes. UIHarness records its intentional test and Sonar exemptions as
-  `skipped`; other components require `success` for both gates. The source
-  commit and signed attestation identify the SDK, lock files and publish
-  settings without duplicating them in the manifest. The manifest uses the
-  immutable tag and source SHA; consumers can resolve the GitHub release ID
-  from that tag. The manifest always includes `container`, set to `null` unless
-  Notification Service is selected; otherwise it records the immutable image
-  and pinned runtime base digest.
-- Application deployment artifacts use GitHub Actions artifacts. Terraform
-  state storage and locking continue to use Azure Blob and are unchanged.
-- Complete manifest inputs/outcomes and end-to-end validation before restoring
-  automatic protected-main release creation. Keep the security gates and
-  build-time ZIP attestations in that path.
+- `release-manifest.mjs` validates the selected ZIP inventory and writes a small
+  manifest with the full source SHA, immutable tag, workflow run ID
+  and attempt, selected component-to-ZIP mapping, and (when selected) the
+  Notification Service image repository and digest. Required build and scan
+  gates remain enforced by the workflow and their actual results are available
+  on the linked Actions run. The source commit identifies the SDK, project
+  settings and NuGet locks; each ZIP's signed build attestation binds it to
+  that commit and the trusted signing workflow. Consumers can resolve the
+  GitHub release ID from the immutable `sui-<full source SHA>` tag.
+- `publish-immutable-release.yml` is a reusable publication workflow. Its
+  caller supplies a release asset artifact, the attested-asset filename
+  pattern, manifest filename, tag, source SHA/ref, signer workflow, title and
+  notes. It verifies the manifest identity and each matching asset's original
+  build attestation, refuses an existing tag, creates a draft at the source
+  SHA, and publishes it as immutable. It returns the GitHub release ID and URL.
+  SUI-specific component selection, manifest creation and container publishing
+  stay in the orchestrator.
+- Before any container image is pushed, a main-only preflight verifies
+  repository release immutability; the release job checks it again immediately
+  before publication using `RELEASE_SETTINGS_READ_TOKEN` (Administration: read
+  for this repository). The publishing job's `GITHUB_TOKEN` has only the
+  permissions needed to publish. GitHub locks the tag and assets and creates a
+  release attestation when the draft is published.
+- If a tag or draft already exists, publication stops without changing it.
+  An operator must inspect and reconcile an incomplete draft or orphaned tag
+  before a new release run can proceed. Published immutable releases cannot be
+  replaced or reused.
+- Application deployment artefacts use GitHub Actions artefacts. Terraform
+  remains a manual plan/apply flow with its existing Azure remote state and
+  locking.
 - Promotion and deployment from immutable releases are handled separately. The
   release orchestrator does not deploy applications or apply Terraform.
 
