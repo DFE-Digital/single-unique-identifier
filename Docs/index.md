@@ -38,4 +38,3 @@ Use app READMEs and as-built documentation for implemented behaviour, accepted A
 ### Development
 
 - [CI workflows](./Developers/ci-workflows.md)
-- [Self-hosted runner and artifact storage](./Developers/ci-self-hosted-runner.md)

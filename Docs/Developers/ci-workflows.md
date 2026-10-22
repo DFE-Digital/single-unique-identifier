@@ -1,6 +1,6 @@
 # CI workflows
 
-This repo uses reusable workflows. The goal is to keep the top-level workflows thin and move shared logic into reusable workflows and local actions. Historical self-hosted runner details are in [ci-self-hosted-runner.md](./ci-self-hosted-runner.md).
+This repo uses reusable workflows. The goal is to keep the top-level workflows thin and move shared logic into reusable workflows and local actions.
 
 ## Workflow layout
 
@@ -9,6 +9,14 @@ Top-level app workflows live in [`.github/workflows/*-build-and-deploy.yml`](../
 - [`build-test-dotnet.yml`](../../.github/workflows/build-test-dotnet.yml) - builds, tests, scans, and publishes per-project artifacts.
 - [`deploy-dotnet-webapp.yml`](../../.github/workflows/deploy-dotnet-webapp.yml) - deploys a web app from a build artifact.
 - [`deploy-dotnet-functionapp.yml`](../../.github/workflows/deploy-dotnet-functionapp.yml) - deploys a function app from a build artifact.
+
+## Runner selection
+
+Workflows that use configurable runner labels read the `RUNNER_LABELS` GitHub
+Actions variable as a JSON array. If it is unset, they use
+`["ubuntu-latest"]`. Set the variable at repository or environment scope to
+select a different runner or runner group, and make sure the configured labels
+match an available runner.
 
 Both .NET build workflows select the exact patched SDK in `global.json` and log
 its version. The release build restores committed NuGet locks in locked mode,
