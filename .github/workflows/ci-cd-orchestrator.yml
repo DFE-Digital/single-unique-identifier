@@ -1,8 +1,10 @@
-# Safe validation only. Release publication remains disabled.
-name: "CI/CD Orchestrator (release validation)"
-run-name: Release validation - ${{ github.ref_name }}
+# Validate release assets on PR/manual runs and publish only from main pushes.
+name: "CI/CD Orchestrator"
+run-name: Release build - ${{ github.ref_name }}
 
 on:
+  push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -24,7 +26,8 @@ on:
 
 
 concurrency:
-  group: ci-cd-orchestrator-${{ github.ref }}
+  # Main pushes select only their own changes; every push needs its own release run.
+  group: ci-cd-orchestrator-${{ github.event_name == 'push' && github.run_id || github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -40,8 +43,8 @@ jobs:
     outputs:
       auth_emulator: ${{ steps.filter.outputs.auth_emulator }}
       get_an_id: ${{ steps.filter.outputs.get_an_id }}
-      notification_service: ${{ steps.filter.outputs.notification_service }}
       ui_harness: ${{ steps.filter.outputs.ui_harness }}
+      ci_helpers: ${{ steps.filter.outputs.ci_helpers }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -61,6 +64,7 @@ jobs:
               - '.github/workflows/build-test-dotnet-release.yml'
               - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
+              - '.github/workflows/publish-immutable-release.yml'
               - '.github/scripts/**'
             get_an_id:
               - 'Apps/GetAnIdentifier/**'
@@ -73,21 +77,7 @@ jobs:
               - '.github/workflows/build-test-dotnet-release.yml'
               - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
-              - '.github/scripts/**'
-            notification_service:
-              - 'Apps/NotificationService/**'
-              - 'Libs/**'
-              - 'terraform/notification-service/**'
-              - 'terraform/core/**'
-              - 'terraform/environments/**'
-              - 'global.json'
-              - 'nuget.config'
-              - 'Directory.Build.props'
-              - 'Directory.Build.targets'
-              - 'Directory.Packages.props'
-              - '.github/workflows/build-test-dotnet-release.yml'
-              - '.github/workflows/attest-release-zips.yml'
-              - '.github/workflows/ci-cd-orchestrator.yml'
+              - '.github/workflows/publish-immutable-release.yml'
               - '.github/scripts/**'
             ui_harness:
               - 'Apps/UIHarness/**'
@@ -100,7 +90,14 @@ jobs:
               - '.github/workflows/build-test-dotnet-release.yml'
               - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
+              - '.github/workflows/publish-immutable-release.yml'
               - '.github/scripts/**'
+            ci_helpers:
+              - '.github/actions/**'
+              - '.github/scripts/**'
+              - '.github/workflows/ci-cd-orchestrator.yml'
+              - '.github/workflows/publish-immutable-release.yml'
+              - '.github/workflows/test-ci-helpers.yml'
 
   build-auth-emulator:
     name: AuthEmulator - Build Test Dotnet
@@ -154,72 +151,26 @@ jobs:
       skip_tests: true
       skip_scans: true
 
-  build-notification-service:
-    name: Notification Service - Build Test Dotnet
-    needs: path-filter
-    if: needs.path-filter.outputs.notification_service == 'true' || inputs.force_deploy_all
-    uses: ./.github/workflows/build-test-dotnet-release.yml
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  release-settings-check:
+    name: Check release immutability before publication
+    needs: [path-filter]
+    if: >-
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          needs.path-filter.result == 'success' &&
+          (needs.path-filter.outputs.auth_emulator == 'true' ||
+           needs.path-filter.outputs.get_an_id == 'true' ||
+           needs.path-filter.outputs.ui_harness == 'true') }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
-      packages: read
-    with:
-      directory_name: Apps/NotificationService
-      project_names: '["SUI.NotificationService"]'
-      requires_azurite: true
-      skip_tests: ${{ inputs.skip_tests || false }}
-      skip_scans: ${{ inputs.skip_scans || false }}
-
-  validate-container:
-    name: Notification Service - validate container
-    if: needs.path-filter.outputs.notification_service == 'true' || inputs.force_deploy_all
-    needs: [path-filter, build-notification-service]
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Download tested Notification Service ZIP
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: release-zips-NotificationService
-          path: drop
-
-      - name: Extract tested publish output
-        shell: bash
+      - name: Verify repository release immutability is enabled
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_SETTINGS_READ_TOKEN }}
         run: |
-          shopt -s nullglob
-          zips=(drop/*.zip)
-          if [[ ${#zips[@]} -ne 1 ]]; then
-            echo "Expected exactly one Notification Service ZIP, found ${#zips[@]}" >&2
-            exit 1
-          fi
-          mkdir notification-service-publish
-          unzip -q "${zips[0]}" -d notification-service-publish
-          test -f notification-service-publish/SUI.NotificationService.dll
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
-
-      - name: Package tested output into container without publishing
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
-        with:
-          context: notification-service-publish
-          file: Apps/NotificationService/Dockerfile.release
-          platforms: linux/amd64
-          load: true
-          push: false
-          tags: notification-service:${{ github.sha }}
-
-      - name: Scan local image for vulnerabilities
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          image-ref: notification-service:${{ github.sha }}
-          format: table
-          exit-code: 1
-          severity: HIGH,CRITICAL
+          set -euo pipefail
+          test -n "$GH_TOKEN"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" --jq .enabled)" = true
 
   trufflehog-scan:
     name: Trufflehog secret scan
@@ -238,17 +189,15 @@ jobs:
 
   attest-release-zips:
     name: Attest tested deployment ZIPs
-    needs: [path-filter, build-auth-emulator, build-get-an-id, build-ui-harness, build-notification-service]
+    needs: [path-filter, build-auth-emulator, build-get-an-id, build-ui-harness]
     if: >-
       ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
           (needs.path-filter.outputs.auth_emulator == 'true' ||
            needs.path-filter.outputs.get_an_id == 'true' ||
-           needs.path-filter.outputs.ui_harness == 'true' ||
-           needs.path-filter.outputs.notification_service == 'true') &&
+           needs.path-filter.outputs.ui_harness == 'true') &&
           (needs.path-filter.outputs.auth_emulator != 'true' || needs.build-auth-emulator.result == 'success') &&
           (needs.path-filter.outputs.get_an_id != 'true' || needs.build-get-an-id.result == 'success') &&
-          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') &&
-          (needs.path-filter.outputs.notification_service != 'true' || needs.build-notification-service.result == 'success') }}
+          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') }}
     uses: ./.github/workflows/attest-release-zips.yml
     permissions:
       contents: read
@@ -256,3 +205,113 @@ jobs:
       id-token: write
       attestations: write
       artifact-metadata: write
+
+  release-script-tests:
+    name: Test CI helpers when changed
+    needs: [path-filter]
+    if: needs.path-filter.outputs.ci_helpers == 'true'
+    uses: ./.github/workflows/test-ci-helpers.yml
+    permissions:
+      contents: read
+
+  prepare-release-assets:
+    name: Prepare release assets
+    needs:
+      - path-filter
+      - build-auth-emulator
+      - build-get-an-id
+      - build-ui-harness
+      - attest-release-zips
+    if: >-
+      ${{ always() &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          needs.path-filter.result == 'success' &&
+          needs.attest-release-zips.result == 'success' &&
+          (needs.path-filter.outputs.auth_emulator == 'true' ||
+           needs.path-filter.outputs.get_an_id == 'true' ||
+           needs.path-filter.outputs.ui_harness == 'true') &&
+          (needs.path-filter.outputs.auth_emulator != 'true' || needs.build-auth-emulator.result == 'success') &&
+          (needs.path-filter.outputs.get_an_id != 'true' || needs.build-get-an-id.result == 'success') &&
+          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.prepare.outputs.matrix }}
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout exact source commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Download selected release ZIPs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: release-zips-*
+          path: drop
+          merge-multiple: true
+      - name: Prepare release manifest and asset list
+        id: prepare
+        env:
+          AUTH: ${{ needs.path-filter.outputs.auth_emulator }}
+          GET_AN_ID: ${{ needs.path-filter.outputs.get_an_id }}
+          UI: ${{ needs.path-filter.outputs.ui_harness }}
+        run: node .github/scripts/release-manifest.mjs
+      - name: Upload release asset bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-assets
+          path: release-assets/
+          if-no-files-found: error
+
+  cut-release:
+    name: Publish ${{ matrix.component.name }} release
+    needs:
+      - path-filter
+      - build-auth-emulator
+      - build-get-an-id
+      - build-ui-harness
+      - attest-release-zips
+      - trufflehog-scan
+      - trivy-scan
+      - trivy-iac-scan
+      - release-script-tests
+      - release-settings-check
+      - prepare-release-assets
+    # Check every mandatory outcome explicitly because unselected component jobs are skipped.
+    if: >-
+      ${{ always() &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          needs.path-filter.result == 'success' &&
+          needs.trufflehog-scan.result == 'success' &&
+          needs.trivy-scan.result == 'success' &&
+          needs.trivy-iac-scan.result == 'success' &&
+          (needs.path-filter.outputs.ci_helpers != 'true' || needs.release-script-tests.result == 'success') &&
+          needs.release-settings-check.result == 'success' &&
+          needs.attest-release-zips.result == 'success' &&
+          needs.prepare-release-assets.result == 'success' &&
+          (needs.path-filter.outputs.auth_emulator == 'true' ||
+           needs.path-filter.outputs.get_an_id == 'true' ||
+           needs.path-filter.outputs.ui_harness == 'true') &&
+          (needs.path-filter.outputs.auth_emulator != 'true' || needs.build-auth-emulator.result == 'success') &&
+          (needs.path-filter.outputs.get_an_id != 'true' || needs.build-get-an-id.result == 'success') &&
+          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare-release-assets.outputs.matrix) }}
+    uses: ./.github/workflows/publish-immutable-release.yml
+    permissions:
+      contents: write
+      actions: read
+      attestations: read
+    with:
+      assets_artifact_name: release-assets
+      asset_subdirectory: ${{ matrix.component.name }}
+      attested_asset_glob: '*.zip'
+      manifest_filename: release-manifest.json
+      release_tag: sui-${{ matrix.component.slug }}-${{ github.sha }}
+      source_sha: ${{ github.sha }}
+      source_ref: refs/heads/main
+      signer_workflow: ${{ github.repository }}/.github/workflows/attest-release-zips.yml
+      release_title: ${{ matrix.component.name }} deployable build ${{ github.sha }}
+      release_notes: Tested ${{ matrix.component.name }} deployment asset from ${{ github.sha }}.
+    secrets:
+      release_settings_read_token: ${{ secrets.RELEASE_SETTINGS_READ_TOKEN }}
