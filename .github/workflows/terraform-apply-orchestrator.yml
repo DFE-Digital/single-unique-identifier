@@ -1,0 +1,130 @@
+name: Terraform Apply Orchestrator
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform-*"
+      - ".github/actions/load-tfvars/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  detect-changes:
+    name: Detect changed roots
+    runs-on: ubuntu-latest
+    outputs:
+      core: ${{ steps.filter.outputs.core }}
+      auth: ${{ steps.filter.outputs.auth }}
+      getanid: ${{ steps.filter.outputs.getanid }}
+      ui: ${{ steps.filter.outputs.ui }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Detect changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            shared: &shared
+              - "terraform/modules/**"
+              - "terraform/environments/d01.tfvars"
+              - ".github/actions/load-tfvars/**"
+              - ".github/workflows/terraform-plan-and-apply.yml"
+            core:
+              - *shared
+              - "terraform/core/**"
+              - ".github/workflows/terraform-core.yml"
+            auth:
+              - *shared
+              - "terraform/auth-emulator/**"
+              - ".github/workflows/terraform-authemulator.yml"
+            getanid:
+              - *shared
+              - "terraform/get-an-identifier/**"
+              - ".github/workflows/terraform-get-an-identifier.yml"
+            ui:
+              - *shared
+              - "terraform/ui_test_harness/**"
+              - ".github/workflows/terraform-ui-harness.yml"
+
+  apply-core:
+    name: Apply Core
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.core == 'true' }}
+    uses: ./.github/workflows/terraform-plan-and-apply.yml
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    with:
+      environment: d01
+      apply: true
+      root: terraform/core
+
+  apply-auth-emulator:
+    name: Apply Auth Emulator
+    needs: [detect-changes, apply-core]
+    # Run if anything changed AND core didn't fail (core succeeded or was skipped)
+    if: ${{ always() && needs.detect-changes.outputs.auth == 'true' && (needs.apply-core.result == 'success' || needs.apply-core.result == 'skipped') }}
+    uses: ./.github/workflows/terraform-plan-and-apply.yml
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AUTH_SETTINGS__ISSUER: ${{ secrets.AUTH_SETTINGS__ISSUER }}
+      AUTH_SETTINGS__AUDIENCE: ${{ secrets.AUTH_SETTINGS__AUDIENCE }}
+      AUTH_CLIENT_IDS_JSON_MAP: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
+      AUTH_CLIENT_SECRETS_JSON_MAP: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
+    with:
+      environment: d01
+      apply: true
+      root: terraform/auth-emulator
+      state_key: d01/authemulator.tfstate
+
+  apply-get-an-identifier:
+    name: Apply Get An Identifier
+    needs: [detect-changes, apply-core]
+    # Run if anything changed AND core didn't fail (core succeeded or was skipped)
+    if: ${{ always() && needs.detect-changes.outputs.getanid == 'true' && (needs.apply-core.result == 'success' || needs.apply-core.result == 'skipped') }}
+    uses: ./.github/workflows/terraform-plan-and-apply.yml
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      NHS_DIGITAL_CLIENT_ID: ${{ secrets.NHS_DIGITAL_CLIENT_ID }}
+      NHS_DIGITAL_KID: ${{ secrets.NHS_DIGITAL_KID }}
+      NHS_DIGITAL_PRIVATE_KEY: ${{ secrets.NHS_DIGITAL_PRIVATE_KEY }}
+      AUTH_SETTINGS__ISSUER: ${{ secrets.AUTH_SETTINGS__ISSUER }}
+      AUTH_SETTINGS__AUDIENCE: ${{ secrets.AUTH_SETTINGS__AUDIENCE }}
+      AUTH_SETTINGS__OIDC_DISCOVERY_URL: ${{ secrets.AUTH_SETTINGS__OIDC_DISCOVERY_URL }}
+      AUTH_SETTINGS__ACCESS_TOKEN_URL: ${{ secrets.AUTH_SETTINGS__ACCESS_TOKEN_URL }}
+      AUTH_SETTINGS__OAUTH_SCOPE: ${{ secrets.AUTH_SETTINGS__OAUTH_SCOPE }}
+      AUTH_CLIENT_IDS_JSON_MAP: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
+    with:
+      environment: d01
+      apply: true
+      root: terraform/get-an-identifier
+      state_key: d01/getanidentifier.tfstate
+
+  apply-ui-harness:
+    name: Apply UI Harness
+    needs: [detect-changes, apply-core]
+    # Run if anything changed AND core didn't fail (core succeeded or was skipped)
+    if: ${{ always() && needs.detect-changes.outputs.ui == 'true' && (needs.apply-core.result == 'success' || needs.apply-core.result == 'skipped') }}
+    uses: ./.github/workflows/terraform-plan-and-apply.yml
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      UI_TEST_HARNESS_PASSWORD: ${{ secrets.UI_TEST_HARNESS_PASSWORD }}
+    with:
+      environment: d01
+      apply: true
+      root: terraform/ui_test_harness
+      state_key: d01/ui_test_harness.tfstate
