@@ -29,7 +29,8 @@ assert.match(releaseJob, /asset_subdirectory: \$\{\{ matrix\.component\.name \}\
 const publisher = readFileSync(new URL('../workflows/publish-immutable-release.yml', import.meta.url), 'utf8');
 assert.match(publisher, /release_settings_read_token/);
 assert.match(publisher, /git\/ref\/tags/);
-assert.match(publisher, /refusing to modify it/);
+assert.match(publisher, /verify_inventory/);
+assert.match(publisher, /gh release delete/);
 assert.match(publisher, /gh release create/);
 assert.match(publisher, /gh release edit/);
 assert.match(publisher, /attestation verify/);

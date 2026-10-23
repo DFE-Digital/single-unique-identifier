@@ -139,30 +139,66 @@ jobs:
           set -euo pipefail
           tag_ref=$(jq -rn --arg tag "$RELEASE_TAG" '$tag | @uri')
           ref="repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag_ref}"
-          if output=$(gh api "$ref" 2>&1); then
-            echo "Tag already exists for ${RELEASE_TAG}; refusing to modify it." >&2
-            exit 1
-          elif [[ "$output" != *"(HTTP 404)"* ]]; then
-            printf '%s\n' "$output" >&2
+          mapfile -d '' release_files < <(find "release-assets/$ASSET_SUBDIRECTORY" -maxdepth 1 -type f -print0)
+          (( ${#release_files[@]} == 2 ))
+          expected_assets=$(
+            for file in "${release_files[@]}"; do
+              hash=$(sha256sum "$file" | cut -c1-64)
+              jq -nc --arg name "$(basename "$file")" --arg digest "sha256:$hash" \
+                '{name:$name,digest:$digest}'
+            done | jq -sc 'sort_by(.name)'
+          )
+
+          get_release() {
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" |
+              jq -sc --arg tag "$RELEASE_TAG" \
+                '[.[][] | select(.tag_name == $tag)] |
+                 if length == 0 then null elif length == 1 then .[0] else error("Duplicate release tag") end'
+          }
+          verify_inventory() {
+            jq -e --arg tag "$RELEASE_TAG" --arg sha "$SOURCE_SHA" \
+              --argjson expected "$expected_assets" --argjson draft "$2" \
+              '.tag_name == $tag and .target_commitish == $sha and .draft == $draft and
+               ([.assets[] | {name,digest}] | sort_by(.name)) == $expected' <<< "$1" >/dev/null
+          }
+          if tag_object=$(gh api "$ref" --jq '.object | [.type,.sha] | @tsv' 2>&1); then
+            test "$tag_object" = $'commit\t'"$SOURCE_SHA"
+          elif [[ "$tag_object" != *"(HTTP 404)"* ]]; then
+            printf '%s\n' "$tag_object" >&2
             exit 1
           fi
 
-          mapfile -d '' release_files < <(find "release-assets/$ASSET_SUBDIRECTORY" -maxdepth 1 -type f -print0)
+          existing=$(get_release)
+          if [[ "$existing" != null ]]; then
+            if jq -e '.draft == false' <<< "$existing" >/dev/null; then
+              verify_inventory "$existing" false
+              test "$(jq -r .immutable <<< "$existing")" = true
+              test "$(gh api "$ref" --jq '.object | [.type,.sha] | @tsv')" = $'commit\t'"$SOURCE_SHA"
+              echo "release_id=$(jq -r .id <<< "$existing")" >> "$GITHUB_OUTPUT"
+              echo "release_url=$(jq -r .html_url <<< "$existing")" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            jq -e --arg sha "$SOURCE_SHA" \
+              '.draft == true and .immutable == false and .target_commitish == $sha' \
+              <<< "$existing" >/dev/null
+            gh release delete "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --yes
+          fi
+
           gh release create "$RELEASE_TAG" "${release_files[@]}" \
             --repo "$GITHUB_REPOSITORY" --draft --target "$SOURCE_SHA" \
             --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES"
 
-          tag_object=$(gh api "$ref" --jq '.object | [.type,.sha] | @tsv')
-          test "$tag_object" = $'commit\t'"$SOURCE_SHA"
-          draft=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
-            --json isDraft,targetCommitish --jq '[.isDraft,.targetCommitish] | @tsv')
-          test "$draft" = $'true\t'"$SOURCE_SHA"
+          draft=$(get_release)
+          [[ "$draft" != null ]]
+          verify_inventory "$draft" true
           immutable=$(GH_TOKEN="$RELEASE_SETTINGS_READ_TOKEN" \
             gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" --jq .enabled)
           test "$immutable" = true
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false
 
-          release=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${tag_ref}")
-          test "$(jq -r .immutable <<< "$release")" = true
-          echo "release_id=$(jq -r .id <<< "$release")" >> "$GITHUB_OUTPUT"
-          echo "release_url=$(jq -r .html_url <<< "$release")" >> "$GITHUB_OUTPUT"
+          published=$(get_release)
+          verify_inventory "$published" false
+          test "$(jq -r .immutable <<< "$published")" = true
+          test "$(gh api "$ref" --jq '.object | [.type,.sha] | @tsv')" = $'commit\t'"$SOURCE_SHA"
+          echo "release_id=$(jq -r .id <<< "$published")" >> "$GITHUB_OUTPUT"
+          echo "release_url=$(jq -r .html_url <<< "$published")" >> "$GITHUB_OUTPUT"
