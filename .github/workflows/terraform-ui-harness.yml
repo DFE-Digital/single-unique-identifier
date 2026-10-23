@@ -1,5 +1,5 @@
 name: Terraform UI Harness
-run-name: Terraform UI Harness - ${{ inputs.environment || 'd01' }} (${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply == true)) && 'apply' || 'plan' }})
+run-name: Terraform UI Harness - ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
 
 on:
   workflow_dispatch:
@@ -25,16 +25,6 @@ on:
       - "terraform/ui_test_harness/**"
       - "terraform/modules/**"
       - "terraform/environments/d01.tfvars"
-      - ".github/workflows/terraform-ui-harness.yml"      
-      - ".github/workflows/terraform-plan-and-apply.yml"
-      - ".github/actions/load-tfvars/**"
-  push:
-    branches:
-      - main
-    paths:
-      - "terraform/ui_test_harness/**"
-      - "terraform/modules/**"
-      - "terraform/environments/d01.tfvars"
       - ".github/workflows/terraform-ui-harness.yml"
       - ".github/workflows/terraform-plan-and-apply.yml"
       - ".github/actions/load-tfvars/**"
@@ -42,14 +32,10 @@ on:
 permissions:
   id-token: write
   contents: read
-  
-concurrency:
-  group: terraform-ui-harness-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   terraform:
-    name: Terraform UI Harness for ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }} (${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply == true)) && 'apply' || 'plan' }})
+    name: Terraform UI Harness for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
     uses: ./.github/workflows/terraform-plan-and-apply.yml
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -58,6 +44,6 @@ jobs:
       UI_TEST_HARNESS_PASSWORD: ${{ secrets.UI_TEST_HARNESS_PASSWORD }}
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply == true) }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply }}
       root: terraform/ui_test_harness
       state_key: ${{ format('{0}/ui_test_harness.tfstate', (github.event_name == 'workflow_dispatch' && inputs.environment || 'd01')) }}

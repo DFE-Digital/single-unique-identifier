@@ -1,5 +1,5 @@
 name: Terraform Auth Emulator
-run-name: Terraform Auth Emulator - ${{ inputs.environment || 'd01' }} (${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply == true)) && 'apply' || 'plan' }})
+run-name: Terraform Auth Emulator - ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
 
 on:
   workflow_dispatch:
@@ -18,17 +18,7 @@ on:
         required: true
         default: false
         type: boolean
-  pull_request: 
-    branches:
-      - main
-    paths:
-      - "terraform/auth-emulator/**"
-      - "terraform/modules/**"
-      - "terraform/environments/d01.tfvars"
-      - ".github/workflows/terraform-authemulator.yml"
-      - ".github/workflows/terraform-plan-and-apply.yml"
-      - ".github/actions/load-tfvars/**"
-  push:
+  pull_request:
     branches:
       - main
     paths:
@@ -42,14 +32,10 @@ on:
 permissions:
   id-token: write
   contents: read
-  
-concurrency:
-  group: terraform-authemulator-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   terraform:
-    name: Terraform Auth Emulator for ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }} (${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply == true)) && 'apply' || 'plan' }})
+    name: Terraform Auth Emulator for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
     uses: ./.github/workflows/terraform-plan-and-apply.yml
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -61,6 +47,6 @@ jobs:
       AUTH_CLIENT_SECRETS_JSON_MAP: ${{ secrets.AUTH_CLIENT_SECRETS_JSON_MAP }}
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply == true) }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply }}
       root: terraform/auth-emulator
       state_key: ${{ format('{0}/authemulator.tfstate', (github.event_name == 'workflow_dispatch' && inputs.environment || 'd01')) }}

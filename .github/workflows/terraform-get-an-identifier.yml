@@ -1,5 +1,5 @@
 name: Terraform Get An Identifier
-run-name: Terraform Get An Identifier - ${{ inputs.environment || 'd01' }} (${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply == true)) && 'apply' || 'plan' }})
+run-name: Terraform Get An Identifier - ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
 
 on:
   workflow_dispatch:
@@ -28,28 +28,14 @@ on:
       - ".github/workflows/terraform-get-an-identifier.yml"
       - ".github/workflows/terraform-plan-and-apply.yml"
       - ".github/actions/load-tfvars/**"
-  push:
-    branches:
-      - main
-    paths:
-      - "terraform/get-an-identifier/**"
-      - "terraform/modules/**"
-      - "terraform/environments/d01.tfvars"
-      - ".github/workflows/terraform-get-an-identifier.yml"
-      - ".github/workflows/terraform-plan-and-apply.yml"
-      - ".github/actions/load-tfvars/**"
 
 permissions:
   id-token: write
   contents: read
-  
-concurrency:
-  group: terraform-get-an-identifier-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   terraform:
-    name: Terraform Get An Identifier for ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }} (${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply == true)) && 'apply' || 'plan' }})
+    name: Terraform Get An Identifier for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
     uses: ./.github/workflows/terraform-plan-and-apply.yml
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -66,6 +52,6 @@ jobs:
       AUTH_CLIENT_IDS_JSON_MAP: ${{ secrets.AUTH_CLIENT_IDS_JSON_MAP }}
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply == true) }}
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply }}
       root: terraform/get-an-identifier
       state_key: ${{ format('{0}/getanidentifier.tfstate', (github.event_name == 'workflow_dispatch' && inputs.environment || 'd01')) }}

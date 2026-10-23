@@ -84,6 +84,9 @@ permissions:
 jobs:
   terraform:
     name: Terraform ${{ inputs.root }} for ${{ inputs.environment }} (${{ inputs.apply && 'apply' || 'plan' }})
+    concurrency:
+      group: terraform-${{ inputs.root }}-${{ inputs.environment }}
+      cancel-in-progress: false
     timeout-minutes: 60
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
