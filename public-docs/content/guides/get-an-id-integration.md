@@ -9,30 +9,32 @@ eleventyNavigation:
   order: 20
 ---
 
-This guide is for teams integrating a system with Get an Identifier through the Find and Use API (FaUAPI). It describes the request and response contract implemented by Get an Identifier. FaUAPI supplies the consumer-facing API address and onboarding details for each environment.
+This guide is for teams integrating a system with Get an Identifier through the Find and Use an API service (FaUAPI). It describes the request and response contract implemented by Get an Identifier. FaUAPI supplies the consumer-facing API address, and authentication credentials for each registered organisation.
 
 ## What the API does
 
 Get an Identifier is the vendor-facing API for children's social care in the Single Unique Identifier programme. A caller submits demographic details and the service searches NHS England's Personal Demographics Service (PDS). A confident match returns the person's NHS number and the GP practice ODS code when PDS provides one.
 
-## Before you start
+## OAuth2 Authentication - Find and Use an API
 
-Get access through the approved FaUAPI onboarding process. Before connecting, obtain the values and instructions for your approved environment:
+As part of the onboarding process, each consuming organisation creates a subscription to the environment via the Find and Use an API service. This subscription, once approved, contains the following authentication information:
 
-- the FaUAPI API base URL;
-- whether the subscription requires an API key and how to send it;
-- the OAuth token endpoint, client credential process and scope to request;
-- the published API contract for that environment; and
-- the approved test environment and test data.
+- `OAuth token endpoint` - Access token URL
+- `OAuth Client ID` - Client ID
+- `Primary key` - Client Secret
+- `OAuth Scope` - Scope
 
-These gateway and onboarding values are environment-specific. This guide does not define them. The Get an Identifier application requires a valid bearer token and the `get-an-identifier.read` permission; use the FaUAPI onboarding instructions for the token and subscription requirements presented to consumers. Do not use a local development address or a backend host as the vendor API address.
+These details must be used to retrieve an OAuth2 token from Find and Use an API. This token must then be sent with every request to Get an Identifier, in the format detailed in the example request below.
+
+These details, along with the Get an Identifier Base URL, will need to be retrieved securely from the FaUAPI admin portal as part of the integration process. The client ID and primary key are unique per-subscription, and the scope and token endpoint are unique per-environment.
+
+Documentation for Find and Use an API can be found [here](https://beta-find-and-use-an-api.education.gov.uk/docs).
 
 ## Request flow
 
-1. Obtain an access token and any subscription credential using the approved FaUAPI instructions for your environment.
-2. Send a `POST` request to the Get an Identifier operation using the path `/api/v1/get-an-identifier` under the base URL supplied by FaUAPI. The request must include `Content-Type: application/json`, a bearer token in the `Authorization` header, and the required JSON body. Include any FaUAPI subscription key header if your approved onboarding instructions require one.
-3. Handle the HTTP status and response body. A `200` response contains a confident match. A `404` means the supplied details did not confidently match a person; it is not a successful match.
-4. Keep credentials and demographic data protected throughout processing, storage and logging.
+1. Obtain an access token using the above OAuth2 authentication instructions.
+2. Send a `POST` request to the Get an Identifier operation using the path `{baseURL}/v1/get-an-identifier`. The request must include `Content-Type: application/json`, a bearer token in the `Authorization` header, and the required JSON body.
+3. Handle the HTTP status and response body. A `200` response contains a confident match. A `404` means the supplied details did not confidently match a person.
 
 ## Request body
 
@@ -59,13 +61,13 @@ The person fields and overall model are based on the [Social Care Interoperabili
 Example request (replace the placeholders with synthetic data approved for the test environment):
 
 ```sh
-curl --request POST "$GETANID_BASE_URL/api/v1/get-an-identifier" \
+curl --request POST "$GETANID_BASE_URL/v1/get-an-identifier" \
   --header "Authorization: Bearer $ACCESS_TOKEN" \
   --header "Content-Type: application/json" \
   --data @request.json
 ```
 
-Set `GETANID_BASE_URL` to the FaUAPI base URL supplied for your environment and obtain `ACCESS_TOKEN` using its approved authentication instructions. Add a subscription key header only if FaUAPI onboarding tells you to do so, using the header name it specifies.
+Where `$GETANID_BASE_URL` and `$ACCESS_TOKEN` are replaced with the values specified above.
 
 ```json
 {
@@ -101,7 +103,7 @@ A `200 OK` response has this shape:
 | `personId` | string | Matched NHS number. |
 | `generalPractitioner` | array of strings | GP practice ODS codes supplied by PDS; may be empty. |
 
-Error responses use a JSON problem object with `type`, `title`, `status`, `detail` and `instance` fields. Handle the HTTP status as well as the body; do not assume that a human-readable `detail` value is stable enough for program logic.
+Error responses use a JSON problem object with the below fields. Handle the HTTP status as well as the body; do not assume that a human-readable `detail` value is stable enough for program logic.
 
 | Field | JSON type | Notes |
 | --- | --- | --- |
@@ -131,7 +133,7 @@ Before production use, verify with the environment owner which test results are 
 ## Security and operational expectations
 
 - Send requests only over HTTPS to the FaUAPI address supplied for your environment.
-- Store OAuth client credentials, access tokens and any subscription key in an approved secrets manager. Do not put them in source control, logs, URLs or support tickets.
+- Store OAuth client credentials and access tokens in an approved secrets manager. Do not put them in source control, logs, URLs or support tickets.
 - Treat the request body, NHS number and GP practice information as sensitive personal data. Limit access and retention to what your organisation needs for the authorised purpose.
 - Do not log demographic request or response bodies, NHS numbers, tokens, subscription keys or upstream PDS diagnostics. Use non-sensitive operational information such as HTTP status and approved correlation identifiers when investigating failures.
 - Do not cache responses. The application returns `Cache-Control: no-store` headers.
