@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 
 const workflow = readFileSync(new URL('../workflows/ci-cd-orchestrator.yml', import.meta.url), 'utf8');
-const settingsCheckJob = workflow.split('  release-settings-check:\n')[1]?.split('\n  publish-container:\n')[0];
+const settingsCheckJob = workflow.split('  release-settings-check:\n')[1]?.split('\n  trufflehog-scan:\n')[0];
 assert.ok(settingsCheckJob, 'release settings preflight exists');
 assert.match(settingsCheckJob, /GH_TOKEN: \$\{\{ secrets\.RELEASE_SETTINGS_READ_TOKEN \}\}/);
 assert.match(settingsCheckJob, /immutable-releases/);
@@ -11,13 +11,7 @@ assert.match(settingsCheckJob, /test -n "\$GH_TOKEN"/);
 assert.match(settingsCheckJob, /github\.event_name == 'push'/);
 assert.match(settingsCheckJob, /github\.ref == 'refs\/heads\/main'/);
 
-const publishContainerJob = workflow.split('  publish-container:\n')[1]?.split('\n  trufflehog-scan:\n')[0];
-assert.ok(publishContainerJob, 'container publication job exists');
-assert.match(publishContainerJob, /needs: .*release-settings-check.*trufflehog-scan.*trivy-scan.*trivy-iac-scan.*release-script-tests/);
-assert.match(publishContainerJob, /github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
-assert.match(publishContainerJob, /needs\.trufflehog-scan\.result == 'success'/);
-assert.match(publishContainerJob, /needs\.trivy-scan\.result == 'success'/);
-assert.match(publishContainerJob, /needs\.trivy-iac-scan\.result == 'success'/);
+assert.doesNotMatch(workflow, /notification_service|NotificationService|publish-container|azure\/login/);
 
 const releaseJob = workflow.split('  cut-release:\n')[1];
 assert.ok(releaseJob, 'release job exists');
@@ -56,7 +50,7 @@ function scenario({ event = 'push', ref = 'refs/heads/main', selected = [],
     ci_helpers: 'true',
     ...Object.fromEntries([
       ['auth_emulator', 'AuthEmulator'], ['get_an_id', 'GetAnIdentifier'],
-      ['notification_service', 'NotificationService'], ['ui_harness', 'UIHarness'],
+      ['ui_harness', 'UIHarness'],
     ].map(([key, name]) => [key, String(selected.includes(name))])),
   };
   const needs = {
@@ -64,10 +58,8 @@ function scenario({ event = 'push', ref = 'refs/heads/main', selected = [],
     'prepare-release-assets': { result: selected.length ? 'success' : 'skipped' },
     'build-auth-emulator': { result: selected.includes('AuthEmulator') ? 'success' : 'skipped' },
     'build-get-an-id': { result: selected.includes('GetAnIdentifier') ? 'success' : 'skipped' },
-    'build-notification-service': { result: selected.includes('NotificationService') ? 'success' : 'skipped' },
     'build-ui-harness': { result: selected.includes('UIHarness') ? 'success' : 'skipped' },
     'attest-release-zips': { result: selected.length ? 'success' : 'skipped' },
-    'publish-container': { result: selected.includes('NotificationService') ? 'success' : 'skipped' },
     'release-settings-check': { result: selected.length ? 'success' : 'skipped' },
     'trufflehog-scan': { result: 'success' },
     'trivy-scan': { result: 'success' },
@@ -81,11 +73,12 @@ function scenario({ event = 'push', ref = 'refs/heads/main', selected = [],
 describe('release publication job guard', () => {
   it('skips a main push with no selected components', () => {
     assert.equal(scenario(), false);
+    assert.equal(scenario({ selected: ['NotificationService'] }), false);
   });
 
   it('allows a successful partial and first release', () => {
     assert.equal(scenario({ selected: ['AuthEmulator'] }), true);
-    assert.equal(scenario({ selected: ['NotificationService'] }), true);
+    assert.equal(scenario({ selected: ['GetAnIdentifier', 'UIHarness'] }), true);
   });
 
   it('blocks PRs, manual runs and failures of mandatory jobs', () => {
@@ -106,6 +99,5 @@ describe('release publication job guard', () => {
     ]) {
       assert.equal(scenario({ selected, failed }), false, failed);
     }
-    assert.equal(scenario({ selected: ['NotificationService'], failed: 'publish-container' }), false);
   });
 });

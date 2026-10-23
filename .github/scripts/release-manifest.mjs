@@ -1,16 +1,15 @@
 #!/usr/bin/env node
-import { copyFile, mkdir, readdir, stat, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projects = {
   AuthEmulator: { project: 'SUI.AuthEmulator', slug: 'auth-emulator' },
   GetAnIdentifier: { project: 'SUI.GetAnIdentifier.API', slug: 'get-an-identifier' },
-  NotificationService: { project: 'SUI.NotificationService', slug: 'notification-service' },
   UIHarness: { project: 'SUI.UIHarness.Web', slug: 'ui-harness' },
 };
 
-export async function createManifests({ components, assetsDir, containerFiles = {}, sourceSha,
+export async function createManifests({ components, assetsDir, sourceSha,
   runId, runAttempt, generatedAt = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z') }) {
   if (!Array.isArray(components) || components.length === 0 ||
       new Set(components).size !== components.length ||
@@ -25,10 +24,6 @@ export async function createManifests({ components, assetsDir, containerFiles = 
     .filter((entry) => entry.name.endsWith('.zip'));
   if (zipFiles.length !== components.length) throw new Error('ZIP inventory does not match selection');
 
-  if (Object.keys(containerFiles).some((name) => !components.includes(name))) {
-    throw new Error('Container metadata selection mismatch');
-  }
-
   const releases = [];
   for (const component of components) {
     const { project, slug } = projects[component];
@@ -42,21 +37,12 @@ export async function createManifests({ components, assetsDir, containerFiles = 
     if (!fileStat.isFile() || fileStat.size === 0) {
       throw new Error(`Empty or invalid ZIP for ${component}`);
     }
-    let container = null;
-    if (Object.hasOwn(containerFiles, component)) {
-      const metadata = JSON.parse(await readFile(containerFiles[component], 'utf8'));
-      if (typeof metadata.repository !== 'string' || !metadata.repository ||
-          !/^sha256:[0-9a-f]{64}$/.test(metadata.digest)) {
-        throw new Error(`Invalid container repository or digest for ${component}`);
-      }
-      container = { repository: metadata.repository, digest: metadata.digest };
-    }
     releases.push({ component, slug, zipPath, manifest: {
       schema_version: 1,
       release: { tag: `sui-${slug}-${sourceSha}`, source_sha: sourceSha,
         workflow_run_id: runId, workflow_run_attempt: runAttempt, generated_at: generatedAt },
       assets: [{ component, filename }],
-      container,
+      container: null,
     } });
   }
   return releases;
@@ -65,18 +51,11 @@ export async function createManifests({ components, assetsDir, containerFiles = 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   try {
     const selected = [
-      ['AUTH', 'AuthEmulator'], ['GET_AN_ID', 'GetAnIdentifier'],
-      ['NOTIFICATION', 'NotificationService'], ['UI', 'UIHarness'],
+      ['AUTH', 'AuthEmulator'], ['GET_AN_ID', 'GetAnIdentifier'], ['UI', 'UIHarness'],
     ].filter(([key]) => process.env[key] === 'true').map(([, name]) => name);
-    const containerComponents = JSON.parse(process.env.CONTAINER_COMPONENTS || '[]');
-    if (!Array.isArray(containerComponents) || new Set(containerComponents).size !== containerComponents.length ||
-        containerComponents.some((name) => typeof name !== 'string' || !selected.includes(name))) {
-      throw new Error('Container components must be unique selected components');
-    }
     const releases = await createManifests({
       components: selected,
       assetsDir: 'drop',
-      containerFiles: Object.fromEntries(containerComponents.map((name) => [name, `container-drop/${name}.json`])),
       sourceSha: process.env.GITHUB_SHA,
       runId: process.env.GITHUB_RUN_ID,
       runAttempt: process.env.GITHUB_RUN_ATTEMPT,

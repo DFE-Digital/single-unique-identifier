@@ -13,7 +13,7 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 
-async function fixture(components, containerComponents = components.includes('NotificationService') ? ['NotificationService'] : []) {
+async function fixture(components) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'sui-manifest-'));
   roots.push(root);
   const assetsDir = path.join(root, 'drop');
@@ -21,24 +21,13 @@ async function fixture(components, containerComponents = components.includes('No
   const projects = {
     AuthEmulator: 'SUI.AuthEmulator',
     GetAnIdentifier: 'SUI.GetAnIdentifier.API',
-    NotificationService: 'SUI.NotificationService',
     UIHarness: 'SUI.UIHarness.Web',
   };
   for (const component of components) {
     await writeFile(path.join(assetsDir, `${component}-${projects[component]}-build.zip`), 'ZIP');
   }
-  const containerFiles = {};
-  for (const component of containerComponents) {
-    const file = path.join(root, `${component}.json`);
-    await writeFile(file, JSON.stringify({
-      repository: `example.azurecr.io/${component.toLowerCase()}`,
-      digest: `sha256:${'b'.repeat(64)}`,
-      ignored: 'not part of the manifest',
-    }));
-    containerFiles[component] = file;
-  }
   return {
-    components, assetsDir, containerFiles,
+    components, assetsDir,
     sourceSha: 'a'.repeat(40), runId: '123', runAttempt: '2',
     generatedAt: '2026-10-22T12:00:00Z',
   };
@@ -56,29 +45,15 @@ it('creates separate component releases from one source commit', async () => {
   }
 });
 
-it('records only the published image identity when Notification Service is selected', async () => {
-  const [{ manifest }] = await createManifests(await fixture(['NotificationService']));
-  assert.deepEqual(manifest.container, {
-    repository: 'example.azurecr.io/notificationservice', digest: `sha256:${'b'.repeat(64)}`,
-  });
-});
-
-it('records container metadata for another selected component without changing manifest logic', async () => {
-  const [release] = await createManifests(await fixture(['AuthEmulator'], ['AuthEmulator']));
-  assert.deepEqual(release.manifest.container, {
-    repository: 'example.azurecr.io/authemulator', digest: `sha256:${'b'.repeat(64)}`,
-  });
-});
-
 it('writes component directories and a publication matrix from workflow inputs', async () => {
   const inputs = await fixture(['GetAnIdentifier', 'UIHarness']);
   const root = path.dirname(inputs.assetsDir);
   const output = path.join(root, 'github-output');
   await execFileAsync('node', [new URL('./release-manifest.mjs', import.meta.url).pathname], {
     cwd: root,
-    env: { ...process.env, AUTH: 'false', GET_AN_ID: 'true', NOTIFICATION: 'false', UI: 'true',
+    env: { ...process.env, AUTH: 'false', GET_AN_ID: 'true', UI: 'true',
       GITHUB_SHA: inputs.sourceSha, GITHUB_RUN_ID: inputs.runId,
-      GITHUB_RUN_ATTEMPT: inputs.runAttempt, GITHUB_OUTPUT: output, CONTAINER_COMPONENTS: '[]' },
+      GITHUB_RUN_ATTEMPT: inputs.runAttempt, GITHUB_OUTPUT: output },
   });
   const manifest = JSON.parse(await readFile(path.join(root, 'release-assets', 'GetAnIdentifier', 'release-manifest.json'), 'utf8'));
   assert.deepEqual(manifest.assets, [
@@ -93,7 +68,7 @@ it('writes component directories and a publication matrix from workflow inputs',
   });
 });
 
-it('rejects no component, extra ZIPs, empty ZIPs and missing image metadata', async () => {
+it('rejects no component, deferred components, extra ZIPs and empty ZIPs', async () => {
   const empty = await fixture([]);
   await assert.rejects(createManifests(empty), /Select at least one/);
 
@@ -105,11 +80,6 @@ it('rejects no component, extra ZIPs, empty ZIPs and missing image metadata', as
   await writeFile(path.join(zero.assetsDir, 'AuthEmulator-SUI.AuthEmulator-build.zip'), '');
   await assert.rejects(createManifests(zero), /Empty or invalid/);
 
-  const image = await fixture(['NotificationService']);
-  image.containerFiles.NotificationService = path.join(path.dirname(image.assetsDir), 'missing.json');
-  await assert.rejects(createManifests(image), /ENOENT/);
-
-  const unselected = await fixture(['AuthEmulator']);
-  unselected.containerFiles.NotificationService = '/tmp/unselected.json';
-  await assert.rejects(createManifests(unselected), /metadata selection/);
+  const notification = await fixture(['AuthEmulator']);
+  await assert.rejects(createManifests({ ...notification, components: ['NotificationService'] }), /known component/);
 });

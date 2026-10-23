@@ -43,7 +43,6 @@ jobs:
     outputs:
       auth_emulator: ${{ steps.filter.outputs.auth_emulator }}
       get_an_id: ${{ steps.filter.outputs.get_an_id }}
-      notification_service: ${{ steps.filter.outputs.notification_service }}
       ui_harness: ${{ steps.filter.outputs.ui_harness }}
       ci_helpers: ${{ steps.filter.outputs.ci_helpers }}
     steps:
@@ -70,24 +69,6 @@ jobs:
             get_an_id:
               - 'Apps/GetAnIdentifier/**'
               - 'Data/**'
-              - 'global.json'
-              - 'nuget.config'
-              - 'Directory.Build.props'
-              - 'Directory.Build.targets'
-              - 'Directory.Packages.props'
-              - '.github/workflows/build-test-dotnet-release.yml'
-              - '.github/workflows/attest-release-zips.yml'
-              - '.github/workflows/ci-cd-orchestrator.yml'
-              - '.github/workflows/publish-immutable-release.yml'
-              - '.github/scripts/**'
-            notification_service:
-              - 'Apps/NotificationService/**'
-              - '.github/actions/package-container-from-artifact/**'
-              - '.github/actions/publish-scanned-container-to-acr/**'
-              - 'Libs/**'
-              - 'terraform/notification-service/**'
-              - 'terraform/core/**'
-              - 'terraform/environments/**'
               - 'global.json'
               - 'nuget.config'
               - 'Directory.Build.props'
@@ -170,41 +151,6 @@ jobs:
       skip_tests: true
       skip_scans: true
 
-  build-notification-service:
-    name: Notification Service - Build Test Dotnet
-    needs: path-filter
-    if: needs.path-filter.outputs.notification_service == 'true' || inputs.force_deploy_all
-    uses: ./.github/workflows/build-test-dotnet-release.yml
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    permissions:
-      contents: read
-      pull-requests: write
-      packages: read
-    with:
-      directory_name: Apps/NotificationService
-      project_names: '["SUI.NotificationService"]'
-      requires_azurite: true
-      skip_tests: ${{ inputs.skip_tests || false }}
-      skip_scans: ${{ inputs.skip_scans || false }}
-
-  validate-container:
-    name: Notification Service - validate container
-    if: github.event_name != 'push' && (needs.path-filter.outputs.notification_service == 'true' || inputs.force_deploy_all)
-    needs: [path-filter, build-notification-service]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Package and scan tested Notification Service output
-        uses: ./.github/actions/package-container-from-artifact
-        with:
-          artifact-name: release-zips-NotificationService
-          output-directory: notification-service-publish
-          expected-file: SUI.NotificationService.dll
-          dockerfile: Apps/NotificationService/Dockerfile.release
-          image-tag: notification-service:${{ github.sha }}
-
   release-settings-check:
     name: Check release immutability before publication
     needs: [path-filter]
@@ -213,7 +159,6 @@ jobs:
           needs.path-filter.result == 'success' &&
           (needs.path-filter.outputs.auth_emulator == 'true' ||
            needs.path-filter.outputs.get_an_id == 'true' ||
-           needs.path-filter.outputs.notification_service == 'true' ||
            needs.path-filter.outputs.ui_harness == 'true') }}
     runs-on: ubuntu-latest
     permissions:
@@ -226,83 +171,6 @@ jobs:
           set -euo pipefail
           test -n "$GH_TOKEN"
           test "$(gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" --jq .enabled)" = true
-
-  publish-container:
-    name: Notification Service - scan and publish tested container
-    if: >-
-      ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-          needs.path-filter.outputs.notification_service == 'true' &&
-          needs.build-notification-service.result == 'success' &&
-          needs.attest-release-zips.result == 'success' &&
-          needs.release-settings-check.result == 'success' &&
-          needs.trufflehog-scan.result == 'success' &&
-          needs.trivy-scan.result == 'success' &&
-          needs.trivy-iac-scan.result == 'success' &&
-          (needs.path-filter.outputs.ci_helpers != 'true' || needs.release-script-tests.result == 'success') }}
-    needs: [path-filter, build-notification-service, attest-release-zips, release-settings-check, trufflehog-scan, trivy-scan, trivy-iac-scan, release-script-tests]
-    runs-on: ubuntu-latest
-    environment: d01
-    permissions:
-      contents: read
-      actions: read
-      attestations: read
-      id-token: write
-    outputs:
-      repository: ${{ steps.publish.outputs.repository }}
-      digest: ${{ steps.publish.outputs.digest }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Package and scan attested Notification Service output
-        id: package
-        uses: ./.github/actions/package-container-from-artifact
-        with:
-          artifact-name: release-zips-NotificationService
-          output-directory: published-output
-          expected-file: SUI.NotificationService.dll
-          dockerfile: Apps/NotificationService/Dockerfile.release
-          image-tag: notification-service:${{ github.sha }}
-          verify-attestation: 'true'
-          source-sha: ${{ github.sha }}
-          source-ref: refs/heads/main
-          signer-workflow: ${{ github.repository }}/.github/workflows/attest-release-zips.yml
-          github-token: ${{ github.token }}
-      - name: Load environment naming
-        id: environment
-        uses: ./.github/actions/load-tfvars
-        with:
-          environment: d01
-      - name: Azure login with OIDC
-        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      - name: Resolve Azure Container Registry
-        id: registry
-        env:
-          REGISTRY_NAME: ${{ format('{0}{1}acr{2}services01', steps.environment.outputs.subscription_prefix, steps.environment.outputs.environment_id, steps.environment.outputs.region_short) }}
-        run: |
-          login_server=$(az acr show --name "$REGISTRY_NAME" --query loginServer --output tsv)
-          test -n "$login_server"
-          echo "name=$REGISTRY_NAME" >> "$GITHUB_OUTPUT"
-          echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
-      - name: Publish scanned image and record registry digest
-        id: publish
-        uses: ./.github/actions/publish-scanned-container-to-acr
-        with:
-          local-image: ${{ steps.package.outputs.image-tag }}
-          registry-name: ${{ steps.registry.outputs.name }}
-          registry-server: ${{ steps.registry.outputs.login_server }}
-          repository: notification-service
-          tag: ${{ github.sha }}
-          dockerfile: Apps/NotificationService/Dockerfile.release
-          metadata-path: NotificationService.json
-      - name: Upload immutable container metadata
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: release-container-metadata-NotificationService
-          path: ${{ steps.publish.outputs.metadata-path }}
 
   trufflehog-scan:
     name: Trufflehog secret scan
@@ -321,17 +189,15 @@ jobs:
 
   attest-release-zips:
     name: Attest tested deployment ZIPs
-    needs: [path-filter, build-auth-emulator, build-get-an-id, build-ui-harness, build-notification-service]
+    needs: [path-filter, build-auth-emulator, build-get-an-id, build-ui-harness]
     if: >-
       ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
           (needs.path-filter.outputs.auth_emulator == 'true' ||
            needs.path-filter.outputs.get_an_id == 'true' ||
-           needs.path-filter.outputs.ui_harness == 'true' ||
-           needs.path-filter.outputs.notification_service == 'true') &&
+           needs.path-filter.outputs.ui_harness == 'true') &&
           (needs.path-filter.outputs.auth_emulator != 'true' || needs.build-auth-emulator.result == 'success') &&
           (needs.path-filter.outputs.get_an_id != 'true' || needs.build-get-an-id.result == 'success') &&
-          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') &&
-          (needs.path-filter.outputs.notification_service != 'true' || needs.build-notification-service.result == 'success') }}
+          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') }}
     uses: ./.github/workflows/attest-release-zips.yml
     permissions:
       contents: read
@@ -355,9 +221,7 @@ jobs:
       - build-auth-emulator
       - build-get-an-id
       - build-ui-harness
-      - build-notification-service
       - attest-release-zips
-      - publish-container
     if: >-
       ${{ always() &&
           github.event_name == 'push' && github.ref == 'refs/heads/main' &&
@@ -365,13 +229,10 @@ jobs:
           needs.attest-release-zips.result == 'success' &&
           (needs.path-filter.outputs.auth_emulator == 'true' ||
            needs.path-filter.outputs.get_an_id == 'true' ||
-           needs.path-filter.outputs.notification_service == 'true' ||
            needs.path-filter.outputs.ui_harness == 'true') &&
           (needs.path-filter.outputs.auth_emulator != 'true' || needs.build-auth-emulator.result == 'success') &&
           (needs.path-filter.outputs.get_an_id != 'true' || needs.build-get-an-id.result == 'success') &&
-          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') &&
-          (needs.path-filter.outputs.notification_service != 'true' ||
-           (needs.build-notification-service.result == 'success' && needs.publish-container.result == 'success')) }}
+          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.prepare.outputs.matrix }}
@@ -387,21 +248,12 @@ jobs:
           pattern: release-zips-*
           path: drop
           merge-multiple: true
-      - name: Download published container metadata
-        if: needs.publish-container.result == 'success'
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          pattern: release-container-metadata-*
-          path: container-drop
-          merge-multiple: true
       - name: Prepare release manifest and asset list
         id: prepare
         env:
           AUTH: ${{ needs.path-filter.outputs.auth_emulator }}
           GET_AN_ID: ${{ needs.path-filter.outputs.get_an_id }}
-          NOTIFICATION: ${{ needs.path-filter.outputs.notification_service }}
           UI: ${{ needs.path-filter.outputs.ui_harness }}
-          CONTAINER_COMPONENTS: ${{ needs.publish-container.result == 'success' && '["NotificationService"]' || '[]' }}
         run: node .github/scripts/release-manifest.mjs
       - name: Upload release asset bundle
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -417,9 +269,7 @@ jobs:
       - build-auth-emulator
       - build-get-an-id
       - build-ui-harness
-      - build-notification-service
       - attest-release-zips
-      - publish-container
       - trufflehog-scan
       - trivy-scan
       - trivy-iac-scan
@@ -439,13 +289,10 @@ jobs:
           needs.prepare-release-assets.result == 'success' &&
           (needs.path-filter.outputs.auth_emulator == 'true' ||
            needs.path-filter.outputs.get_an_id == 'true' ||
-           needs.path-filter.outputs.notification_service == 'true' ||
            needs.path-filter.outputs.ui_harness == 'true') &&
           (needs.path-filter.outputs.auth_emulator != 'true' || needs.build-auth-emulator.result == 'success') &&
           (needs.path-filter.outputs.get_an_id != 'true' || needs.build-get-an-id.result == 'success') &&
-          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') &&
-          (needs.path-filter.outputs.notification_service != 'true' ||
-           (needs.build-notification-service.result == 'success' && needs.publish-container.result == 'success')) }}
+          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.prepare-release-assets.outputs.matrix) }}
