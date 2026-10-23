@@ -12,28 +12,13 @@ Top-level app workflows live in [`.github/workflows/*-build-and-deploy.yml`](../
 
 ## Runner selection
 
-Workflows that use configurable runner labels read the `RUNNER_LABELS` GitHub
-Actions variable as a JSON array. If it is unset, they use
-`["ubuntu-latest"]`. Set the variable at repository or environment scope to
-select a different runner or runner group, and make sure the configured labels
-match an available runner.
+Workflows that use configurable runner labels read the `RUNNER_LABELS` GitHub Actions variable as a JSON array. If it is unset, they use `["ubuntu-latest"]`. Set the variable at repository or environment scope to select a different runner or runner group, and make sure the configured labels match an available runner.
 
-Both .NET build workflows select the exact patched SDK in `global.json` and log
-its version. The release build restores committed NuGet locks in locked mode,
-then builds, tests and publishes deployment output with `--no-build`. When the
-SDK changes, regenerate affected locks with that SDK and validate locked
-restore before merging.
+Both .NET build workflows select the exact patched SDK in `global.json` and log its version. The release build restores committed NuGet locks in locked mode, then builds, tests and publishes deployment output with `--no-build`. When the SDK changes, regenerate affected locks with that SDK and validate locked restore before merging.
 
 ## Application build artifacts
 
-Application deployment artifacts are uploaded to GitHub Actions by the shared
-build workflow and downloaded by the deploy workflows. The build and deploy
-jobs in the app workflows use the same workflow run. When starting a deploy
-workflow separately, provide both the exact artifact name and the ID of the
-workflow run that uploaded it (`artifact_run_id`). The run must belong to this
-repository and the artifact must still be retained; the current default
-retention period is 60 days. Terraform state continues to use the existing
-Azure Blob backend and locking.
+Application deployment artifacts are uploaded to GitHub Actions by the shared build workflow and downloaded by the deploy workflows. The build and deploy jobs in the app workflows use the same workflow run. When starting a deploy workflow separately, provide both the exact artifact name and the ID of the workflow run that uploaded it (`artifact_run_id`). The run must belong to this repository and the artifact must still be retained; the current default retention period is 60 days. Terraform state continues to use the existing Azure Blob backend and locking.
 
 ## Manual run inputs
 
@@ -86,8 +71,7 @@ If you configure GitHub branch protection for `main`, set these required checks:
 
 ## Artifact cleanup
 
-The repo currently uses a 60-day default retention policy for artifacts and logs (check repo settings for changes).
-If you need to clear artifacts manually, run [`cleanup-artifacts.sh`](../../.github/scripts/cleanup-artifacts.sh) with `--help`.
+The repo currently uses a 60-day default retention policy for artifacts and logs (check repo settings for changes). If you need to clear artifacts manually, run [`cleanup-artifacts.sh`](../../.github/scripts/cleanup-artifacts.sh) with `--help`.
 
 # Pipeline & Security Escalation Routes
 
@@ -109,58 +93,16 @@ To ensure operational resilience and rapid response to supply-chain or infrastru
 
 ## Immutable application releases
 
-The release orchestrator validates pull requests and supports manual validation
-without publishing images or releases. A protected-main push selects changed
-components and publishes an immutable GitHub Release only after their build
-gates and the secret, repository and IaC scans succeed. Shared SDK/NuGet and
-release-workflow changes select all apps; Notification Service also responds
-to shared-library changes. Manual validation can select all components with
-`force_deploy_all`. Main pushes use separate runs so a later push cannot cancel
-a pending release for another component.
+The release orchestrator validates pull requests and supports manual validation without publishing images or releases. A protected-main push selects changed components and publishes an immutable GitHub Release only after their build gates and the secret, repository and IaC scans succeed. Shared SDK/NuGet and release-workflow changes select all apps; Notification Service also responds to shared-library changes. Manual validation can select all components with `force_deploy_all`. Main pushes use separate runs so a later push cannot cancel a pending release for another component.
 
-- `ci-cd-orchestrator.yml` builds and scans selected components. On PR/manual
-  runs it packages and scans Notification Service locally. On main it uses the
-  same Docker Buildx actions to package and scan that tested output, then pushes
-  the scanned image to ACR before creating the GitHub Release. The image digest,
-  not a mutable tag, is recorded.
-- `build-test-dotnet-release.yml` contains the isolated release build. It
-  uploads the tested deployment ZIP. The main-only
-  `attest-release-zips.yml` workflow signs its exact downloaded bytes;
-  PR/manual validation cannot call that workflow or receive its permissions.
-  Existing app workflows continue to call
-  `build-test-dotnet.yml` and use the existing deployment paths.
-- `release-manifest.mjs` validates the selected ZIP inventory and writes a small
-  manifest with the full source SHA, immutable tag, workflow run ID
-  and attempt, selected component-to-ZIP mapping, and (when selected) the
-  Notification Service image repository and digest. Required build and scan
-  gates remain enforced by the workflow and their actual results are available
-  on the linked Actions run. The source commit identifies the SDK, project
-  settings and NuGet locks; each ZIP's signed build attestation binds it to
-  that commit and the trusted signing workflow. Consumers can resolve the
-  GitHub release ID from the immutable `sui-<full source SHA>` tag.
-- `publish-immutable-release.yml` is a reusable publication workflow. Its
-  caller supplies a release asset artifact, the attested-asset filename
-  pattern, manifest filename, tag, source SHA/ref, signer workflow, title and
-  notes. It verifies the manifest identity and each matching asset's original
-  build attestation, refuses an existing tag, creates a draft at the source
-  SHA, and publishes it as immutable. It returns the GitHub release ID and URL.
-  SUI-specific component selection, manifest creation and container publishing
-  stay in the orchestrator.
-- Before any container image is pushed, a main-only preflight verifies
-  repository release immutability; the release job checks it again immediately
-  before publication using `RELEASE_SETTINGS_READ_TOKEN` (Administration: read
-  for this repository). The publishing job's `GITHUB_TOKEN` has only the
-  permissions needed to publish. GitHub locks the tag and assets and creates a
-  release attestation when the draft is published.
-- If a tag or draft already exists, publication stops without changing it.
-  An operator must inspect and reconcile an incomplete draft or orphaned tag
-  before a new release run can proceed. Published immutable releases cannot be
-  replaced or reused.
-- Application deployment artefacts use GitHub Actions artefacts. Terraform
-  remains a manual plan/apply flow with its existing Azure remote state and
-  locking.
-- Promotion and deployment from immutable releases are handled separately. The
-  release orchestrator does not deploy applications or apply Terraform.
+- `ci-cd-orchestrator.yml` builds and scans selected components. On PR/manual runs it packages and scans Notification Service locally. The local `package-container-from-artifact` composite action downloads the tested ZIP, optionally verifies its build attestation, extracts the output, builds the image without publishing, and scans it. The main-only job uses the same action before authenticating to Azure and pushing that scanned image to ACR. It records the resulting image digest, not a mutable tag. The action takes the artifact name, expected output file, Dockerfile, image tag, and provenance identity as inputs, so another container workflow can reuse the packaging steps while keeping its registry and credentials in its caller workflow.
+- `build-test-dotnet-release.yml` contains the isolated release build. It uploads the tested deployment ZIP. The main-only `attest-release-zips.yml` workflow signs its exact downloaded bytes; PR/manual validation cannot call that workflow or receive its permissions. Existing app workflows continue to call `build-test-dotnet.yml` and use the existing deployment paths.
+- `release-manifest.mjs` validates the selected ZIP inventory and writes a small manifest with the full source SHA, immutable tag, workflow run ID and attempt, selected component-to-ZIP mapping, and (when selected) the Notification Service image repository and digest. Required build and scan gates remain enforced by the workflow and their actual results are available on the linked Actions run. The source commit identifies the SDK, project settings and NuGet locks; each ZIP's signed build attestation binds it to that commit and the trusted signing workflow. Consumers can resolve the GitHub release ID from the immutable `sui-<full source SHA>` tag.
+- `publish-immutable-release.yml` is a reusable publication workflow. Its caller supplies a release asset artifact, the attested-asset filename pattern, manifest filename, tag, source SHA/ref, signer workflow, title and notes. It verifies the manifest identity and each matching asset's original build attestation, refuses an existing tag, creates a draft at the source SHA, and publishes it as immutable. It returns the GitHub release ID and URL. SUI-specific component selection, manifest creation and container publishing stay in the orchestrator.
+- Before any container image is pushed, a main-only preflight verifies repository release immutability; the release job checks it again immediately before publication using `RELEASE_SETTINGS_READ_TOKEN` (Administration: read for this repository). The publishing job's `GITHUB_TOKEN` has only the permissions needed to publish. GitHub locks the tag and assets and creates a release attestation when the draft is published.
+- If a tag or draft already exists, publication stops without changing it. An operator must inspect and reconcile an incomplete draft or orphaned tag before a new release run can proceed. Published immutable releases cannot be replaced or reused.
+- Application deployment artefacts use GitHub Actions artefacts. Terraform remains a manual plan/apply flow with its existing Azure remote state and locking.
+- Promotion and deployment from immutable releases are handled separately. The release orchestrator does not deploy applications or apply Terraform.
 
 ## Environment Labels
 

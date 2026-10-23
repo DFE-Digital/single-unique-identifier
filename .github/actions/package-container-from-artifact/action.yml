@@ -1,0 +1,113 @@
+name: Package and scan container from artifact
+description: Build and scan a local container image from a tested ZIP artifact.
+inputs:
+  artifact-name:
+    description: Name of the Actions artifact containing the tested ZIP.
+    required: true
+  artifact-path:
+    description: Directory where the artifact ZIP is downloaded.
+    required: false
+    default: drop
+  output-directory:
+    description: Directory where the tested ZIP is extracted and used as the build context.
+    required: true
+  expected-file:
+    description: File that must exist in the extracted build context.
+    required: true
+  dockerfile:
+    description: Dockerfile path relative to the repository root.
+    required: true
+  image-tag:
+    description: Local image tag to build and scan.
+    required: true
+  verify-attestation:
+    description: Verify the downloaded ZIP build attestation before extraction.
+    required: false
+    default: 'false'
+  source-sha:
+    description: Full source commit SHA expected by attestation verification.
+    required: false
+  source-ref:
+    description: Source ref expected by attestation verification.
+    required: false
+  signer-workflow:
+    description: Workflow identity expected by attestation verification.
+    required: false
+  github-token:
+    description: Token used by gh attestation verify when verification is enabled.
+    required: false
+  platform:
+    description: Target container platform.
+    required: false
+    default: linux/amd64
+  scan-severity:
+    description: Trivy severities that fail the scan.
+    required: false
+    default: HIGH,CRITICAL
+outputs:
+  image-tag:
+    description: Tag of the locally built and scanned image.
+    value: ${{ inputs.image-tag }}
+runs:
+  using: composite
+  steps:
+    - name: Download tested artifact
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.artifact-path }}
+
+    - name: Verify provenance and extract tested output
+      shell: bash
+      env:
+        ARTIFACT_PATH: ${{ inputs.artifact-path }}
+        OUTPUT_DIRECTORY: ${{ inputs.output-directory }}
+        EXPECTED_FILE: ${{ inputs.expected-file }}
+        VERIFY_ATTESTATION: ${{ inputs.verify-attestation }}
+        SOURCE_SHA: ${{ inputs.source-sha }}
+        SOURCE_REF: ${{ inputs.source-ref }}
+        SIGNER_WORKFLOW: ${{ inputs.signer-workflow }}
+        GH_TOKEN: ${{ inputs.github-token || github.token }}
+      run: |
+        set -euo pipefail
+        shopt -s nullglob
+        zips=("$ARTIFACT_PATH"/*.zip)
+        if [[ ${#zips[@]} -ne 1 ]]; then
+          echo "Expected exactly one ZIP artifact, found ${#zips[@]}" >&2
+          exit 1
+        fi
+        zip=${zips[0]}
+
+        if [[ "$VERIFY_ATTESTATION" == 'true' ]]; then
+          test -n "$SOURCE_SHA"
+          test -n "$SOURCE_REF"
+          test -n "$SIGNER_WORKFLOW"
+          gh attestation verify "$zip" --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$SIGNER_WORKFLOW" \
+            --source-digest "$SOURCE_SHA" --source-ref "$SOURCE_REF"
+        fi
+
+        mkdir -p "$OUTPUT_DIRECTORY"
+        unzip -q "$zip" -d "$OUTPUT_DIRECTORY"
+        test -f "$OUTPUT_DIRECTORY/$EXPECTED_FILE"
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+
+    - name: Build container without publishing
+      uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+      with:
+        context: ${{ inputs.output-directory }}
+        file: ${{ inputs.dockerfile }}
+        platforms: ${{ inputs.platform }}
+        load: true
+        push: false
+        tags: ${{ inputs.image-tag }}
+
+    - name: Scan local image for vulnerabilities
+      uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+      with:
+        image-ref: ${{ inputs.image-tag }}
+        format: table
+        exit-code: 1
+        severity: ${{ inputs.scan-severity }}
