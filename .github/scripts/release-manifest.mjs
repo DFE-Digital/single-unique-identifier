@@ -10,7 +10,7 @@ const projects = {
   UIHarness: { project: 'SUI.UIHarness.Web', slug: 'ui-harness' },
 };
 
-export async function createManifests({ components, assetsDir, containerFile, sourceSha,
+export async function createManifests({ components, assetsDir, containerFiles = {}, sourceSha,
   runId, runAttempt, generatedAt = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z') }) {
   if (!Array.isArray(components) || components.length === 0 ||
       new Set(components).size !== components.length ||
@@ -25,16 +25,8 @@ export async function createManifests({ components, assetsDir, containerFile, so
     .filter((entry) => entry.name.endsWith('.zip'));
   if (zipFiles.length !== components.length) throw new Error('ZIP inventory does not match selection');
 
-  const wantsContainer = components.includes('NotificationService');
-  if (wantsContainer !== Boolean(containerFile)) throw new Error('Container metadata selection mismatch');
-  let container = null;
-  if (containerFile) {
-    const metadata = JSON.parse(await readFile(containerFile, 'utf8'));
-    if (typeof metadata.repository !== 'string' || !metadata.repository ||
-        !/^sha256:[0-9a-f]{64}$/.test(metadata.digest)) {
-      throw new Error('Invalid container repository or digest');
-    }
-    container = { repository: metadata.repository, digest: metadata.digest };
+  if (Object.keys(containerFiles).some((name) => !components.includes(name))) {
+    throw new Error('Container metadata selection mismatch');
   }
 
   const releases = [];
@@ -50,12 +42,21 @@ export async function createManifests({ components, assetsDir, containerFile, so
     if (!fileStat.isFile() || fileStat.size === 0) {
       throw new Error(`Empty or invalid ZIP for ${component}`);
     }
+    let container = null;
+    if (Object.hasOwn(containerFiles, component)) {
+      const metadata = JSON.parse(await readFile(containerFiles[component], 'utf8'));
+      if (typeof metadata.repository !== 'string' || !metadata.repository ||
+          !/^sha256:[0-9a-f]{64}$/.test(metadata.digest)) {
+        throw new Error(`Invalid container repository or digest for ${component}`);
+      }
+      container = { repository: metadata.repository, digest: metadata.digest };
+    }
     releases.push({ component, slug, zipPath, manifest: {
       schema_version: 1,
       release: { tag: `sui-${slug}-${sourceSha}`, source_sha: sourceSha,
         workflow_run_id: runId, workflow_run_attempt: runAttempt, generated_at: generatedAt },
       assets: [{ component, filename }],
-      container: component === 'NotificationService' ? container : null,
+      container,
     } });
   }
   return releases;
@@ -67,10 +68,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
       ['AUTH', 'AuthEmulator'], ['GET_AN_ID', 'GetAnIdentifier'],
       ['NOTIFICATION', 'NotificationService'], ['UI', 'UIHarness'],
     ].filter(([key]) => process.env[key] === 'true').map(([, name]) => name);
+    const containerComponents = JSON.parse(process.env.CONTAINER_COMPONENTS || '[]');
+    if (!Array.isArray(containerComponents) || new Set(containerComponents).size !== containerComponents.length ||
+        containerComponents.some((name) => typeof name !== 'string' || !selected.includes(name))) {
+      throw new Error('Container components must be unique selected components');
+    }
     const releases = await createManifests({
       components: selected,
       assetsDir: 'drop',
-      containerFile: process.env.NOTIFICATION === 'true' ? 'container-drop/container.json' : undefined,
+      containerFiles: Object.fromEntries(containerComponents.map((name) => [name, `container-drop/${name}.json`])),
       sourceSha: process.env.GITHUB_SHA,
       runId: process.env.GITHUB_RUN_ID,
       runAttempt: process.env.GITHUB_RUN_ATTEMPT,

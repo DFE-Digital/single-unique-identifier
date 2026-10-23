@@ -83,6 +83,7 @@ jobs:
             notification_service:
               - 'Apps/NotificationService/**'
               - '.github/actions/package-container-from-artifact/**'
+              - '.github/actions/publish-scanned-container-to-acr/**'
               - 'Libs/**'
               - 'terraform/notification-service/**'
               - 'terraform/core/**'
@@ -247,8 +248,8 @@ jobs:
       attestations: read
       id-token: write
     outputs:
-      repository: ${{ steps.registry.outputs.login_server }}/notification-service
-      digest: ${{ steps.push.outputs.digest }}
+      repository: ${{ steps.publish.outputs.repository }}
+      digest: ${{ steps.publish.outputs.digest }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -286,33 +287,22 @@ jobs:
           test -n "$login_server"
           echo "name=$REGISTRY_NAME" >> "$GITHUB_OUTPUT"
           echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
-      - name: Push scanned image and record registry digest
-        id: push
-        shell: bash
-        env:
-          LOCAL_IMAGE: ${{ steps.package.outputs.image-tag }}
-        run: |
-          set -euo pipefail
-          az acr login --name "${{ steps.registry.outputs.name }}"
-          image="${{ steps.registry.outputs.login_server }}/notification-service:${GITHUB_SHA}"
-          docker tag "$LOCAL_IMAGE" "$image"
-          docker push "$image"
-          digest=$(az acr repository show --name "${{ steps.registry.outputs.name }}" \
-            --image "notification-service:${GITHUB_SHA}" --query digest --output tsv)
-          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
-          base=$(sed -n 's/^FROM .*@\(sha256:[0-9a-f]*\)$/\1/p' Apps/NotificationService/Dockerfile.release)
-          test -n "$base"
-          jq -n --arg repository "${{ steps.registry.outputs.login_server }}/notification-service" \
-            --arg digest "$digest" --arg base_image mcr.microsoft.com/dotnet/runtime:10.0 \
-            --arg base_digest "$base" \
-            '{repository:$repository,digest:$digest,base_image:$base_image,base_digest:$base_digest,scan:"success",registry_publication:"success"}' \
-            > container.json
+      - name: Publish scanned image and record registry digest
+        id: publish
+        uses: ./.github/actions/publish-scanned-container-to-acr
+        with:
+          local-image: ${{ steps.package.outputs.image-tag }}
+          registry-name: ${{ steps.registry.outputs.name }}
+          registry-server: ${{ steps.registry.outputs.login_server }}
+          repository: notification-service
+          tag: ${{ github.sha }}
+          dockerfile: Apps/NotificationService/Dockerfile.release
+          metadata-path: NotificationService.json
       - name: Upload immutable container metadata
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: release-container-metadata
-          path: container.json
+          name: release-container-metadata-NotificationService
+          path: ${{ steps.publish.outputs.metadata-path }}
 
   trufflehog-scan:
     name: Trufflehog secret scan
@@ -401,8 +391,9 @@ jobs:
         if: needs.publish-container.result == 'success'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: release-container-metadata
+          pattern: release-container-metadata-*
           path: container-drop
+          merge-multiple: true
       - name: Prepare release manifest and asset list
         id: prepare
         env:
@@ -410,6 +401,7 @@ jobs:
           GET_AN_ID: ${{ needs.path-filter.outputs.get_an_id }}
           NOTIFICATION: ${{ needs.path-filter.outputs.notification_service }}
           UI: ${{ needs.path-filter.outputs.ui_harness }}
+          CONTAINER_COMPONENTS: ${{ needs.publish-container.result == 'success' && '["NotificationService"]' || '[]' }}
         run: node .github/scripts/release-manifest.mjs
       - name: Upload release asset bundle
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
