@@ -7,6 +7,10 @@ on:
         description: Actions artifact containing the release manifest and assets
         required: true
         type: string
+      asset_subdirectory:
+        description: Component directory within the release asset artifact
+        required: true
+        type: string
       attested_asset_glob:
         description: Filename pattern, relative to the artifact, for assets requiring build attestation verification
         required: true
@@ -88,6 +92,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ASSET_GLOB: ${{ inputs.attested_asset_glob }}
+          ASSET_SUBDIRECTORY: ${{ inputs.asset_subdirectory }}
           MANIFEST_FILENAME: ${{ inputs.manifest_filename }}
           SIGNER_WORKFLOW: ${{ inputs.signer_workflow }}
           SOURCE_SHA: ${{ inputs.source_sha }}
@@ -97,17 +102,22 @@ jobs:
           set -euo pipefail
           [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$SOURCE_SHA" == "$GITHUB_SHA" ]]
+          [[ "$ASSET_SUBDIRECTORY" =~ ^[A-Za-z0-9_-]+$ ]]
+          asset_dir="release-assets/$ASSET_SUBDIRECTORY"
           [[ -n "$RELEASE_TAG" && -n "$SIGNER_WORKFLOW" && -n "$SOURCE_REF" && -n "$ASSET_GLOB" ]]
           [[ "$MANIFEST_FILENAME" != */* ]]
-          test -s "release-assets/$MANIFEST_FILENAME"
+          test -s "$asset_dir/$MANIFEST_FILENAME"
           jq -e --arg tag "$RELEASE_TAG" --arg sha "$SOURCE_SHA" \
             '.release.tag == $tag and .release.source_sha == $sha' \
-            "release-assets/$MANIFEST_FILENAME" >/dev/null
+            "$asset_dir/$MANIFEST_FILENAME" >/dev/null
 
-          mapfile -d '' release_files < <(find release-assets -maxdepth 1 -type f -print0)
-          (( ${#release_files[@]} > 1 ))
-          mapfile -d '' attested_assets < <(find release-assets -maxdepth 1 -type f -name "$ASSET_GLOB" -print0)
-          (( ${#attested_assets[@]} > 0 ))
+          mapfile -d '' release_files < <(find "$asset_dir" -maxdepth 1 -type f -print0)
+          (( ${#release_files[@]} == 2 ))
+          mapfile -d '' attested_assets < <(find "$asset_dir" -maxdepth 1 -type f -name "$ASSET_GLOB" -print0)
+          (( ${#attested_assets[@]} == 1 ))
+          jq -e --arg component "$ASSET_SUBDIRECTORY" --arg filename "$(basename "${attested_assets[0]}")" \
+            '.assets == [{component:$component,filename:$filename}]' \
+            "$asset_dir/$MANIFEST_FILENAME" >/dev/null
           for asset in "${attested_assets[@]}"; do
             gh attestation verify "$asset" --repo "$GITHUB_REPOSITORY" \
               --signer-workflow "$SIGNER_WORKFLOW" \
@@ -121,6 +131,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_SETTINGS_READ_TOKEN: ${{ secrets.release_settings_read_token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
+          ASSET_SUBDIRECTORY: ${{ inputs.asset_subdirectory }}
           SOURCE_SHA: ${{ inputs.source_sha }}
           RELEASE_TITLE: ${{ inputs.release_title }}
           RELEASE_NOTES: ${{ inputs.release_notes }}
@@ -136,7 +147,7 @@ jobs:
             exit 1
           fi
 
-          mapfile -d '' release_files < <(find release-assets -maxdepth 1 -type f -print0)
+          mapfile -d '' release_files < <(find "release-assets/$ASSET_SUBDIRECTORY" -maxdepth 1 -type f -print0)
           gh release create "$RELEASE_TAG" "${release_files[@]}" \
             --repo "$GITHUB_REPOSITORY" --draft --target "$SOURCE_SHA" \
             --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES"

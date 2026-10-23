@@ -13,13 +13,19 @@ assert.match(settingsCheckJob, /github\.ref == 'refs\/heads\/main'/);
 
 const publishContainerJob = workflow.split('  publish-container:\n')[1]?.split('\n  trufflehog-scan:\n')[0];
 assert.ok(publishContainerJob, 'container publication job exists');
-assert.match(publishContainerJob, /needs: .*release-settings-check/);
-assert.match(publishContainerJob, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
+assert.match(publishContainerJob, /needs: .*release-settings-check.*trufflehog-scan.*trivy-scan.*trivy-iac-scan.*release-script-tests/);
+assert.match(publishContainerJob, /github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
+assert.match(publishContainerJob, /needs\.trufflehog-scan\.result == 'success'/);
+assert.match(publishContainerJob, /needs\.trivy-scan\.result == 'success'/);
+assert.match(publishContainerJob, /needs\.trivy-iac-scan\.result == 'success'/);
 
 const releaseJob = workflow.split('  cut-release:\n')[1];
 assert.ok(releaseJob, 'release job exists');
 assert.match(releaseJob, /uses: \.\/\.github\/workflows\/publish-immutable-release\.yml/);
 assert.match(releaseJob, /needs:[\s\S]*prepare-release-assets/);
+assert.match(releaseJob, /matrix: \$\{\{ fromJSON\(needs\.prepare-release-assets\.outputs\.matrix\) \}\}/);
+assert.match(releaseJob, /release_tag: sui-\$\{\{ matrix\.component\.slug \}\}-\$\{\{ github\.sha \}\}/);
+assert.match(releaseJob, /asset_subdirectory: \$\{\{ matrix\.component\.name \}\}/);
 const publisher = readFileSync(new URL('../workflows/publish-immutable-release.yml', import.meta.url), 'utf8');
 assert.match(publisher, /release_settings_read_token/);
 assert.match(publisher, /git\/ref\/tags/);
@@ -27,11 +33,14 @@ assert.match(publisher, /refusing to modify it/);
 assert.match(publisher, /gh release create/);
 assert.match(publisher, /gh release edit/);
 assert.match(publisher, /attestation verify/);
+assert.match(publisher, /\$\{#release_files\[@\]\} == 2/);
+assert.match(publisher, /\$\{#attested_assets\[@\]\} == 1/);
 const prepareAssetsJob = workflow.split('  prepare-release-assets:\n')[1]?.split('\n  cut-release:\n')[0];
 assert.ok(prepareAssetsJob, 'release assets are prepared in a separate job');
 assert.match(prepareAssetsJob, /node \.github\/scripts\/release-manifest\.mjs/);
 assert.match(prepareAssetsJob, /name: release-assets/);
-const condition = releaseJob.match(/    if: >-\n([\s\S]*?)\n    uses:/)?.[1]
+assert.match(prepareAssetsJob, /matrix: \$\{\{ steps\.prepare\.outputs\.matrix \}\}/);
+const condition = releaseJob.match(/    if: >-\n([\s\S]*?)\n    strategy:/)?.[1]
   ?.trim().replace(/^\$\{\{\s*/, '').replace(/\s*\}\}$/, '');
 assert.ok(condition, 'release job condition exists');
 

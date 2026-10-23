@@ -1,20 +1,20 @@
 #!/usr/bin/env node
-import { readdir, stat, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, stat, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const projectByComponent = {
-  AuthEmulator: 'SUI.AuthEmulator',
-  GetAnIdentifier: 'SUI.GetAnIdentifier.API',
-  NotificationService: 'SUI.NotificationService',
-  UIHarness: 'SUI.UIHarness.Web',
+const projects = {
+  AuthEmulator: { project: 'SUI.AuthEmulator', slug: 'auth-emulator' },
+  GetAnIdentifier: { project: 'SUI.GetAnIdentifier.API', slug: 'get-an-identifier' },
+  NotificationService: { project: 'SUI.NotificationService', slug: 'notification-service' },
+  UIHarness: { project: 'SUI.UIHarness.Web', slug: 'ui-harness' },
 };
 
-export async function createManifest({ components, assetsDir, containerFile, sourceSha,
+export async function createManifests({ components, assetsDir, containerFile, sourceSha,
   runId, runAttempt, generatedAt = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z') }) {
   if (!Array.isArray(components) || components.length === 0 ||
       new Set(components).size !== components.length ||
-      components.some((name) => !Object.hasOwn(projectByComponent, name))) {
+      components.some((name) => !Object.hasOwn(projects, name))) {
     throw new Error('Select at least one unique, known component');
   }
   if (!/^[0-9a-f]{40}$/.test(sourceSha) || !/^\d+$/.test(runId) || !/^\d+$/.test(runAttempt)) {
@@ -24,22 +24,6 @@ export async function createManifest({ components, assetsDir, containerFile, sou
   const zipFiles = (await readdir(assetsDir, { withFileTypes: true }))
     .filter((entry) => entry.name.endsWith('.zip'));
   if (zipFiles.length !== components.length) throw new Error('ZIP inventory does not match selection');
-  const assets = [];
-  const zipPaths = [];
-  for (const component of components) {
-    const prefix = `${component}-${projectByComponent[component]}-`;
-    const matches = zipFiles.filter((entry) => entry.name.startsWith(prefix));
-    if (matches.length !== 1) throw new Error(`Expected exactly one ZIP for ${component}`);
-    if (!matches[0].isFile()) throw new Error(`Invalid ZIP for ${component}`);
-    const filename = matches[0].name;
-    const file = path.join(assetsDir, filename);
-    const fileStat = await stat(file);
-    if (!fileStat.isFile() || fileStat.size === 0) {
-      throw new Error(`Empty or invalid ZIP for ${component}`);
-    }
-    assets.push({ component, filename });
-    zipPaths.push(file);
-  }
 
   const wantsContainer = components.includes('NotificationService');
   if (wantsContainer !== Boolean(containerFile)) throw new Error('Container metadata selection mismatch');
@@ -53,16 +37,28 @@ export async function createManifest({ components, assetsDir, containerFile, sou
     container = { repository: metadata.repository, digest: metadata.digest };
   }
 
-  return {
-    manifest: {
+  const releases = [];
+  for (const component of components) {
+    const { project, slug } = projects[component];
+    const matches = zipFiles.filter((entry) => entry.name.startsWith(`${component}-${project}-`));
+    if (matches.length !== 1 || !matches[0].isFile()) {
+      throw new Error(`Expected exactly one ZIP for ${component}`);
+    }
+    const filename = matches[0].name;
+    const zipPath = path.join(assetsDir, filename);
+    const fileStat = await stat(zipPath);
+    if (!fileStat.isFile() || fileStat.size === 0) {
+      throw new Error(`Empty or invalid ZIP for ${component}`);
+    }
+    releases.push({ component, slug, zipPath, manifest: {
       schema_version: 1,
-      release: { tag: `sui-${sourceSha}`, source_sha: sourceSha,
+      release: { tag: `sui-${slug}-${sourceSha}`, source_sha: sourceSha,
         workflow_run_id: runId, workflow_run_attempt: runAttempt, generated_at: generatedAt },
-      assets,
-      container,
-    },
-    zipPaths,
-  };
+      assets: [{ component, filename }],
+      container: component === 'NotificationService' ? container : null,
+    } });
+  }
+  return releases;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
@@ -71,7 +67,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
       ['AUTH', 'AuthEmulator'], ['GET_AN_ID', 'GetAnIdentifier'],
       ['NOTIFICATION', 'NotificationService'], ['UI', 'UIHarness'],
     ].filter(([key]) => process.env[key] === 'true').map(([, name]) => name);
-    const { manifest, zipPaths } = await createManifest({
+    const releases = await createManifests({
       components: selected,
       assetsDir: 'drop',
       containerFile: process.env.NOTIFICATION === 'true' ? 'container-drop/container.json' : undefined,
@@ -79,8 +75,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
       runId: process.env.GITHUB_RUN_ID,
       runAttempt: process.env.GITHUB_RUN_ATTEMPT,
     });
-    await writeFile('release-manifest.json', `${JSON.stringify(manifest, null, 2)}\n`);
-    await writeFile('release-zips.txt', `${zipPaths.join('\n')}\n`);
+    for (const { component, zipPath, manifest } of releases) {
+      const directory = path.join('release-assets', component);
+      await mkdir(directory, { recursive: true });
+      await copyFile(zipPath, path.join(directory, path.basename(zipPath)));
+      await writeFile(path.join(directory, 'release-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+    }
+    const matrix = JSON.stringify({ component: releases.map(({ component, slug }) => ({ name: component, slug })) });
+    if (process.env.GITHUB_OUTPUT) await writeFile(process.env.GITHUB_OUTPUT, `matrix=${matrix}\n`, { flag: 'a' });
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
