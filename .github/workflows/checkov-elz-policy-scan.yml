@@ -1,0 +1,74 @@
+name: Checkov ELZ Policy Scan
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/checkov-elz.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/checkov-elz.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write        # Required by dorny/test-reporter to publish PR checks
+  pull-requests: write # Required by dorny/test-reporter to add PR annotations
+
+jobs:
+  checkov-elz:
+    name: Checkov ELZ scan
+    timeout-minutes: 15
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [d01, d02, d03]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Create Reports Directory
+        run: mkdir -p ${{ github.workspace }}/checkov-reports
+
+      - name: Run Checkov Scanner (Markdown for Step Summary)
+        shell: bash
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/tf" \
+            ghcr.io/dfe-digital/dfe-checkov-policies/checkov-elz:ELZ-2026.09.0 \
+            -d /tf/terraform \
+            --var-file /tf/terraform/environments/${{ matrix.environment }}.tfvars \
+            --soft-fail \
+            --output markdown > ${{ github.workspace }}/checkov-reports/summary.md || true
+          
+          echo "### Checkov ELZ Results (${{ matrix.environment }})" >> "$GITHUB_STEP_SUMMARY"
+          cat ${{ github.workspace }}/checkov-reports/summary.md >> "$GITHUB_STEP_SUMMARY" || echo "Failed to generate Markdown summary." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run Checkov Scanner (JUnit XML for PR Checks)
+        shell: bash
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/tf" \
+            ghcr.io/dfe-digital/dfe-checkov-policies/checkov-elz:ELZ-2026.09.0 \
+            -d /tf/terraform \
+            --var-file /tf/terraform/environments/${{ matrix.environment }}.tfvars \
+            --soft-fail \
+            --output junitxml > ${{ github.workspace }}/checkov-reports/results.xml
+
+      - name: Publish Checkov results
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
+        if: always()
+        with:
+          name: Checkov ELZ Results (${{ matrix.environment }})
+          path: checkov-reports/results.xml
+          reporter: java-junit
+          # TODO: Change this to 'true' once the initial baseline violations 
+          # (e.g. DFE_ELZ_0002, DFE_CMN_0004) are remediated or formally excepted!
+          fail-on-error: false
