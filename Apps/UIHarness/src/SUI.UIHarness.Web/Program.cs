@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SUI.UIHarness.Web;
 using SUI.UIHarness.Web.Components;
-using SUI.UIHarness.Web.Extensions;
-using SUI.UIHarness.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,17 +20,6 @@ builder
         options.LoginPath = "/login";
     });
 builder.Services.AddAuthorization();
-
-var findApiBaseUrl =
-    builder.Configuration[ConfigKeys.FindApiBaseUrl]?.EnsureTrailingSlash()
-    ?? throw new InvalidOperationException($"{ConfigKeys.FindApiBaseUrl} configuration is missing");
-
-builder.Services.AddHttpClient(
-    nameof(FindService),
-    client => client.BaseAddress = new Uri(findApiBaseUrl)
-);
-builder.Services.AddScoped<IFindService, FindService>();
-builder.Services.AddScoped<IFindApiAuthClientProvider, FindApiAuthClientProvider>();
 
 var app = builder.Build();
 
@@ -78,7 +65,6 @@ app.MapPost(
         async (
             [FromForm] string custodianName,
             [FromForm] string password,
-            [FromForm] string architecture,
             [FromServices] IConfiguration configuration,
             [FromServices] ILogger<Program> logger,
             HttpContext httpContext
@@ -91,20 +77,15 @@ app.MapPost(
                 logger.LogInformation("Login failed for custodian: {CustodianName}", custodianName);
 
                 return Results.Redirect(
-                    $"/login?error=invalid_password&custodianName={Uri.EscapeDataString(custodianName)}&architecture={Uri.EscapeDataString(architecture)}"
+                    $"/login?error=invalid_password&custodianName={Uri.EscapeDataString(custodianName)}"
                 );
             }
 
-            logger.LogInformation(
-                "Login successful for custodian: {CustodianName} using architecture: {Architecture}",
-                custodianName,
-                architecture
-            );
+            logger.LogInformation("Login successful for custodian: {CustodianName}", custodianName);
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, custodianName),
-                new Claim("Architecture", architecture),
                 new Claim("Password", password),
             };
 
