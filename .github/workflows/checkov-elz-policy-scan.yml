@@ -14,15 +14,16 @@ on:
       - 'terraform/**'
       - '.github/workflows/checkov-elz-policy-scan.yml'
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
   checks: write        # Required by dorny/test-reporter to publish PR checks
-  pull-requests: write # Required by dorny/test-reporter to add PR annotations
+  pull-requests: write # Required to post the PR summary comment
 
 jobs:
   checkov-elz-policy-scan:
-    name: Checkov ELZ scan
+    name: Checkov ELZ scan (${{ matrix.environment }})
     timeout-minutes: 15
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     strategy:
@@ -46,10 +47,10 @@ jobs:
             -d /tf/terraform \
             --var-file /tf/terraform/environments/${{ matrix.environment }}.tfvars \
             --soft-fail \
-            --output markdown > ${{ github.workspace }}/checkov-reports/summary.md || true
+            --output markdown > ${{ github.workspace }}/checkov-reports/summary-${{ matrix.environment }}.md || true
           
           echo "### Checkov ELZ Results (${{ matrix.environment }})" >> "$GITHUB_STEP_SUMMARY"
-          cat ${{ github.workspace }}/checkov-reports/summary.md >> "$GITHUB_STEP_SUMMARY" || echo "Failed to generate Markdown summary." >> "$GITHUB_STEP_SUMMARY"
+          cat ${{ github.workspace }}/checkov-reports/summary-${{ matrix.environment }}.md >> "$GITHUB_STEP_SUMMARY" || echo "Failed to generate Markdown summary." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run Checkov Scanner (JUnit XML for PR Checks)
         shell: bash
@@ -60,15 +61,59 @@ jobs:
             -d /tf/terraform \
             --var-file /tf/terraform/environments/${{ matrix.environment }}.tfvars \
             --soft-fail \
-            --output junitxml > ${{ github.workspace }}/checkov-reports/results.xml
+            --output junitxml > ${{ github.workspace }}/checkov-reports/results-${{ matrix.environment }}.xml
 
       - name: Publish Checkov results
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: always()
         with:
           name: Checkov ELZ Results (${{ matrix.environment }})
-          path: checkov-reports/results.xml
+          path: checkov-reports/results-${{ matrix.environment }}.xml
           reporter: java-junit
           # TODO: Change this to 'true' once the initial baseline violations 
           # (e.g. DFE_ELZ_0002, DFE_CMN_0004) are remediated or formally excepted!
           fail-on-error: false
+
+      - name: Post PR Summary Comment
+        if: github.event_name == 'pull_request' && always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENV_NAME: ${{ matrix.environment }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          XML_FILE="${{ github.workspace }}/checkov-reports/results-${ENV_NAME}.xml"
+          
+          if [ -f "$XML_FILE" ]; then
+            FAILURES=$(grep -o 'failures="[^"]*"' "$XML_FILE" | head -1 | cut -d '"' -f 2 || echo "0")
+            TESTS=$(grep -o 'tests="[^"]*"' "$XML_FILE" | head -1 | cut -d '"' -f 2 || echo "0")
+          
+            if [ "$FAILURES" -gt 0 ]; then
+              ICON="❌"
+              MSG="**$FAILURES** policy violations found (out of $TESTS checks)."
+            else
+              ICON="✅"
+              MSG="Passed all $TESTS policy checks!"
+            fi
+          else
+            ICON="⚠️"
+            MSG="Scan failed to execute or crashed before generating results."
+          fi
+          
+          MARKER="<!-- checkov-summary-$ENV_NAME -->"
+          BODY="$MARKER
+          ### $ICON Checkov ELZ Policy Scan: \`$ENV_NAME\`
+          $MSG
+          
+          [👉 View the full detailed report in the Actions tab]($RUN_URL)"
+          
+          COMMENT_ID=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            -q ".[] | select(.body | startswith(\"$MARKER\")) | .id" | head -n 1)
+          
+          if [ -n "$COMMENT_ID" ]; then
+            echo "Updating existing PR comment ($COMMENT_ID)..."
+            gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" -f body="$BODY" > /dev/null
+          else
+            echo "Creating new PR comment..."
+            gh pr comment ${{ github.event.pull_request.number }} --body "$BODY"
+          fi
