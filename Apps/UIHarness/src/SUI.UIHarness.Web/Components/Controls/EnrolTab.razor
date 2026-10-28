@@ -1,5 +1,4 @@
 @using SUI.UIHarness.Web.Models
-@using SUI.UIHarness.Web.Services
 
 <div>
     <div class="d-flex align-items-center gap-3 mb-3">
@@ -55,12 +54,6 @@
                         @if (_enrolledForOrg == SelectedOrgClientId)
                         {
                             @p.NhsNumber
-                        }
-                    </td>
-                    <td class="actions">
-                        @if (!string.IsNullOrEmpty(p.NhsNumber) && p.NhsNumber != "Not Found" && _enrolledForOrg == SelectedOrgClientId)
-                        {
-                            <button class="btn btn-primary" type="button" @onclick="_ => SetCurrentPerson(p)">Find Records</button>
                         }
                     </td>
                 </tr>
@@ -123,9 +116,6 @@
     public EventCallback<LocalPerson> CurrentPersonChanged { get; set; }
     
     [Inject]
-    public required IFindService FindService { get; set; }
-    
-    [Inject]
     public required ILogger<EnrolTab> Logger { get; set; }
 
     protected override void OnParametersSet()
@@ -149,20 +139,11 @@
         foreach (var person in _dataToOnboard)
         {
             EnrolProgress += a;
-            var result = await FindService.MatchRecord(person, SelectedOrgClientId);
-            person.NhsNumber = result.PersonId;
             _enrolledForOrg ??= SelectedOrgClientId;
             await InvokeAsync(StateHasChanged);
             await Task.Delay(500);
         }
 
         ShowEnrolProgress = false;
-    }
-    
-    private async Task SetCurrentPerson(LocalPerson localPerson)
-    {
-        Logger.LogInformation("Find Records button clicked for NHS Number: {NhsNumber}", localPerson.NhsNumber);
-        
-        await CurrentPersonChanged.InvokeAsync(localPerson);
     }
 }

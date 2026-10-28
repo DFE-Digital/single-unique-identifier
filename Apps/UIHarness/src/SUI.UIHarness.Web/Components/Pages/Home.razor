@@ -2,7 +2,6 @@
 @attribute [Authorize]
 @using SUI.UIHarness.Web.Components.Controls
 @using SUI.UIHarness.Web.Models
-@using SUI.UIHarness.Web.Services
 
 <PageTitle>SUI Test Harness</PageTitle>
 
@@ -17,22 +16,10 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link @(_currentTab == "enrol" ? "active" : "")" id="tab-enrol-tab" type="button" role="tab" @onclick='_ => ChangeTabs("enrol")'>Get NHS Numbers</button>
         </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link @(_currentTab == "find" ? "active" : "")" id="tab-find-tab" type="button" role="tab" @onclick='_ => ChangeTabs("find")'>Find Records</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link @(_currentTab == "fetch" ? "active" : "")" id="tab-fetch-tab" type="button" role="tab" @onclick='_ => ChangeTabs("fetch")'>Fetch a record</button>
-        </li>
     </ul>
     <div class="tab-content border border-top-0 p-3" id="mainTabsContent">
         <div class="tab-pane fade show active" id="tab-enrol" role="tabpanel" hidden='@(_currentTab != "enrol")'>
-            <EnrolTab SelectedOrgClientId="@_selectedOrgClientId" CurrentPersonChanged="HandleCurrentPersonChanged"></EnrolTab>
-        </div>
-        <div class="tab-pane fade show active" id="tab-find" role="tabpanel" hidden='@(_currentTab != "find")'>
-            <FindTab SelectedOrgClientId="@_selectedOrgClientId" Architecture="@_architecture" CurrentPerson="_currentPerson" CurrentRecordChanged="HandleCurrentRecordChanged" OnSearchStarted="HandleOnSearchStarted"></FindTab>
-        </div>
-        <div class="tab-pane fade show active" id="tab-fetch" role="tabpanel" hidden='@(_currentTab != "fetch")'>
-            <FetchTab SelectedOrgClientId="@_selectedOrgClientId" SelectedRecordUrl="@_selectedRecordUrl"></FetchTab>
+            <EnrolTab SelectedOrgClientId="@_selectedOrgClientId"></EnrolTab>
         </div>
     </div>
     <div class="pt-3 small text-black-50">
@@ -43,51 +30,20 @@
         {
            <div class="mt-3">
                 <div><strong>Base URL:</strong> @Configuration[ConfigKeys.FindApiBaseUrl]</div>
-                <div><strong>Architecture:</strong> @_architecture</div>
-                <div><strong>@(_architecture == ArchitectureConstants.Fanout ? "Job ID" : "Work Item ID"):</strong> @_currentWorkItemId</div>
-                @if (!string.IsNullOrWhiteSpace(_currentTraceId))
-                {
-                    <div>
-                        <strong>Find Records - Trace ID:</strong>
-                        <span>@_currentTraceId</span>
-
-                        @if (!string.IsNullOrWhiteSpace(_traceDetails?.Link))
-                        {
-                            <span>&nbsp;<a href="@_traceDetails.Value.Link" target="_blank">View trace</a></span>
-                        }
-                    
-                        @if (!string.IsNullOrWhiteSpace(_traceDetails?.Message))
-                        {
-                            <pre>@_traceDetails.Value.Message</pre>
-                        }
-                    </div>
-                }
             </div>
         }
     </div>
 </div>
 
 @code {
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
     private string _selectedOrgClientId = string.Empty;
     private string _displayOrganisationId = string.Empty;
-    private string _architecture = string.Empty;
     private string _currentTab = "enrol";
-    private LocalPerson? _currentPerson;
-    private string _selectedRecordUrl = string.Empty;
-    private string _currentWorkItemId = string.Empty;
-    private string? _currentTraceId;
-    private (string? Link, string? Message)? _traceDetails;
     private bool _showDebug;
-    
-    [Inject]
-    public required IConfiguration Configuration { get; set; }
 
-    // Inject the provider to resolve Organisation IDs from Client IDs
-    [Inject]
-    public required IFindApiAuthClientProvider FindApiAuthClientProvider { get; set; }
+    [Inject] public required IConfiguration Configuration { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,57 +52,11 @@
         if (user.Identity?.IsAuthenticated == true)
         {
             _selectedOrgClientId = user.Identity.Name ?? string.Empty;
-            _architecture = user.FindFirst("Architecture")?.Value ?? ArchitectureConstants.DefaultArchitecture;
-
-            // Resolve the OrganisationId from the loaded directory list
-            var clients = FindApiAuthClientProvider.GetAuthClients();
-            var matchingClient = clients.FirstOrDefault(c => c.ClientId == _selectedOrgClientId);
-            
-            // Fall back to the Client ID if no mapping exists
-            _displayOrganisationId = matchingClient?.OrganisationId ?? _selectedOrgClientId;
         }
     }
 
     private void ChangeTabs(string tab)
     {
         _currentTab = tab;
-    }
-
-    private void HandleCurrentPersonChanged(LocalPerson localPerson)
-    {
-        _currentPerson = localPerson;
-        ChangeTabs("find");
-    }
-
-    private void HandleCurrentRecordChanged(LocalRecord localRecord)
-    {
-        _selectedRecordUrl = localRecord.Url;
-        ChangeTabs("fetch");
-    }
-    
-    private void HandleOnSearchStarted(StartSearchResult startSearchResult)
-    {
-        _currentWorkItemId = startSearchResult.WorkItemId;
-        _currentTraceId = startSearchResult.TraceId;
-        _traceDetails = GenerateTraceDetails(startSearchResult.TraceId);
-    }
-
-    private (string? Link, string? Message) GenerateTraceDetails(string? traceId)
-    {
-        if (string.IsNullOrWhiteSpace(traceId))
-        {
-            return (null, null);
-        }
-        
-        var isLocal = Configuration[ConfigKeys.FindApiBaseUrl]?.Contains("localhost") == true;
-        return isLocal
-            ? ($"http://localhost:18888/structuredlogs?filters=log.traceid%3Aequals%3A{traceId}", null)
-            : (null, $"""
-                      // App Insights Trace Query below:
-                      // Also, use the 'Search' feature in App Insights to visualise the whole Trace
-                      union traces, exceptions
-                      | where operation_Id == "{traceId}"
-                      | extend message = coalesce(message, innermostMessage)
-                      """);
     }
 }
