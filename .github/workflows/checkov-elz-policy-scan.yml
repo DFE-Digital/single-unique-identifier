@@ -6,13 +6,13 @@ on:
       - main
     paths:
       - 'terraform/**'
-      - '.github/workflows/checkov-elz.yml'
+      - '.github/workflows/checkov-elz-policy-scan.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'terraform/**'
-      - '.github/workflows/checkov-elz.yml'
+      - '.github/workflows/checkov-elz-policy-scan.yml'
   workflow_dispatch:
 
 permissions:
@@ -21,7 +21,7 @@ permissions:
   pull-requests: write # Required by dorny/test-reporter to add PR annotations
 
 jobs:
-  checkov-elz:
+  checkov-elz-policy-scan:
     name: Checkov ELZ scan
     timeout-minutes: 15
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
