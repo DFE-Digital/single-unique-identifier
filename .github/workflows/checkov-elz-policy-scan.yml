@@ -91,19 +91,35 @@ jobs:
             if [ "$FAILURES" -gt 0 ]; then
               ICON="❌"
               MSG="**$FAILURES** policy violations found (out of $TESTS checks)."
+          
+              # Extract failure messages, group them by count, and build a markdown table
+              DETAILS="<details><summary><b>View violation summary</b></summary><br>"$'\n\n'"| Count | Policy Violation |"$'\n'"|---|---|"
+          
+              while read -r count message; do
+                # Ignore empty lines just in case
+                if [ -n "$message" ]; then
+                  DETAILS="$DETAILS"$'\n'"| $count | $message |"
+                fi
+              done <<< "$(grep -o 'message="[^"]*"' "$XML_FILE" | cut -d'"' -f 2 | sort | uniq -c | sort -nr)"
+          
+              DETAILS="$DETAILS"$'\n\n'"</details>"
             else
               ICON="✅"
               MSG="Passed all $TESTS policy checks!"
+              DETAILS=""
             fi
           else
             ICON="⚠️"
             MSG="Scan failed to execute or crashed before generating results."
+            DETAILS=""
           fi
           
           MARKER="<!-- checkov-summary-$ENV_NAME -->"
           BODY="$MARKER
           ### $ICON Checkov ELZ Policy Scan: \`$ENV_NAME\`
           $MSG
+          
+          $DETAILS
           
           [👉 View the full detailed report in the Actions tab]($RUN_URL)"
           
