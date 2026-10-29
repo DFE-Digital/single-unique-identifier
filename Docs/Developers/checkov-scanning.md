@@ -35,6 +35,6 @@ We intentionally pin the Checkov ELZ image tag (e.g., ELZ-2026.09.0) instead of 
 When a new version of the DfE Checkov policies is released:
 
 1. Create a chore branch (e.g., chore/update-checkov-image).
-2. Update the image tag in .github/workflows/checkov-elz.yml.
+2. Update the image tag in [`.github/workflows/checkov-elz-policy-scan.yml`](../../.github/workflows/checkov-elz-policy-scan.yml) workflow.
 3. Push the branch to trigger a scan against the new policies.
 4. Remediate or skip any new violations before merging.
