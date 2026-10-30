@@ -1,0 +1,134 @@
+name: Checkov ELZ Policy Scan
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/checkov-elz-policy-scan.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/checkov-elz-policy-scan.yml'
+  workflow_dispatch:
+  workflow_call:
+
+# Prevents older scans from overwriting newer results
+concurrency:
+  group: checkov-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write        # Required by dorny/test-reporter to publish PR checks
+  pull-requests: write # Required to post the PR summary comment
+
+jobs:
+  checkov-elz-policy-scan:
+    name: Checkov ELZ scan (${{ matrix.environment }})
+    timeout-minutes: 15
+    runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [d01, d02, d03]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Create Reports Directory
+        run: mkdir -p ${{ github.workspace }}/checkov-reports
+
+      - name: Run Checkov Scanner
+        shell: bash
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/tf" \
+            ghcr.io/dfe-digital/dfe-checkov-policies/checkov-elz:ELZ-2026.09.0 \
+            -d /tf/terraform \
+            --var-file /tf/terraform/environments/${{ matrix.environment }}.tfvars \
+            --soft-fail \
+            --output junitxml > ${{ github.workspace }}/checkov-reports/results-${{ matrix.environment }}.xml
+
+      - name: Publish Checkov results
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
+        if: always()
+        with:
+          name: Checkov ELZ Results (${{ matrix.environment }})
+          path: checkov-reports/results-${{ matrix.environment }}.xml
+          reporter: java-junit
+          # TODO: Change this to 'true' once the initial baseline violations 
+          # (e.g. DFE_ELZ_0002, DFE_CMN_0004) are remediated or formally excepted!
+          fail-on-error: false
+
+      - name: Post PR Summary Comment
+        if: github.event_name == 'pull_request' && always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENV_NAME: ${{ matrix.environment }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          XML_FILE: ${{ github.workspace }}/checkov-reports/results-${{ matrix.environment }}.xml
+        shell: bash
+        run: |
+          # Use Python to parse XML. 
+          # Fails if XML is invalid, empty, or reports 0 tests.
+          if python3 << 'EOF'; then
+          import xml.etree.ElementTree as ET, sys, os
+          from collections import Counter
+          
+          try:
+              tree = ET.parse(os.environ['XML_FILE'])
+              root = tree.getroot()
+              ts = root.find('testsuite') if root.tag == 'testsuites' else root
+              if ts is None: raise ValueError('No testsuite found')
+          
+              tests = int(ts.get('tests', 0))
+              failures = int(ts.get('failures', 0))
+              if tests == 0: raise ValueError('Test count is 0')
+          
+              msgs = [f.get('message', 'Unknown') for c in ts.findall('testcase') for f in c.findall('failure') if f is not None]
+              c = Counter(msgs)
+          
+              icon = '❌' if failures > 0 else '✅'
+              msg = f'**{failures}** policy violations found (out of {tests} checks).' if failures > 0 else f'Passed all {tests} policy checks!'
+          
+              details = ''
+              if failures > 0:
+                  details = '<details><summary><b>View violation summary</b></summary><br>\n\n| Count | Policy Violation |\n|---|---|\n'
+                  for m, cnt in c.most_common(): 
+                      details += f'| {cnt} | {m} |\n'
+                  details += '\n</details>\n'
+          
+              body = f"<!-- checkov-summary-{os.environ['ENV_NAME']} -->\n### {icon} Checkov ELZ Policy Scan: `{os.environ['ENV_NAME']}`\n{msg}\n\n{details}\n[👉 View the full detailed report in the Actions tab]({os.environ['RUN_URL']})"
+          
+              with open('pr_comment.md', 'w') as f:
+                  f.write(body)
+          
+          except Exception as e:
+              print(f'Error parsing XML: {e}', file=sys.stderr)
+              sys.exit(1)
+          EOF
+            BODY=$(cat pr_comment.md)
+          else
+            MARKER="<!-- checkov-summary-$ENV_NAME -->"
+            BODY="$MARKER
+            ### ⚠️ Checkov ELZ Policy Scan: \`$ENV_NAME\`
+            Scan failed to execute, crashed before generating results, or produced empty output.
+          
+            [👉 View the full detailed report in the Actions tab]($RUN_URL)"
+          fi
+          
+          COMMENT_ID=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            -q ".[] | select(.body | startswith(\"<!-- checkov-summary-$ENV_NAME -->\")) | .id" | head -n 1)
+          
+          if [ -n "$COMMENT_ID" ]; then
+            echo "Updating existing PR comment ($COMMENT_ID)..."
+            gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" -f body="$BODY" > /dev/null
+          else
+            echo "Creating new PR comment..."
+            gh pr comment ${{ github.event.pull_request.number }} --body "$BODY"
+          fi
