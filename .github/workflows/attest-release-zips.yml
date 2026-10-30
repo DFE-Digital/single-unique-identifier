@@ -30,6 +30,6 @@ jobs:
           zips=(drop/*.zip)
           (( ${#zips[@]} > 0 ))
       - name: Attest exact deployment ZIPs
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: 'drop/*.zip'
