@@ -51,7 +51,6 @@ async function createPublisherFixture() {
     MOCK_LOG: path.join(root, 'calls'),
     GITHUB_OUTPUT: path.join(root, 'github-output'),
     GITHUB_REPOSITORY: 'acme/repo',
-    RELEASE_SETTINGS_READ_TOKEN: 'mock-settings-token',
     RELEASE_TAG: tag,
     ASSET_SUBDIRECTORY: 'Service',
     MANIFEST_FILENAME: files[0],
@@ -71,7 +70,7 @@ it('publishes a first release only after checking the complete draft inventory',
   const state = await readState();
   assert.equal(state.release.immutable, true);
   assert.equal(state.tagSha, env.SOURCE_SHA);
-  assert.match(await readFile(env.MOCK_LOG, 'utf8'), /create\nlist\nimmutability\npublish\n/);
+  assert.match(await readFile(env.MOCK_LOG, 'utf8'), /create\nlist\npublish\n/);
   assert.match(await readFile(env.GITHUB_OUTPUT, 'utf8'), /release_id=42/);
 });
 
@@ -132,11 +131,14 @@ it('refuses altered published manifest bytes or a different ZIP on retry', async
   }
 });
 
-it('leaves an incomplete draft unpublished when release immutability is disabled', async () => {
-  const { run, readState, writeState } = await createPublisherFixture();
+it('fails after publication if repository release immutability is disabled', async () => {
+  const { env, run, readState, writeState } = await createPublisherFixture();
   const state = await readState();
   state.immutableEnabled = false;
   await writeState(state);
-  await assert.rejects(run());
-  assert.equal((await readState()).release.draft, true);
+  await assert.rejects(run(), /Published release is not immutable/);
+  const published = (await readState()).release;
+  assert.equal(published.draft, false);
+  assert.equal(published.immutable, false);
+  await assert.rejects(readFile(env.GITHUB_OUTPUT), { code: 'ENOENT' });
 });

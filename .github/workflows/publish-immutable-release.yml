@@ -39,10 +39,6 @@ on:
       release_notes:
         required: true
         type: string
-    secrets:
-      release_settings_read_token:
-        description: Token with repository Administration read access
-        required: true
     outputs:
       release_id:
         description: Published GitHub Release ID
@@ -55,23 +51,8 @@ permissions:
   contents: read
 
 jobs:
-  check-release-settings:
-    if: github.event_name == 'push' && github.ref == inputs.source_ref
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Verify immutable releases are enabled
-        env:
-          GH_TOKEN: ${{ secrets.release_settings_read_token }}
-        run: |
-          set -euo pipefail
-          test -n "$GH_TOKEN"
-          test "$(gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" --jq .enabled)" = true
-
   publish:
     if: github.event_name == 'push' && github.ref == inputs.source_ref
-    needs: check-release-settings
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -130,7 +111,6 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_SETTINGS_READ_TOKEN: ${{ secrets.release_settings_read_token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
           ASSET_SUBDIRECTORY: ${{ inputs.asset_subdirectory }}
           MANIFEST_FILENAME: ${{ inputs.manifest_filename }}
@@ -223,14 +203,14 @@ jobs:
           [[ "$draft" != null ]]
           # Publishing locks the tag and assets, so check the complete draft first.
           verify_inventory "$draft" true
-          immutable=$(GH_TOKEN="$RELEASE_SETTINGS_READ_TOKEN" \
-            gh api "repos/${GITHUB_REPOSITORY}/immutable-releases" --jq .enabled)
-          test "$immutable" = true
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false
 
           published=$(get_release)
           verify_inventory "$published" false
-          test "$(jq -r .immutable <<< "$published")" = true
+          if [[ "$(jq -r .immutable <<< "$published")" != true ]]; then
+            echo '::error::Published release is not immutable. Enable release immutability in repository settings.' >&2
+            exit 1
+          fi
           test "$(gh api "$ref" --jq '.object | [.type,.sha] | @tsv')" = $'commit\t'"$SOURCE_SHA"
           echo "release_id=$(jq -r .id <<< "$published")" >> "$GITHUB_OUTPUT"
           echo "release_url=$(jq -r .html_url <<< "$published")" >> "$GITHUB_OUTPUT"
