@@ -21,19 +21,19 @@ These terms do not imply that a system provider represents multiple consuming or
 
 Each item has one primary audience. `Confirmed guidance` is eligible for public publication once the public documentation site workflow approves it. `Draft - not for production use` is excluded from public publication. `Private operational procedure` is available only to authorised staff in SharePoint.
 
-| Document | Primary audience | Status | Publication boundary | Authoritative location |
-| --- | --- | --- | --- | --- |
-| Service overview | Consuming organisation | Confirmed guidance | Public | Public documentation site, sourced from this repository; public page to be created through the publication workflow |
-| Integration prerequisites | Direct integrator | Confirmed guidance | Public | Public documentation site, sourced from this repository; page to be created through the publication workflow |
-| Accepted technical contracts | Direct integrator | Confirmed guidance | Public | Public documentation site, sourced from accepted repository contracts; no stable public API/authentication reference is recorded yet |
-| Implementation and testing guidance | System provider | Confirmed guidance | Public | Public documentation site, sourced from this repository; guide to be created through the publication workflow |
-| Organisation-registration requirements | Consuming organisation | Confirmed guidance | Public | Public documentation site, sourced from this repository; requirements await an agreed organisation-registration model |
-| Support routes | Consuming organisation | Confirmed guidance | Public | Public documentation site, sourced from this repository; routes to be confirmed through the publication workflow |
-| Lifecycle webhook contract v1 | System provider | Draft - not for production use | Draft, excluded from public publication | [Supplier lifecycle webhook contract v1](../Design/Notifications-Webhooks/SupplierLifecycle/V1/Index.md) |
-| Other proposed technical contracts | Direct integrator | Draft - not for production use | Draft, excluded from public publication | Relevant repository design document until accepted and moved into the public publication workflow |
-| Onboarding case records and assurance evidence | Service-team operator | Private operational procedure | Private SharePoint | Private SharePoint runbook area |
-| Supplier- or organisation-specific configuration, credentials and secret procedures | Service-team operator | Private operational procedure | Private SharePoint | Private SharePoint runbook area |
-| Incident and escalation runbooks, dashboards and support history | Service-team operator | Private operational procedure | Private SharePoint | Private SharePoint runbook area |
+| Document                                                                            | Primary audience       | Status                         | Publication boundary                    | Authoritative location |
+|-------------------------------------------------------------------------------------|------------------------|--------------------------------|-----------------------------------------| --- |
+| Service overview                                                                    | Consuming organisation | Confirmed guidance             | Public                                  | Public documentation site, sourced from this repository; public page to be created through the publication workflow |
+| Integration prerequisites                                                           | Direct integrator      | Confirmed guidance             | Public                                  | Public documentation site, sourced from this repository; page to be created through the publication workflow |
+| Accepted technical contracts                                                        | Direct integrator      | Confirmed guidance             | Public                                  | Public documentation site, sourced from accepted repository contracts; no stable public API/authentication reference is recorded yet |
+| Implementation and testing guidance                                                 | System provider        | Confirmed guidance             | Public                                  | Public documentation site, sourced from this repository; guide to be created through the publication workflow |
+| Organisation registration requirements                                              | System provider        | Confirmed guidance             | Public                                  | Public documentation site, sourced from this repository; requirements await an agreed organisation-registration model |
+| Support routes                                                                      | System provider        | Confirmed guidance             | Public                                  | Public documentation site, sourced from this repository; routes to be confirmed through the publication workflow |
+| Lifecycle webhook contract v1                                                       | System provider        | Draft - not for production use | Draft, excluded from public publication | [Supplier lifecycle webhook contract v1](../Design/Notifications-Webhooks/SupplierLifecycle/V1/Index.md) |
+| Other proposed technical contracts                                                  | Direct integrator      | Draft - not for production use | Draft, excluded from public publication | Relevant repository design document until accepted and moved into the public publication workflow |
+| Onboarding case records and assurance evidence                                      | Service-team operator  | Private operational procedure  | Private SharePoint                      | Private SharePoint runbook area |
+| Supplier- or organisation-specific configuration, credentials and secret procedures | Service-team operator  | Private operational procedure  | Private SharePoint                      | Private SharePoint runbook area |
+| Incident and escalation runbooks, dashboards and support history                    | Service-team operator  | Private operational procedure  | Private SharePoint                      | Private SharePoint runbook area |
 
 The inventory defines the pack and its boundaries; it does not create the future public guides or private runbooks listed above.
 
