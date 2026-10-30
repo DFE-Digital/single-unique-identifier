@@ -9,6 +9,11 @@ on:
       - ".github/workflows/terraform-*"
       - ".github/actions/load-tfvars/**"
 
+concurrency:
+  group: terraform-d01-orchestrator
+  cancel-in-progress: false
+  queue: max
+
 permissions:
   id-token: write
   contents: read
@@ -24,21 +29,22 @@ jobs:
       ui: ${{ steps.filter.outputs.ui }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Detect changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3.0.4, enterprise-approved SHA
         id: filter
         with:
           filters: |
             shared: &shared
+              - "terraform/core/**"
               - "terraform/modules/**"
               - "terraform/environments/d01.tfvars"
               - ".github/actions/load-tfvars/**"
               - ".github/workflows/terraform-plan-and-apply.yml"
+              - ".github/workflows/terraform-apply-orchestrator.yml"
             core:
               - *shared
-              - "terraform/core/**"
               - ".github/workflows/terraform-core.yml"
             auth:
               - *shared

@@ -87,6 +87,7 @@ jobs:
     concurrency:
       group: terraform-${{ inputs.root }}-${{ inputs.environment }}
       cancel-in-progress: false
+      queue: max
     timeout-minutes: 60
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
