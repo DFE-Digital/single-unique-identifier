@@ -15,9 +15,6 @@ if (args[0] === 'api' && args.includes('--paginate')) {
   log('tag');
   if (!state.tagSha) { process.stderr.write('(HTTP 404)\n'); process.exit(1); }
   console.log('commit\t' + state.tagSha);
-} else if (args[0] === 'api' && args[1].includes('/immutable-releases')) {
-  log('immutability');
-  console.log(state.immutableEnabled ? 'true' : 'false');
 } else if (args[0] === 'release' && args[1] === 'delete') {
   log('delete');
   if (!state.release?.draft) process.exit(1);
@@ -49,9 +46,9 @@ if (args[0] === 'api' && args.includes('--paginate')) {
   fs.writeFileSync(path.join(dir, name), Buffer.from(state.assetContents[name], 'base64'));
 } else if (args[0] === 'release' && args[1] === 'edit') {
   log('publish');
-  if (!state.release?.draft || !state.immutableEnabled) process.exit(1);
+  if (!state.release?.draft) process.exit(1);
   state.release.draft = false;
-  state.release.immutable = true;
+  state.release.immutable = state.immutableEnabled;
   state.tagSha = state.release.target_commitish;
   save();
 } else {

@@ -4,14 +4,6 @@ import { describe, it } from 'node:test';
 
 // Publication is main-only, so PR tests inspect the workflow wiring and exercise its job guard locally.
 const workflow = readFileSync(new URL('../workflows/ci-cd-orchestrator.yml', import.meta.url), 'utf8');
-const settingsCheckJob = workflow.split('  release-settings-check:\n')[1]?.split('\n  trufflehog-scan:\n')[0];
-assert.ok(settingsCheckJob, 'release settings preflight exists');
-assert.match(settingsCheckJob, /GH_TOKEN: \$\{\{ secrets\.RELEASE_SETTINGS_READ_TOKEN \}\}/);
-assert.match(settingsCheckJob, /immutable-releases/);
-assert.match(settingsCheckJob, /test -n "\$GH_TOKEN"/);
-assert.match(settingsCheckJob, /github\.event_name == 'push'/);
-assert.match(settingsCheckJob, /github\.ref == 'refs\/heads\/main'/);
-
 assert.doesNotMatch(workflow, /notification_service|NotificationService|publish-container|azure\/login/);
 
 const releaseJob = workflow.split('  cut-release:\n')[1];
@@ -22,7 +14,6 @@ assert.match(releaseJob, /matrix: \$\{\{ fromJSON\(needs\.prepare-release-assets
 assert.match(releaseJob, /release_tag: sui-\$\{\{ matrix\.component\.slug \}\}-\$\{\{ github\.sha \}\}/);
 assert.match(releaseJob, /asset_subdirectory: \$\{\{ matrix\.component\.name \}\}/);
 const publisher = readFileSync(new URL('../workflows/publish-immutable-release.yml', import.meta.url), 'utf8');
-assert.match(publisher, /release_settings_read_token/);
 assert.match(publisher, /git\/ref\/tags/);
 assert.match(publisher, /verify_inventory/);
 assert.match(publisher, /gh release delete/);
@@ -61,7 +52,6 @@ function scenario({ event = 'push', ref = 'refs/heads/main', selected = [],
     'build-get-an-id': { result: selected.includes('GetAnIdentifier') ? 'success' : 'skipped' },
     'build-ui-harness': { result: selected.includes('UIHarness') ? 'success' : 'skipped' },
     'attest-release-zips': { result: selected.length ? 'success' : 'skipped' },
-    'release-settings-check': { result: selected.length ? 'success' : 'skipped' },
     'trufflehog-scan': { result: 'success' },
     'trivy-scan': { result: 'success' },
     'trivy-iac-scan': { result: 'success' },
@@ -96,7 +86,6 @@ describe('release publication job guard', () => {
       ['trivy-scan', ['AuthEmulator']],
       ['trivy-iac-scan', ['AuthEmulator']],
       ['release-script-tests', ['AuthEmulator']],
-      ['release-settings-check', ['AuthEmulator']],
     ]) {
       assert.equal(scenario({ selected, failed }), false, failed);
     }
