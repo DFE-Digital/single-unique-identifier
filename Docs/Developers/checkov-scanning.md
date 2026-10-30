@@ -7,8 +7,11 @@ If a policy violation is flagged but cannot be immediately remediated (e.g., wai
 
 Exceptions must be time-bound and explicitly state the approver. Add a comment directly above the failing resource block:
 ```hcl
-# checkov:skip=DFE_ELZ_0002: "Exception approved by [Name/Team] on [Date] due to resourcing constraints. Expires [Date]."
-resource "azurerm_resource_group" "example" { ... }
+resource "azurerm_resource_group" "example" {
+  #checkov:skip=DFE_ELZ_0002: "Exception approved by [Name/Team] on [Date] due to resourcing constraints. Expires [Date]."
+  name     = "rg-example"
+  location = "ukwest"
+}
 ```
 
 ### Running Scans Locally
