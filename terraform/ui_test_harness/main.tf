@@ -65,10 +65,10 @@ moved {
 
 moved {
   from = module.rbac_assignments_find_kv
-  to   = module.app[0].module.rbac_assignments_find_kv
+  to   = module.app[0].module.rbac_assignments_gaid_kv
 }
 
 moved {
   from = azurerm_key_vault_access_policy.find_kv
-  to   = module.app[0].azurerm_key_vault_access_policy.find_kv
+  to   = module.app[0].azurerm_key_vault_access_policy.gaid_kv
 }

@@ -87,7 +87,7 @@ variable "ui_test_harness_password" {
 }
 
 variable "auth_settings_access_token_url" {
-  description = "Inbound Access Token URL (to be able to request tokens to use the Find API)"
+  description = "Inbound Access Token URL (to be able to request tokens to use the GetAnIdentifier API)"
   type        = string
   sensitive   = true
 }

@@ -18,7 +18,7 @@ jobs:
       artifact-metadata: write
     steps:
       - name: Download tested deployment ZIPs
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: release-zips-*
           path: drop
@@ -30,6 +30,6 @@ jobs:
           zips=(drop/*.zip)
           (( ${#zips[@]} > 0 ))
       - name: Attest exact deployment ZIPs
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: 'drop/*.zip'

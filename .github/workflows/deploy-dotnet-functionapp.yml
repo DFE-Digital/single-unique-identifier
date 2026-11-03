@@ -88,7 +88,7 @@ jobs:
       functionapp_name: ${{ steps.app_name.outputs.functionapp_name }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Load tfvars
         id: env_config
@@ -126,10 +126,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Azure login with OIDC for ${{ inputs.environment || github.event.inputs.environment }}
-        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -146,7 +146,7 @@ jobs:
           echo "Computed function app name: ${{ needs.resolve-app.outputs.functionapp_name }}"
 
       - name: Download build artifact (GitHub)
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: ${{ inputs.artifact_name || github.event.inputs.artifact_name }}
           path: ${{ inputs.package_path || github.event.inputs.package_path }}/${{ inputs.artifact_name || github.event.inputs.artifact_name }}
@@ -188,7 +188,7 @@ jobs:
       # --- Dynamic IP Whitelisting End ---
 
       - name: Deploy to Azure Function App
-        uses: Azure/functions-action@c5060b3b8bb1ebbcb531abd00c822ecbaa8ea656 # v1
+        uses: Azure/functions-action@c5060b3b8bb1ebbcb531abd00c822ecbaa8ea656 # v1.5.7
         with:
           app-name: ${{ needs.resolve-app.outputs.functionapp_name }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}

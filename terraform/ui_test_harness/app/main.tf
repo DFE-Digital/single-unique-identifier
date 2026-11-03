@@ -4,7 +4,7 @@ locals {
   state_container = "tfstate"
 
   core_state_key    = format("%s/terraform.tfstate", var.environment_id)
-  find_state_key    = format("%s/find.tfstate", var.environment_id)
+  gaid_state_key    = format("%s/getanidentifier.tfstate", var.environment_id)
   service_state_key = format("%s/ui_test_harness.tfstate", var.environment_id)
 
   web_app_descriptor = "uiharness01"
@@ -32,13 +32,13 @@ data "terraform_remote_state" "core" {
   }
 }
 
-data "terraform_remote_state" "find" {
+data "terraform_remote_state" "gaid" {
   backend = "azurerm"
   config = {
     resource_group_name  = local.state_rg
     storage_account_name = local.state_storage
     container_name       = local.state_container
-    key                  = local.find_state_key
+    key                  = local.gaid_state_key
   }
 }
 
@@ -118,7 +118,7 @@ module "web_app" {
     {
       OTEL_RESOURCE_ATTRIBUTES = local.otel_resource_attributes
 
-      BaseUrl = format("https://%s%sfunc-%s-find01.azurewebsites.net/api/", var.subscription_prefix, var.environment_id, var.region_short)
+      BaseUrl = format("https://%s%sfunc-%s-getanid01.azurewebsites.net/api/", var.subscription_prefix, var.environment_id, var.region_short)
 
       AuthSettings__AccessTokenUrl = var.auth_settings_access_token_url
 
@@ -168,10 +168,10 @@ resource "azurerm_key_vault_access_policy" "ui_harness_app" {
   secret_permissions = ["Get", "List"]
 }
 
-# 5. Grant Web App access to the Find Key Vault
-module "rbac_assignments_find_kv" {
+# 5. Grant Web App access to the GetAnID Key Vault
+module "rbac_assignments_gaid_kv" {
   source = "../../modules/rbac_assignments"
-  scope  = data.terraform_remote_state.find.outputs.key_vault_id
+  scope  = data.terraform_remote_state.gaid.outputs.key_vault_id
 
   assignments = var.key_vault_use_rbac ? {
     function_app_secrets = {
@@ -181,10 +181,10 @@ module "rbac_assignments_find_kv" {
   } : {}
 }
 
-resource "azurerm_key_vault_access_policy" "find_kv" {
+resource "azurerm_key_vault_access_policy" "gaid_kv" {
   count = var.key_vault_use_rbac ? 0 : 1
 
-  key_vault_id = data.terraform_remote_state.find.outputs.key_vault_id
+  key_vault_id = data.terraform_remote_state.gaid.outputs.key_vault_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = module.web_app.principal_id
 

@@ -153,7 +153,7 @@ This is the current environment strategy and may evolve as the programme progres
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download) version 10.0.102 or later
+- [.NET SDK](https://dotnet.microsoft.com/download) version 10.0.402 (pinned in `global.json`)
 - [.NET runtime](https://dotnet.microsoft.com/download/dotnet/9.0) 9.0.x (required for `dotnet pwsh` and other local tools until PowerShell 7.6 is released with .NET 10 support)
 - Container runtime for local dependencies (suggested: [Rancher Desktop](https://rancherdesktop.io) with the Docker Engine option enabled. Recommended if you need a GUI for Docker)
 
@@ -235,7 +235,7 @@ If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
 ## CI workflows
 
-Workflow structure, inputs and runner selection are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md).
+Workflow structure, release publication, inputs and runner selection are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md).
 
 Security scanning is layered:
 

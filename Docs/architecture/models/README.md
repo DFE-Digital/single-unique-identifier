@@ -2,15 +2,15 @@
 
 This directory contains architecture models for the Single Unique Identifier (SUI) service. These models are the authoritative source for the target architecture.
 
-Currently, the models cover 2 architecture layers:
+Currently, the models cover 3 architecture layers:
 
 - data architecture, showing data stores, processes, data flows, participating organisations, and the data transferred between them
 - application architecture, showing integrated systems and high-level logical components using a C4 context (C1) diagram
+- cloud architecture, showing deployed cloud resources and infrastructure
 
 Planned layers and additions will cover:
 
 - business architecture, showing core capabilities of the system
-- cloud architecture, showing deployed cloud resources and infrastructure
 - security architecture, showing trust boundaries between systems, authentication flows, and policy enforcement.
 
 If you find any discrepancies, contact the technical architect, Josh Taylor at [joshua.taylor@education.gov.uk](mailto:joshua.taylor@education.gov.uk).
