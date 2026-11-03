@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SUI.UIHarness.Web;
 using SUI.UIHarness.Web.Components;
+using SUI.UIHarness.Web.Extensions;
+using SUI.UIHarness.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,20 @@ builder
         options.LoginPath = "/login";
     });
 builder.Services.AddAuthorization();
+
+var getAnIdentifierBaseUrl =
+    builder.Configuration[ConfigKeys.GetAnIdentifierBaseUrl]?.EnsureTrailingSlash()
+    ?? throw new InvalidOperationException(
+        $"{ConfigKeys.GetAnIdentifierBaseUrl} configuration is missing"
+    );
+
+builder.Services.AddHttpClient(
+    nameof(GetAnIdentifierService),
+    client => client.BaseAddress = new Uri(getAnIdentifierBaseUrl)
+);
+
+builder.Services.AddScoped<IGetAnIdentifierService, GetAnIdentifierService>();
+builder.Services.AddScoped<IGetAnIdentifierAuthClientProvider, GetAnIdentifierAuthClientProvider>();
 
 var app = builder.Build();
 

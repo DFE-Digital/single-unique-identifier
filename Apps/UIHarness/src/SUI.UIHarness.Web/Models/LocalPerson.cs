@@ -9,8 +9,11 @@ public record LocalPerson(
     string? Email,
     string? Phone,
     string Postcode,
-    string? NhsNumber
+    string? NhsNumber,
+    IReadOnlyCollection<string>? GpOdsCodes
 )
 {
     public string? NhsNumber { get; set; } = NhsNumber;
+
+    public IReadOnlyCollection<string>? GpOdsCodes { get; set; } = GpOdsCodes;
 }
