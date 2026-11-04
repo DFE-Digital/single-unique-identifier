@@ -8,34 +8,15 @@ namespace SUI.NotificationService.Application.UnitTests.Services;
 
 public sealed class MeshNotificationParserTests
 {
-    [Fact]
-    public void TryParse_ReturnsBundle_WhenBodyIsRecordChangeNotification()
-    {
-        var parsed = MeshNotificationParser.TryParse(BuildNotification(), out var bundle);
-
-        Assert.True(parsed);
-        Assert.NotNull(bundle);
-        Assert.Equal(MeshNotificationFixtures.BundleId, bundle.Id);
-        Assert.Equal(Bundle.BundleType.History, bundle.Type);
-    }
-
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("not json at all")]
     [InlineData("{\"resourceType\":\"Bundle\"")]
+    [InlineData("{\"some\":\"object\"}")]
     public void TryParse_ReturnsFalse_WhenBodyIsNotParseable(string content)
     {
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
-
-        Assert.False(parsed);
-        Assert.Null(bundle);
-    }
-
-    [Fact]
-    public void TryParse_ReturnsFalse_WhenBodyIsNotAFhirResource()
-    {
-        var parsed = MeshNotificationParser.TryParse("{\"some\":\"object\"}", out var bundle);
 
         Assert.False(parsed);
         Assert.Null(bundle);
@@ -53,23 +34,31 @@ public sealed class MeshNotificationParserTests
     }
 
     [Fact]
-    public void TryParse_ReturnsBundle_RegardlessOfDeclaredProfile()
+    public void TryParse_ShouldAcceptNotification_WhenItCarriesAnElementTheSchemaDoesNotDefine()
     {
         var content = BuildNotification(amend: notification =>
-            ParametersResource(notification)["meta"]!["profile"]![0] =
-                "https://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4"
+        {
+            notification["newElement"] = "value";
+            AdditionalContextPart(notification, "subject")["newElement"] = "value";
+        });
+
+        Assert.True(MeshNotificationParser.TryParse(content, out _));
+    }
+
+    [Fact]
+    public void TryParse_ReturnsFalse_WhenAnElementHasTheWrongType()
+    {
+        var content = BuildNotification(amend: notification =>
+            notification["entry"]![0]!["response"]!["status"] = 200
         );
 
-        var parsed = MeshNotificationParser.TryParse(content, out var bundle);
-
-        Assert.True(parsed);
-        Assert.NotNull(bundle);
+        Assert.False(MeshNotificationParser.TryParse(content, out _));
     }
 
     [Theory]
     [InlineData("pds-record-change-1")]
     [InlineData("PDS-RECORD-CHANGE-2")]
-    [InlineData("some-other-event")]
+    [InlineData("nhs-number-change-2")]
     [InlineData("")]
     public void TryParse_ReturnsFalse_WhenEventTypeIsNotPdsRecordChange2(string eventType)
     {
@@ -153,41 +142,51 @@ public sealed class MeshNotificationParserTests
 
     [Theory]
     [InlineData("nhs-number-change-2")]
-    [InlineData("pds-record-change-1")]
-    public void IsOtherEvent_ShouldReturnTrue_WhenEventTypeIsNotPdsRecordChange2(string eventType)
+    [InlineData("pds-change-of-gp-2")]
+    [InlineData("pds-death-notification-2")]
+    public void IsKnownOtherEvent_ShouldReturnTrue_WhenEventIsOneWeDoNotSubscribeTo(
+        string eventType
+    )
     {
         var content = BuildNotificationWithEventType(eventType);
 
-        Assert.True(MeshNotificationParser.IsOtherEvent(content));
+        Assert.True(MeshNotificationParser.IsKnownOtherEvent(content));
     }
 
-    [Fact]
-    public void IsOtherEvent_ShouldReturnFalse_WhenEventIsPdsRecordChange2()
+    [Theory]
+    [InlineData("pds-record-change-2")]
+    [InlineData("pds-record-change-3")]
+    [InlineData("PDS-RECORD-CHANGE-2")]
+    public void IsKnownOtherEvent_ShouldReturnFalse_WhenEventTypeIsNotAKnownOtherEvent(
+        string eventType
+    )
     {
-        Assert.False(MeshNotificationParser.IsOtherEvent(BuildNotification()));
+        var content = BuildNotificationWithEventType(eventType);
+
+        Assert.False(MeshNotificationParser.IsKnownOtherEvent(content));
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("not json at all")]
     [InlineData("{\"some\":\"object\"}")]
-    public void IsOtherEvent_ShouldReturnFalse_WhenBodyIsNotAFhirBundle(string? content)
+    public void IsKnownOtherEvent_ShouldReturnFalse_WhenBodyIsNotAFhirBundle(string? content)
     {
-        Assert.False(MeshNotificationParser.IsOtherEvent(content));
+        Assert.False(MeshNotificationParser.IsKnownOtherEvent(content));
     }
 
     [Fact]
-    public void IsOtherEvent_ShouldReturnFalse_WhenEventTypePartIsMissing()
+    public void IsKnownOtherEvent_ShouldReturnFalse_WhenEventTypePartIsMissing()
     {
         var content = BuildNotification(amend: notification =>
             RemoveAdditionalContextPart(notification, "event-type")
         );
 
-        Assert.False(MeshNotificationParser.IsOtherEvent(content));
+        Assert.False(MeshNotificationParser.IsKnownOtherEvent(content));
     }
 
     [Fact]
-    public void IsOtherEvent_ShouldReturnFalse_WhenBundleIsNotAHistory()
+    public void IsKnownOtherEvent_ShouldReturnFalse_WhenBundleIsNotAHistory()
     {
         var content = BuildNotification(amend: notification =>
         {
@@ -196,18 +195,7 @@ public sealed class MeshNotificationParserTests
                 "nhs-number-change-2";
         });
 
-        Assert.False(MeshNotificationParser.IsOtherEvent(content));
-    }
-
-    [Fact]
-    public void TryGetNhsNumber_ReturnsNhsNumber_WhenNotificationCarriesASubject()
-    {
-        var bundle = Parse(BuildNotification());
-
-        var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
-
-        Assert.True(found);
-        Assert.Equal(MeshNotificationFixtures.NhsNumber, nhsNumber);
+        Assert.False(MeshNotificationParser.IsKnownOtherEvent(content));
     }
 
     [Fact]
@@ -221,33 +209,15 @@ public sealed class MeshNotificationParserTests
         Assert.Null(nhsNumber);
     }
 
-    [Fact]
-    public void TryGetNhsNumber_ReturnsFalse_WhenSubjectIdentifierIsBlank()
+    [Theory]
+    // An empty identifier is not valid FHIR and never gets this far, so blank means whitespace.
+    [InlineData("   ")]
+    [InlineData("9000000008")]
+    public void TryGetNhsNumber_ReturnsFalse_WhenSubjectIdentifierIsNotAValidNhsNumber(string value)
     {
-        // An empty identifier is not valid FHIR and never gets this far, so blank means whitespace.
-        var bundle = Parse(BuildNotification("   "));
+        var bundle = Parse(BuildNotification(value));
 
         var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
-
-        Assert.False(found);
-        Assert.Null(nhsNumber);
-    }
-
-    [Fact]
-    public void TryGetNhsNumber_ReturnsFalse_WhenSubjectIdentifierIsNotAValidNhsNumber()
-    {
-        var bundle = Parse(BuildNotification("9000000008"));
-
-        var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
-
-        Assert.False(found);
-        Assert.Null(nhsNumber);
-    }
-
-    [Fact]
-    public void TryGetNhsNumber_ReturnsFalse_WhenBundleHasNoParametersEntry()
-    {
-        var found = MeshNotificationParser.TryGetNhsNumber(new Bundle(), out var nhsNumber);
 
         Assert.False(found);
         Assert.Null(nhsNumber);

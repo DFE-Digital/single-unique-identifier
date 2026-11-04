@@ -18,8 +18,20 @@ public static class MeshNotificationParser
     private const string EventTypePart = "event-type";
     private const string RecordChangeEventType = "pds-record-change-2";
 
-    private static readonly JsonSerializerOptions FhirJsonOptions =
-        new JsonSerializerOptions().ForFhir();
+    // MNS events we know of but do not subscribe to. Anything else is not assumed to be harmless:
+    // it could be a new version of pds-record-change-2 or a damaged value.
+    private static readonly HashSet<string> KnownOtherEventTypes =
+    [
+        "nhs-number-change-2",
+        "pds-change-of-gp-2",
+        "pds-death-notification-2",
+    ];
+
+    // Only a few values are read, so a field NHS England adds must not make every message
+    // unparseable. This mode allows new elements but still rejects wrongly typed values.
+    private static readonly JsonSerializerOptions FhirJsonOptions = new JsonSerializerOptions()
+        .ForFhir(typeof(Bundle).Assembly)
+        .UsingMode(DeserializationMode.BackwardsCompatible);
 
     /// <summary>
     /// Parses a MESH message body and confirms it is the shape a pds-record-change-2 notification
@@ -45,14 +57,15 @@ public static class MeshNotificationParser
     }
 
     /// <summary>
-    /// Confirms a message <see cref="TryParse"/> turned down is a well-formed MNS notification for an
-    /// event we do not subscribe to. Those are ignored, whereas anything else that fails to parse may
-    /// be a damaged pds-record-change-2 notification, which is a change we would otherwise lose.
+    /// Confirms a message <see cref="TryParse"/> turned down is a well-formed MNS notification for a
+    /// known event we do not subscribe to. Those are ignored, whereas anything else that fails to
+    /// parse may be a new or damaged pds-record-change-2 notification, which is a change we would
+    /// otherwise lose.
     /// </summary>
-    public static bool IsOtherEvent(string? content) =>
+    public static bool IsKnownOtherEvent(string? content) =>
         TryDeserialize(content, out var bundle)
         && GetEventType(bundle) is { } eventType
-        && eventType != RecordChangeEventType;
+        && KnownOtherEventTypes.Contains(eventType);
 
     /// <summary>
     /// Reads the NHS number the notification is about: the <c>subject</c> part of the

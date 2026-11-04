@@ -201,10 +201,10 @@ public class MeshMessageProcessor(
 
         if (!MeshNotificationParser.TryParse(message.Content, out var notification))
         {
-            if (MeshNotificationParser.IsOtherEvent(message.Content))
+            if (MeshNotificationParser.IsKnownOtherEvent(message.Content))
             {
                 logger.LogInformation(
-                    "MESH message {MessageId} is not a pds-record-change-2 event and was ignored",
+                    "MESH message {MessageId} is a known event we do not subscribe to and was ignored",
                     messageId
                 );
                 return null;

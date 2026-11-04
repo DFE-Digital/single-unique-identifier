@@ -38,6 +38,7 @@ on:
     paths:
       - Apps/NotificationService/**
       - Libs/**
+      - scripts/pds-record-change-2-notification.template.json
       - terraform/notification-service/**
       - terraform/core/**
       - terraform/environments/**
@@ -49,6 +50,7 @@ on:
     paths:
       - Apps/NotificationService/**
       - Libs/**
+      - scripts/pds-record-change-2-notification.template.json
       - terraform/notification-service/**
       - terraform/core/**
       - terraform/environments/**

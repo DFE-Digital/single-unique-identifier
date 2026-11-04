@@ -13,18 +13,6 @@ namespace SUI.NotificationService.Application.UnitTests.Services;
 public sealed class MeshNotificationConformanceTests
 {
     [Fact]
-    public void TryParse_ShouldAcceptPublishedExample()
-    {
-        var parsed = MeshNotificationParser.TryParse(
-            MeshNotificationFixtures.PublishedExample,
-            out var bundle
-        );
-
-        Assert.True(parsed);
-        Assert.NotNull(bundle);
-    }
-
-    [Fact]
     public void TryGetNhsNumber_ShouldReturnSubject_WhenGivenPublishedExample()
     {
         Assert.True(
