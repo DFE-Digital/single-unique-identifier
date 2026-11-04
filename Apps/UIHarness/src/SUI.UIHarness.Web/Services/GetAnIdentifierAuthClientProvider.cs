@@ -1,4 +1,3 @@
-using System.Text.Json;
 using SUI.UIHarness.Web.Models;
 
 namespace SUI.UIHarness.Web.Services;
@@ -20,10 +19,9 @@ public class GetAnIdentifierAuthClientProvider : IGetAnIdentifierAuthClientProvi
     {
         var clients = new List<AuthClient>();
         var clientsFromSettings = _configuration.GetSection("AuthClientCredentials").GetChildren();
-        foreach (var client in clientsFromSettings)
+        foreach (var client in clientsFromSettings.Where(c => c.Value != null))
         {
-            if (client.Value != null)
-                clients.Add(new AuthClient(client.Key, client.Value, client.Key, true));
+            clients.Add(new AuthClient(client.Key, client.Value!, client.Key, true));
         }
         return clients.ToArray();
     }

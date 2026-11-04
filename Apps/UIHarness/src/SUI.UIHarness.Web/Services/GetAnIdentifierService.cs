@@ -107,10 +107,8 @@ public class GetAnIdentifierService : IGetAnIdentifierService
 
         var content = new FormUrlEncodedContent(formData);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, _inboundAccessTokenUrl)
-        {
-            Content = content,
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, _inboundAccessTokenUrl);
+        request.Content = content;
 
         var clientSecret = _authClientProvider
             .GetAuthClients()
