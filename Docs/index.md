@@ -8,7 +8,7 @@ The programme is working towards **Alpha**, with production-grade expectations f
 
 ## Current service scope
 
-Get an Identifier is the main vendor-facing API: demographics are searched against NHS England's PDS to return the matched NHS number and GP practice ODS code where available. SUI subscribes to MNS `pds-record-change-2` events (`change_gp=True` and `change_nhsnumber=True`) for all persons under 18, with lifecycle notifications received through MESH by a separate Notification Service that notifies registered supplier webhook endpoints. Suppliers rematch through Get an Identifier; webhooks do not carry replacement identity or demographic information.
+Get an Identifier is the main vendor-facing API: demographics are searched against NHS England's PDS to return the matched NHS number and GP practice ODS code where available. SUI subscribes to MNS `pds-record-change-2` events (`changed_gp=True` and `changed_nhsnumber=True`) for all persons under 18, with lifecycle notifications received through MESH by a separate Notification Service that notifies registered supplier webhook endpoints. Suppliers rematch through Get an Identifier; webhooks do not carry replacement identity or demographic information.
 
 PDS matching is implemented. End-to-end lifecycle processing is not implemented on `main`. The Notification Service retrieves and parses MESH messages. Its webhook register and signed delivery components are not invoked by the orchestrator, and messages remain unacknowledged. The supplier lifecycle contract remains Draft.
 

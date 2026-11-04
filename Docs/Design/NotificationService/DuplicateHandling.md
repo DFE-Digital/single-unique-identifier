@@ -11,8 +11,8 @@ This page describes how the Notification Service collapses MESH messages that ca
 
 SUI subscribes to NHS Multicast Notification Service (MNS) `pds-record-change-2` events for all persons under 18 using two subscriptions:
 
-- `pds-record-change-2` `change_gp=True`
-- `pds-record-change-2` `change_nhsnumber=True`
+- `pds-record-change-2` `changed_gp=True`
+- `pds-record-change-2` `changed_nhsnumber=True`
 
 Multiple messages for the same NHS number can arrive in the MESH mailbox within a single execution window (for example, when multiple changes occur for the same person or when a single update triggers both subscriptions). Without handling, each message would become its own supplier notification for the same person. Suppliers rematch through Get an Identifier on every notification, so the extra notifications cost them, and us, repeated work for no benefit.
 
@@ -35,7 +35,7 @@ Out of scope:
 ### What counts as a duplicate
 
 A message is a duplicate when its NHS number has already been seen on a message with a different MESH message ID in the same execution. Nothing else is compared: not the event type, the Bundle, the MESH message metadata or the time of the change.
-The parser checks `event-type` (`pds-record-change-2`) but cannot see which subscription filter (`change_gp=True` or `change_nhsnumber=True`) produced the message, so deduplication collapses by NHS number.
+The parser checks `event-type` (`pds-record-change-2`) but cannot see which subscription filter (`changed_gp=True` or `changed_nhsnumber=True`) produced the message, so deduplication collapses by NHS number.
 
 Only messages that were read and parsed successfully take part. A message that cannot be read, cannot be parsed or carries no valid NHS number has no known NHS number, so it is never treated as a duplicate or as a non-duplicate. It is logged and left unacknowledged, as described in the [Notification Service README](../../../Apps/NotificationService/README.md).
 

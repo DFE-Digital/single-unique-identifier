@@ -29,7 +29,7 @@ The programme is now working towards **Alpha**. Code, infrastructure, tests, sec
 
 The agreed Alpha lifecycle flow is:
 
-1. SUI subscribes to NHS England's Multicast Notification Service (MNS) `pds-record-change-2` events for all persons under 18 (`change_gp=True` and `change_nhsnumber=True`).
+1. SUI subscribes to NHS England's Multicast Notification Service (MNS) `pds-record-change-2` events for all persons under 18 (`changed_gp=True` and `changed_nhsnumber=True`).
 2. MNS delivers those lifecycle changes through MESH (Message Exchange for Social Care and Health).
 3. The separate **Notification Service** processes those notifications and notifies registered supplier webhook endpoints that previously returned information may have changed.
 4. Suppliers rematch affected records through Get an Identifier. Webhook notifications do not provide replacement NHS numbers, GP details or demographic information.
@@ -39,7 +39,7 @@ This direction is not yet implemented end to end:
 | Area                      | Current state on `main`                                                                                                                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Get an Identifier         | PDS matching and the NHS number / GP practice ODS code response are implemented.                                                                                                                                              |
-| MNS and MESH              | MESH is the accepted notification transport for two `pds-record-change-2` subscriptions (`change_gp=True` and `change_nhsnumber=True`) covering all persons under 18.                                                         |
+| MNS and MESH              | MESH is the accepted notification transport for two `pds-record-change-2` subscriptions (`changed_gp=True` and `changed_nhsnumber=True`) covering all persons under 18.                                                       |
 | Notification Service      | The orchestrator retrieves and parses MESH messages. Supplier webhook register and signed delivery components exist but are not invoked; webhook dispatch and MESH acknowledgement are not yet wired into the lifecycle flow. |
 | Supplier webhook contract | Draft, pending acknowledgement-timeout agreement and technical / information-governance reviews.                                                                                                                              |
 
