@@ -10,22 +10,23 @@ eleventyNavigation:
 
 ## Service Overview
 
-**Get an Identifier** is a service provided by the Department for Education and NHS England, as part of the Multi-Agency Information Sharing (MAIS) project. The aim of the MAIS project is to prevent children from falling through the cracks of public services, by improving information sharing across local authorities and section 11 organisations.
+**Get an Identifier** (GET) is a service hosted by the Department for Education, as part of the Multi-Agency Information Sharing (MAIS) project. The aim of the MAIS project is to prevent children from falling through the cracks of public services. The GET service will enable frictionless and accurate sharing of child record information by making every child's record across section 11 agencies and education settings commonly identifiable.
 
-This service is in the **Alpha** stage. During this stage, it will be rolled out to a limited number of CMS suppliers and section 11 organisations, working closely together to further refine and develop the service.
+This service is in the **Alpha** stage. During this stage, it will be rolled out to a limited number of CMS and MIS suppliers, working closely together to learn, further refine and develop the service, and gather the necessary evidence needed to allow rolling out to a wider range of organisations.
 
 ### Get an Identifier
 
-The **Get an Identifier** service is an add-on to an organisation's Case Management System (CMS), which enriches records with an NHS number and registered GP information. This works by using the NHS Personal Demographics Service to match stored demographic information to an NHS number and a GP. This service will notify users if either of these pieces of information have changed, and will prompt the user to refresh the details for a given child's record.
+The GET service provides the systems currently holding a child's record (A CMS or MIS system, for example) with a verified NHS number and registered GP ODS code. This works by using the NHS Personal Demographics Service to match stored demographic information to an NHS number and GP code.
 
-Please note that personally identifiable information (PII) is never stored by the Get an Identifier service. It is only passed through to PDS, and is not stored in any database or logs during this process.
+Please note that personally identifiable information (PII) is never stored by the GET service and is not stored in any database or logs during this process. Equally, no new registry is created and no demographic information is overwritten by the service.
 
 By enriching existing data with an NHS number and registered GP, this service aims to:
 
-- Allow LAs to more effectively flag vulnerable children known to social care to health bodies and professionals.
-- Improve social worker access to health information via shared care records.
-- Enable practitioners to have a holistic view of a child's life, using an NHS number as a common identifier.
+- Allow LAs and schools to more effectively flag vulnerable children known to social care to health bodies and professionals.
+- Improve practitioners' access to accurate child record information across organisations.
+- Enable practitioners to have a holistic view of a child's life, using an NHS number as a verified common identifier.
+- Increase confidence and timeliness of data sharing via verified confirmation of a child's identity.
 
 ### Onboarding
 
-Each CMS supplier will be responsible for onboarding the organisations they work with onto the Get an Identifier service. Please speak to your CMS contact for any queries about this stage.
+Each CMS or MIS supplier will be responsible for onboarding the organisations they work with onto the GET service. Please speak to your supplier contact for any queries about this stage.
