@@ -29,8 +29,8 @@ The programme is now working towards **Alpha**. Code, infrastructure, tests, sec
 
 The agreed Alpha lifecycle flow is:
 
-1. Get an Identifier subscribes matched people to NHS England's Multicast Notification Service (MNS).
-2. MNS delivers relevant lifecycle changes through MESH (Message Exchange for Social Care and Health).
+1. SUI subscribes to NHS England's Multicast Notification Service (MNS) `pds-record-change-2` events for all persons under 18 (`change_gp=True` and `change_nhsnumber=True`).
+2. MNS delivers those lifecycle changes through MESH (Message Exchange for Social Care and Health).
 3. The separate **Notification Service** processes those notifications and notifies registered supplier webhook endpoints that previously returned information may have changed.
 4. Suppliers rematch affected records through Get an Identifier. Webhook notifications do not provide replacement NHS numbers, GP details or demographic information.
 
@@ -38,8 +38,8 @@ This direction is not yet implemented end to end:
 
 | Area                      | Current state on `main`                                                                                                                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Get an Identifier         | PDS matching and the NHS number / GP practice ODS code response are implemented. MNS subscription creation is not yet implemented.                                                                                            |
-| MNS and MESH              | MESH is the accepted notification transport. Duplicate-subscription cleanup is an accepted approach, not an implemented task.                                                                                                 |
+| Get an Identifier         | PDS matching and the NHS number / GP practice ODS code response are implemented.                                                                                                                                              |
+| MNS and MESH              | MESH is the accepted notification transport for two `pds-record-change-2` subscriptions (`change_gp=True` and `change_nhsnumber=True`) covering all persons under 18.                                                         |
 | Notification Service      | The orchestrator retrieves and parses MESH messages. Supplier webhook register and signed delivery components exist but are not invoked; webhook dispatch and MESH acknowledgement are not yet wired into the lifecycle flow. |
 | Supplier webhook contract | Draft, pending acknowledgement-timeout agreement and technical / information-governance reviews.                                                                                                                              |
 
@@ -92,7 +92,7 @@ The Searcher and Custodian terms below describe the earlier distributed discover
 
 ### `Get an Identifier`
 
-- Main vendor-facing API: search PDS using demographics and return the matched NHS number and GP practice ODS code where available. MNS subscription creation is part of the Alpha direction, not the current request path.
+- Main vendor-facing API: search PDS using demographics and return the matched NHS number and GP practice ODS code where available.
 
 ### `Notification Service`
 

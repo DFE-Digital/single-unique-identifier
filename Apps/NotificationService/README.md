@@ -12,7 +12,7 @@ The supplier webhook register repository, Key Vault secret client and HMAC-SHA25
 
 The intended acknowledgement boundary is successful webhook delivery to suppliers. When several messages in an execution carry the same NHS number, the duplicates are acknowledged during processing and one non-duplicate message is kept; see [duplicate message handling](../../Docs/Design/NotificationService/DuplicateHandling.md). The non-duplicate message remains unacknowledged pending successful webhook delivery, so it remains available for retrieval on subsequent executions.
 
-MESH is the [accepted Alpha transport](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md). Subscription creation belongs to Get an Identifier and is not yet implemented.
+MESH is the [accepted Alpha transport](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md) for two MNS `pds-record-change-2` subscriptions (`change_gp=True` and `change_nhsnumber=True`) covering all persons under 18.
 
 The [supplier lifecycle webhook contract v1](../../Docs/Design/Notifications-Webhooks/SupplierLifecycle/V1/Index.md) remains Draft pending technical and information-governance reviews and agreement of the acknowledgement timeout. The delivery component currently uses a three-second HTTP timeout; this does not make the proposed contract timeout an agreed SLA.
 

@@ -9,11 +9,12 @@ This page describes how the Notification Service collapses MESH messages that ca
 
 ## Context
 
-Get an Identifier subscribes to NHS Multicast Notification Service (MNS) events for the NHS numbers it returns. [ADR-GetAnIdentifier-0002](../../architecture/decisions/System/GetAnIdentifier/0002-mns-duplicate-avoidance.md) accepted that subscriptions are created without checking for an existing one, and that duplicate subscriptions are removed afterwards by a separate clean-up task. Until that clean-up runs, a single PDS change for a person with duplicate subscriptions is delivered to the MESH mailbox once per subscription.
+SUI subscribes to NHS Multicast Notification Service (MNS) `pds-record-change-2` events for all persons under 18 using two subscriptions:
 
-Without handling, each of those messages would become its own supplier notification for the same person. Suppliers rematch through Get an Identifier on every notification, so the extra notifications cost them, and us, repeated work for no benefit.
+- `pds-record-change-2` `change_gp=True`
+- `pds-record-change-2` `change_nhsnumber=True`
 
-The only MNS event type subscribed to is `pds-record-change-2`, and subscriptions are created with the `changed_nhsnumber` filter, so only NHS number changes reach the mailbox. Subscriptions are controlled by SUI, so no other event type reaches the mailbox. (`nhsNumberChanged` is a different thing: the `eventType` of the supplier webhook payload.)
+Multiple messages for the same NHS number can arrive in the MESH mailbox within a single execution window (for example, when multiple changes occur for the same person or when a single update triggers both subscriptions). Without handling, each message would become its own supplier notification for the same person. Suppliers rematch through Get an Identifier on every notification, so the extra notifications cost them, and us, repeated work for no benefit.
 
 ## Scope
 
@@ -26,16 +27,15 @@ In scope:
 Out of scope:
 
 - deduplication across executions;
-- supplier webhook delivery, and acknowledging the non-duplicate message once it has been delivered, through `IMeshMessageProcessor.AcknowledgeMessageAsync`. See the [Supplier lifecycle webhook contract](../Notifications-Webhooks/SupplierLifecycle/V1/Index.md);
-- deriving the supplier `eventId`; and
-- removing duplicate MNS subscriptions at source. This is the clean-up task from [ADR-GetAnIdentifier-0002](../../architecture/decisions/System/GetAnIdentifier/0002-mns-duplicate-avoidance.md).
+- supplier webhook delivery, and acknowledging the non-duplicate message once it has been delivered, through `IMeshMessageProcessor.AcknowledgeMessageAsync`. See the [Supplier lifecycle webhook contract](../Notifications-Webhooks/SupplierLifecycle/V1/Index.md); and
+- deriving the supplier `eventId`.
 
 ## Behaviour
 
 ### What counts as a duplicate
 
 A message is a duplicate when its NHS number has already been seen on a message with a different MESH message ID in the same execution. Nothing else is compared: not the event type, the Bundle, the MESH message metadata or the time of the change.
-This is safe because the supplier payload carries only `eventType` and `affectedNhsNumber`, and suppliers rematch against current PDS data. Collapsing two messages for the same NHS number loses nothing a supplier would act on. It relies on `pds-record-change-2` filtered to `changed_nhsnumber` being the only kind of change received; if a second event type or filter is ever subscribed to, this rule must be revisited, because a message of one kind could then hide a message of the other. The parser checks the event type but cannot see the filter, so the filter is only enforced by how subscriptions are created.
+The parser checks `event-type` (`pds-record-change-2`) but cannot see which subscription filter (`change_gp=True` or `change_nhsnumber=True`) produced the message, so deduplication collapses by NHS number.
 
 Only messages that were read and parsed successfully take part. A message that cannot be read, cannot be parsed or carries no valid NHS number has no known NHS number, so it is never treated as a duplicate or as a non-duplicate. It is logged and left unacknowledged, as described in the [Notification Service README](../../../Apps/NotificationService/README.md).
 
@@ -107,9 +107,9 @@ Linking the duplicate message ID to its non-duplicate's message ID is the trail 
 
 ## Accepted limitations
 
-Deduplication works within one execution only, because storing NHS numbers across executions is ruled out (see ADR-GetAnIdentifier-0002). A supplier can therefore still receive a second notification for the same NHS number when:
+Deduplication works within one execution only, because storing NHS numbers across executions is ruled out. A supplier can therefore still receive a second notification for the same NHS number when:
 
-- **copies arrive in different executions.** If one copy is delivered and acknowledged before another copy reaches the mailbox, the later copy is delivered on its own next time. This is the more likely cause, and the subscription clean-up task is what reduces it.
+- **messages for the same NHS number arrive in different executions.** If one message is delivered and acknowledged before another reaches the mailbox, the later message is delivered on its own next time.
 - **a duplicate's acknowledgement fails in the same execution that its non-duplicate is delivered and acknowledged.** The duplicate is delivered on the next execution.
 
 Both outcomes are tolerated by the supplier contract, which is at-least-once delivery with suppliers deduplicating on `eventId`. Whether suppliers recognise the second notification as a repeat depends on the open question about `eventId` derivation below. If they do not, the cost is one extra rematch.
@@ -128,10 +128,8 @@ Both outcomes are tolerated by the supplier contract, which is at-least-once del
 ## Related
 
 - [Notification Service README](../../../Apps/NotificationService/README.md)
-- [ADR-GetAnIdentifier-0002: Avoiding duplicate MNS subscriptions](../../architecture/decisions/System/GetAnIdentifier/0002-mns-duplicate-avoidance.md)
 - [Supplier lifecycle webhook contract v1](../Notifications-Webhooks/SupplierLifecycle/V1/Index.md)
 
 ## Open questions
 
-1. **`eventId` derivation.** The supplier contract requires the same source change to produce the same `eventId`. Copies from duplicate subscriptions are different MESH messages. Should `eventId` be derived from the source PDS change rather than from the MESH message, so that a second notification caused by the limitations above is recognised by suppliers as a repeat? Owned by the webhook workstream.
-2. **Subscription clean-up task.** The clean-up of duplicate MNS subscriptions from ADR-GetAnIdentifier-0002 is owned separately. Where it is tracked, and when it will run, determines how often the cross-execution limitation occurs, and should be linked from this page once known.
+1. **`eventId` derivation.** The supplier contract requires the same source change to produce the same `eventId`. Should `eventId` be derived from the source PDS change rather than from the MESH message, so that a second notification caused by the limitations above is recognised by suppliers as a repeat? Owned by the webhook workstream.
