@@ -4,7 +4,7 @@ using NSubstitute.ExceptionExtensions;
 using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Application.Models;
 using SUI.NotificationService.Application.Services;
-using SUI.NotificationService.UnitTests.Fixtures;
+using SUI.NotificationService.Application.UnitTests.Fixtures;
 
 namespace SUI.NotificationService.Application.UnitTests.Services.MeshMessageProcessorTests;
 

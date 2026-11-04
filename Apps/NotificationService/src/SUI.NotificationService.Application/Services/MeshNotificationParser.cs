@@ -32,23 +32,10 @@ public static class MeshNotificationParser
     {
         bundle = null;
 
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            return false;
-        }
-
-        Bundle? parsed;
-        try
-        {
-            parsed = JsonSerializer.Deserialize<Bundle>(content, FhirJsonOptions);
-        }
-        catch (Exception exception)
-            when (exception is DeserializationFailedException or JsonException)
-        {
-            return false;
-        }
-
-        if (parsed is null || !IsRecordChangeNotification(parsed))
+        if (
+            !TryDeserialize(content, out var parsed)
+            || GetEventType(parsed) != RecordChangeEventType
+        )
         {
             return false;
         }
@@ -56,6 +43,16 @@ public static class MeshNotificationParser
         bundle = parsed;
         return true;
     }
+
+    /// <summary>
+    /// Confirms a message <see cref="TryParse"/> turned down is a well-formed MNS notification for an
+    /// event we do not subscribe to. Those are ignored, whereas anything else that fails to parse may
+    /// be a damaged pds-record-change-2 notification, which is a change we would otherwise lose.
+    /// </summary>
+    public static bool IsOtherEvent(string? content) =>
+        TryDeserialize(content, out var bundle)
+        && GetEventType(bundle) is { } eventType
+        && eventType != RecordChangeEventType;
 
     /// <summary>
     /// Reads the NHS number the notification is about: the <c>subject</c> part of the
@@ -80,11 +77,32 @@ public static class MeshNotificationParser
         return true;
     }
 
-    private static bool IsRecordChangeNotification(Bundle bundle) =>
+    private static bool TryDeserialize(string? content, [NotNullWhen(true)] out Bundle? bundle)
+    {
+        bundle = null;
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return false;
+        }
+
+        try
+        {
+            bundle = JsonSerializer.Deserialize<Bundle>(content, FhirJsonOptions);
+        }
+        catch (Exception exception)
+            when (exception is DeserializationFailedException or JsonException)
+        {
+            return false;
+        }
+
+        return bundle is not null;
+    }
+
+    private static string? GetEventType(Bundle bundle) =>
         bundle.Type == Bundle.BundleType.History
-        && bundle.Entry.FirstOrDefault()?.Resource is Parameters
-        && (GetAdditionalContextPart(bundle, EventTypePart)?.Value as FhirString)?.Value
-            == RecordChangeEventType;
+            ? (GetAdditionalContextPart(bundle, EventTypePart)?.Value as FhirString)?.Value
+            : null;
 
     private static Parameters.ParameterComponent? GetAdditionalContextPart(
         Bundle bundle,

@@ -1,79 +1,70 @@
-namespace SUI.NotificationService.UnitTests.Fixtures;
+using System.Text.Json.Nodes;
+
+namespace SUI.NotificationService.Application.UnitTests.Fixtures;
 
 /// <summary>
-/// Builds realistic pds-record-change-2 notification bodies, matching
-/// scripts/pds-record-change-2-notification.template.json with its placeholders filled in.
+/// Builds pds-record-change-2 notification bodies from the example NHS England publishes
+/// (Fixtures/nhs-pds-record-change-2-example.json), which is the single source of truth for their
+/// schema. Each call starts from a fresh copy, so a test states only how its payload differs.
 /// </summary>
 internal static class MeshNotificationFixtures
 {
-    internal const string NhsNumber = "9000000009";
-    internal const string BundleId = "d8f1a2b4-0c3d-4e5f-9a6b-7c8d9e0f1a2b";
+    internal const string NhsNumber = "9912003888";
+    internal const string BundleId = "deb6ed8d-c54a-4489-8609-b15baf927541";
+    internal const string ParametersId = "7c38eb82-9186-402f-a120-94c29ceddb48";
+    internal const string Timestamp = "2020-06-01T13:00:00Z";
+
+    private const string AdditionalContextParameter = "additional-context";
+    private const string SubjectPart = "subject";
+    private const string EventTypePart = "event-type";
+
+    internal static readonly string PublishedExample = File.ReadAllText(
+        Path.Combine(AppContext.BaseDirectory, "Fixtures", "nhs-pds-record-change-2-example.json")
+    );
 
     /// <summary>
-    /// Builds a notification for <paramref name="nhsNumber"/>. A null NHS number leaves the
-    /// <c>subject</c> part out altogether; a blank one keeps the part but leaves its identifier empty.
+    /// Builds a notification for <paramref name="nhsNumber"/>, applying <paramref name="amend"/> to
+    /// the Bundle last. A null NHS number leaves the <c>subject</c> part out altogether.
     /// </summary>
     internal static string BuildNotification(
         string? nhsNumber = NhsNumber,
-        string bundleId = BundleId
+        Action<JsonObject>? amend = null
     )
     {
-        var subject = nhsNumber is null
-            ? string.Empty
-            : $$"""
-                { "name": "subject", "valueReference": { "identifier": { "value": "{{nhsNumber}}" } } },
-                """;
+        var bundle = JsonNode.Parse(PublishedExample)!.AsObject();
 
-        return $$"""
-            {
-              "resourceType": "Bundle",
-              "id": "{{bundleId}}",
-              "type": "history",
-              "timestamp": "2026-09-22T09:15:00+00:00",
-              "entry": [
-                {
-                  "fullUrl": "urn:uuid:3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f",
-                  "resource": {
-                    "resourceType": "Parameters",
-                    "meta": {
-                      "profile": [
-                        "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4"
-                      ]
-                    },
-                    "id": "3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f",
-                    "parameter": [
-                      {
-                        "name": "subscription",
-                        "valueReference": { "reference": "Subscription/00000000-0000-0000-0000-000000000001" }
-                      },
-                      { "name": "status", "valueCode": "active" },
-                      { "name": "type", "valueCode": "event-notification" },
-                      {
-                        "name": "notification-event",
-                        "part": [
-                          { "name": "event-number", "valueString": "1" },
-                          { "name": "timestamp", "valueInstant": "2026-09-22T09:15:00+00:00" }
-                        ]
-                      },
-                      {
-                        "name": "additional-context",
-                        "part": [
-                          { "name": "event-type", "valueString": "pds-record-change-2" },
-                          { "name": "source", "valueUri": "https://fhir.nhs.uk/Id/nhsSpineASID/477121000324" },
-                          {{subject}}
-                          { "name": "version-id", "valueString": "W/\"2\"" }
-                        ]
-                      }
-                    ]
-                  },
-                  "request": {
-                    "method": "GET",
-                    "url": "Subscription/00000000-0000-0000-0000-000000000001"
-                  },
-                  "response": { "status": "200" }
-                }
-              ]
-            }
-            """;
+        if (nhsNumber is null)
+        {
+            RemoveAdditionalContextPart(bundle, SubjectPart);
+        }
+        else
+        {
+            AdditionalContextPart(bundle, SubjectPart)["valueReference"]!["identifier"]!["value"] =
+                nhsNumber;
+        }
+
+        amend?.Invoke(bundle);
+
+        return bundle.ToJsonString();
     }
+
+    internal static string BuildNotificationWithEventType(string eventType) =>
+        BuildNotification(amend: bundle =>
+            AdditionalContextPart(bundle, EventTypePart)["valueString"] = eventType
+        );
+
+    internal static JsonObject ParametersResource(JsonObject bundle) =>
+        bundle["entry"]![0]!["resource"]!.AsObject();
+
+    internal static JsonObject AdditionalContext(JsonObject bundle) =>
+        Named(ParametersResource(bundle)["parameter"]!.AsArray(), AdditionalContextParameter);
+
+    internal static JsonObject AdditionalContextPart(JsonObject bundle, string name) =>
+        Named(AdditionalContext(bundle)["part"]!.AsArray(), name);
+
+    internal static void RemoveAdditionalContextPart(JsonObject bundle, string name) =>
+        AdditionalContext(bundle)["part"]!.AsArray().Remove(AdditionalContextPart(bundle, name));
+
+    private static JsonObject Named(JsonArray items, string name) =>
+        items.Single(item => (string?)item!["name"] == name)!.AsObject();
 }

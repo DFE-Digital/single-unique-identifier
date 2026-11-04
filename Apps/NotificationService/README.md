@@ -144,8 +144,10 @@ Do not commit secrets to the configuration files. Supply sensitive local values 
 ### Message payloads
 
 The mailbox receives [`pds-record-change-2` events](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event)
-published by the NHS Multicast Notification Service (MNS). The MESH workflow identifier they arrive
-under is **TBA** - it is not yet known. Each body is a FHIR Bundle (`type: history`) wrapping a
+published by the NHS Multicast Notification Service (MNS), subscribed to with filters for GP changes
+and NHS number changes. The service does not tell the two apart: a notification only means something
+about that person has changed. The NHS number filter is not in the public MNS documentation. The MESH
+workflow identifier they arrive under is **TBA** - it is not yet known. Each body is a FHIR Bundle (`type: history`) wrapping a
 `Parameters` resource that conforms to the R4 Subscriptions Backport `SubscriptionStatus` profile.
 
 The MESH boundary returns each body as raw text; the application layer parses it into a typed
@@ -167,9 +169,17 @@ belongs with the supplier webhook workstream.
 The service does not filter on the workflow identifier, so the mailbox is assumed to carry these
 events only; the `event-type` check above is the backstop if that assumption is ever wrong.
 
+#### Messages for other events
+
+A well-formed MNS notification with any other `event-type` is ignored: it is logged at `Information`
+by its MESH message identifier, is never acknowledged and stays in the mailbox, and the rest of the
+mailbox is still read. Nothing further is needed for these messages, but they are read again on each
+run.
+
 #### Messages that cannot be parsed
 
-A message whose body is not a valid pds-record-change-2 notification, or whose
+A message that is neither of the above, because its body is not a valid MNS notification or its
+`additional-context.event-type` is missing, or a pds-record-change-2 notification whose
 `additional-context.subject` is missing or is not a valid NHS number (ten digits, not starting with
 zero, with a valid Modulus 11 check digit, checked by `SUI.Shared.NhsNumberValidator`), is logged and skipped,
 and the rest of the mailbox is still read. It will **not** be acknowledged even once supplier

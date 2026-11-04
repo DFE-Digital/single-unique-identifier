@@ -1,6 +1,9 @@
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.NotificationService.Application.Models;
+using SUI.NotificationService.Application.Services;
+using SUI.NotificationService.Application.UnitTests.Fixtures;
 
 namespace SUI.NotificationService.Application.UnitTests.Services.MeshMessageProcessorTests;
 
@@ -39,6 +42,36 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
         var notifications = await ProcessAsync();
 
         Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+    }
+
+    [Fact]
+    public async Task ProcessMeshMessagesAsync_ShouldIgnoreMessage_WhenItIsAnotherEventType()
+    {
+        var logger = new RecordingLogger();
+        AddValidMessage("message-1", "9000000009");
+        AddMessage("message-other", BuildOtherEvent());
+
+        var notifications = await new MeshMessageProcessor(
+            logger,
+            MeshInboxClient
+        ).ProcessMeshMessagesAsync(CancellationToken.None);
+
+        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+        Assert.DoesNotContain(logger.Levels, level => level >= LogLevel.Warning);
+        await MeshInboxClient.DidNotReceiveWithAnyArgs().AcknowledgeMessageAsync(default!, default);
+    }
+
+    [Fact]
+    public async Task ProcessMeshMessagesAsync_ShouldLogError_WhenMessageIsUnparseable()
+    {
+        var logger = new RecordingLogger();
+        AddUnparseableMessage("message-bad");
+
+        await new MeshMessageProcessor(logger, MeshInboxClient).ProcessMeshMessagesAsync(
+            CancellationToken.None
+        );
+
+        Assert.Contains(LogLevel.Error, logger.Levels);
     }
 
     [Fact]
@@ -249,5 +282,26 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
         await MeshInboxClient
             .DidNotReceive()
             .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
+    }
+
+    private static string BuildOtherEvent() =>
+        MeshNotificationFixtures.BuildNotificationWithEventType("nhs-number-change-2");
+
+    private sealed class RecordingLogger : ILogger<MeshMessageProcessor>
+    {
+        public List<LogLevel> Levels { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter
+        ) => Levels.Add(logLevel);
     }
 }
