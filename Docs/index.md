@@ -37,4 +37,5 @@ Use app READMEs and as-built documentation for implemented behaviour, accepted A
 
 ### Development
 
-- [CI workflows](./Developers/ci-workflows.md)
+- [Per-app CI and deployment workflows](./Developers/ci-workflows.md)
+- [Immutable releases: manual builds and recovery](./Developers/immutable-releases.md)

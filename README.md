@@ -235,7 +235,7 @@ If using Aspire Dashboard, navigate to `http://localhost:18888`.
 
 ## CI workflows
 
-Workflow structure, release publication, inputs and runner selection are documented in [Docs/Developers/ci-workflows.md](./Docs/Developers/ci-workflows.md).
+Per-app build/deployment workflows, inputs and runner selection are documented in [CI workflows](./Docs/Developers/ci-workflows.md). The separate [immutable release guide](./Docs/Developers/immutable-releases.md) covers release publication, manual builds and recovery.
 
 Security scanning is layered:
 
