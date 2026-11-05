@@ -1,5 +1,8 @@
 @page "/login"
 @using SUI.UIHarness.Web.Models
+@using SUI.UIHarness.Web.Services
+@inject IGetAnIdentifierAuthClientProvider GetAnIdentifierAuthClientProvider
+
 
 <PageTitle>Login</PageTitle>
 
@@ -61,6 +64,8 @@
 
     protected override void OnParametersSet()
     {
+        _authClients = GetAnIdentifierAuthClientProvider.GetAuthClients().Where(x => x.Enabled).ToArray();
+
         CustodianName ??= _authClients.FirstOrDefault()?.ClientId;
     }
 }

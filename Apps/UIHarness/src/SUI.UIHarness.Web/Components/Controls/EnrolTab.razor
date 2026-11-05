@@ -1,4 +1,5 @@
 @using SUI.UIHarness.Web.Models
+@using SUI.UIHarness.Web.Services
 
 <div>
     <div class="d-flex align-items-center gap-3 mb-3">
@@ -36,6 +37,7 @@
                 <th>Email</th>
                 <th>Postcode</th>
                 <th>NHS Number</th>
+                <th>GP ODS Codes</th>
                 <th></th>
             </tr>
             </thead>
@@ -56,6 +58,15 @@
                             @p.NhsNumber
                         }
                     </td>
+                    <td class="gp-ods-codes">
+                        @if (_enrolledForOrg == SelectedOrgClientId && p.GpOdsCodes != null)
+                        {
+                            @foreach (var gpOdsCode in p.GpOdsCodes)
+                            {
+                                @(gpOdsCode + " ");
+                            }
+                        }
+                    </td>
                 </tr>
             }
             </tbody>
@@ -67,11 +78,11 @@
 
         <p class="mb-2">
             This screen simulates how a custodian would enrol onto the Single Unique Identifier (SUI) service.
-            In practice, a custodian would extract demographic records from their own systems (such as name, date of birth and postcode) and submit them to the <strong>Find an ID</strong> service as part of a defined onboarding or batch process.
+            In practice, a custodian would extract demographic records from their own systems (such as name, date of birth and postcode) and submit them to the <strong>Get an ID</strong> service as part of a defined onboarding or batch process.
         </p>
 
         <p class="mb-2">
-            The Find an ID service checks those details against <strong>PDS</strong> using a structured matching approach.
+            The Get an ID service checks those details against <strong>PDS</strong> using a structured matching approach.
             Where a match reaches a confidence score of 95% or higher, an <strong>NHS number</strong> is returned.
         </p>
 
@@ -89,17 +100,17 @@
             "Octavia",
             "Chislett",
             new DateOnly(2008, 9, 20),
-            "female", null, null, "KT19 0ST", null),
+            "female", null, null, "KT19 0ST", null, null),
         new(new Guid("31B069BB-4B45-469E-90CB-FE9A6F0A7D3A"),
             "Briar",
             "Anderton",
             new DateOnly(2009, 2, 15),
-            "male", null, null, "KT21 1JA", null),
+            "male", null, null, "KT21 1JA", null, null),
         new(new Guid("08F98D91-F891-4BEC-8B4B-A38C9C21B3A7"),
             "Red",
             "Flindall",
             new DateOnly(2011, 5, 17),
-            "male", null, null, "KT20 6XJ", null)
+            "male", null, null, "KT20 6XJ", null, null)
     ];
 
     private bool ShowEnrolProgress { get; set; }
@@ -115,6 +126,9 @@
     [Parameter]
     public EventCallback<LocalPerson> CurrentPersonChanged { get; set; }
     
+    [Inject]
+    public required IGetAnIdentifierService GetAnIdentifierService { get; set; }
+
     [Inject]
     public required ILogger<EnrolTab> Logger { get; set; }
 
@@ -138,6 +152,9 @@
         var a = 100 / _dataToOnboard.Count;
         foreach (var person in _dataToOnboard)
         {
+            var result = await GetAnIdentifierService.GetAnId(person, SelectedOrgClientId);
+            person.NhsNumber = result.PersonId;
+            person.GpOdsCodes = result.GeneralPractitioner;
             EnrolProgress += a;
             _enrolledForOrg ??= SelectedOrgClientId;
             await InvokeAsync(StateHasChanged);
