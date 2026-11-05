@@ -1,4 +1,14 @@
 locals {
+  secret_tags = merge(
+    {
+      Environment        = var.environment_tag
+      Product            = var.product
+      "Service Offering" = var.service_offering
+      ManagedBy          = "terraform"
+    },
+    var.tags,
+  )
+
   state_rg        = format("%s%srg-%s-tfstate", var.subscription_prefix, var.environment_id, var.region_short)
   state_storage   = format("%s%ssttfstate01", var.subscription_prefix, var.environment_id)
   state_container = "tfstate"
@@ -108,6 +118,7 @@ resource "azurerm_key_vault_secret" "nhs_digital_private_key" {
   value        = var.nhs_digital_private_key
   key_vault_id = module.key_vault.id
   content_type = "text/plain"
+  tags         = local.secret_tags
   depends_on = [
     module.rbac_assignments_terraform_operator,
     azurerm_key_vault_access_policy.terraform_operator
@@ -119,6 +130,7 @@ resource "azurerm_key_vault_secret" "nhs_digital_kid" {
   value        = var.nhs_digital_kid
   key_vault_id = module.key_vault.id
   content_type = "text/plain"
+  tags         = local.secret_tags
   depends_on = [
     module.rbac_assignments_terraform_operator,
     azurerm_key_vault_access_policy.terraform_operator
@@ -130,6 +142,7 @@ resource "azurerm_key_vault_secret" "nhs_digital_client_id" {
   value        = var.nhs_digital_client_id
   key_vault_id = module.key_vault.id
   content_type = "text/plain"
+  tags         = local.secret_tags
   depends_on = [
     module.rbac_assignments_terraform_operator,
     azurerm_key_vault_access_policy.terraform_operator
