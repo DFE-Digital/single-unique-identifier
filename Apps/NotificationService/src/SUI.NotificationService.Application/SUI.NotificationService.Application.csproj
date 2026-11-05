@@ -18,5 +18,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="SUI.NotificationService.UnitTests" />
+    <InternalsVisibleTo Include="SUI.NotificationService.Application.UnitTests" />
   </ItemGroup>
 </Project>
