@@ -19,6 +19,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None
+      Update="Fixtures\nhs-pds-record-change-2-example.json"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\..\..\scripts\pds-record-change-2-notification.template.json"
+      Link="Fixtures\pds-record-change-2-notification.template.json"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\SUI.NotificationService.Application\SUI.NotificationService.Application.csproj" />
   </ItemGroup>
 </Project>

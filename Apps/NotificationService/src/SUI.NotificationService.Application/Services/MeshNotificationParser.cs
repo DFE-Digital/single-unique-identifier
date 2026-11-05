@@ -18,8 +18,20 @@ public static class MeshNotificationParser
     private const string EventTypePart = "event-type";
     private const string RecordChangeEventType = "pds-record-change-2";
 
-    private static readonly JsonSerializerOptions FhirJsonOptions =
-        new JsonSerializerOptions().ForFhir();
+    // MNS events we know of but do not subscribe to. Anything else is not assumed to be harmless:
+    // it could be a new version of pds-record-change-2 or a damaged value.
+    private static readonly HashSet<string> KnownOtherEventTypes =
+    [
+        "nhs-number-change-2",
+        "pds-change-of-gp-2",
+        "pds-death-notification-2",
+    ];
+
+    // Only a few values are read, so a field NHS England adds must not make every message
+    // unparseable. This mode allows new elements but still rejects wrongly typed values.
+    private static readonly JsonSerializerOptions FhirJsonOptions = new JsonSerializerOptions()
+        .ForFhir(ModelInfo.ModelInspector)
+        .UsingMode(DeserializationMode.BackwardsCompatible);
 
     /// <summary>
     /// Parses a MESH message body and confirms it is the shape a pds-record-change-2 notification
@@ -32,23 +44,10 @@ public static class MeshNotificationParser
     {
         bundle = null;
 
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            return false;
-        }
-
-        Bundle? parsed;
-        try
-        {
-            parsed = JsonSerializer.Deserialize<Bundle>(content, FhirJsonOptions);
-        }
-        catch (Exception exception)
-            when (exception is DeserializationFailedException or JsonException)
-        {
-            return false;
-        }
-
-        if (parsed is null || !IsRecordChangeNotification(parsed))
+        if (
+            !TryDeserialize(content, out var parsed)
+            || GetEventType(parsed) != RecordChangeEventType
+        )
         {
             return false;
         }
@@ -56,6 +55,17 @@ public static class MeshNotificationParser
         bundle = parsed;
         return true;
     }
+
+    /// <summary>
+    /// Confirms a message <see cref="TryParse"/> turned down is a well-formed MNS notification for a
+    /// known event we do not subscribe to. Those are ignored, whereas anything else that fails to
+    /// parse may be a new or damaged pds-record-change-2 notification, which is a change we would
+    /// otherwise lose.
+    /// </summary>
+    public static bool IsKnownOtherEvent(string? content) =>
+        TryDeserialize(content, out var bundle)
+        && GetEventType(bundle) is { } eventType
+        && KnownOtherEventTypes.Contains(eventType);
 
     /// <summary>
     /// Reads the NHS number the notification is about: the <c>subject</c> part of the
@@ -80,11 +90,32 @@ public static class MeshNotificationParser
         return true;
     }
 
-    private static bool IsRecordChangeNotification(Bundle bundle) =>
+    private static bool TryDeserialize(string? content, [NotNullWhen(true)] out Bundle? bundle)
+    {
+        bundle = null;
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return false;
+        }
+
+        try
+        {
+            bundle = JsonSerializer.Deserialize<Bundle>(content, FhirJsonOptions);
+        }
+        catch (Exception exception)
+            when (exception is DeserializationFailedException or JsonException)
+        {
+            return false;
+        }
+
+        return bundle is not null;
+    }
+
+    private static string? GetEventType(Bundle bundle) =>
         bundle.Type == Bundle.BundleType.History
-        && bundle.Entry.FirstOrDefault()?.Resource is Parameters
-        && (GetAdditionalContextPart(bundle, EventTypePart)?.Value as FhirString)?.Value
-            == RecordChangeEventType;
+            ? (GetAdditionalContextPart(bundle, EventTypePart)?.Value as FhirString)?.Value
+            : null;
 
     private static Parameters.ParameterComponent? GetAdditionalContextPart(
         Bundle bundle,

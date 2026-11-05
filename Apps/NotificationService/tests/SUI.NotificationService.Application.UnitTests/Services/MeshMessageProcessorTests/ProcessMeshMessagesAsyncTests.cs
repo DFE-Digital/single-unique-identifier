@@ -1,6 +1,9 @@
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.NotificationService.Application.Models;
+using SUI.NotificationService.Application.Services;
+using SUI.NotificationService.Application.UnitTests.Fixtures;
 
 namespace SUI.NotificationService.Application.UnitTests.Services.MeshMessageProcessorTests;
 
@@ -42,21 +45,56 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
     }
 
     [Fact]
-    public async Task ProcessMeshMessagesAsync_LeavesOutMessagesCarryingNoNhsNumber()
+    public async Task ProcessMeshMessagesAsync_ShouldIgnoreMessage_WhenItIsAKnownOtherEvent()
     {
+        var logger = Substitute.For<ILogger<MeshMessageProcessor>>();
         AddValidMessage("message-1", "9000000009");
-        AddValidMessage("message-no-nhs-number");
+        AddMessage(
+            "message-other",
+            MeshNotificationFixtures.BuildNotificationWithEventType("nhs-number-change-2")
+        );
 
-        var notifications = await ProcessAsync();
+        var notifications = await CreateProcessor(logger)
+            .ProcessMeshMessagesAsync(CancellationToken.None);
 
         Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+        Assert.DoesNotContain(LoggedLevels(logger), level => level >= LogLevel.Warning);
+        await MeshInboxClient.DidNotReceiveWithAnyArgs().AcknowledgeMessageAsync(default!, default);
     }
 
     [Fact]
-    public async Task ProcessMeshMessagesAsync_LeavesOutMessagesCarryingAnInvalidNhsNumber()
+    public async Task ProcessMeshMessagesAsync_ShouldLogError_WhenEventTypeIsUnknown()
+    {
+        var logger = Substitute.For<ILogger<MeshMessageProcessor>>();
+        AddMessage(
+            "message-unknown",
+            MeshNotificationFixtures.BuildNotificationWithEventType("pds-record-change-3")
+        );
+
+        await CreateProcessor(logger).ProcessMeshMessagesAsync(CancellationToken.None);
+        Assert.Contains(LogLevel.Error, LoggedLevels(logger));
+    }
+
+    [Fact]
+    public async Task ProcessMeshMessagesAsync_ShouldLogError_WhenMessageIsUnparseable()
+    {
+        var logger = Substitute.For<ILogger<MeshMessageProcessor>>();
+        AddUnparseableMessage("message-bad");
+
+        await CreateProcessor(logger).ProcessMeshMessagesAsync(CancellationToken.None);
+
+        Assert.Contains(LogLevel.Error, LoggedLevels(logger));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("9000000008")]
+    public async Task ProcessMeshMessagesAsync_LeavesOutMessagesWithoutAValidNhsNumber(
+        string? nhsNumber
+    )
     {
         AddValidMessage("message-1", "9000000009");
-        AddValidMessage("message-invalid-nhs-number", "9000000008");
+        AddValidMessage("message-without-valid-nhs-number", nhsNumber);
 
         var notifications = await ProcessAsync();
 
@@ -87,18 +125,13 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
         Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
     }
 
-    [Theory]
-    [InlineData(typeof(InvalidOperationException))]
-    [InlineData(typeof(NullReferenceException))]
-    [InlineData(typeof(OutOfMemoryException))]
-    public async Task ProcessMeshMessagesAsync_Propagates_WhenAMessageFailsUnexpectedly(
-        Type exceptionType
-    )
+    [Fact]
+    public async Task ProcessMeshMessagesAsync_Propagates_WhenAMessageFailsUnexpectedly()
     {
         AddValidMessage("message-1", "9000000009");
-        AddUnreadableMessage("message-faulty", (Exception)Activator.CreateInstance(exceptionType)!);
+        AddUnreadableMessage("message-faulty", new InvalidOperationException());
 
-        await Assert.ThrowsAsync(exceptionType, () => ProcessAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(ProcessAsync);
     }
 
     [Fact]
@@ -250,4 +283,10 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
             .DidNotReceive()
             .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
     }
+
+    private static IEnumerable<LogLevel> LoggedLevels(ILogger logger) =>
+        logger
+            .ReceivedCalls()
+            .Where(call => call.GetMethodInfo().Name == nameof(ILogger.Log))
+            .Select(call => (LogLevel)call.GetArguments()[0]!);
 }

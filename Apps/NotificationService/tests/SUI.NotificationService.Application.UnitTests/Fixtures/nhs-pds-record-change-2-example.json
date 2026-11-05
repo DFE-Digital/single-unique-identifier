@@ -1,0 +1,81 @@
+{
+  "resourceType": "Bundle",
+  "id": "deb6ed8d-c54a-4489-8609-b15baf927541",
+  "type": "history",
+  "timestamp": "2020-06-01T13:00:00Z",
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:7c38eb82-9186-402f-a120-94c29ceddb48",
+      "resource": {
+        "resourceType": "Parameters",
+        "meta": {
+          "profile": [
+            "http://hl7.org/fhir/uv/subscriptions-backport/StructureDefinition/backport-subscription-status-r4"
+          ]
+        },
+        "id": "7c38eb82-9186-402f-a120-94c29ceddb48",
+        "parameter": [
+          {
+            "name": "subscription",
+            "valueReference": {
+              "reference": "https://api.service.nhs.uk/multicast-notification-service/subscriptions"
+            }
+          },
+          {
+            "name": "status",
+            "valueCode": "active"
+          },
+          {
+            "name": "type",
+            "valueCode": "event-notification"
+          },
+          {
+            "name": "notification-event",
+            "part": [
+              {
+                "name": "event-number",
+                "valueString": "1"
+              },
+              {
+                "name": "timestamp",
+                "valueInstant": "2020-06-01T13:00:00Z"
+              }
+            ]
+          },
+          {
+            "name": "additional-context",
+            "part": [
+              {
+                "name": "event-type",
+                "valueString": "pds-record-change-2"
+              },
+              {
+                "name": "source",
+                "valueUri": "https://fhir.nhs.uk/Id/nhsSpineASID/477121000324"
+              },
+              {
+                "name": "subject",
+                "valueReference": {
+                  "identifier": {
+                    "value": "9912003888"
+                  }
+                }
+              },
+              {
+                "name": "version-id",
+                "valueString": "W/\"4\""
+              }
+            ]
+          }
+        ]
+      },
+      "request": {
+        "method": "GET",
+        "url": "https://api.service.nhs.uk/multicast-notification-service/subscriptions"
+      },
+      "response": {
+        "status": "200"
+      }
+    }
+  ]
+}

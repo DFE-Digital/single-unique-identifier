@@ -1,27 +1,19 @@
+using System.Text.Json.Nodes;
 using Hl7.Fhir.Model;
 using SUI.NotificationService.Application.Services;
-using SUI.NotificationService.UnitTests.Fixtures;
+using SUI.NotificationService.Application.UnitTests.Fixtures;
+using static SUI.NotificationService.Application.UnitTests.Fixtures.MeshNotificationFixtures;
 
 namespace SUI.NotificationService.Application.UnitTests.Services;
 
 public sealed class MeshNotificationParserTests
 {
-    [Fact]
-    public void TryParse_ReturnsBundle_WhenBodyIsRecordChangeNotification()
-    {
-        var parsed = MeshNotificationParser.TryParse(BuildNotification(), out var bundle);
-
-        Assert.True(parsed);
-        Assert.NotNull(bundle);
-        Assert.Equal(MeshNotificationFixtures.BundleId, bundle.Id);
-        Assert.Equal(Bundle.BundleType.History, bundle.Type);
-    }
-
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("not json at all")]
     [InlineData("{\"resourceType\":\"Bundle\"")]
+    [InlineData("{\"some\":\"object\"}")]
     public void TryParse_ReturnsFalse_WhenBodyIsNotParseable(string content)
     {
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
@@ -31,19 +23,9 @@ public sealed class MeshNotificationParserTests
     }
 
     [Fact]
-    public void TryParse_ReturnsFalse_WhenBodyIsNotAFhirResource()
-    {
-        var parsed = MeshNotificationParser.TryParse("{\"some\":\"object\"}", out var bundle);
-
-        Assert.False(parsed);
-        Assert.Null(bundle);
-    }
-
-    [Fact]
     public void TryParse_ReturnsFalse_WhenBundleIsNotAHistory()
     {
-        var content = BuildNotification()
-            .Replace("\"type\": \"history\"", "\"type\": \"searchset\"");
+        var content = BuildNotification(amend: notification => notification["type"] = "searchset");
 
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
 
@@ -52,28 +34,35 @@ public sealed class MeshNotificationParserTests
     }
 
     [Fact]
-    public void TryParse_ReturnsBundle_RegardlessOfDeclaredProfile()
+    public void TryParse_ShouldAcceptNotification_WhenItCarriesAnElementTheSchemaDoesNotDefine()
     {
-        var content = BuildNotification().Replace("http://hl7.org/", "https://hl7.org/");
+        var content = BuildNotification(amend: notification =>
+        {
+            notification["newElement"] = "value";
+            AdditionalContextPart(notification, "subject")["newElement"] = "value";
+        });
 
-        var parsed = MeshNotificationParser.TryParse(content, out var bundle);
+        Assert.True(MeshNotificationParser.TryParse(content, out _));
+    }
 
-        Assert.True(parsed);
-        Assert.NotNull(bundle);
+    [Fact]
+    public void TryParse_ReturnsFalse_WhenAnElementHasTheWrongType()
+    {
+        var content = BuildNotification(amend: notification =>
+            notification["entry"]![0]!["response"]!["status"] = 200
+        );
+
+        Assert.False(MeshNotificationParser.TryParse(content, out _));
     }
 
     [Theory]
     [InlineData("pds-record-change-1")]
     [InlineData("PDS-RECORD-CHANGE-2")]
-    [InlineData("some-other-event")]
+    [InlineData("nhs-number-change-2")]
     [InlineData("")]
     public void TryParse_ReturnsFalse_WhenEventTypeIsNotPdsRecordChange2(string eventType)
     {
-        var content = BuildNotification()
-            .Replace(
-                "\"valueString\": \"pds-record-change-2\"",
-                $"\"valueString\": \"{eventType}\""
-            );
+        var content = BuildNotificationWithEventType(eventType);
 
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
 
@@ -84,11 +73,9 @@ public sealed class MeshNotificationParserTests
     [Fact]
     public void TryParse_ReturnsFalse_WhenEventTypePartIsMissing()
     {
-        var content = BuildNotification()
-            .Replace(
-                "{ \"name\": \"event-type\", \"valueString\": \"pds-record-change-2\" },",
-                string.Empty
-            );
+        var content = BuildNotification(amend: notification =>
+            RemoveAdditionalContextPart(notification, "event-type")
+        );
 
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
 
@@ -99,7 +86,9 @@ public sealed class MeshNotificationParserTests
     [Fact]
     public void TryParse_ReturnsFalse_WhenAdditionalContextIsMissing()
     {
-        var content = BuildNotification().Replace("\"additional-context\"", "\"something-else\"");
+        var content = BuildNotification(amend: notification =>
+            AdditionalContext(notification)["name"] = "something-else"
+        );
 
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
 
@@ -110,11 +99,12 @@ public sealed class MeshNotificationParserTests
     [Fact]
     public void TryParse_ReturnsFalse_WhenEventTypeIsNotAString()
     {
-        var content = BuildNotification()
-            .Replace(
-                "\"valueString\": \"pds-record-change-2\"",
-                "\"valueCode\": \"pds-record-change-2\""
-            );
+        var content = BuildNotification(amend: notification =>
+        {
+            var eventType = AdditionalContextPart(notification, "event-type");
+            eventType.Remove("valueString");
+            eventType["valueCode"] = "pds-record-change-2";
+        });
 
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
 
@@ -125,22 +115,13 @@ public sealed class MeshNotificationParserTests
     [Fact]
     public void TryParse_ReturnsFalse_WhenFirstEntryIsNotParameters()
     {
-        var content = """
+        var content = BuildNotification(amend: notification =>
+            notification["entry"]![0]!["resource"] = new JsonObject
             {
-              "resourceType": "Bundle",
-              "id": "d8f1a2b4-0c3d-4e5f-9a6b-7c8d9e0f1a2b",
-              "type": "history",
-              "timestamp": "2026-09-22T09:15:00+00:00",
-              "entry": [
-                {
-                  "fullUrl": "urn:uuid:3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f",
-                  "resource": { "resourceType": "Basic", "id": "3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f" },
-                  "request": { "method": "GET", "url": "Basic/3f2c1d9e-5b6a-4c7d-8e9f-0a1b2c3d4e5f" },
-                  "response": { "status": "200" }
-                }
-              ]
+                ["resourceType"] = "Basic",
+                ["id"] = ParametersId,
             }
-            """;
+        );
 
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
 
@@ -151,14 +132,7 @@ public sealed class MeshNotificationParserTests
     [Fact]
     public void TryParse_ReturnsFalse_WhenBundleHasNoEntries()
     {
-        var content = """
-            {
-              "resourceType": "Bundle",
-              "id": "d8f1a2b4-0c3d-4e5f-9a6b-7c8d9e0f1a2b",
-              "type": "history",
-              "timestamp": "2026-09-22T09:15:00+00:00"
-            }
-            """;
+        var content = BuildNotification(amend: notification => notification.Remove("entry"));
 
         var parsed = MeshNotificationParser.TryParse(content, out var bundle);
 
@@ -166,15 +140,62 @@ public sealed class MeshNotificationParserTests
         Assert.Null(bundle);
     }
 
-    [Fact]
-    public void TryGetNhsNumber_ReturnsNhsNumber_WhenNotificationCarriesASubject()
+    [Theory]
+    [InlineData("nhs-number-change-2")]
+    [InlineData("pds-change-of-gp-2")]
+    [InlineData("pds-death-notification-2")]
+    public void IsKnownOtherEvent_ShouldReturnTrue_WhenEventIsOneWeDoNotSubscribeTo(
+        string eventType
+    )
     {
-        var bundle = Parse(BuildNotification());
+        var content = BuildNotificationWithEventType(eventType);
 
-        var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
+        Assert.True(MeshNotificationParser.IsKnownOtherEvent(content));
+    }
 
-        Assert.True(found);
-        Assert.Equal(MeshNotificationFixtures.NhsNumber, nhsNumber);
+    [Theory]
+    [InlineData("pds-record-change-2")]
+    [InlineData("pds-record-change-3")]
+    [InlineData("PDS-RECORD-CHANGE-2")]
+    public void IsKnownOtherEvent_ShouldReturnFalse_WhenEventTypeIsNotAKnownOtherEvent(
+        string eventType
+    )
+    {
+        var content = BuildNotificationWithEventType(eventType);
+
+        Assert.False(MeshNotificationParser.IsKnownOtherEvent(content));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("not json at all")]
+    [InlineData("{\"some\":\"object\"}")]
+    public void IsKnownOtherEvent_ShouldReturnFalse_WhenBodyIsNotAFhirBundle(string? content)
+    {
+        Assert.False(MeshNotificationParser.IsKnownOtherEvent(content));
+    }
+
+    [Fact]
+    public void IsKnownOtherEvent_ShouldReturnFalse_WhenEventTypePartIsMissing()
+    {
+        var content = BuildNotification(amend: notification =>
+            RemoveAdditionalContextPart(notification, "event-type")
+        );
+
+        Assert.False(MeshNotificationParser.IsKnownOtherEvent(content));
+    }
+
+    [Fact]
+    public void IsKnownOtherEvent_ShouldReturnFalse_WhenBundleIsNotAHistory()
+    {
+        var content = BuildNotification(amend: notification =>
+        {
+            notification["type"] = "searchset";
+            AdditionalContextPart(notification, "event-type")["valueString"] =
+                "nhs-number-change-2";
+        });
+
+        Assert.False(MeshNotificationParser.IsKnownOtherEvent(content));
     }
 
     [Fact]
@@ -188,33 +209,15 @@ public sealed class MeshNotificationParserTests
         Assert.Null(nhsNumber);
     }
 
-    [Fact]
-    public void TryGetNhsNumber_ReturnsFalse_WhenSubjectIdentifierIsBlank()
+    [Theory]
+    // An empty identifier is not valid FHIR and never gets this far, so blank means whitespace.
+    [InlineData("   ")]
+    [InlineData("9000000008")]
+    public void TryGetNhsNumber_ReturnsFalse_WhenSubjectIdentifierIsNotAValidNhsNumber(string value)
     {
-        // An empty identifier is not valid FHIR and never gets this far, so blank means whitespace.
-        var bundle = Parse(BuildNotification("   "));
+        var bundle = Parse(BuildNotification(value));
 
         var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
-
-        Assert.False(found);
-        Assert.Null(nhsNumber);
-    }
-
-    [Fact]
-    public void TryGetNhsNumber_ReturnsFalse_WhenSubjectIdentifierIsNotAValidNhsNumber()
-    {
-        var bundle = Parse(BuildNotification("9000000008"));
-
-        var found = MeshNotificationParser.TryGetNhsNumber(bundle, out var nhsNumber);
-
-        Assert.False(found);
-        Assert.Null(nhsNumber);
-    }
-
-    [Fact]
-    public void TryGetNhsNumber_ReturnsFalse_WhenBundleHasNoParametersEntry()
-    {
-        var found = MeshNotificationParser.TryGetNhsNumber(new Bundle(), out var nhsNumber);
 
         Assert.False(found);
         Assert.Null(nhsNumber);
@@ -225,8 +228,4 @@ public sealed class MeshNotificationParserTests
         Assert.True(MeshNotificationParser.TryParse(content, out var bundle));
         return bundle!;
     }
-
-    private static string BuildNotification(
-        string? nhsNumber = MeshNotificationFixtures.NhsNumber
-    ) => MeshNotificationFixtures.BuildNotification(nhsNumber);
 }

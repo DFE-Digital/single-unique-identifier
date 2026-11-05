@@ -66,22 +66,19 @@ function New-PdsRecordChangeNotification {
     )
 
     $timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-    $subscriptionId = [guid]::NewGuid().ToString()
     $bundleId = [guid]::NewGuid().ToString()
     $parametersId = [guid]::NewGuid().ToString()
-    $subscriptionReference = "https://api.service.nhs.uk/multicast-notification-service/subscriptions/$subscriptionId"
 
     $templatePath = Join-Path $PSScriptRoot "pds-record-change-2-notification.template.json"
     $payload = Get-Content -Path $templatePath -Raw
 
     $replacements = [ordered]@{
-        "{{BUNDLE_ID}}"              = $bundleId
-        "{{TIMESTAMP}}"              = $timestamp
-        "{{PARAMETERS_ID}}"          = $parametersId
-        "{{SUBSCRIPTION_REFERENCE}}" = $subscriptionReference
-        "{{EVENT_NUMBER}}"           = $EventNumber
-        "{{NHS_NUMBER}}"             = $NhsNumber
-        "{{VERSION_ID}}"             = $VersionId
+        "{{BUNDLE_ID}}"     = $bundleId
+        "{{TIMESTAMP}}"     = $timestamp
+        "{{PARAMETERS_ID}}" = $parametersId
+        "{{EVENT_NUMBER}}"  = $EventNumber
+        "{{NHS_NUMBER}}"    = $NhsNumber
+        "{{VERSION_ID}}"    = $VersionId
     }
 
     foreach ($placeholder in $replacements.Keys) {

@@ -12,7 +12,7 @@ The supplier webhook register repository, Key Vault secret client and HMAC-SHA25
 
 The intended acknowledgement boundary is successful webhook delivery to suppliers. When several messages in an execution carry the same NHS number, the duplicates are acknowledged during processing and one non-duplicate message is kept; see [duplicate message handling](../../Docs/Design/NotificationService/DuplicateHandling.md). The non-duplicate message remains unacknowledged pending successful webhook delivery, so it remains available for retrieval on subsequent executions.
 
-MESH is the [accepted Alpha transport](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md). Subscription creation belongs to Get an Identifier and is not yet implemented.
+MESH is the [accepted Alpha transport](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md) for two MNS `pds-record-change-2` subscriptions (`changed_gp=True` and `changed_nhsnumber=True`) covering all persons under 18.
 
 The [supplier lifecycle webhook contract v1](../../Docs/Design/Notifications-Webhooks/SupplierLifecycle/V1/Index.md) remains Draft pending technical and information-governance reviews and agreement of the acknowledgement timeout. The delivery component currently uses a three-second HTTP timeout; this does not make the proposed contract timeout an agreed SLA.
 
@@ -144,8 +144,10 @@ Do not commit secrets to the configuration files. Supply sensitive local values 
 ### Message payloads
 
 The mailbox receives [`pds-record-change-2` events](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event)
-published by the NHS Multicast Notification Service (MNS). The MESH workflow identifier they arrive
-under is **TBA** - it is not yet known. Each body is a FHIR Bundle (`type: history`) wrapping a
+published by the NHS Multicast Notification Service (MNS), subscribed to with filters for GP changes
+and NHS number changes. The service does not tell the two apart: a notification only means something
+about that person has changed. The NHS number filter is not in the public MNS documentation. The MESH
+workflow identifier they arrive under is **TBA** - it is not yet known. Each body is a FHIR Bundle (`type: history`) wrapping a
 `Parameters` resource that conforms to the R4 Subscriptions Backport `SubscriptionStatus` profile.
 
 The MESH boundary returns each body as raw text; the application layer parses it into a typed
@@ -153,7 +155,8 @@ The MESH boundary returns each body as raw text; the application layer parses it
 shape: a `history` Bundle whose first entry is a `Parameters` resource with
 `additional-context.event-type` of exactly `pds-record-change-2`. Other MNS events share the same
 Bundle and `Parameters` shape, so the event type is checked defensively to stop a subscription
-mistake being treated as a PDS record change. The declared `meta.profile`
+mistake being treated as a PDS record change. Elements the FHIR schema does not define are tolerated, so a field added by NHS England does not stop
+messages being parsed, but wrongly typed values are rejected. The declared `meta.profile`
 is deliberately not checked: every Subscriptions Backport notification declares the same profile, so
 it cannot tell a pds-record-change-2 event from any other, and an exact match on it only adds a way
 to reject valid messages. Parsing is deliberately an application concern rather than a transport one, because what to do
@@ -167,9 +170,17 @@ belongs with the supplier webhook workstream.
 The service does not filter on the workflow identifier, so the mailbox is assumed to carry these
 events only; the `event-type` check above is the backstop if that assumption is ever wrong.
 
+#### Messages for other events
+
+A well-formed MNS notification for a known event we do not subscribe to (`nhs-number-change-2`,
+`pds-change-of-gp-2` or `pds-death-notification-2`) is ignored: it is logged at `Information` by its
+MESH message identifier, is never acknowledged and stays in the mailbox, and the rest of the mailbox
+is still read. Nothing further is needed for these messages, but they are read again on each run.
+
 #### Messages that cannot be parsed
 
-A message whose body is not a valid pds-record-change-2 notification, or whose
+A message that is neither of the above, because its body is not a valid MNS notification or its
+`additional-context.event-type` is missing or unrecognised, or a pds-record-change-2 notification whose
 `additional-context.subject` is missing or is not a valid NHS number (ten digits, not starting with
 zero, with a valid Modulus 11 check digit, checked by `SUI.Shared.NhsNumberValidator`), is logged and skipped,
 and the rest of the mailbox is still read. It will **not** be acknowledged even once supplier
