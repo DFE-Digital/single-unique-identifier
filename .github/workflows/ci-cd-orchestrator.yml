@@ -227,12 +227,22 @@ jobs:
           pattern: release-zips-*
           path: drop
           merge-multiple: true
+      - name: Resolve stable release date
+        id: release-date
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          created_at=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .created_at)
+          date=$(date --utc --date="$created_at" +%Y.%m.%d)
+          echo "date=$date" >> "$GITHUB_OUTPUT"
       - name: Prepare release manifest and asset list
         id: prepare
         env:
           AUTH: ${{ needs.path-filter.outputs.auth_emulator }}
           GET_AN_ID: ${{ needs.path-filter.outputs.get_an_id }}
           UI: ${{ needs.path-filter.outputs.ui_harness }}
+          RELEASE_DATE: ${{ steps.release-date.outputs.date }}
         run: node .github/scripts/release-manifest.mjs
       - name: Upload release asset bundle
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -284,9 +294,9 @@ jobs:
       asset_subdirectory: ${{ matrix.component.name }}
       attested_asset_glob: '*.zip'
       manifest_filename: release-manifest.json
-      release_tag: sui-${{ matrix.component.slug }}-${{ github.sha }}
+      release_tag: ${{ matrix.component.tag }}
       source_sha: ${{ github.sha }}
       source_ref: refs/heads/main
       signer_workflow: ${{ github.repository }}/.github/workflows/attest-release-zips.yml
-      release_title: ${{ matrix.component.name }} deployable build ${{ github.sha }}
+      release_title: ${{ matrix.component.name }} deployable build ${{ matrix.component.tag }}
       release_notes: Tested ${{ matrix.component.name }} deployment asset from ${{ github.sha }}.

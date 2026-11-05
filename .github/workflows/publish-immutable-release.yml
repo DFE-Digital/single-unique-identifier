@@ -69,6 +69,7 @@ jobs:
           path: release-assets
 
       - name: Verify release asset inventory and build attestations
+        id: verify
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -80,10 +81,13 @@ jobs:
           SOURCE_REF: ${{ inputs.source_ref }}
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-          set -euo pipefail
+          set -eEuo pipefail
+          stage="validate release inputs"
+          trap 'status=$?; if (( status != 0 )); then printf "::error::Release verification failed at %s (exit %s)\n" "$stage" "$status" >&2; printf "failed_stage=%s\n" "$stage" >> "$GITHUB_OUTPUT"; fi' EXIT
           [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$SOURCE_SHA" == "$GITHUB_SHA" ]]
           [[ "$ASSET_SUBDIRECTORY" =~ ^[A-Za-z0-9_-]+$ ]]
+          stage="inspect asset inventory"
           asset_dir="release-assets/$ASSET_SUBDIRECTORY"
           [[ -n "$RELEASE_TAG" && -n "$SIGNER_WORKFLOW" && -n "$SOURCE_REF" && -n "$ASSET_GLOB" ]]
           [[ "$MANIFEST_FILENAME" != */* ]]
@@ -100,6 +104,7 @@ jobs:
           jq -e --arg component "$ASSET_SUBDIRECTORY" --arg filename "$(basename "${attested_assets[0]}")" \
             '.assets == [{component:$component,filename:$filename}]' \
             "$asset_dir/$MANIFEST_FILENAME" >/dev/null
+          stage="verify ZIP attestation"
           for asset in "${attested_assets[@]}"; do
             gh attestation verify "$asset" --repo "$GITHUB_REPOSITORY" \
               --signer-workflow "$SIGNER_WORKFLOW" \
@@ -118,7 +123,10 @@ jobs:
           RELEASE_TITLE: ${{ inputs.release_title }}
           RELEASE_NOTES: ${{ inputs.release_notes }}
         run: |
-          set -euo pipefail
+          set -eEuo pipefail
+          stage="prepare release inventory"
+          trap 'status=$?; if (( status != 0 )); then printf "::error::Release publication failed at %s (exit %s)\n" "$stage" "$status" >&2; printf "failed_stage=%s\n" "$stage" >> "$GITHUB_OUTPUT"; fi' EXIT
+          printf 'Component: %s\nSource SHA: %s\nTag: %s\nRun: %s (attempt %s)\n' "$ASSET_SUBDIRECTORY" "$SOURCE_SHA" "$RELEASE_TAG" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
           tag_ref=$(jq -rn --arg tag "$RELEASE_TAG" '$tag | @uri')
           ref="repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag_ref}"
           local_manifest="release-assets/$ASSET_SUBDIRECTORY/$MANIFEST_FILENAME"
@@ -140,10 +148,13 @@ jobs:
                  if length == 0 then null elif length == 1 then .[0] else error("Duplicate release tag") end'
           }
           verify_inventory() {
-            jq -e --arg tag "$RELEASE_TAG" --arg sha "$SOURCE_SHA" \
+            if ! jq -e --arg tag "$RELEASE_TAG" --arg sha "$SOURCE_SHA" \
               --argjson expected "$expected_assets" --argjson draft "$2" \
               '.tag_name == $tag and .target_commitish == $sha and .draft == $draft and
-               ([.assets[] | {name,digest}] | sort_by(.name)) == $expected' <<< "$1" >/dev/null
+               ([.assets[] | {name,digest}] | sort_by(.name)) == $expected' <<< "$1" >/dev/null; then
+              printf 'Expected assets: %s\nObserved assets: %s\n' "$expected_assets" "$(jq -c '[.assets[] | {name,digest}] | sort_by(.name)' <<< "$1")" >&2
+              return 1
+            fi
           }
           # A rerun changes the manifest's attempt and timestamp. Verify the published
           # manifest's own digest and all stable fields before reusing its immutable release.
@@ -172,6 +183,7 @@ jobs:
               "$local_manifest" "$downloaded_manifest" >/dev/null
           }
           # Accept a pre-existing lightweight tag only when it points to this exact source commit.
+          stage="check existing tag"
           if tag_object=$(gh api "$ref" --jq '.object | [.type,.sha] | @tsv' 2>&1); then
             test "$tag_object" = $'commit\t'"$SOURCE_SHA"
           elif [[ "$tag_object" != *"(HTTP 404)"* ]]; then
@@ -179,9 +191,11 @@ jobs:
             exit 1
           fi
 
+          stage="inspect existing release"
           existing=$(get_release)
           if [[ "$existing" != null ]]; then
             if jq -e '.draft == false' <<< "$existing" >/dev/null; then
+              stage="verify existing immutable release"
               verify_published_retry "$existing"
               test "$(gh api "$ref" --jq '.object | [.type,.sha] | @tsv')" = $'commit\t'"$SOURCE_SHA"
               echo "release_id=$(jq -r .id <<< "$existing")" >> "$GITHUB_OUTPUT"
@@ -192,19 +206,24 @@ jobs:
               '.draft == true and .immutable == false and .target_commitish == $sha' \
               <<< "$existing" >/dev/null
             # Drafts can have partial uploads; replace only one targeting this commit.
+            stage="replace existing draft"
             gh release delete "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --yes
           fi
 
+          stage="create draft release"
           gh release create "$RELEASE_TAG" "${release_files[@]}" \
             --repo "$GITHUB_REPOSITORY" --draft --target "$SOURCE_SHA" \
             --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES"
 
+          stage="verify draft inventory"
           draft=$(get_release)
           [[ "$draft" != null ]]
           # Publishing locks the tag and assets, so check the complete draft first.
           verify_inventory "$draft" true
+          stage="publish verified draft"
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false
 
+          stage="verify published release"
           published=$(get_release)
           verify_inventory "$published" false
           if [[ "$(jq -r .immutable <<< "$published")" != true ]]; then
@@ -214,3 +233,17 @@ jobs:
           test "$(gh api "$ref" --jq '.object | [.type,.sha] | @tsv')" = $'commit\t'"$SOURCE_SHA"
           echo "release_id=$(jq -r .id <<< "$published")" >> "$GITHUB_OUTPUT"
           echo "release_url=$(jq -r .html_url <<< "$published")" >> "$GITHUB_OUTPUT"
+
+      - name: Summarise publication failure
+        if: failure()
+        shell: bash
+        env:
+          COMPONENT: ${{ inputs.asset_subdirectory }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          FAILED_STAGE: ${{ steps.published.outputs.failed_stage || steps.verify.outputs.failed_stage || 'download release assets' }}
+        run: |
+          {
+            printf '## Release publication failed\n\n- Component: `%s`\n- Stage: %s\n- Tag: `%s`\n- Source: `%s`\n- Run: `%s` (attempt `%s`)\n\nInspect the failed stage before rerunning the failed publication job.\n' \
+              "$COMPONENT" "$FAILED_STAGE" "$RELEASE_TAG" "$SOURCE_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+          } >> "$GITHUB_STEP_SUMMARY"
