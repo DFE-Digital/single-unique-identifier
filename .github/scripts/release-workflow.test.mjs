@@ -11,7 +11,8 @@ assert.ok(releaseJob, 'release job exists');
 assert.match(releaseJob, /uses: \.\/\.github\/workflows\/publish-immutable-release\.yml/);
 assert.match(releaseJob, /needs:[\s\S]*prepare-release-assets/);
 assert.match(releaseJob, /matrix: \$\{\{ fromJSON\(needs\.prepare-release-assets\.outputs\.matrix\) \}\}/);
-assert.match(releaseJob, /release_tag: sui-\$\{\{ matrix\.component\.slug \}\}-\$\{\{ github\.sha \}\}/);
+assert.match(releaseJob, /release_tag: \${{ matrix\.component\.tag }}/);
+assert.match(releaseJob, /release_title: \$\{\{ matrix\.component\.name \}\} deployable build \$\{\{ matrix\.component\.tag \}\}/);
 assert.match(releaseJob, /asset_subdirectory: \$\{\{ matrix\.component\.name \}\}/);
 const publisher = readFileSync(new URL('../workflows/publish-immutable-release.yml', import.meta.url), 'utf8');
 assert.match(publisher, /git\/ref\/tags/);
@@ -26,6 +27,9 @@ const prepareAssetsJob = workflow.split('  prepare-release-assets:\n')[1]?.split
 assert.ok(prepareAssetsJob, 'release assets are prepared in a separate job');
 assert.match(prepareAssetsJob, /node \.github\/scripts\/release-manifest\.mjs/);
 assert.match(prepareAssetsJob, /name: release-assets/);
+assert.match(prepareAssetsJob, /RELEASE_DATE: \$\{\{ steps\.release-date\.outputs\.date \}\}/);
+assert.match(prepareAssetsJob, /gh api "repos\/\$GITHUB_REPOSITORY\/actions\/runs\/\$GITHUB_RUN_ID" --jq \.created_at/);
+assert.match(prepareAssetsJob, /date --utc --date="\$created_at" \+%Y\.%m\.%d/);
 assert.match(prepareAssetsJob, /matrix: \$\{\{ steps\.prepare\.outputs\.matrix \}\}/);
 const condition = releaseJob.match(/    if: >-\n([\s\S]*?)\n    strategy:/)?.[1]
   ?.trim().replace(/^\$\{\{\s*/, '').replace(/\s*\}\}$/, '');

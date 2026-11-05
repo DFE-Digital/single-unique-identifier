@@ -13,14 +13,15 @@ const projects = {
 
 // Require one tested ZIP per selected component, then prepare independent release manifests.
 export async function createManifests({ components, assetsDir, sourceSha,
-  runId, runAttempt, generatedAt = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z') }) {
+  runId, runAttempt, releaseDate, buildNumber, generatedAt = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z') }) {
   if (!Array.isArray(components) || components.length === 0 ||
       new Set(components).size !== components.length ||
       components.some((name) => !Object.hasOwn(projects, name))) {
     throw new Error('Select at least one unique, known component');
   }
-  if (!/^[0-9a-f]{40}$/.test(sourceSha) || !/^\d+$/.test(runId) || !/^\d+$/.test(runAttempt)) {
-    throw new Error('Full source SHA and workflow run identity are required');
+  if (!/^[0-9a-f]{40}$/.test(sourceSha) || !/^\d+$/.test(runId) || !/^\d+$/.test(runAttempt) ||
+      !/^\d{4}\.\d{2}\.\d{2}$/.test(releaseDate) || !/^[1-9]\d*$/.test(buildNumber)) {
+    throw new Error('Full source SHA, workflow run identity, release date and build number are required');
   }
 
   const zipFiles = (await readdir(assetsDir, { withFileTypes: true }))
@@ -42,8 +43,8 @@ export async function createManifests({ components, assetsDir, sourceSha,
     }
     releases.push({ component, slug, zipPath, manifest: {
       schema_version: 1,
-      release: { tag: `sui-${slug}-${sourceSha}`, source_sha: sourceSha,
-        workflow_run_id: runId, workflow_run_attempt: runAttempt, generated_at: generatedAt },
+      release: { tag: `${slug}-${releaseDate}-build.${buildNumber}`, source_sha: sourceSha,
+        release_date: releaseDate, build_number: buildNumber, workflow_run_id: runId, workflow_run_attempt: runAttempt, generated_at: generatedAt },
       assets: [{ component, filename }],
       // Retain the manifest shape while container releases are deferred.
       container: null,
@@ -64,6 +65,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
       sourceSha: process.env.GITHUB_SHA,
       runId: process.env.GITHUB_RUN_ID,
       runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+      releaseDate: process.env.RELEASE_DATE,
+      buildNumber: process.env.GITHUB_RUN_NUMBER,
     });
     for (const { component, zipPath, manifest } of releases) {
       const directory = path.join('release-assets', component);
@@ -71,7 +74,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
       await copyFile(zipPath, path.join(directory, path.basename(zipPath)));
       await writeFile(path.join(directory, 'release-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
     }
-    const matrix = JSON.stringify({ component: releases.map(({ component, slug }) => ({ name: component, slug })) });
+    const matrix = JSON.stringify({ component: releases.map(({ component, slug, manifest }) => ({
+      name: component, slug, tag: manifest.release.tag,
+    })) });
     if (process.env.GITHUB_OUTPUT) await writeFile(process.env.GITHUB_OUTPUT, `matrix=${matrix}\n`, { flag: 'a' });
   } catch (error) {
     console.error(error.message);

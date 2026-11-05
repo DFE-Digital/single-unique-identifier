@@ -30,7 +30,7 @@ async function createManifestFixture(components) {
   return {
     components, assetsDir,
     sourceSha: 'a'.repeat(40), runId: '123', runAttempt: '2',
-    generatedAt: '2026-10-22T12:00:00Z',
+    generatedAt: '2026-10-22T12:00:00Z', releaseDate: '2026.10.22', buildNumber: '123',
   };
 }
 
@@ -38,12 +38,24 @@ it('creates separate component releases from one source commit', async () => {
   const inputs = await createManifestFixture(['AuthEmulator', 'UIHarness']);
   const releases = await createManifests(inputs);
   assert.deepEqual(releases.map(({ manifest }) => manifest.release.tag), [
-    `sui-auth-emulator-${inputs.sourceSha}`, `sui-ui-harness-${inputs.sourceSha}`,
+    'auth-emulator-2026.10.22-build.123', 'ui-harness-2026.10.22-build.123',
   ]);
   for (const { component, zipPath, manifest } of releases) {
     assert.deepEqual(manifest.assets, [{ component, filename: path.basename(zipPath) }]);
+    assert.equal(manifest.release.release_date, inputs.releaseDate);
+    assert.equal(manifest.release.build_number, inputs.buildNumber);
     assert.equal(manifest.container, null);
   }
+});
+
+it('keeps tags stable across reruns and changes them for a new workflow run number', async () => {
+  const inputs = await createManifestFixture(['AuthEmulator']);
+  const original = await createManifests(inputs);
+  const retry = await createManifests({ ...inputs, runAttempt: '3' });
+  const nextBuild = await createManifests({ ...inputs, buildNumber: '124' });
+  assert.equal(retry[0].manifest.release.tag, original[0].manifest.release.tag);
+  assert.notEqual(nextBuild[0].manifest.release.tag, original[0].manifest.release.tag);
+  assert.equal(nextBuild[0].manifest.release.tag, 'auth-emulator-2026.10.22-build.124');
 });
 
 it('writes component directories and a publication matrix from workflow inputs', async () => {
@@ -54,7 +66,7 @@ it('writes component directories and a publication matrix from workflow inputs',
     cwd: root,
     env: { ...process.env, AUTH: 'false', GET_AN_ID: 'true', UI: 'true',
       GITHUB_SHA: inputs.sourceSha, GITHUB_RUN_ID: inputs.runId,
-      GITHUB_RUN_ATTEMPT: inputs.runAttempt, GITHUB_OUTPUT: output },
+      GITHUB_RUN_ATTEMPT: inputs.runAttempt, RELEASE_DATE: inputs.releaseDate, GITHUB_RUN_NUMBER: inputs.buildNumber, GITHUB_OUTPUT: output },
   });
   const manifest = JSON.parse(await readFile(path.join(root, 'release-assets', 'GetAnIdentifier', 'release-manifest.json'), 'utf8'));
   assert.deepEqual(manifest.assets, [
@@ -63,13 +75,13 @@ it('writes component directories and a publication matrix from workflow inputs',
   assert.equal(await readFile(path.join(root, 'release-assets', 'GetAnIdentifier', manifest.assets[0].filename), 'utf8'), 'ZIP');
   assert.deepEqual(JSON.parse((await readFile(output, 'utf8')).trim().slice('matrix='.length)), {
     component: [
-      { name: 'GetAnIdentifier', slug: 'get-an-identifier' },
-      { name: 'UIHarness', slug: 'ui-harness' },
+      { name: 'GetAnIdentifier', slug: 'get-an-identifier', tag: 'get-an-identifier-2026.10.22-build.123' },
+      { name: 'UIHarness', slug: 'ui-harness', tag: 'ui-harness-2026.10.22-build.123' },
     ],
   });
 });
 
-it('rejects no component, deferred components, extra ZIPs and empty ZIPs', async () => {
+it('rejects no component, deferred components, extra ZIPs, invalid release identity and empty ZIPs', async () => {
   const empty = await createManifestFixture([]);
   await assert.rejects(createManifests(empty), /Select at least one/);
 
@@ -80,6 +92,10 @@ it('rejects no component, deferred components, extra ZIPs and empty ZIPs', async
   const zero = await createManifestFixture(['AuthEmulator']);
   await writeFile(path.join(zero.assetsDir, 'AuthEmulator-SUI.AuthEmulator-build.zip'), '');
   await assert.rejects(createManifests(zero), /Empty or invalid/);
+
+  const invalid = await createManifestFixture(['AuthEmulator']);
+  await assert.rejects(createManifests({ ...invalid, releaseDate: 'bad' }), /release date and build number/);
+  await assert.rejects(createManifests({ ...invalid, buildNumber: '0' }), /release date and build number/);
 
   const notification = await createManifestFixture(['AuthEmulator']);
   await assert.rejects(createManifests({ ...notification, components: ['NotificationService'] }), /known component/);
