@@ -30,7 +30,7 @@ public static class MeshNotificationParser
     // Only a few values are read, so a field NHS England adds must not make every message
     // unparseable. This mode allows new elements but still rejects wrongly typed values.
     private static readonly JsonSerializerOptions FhirJsonOptions = new JsonSerializerOptions()
-        .ForFhir(typeof(Bundle).Assembly)
+        .ForFhir(ModelInfo.ModelInspector)
         .UsingMode(DeserializationMode.BackwardsCompatible);
 
     /// <summary>
