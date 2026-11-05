@@ -1,7 +1,6 @@
 using Azure.Data.Tables;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SUI.NotificationService.Infrastructure;
 
 namespace SUI.NotificationService.Infrastructure.UnitTests;
 
@@ -17,11 +16,11 @@ public sealed class ServiceCollectionExtensionsTests
             }
         );
 
-        var tableClient = serviceProvider.GetRequiredService<TableClient>();
+        var tableServiceClient = serviceProvider.GetRequiredService<TableServiceClient>();
 
         Assert.Equal(
-            new Uri("https://notificationstorage.table.core.windows.net/SupplierWebhooks"),
-            tableClient.Uri
+            new Uri("https://notificationstorage.table.core.windows.net/"),
+            tableServiceClient.Uri
         );
     }
 
@@ -35,12 +34,9 @@ public sealed class ServiceCollectionExtensionsTests
             }
         );
 
-        var tableClient = serviceProvider.GetRequiredService<TableClient>();
+        var tableServiceClient = serviceProvider.GetRequiredService<TableServiceClient>();
 
-        Assert.Equal(
-            new Uri("http://127.0.0.1:10002/devstoreaccount1/SupplierWebhooks"),
-            tableClient.Uri
-        );
+        Assert.Equal(new Uri("http://127.0.0.1:10002/devstoreaccount1"), tableServiceClient.Uri);
     }
 
     [Fact]
@@ -55,7 +51,7 @@ public sealed class ServiceCollectionExtensionsTests
         );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            serviceProvider.GetRequiredService<TableClient>()
+            serviceProvider.GetRequiredService<TableServiceClient>()
         );
 
         Assert.Contains("TableStorage:ServiceUri", exception.Message, StringComparison.Ordinal);
@@ -67,7 +63,7 @@ public sealed class ServiceCollectionExtensionsTests
         using var serviceProvider = BuildServiceProvider(new Dictionary<string, string?>());
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            serviceProvider.GetRequiredService<TableClient>()
+            serviceProvider.GetRequiredService<TableServiceClient>()
         );
 
         Assert.Contains("TableStorage:ServiceUri", exception.Message, StringComparison.Ordinal);
