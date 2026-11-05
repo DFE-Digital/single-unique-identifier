@@ -32,7 +32,7 @@ public sealed class MeshNotificationConformanceTests
     public void SandboxTemplate_ShouldMatchPublishedExample_WhenFilledWithItsValues()
     {
         var payload = File.ReadAllText(
-                Path.Combine(
+                Path.Join(
                     AppContext.BaseDirectory,
                     "Fixtures",
                     "pds-record-change-2-notification.template.json"
