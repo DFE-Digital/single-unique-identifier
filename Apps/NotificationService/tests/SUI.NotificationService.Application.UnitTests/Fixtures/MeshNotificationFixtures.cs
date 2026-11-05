@@ -19,7 +19,7 @@ internal static class MeshNotificationFixtures
     private const string EventTypePart = "event-type";
 
     internal static readonly string PublishedExample = File.ReadAllText(
-        Path.Combine(AppContext.BaseDirectory, "Fixtures", "nhs-pds-record-change-2-example.json")
+        Path.Join(AppContext.BaseDirectory, "Fixtures", "nhs-pds-record-change-2-example.json")
     );
 
     /// <summary>
