@@ -80,6 +80,27 @@ public static class MeshNotificationParser
         return true;
     }
 
+    /// <summary>
+    /// Reads the Event ID and Occurrence Timestamp from the FHIR Bundle.
+    /// The webhook contract strictly requires a Guid for the Event ID, so unparseable IDs fail validation.
+    /// </summary>
+    public static bool TryGetEventDetails(
+        Bundle bundle,
+        out Guid eventId,
+        out DateTimeOffset occurredAt
+    )
+    {
+        eventId = Guid.Empty;
+        occurredAt = bundle.Timestamp ?? DateTimeOffset.UtcNow; // Fallback to now if MESH omits it
+
+        if (string.IsNullOrWhiteSpace(bundle.Id) || !Guid.TryParse(bundle.Id, out eventId))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private static bool IsRecordChangeNotification(Bundle bundle) =>
         bundle.Type == Bundle.BundleType.History
         && bundle.Entry.FirstOrDefault()?.Resource is Parameters

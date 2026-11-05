@@ -100,17 +100,21 @@ public class SupplierWebhookDeliveryService(
 
             stopwatch.Stop();
 
+            var outcome = ClassifyOutcome((int)response.StatusCode);
+
             if (logger.IsEnabled(LogLevel.Information))
             {
                 logger.LogInformation(
-                    "Webhook delivery {DeliveryId} completed with status {StatusCode} in {Duration}ms.",
+                    "Webhook delivery {DeliveryId} completed with status {StatusCode} ({Outcome}) in {Duration}ms.",
                     request.DeliveryId,
                     (int)response.StatusCode,
+                    outcome,
                     stopwatch.ElapsedMilliseconds
                 );
             }
 
             return new WebhookDeliveryResult(
+                Outcome: outcome,
                 ResponseReceived: true,
                 HttpStatusCode: (int)response.StatusCode,
                 TimedOut: false,
@@ -130,6 +134,7 @@ public class SupplierWebhookDeliveryService(
             );
 
             return new WebhookDeliveryResult(
+                Outcome: DeliveryOutcome.RetryableFailure,
                 ResponseReceived: false,
                 HttpStatusCode: null,
                 TimedOut: true,
@@ -150,6 +155,7 @@ public class SupplierWebhookDeliveryService(
             );
 
             return new WebhookDeliveryResult(
+                Outcome: DeliveryOutcome.RetryableFailure,
                 ResponseReceived: false,
                 HttpStatusCode: (int?)ex.StatusCode,
                 TimedOut: false,
@@ -178,5 +184,18 @@ public class SupplierWebhookDeliveryService(
         var hash = hmac.ComputeHash(signedBytes);
 
         return "sha256=" + Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private static DeliveryOutcome ClassifyOutcome(int statusCode)
+    {
+        return statusCode switch
+        {
+            >= 200 and <= 299 => DeliveryOutcome.Success,
+            // 408, 429, and 5xx are retryable
+            408 or 429 or >= 500 => DeliveryOutcome.RetryableFailure,
+            _ => DeliveryOutcome.PermanentFailure,
+        };
+
+        // Non-retryable responses are Permanent Failures (e.g. 400, 401, 403, 404)
     }
 }

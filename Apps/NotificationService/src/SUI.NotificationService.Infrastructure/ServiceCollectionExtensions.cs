@@ -2,6 +2,7 @@ using Azure.Data.Tables;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Infrastructure.Repositories;
 
@@ -25,11 +26,7 @@ public static class ServiceCollectionExtensions
             var serviceUri = configuration["TableStorage:ServiceUri"];
             if (Uri.TryCreate(serviceUri, UriKind.Absolute, out var tableServiceUri))
             {
-                return new TableClient(
-                    tableServiceUri,
-                    "SupplierWebhooks",
-                    new DefaultAzureCredential()
-                );
+                return new TableServiceClient(tableServiceUri, new DefaultAzureCredential());
             }
 
             var connectionString = configuration.GetConnectionString("TableStorage");
@@ -41,7 +38,7 @@ public static class ServiceCollectionExtensions
                 )
             )
             {
-                return new TableClient(connectionString, "SupplierWebhooks");
+                return new TableServiceClient(connectionString);
             }
 
             throw new InvalidOperationException(
@@ -50,8 +47,16 @@ public static class ServiceCollectionExtensions
             );
         });
 
-        // Register the Repository
-        services.AddSingleton<ISupplierWebhookRepository, SupplierWebhookRepository>();
+        // Register the Repositories, passing in the ServiceClient so they can request their own table names
+        services.AddSingleton<ISupplierWebhookRepository>(provider => new SupplierWebhookRepository(
+            provider.GetRequiredService<TableServiceClient>().GetTableClient("SupplierWebhooks"),
+            provider.GetRequiredService<ILogger<SupplierWebhookRepository>>()
+        ));
+
+        services.AddSingleton<IWebhookReceiptRepository>(provider => new WebhookReceiptRepository(
+            provider.GetRequiredService<TableServiceClient>().GetTableClient("WebhookReceipts"),
+            provider.GetRequiredService<ILogger<WebhookReceiptRepository>>()
+        ));
 
         return services;
     }

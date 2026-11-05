@@ -222,12 +222,35 @@ public class MeshMessageProcessor(
             return null;
         }
 
+        if (
+            !MeshNotificationParser.TryGetEventDetails(
+                notification,
+                out var eventId,
+                out var occurredAt
+            )
+        )
+        {
+            // Inability to obtain a valid EventId and a Timestamp means there was an issue
+            // in parsing the details, therefore the message remains unacknowledged.
+            logger.LogError(
+                "MESH message {MessageId} carried an invalid or missing Event ID Guid and was left unacknowledged",
+                messageId
+            );
+            return null;
+        }
+
         logger.LogInformation(
             "MESH message {MessageId} received carrying pds-record-change-2 Bundle {BundleId}",
             message.MessageId,
             notification.Id
         );
 
-        return new PdsRecordChangeNotification(message.MessageId, nhsNumber);
+        return new PdsRecordChangeNotification(
+            message.MessageId,
+            nhsNumber,
+            eventId,
+            LifecycleEventType.PdsRecordChanged, // Temporary fallback
+            occurredAt
+        );
     }
 }
