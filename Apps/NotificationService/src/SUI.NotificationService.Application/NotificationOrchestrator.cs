@@ -181,15 +181,14 @@ internal sealed class NotificationOrchestrator(
     private static Guid GenerateDeterministicGuid(string eventId, string supplierId)
     {
         var input = Encoding.UTF8.GetBytes($"{eventId}:{supplierId}");
-        var hash = SHA1.HashData(input);
 
-        // Truncate SHA1 to 16 bytes to form a UUID
+        // SHA256 to satisfy SonarCloud security rules
+        var hash = SHA256.HashData(input);
+
+        // A Guid is exactly 16 bytes long. SHA256 outputs 32 bytes.
+        // We take the first 16 bytes of the secure hash to form our deterministic ID.
         var guidBytes = new byte[16];
-        Array.Copy(hash, 0, guidBytes, 0, 16);
-
-        // Set UUID version to 5 (Name-based SHA1)
-        guidBytes[7] = (byte)((guidBytes[7] & 0x0F) | 0x50);
-        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80);
+        Array.Copy(hash, guidBytes, 16);
 
         return new Guid(guidBytes);
     }
