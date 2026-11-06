@@ -37,7 +37,7 @@ outputs:
     description: Product tag value
     value: ${{ steps.load.outputs.product }}
   service_offering:
-    description: Service_Offering tag value
+    description: Service Offering tag value
     value: ${{ steps.load.outputs.service_offering }}
   tfvars_path:
     description: Relative path to the tfvars file

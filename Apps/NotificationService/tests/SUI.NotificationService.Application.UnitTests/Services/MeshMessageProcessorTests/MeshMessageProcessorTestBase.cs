@@ -1,10 +1,11 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Application.Models;
 using SUI.NotificationService.Application.Services;
-using SUI.NotificationService.UnitTests.Fixtures;
+using SUI.NotificationService.Application.UnitTests.Fixtures;
 
 namespace SUI.NotificationService.Application.UnitTests.Services.MeshMessageProcessorTests;
 
@@ -16,8 +17,8 @@ public class MeshMessageProcessorTestBase
     internal Task<IReadOnlyList<PdsRecordChangeNotification>> ProcessAsync() =>
         CreateProcessor().ProcessMeshMessagesAsync(CancellationToken.None);
 
-    internal MeshMessageProcessor CreateProcessor() =>
-        new(NullLogger<MeshMessageProcessor>.Instance, MeshInboxClient);
+    internal MeshMessageProcessor CreateProcessor(ILogger<MeshMessageProcessor>? logger = null) =>
+        new(logger ?? NullLogger<MeshMessageProcessor>.Instance, MeshInboxClient);
 
     internal static IMeshInboxClient CreateMeshInboxClient()
     {

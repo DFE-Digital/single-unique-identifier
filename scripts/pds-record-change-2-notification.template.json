@@ -17,7 +17,7 @@
         "parameter": [
           {
             "name": "subscription",
-            "valueReference": { "reference": "{{SUBSCRIPTION_REFERENCE}}" }
+            "valueReference": { "reference": "https://api.service.nhs.uk/multicast-notification-service/subscriptions" }
           },
           {
             "name": "status",
@@ -50,7 +50,7 @@
       },
       "request": {
         "method": "GET",
-        "url": "{{SUBSCRIPTION_REFERENCE}}"
+        "url": "https://api.service.nhs.uk/multicast-notification-service/subscriptions"
       },
       "response": { "status": "200" }
     }

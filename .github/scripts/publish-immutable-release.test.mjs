@@ -10,7 +10,7 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const workflow = readFileSync(new URL('../workflows/publish-immutable-release.yml', import.meta.url), 'utf8');
 // Exercise the shell from the workflow itself, so these tests catch changes to the real publisher.
-const publicationRunBlock = workflow.split('      - name: Create and publish immutable release\n')[1]?.split('        run: |\n')[1];
+const publicationRunBlock = workflow.split('      - name: Create and publish immutable release\n')[1]?.split('\n      - name: Summarise publication failure')[0]?.split('        run: |\n')[1];
 assert.ok(publicationRunBlock, 'publication shell step exists');
 const publicationScript = publicationRunBlock.split('\n').map((line) => line.startsWith('          ') ? line.slice(10) : line).join('\n');
 const roots = [];
@@ -51,6 +51,8 @@ async function createPublisherFixture() {
     MOCK_LOG: path.join(root, 'calls'),
     GITHUB_OUTPUT: path.join(root, 'github-output'),
     GITHUB_REPOSITORY: 'acme/repo',
+    GITHUB_RUN_ID: '123',
+    GITHUB_RUN_ATTEMPT: '1',
     RELEASE_TAG: tag,
     ASSET_SUBDIRECTORY: 'Service',
     MANIFEST_FILENAME: files[0],
@@ -140,5 +142,16 @@ it('fails after publication if repository release immutability is disabled', asy
   const published = (await readState()).release;
   assert.equal(published.draft, false);
   assert.equal(published.immutable, false);
-  await assert.rejects(readFile(env.GITHUB_OUTPUT), { code: 'ENOENT' });
+  const output = await readFile(env.GITHUB_OUTPUT, 'utf8');
+  assert.doesNotMatch(output, /release_id=/);
+  assert.match(output, /failed_stage=verify published release/);
+});
+
+it('reports the failed publication stage when an existing tag targets another commit', async () => {
+  const { env, run, readState, writeState } = await createPublisherFixture();
+  const state = await readState();
+  state.tagSha = 'b'.repeat(40);
+  await writeState(state);
+  await assert.rejects(run(), /check existing tag/);
+  assert.match(await readFile(env.GITHUB_OUTPUT, 'utf8'), /failed_stage=check existing tag/);
 });

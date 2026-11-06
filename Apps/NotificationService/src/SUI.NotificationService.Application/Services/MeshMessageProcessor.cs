@@ -201,6 +201,15 @@ public class MeshMessageProcessor(
 
         if (!MeshNotificationParser.TryParse(message.Content, out var notification))
         {
+            if (MeshNotificationParser.IsKnownOtherEvent(message.Content))
+            {
+                logger.LogInformation(
+                    "MESH message {MessageId} is a known event we do not subscribe to and was ignored",
+                    messageId
+                );
+                return null;
+            }
+
             // Leaving the message unacknowledged keeps it in the mailbox so MESH redelivers it
             // rather than the change event being silently dropped. The cost is that it is re-read
             // and re-logged on every run, so a repeat of this entry needs a manual check.

@@ -65,7 +65,7 @@ jobs:
           echo "  Storage account:  ${{ steps.env_config.outputs.state_storage }}"
           echo "  Container:        ${{ steps.env_config.outputs.state_container }}"
           echo "  Location:         ${{ steps.env_config.outputs.location }}"
-          echo "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=${{ steps.env_config.outputs.product }}, Service_Offering=${{ steps.env_config.outputs.service_offering }}"
+          echo "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=${{ steps.env_config.outputs.product }}, Service Offering=${{ steps.env_config.outputs.service_offering }}"
 
       - name: Create backend state RG/storage (${{ steps.env_config.outputs.state_rg }})
         if: inputs.apply == true
@@ -73,9 +73,9 @@ jobs:
         with:
           inlineScript: |
             $tags = @{
-              Environment      = "${{ steps.env_config.outputs.environment_tag }}"
-              Product          = "${{ steps.env_config.outputs.product }}"
-              Service_Offering = "${{ steps.env_config.outputs.service_offering }}"
+              Environment        = "${{ steps.env_config.outputs.environment_tag }}"
+              Product            = "${{ steps.env_config.outputs.product }}"
+              'Service Offering' = "${{ steps.env_config.outputs.service_offering }}"
             }
 
             Write-Host "Using:"
@@ -83,7 +83,7 @@ jobs:
             Write-Host "  Storage account:  ${{ steps.env_config.outputs.state_storage }}"
             Write-Host "  Container:        ${{ steps.env_config.outputs.state_container }}"
             Write-Host "  Location:         ${{ steps.env_config.outputs.location }}"
-            Write-Host "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=$(${tags['Product']}), Service_Offering=$(${tags['Service_Offering']})"
+            Write-Host "  Tags:             Environment=${{ steps.env_config.outputs.environment_tag }}, Product=$($tags['Product']), Service Offering=$($tags['Service Offering'])"
 
             # Resource group (create or update tags)
             $existingRg = Get-AzResourceGroup -Name "${{ steps.env_config.outputs.state_rg }}" -ErrorAction SilentlyContinue
@@ -104,11 +104,13 @@ jobs:
                 -Location "${{ steps.env_config.outputs.location }}" `
                 -SkuName Standard_LRS `
                 -Kind StorageV2 `
+                -Tag $tags `
                 -MinimumTlsVersion TLS1_2 `
                 -ErrorAction Stop
               Write-Host "Created storage account."
             } else {
-              Write-Host "Storage account already exists; reusing."
+              Set-AzStorageAccount -ResourceGroupName "${{ steps.env_config.outputs.state_rg }}" -Name "${{ steps.env_config.outputs.state_storage }}" -Tag $tags -ErrorAction Stop | Out-Null
+              Write-Host "Storage account already exists; tags updated."
             }
 
             # Container

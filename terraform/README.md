@@ -35,6 +35,8 @@ This folder holds the Terraform for the platform, including shared foundations a
 
 The Azure backend must exist before `terraform init` runs. Use the manual workflow `.github/workflows/terraform-bootstrap.yml` to create the state resource group, storage account, and container using the values from the selected tfvars file (backend names are derived from those values).
 
+An apply replaces the backend resource group and storage account tags with the values from the selected tfvars. Run it for each environment when backend tags change; applying the Terraform roots updates their managed resources separately.
+
 ## Adding a new service
 
 Create a new Terraform root under `terraform/<service>/` (or copy `terraform/service-example/` as a starting point) and compose whichever reusable modules it needs (for example `modules/linux_web_app`), consuming outputs from `core` via remote state. Then:

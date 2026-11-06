@@ -8,9 +8,9 @@ The programme is working towards **Alpha**, with production-grade expectations f
 
 ## Current service scope
 
-Get an Identifier is the main vendor-facing API: demographics are searched against NHS England's PDS to return the matched NHS number and GP practice ODS code where available. The Alpha direction extends this with MNS subscriptions, lifecycle notifications received through MESH, and a separate Notification Service that notifies registered supplier webhook endpoints. Suppliers rematch through Get an Identifier; webhooks do not carry replacement identity or demographic information.
+Get an Identifier is the main vendor-facing API: demographics are searched against NHS England's PDS to return the matched NHS number and GP practice ODS code where available. SUI subscribes to MNS `pds-record-change-2` events (`changed_gp=True` and `changed_nhsnumber=True`) for all persons under 18, with lifecycle notifications received through MESH by a separate Notification Service that notifies registered supplier webhook endpoints. Suppliers rematch through Get an Identifier; webhooks do not carry replacement identity or demographic information.
 
-PDS matching is implemented. MNS subscription creation and end-to-end lifecycle processing are not implemented on `main`. The Notification Service retrieves and parses MESH messages. Its webhook register and signed delivery components are not invoked by the orchestrator, and messages remain unacknowledged. The supplier lifecycle contract remains Draft.
+PDS matching is implemented. End-to-end lifecycle processing is not implemented on `main`. The Notification Service retrieves and parses MESH messages. Its webhook register and signed delivery components are not invoked by the orchestrator, and messages remain unacknowledged. The supplier lifecycle contract remains Draft.
 
 Use app READMEs and as-built documentation for implemented behaviour, accepted ADRs for decisions, and draft contracts for proposals. Older `MATCH`, `FIND`, `FETCH`, distributed discovery, polling and jobs material is retained for context, not as the current primary Alpha scope.
 
@@ -37,4 +37,5 @@ Use app READMEs and as-built documentation for implemented behaviour, accepted A
 
 ### Development
 
-- [CI workflows](./Developers/ci-workflows.md)
+- [Per-app CI and deployment workflows](./Developers/ci-workflows.md)
+- [Immutable releases: manual builds and recovery](./Developers/immutable-releases.md)
