@@ -71,10 +71,13 @@ internal sealed class NotificationOrchestrator(
                     )
                 )
                 {
-                    logger.LogInformation(
-                        "Skipping Supplier {SupplierId}: Prior successful delivery receipt found.",
-                        supplier.SupplierId
-                    );
+                    if (logger.IsEnabled(LogLevel.Information))
+                    {
+                        logger.LogInformation(
+                            "Skipping Supplier {SupplierId}: Prior successful delivery receipt found.",
+                            supplier.SupplierId
+                        );
+                    }
 
                     // Record the Skip
                     broadcastOutcomes.Add(DeliveryOutcome.SkippedPreviouslyAcknowledged);
