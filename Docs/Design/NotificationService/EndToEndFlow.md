@@ -3,7 +3,7 @@
 **Date:** `2026-11-06`  
 **Owner:** SUI Service Team
 
-> **Status: target architecture, partly implemented.** This page describes the intended final flow, not the current behaviour. See [Implementation status](#implementation-status) for what exists today.
+> **Status: target architecture, partly implemented.** This page describes the intended final flow, not the current behaviour. See [Implementation status](../../../Apps/NotificationService/README.md#implementation-status) for what exists today.
 
 ## The flow in brief
 
@@ -98,7 +98,7 @@ sequenceDiagram
 
 ## Key behaviour
 
-- **Run to completion.** The service starts on a schedule, works through what is in the inbox and exits. It is not a poller and it does not stay running between executions.
+- **Run to completion.** The service starts on a schedule, works through what is in the inbox and exits. It is not a poller and it does not stay running between executions. Scheduled executions cannot overlap, because the 30-minute replica timeout is shorter than the 60-minute interval.
 - **A supplier acknowledges through its HTTP response.** The service is a job with no inbound endpoint, so suppliers do not call back. An acknowledgement is the empty `202 Accepted` returned to the webhook request, as defined in the [supplier lifecycle webhook contract](../Notifications-Webhooks/SupplierLifecycle/V1/Index.md#acknowledgement-and-idempotency). A `202` means the supplier has durably accepted the event, not that it has finished rematching.
 - **Rematching is separate.** Suppliers call Get an Identifier after acknowledging, in their own time. A failed or slow rematch does not affect the Notification Service.
 - **The MESH acknowledgement is the last step.** A message leaves the inbox only when every known supplier has acknowledged it, so a failure at any earlier point leaves it to be handled by the next execution. The exception is a duplicate, which is acknowledged early because the message it duplicates stays in the inbox. See [duplicate message handling](./DuplicateHandling.md).
@@ -106,20 +106,6 @@ sequenceDiagram
 - **The stored acknowledgement must not contain an NHS number.** [ADR 0002](../../architecture/decisions/System/GetAnIdentifier/0002-mns-duplicate-avoidance.md) records the directive not to store NHS numbers, so the record identifies the message and the supplier only.
 - **This flow does not yet cover a supplier that never acknowledges.** The message stays in the inbox and is retried on each execution until MESH makes it unavailable, five days after it was sent. That supplier then never receives it.
 - **Modules do not call each other.** The webhooks and MESH projects are adapters and neither references the other. Both report to the orchestrator in `SUI.NotificationService.Application`, which decides when a message is acknowledged.
-
-## Implementation status
-
-| Step | Status |
-|---|---|
-| Scheduled start | Implemented. The schedule is `0 6 * * *` (daily at 06:00 UTC) in every environment, not yet every 60 minutes. The 30-minute replica timeout is shorter than the 60-minute interval, so scheduled executions cannot overlap. |
-| Read the MESH inbox | Implemented. |
-| Remove and acknowledge duplicates | Implemented. |
-| Return the list to the orchestrator | Implemented. The orchestrator does nothing further with the list yet. |
-| Read known suppliers | Implemented in `ISupplierWebhookRepository`, not called by the orchestrator. |
-| Send one signed webhook request | Implemented in `ISupplierWebhookDeliveryService`, not called by the orchestrator. |
-| Coordinate delivery across messages and suppliers | Not implemented. |
-| Store supplier acknowledgements | Not implemented. Only the `SupplierWebhooks` register table exists. |
-| Acknowledge a delivered message in MESH | The method exists in `IMeshMessageProcessor`, not called for delivered messages. |
 
 ## Open questions
 
