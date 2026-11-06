@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -21,13 +22,18 @@ public class NotificationOrchestratorTests
 
     public NotificationOrchestratorTests()
     {
+        var loggerMock = Substitute.For<ILogger<NotificationOrchestrator>>();
+
+        // Force it to execute all inner branches
+        loggerMock.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+
         _sut = new NotificationOrchestrator(
             _processorMock,
             _supplierRepoMock,
             _deliveryMock,
             _receiptRepoMock,
             _timeMock,
-            NullLogger<NotificationOrchestrator>.Instance
+            loggerMock
         );
     }
 

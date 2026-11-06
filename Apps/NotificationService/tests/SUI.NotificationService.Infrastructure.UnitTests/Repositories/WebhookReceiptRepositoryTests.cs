@@ -171,29 +171,30 @@ public class WebhookReceiptRepositoryTests
     public void Entity_CanSetAndGetProperties_ForAzureTableStorage()
     {
         // Arrange & Act
-        var entity = new WebhookDeliveryReceiptEntity
-        {
-            PartitionKey = "pk",
-            RowKey = "rk",
-            SourceEventId = "evt",
-            SupplierId = "sup",
-            DeliveryId = Guid.NewGuid(),
-            ContractVersion = "1.0",
-            AcknowledgedAt = DateTimeOffset.UtcNow,
-            HttpStatusCode = 200,
-            ETag = new ETag("etag"),
-            Timestamp = DateTimeOffset.UtcNow,
-        };
+        var entity = new WebhookDeliveryReceiptEntity();
+        var id = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+
+        entity.PartitionKey = "pk";
+        entity.RowKey = "rk";
+        entity.SourceEventId = "evt";
+        entity.SupplierId = "sup";
+        entity.DeliveryId = id;
+        entity.ContractVersion = "1.0";
+        entity.AcknowledgedAt = now;
+        entity.HttpStatusCode = 200;
+        entity.ETag = new Azure.ETag("etag");
+        entity.Timestamp = now;
 
         // Assert
         Assert.Equal("pk", entity.PartitionKey);
         Assert.Equal("rk", entity.RowKey);
         Assert.Equal("evt", entity.SourceEventId);
         Assert.Equal("sup", entity.SupplierId);
-        Assert.NotEqual(Guid.Empty, entity.DeliveryId);
+        Assert.Equal(id, entity.DeliveryId);
         Assert.Equal("1.0", entity.ContractVersion);
         Assert.Equal(200, entity.HttpStatusCode);
-        Assert.NotNull(entity.Timestamp);
-        Assert.NotEqual(default, entity.ETag);
+        Assert.Equal(now, entity.Timestamp);
+        Assert.Equal(new Azure.ETag("etag"), entity.ETag);
     }
 }
