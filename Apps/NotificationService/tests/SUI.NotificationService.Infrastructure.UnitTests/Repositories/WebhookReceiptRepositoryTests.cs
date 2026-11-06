@@ -166,4 +166,34 @@ public class WebhookReceiptRepositoryTests
             _sut.ExistsAsync("evt-123", "sup-456", CancellationToken.None)
         );
     }
+
+    [Fact]
+    public void Entity_CanSetAndGetProperties_ForAzureTableStorage()
+    {
+        // Arrange & Act
+        var entity = new WebhookDeliveryReceiptEntity
+        {
+            PartitionKey = "pk",
+            RowKey = "rk",
+            SourceEventId = "evt",
+            SupplierId = "sup",
+            DeliveryId = Guid.NewGuid(),
+            ContractVersion = "1.0",
+            AcknowledgedAt = DateTimeOffset.UtcNow,
+            HttpStatusCode = 200,
+            ETag = new ETag("etag"),
+            Timestamp = DateTimeOffset.UtcNow,
+        };
+
+        // Assert
+        Assert.Equal("pk", entity.PartitionKey);
+        Assert.Equal("rk", entity.RowKey);
+        Assert.Equal("evt", entity.SourceEventId);
+        Assert.Equal("sup", entity.SupplierId);
+        Assert.NotEqual(Guid.Empty, entity.DeliveryId);
+        Assert.Equal("1.0", entity.ContractVersion);
+        Assert.Equal(200, entity.HttpStatusCode);
+        Assert.NotNull(entity.Timestamp);
+        Assert.NotEqual(default, entity.ETag);
+    }
 }

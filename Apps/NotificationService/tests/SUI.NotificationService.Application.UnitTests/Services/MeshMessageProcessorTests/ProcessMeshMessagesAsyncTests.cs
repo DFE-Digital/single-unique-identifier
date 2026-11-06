@@ -312,6 +312,26 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
             .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task ProcessMeshMessagesAsync_LeavesOutMessagesWithoutValidEventDetails()
+    {
+        var logger = Substitute.For<ILogger<MeshMessageProcessor>>();
+        AddValidMessage("message-1", "9000000009");
+
+        // Build a notification that is valid JSON but fails TryGetEventDetails (missing 'id')
+        var noIdContent = MeshNotificationFixtures.BuildNotification(amend: n => n.Remove("id"));
+        AddMessage("message-noid", noIdContent);
+
+        var notifications = await CreateProcessor(logger)
+            .ProcessMeshMessagesAsync(CancellationToken.None);
+
+        // Ensures the missing-ID message was skipped
+        var notification = Assert.Single(notifications);
+        Assert.Equal("message-1", notification.MessageId);
+        Assert.Equal("9000000009", notification.NhsNumber);
+        Assert.Contains(LogLevel.Error, LoggedLevels(logger));
+    }
+
     private static IEnumerable<LogLevel> LoggedLevels(ILogger logger) =>
         logger
             .ReceivedCalls()

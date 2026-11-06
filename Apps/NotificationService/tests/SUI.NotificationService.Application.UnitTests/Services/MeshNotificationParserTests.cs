@@ -222,8 +222,6 @@ public sealed class MeshNotificationParserTests
         Assert.Null(nhsNumber);
     }
 
-    // --- NEW: Event Details Parsing Tests ---
-
     [Fact]
     public void TryGetEventDetails_ReturnsTrue_AndExtractsDetails()
     {
