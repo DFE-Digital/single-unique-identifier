@@ -24,12 +24,22 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Equal(
-            [
-                new PdsRecordChangeNotification("message-1", "9000000009"),
-                new PdsRecordChangeNotification("message-2", "9000000017"),
-            ],
-            notifications
+        Assert.Collection(
+            notifications,
+            n =>
+            {
+                Assert.Equal("message-1", n.MessageId);
+                Assert.Equal("9000000009", n.NhsNumber);
+                Assert.NotEqual(Guid.Empty, n.EventId);
+                Assert.Equal(LifecycleEventType.PdsRecordChanged, n.EventType);
+            },
+            n =>
+            {
+                Assert.Equal("message-2", n.MessageId);
+                Assert.Equal("9000000017", n.NhsNumber);
+                Assert.NotEqual(Guid.Empty, n.EventId);
+                Assert.Equal(LifecycleEventType.PdsRecordChanged, n.EventType);
+            }
         );
     }
 
@@ -41,7 +51,14 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+        Assert.Collection(
+            notifications,
+            n =>
+            {
+                Assert.Equal("message-1", n.MessageId);
+                Assert.Equal("9000000009", n.NhsNumber);
+            }
+        );
     }
 
     [Fact]
@@ -57,7 +74,14 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
         var notifications = await CreateProcessor(logger)
             .ProcessMeshMessagesAsync(CancellationToken.None);
 
-        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+        Assert.Collection(
+            notifications,
+            n =>
+            {
+                Assert.Equal("message-1", n.MessageId);
+                Assert.Equal("9000000009", n.NhsNumber);
+            }
+        );
         Assert.DoesNotContain(LoggedLevels(logger), level => level >= LogLevel.Warning);
         await MeshInboxClient.DidNotReceiveWithAnyArgs().AcknowledgeMessageAsync(default!, default);
     }
@@ -98,7 +122,14 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+        Assert.Collection(
+            notifications,
+            n =>
+            {
+                Assert.Equal("message-1", n.MessageId);
+                Assert.Equal("9000000009", n.NhsNumber);
+            }
+        );
     }
 
     [Fact]
@@ -109,7 +140,14 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+        Assert.Collection(
+            notifications,
+            n =>
+            {
+                Assert.Equal("message-1", n.MessageId);
+                Assert.Equal("9000000009", n.NhsNumber);
+            }
+        );
     }
 
     [Fact]
@@ -122,7 +160,14 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+        Assert.Collection(
+            notifications,
+            n =>
+            {
+                Assert.Equal("message-1", n.MessageId);
+                Assert.Equal("9000000009", n.NhsNumber);
+            }
+        );
     }
 
     [Fact]
@@ -177,12 +222,18 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Equal(
-            [
-                new PdsRecordChangeNotification("message-1", "9000000009"),
-                new PdsRecordChangeNotification("message-2", "9000000017"),
-            ],
-            notifications
+        Assert.Collection(
+            notifications,
+            n =>
+            {
+                Assert.Equal("message-1", n.MessageId);
+                Assert.Equal("9000000009", n.NhsNumber);
+            },
+            n =>
+            {
+                Assert.Equal("message-2", n.MessageId);
+                Assert.Equal("9000000017", n.NhsNumber);
+            }
         );
     }
 
@@ -242,7 +293,15 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Equal([new PdsRecordChangeNotification("message-1", "9000000009")], notifications);
+        Assert.Collection(
+            notifications,
+            n =>
+            {
+                Assert.Equal("message-1", n.MessageId);
+                Assert.Equal("9000000009", n.NhsNumber);
+            }
+        );
+
         await MeshInboxClient
             .Received(1)
             .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());

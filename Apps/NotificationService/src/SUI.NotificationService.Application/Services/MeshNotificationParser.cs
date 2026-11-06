@@ -90,6 +90,30 @@ public static class MeshNotificationParser
         return true;
     }
 
+    /// <summary>
+    /// Extracts the canonical Event ID and Timestamp from the root of the FHIR bundle.
+    /// These are required for deterministic webhook delivery and idempotency tracking.
+    /// </summary>
+    public static bool TryGetEventDetails(
+        Bundle bundle,
+        out Guid eventId,
+        out DateTimeOffset occurredAt
+    )
+    {
+        eventId = Guid.Empty;
+        occurredAt = DateTimeOffset.UtcNow; // Fallback
+
+        if (!Guid.TryParse(bundle.Id, out var parsedId))
+        {
+            return false;
+        }
+
+        eventId = parsedId;
+        occurredAt = bundle.Timestamp ?? DateTimeOffset.UtcNow;
+
+        return true;
+    }
+
     private static bool TryDeserialize(string? content, [NotNullWhen(true)] out Bundle? bundle)
     {
         bundle = null;
