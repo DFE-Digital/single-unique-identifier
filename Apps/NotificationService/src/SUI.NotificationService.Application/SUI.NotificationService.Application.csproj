@@ -19,5 +19,9 @@
   <ItemGroup>
     <InternalsVisibleTo Include="SUI.NotificationService.UnitTests" />
     <InternalsVisibleTo Include="SUI.NotificationService.Application.UnitTests" />
+    <!-- 
+      Allows NSubstitute to mock generic interfaces that contain internal classes.
+    -->
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 </Project>
