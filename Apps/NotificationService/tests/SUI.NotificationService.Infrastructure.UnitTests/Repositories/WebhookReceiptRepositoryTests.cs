@@ -71,8 +71,14 @@ public class WebhookReceiptRepositoryTests
             .AddEntityAsync(Arg.Any<WebhookDeliveryReceiptEntity>(), Arg.Any<CancellationToken>())
             .ThrowsAsync(conflictException);
 
-        // Act & Assert - Should not throw
-        await _sut.AddAsync(receipt, CancellationToken.None);
+        // Act
+        // Record.ExceptionAsync captures any exception thrown by the lambda, or returns null if none was thrown
+        var exception = await Record.ExceptionAsync(() =>
+            _sut.AddAsync(receipt, CancellationToken.None)
+        );
+
+        // Assert
+        Assert.Null(exception);
     }
 
     [Fact]

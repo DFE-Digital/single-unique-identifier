@@ -41,11 +41,15 @@ public class WebhookReceiptRepository(
         catch (RequestFailedException ex) when (ex.Status == 409)
         {
             // Idempotent creation: If multiple threads try to write the same success receipt, it's fine.
-            logger.LogDebug(
-                "Receipt already exists for Event {EventId} and Supplier {SupplierId}",
-                receipt.SourceEventId,
-                receipt.SupplierId
-            );
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogDebug(
+                    ex,
+                    "Receipt already exists for Event {EventId} and Supplier {SupplierId}",
+                    receipt.SourceEventId,
+                    receipt.SupplierId
+                );
+            }
         }
     }
 

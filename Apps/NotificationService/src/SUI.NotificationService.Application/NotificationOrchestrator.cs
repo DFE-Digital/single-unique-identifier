@@ -46,11 +46,14 @@ internal sealed class NotificationOrchestrator(
         {
             var sourceEventId = notification.EventId.ToString();
 
-            logger.LogInformation(
-                "Processing delivery broadcast for Event {EventId} (MESH Message {MessageId})",
-                sourceEventId,
-                notification.MessageId
-            );
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation(
+                    "Processing delivery broadcast for Event {EventId} (MESH Message {MessageId})",
+                    sourceEventId,
+                    notification.MessageId
+                );
+            }
 
             // Track the outcomes of all attempted (and skipped) deliveries for the aggregate summary
             var broadcastOutcomes = new List<DeliveryOutcome>();
@@ -132,6 +135,18 @@ internal sealed class NotificationOrchestrator(
                             result.HttpStatusCode
                         );
                         break;
+
+                    case DeliveryOutcome.SkippedPreviouslyAcknowledged:
+                        // DeliverAsync never returns this, but it satisfies the switch check
+                        break;
+
+                    default:
+                        logger.LogWarning(
+                            "Unknown delivery outcome {Outcome} for Supplier {SupplierId}",
+                            result.Outcome,
+                            supplier.SupplierId
+                        );
+                        break;
                 }
             }
 
@@ -144,22 +159,29 @@ internal sealed class NotificationOrchestrator(
             var permanent = broadcastOutcomes.Count(o => o == DeliveryOutcome.PermanentFailure);
 
             // Log the aggregate result
-            logger.LogInformation(
-                "Broadcast aggregate for Event {EventId}: {NewlySuccessful} newly successful, {Skipped} skipped (previously acknowledged), {Retryable} retryable failures, {Permanent} permanent failures.",
-                sourceEventId,
-                newlySuccessful,
-                skipped,
-                retryable,
-                permanent
-            );
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation(
+                    "Broadcast aggregate for Event {EventId}: {NewlySuccessful} newly successful, {Skipped} skipped (previously acknowledged), {Retryable} retryable failures, {Permanent} permanent failures.",
+                    sourceEventId,
+                    newlySuccessful,
+                    skipped,
+                    retryable,
+                    permanent
+                );
+            }
 
             if (retryable == 0)
             {
-                logger.LogInformation(
-                    "Event {EventId} requires no further retries. Acknowledging MESH message {MessageId}.",
-                    sourceEventId,
-                    notification.MessageId
-                );
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation(
+                        "Event {EventId} requires no further retries. Acknowledging MESH message {MessageId}.",
+                        sourceEventId,
+                        notification.MessageId
+                    );
+                }
+
                 await meshMessageProcessor.AcknowledgeMessageAsync(
                     notification.MessageId,
                     cancellationToken
@@ -167,11 +189,14 @@ internal sealed class NotificationOrchestrator(
             }
             else
             {
-                logger.LogInformation(
-                    "Event {EventId} requires retry ({Retryable} endpoints failing) and will remain unacknowledged in the MESH mailbox.",
-                    sourceEventId,
-                    retryable
-                );
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation(
+                        "Event {EventId} requires retry ({Retryable} endpoints failing) and will remain unacknowledged in the MESH mailbox.",
+                        sourceEventId,
+                        retryable
+                    );
+                }
             }
         }
 

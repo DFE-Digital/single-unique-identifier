@@ -51,14 +51,9 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Collection(
-            notifications,
-            n =>
-            {
-                Assert.Equal("message-1", n.MessageId);
-                Assert.Equal("9000000009", n.NhsNumber);
-            }
-        );
+        var notification = Assert.Single(notifications);
+        Assert.Equal("message-1", notification.MessageId);
+        Assert.Equal("9000000009", notification.NhsNumber);
     }
 
     [Fact]
@@ -74,14 +69,9 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
         var notifications = await CreateProcessor(logger)
             .ProcessMeshMessagesAsync(CancellationToken.None);
 
-        Assert.Collection(
-            notifications,
-            n =>
-            {
-                Assert.Equal("message-1", n.MessageId);
-                Assert.Equal("9000000009", n.NhsNumber);
-            }
-        );
+        var notification = Assert.Single(notifications);
+        Assert.Equal("message-1", notification.MessageId);
+        Assert.Equal("9000000009", notification.NhsNumber);
         Assert.DoesNotContain(LoggedLevels(logger), level => level >= LogLevel.Warning);
         await MeshInboxClient.DidNotReceiveWithAnyArgs().AcknowledgeMessageAsync(default!, default);
     }
@@ -122,14 +112,9 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Collection(
-            notifications,
-            n =>
-            {
-                Assert.Equal("message-1", n.MessageId);
-                Assert.Equal("9000000009", n.NhsNumber);
-            }
-        );
+        var notification = Assert.Single(notifications);
+        Assert.Equal("message-1", notification.MessageId);
+        Assert.Equal("9000000009", notification.NhsNumber);
     }
 
     [Fact]
@@ -140,14 +125,9 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Collection(
-            notifications,
-            n =>
-            {
-                Assert.Equal("message-1", n.MessageId);
-                Assert.Equal("9000000009", n.NhsNumber);
-            }
-        );
+        var notification = Assert.Single(notifications);
+        Assert.Equal("message-1", notification.MessageId);
+        Assert.Equal("9000000009", notification.NhsNumber);
     }
 
     [Fact]
@@ -160,14 +140,9 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Collection(
-            notifications,
-            n =>
-            {
-                Assert.Equal("message-1", n.MessageId);
-                Assert.Equal("9000000009", n.NhsNumber);
-            }
-        );
+        var notification = Assert.Single(notifications);
+        Assert.Equal("message-1", notification.MessageId);
+        Assert.Equal("9000000009", notification.NhsNumber);
     }
 
     [Fact]
@@ -293,15 +268,9 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
 
         var notifications = await ProcessAsync();
 
-        Assert.Collection(
-            notifications,
-            n =>
-            {
-                Assert.Equal("message-1", n.MessageId);
-                Assert.Equal("9000000009", n.NhsNumber);
-            }
-        );
-
+        var notification = Assert.Single(notifications);
+        Assert.Equal("message-1", notification.MessageId);
+        Assert.Equal("9000000009", notification.NhsNumber);
         await MeshInboxClient
             .Received(1)
             .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
