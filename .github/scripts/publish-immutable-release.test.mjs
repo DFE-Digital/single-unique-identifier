@@ -21,7 +21,7 @@ async function createPublisherFixture() {
   await chmod(fakeGh, 0o755);
   const dir = path.join(root, 'release-assets', 'Service');
   await mkdir(dir, { recursive: true });
-  const files = ['release-manifest.json', 'Service.zip'];
+  const files = ['release-manifest.json', 'Service.zip', 'Service.zip.cdx.json'];
   const sha = 'a'.repeat(40);
   const tag = `sui-service-${sha}`;
   const manifestPath = path.join(dir, files[0]);
@@ -33,6 +33,7 @@ async function createPublisherFixture() {
   };
   await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
   await writeFile(path.join(dir, files[1]), 'tested ZIP bytes');
+  await writeFile(path.join(dir, files[2]), '{"bomFormat":"CycloneDX","components":[]}');
   const stateFile = path.join(root, 'state.json');
   const state = { release: null, assetContents: {}, tagSha: null, immutableEnabled: true };
   await writeFile(stateFile, JSON.stringify(state));
@@ -76,7 +77,7 @@ it('replaces an incomplete draft, then reuses a published release on a later att
   await writeState(state);
   await run();
   assert.deepEqual((await readState()).release.assets.map(({ name }) => name).sort(),
-    ['Service.zip', 'release-manifest.json']);
+    ['Service.zip', 'Service.zip.cdx.json', 'release-manifest.json']);
   assert.match(await readFile(env.MOCK_LOG, 'utf8'), /delete\ncreate\n/);
 
   manifest.release.workflow_run_attempt = '2';
@@ -109,15 +110,17 @@ it('refuses mismatched draft targets, published assets and tag refs without muta
 });
 
 it('refuses altered published manifest bytes or a different ZIP on retry', async () => {
-  for (const variant of ['manifest', 'zip']) {
+  for (const variant of ['manifest', 'zip', 'sbom']) {
     const { env, run, readState, writeState, zipPath } = await createPublisherFixture();
     await run();
     if (variant === 'manifest') {
       const state = await readState();
       state.assetContents['release-manifest.json'] = Buffer.from('{}').toString('base64');
       await writeState(state);
-    } else {
+    } else if (variant === 'zip') {
       await writeFile(zipPath, 'different ZIP bytes');
+    } else {
+      await writeFile(`${zipPath}.cdx.json`, 'different SBOM bytes');
     }
     await writeFile(env.MOCK_LOG, '');
     await assert.rejects(run());
@@ -146,4 +149,29 @@ it('reports the failed publication stage when an existing tag targets another co
   await writeState(state);
   await assert.rejects(run(), /check existing tag/);
   assert.match(await readFile(env.GITHUB_OUTPUT, 'utf8'), /failed_stage=check existing tag/);
+});
+
+it('rejects a verified SBOM attestation whose predicate differs from the release asset', async () => {
+  const root = await createTemporaryDirectory('sui-sbom-verify-');
+  const bin = path.join(root, 'bin');
+  const dir = path.join(root, 'release-assets', 'Service');
+  await mkdir(bin, { recursive: true });
+  await mkdir(dir, { recursive: true });
+  const sbom = { bomFormat: 'CycloneDX', components: [{ name: 'example' }] };
+  await writeFile(path.join(dir, 'Service.zip'), 'ZIP');
+  await writeFile(path.join(dir, 'Service.zip.cdx.json'), JSON.stringify(sbom));
+  const sha = 'a'.repeat(40);
+  await writeFile(path.join(dir, 'release-manifest.json'), JSON.stringify({ release: { tag: 'tag', source_sha: sha }, assets: [{ component: 'Service', filename: 'Service.zip' }] }));
+  const gh = path.join(bin, 'gh');
+  await writeFile(gh, '#!/bin/sh\ncase "$*" in *--predicate-type*) printf "%s\\n" "$MOCK_ATTESTATION";; esac\n');
+  await chmod(gh, 0o755);
+  const script = workflowStep(workflow, 'publish', 'Verify release asset inventory and build attestations');
+  const env = { ...process.env, PATH: `${bin}:${process.env.PATH}`, RUNNER_TEMP: root, GITHUB_OUTPUT: path.join(root, 'output'),
+    GITHUB_REPOSITORY: 'acme/repo', GITHUB_SHA: sha, SOURCE_SHA: sha, SOURCE_REF: 'refs/heads/main',
+    ASSET_GLOB: '*.zip', ASSET_SUBDIRECTORY: 'Service', MANIFEST_FILENAME: 'release-manifest.json',
+    SIGNER_WORKFLOW: 'acme/repo/.github/workflows/attest.yml', RELEASE_TAG: 'tag' };
+  const run = (predicate) => execFileAsync('bash', ['-e', '-c', script], { cwd: root,
+    env: { ...env, MOCK_ATTESTATION: JSON.stringify([{ verificationResult: { statement: { predicate } } }]) } });
+  await run(sbom);
+  await assert.rejects(run({ ...sbom, components: [] }));
 });

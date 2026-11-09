@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { it } from 'node:test';
 import { temporaryDirectories } from './test-helpers.mjs';
@@ -21,7 +21,9 @@ async function createManifestFixture(components) {
   };
   // Manifest selection needs filenames and non-empty files; ZIP contents are verified elsewhere.
   for (const component of components) {
-    await writeFile(path.join(assetsDir, `${component}-${projects[component]}-build.zip`), 'ZIP');
+    const filename = `${component}-${projects[component]}-build.zip`;
+    await writeFile(path.join(assetsDir, filename), 'ZIP');
+    await writeFile(path.join(assetsDir, `${filename}.cdx.json`), '{}');
   }
   return {
     components, assetsDir,
@@ -69,6 +71,7 @@ it('writes component directories and a publication matrix from workflow inputs',
     { component: 'GetAnIdentifier', filename: 'GetAnIdentifier-SUI.GetAnIdentifier.API-build.zip' },
   ]);
   assert.equal(await readFile(path.join(root, 'release-assets', 'GetAnIdentifier', manifest.assets[0].filename), 'utf8'), 'ZIP');
+  assert.equal(await readFile(path.join(root, 'release-assets', 'GetAnIdentifier', 'GetAnIdentifier-SUI.GetAnIdentifier.API-build.zip.cdx.json'), 'utf8'), '{}');
   assert.deepEqual(JSON.parse((await readFile(output, 'utf8')).trim().slice('matrix='.length)), {
     component: [
       { name: 'GetAnIdentifier', slug: 'get-an-identifier', tag: 'get-an-identifier-2026.10.22-build.123' },
@@ -95,4 +98,15 @@ it('rejects no component, deferred components, extra ZIPs, invalid release ident
 
   const notification = await createManifestFixture(['AuthEmulator']);
   await assert.rejects(createManifests({ ...notification, components: ['NotificationService'] }), /known component/);
+});
+
+it('rejects missing, empty or unexpected SBOMs', async () => {
+  for (const variant of ['missing', 'empty', 'unexpected']) {
+    const inputs = await createManifestFixture(['AuthEmulator']);
+    const sbom = path.join(inputs.assetsDir, 'AuthEmulator-SUI.AuthEmulator-build.zip.cdx.json');
+    if (variant === 'missing') await rm(sbom);
+    if (variant === 'empty') await writeFile(sbom, '');
+    if (variant === 'unexpected') await writeFile(path.join(inputs.assetsDir, 'other.cdx.json'), '{}');
+    await assert.rejects(createManifests(inputs), /inventory|Empty SBOM/);
+  }
 });

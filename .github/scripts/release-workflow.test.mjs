@@ -17,7 +17,7 @@ const verify = workflowStep(publisher, 'publish', 'Verify release asset inventor
 const publish = workflowStep(publisher, 'publish', 'Create and publish immutable release');
 for (const pattern of [/git\/ref\/tags/, /verify_inventory/, /gh release delete/, /gh release create/, /gh release edit/]) assert.match(publish, pattern);
 assert.match(verify, /attestation verify/);
-assert.match(verify, /\$\{#release_files\[@\]\} == 2/);
+assert.match(verify, /\$\{#release_files\[@\]\} == 3/);
 assert.match(verify, /\$\{#attested_assets\[@\]\} == 1/);
 const prepare = workflow.jobs['prepare-release-assets'];
 const prepareStep = prepare.steps.find((step) => step.run === 'node .github/scripts/release-manifest.mjs');
