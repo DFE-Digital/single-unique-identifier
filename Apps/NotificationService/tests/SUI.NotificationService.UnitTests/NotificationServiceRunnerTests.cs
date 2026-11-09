@@ -278,6 +278,7 @@ public sealed class NotificationServiceRunnerTests
         builder.Logging.ClearProviders();
         builder.Services.AddNotificationServiceApplication();
         builder.Services.AddSingleton(Substitute.For<IMeshInboxClient>());
+        builder.Services.RemoveAll<IWebhookBroadcaster>();
         builder.Services.RemoveAll<IHostLifetime>();
         builder.Services.AddSingleton<IHostLifetime>(hostLifetime);
         builder.Services.RemoveAll<INotificationOrchestrator>();

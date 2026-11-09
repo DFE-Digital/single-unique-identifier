@@ -53,10 +53,8 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
             OccurredAt: DateTimeOffset.Parse("2026-09-02T09:30:00Z"),
             AffectedNhsNumber: "9876543210",
             DeliveryId: deliveryId,
-            DeliveryAttempt: 1,
             CorrelationId: Guid.NewGuid(),
             EndpointUrl: "https://supplier.com/webhook",
-            KeyId: "key-1",
             SecretKeyVaultReference: "kv-ref"
         );
 
@@ -75,7 +73,6 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
                 req.Headers.GetValues("X-SUI-Delivery-ID").Single()
             );
             Assert.Equal("1788341400", req.Headers.GetValues("X-SUI-Timestamp").Single());
-            Assert.Equal("key-1", req.Headers.GetValues("X-SUI-Key-ID").Single());
             Assert.Equal(
                 "application/vnd.dfe.sui.lifecycle-notification.v1+json",
                 req.Content?.Headers.ContentType?.ToString()
@@ -255,10 +252,8 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
             OccurredAt: DateTimeOffset.UtcNow,
             AffectedNhsNumber: "1234567890",
             DeliveryId: Guid.NewGuid(),
-            DeliveryAttempt: 1,
             CorrelationId: Guid.NewGuid(),
             EndpointUrl: "https://supplier.com/webhook",
-            KeyId: "key-1",
             SecretKeyVaultReference: "kv-ref"
         );
 

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Application.Services;
 
 namespace SUI.NotificationService.Application;
@@ -17,6 +18,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<INotificationOrchestrator, NotificationOrchestrator>();
         services.AddScoped<IMeshMessageProcessor, MeshMessageProcessor>();
+        services.AddScoped<IWebhookBroadcaster, WebhookBroadcaster>();
 
         return services;
     }

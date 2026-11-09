@@ -84,14 +84,9 @@ public class SupplierWebhookDeliveryService(
 
             httpRequest.Headers.Add("X-SUI-Delivery-ID", request.DeliveryId.ToString());
             httpRequest.Headers.Add(
-                "X-SUI-Delivery-Attempt",
-                request.DeliveryAttempt.ToString(CultureInfo.InvariantCulture)
-            );
-            httpRequest.Headers.Add(
                 "X-SUI-Timestamp",
                 timestampSeconds.ToString(CultureInfo.InvariantCulture)
             );
-            httpRequest.Headers.Add("X-SUI-Key-ID", request.KeyId);
             httpRequest.Headers.Add("X-SUI-Signature-256", signature);
             httpRequest.Headers.Add("X-Correlation-ID", request.CorrelationId.ToString());
 

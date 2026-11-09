@@ -1,8 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using SUI.NotificationService.Application.Interfaces;
-using SUI.NotificationService.Application.Models;
 using SUI.NotificationService.Application.Services;
 
 namespace SUI.NotificationService.Application;
@@ -10,9 +7,7 @@ namespace SUI.NotificationService.Application;
 internal sealed class NotificationOrchestrator(
     IMeshMessageProcessor meshMessageProcessor,
     ISupplierWebhookRepository supplierRepository,
-    ISupplierWebhookDeliveryService deliveryService,
-    IWebhookReceiptRepository receiptRepository,
-    TimeProvider timeProvider,
+    IWebhookBroadcaster webhookBroadcaster,
     ILogger<NotificationOrchestrator> logger
 ) : INotificationOrchestrator
 {
@@ -44,143 +39,30 @@ internal sealed class NotificationOrchestrator(
 
         foreach (var notification in notifications)
         {
-            var sourceEventId = notification.EventId.ToString();
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (logger.IsEnabled(LogLevel.Information))
             {
                 logger.LogInformation(
                     "Processing delivery broadcast for Event {EventId} (MESH Message {MessageId})",
-                    sourceEventId,
+                    notification.EventId,
                     notification.MessageId
                 );
             }
 
-            // Track the outcomes of all attempted (and skipped) deliveries for the aggregate summary
-            var broadcastOutcomes = new List<DeliveryOutcome>();
-
-            foreach (var supplier in enabledSuppliers)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Check Receipt Store
-                if (
-                    await receiptRepository.ExistsAsync(
-                        sourceEventId,
-                        supplier.SupplierId,
-                        cancellationToken
-                    )
-                )
-                {
-                    if (logger.IsEnabled(LogLevel.Information))
-                    {
-                        logger.LogInformation(
-                            "Skipping Supplier {SupplierId}: Prior successful delivery receipt found.",
-                            supplier.SupplierId
-                        );
-                    }
-
-                    // Record the Skip
-                    broadcastOutcomes.Add(DeliveryOutcome.SkippedPreviouslyAcknowledged);
-                    continue;
-                }
-
-                // Prepare Delivery
-                var stableDeliveryId = GenerateDeterministicGuid(
-                    sourceEventId,
-                    supplier.SupplierId
-                );
-
-                var request = new WebhookDeliveryRequest(
-                    DeliveryId: stableDeliveryId,
-                    SourceEventId: notification.EventId,
-                    EventType: notification.EventType,
-                    OccurredAt: notification.OccurredAt,
-                    AffectedNhsNumber: notification.NhsNumber,
-                    EndpointUrl: supplier.EndpointUrl,
-                    SecretKeyVaultReference: supplier.SecretKeyVaultReference,
-                    DeliveryAttempt: 1,
-                    KeyId: "key1",
-                    CorrelationId: Guid.NewGuid()
-                );
-
-                // Attempt Delivery
-                var result = await deliveryService.DeliverAsync(request, cancellationToken);
-
-                // Record the Outcome
-                broadcastOutcomes.Add(result.Outcome);
-
-                // Classify and Act
-                switch (result.Outcome)
-                {
-                    case DeliveryOutcome.Success:
-                        var receipt = new WebhookDeliveryReceipt(
-                            SourceEventId: sourceEventId,
-                            SupplierId: supplier.SupplierId,
-                            DeliveryId: stableDeliveryId,
-                            ContractVersion: supplier.ContractVersion,
-                            AcknowledgedAt: timeProvider.GetUtcNow(),
-                            HttpStatusCode: result.HttpStatusCode!.Value
-                        );
-                        await receiptRepository.AddAsync(receipt, cancellationToken);
-                        break;
-
-                    case DeliveryOutcome.RetryableFailure:
-                        logger.LogWarning(
-                            "Delivery to Supplier {SupplierId} failed with a retryable error.",
-                            supplier.SupplierId
-                        );
-                        break;
-
-                    case DeliveryOutcome.PermanentFailure:
-                        logger.LogError(
-                            "Delivery to Supplier {SupplierId} failed with a permanent error ({StatusCode}).",
-                            supplier.SupplierId,
-                            result.HttpStatusCode
-                        );
-                        break;
-
-                    case DeliveryOutcome.SkippedPreviouslyAcknowledged:
-                        // DeliverAsync never returns this, but it satisfies the switch check
-                        break;
-
-                    default:
-                        logger.LogWarning(
-                            "Unknown delivery outcome {Outcome} for Supplier {SupplierId}",
-                            result.Outcome,
-                            supplier.SupplierId
-                        );
-                        break;
-                }
-            }
-
-            // Final MESH Evaluation & Aggregation
-            var newlySuccessful = broadcastOutcomes.Count(o => o == DeliveryOutcome.Success);
-            var skipped = broadcastOutcomes.Count(o =>
-                o == DeliveryOutcome.SkippedPreviouslyAcknowledged
+            var requiresRetry = await webhookBroadcaster.BroadcastAsync(
+                notification,
+                enabledSuppliers,
+                cancellationToken
             );
-            var retryable = broadcastOutcomes.Count(o => o == DeliveryOutcome.RetryableFailure);
-            var permanent = broadcastOutcomes.Count(o => o == DeliveryOutcome.PermanentFailure);
 
-            // Log the aggregate result
-            if (logger.IsEnabled(LogLevel.Information))
-            {
-                logger.LogInformation(
-                    "Broadcast aggregate for Event {EventId}: {NewlySuccessful} newly successful, {Skipped} skipped (previously acknowledged), {Retryable} retryable failures, {Permanent} permanent failures.",
-                    sourceEventId,
-                    newlySuccessful,
-                    skipped,
-                    retryable,
-                    permanent
-                );
-            }
-
-            if (retryable == 0)
+            if (!requiresRetry)
             {
                 if (logger.IsEnabled(LogLevel.Information))
                 {
                     logger.LogInformation(
                         "Event {EventId} requires no further retries. Acknowledging MESH message {MessageId}.",
-                        sourceEventId,
+                        notification.EventId,
                         notification.MessageId
                     );
                 }
@@ -195,29 +77,13 @@ internal sealed class NotificationOrchestrator(
                 if (logger.IsEnabled(LogLevel.Information))
                 {
                     logger.LogInformation(
-                        "Event {EventId} requires retry ({Retryable} endpoints failing) and will remain unacknowledged in the MESH mailbox.",
-                        sourceEventId,
-                        retryable
+                        "Event {EventId} requires retry and will remain unacknowledged in the MESH mailbox.",
+                        notification.EventId
                     );
                 }
             }
         }
 
         logger.LogInformation("Notification Service execution completed.");
-    }
-
-    private static Guid GenerateDeterministicGuid(string eventId, string supplierId)
-    {
-        var input = Encoding.UTF8.GetBytes($"{eventId}:{supplierId}");
-
-        // SHA256 to satisfy SonarCloud security rules
-        var hash = SHA256.HashData(input);
-
-        // A Guid is exactly 16 bytes long. SHA256 outputs 32 bytes.
-        // We take the first 16 bytes of the secure hash to form our deterministic ID.
-        var guidBytes = new byte[16];
-        Array.Copy(hash, guidBytes, 16);
-
-        return new Guid(guidBytes);
     }
 }
