@@ -49,7 +49,7 @@ public sealed class NotificationServiceRunnerTests
         orchestrator
             .RunAsync(Arg.Any<CancellationToken>())
             .Returns(callInfo =>
-                WaitUntilCancelledAsync(callInfo.Arg<CancellationToken>(), executionStarted)
+                WaitUntilCancelledAsync(executionStarted, callInfo.Arg<CancellationToken>())
             );
         var hostLifetime = new TestHostLifetime();
         var host = BuildHost(orchestrator, hostLifetime);
@@ -72,7 +72,7 @@ public sealed class NotificationServiceRunnerTests
         orchestrator
             .RunAsync(Arg.Any<CancellationToken>())
             .Returns(callInfo =>
-                ObserveCancellationAsync(callInfo.Arg<CancellationToken>(), executionStarted)
+                ObserveCancellationAsync(executionStarted, callInfo.Arg<CancellationToken>())
             );
         var hostLifetime = new TestHostLifetime();
         var host = BuildHost(orchestrator, hostLifetime);
@@ -310,8 +310,8 @@ public sealed class NotificationServiceRunnerTests
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private static async Task WaitUntilCancelledAsync(
-        CancellationToken cancellationToken,
-        TaskCompletionSource executionStarted
+        TaskCompletionSource executionStarted,
+        CancellationToken cancellationToken
     )
     {
         executionStarted.SetResult();
@@ -319,8 +319,8 @@ public sealed class NotificationServiceRunnerTests
     }
 
     private static async Task ObserveCancellationAsync(
-        CancellationToken cancellationToken,
-        TaskCompletionSource executionStarted
+        TaskCompletionSource executionStarted,
+        CancellationToken cancellationToken
     )
     {
         var cancellationObserved = CreateCompletionSource();
