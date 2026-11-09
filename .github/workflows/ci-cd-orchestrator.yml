@@ -186,9 +186,9 @@ jobs:
       artifact-metadata: write
 
   release-script-tests:
-    name: Test CI helpers when changed
+    name: Test CI helpers
     needs: [path-filter]
-    if: needs.path-filter.outputs.ci_helpers == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/test-ci-helpers.yml
     permissions:
       contents: read
@@ -272,7 +272,7 @@ jobs:
           needs.trufflehog-scan.result == 'success' &&
           needs.trivy-scan.result == 'success' &&
           needs.trivy-iac-scan.result == 'success' &&
-          (needs.path-filter.outputs.ci_helpers != 'true' || needs.release-script-tests.result == 'success') &&
+          needs.release-script-tests.result == 'success' &&
           needs.attest-release-zips.result == 'success' &&
           needs.prepare-release-assets.result == 'success' &&
           (needs.path-filter.outputs.auth_emulator == 'true' ||

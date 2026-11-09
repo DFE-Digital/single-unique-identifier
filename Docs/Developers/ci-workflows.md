@@ -55,6 +55,16 @@ Required inputs when running manually:
 
 - If deployments fail because an artifact cannot be found, verify the artifact name, source run ID, repository and retention period.
 
+## Testing CI helpers
+
+Install Node.js 24, Bash and `jq`. Run `npm ci --prefix .github`, then `.github/scripts/test-ci-helpers.sh` from the repository. The PR workflow runs the tests; on main the release orchestrator requires them before publication. Test files run in separate Node processes.
+
+Keep tests alongside the script or action they exercise, with a `*.test.js`, `*.test.mjs`, or `*.test.cjs` name. Test behaviour and failure paths with isolated temporary files. For example, `release-manifest.test.mjs` checks valid component selections and rejects invalid inputs. `publish-immutable-release.test.mjs` runs the real publisher shell using a release-specific fake `gh`, including retries and rejected mutations. Unexpected fake commands fail; the tests do not publish releases.
+
+For workflow structure, parse YAML and select jobs by ID and steps by name using `test-helpers.mjs`. Check relevant inputs, permissions and guards rather than matching YAML indentation. The release guard test translates the expressions it uses to JavaScript; it is not a GitHub expression engine. Reusable fixture helpers should solve repeated needs, while SUI-specific release behaviour stays in its own fixture.
+
+Local fixtures and tests do not prove hosted permissions, action allowlisting, or publication. Inspect the individual hosted jobs and annotations as well as their overall status.
+
 ## Security scanning
 
 The repo now uses separate workflows for infrastructure checks and secret scanning:

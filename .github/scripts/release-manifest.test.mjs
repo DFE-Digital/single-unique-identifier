@@ -1,21 +1,17 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
-import os from 'node:os';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { afterEach, it } from 'node:test';
+import { it } from 'node:test';
+import { temporaryDirectories } from './test-helpers.mjs';
 import { promisify } from 'node:util';
 import { createManifests } from './release-manifest.mjs';
 
 const execFileAsync = promisify(execFile);
-const roots = [];
-afterEach(async () => {
-  await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
-});
+const createTemporaryDirectory = temporaryDirectories();
 
 async function createManifestFixture(components) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'sui-manifest-'));
-  roots.push(root);
+  const root = await createTemporaryDirectory('sui-manifest-');
   const assetsDir = path.join(root, 'drop');
   await mkdir(assetsDir);
   const projects = {

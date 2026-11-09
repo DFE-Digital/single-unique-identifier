@@ -1,6 +1,7 @@
 name: CI helper tests
 
 on:
+  pull_request:
   workflow_call:
 
 permissions:
@@ -19,17 +20,9 @@ jobs:
         with:
           node-version: 24
 
+      - name: Install test dependencies
+        run: npm ci --prefix .github
+
       - name: Run JavaScript helper tests
         shell: bash
-        run: |
-          mapfile -d '' test_files < <(find .github/actions .github/scripts -type f \
-            \( -name '*.test.js' -o -name '*.spec.js' -o -name '*.test.mjs' -o -name '*.spec.mjs' \
-            -o -name '*.test.cjs' -o -name '*.spec.cjs' \) -print0)
-
-          if (( ${#test_files[@]} == 0 )); then
-            echo 'No GitHub action tests found.'
-            exit 0
-          fi
-
-          node --test --test-isolation=none "${test_files[@]}"
-
+        run: .github/scripts/test-ci-helpers.sh

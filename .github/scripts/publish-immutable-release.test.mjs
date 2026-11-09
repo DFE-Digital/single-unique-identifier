@@ -1,26 +1,18 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { chmod, copyFile, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
-import os from 'node:os';
+import { chmod, copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { afterEach, it } from 'node:test';
+import { it } from 'node:test';
+import { temporaryDirectories, readWorkflow, workflowStep } from './test-helpers.mjs';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
-const workflow = readFileSync(new URL('../workflows/publish-immutable-release.yml', import.meta.url), 'utf8');
-// Exercise the shell from the workflow itself, so these tests catch changes to the real publisher.
-const publicationRunBlock = workflow.split('      - name: Create and publish immutable release\n')[1]?.split('\n      - name: Summarise publication failure')[0]?.split('        run: |\n')[1];
-assert.ok(publicationRunBlock, 'publication shell step exists');
-const publicationScript = publicationRunBlock.split('\n').map((line) => line.startsWith('          ') ? line.slice(10) : line).join('\n');
-const roots = [];
-afterEach(async () => {
-  await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
-});
+const workflow = readWorkflow(new URL('../workflows/publish-immutable-release.yml', import.meta.url));
+const publicationScript = workflowStep(workflow, 'publish', 'Create and publish immutable release');
+const createTemporaryDirectory = temporaryDirectories();
 
 async function createPublisherFixture() {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'sui-release-publish-'));
-  roots.push(root);
+  const root = await createTemporaryDirectory('sui-release-publish-');
   const bin = path.join(root, 'bin');
   await mkdir(bin);
   // Put the stateful gh fixture ahead of the real CLI on PATH.
