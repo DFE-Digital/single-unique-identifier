@@ -68,3 +68,6 @@ coverage/
 public-docs/_site/
 public-docs/node_modules/
 public-docs/content/assets/_generated-path-prefix.scss
+
+# Workflow test dependencies
+.github/node_modules/

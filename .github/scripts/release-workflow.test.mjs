@@ -1,38 +1,34 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readWorkflow, workflowStep } from './test-helpers.mjs';
 import { describe, it } from 'node:test';
 
-// Publication is main-only, so PR tests inspect the workflow wiring and exercise its job guard locally.
-const workflow = readFileSync(new URL('../workflows/ci-cd-orchestrator.yml', import.meta.url), 'utf8');
-assert.doesNotMatch(workflow, /notification_service|NotificationService|publish-container|azure\/login/);
-
-const releaseJob = workflow.split('  cut-release:\n')[1];
-assert.ok(releaseJob, 'release job exists');
-assert.match(releaseJob, /uses: \.\/\.github\/workflows\/publish-immutable-release\.yml/);
-assert.match(releaseJob, /needs:[\s\S]*prepare-release-assets/);
-assert.match(releaseJob, /matrix: \$\{\{ fromJSON\(needs\.prepare-release-assets\.outputs\.matrix\) \}\}/);
-assert.match(releaseJob, /release_tag: \${{ matrix\.component\.tag }}/);
-assert.match(releaseJob, /release_title: \$\{\{ matrix\.component\.name \}\} deployable build \$\{\{ matrix\.component\.tag \}\}/);
-assert.match(releaseJob, /asset_subdirectory: \$\{\{ matrix\.component\.name \}\}/);
-const publisher = readFileSync(new URL('../workflows/publish-immutable-release.yml', import.meta.url), 'utf8');
-assert.match(publisher, /git\/ref\/tags/);
-assert.match(publisher, /verify_inventory/);
-assert.match(publisher, /gh release delete/);
-assert.match(publisher, /gh release create/);
-assert.match(publisher, /gh release edit/);
-assert.match(publisher, /attestation verify/);
-assert.match(publisher, /\$\{#release_files\[@\]\} == 2/);
-assert.match(publisher, /\$\{#attested_assets\[@\]\} == 1/);
-const prepareAssetsJob = workflow.split('  prepare-release-assets:\n')[1]?.split('\n  cut-release:\n')[0];
-assert.ok(prepareAssetsJob, 'release assets are prepared in a separate job');
-assert.match(prepareAssetsJob, /node \.github\/scripts\/release-manifest\.mjs/);
-assert.match(prepareAssetsJob, /name: release-assets/);
-assert.match(prepareAssetsJob, /RELEASE_DATE: \$\{\{ steps\.release-date\.outputs\.date \}\}/);
-assert.match(prepareAssetsJob, /gh api "repos\/\$GITHUB_REPOSITORY\/actions\/runs\/\$GITHUB_RUN_ID" --jq \.created_at/);
-assert.match(prepareAssetsJob, /date --utc --date="\$created_at" \+%Y\.%m\.%d/);
-assert.match(prepareAssetsJob, /matrix: \$\{\{ steps\.prepare\.outputs\.matrix \}\}/);
-const condition = releaseJob.match(/    if: >-\n([\s\S]*?)\n    strategy:/)?.[1]
-  ?.trim().replace(/^\$\{\{\s*/, '').replace(/\s*\}\}$/, '');
+// Check structure independently of YAML formatting.
+const workflow = readWorkflow(new URL('../workflows/ci-cd-orchestrator.yml', import.meta.url));
+assert.doesNotMatch(JSON.stringify(workflow), /notification_service|NotificationService|publish-container|azure\/login/);
+const releaseJob = workflow.jobs['cut-release'];
+assert.equal(releaseJob.uses, './.github/workflows/publish-immutable-release.yml');
+assert.ok(releaseJob.needs.includes('prepare-release-assets'));
+assert.match(releaseJob.strategy.matrix, /fromJSON\(needs\.prepare-release-assets\.outputs\.matrix\)/);
+assert.match(releaseJob.with.release_tag, /matrix\.component\.tag/);
+assert.match(releaseJob.with.release_title, /matrix\.component\.name/);
+assert.match(releaseJob.with.asset_subdirectory, /matrix\.component\.name/);
+const publisher = readWorkflow(new URL('../workflows/publish-immutable-release.yml', import.meta.url));
+const verify = workflowStep(publisher, 'publish', 'Verify release asset inventory and build attestations');
+const publish = workflowStep(publisher, 'publish', 'Create and publish immutable release');
+for (const pattern of [/git\/ref\/tags/, /verify_inventory/, /gh release delete/, /gh release create/, /gh release edit/]) assert.match(publish, pattern);
+assert.match(verify, /attestation verify/);
+assert.match(verify, /\$\{#release_files\[@\]\} == 2/);
+assert.match(verify, /\$\{#attested_assets\[@\]\} == 1/);
+const prepare = workflow.jobs['prepare-release-assets'];
+const prepareStep = prepare.steps.find((step) => step.run === 'node .github/scripts/release-manifest.mjs');
+assert.ok(prepareStep);
+assert.match(prepareStep.env.RELEASE_DATE, /steps\.release-date\.outputs\.date/);
+assert.ok(prepare.steps.some((step) => step.with?.name === 'release-assets'));
+const date = workflowStep(workflow, 'prepare-release-assets', 'Resolve stable release date');
+assert.match(date, /gh api "repos\/\$GITHUB_REPOSITORY\/actions\/runs\/\$GITHUB_RUN_ID" --jq \.created_at/);
+assert.match(date, /date --utc --date="\$created_at" \+%Y\.%m\.%d/);
+assert.match(prepare.outputs.matrix, /steps\.prepare\.outputs\.matrix/);
+const condition = releaseJob.if.trim().replace(/^\$\{\{\s*/, '').replace(/\s*\}\}$/, '');
 assert.ok(condition, 'release job condition exists');
 
 // GitHub's boolean operators and comparisons in this condition have the same
