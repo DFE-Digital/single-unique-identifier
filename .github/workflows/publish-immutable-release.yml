@@ -96,11 +96,15 @@ jobs:
             '.release.tag == $tag and .release.source_sha == $sha' \
             "$asset_dir/$MANIFEST_FILENAME" >/dev/null
 
-          # A component release contains its manifest and one original, attested ZIP.
+          # A component release contains its manifest, attested ZIP, and ZIP SBOM.
           mapfile -d '' release_files < <(find "$asset_dir" -maxdepth 1 -type f -print0)
-          (( ${#release_files[@]} == 2 ))
+          (( ${#release_files[@]} == 3 ))
           mapfile -d '' attested_assets < <(find "$asset_dir" -maxdepth 1 -type f -name "$ASSET_GLOB" -print0)
           (( ${#attested_assets[@]} == 1 ))
+          zip_asset=${attested_assets[0]}
+          sbom_asset="${zip_asset}.cdx.json"
+          test -s "$sbom_asset"
+          jq -e '.bomFormat == "CycloneDX" and (.components | type == "array")' "$sbom_asset" >/dev/null
           jq -e --arg component "$ASSET_SUBDIRECTORY" --arg filename "$(basename "${attested_assets[0]}")" \
             '.assets == [{component:$component,filename:$filename}]' \
             "$asset_dir/$MANIFEST_FILENAME" >/dev/null
@@ -110,6 +114,14 @@ jobs:
               --signer-workflow "$SIGNER_WORKFLOW" \
               --source-digest "$SOURCE_SHA" --source-ref "$SOURCE_REF"
           done
+          stage="verify ZIP SBOM attestation"
+          gh attestation verify "$zip_asset" --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$SIGNER_WORKFLOW" --source-digest "$SOURCE_SHA" \
+            --source-ref "$SOURCE_REF" --predicate-type https://cyclonedx.org/bom \
+            --format json > "$RUNNER_TEMP/sbom-attestation.json"
+          jq -e --slurpfile sbom "$sbom_asset" \
+            'any(.[]; .verificationResult.statement.predicate == $sbom[0])' \
+            "$RUNNER_TEMP/sbom-attestation.json" >/dev/null
 
       - name: Create and publish immutable release
         id: published
@@ -131,7 +143,7 @@ jobs:
           ref="repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag_ref}"
           local_manifest="release-assets/$ASSET_SUBDIRECTORY/$MANIFEST_FILENAME"
           mapfile -d '' release_files < <(find "release-assets/$ASSET_SUBDIRECTORY" -maxdepth 1 -type f -print0)
-          (( ${#release_files[@]} == 2 ))
+          (( ${#release_files[@]} == 3 ))
           expected_assets=$(
             for file in "${release_files[@]}"; do
               hash=$(sha256sum "$file" | cut -c1-64)
@@ -159,14 +171,18 @@ jobs:
           # A rerun changes the manifest's attempt and timestamp. Verify the published
           # manifest's own digest and all stable fields before reusing its immutable release.
           verify_published_retry() {
-            local zip_name zip_digest manifest_digest downloaded_manifest
+            local zip_name zip_digest sbom_name sbom_digest manifest_digest downloaded_manifest
             zip_name=$(jq -r '.assets[0].filename' "$local_manifest")
+            sbom_name="${zip_name}.cdx.json"
             zip_digest=$(jq -r --arg name "$zip_name" '.[] | select(.name == $name) | .digest' <<< "$expected_assets")
+            sbom_digest=$(jq -r --arg name "$sbom_name" '.[] | select(.name == $name) | .digest' <<< "$expected_assets")
             jq -e --arg tag "$RELEASE_TAG" --arg sha "$SOURCE_SHA" \
               --arg manifest "$MANIFEST_FILENAME" --arg zip "$zip_name" --arg digest "$zip_digest" \
+              --arg sbom "$sbom_name" --arg sbom_digest "$sbom_digest" \
               '.tag_name == $tag and .target_commitish == $sha and .draft == false and .immutable == true and
-               (.assets | length) == 2 and
+               (.assets | length) == 3 and
                any(.assets[]; .name == $zip and .digest == $digest) and
+               any(.assets[]; .name == $sbom and .digest == $sbom_digest) and
                any(.assets[]; .name == $manifest and (.digest | test("^sha256:[0-9a-f]{64}$")))' \
               <<< "$1" >/dev/null
             manifest_digest=$(jq -r --arg name "$MANIFEST_FILENAME" \

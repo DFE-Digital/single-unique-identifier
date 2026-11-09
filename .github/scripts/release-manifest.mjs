@@ -24,9 +24,11 @@ export async function createManifests({ components, assetsDir, sourceSha,
     throw new Error('Full source SHA, workflow run identity, release date and build number are required');
   }
 
-  const zipFiles = (await readdir(assetsDir, { withFileTypes: true }))
-    .filter((entry) => entry.name.endsWith('.zip'));
-  if (zipFiles.length !== components.length) throw new Error('ZIP inventory does not match selection');
+  const entries = await readdir(assetsDir, { withFileTypes: true });
+  const zipFiles = entries.filter((entry) => entry.name.endsWith('.zip'));
+  const sbomFiles = entries.filter((entry) => entry.name.endsWith('.cdx.json'));
+  if (zipFiles.length !== components.length || sbomFiles.length !== components.length ||
+      entries.length !== zipFiles.length + sbomFiles.length) throw new Error('ZIP and SBOM inventory does not match selection');
 
   const releases = [];
   for (const component of components) {
@@ -36,12 +38,18 @@ export async function createManifests({ components, assetsDir, sourceSha,
       throw new Error(`Expected exactly one ZIP for ${component}`);
     }
     const filename = matches[0].name;
+    const sbomFilename = `${filename}.cdx.json`;
+    if (sbomFiles.filter((entry) => entry.name === sbomFilename && entry.isFile()).length !== 1) {
+      throw new Error(`Expected exactly one SBOM for ${component}`);
+    }
+    const sbomPath = path.join(assetsDir, sbomFilename);
+    if ((await stat(sbomPath)).size === 0) throw new Error(`Empty SBOM for ${component}`);
     const zipPath = path.join(assetsDir, filename);
     const fileStat = await stat(zipPath);
     if (!fileStat.isFile() || fileStat.size === 0) {
       throw new Error(`Empty or invalid ZIP for ${component}`);
     }
-    releases.push({ component, slug, zipPath, manifest: {
+    releases.push({ component, slug, zipPath, sbomPath, sbomFilename, manifest: {
       schema_version: 1,
       release: { tag: `${slug}-${releaseDate}-build.${buildNumber}`, source_sha: sourceSha,
         release_date: releaseDate, build_number: buildNumber, workflow_run_id: runId, workflow_run_attempt: runAttempt, generated_at: generatedAt },
@@ -68,10 +76,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
       releaseDate: process.env.RELEASE_DATE,
       buildNumber: process.env.GITHUB_RUN_NUMBER,
     });
-    for (const { component, zipPath, manifest } of releases) {
+    for (const { component, zipPath, sbomPath, sbomFilename, manifest } of releases) {
       const directory = path.join('release-assets', component);
       await mkdir(directory, { recursive: true });
       await copyFile(zipPath, path.join(directory, path.basename(zipPath)));
+      await copyFile(sbomPath, path.join(directory, sbomFilename));
       await writeFile(path.join(directory, 'release-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
     }
     const matrix = JSON.stringify({ component: releases.map(({ component, slug, manifest }) => ({

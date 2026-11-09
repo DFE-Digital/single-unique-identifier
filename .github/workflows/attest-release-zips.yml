@@ -23,13 +23,42 @@ jobs:
           pattern: release-zips-*
           path: drop
           merge-multiple: true
-      - name: Require deployment ZIPs
+      - name: Require matching ZIPs and SBOMs
+        id: assets
         shell: bash
         run: |
+          set -euo pipefail
           shopt -s nullglob
           zips=(drop/*.zip)
-          (( ${#zips[@]} > 0 ))
+          sboms=(drop/*.zip.cdx.json)
+          (( ${#zips[@]} > 0 && ${#zips[@]} == ${#sboms[@]} ))
+          for component in AuthEmulator GetAnIdentifier UIHarness; do
+            matches=(drop/${component}-*.zip)
+            (( ${#matches[@]} <= 1 ))
+            if (( ${#matches[@]} == 1 )); then
+              test -s "${matches[0]}.cdx.json"
+              echo "${component}_zip=${matches[0]}" >> "$GITHUB_OUTPUT"
+            fi
+          done
       - name: Attest exact deployment ZIPs
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: 'drop/*.zip'
+      - name: Attest AuthEmulator SBOM
+        if: steps.assets.outputs.AuthEmulator_zip != ''
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ steps.assets.outputs.AuthEmulator_zip }}
+          sbom-path: ${{ steps.assets.outputs.AuthEmulator_zip }}.cdx.json
+      - name: Attest GetAnIdentifier SBOM
+        if: steps.assets.outputs.GetAnIdentifier_zip != ''
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ steps.assets.outputs.GetAnIdentifier_zip }}
+          sbom-path: ${{ steps.assets.outputs.GetAnIdentifier_zip }}.cdx.json
+      - name: Attest UIHarness SBOM
+        if: steps.assets.outputs.UIHarness_zip != ''
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ steps.assets.outputs.UIHarness_zip }}
+          sbom-path: ${{ steps.assets.outputs.UIHarness_zip }}.cdx.json

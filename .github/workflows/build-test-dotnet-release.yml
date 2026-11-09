@@ -188,11 +188,43 @@ jobs:
           done
           echo "release_artifact_name=release-zips-${app}" >> "$GITHUB_OUTPUT"
 
+      - name: Extract deployment ZIPs for SBOM generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir sbom-input
+          for archive in *.zip; do
+            directory="sbom-input/${archive%.zip}"
+            mkdir "$directory"
+            unzip -q "$archive" -d "$directory"
+          done
+
+      - name: Generate deployment SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.76.2
+          scan-type: fs
+          scan-ref: sbom-input
+          format: cyclonedx
+          output: deployment.cdx.json
+
+      - name: Name SBOM for deployment ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          zips=( *.zip )
+          (( ${#zips[@]} == 1 ))
+          jq -e '.bomFormat == "CycloneDX" and (.components | type == "array")' deployment.cdx.json >/dev/null
+          mv deployment.cdx.json "${zips[0]}.cdx.json"
+
       - name: Upload deployment ZIPs
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ steps.package.outputs.release_artifact_name }}
-          path: '*.zip'
+          path: |
+            *.zip
+            *.cdx.json
           if-no-files-found: error
 
       - name: Add Coverage PR Comment
