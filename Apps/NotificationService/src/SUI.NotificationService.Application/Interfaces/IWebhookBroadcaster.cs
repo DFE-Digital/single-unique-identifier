@@ -5,11 +5,11 @@ namespace SUI.NotificationService.Application.Interfaces;
 public interface IWebhookBroadcaster
 {
     /// <summary>
-    /// Broadcasts the notification to all provided suppliers.
-    /// Returns true if any delivery suffered a retryable failure.
+    /// Broadcasts all notifications to the provided suppliers.
+    /// Returns a list of MESH message IDs that were successfully processed and can be acknowledged.
     /// </summary>
-    Task<bool> BroadcastAsync(
-        PdsRecordChangeNotification notification,
+    Task<IReadOnlyList<string>> BroadcastBatchAsync(
+        IReadOnlyList<PdsRecordChangeNotification> notifications,
         IReadOnlyList<SupplierWebhook> suppliers,
         CancellationToken cancellationToken
     );

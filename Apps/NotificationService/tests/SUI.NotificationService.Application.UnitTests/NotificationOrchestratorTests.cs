@@ -43,7 +43,7 @@ public class NotificationOrchestratorTests
         await _supplierRepoMock.DidNotReceiveWithAnyArgs().GetAllEnabledAsync(default);
         await _broadcasterMock
             .DidNotReceiveWithAnyArgs()
-            .BroadcastAsync(default!, default!, default);
+            .BroadcastBatchAsync(default!, default!, default);
     }
 
     [Fact]
@@ -59,12 +59,12 @@ public class NotificationOrchestratorTests
 
         await _broadcasterMock
             .DidNotReceiveWithAnyArgs()
-            .BroadcastAsync(default!, default!, default);
+            .BroadcastBatchAsync(default!, default!, default);
         await _processorMock.DidNotReceiveWithAnyArgs().AcknowledgeMessageAsync(default!, default);
     }
 
     [Fact]
-    public async Task RunAsync_AcksMessage_WhenBroadcasterReturnsFalse_MeaningNoRetriesNeeded()
+    public async Task RunAsync_AcksMessage_WhenBroadcasterReturnsMessageId()
     {
         var notification = CreateNotification("mesh-id", Guid.NewGuid());
         _processorMock
@@ -76,12 +76,12 @@ public class NotificationOrchestratorTests
         _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns(suppliers);
 
         _broadcasterMock
-            .BroadcastAsync(
-                Arg.Any<PdsRecordChangeNotification>(),
+            .BroadcastBatchAsync(
+                Arg.Any<IReadOnlyList<PdsRecordChangeNotification>>(),
                 Arg.Any<IReadOnlyList<SupplierWebhook>>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(false);
+            .Returns(["mesh-id"]);
 
         await _sut.RunAsync(CancellationToken.None);
 
@@ -91,7 +91,7 @@ public class NotificationOrchestratorTests
     }
 
     [Fact]
-    public async Task RunAsync_DoesNotAckMessage_WhenBroadcasterReturnsTrue_MeaningRetryRequired()
+    public async Task RunAsync_DoesNotAckMessage_WhenBroadcasterReturnsEmptyList()
     {
         var notification = CreateNotification("mesh-id", Guid.NewGuid());
         _processorMock
@@ -103,12 +103,12 @@ public class NotificationOrchestratorTests
         _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns(suppliers);
 
         _broadcasterMock
-            .BroadcastAsync(
-                Arg.Any<PdsRecordChangeNotification>(),
+            .BroadcastBatchAsync(
+                Arg.Any<IReadOnlyList<PdsRecordChangeNotification>>(),
                 Arg.Any<IReadOnlyList<SupplierWebhook>>(),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(true);
+            .Returns([]);
 
         await _sut.RunAsync(CancellationToken.None);
 

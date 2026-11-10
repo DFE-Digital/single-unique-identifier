@@ -30,7 +30,7 @@ public class WebhookBroadcasterTests
     }
 
     [Fact]
-    public async Task BroadcastAsync_ReturnsFalseAndSavesReceipt_OnSuccessfulDelivery()
+    public async Task BroadcastBatchAsync_ReturnsMessageIdAndSavesReceipt_OnSuccessfulDelivery()
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
@@ -53,14 +53,14 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var requiresRetry = await _sut.BroadcastAsync(
-            notification,
+        var ackableIds = await _sut.BroadcastBatchAsync(
+            [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.False(requiresRetry); // Success doesn't need retry
+        Assert.Contains("mesh-id", ackableIds); // Success means it can be acknowledged
         await _deliveryMock
             .Received(1)
             .DeliverAsync(Arg.Any<WebhookDeliveryRequest>(), Arg.Any<CancellationToken>());
@@ -75,7 +75,7 @@ public class WebhookBroadcasterTests
     }
 
     [Fact]
-    public async Task BroadcastAsync_ReturnsFalseAndSkipsDelivery_WhenReceiptAlreadyExists()
+    public async Task BroadcastBatchAsync_ReturnsMessageIdAndSkipsDelivery_WhenReceiptAlreadyExists()
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
@@ -86,20 +86,20 @@ public class WebhookBroadcasterTests
             .Returns(true);
 
         // Act
-        var requiresRetry = await _sut.BroadcastAsync(
-            notification,
+        var ackableIds = await _sut.BroadcastBatchAsync(
+            [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.False(requiresRetry);
+        Assert.Contains("mesh-id", ackableIds);
         await _deliveryMock.DidNotReceiveWithAnyArgs().DeliverAsync(default!, default);
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     [Fact]
-    public async Task BroadcastAsync_ReturnsTrue_WhenDeliveryFailsWithRetryableError()
+    public async Task BroadcastBatchAsync_ReturnsEmpty_WhenDeliveryFailsWithRetryableError()
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
@@ -122,19 +122,19 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var requiresRetry = await _sut.BroadcastAsync(
-            notification,
+        var ackableIds = await _sut.BroadcastBatchAsync(
+            [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.True(requiresRetry); // Retryable failure requires retry
+        Assert.Empty(ackableIds); // Retryable failure requires retry, so not acknowledged
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     [Fact]
-    public async Task BroadcastAsync_ReturnsFalse_WhenDeliveryFailsWithPermanentError()
+    public async Task BroadcastBatchAsync_ReturnsMessageId_WhenDeliveryFailsWithPermanentError()
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
@@ -157,19 +157,19 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var requiresRetry = await _sut.BroadcastAsync(
-            notification,
+        var ackableIds = await _sut.BroadcastBatchAsync(
+            [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.False(requiresRetry); // Permanent failure should NOT be retried
+        Assert.Contains("mesh-id", ackableIds); // Permanent failure should NOT be retried, safe to ACK
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     [Fact]
-    public async Task BroadcastAsync_ReturnsFalse_OnUnknownDeliveryOutcome()
+    public async Task BroadcastBatchAsync_ReturnsMessageId_OnUnknownDeliveryOutcome()
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
@@ -192,19 +192,19 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var requiresRetry = await _sut.BroadcastAsync(
-            notification,
+        var ackableIds = await _sut.BroadcastBatchAsync(
+            [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.False(requiresRetry); // Default fallback should not trigger infinite retries
+        Assert.Contains("mesh-id", ackableIds); // Default fallback should not trigger infinite retries
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     [Fact]
-    public async Task BroadcastAsync_GeneratesSameDeliveryId_ForSameEventAndSupplier()
+    public async Task BroadcastBatchAsync_GeneratesSameDeliveryId_ForSameEventAndSupplier()
     {
         // Arrange
         var eventId = Guid.NewGuid();
@@ -228,8 +228,8 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        await _sut.BroadcastAsync(notification, [supplier], CancellationToken.None);
-        await _sut.BroadcastAsync(notification, [supplier], CancellationToken.None);
+        await _sut.BroadcastBatchAsync([notification], [supplier], CancellationToken.None);
+        await _sut.BroadcastBatchAsync([notification], [supplier], CancellationToken.None);
 
         // Assert
         var calls = _deliveryMock.ReceivedCalls().ToList();
@@ -240,7 +240,7 @@ public class WebhookBroadcasterTests
     }
 
     [Fact]
-    public async Task BroadcastAsync_PropagatesException_WhenReceiptStoreFailsAfterSuccessfulDelivery()
+    public async Task BroadcastBatchAsync_PropagatesException_WhenReceiptStoreFailsAfterSuccessfulDelivery()
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
@@ -270,12 +270,12 @@ public class WebhookBroadcasterTests
         // Act & Assert
         // The Orchestrator MUST fail and should NOT Acknowledge the MESH message
         await Assert.ThrowsAsync<RequestFailedException>(() =>
-            _sut.BroadcastAsync(notification, [supplier], CancellationToken.None)
+            _sut.BroadcastBatchAsync([notification], [supplier], CancellationToken.None)
         );
     }
 
     [Fact]
-    public async Task BroadcastAsync_HandlesMixedBroadcast_SkippingOneAndRetryingAnother()
+    public async Task BroadcastBatchAsync_HandlesMixedBroadcast_SkippingOneAndRetryingAnother()
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
@@ -317,14 +317,14 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var requiresRetry = await _sut.BroadcastAsync(
-            notification,
+        var ackableIds = await _sut.BroadcastBatchAsync(
+            [notification],
             [supplierSkipped, supplierRetried],
             CancellationToken.None
         );
 
         // Assert
-        Assert.False(requiresRetry); // No failures, so no further retries required
+        Assert.Contains("mesh-id", ackableIds); // No failures, so no further retries required, safe to ACK
 
         // Assert Skipped Supplier
         await _deliveryMock

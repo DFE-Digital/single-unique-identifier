@@ -37,53 +37,25 @@ internal sealed class NotificationOrchestrator(
             return;
         }
 
-        foreach (var notification in notifications)
+        var ackableMessageIds = await webhookBroadcaster.BroadcastBatchAsync(
+            notifications,
+            enabledSuppliers,
+            cancellationToken
+        );
+
+        // Acknowledge the messages that fully succeeded
+        foreach (var messageId in ackableMessageIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            if (logger.IsEnabled(LogLevel.Information))
-            {
-                logger.LogInformation(
-                    "Processing delivery broadcast for Event {EventId} (MESH Message {MessageId})",
-                    notification.EventId,
-                    notification.MessageId
-                );
-            }
-
-            var requiresRetry = await webhookBroadcaster.BroadcastAsync(
-                notification,
-                enabledSuppliers,
-                cancellationToken
-            );
-
-            if (!requiresRetry)
-            {
-                if (logger.IsEnabled(LogLevel.Information))
-                {
-                    logger.LogInformation(
-                        "Event {EventId} requires no further retries. Acknowledging MESH message {MessageId}.",
-                        notification.EventId,
-                        notification.MessageId
-                    );
-                }
-
-                await meshMessageProcessor.AcknowledgeMessageAsync(
-                    notification.MessageId,
-                    cancellationToken
-                );
-            }
-            else
-            {
-                if (logger.IsEnabled(LogLevel.Information))
-                {
-                    logger.LogInformation(
-                        "Event {EventId} requires retry and will remain unacknowledged in the MESH mailbox.",
-                        notification.EventId
-                    );
-                }
-            }
+            await meshMessageProcessor.AcknowledgeMessageAsync(messageId, cancellationToken);
         }
 
-        logger.LogInformation("Notification Service execution completed.");
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation(
+                "Notification Service execution completed with {NotificationCount} record change notification(s).",
+                notifications.Count
+            );
+        }
     }
 }
