@@ -7,6 +7,7 @@ using SUI.NotificationService.Application.Models;
 namespace SUI.NotificationService.Application.Services;
 
 internal sealed class WebhookBroadcaster(
+    ISupplierWebhookRepository supplierRepository,
     ISupplierWebhookDeliveryService deliveryService,
     IWebhookReceiptRepository receiptRepository,
     TimeProvider timeProvider,
@@ -15,10 +16,21 @@ internal sealed class WebhookBroadcaster(
 {
     public async Task<IReadOnlyList<string>> BroadcastBatchAsync(
         IReadOnlyList<PdsRecordChangeNotification> notifications,
-        IReadOnlyList<SupplierWebhook> suppliers,
         CancellationToken cancellationToken
     )
     {
+        var enabledSuppliers = (
+            await supplierRepository.GetAllEnabledAsync(cancellationToken)
+        ).ToList();
+
+        if (enabledSuppliers.Count == 0)
+        {
+            logger.LogWarning(
+                "There are no enabled suppliers in the register. No deliveries will be attempted."
+            );
+            return [];
+        }
+
         var acknowledgeableMessageIds = new List<string>();
 
         foreach (var notification in notifications)
@@ -27,7 +39,7 @@ internal sealed class WebhookBroadcaster(
 
             var canAcknowledge = await ProcessSingleNotificationAsync(
                 notification,
-                suppliers,
+                enabledSuppliers,
                 cancellationToken
             );
 

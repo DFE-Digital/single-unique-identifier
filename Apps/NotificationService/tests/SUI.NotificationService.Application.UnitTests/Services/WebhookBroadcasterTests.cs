@@ -10,6 +10,7 @@ namespace SUI.NotificationService.Application.UnitTests.Services;
 
 public class WebhookBroadcasterTests
 {
+    private readonly ISupplierWebhookRepository _supplierRepoMock;
     private readonly ISupplierWebhookDeliveryService _deliveryMock;
     private readonly IWebhookReceiptRepository _receiptRepoMock;
     private readonly TimeProvider _timeMock;
@@ -18,6 +19,7 @@ public class WebhookBroadcasterTests
 
     public WebhookBroadcasterTests()
     {
+        _supplierRepoMock = Substitute.For<ISupplierWebhookRepository>();
         _deliveryMock = Substitute.For<ISupplierWebhookDeliveryService>();
         _receiptRepoMock = Substitute.For<IWebhookReceiptRepository>();
         _timeMock = Substitute.For<TimeProvider>();
@@ -26,7 +28,32 @@ public class WebhookBroadcasterTests
         // Force logging branches to execute for full coverage
         _loggerMock.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
 
-        _sut = new WebhookBroadcaster(_deliveryMock, _receiptRepoMock, _timeMock, _loggerMock);
+        _sut = new WebhookBroadcaster(
+            _supplierRepoMock,
+            _deliveryMock,
+            _receiptRepoMock,
+            _timeMock,
+            _loggerMock
+        );
+    }
+
+    [Fact]
+    public async Task BroadcastBatchAsync_ReturnsEmpty_WhenNoEnabledSuppliers()
+    {
+        // Arrange
+        var notification = CreateNotification(Guid.NewGuid());
+
+        _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([]);
+
+        // Act
+        var acknowledgeableIds = await _sut.BroadcastBatchAsync(
+            [notification],
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.Empty(acknowledgeableIds);
+        await _deliveryMock.DidNotReceiveWithAnyArgs().DeliverAsync(default!, default);
     }
 
     [Fact]
@@ -35,6 +62,8 @@ public class WebhookBroadcasterTests
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
         var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+
+        _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
 
         _receiptRepoMock
             .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -53,14 +82,13 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var ackknowledgeableIds = await _sut.BroadcastBatchAsync(
+        var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
-            [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.Contains("mesh-id", ackknowledgeableIds); // Success means it can be acknowledged
+        Assert.Contains("mesh-id", acknowledgeableIds); // Success means it can be acknowledged
         await _deliveryMock
             .Received(1)
             .DeliverAsync(Arg.Any<WebhookDeliveryRequest>(), Arg.Any<CancellationToken>());
@@ -81,6 +109,8 @@ public class WebhookBroadcasterTests
         var notification = CreateNotification(Guid.NewGuid());
         var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
 
+        _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
+
         _receiptRepoMock
             .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(true);
@@ -88,7 +118,6 @@ public class WebhookBroadcasterTests
         // Act
         var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
-            [supplier],
             CancellationToken.None
         );
 
@@ -104,6 +133,8 @@ public class WebhookBroadcasterTests
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
         var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+
+        _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
 
         _receiptRepoMock
             .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -124,7 +155,6 @@ public class WebhookBroadcasterTests
         // Act
         var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
-            [supplier],
             CancellationToken.None
         );
 
@@ -139,6 +169,8 @@ public class WebhookBroadcasterTests
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
         var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+
+        _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
 
         _receiptRepoMock
             .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -159,12 +191,11 @@ public class WebhookBroadcasterTests
         // Act
         var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
-            [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.Contains("mesh-id", acknowledgeableIds); // Permanent failure should NOT be retried, safe to ACK
+        Assert.Contains("mesh-id", acknowledgeableIds); // Permanent failure should NOT be retried, safe to acknowledge
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
@@ -174,6 +205,8 @@ public class WebhookBroadcasterTests
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
         var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+
+        _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
 
         _receiptRepoMock
             .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -194,7 +227,6 @@ public class WebhookBroadcasterTests
         // Act
         var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
-            [supplier],
             CancellationToken.None
         );
 
@@ -210,6 +242,8 @@ public class WebhookBroadcasterTests
         var eventId = Guid.NewGuid();
         var notification = CreateNotification(eventId);
         var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+
+        _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
 
         _receiptRepoMock
             .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -228,8 +262,8 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        await _sut.BroadcastBatchAsync([notification], [supplier], CancellationToken.None);
-        await _sut.BroadcastBatchAsync([notification], [supplier], CancellationToken.None);
+        await _sut.BroadcastBatchAsync([notification], CancellationToken.None);
+        await _sut.BroadcastBatchAsync([notification], CancellationToken.None);
 
         // Assert
         var calls = _deliveryMock.ReceivedCalls().ToList();
@@ -245,6 +279,8 @@ public class WebhookBroadcasterTests
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
         var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+
+        _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
 
         _receiptRepoMock
             .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -270,7 +306,7 @@ public class WebhookBroadcasterTests
         // Act & Assert
         // The Orchestrator MUST fail and should NOT Acknowledge the MESH message
         await Assert.ThrowsAsync<RequestFailedException>(() =>
-            _sut.BroadcastBatchAsync([notification], [supplier], CancellationToken.None)
+            _sut.BroadcastBatchAsync([notification], CancellationToken.None)
         );
     }
 
@@ -293,6 +329,10 @@ public class WebhookBroadcasterTests
             "1",
             "secret2"
         );
+
+        _supplierRepoMock
+            .GetAllEnabledAsync(Arg.Any<CancellationToken>())
+            .Returns([supplierSkipped, supplierRetried]);
 
         // Setup Receipt Store: True for the first supplier, False for the second
         _receiptRepoMock
@@ -319,12 +359,11 @@ public class WebhookBroadcasterTests
         // Act
         var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
-            [supplierSkipped, supplierRetried],
             CancellationToken.None
         );
 
         // Assert
-        Assert.Contains("mesh-id", acknowledgeableIds); // No failures, so no further retries required, safe to ACK
+        Assert.Contains("mesh-id", acknowledgeableIds); // No failures, so no further retries required, safe to acknowledge
 
         // Assert Skipped Supplier
         await _deliveryMock

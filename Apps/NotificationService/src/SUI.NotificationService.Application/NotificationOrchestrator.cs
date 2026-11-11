@@ -6,7 +6,6 @@ namespace SUI.NotificationService.Application;
 
 internal sealed class NotificationOrchestrator(
     IMeshMessageProcessor meshMessageProcessor,
-    ISupplierWebhookRepository supplierRepository,
     IWebhookBroadcaster webhookBroadcaster,
     ILogger<NotificationOrchestrator> logger
 ) : INotificationOrchestrator
@@ -25,21 +24,8 @@ internal sealed class NotificationOrchestrator(
             return;
         }
 
-        var enabledSuppliers = (
-            await supplierRepository.GetAllEnabledAsync(cancellationToken)
-        ).ToList();
-
-        if (enabledSuppliers.Count == 0)
-        {
-            logger.LogWarning(
-                "There are no enabled suppliers in the register. No deliveries will be attempted."
-            );
-            return;
-        }
-
         var acknowledgeableMessageIds = await webhookBroadcaster.BroadcastBatchAsync(
             notifications,
-            enabledSuppliers,
             cancellationToken
         );
 
