@@ -37,14 +37,14 @@ internal sealed class NotificationOrchestrator(
             return;
         }
 
-        var ackableMessageIds = await webhookBroadcaster.BroadcastBatchAsync(
+        var acknowledgeableMessageIds = await webhookBroadcaster.BroadcastBatchAsync(
             notifications,
             enabledSuppliers,
             cancellationToken
         );
 
         // Acknowledge the messages that fully succeeded
-        foreach (var messageId in ackableMessageIds)
+        foreach (var messageId in acknowledgeableMessageIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await meshMessageProcessor.AcknowledgeMessageAsync(messageId, cancellationToken);

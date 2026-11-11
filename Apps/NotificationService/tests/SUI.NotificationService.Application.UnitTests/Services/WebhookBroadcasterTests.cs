@@ -53,14 +53,14 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var ackableIds = await _sut.BroadcastBatchAsync(
+        var ackknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.Contains("mesh-id", ackableIds); // Success means it can be acknowledged
+        Assert.Contains("mesh-id", ackknowledgeableIds); // Success means it can be acknowledged
         await _deliveryMock
             .Received(1)
             .DeliverAsync(Arg.Any<WebhookDeliveryRequest>(), Arg.Any<CancellationToken>());
@@ -86,14 +86,14 @@ public class WebhookBroadcasterTests
             .Returns(true);
 
         // Act
-        var ackableIds = await _sut.BroadcastBatchAsync(
+        var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.Contains("mesh-id", ackableIds);
+        Assert.Contains("mesh-id", acknowledgeableIds);
         await _deliveryMock.DidNotReceiveWithAnyArgs().DeliverAsync(default!, default);
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
@@ -122,14 +122,14 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var ackableIds = await _sut.BroadcastBatchAsync(
+        var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.Empty(ackableIds); // Retryable failure requires retry, so not acknowledged
+        Assert.Empty(acknowledgeableIds); // Retryable failure requires retry, so not acknowledged
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
@@ -157,14 +157,14 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var ackableIds = await _sut.BroadcastBatchAsync(
+        var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.Contains("mesh-id", ackableIds); // Permanent failure should NOT be retried, safe to ACK
+        Assert.Contains("mesh-id", acknowledgeableIds); // Permanent failure should NOT be retried, safe to ACK
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
@@ -192,14 +192,14 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var ackableIds = await _sut.BroadcastBatchAsync(
+        var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
             [supplier],
             CancellationToken.None
         );
 
         // Assert
-        Assert.Contains("mesh-id", ackableIds); // Default fallback should not trigger infinite retries
+        Assert.Contains("mesh-id", acknowledgeableIds); // Default fallback should not trigger infinite retries
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
@@ -317,14 +317,14 @@ public class WebhookBroadcasterTests
             );
 
         // Act
-        var ackableIds = await _sut.BroadcastBatchAsync(
+        var acknowledgeableIds = await _sut.BroadcastBatchAsync(
             [notification],
             [supplierSkipped, supplierRetried],
             CancellationToken.None
         );
 
         // Assert
-        Assert.Contains("mesh-id", ackableIds); // No failures, so no further retries required, safe to ACK
+        Assert.Contains("mesh-id", acknowledgeableIds); // No failures, so no further retries required, safe to ACK
 
         // Assert Skipped Supplier
         await _deliveryMock

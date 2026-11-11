@@ -19,7 +19,7 @@ internal sealed class WebhookBroadcaster(
         CancellationToken cancellationToken
     )
     {
-        var ackableMessageIds = new List<string>();
+        var acknowledgeableMessageIds = new List<string>();
 
         foreach (var notification in notifications)
         {
@@ -33,11 +33,11 @@ internal sealed class WebhookBroadcaster(
 
             if (canAcknowledge)
             {
-                ackableMessageIds.Add(notification.MessageId);
+                acknowledgeableMessageIds.Add(notification.MessageId);
             }
         }
 
-        return ackableMessageIds;
+        return acknowledgeableMessageIds;
     }
 
     private async Task<bool> ProcessSingleNotificationAsync(
