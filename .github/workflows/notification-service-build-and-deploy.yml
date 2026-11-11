@@ -41,6 +41,7 @@ on:
       - scripts/pds-record-change-2-notification.template.json
       - terraform/notification-service/**
       - terraform/core/**
+      - terraform/modules/**
       - terraform/environments/**
       - .github/workflows/notification-service-build-and-deploy.yml
       - .github/workflows/terraform-plan-and-apply.yml
@@ -53,6 +54,7 @@ on:
       - scripts/pds-record-change-2-notification.template.json
       - terraform/notification-service/**
       - terraform/core/**
+      - terraform/modules/**
       - terraform/environments/**
       - .github/workflows/notification-service-build-and-deploy.yml
       - .github/workflows/terraform-plan-and-apply.yml
