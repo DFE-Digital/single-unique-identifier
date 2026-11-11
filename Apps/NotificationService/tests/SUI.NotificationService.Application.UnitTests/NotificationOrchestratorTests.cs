@@ -64,7 +64,7 @@ public class NotificationOrchestratorTests
     }
 
     [Fact]
-    public async Task RunAsync_AcksMessage_WhenBroadcasterReturnsMessageId()
+    public async Task RunAsync_AcknowledgesMessage_WhenBroadcasterReturnsMessageId()
     {
         var notification = CreateNotification("mesh-id", Guid.NewGuid());
         _processorMock
