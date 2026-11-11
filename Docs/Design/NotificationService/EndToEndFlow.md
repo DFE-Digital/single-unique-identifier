@@ -50,14 +50,14 @@ Any message that a supplier has not acknowledged stays in the MESH inbox and is 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Schedule as Schedule<br/>(Container Apps job)
-    participant Orchestrator as Orchestrator<br/>(NotificationOrchestrator)
-    participant Mesh as MESH service
-    participant Inbox as NHS MESH inbox
-    participant Webhooks as Webhooks
-    participant Storage as Table Storage
-    participant Supplier as Supplier
-    participant GetAnId as Get an Identifier
+    participant Schedule as Schedule<br/>[SUI Service]
+    participant Orchestrator as NotificationOrchestrator<br/>[SUI Service]
+    participant Mesh as MESH Service<br/>[SUI Service]
+    participant Inbox as NHS MESH Inbox<br/>[External Service]
+    participant Webhooks as Webhooks<br/>[SUI Service]
+    participant Storage as Table Storage<br/>[External Service]
+    participant Supplier as Supplier<br/>[External Service]
+    participant GetAnId as Get an Identifier<br/>[SUI Service]
 
     Schedule->>Orchestrator: Start execution, every 60 minutes
 
