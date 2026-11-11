@@ -1,7 +1,6 @@
 using System.Text.Json.Nodes;
 using Hl7.Fhir.Model;
 using SUI.NotificationService.Application.Services;
-using SUI.NotificationService.Application.UnitTests.Fixtures;
 using static SUI.NotificationService.Application.UnitTests.Fixtures.MeshNotificationFixtures;
 
 namespace SUI.NotificationService.Application.UnitTests.Services;
@@ -221,6 +220,64 @@ public sealed class MeshNotificationParserTests
 
         Assert.False(found);
         Assert.Null(nhsNumber);
+    }
+
+    [Fact]
+    public void TryGetEventDetails_ReturnsTrue_AndExtractsDetails()
+    {
+        var expectedId = Guid.NewGuid();
+        var expectedTimestamp = DateTimeOffset.Parse("2026-09-22T09:15:00+00:00");
+
+        var bundle = new Bundle { Id = expectedId.ToString(), Timestamp = expectedTimestamp };
+
+        var found = MeshNotificationParser.TryGetEventDetails(
+            bundle,
+            out var eventId,
+            out var occurredAt
+        );
+
+        Assert.True(found);
+        Assert.Equal(expectedId, eventId);
+        Assert.Equal(expectedTimestamp, occurredAt);
+    }
+
+    [Fact]
+    public void TryGetEventDetails_ReturnsFalse_WhenIdIsMissing()
+    {
+        var bundle = new Bundle { Id = null };
+
+        var found = MeshNotificationParser.TryGetEventDetails(bundle, out _, out _);
+
+        Assert.False(found);
+    }
+
+    [Fact]
+    public void TryGetEventDetails_ReturnsFalse_WhenIdIsNotGuid()
+    {
+        var bundle = new Bundle { Id = "not-a-valid-guid" };
+
+        var found = MeshNotificationParser.TryGetEventDetails(bundle, out _, out _);
+
+        Assert.False(found);
+    }
+
+    [Fact]
+    public void TryGetEventDetails_DefaultsOccurredAt_WhenTimestampIsMissing()
+    {
+        var expectedId = Guid.NewGuid();
+        var bundle = new Bundle { Id = expectedId.ToString(), Timestamp = null };
+
+        var beforeParse = DateTimeOffset.UtcNow;
+        var found = MeshNotificationParser.TryGetEventDetails(
+            bundle,
+            out var eventId,
+            out var occurredAt
+        );
+        var afterParse = DateTimeOffset.UtcNow;
+
+        Assert.True(found);
+        Assert.Equal(expectedId, eventId);
+        Assert.True(occurredAt >= beforeParse && occurredAt <= afterParse);
     }
 
     private static Bundle Parse(string content)

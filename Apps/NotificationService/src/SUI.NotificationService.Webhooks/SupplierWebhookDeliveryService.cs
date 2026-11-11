@@ -84,14 +84,9 @@ public class SupplierWebhookDeliveryService(
 
             httpRequest.Headers.Add("X-SUI-Delivery-ID", request.DeliveryId.ToString());
             httpRequest.Headers.Add(
-                "X-SUI-Delivery-Attempt",
-                request.DeliveryAttempt.ToString(CultureInfo.InvariantCulture)
-            );
-            httpRequest.Headers.Add(
                 "X-SUI-Timestamp",
                 timestampSeconds.ToString(CultureInfo.InvariantCulture)
             );
-            httpRequest.Headers.Add("X-SUI-Key-ID", request.KeyId);
             httpRequest.Headers.Add("X-SUI-Signature-256", signature);
             httpRequest.Headers.Add("X-Correlation-ID", request.CorrelationId.ToString());
 
@@ -100,17 +95,21 @@ public class SupplierWebhookDeliveryService(
 
             stopwatch.Stop();
 
+            var outcome = ClassifyOutcome((int)response.StatusCode);
+
             if (logger.IsEnabled(LogLevel.Information))
             {
                 logger.LogInformation(
-                    "Webhook delivery {DeliveryId} completed with status {StatusCode} in {Duration}ms.",
+                    "Webhook delivery {DeliveryId} completed with status {StatusCode} ({Outcome}) in {Duration}ms.",
                     request.DeliveryId,
                     (int)response.StatusCode,
+                    outcome,
                     stopwatch.ElapsedMilliseconds
                 );
             }
 
             return new WebhookDeliveryResult(
+                Outcome: outcome,
                 ResponseReceived: true,
                 HttpStatusCode: (int)response.StatusCode,
                 TimedOut: false,
@@ -130,6 +129,7 @@ public class SupplierWebhookDeliveryService(
             );
 
             return new WebhookDeliveryResult(
+                Outcome: DeliveryOutcome.RetryableFailure,
                 ResponseReceived: false,
                 HttpStatusCode: null,
                 TimedOut: true,
@@ -150,6 +150,7 @@ public class SupplierWebhookDeliveryService(
             );
 
             return new WebhookDeliveryResult(
+                Outcome: DeliveryOutcome.RetryableFailure,
                 ResponseReceived: false,
                 HttpStatusCode: (int?)ex.StatusCode,
                 TimedOut: false,
@@ -178,5 +179,24 @@ public class SupplierWebhookDeliveryService(
         var hash = hmac.ComputeHash(signedBytes);
 
         return "sha256=" + Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private static DeliveryOutcome ClassifyOutcome(int statusCode)
+    {
+        // The contract explicitly states that ONLY 202 is an acknowledgement
+        if (statusCode == 202)
+        {
+            return DeliveryOutcome.Success;
+        }
+
+        // Retryable conditions defined by the contract (including the missing 425)
+        if (statusCode is 408 or 425 or 429 or >= 500)
+        {
+            return DeliveryOutcome.RetryableFailure;
+        }
+
+        // Any other response (including 200, 201, 204, 3xx, and other 4xx)
+        // is classified as a non-retryable failure
+        return DeliveryOutcome.PermanentFailure;
     }
 }
