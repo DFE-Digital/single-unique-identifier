@@ -183,14 +183,20 @@ public class SupplierWebhookDeliveryService(
 
     private static DeliveryOutcome ClassifyOutcome(int statusCode)
     {
-        return statusCode switch
+        // The contract explicitly states that ONLY 202 is an acknowledgement
+        if (statusCode == 202)
         {
-            >= 200 and <= 299 => DeliveryOutcome.Success,
-            // 408, 429, and 5xx are retryable
-            408 or 429 or >= 500 => DeliveryOutcome.RetryableFailure,
-            _ => DeliveryOutcome.PermanentFailure,
-        };
+            return DeliveryOutcome.Success;
+        }
 
-        // Non-retryable responses are Permanent Failures (e.g. 400, 401, 403, 404)
+        // Retryable conditions defined by the contract (including the missing 425)
+        if (statusCode is 408 or 425 or 429 or >= 500)
+        {
+            return DeliveryOutcome.RetryableFailure;
+        }
+
+        // Any other response (including 200, 201, 204, 3xx, and other 4xx)
+        // is classified as a non-retryable failure
+        return DeliveryOutcome.PermanentFailure;
     }
 }

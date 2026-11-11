@@ -206,20 +206,22 @@ internal sealed class WebhookBroadcaster(
         );
         var retryable = broadcastOutcomes.Count(o => o == DeliveryOutcome.RetryableFailure);
         var permanent = broadcastOutcomes.Count(o => o == DeliveryOutcome.PermanentFailure);
+        var endpointsStillRequiringSuccessfulDelivery = retryable + permanent;
 
         if (logger.IsEnabled(LogLevel.Information))
         {
             logger.LogInformation(
-                "Broadcast aggregate for Event {EventId}: {NewlySuccessful} newly successful, {Skipped} skipped (previously acknowledged), {Retryable} retryable failures, {Permanent} permanent failures.",
+                "Broadcast aggregate for Event {EventId}: {NewlySuccessful} newly successful, {Skipped} skipped, {Retryable} retryable failures, {Permanent} permanent failures. Endpoints still requiring successful delivery: {StillRequiring}.",
                 sourceEventId,
                 newlySuccessful,
                 skipped,
                 retryable,
-                permanent
+                permanent,
+                endpointsStillRequiringSuccessfulDelivery
             );
         }
 
-        if (retryable == 0)
+        if (endpointsStillRequiringSuccessfulDelivery == 0)
         {
             if (logger.IsEnabled(LogLevel.Information))
             {
@@ -235,9 +237,10 @@ internal sealed class WebhookBroadcaster(
         if (logger.IsEnabled(LogLevel.Information))
         {
             logger.LogInformation(
-                "Event {EventId} requires retry ({Retryable} endpoints failing) and will remain unacknowledged in the MESH mailbox.",
+                "Event {EventId} has {StillRequiring} endpoint(s) still requiring successful delivery. MESH message {MessageId} will remain unacknowledged in the MESH mailbox.",
                 notification.EventId,
-                retryable
+                endpointsStillRequiringSuccessfulDelivery,
+                notification.MessageId
             );
         }
         return false;
@@ -247,8 +250,16 @@ internal sealed class WebhookBroadcaster(
     {
         var input = Encoding.UTF8.GetBytes($"{eventId}:{supplierId}");
         var hash = SHA256.HashData(input);
+
         var guidBytes = new byte[16];
         Array.Copy(hash, guidBytes, 16);
+
+        // Apply RFC 4122 Version 8 bitmask (Custom/Experimental hash-based)
+        guidBytes[7] = (byte)((guidBytes[7] & 0x0F) | 0x80);
+
+        // Apply RFC 4122 Variant bitmask (bits 10xx)
+        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80);
+
         return new Guid(guidBytes);
     }
 }

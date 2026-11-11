@@ -183,9 +183,11 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
     }
 
     [Theory]
-    [InlineData(HttpStatusCode.OK, DeliveryOutcome.Success)] // 200
-    [InlineData(HttpStatusCode.Accepted, DeliveryOutcome.Success)] // 202
+    [InlineData(HttpStatusCode.Accepted, DeliveryOutcome.Success)] // 202 ONLY is Success
+    [InlineData(HttpStatusCode.OK, DeliveryOutcome.PermanentFailure)] // 200 is a contract violation
+    [InlineData(HttpStatusCode.NoContent, DeliveryOutcome.PermanentFailure)] // 204 is a contract violation
     [InlineData(HttpStatusCode.RequestTimeout, DeliveryOutcome.RetryableFailure)] // 408
+    [InlineData((HttpStatusCode)425, DeliveryOutcome.RetryableFailure)] // 425 Too Early
     [InlineData(HttpStatusCode.TooManyRequests, DeliveryOutcome.RetryableFailure)] // 429
     [InlineData(HttpStatusCode.InternalServerError, DeliveryOutcome.RetryableFailure)] // 500
     [InlineData(HttpStatusCode.BadGateway, DeliveryOutcome.RetryableFailure)] // 502

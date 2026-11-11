@@ -164,7 +164,7 @@ public class WebhookBroadcasterTests
     }
 
     [Fact]
-    public async Task BroadcastBatchAsync_ReturnsMessageId_WhenDeliveryFailsWithPermanentError()
+    public async Task BroadcastBatchAsync_ReturnsEmpty_WhenDeliveryFailsWithPermanentError()
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
@@ -195,7 +195,7 @@ public class WebhookBroadcasterTests
         );
 
         // Assert
-        Assert.Contains("mesh-id", acknowledgeableIds); // Permanent failure should NOT be retried, safe to acknowledge
+        Assert.Empty(acknowledgeableIds); // Permanent failure requires retry/fixing, so NOT acknowledged
         await _receiptRepoMock.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
