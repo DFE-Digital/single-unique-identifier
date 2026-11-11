@@ -46,7 +46,19 @@ locals {
     },
     var.tags,
   )
+
+  # Key Vault name
+  key_vault_descriptor = "notificationkv01"
+  key_vault_name = format(
+    "%s%skv-%s-%s",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+    local.key_vault_descriptor
+  )
 }
+
+data "azurerm_client_config" "current" {}
 
 data "terraform_remote_state" "core" {
   backend = "azurerm"
@@ -57,6 +69,35 @@ data "terraform_remote_state" "core" {
     container_name       = local.state_container
     key                  = local.core_state_key
   }
+}
+
+module "key_vault" {
+  source = "../modules/key_vault"
+
+  name                = local.key_vault_name
+  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
+  location            = data.terraform_remote_state.core.outputs.resource_group_location
+
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  rbac_authorization_enabled = var.key_vault_use_rbac
+
+  environment_tag  = var.environment_tag
+  product          = var.product
+  service_offering = var.service_offering
+
+  tags = var.tags
+}
+
+module "rbac_assignments_terraform_operator" {
+  source = "../modules/rbac_assignments"
+  scope  = module.key_vault.id
+
+  assignments = var.key_vault_use_rbac ? {
+    terraform_operator_secrets = {
+      principal_id = data.azurerm_client_config.current.object_id
+      role_name    = "Key Vault Secrets Officer"
+    }
+  } : {}
 }
 
 resource "azurerm_user_assigned_identity" "notification_service" {
