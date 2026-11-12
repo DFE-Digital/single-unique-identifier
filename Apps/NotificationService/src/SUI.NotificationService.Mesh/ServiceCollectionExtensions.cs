@@ -115,8 +115,8 @@ public static class ServiceCollectionExtensions
     private static void ConfigureMutualTls(SocketsHttpHandler handler, NhsMeshConfig config)
     {
         var clientCertificate = MeshCertificateLoader.LoadClientCertificate(
-            config.MailboxMTLSPfx,
-            config.MailboxMTLSPfxPassword
+            config.MailboxMTLSPfx!,
+            config.MailboxMTLSPfxPassword!
         );
         var root = MeshCertificateLoader.LoadRootCertificate(config.MailboxRootCA!);
         var intermediate = MeshCertificateLoader.LoadCertificate(config.MailboxIntermediateCA!);
