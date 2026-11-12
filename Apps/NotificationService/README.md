@@ -109,12 +109,13 @@ Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig`
 | `AcceptLocalDevCert` | Optional, default `false`. Accepts the local sandbox's self-signed certificate. Startup fails if this is `true` and `MailboxBaseUrl` is not a loopback address. |
 | `MailboxMTLSPfx` | Base64 of the NHS-issued client PFX (certificate and private key), presented for mutual TLS. Required when `AcceptLocalDevCert` is `false`. |
 | `MailboxMTLSPfxPassword` | Optional password for `MailboxMTLSPfx`. Leave empty when the value comes from a Key Vault certificate. |
-| `MailboxRootCA` | Base64 of the NHS root CA certificate (PEM), e.g. NHS INT Root G2. The only trust anchor for the MESH server certificate. Required when `AcceptLocalDevCert` is `false`. |
-| `MailboxIntermediateCA` | Base64 of the NHS intermediate CA certificate (PEM) issued by `MailboxRootCA`, e.g. NHS INT Authentication G2. Required when `AcceptLocalDevCert` is `false`. |
+| `MailboxRootCA` | Base64 of the NHS root CA certificate (PEM or DER), e.g. NHS INT Root G2. The only trust anchor for the MESH server certificate. Required when `AcceptLocalDevCert` is `false`. |
+| `MailboxIntermediateCA` | Base64 of the NHS intermediate CA certificate (PEM or DER) issued by `MailboxRootCA`, e.g. NHS INT Authentication G2. Required when `AcceptLocalDevCert` is `false`. |
 
 All values are validated at startup, so a missing or malformed value fails the run immediately
-rather than at the first request. When `AcceptLocalDevCert` is `false`, both certificates must be
-present and loadable; failures name the key but never include its value. `appsettings.Development.json`
+rather than at the first request. When `AcceptLocalDevCert` is `false`, all three certificates must
+be present, loadable, and form a valid chain (`MailboxMTLSPfx` issued by `MailboxIntermediateCA`,
+issued by `MailboxRootCA`); failures name the key but never include its value. `appsettings.Development.json`
 points at the [local MESH sandbox](#local-mesh-sandbox), whose self-signed certificate is trusted only
 in the `Development` environment.
 
