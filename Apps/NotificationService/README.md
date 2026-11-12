@@ -107,18 +107,56 @@ Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig`
 | `MailboxPassword`    | Mailbox password used to build the `NHSMESH` authorisation header.                                                                                              |
 | `SharedKey`          | Shared key used to HMAC that header.                                                                                                                            |
 | `AcceptLocalDevCert` | Optional, default `false`. Accepts the local sandbox's self-signed certificate. Startup fails if this is `true` and `MailboxBaseUrl` is not a loopback address. |
+| `MailboxMTLSPfx` | Base64 of the NHS-issued client PFX (certificate and private key), presented for mutual TLS. Required when `AcceptLocalDevCert` is `false`. |
+| `MailboxMTLSPfxPassword` | Optional password for `MailboxMTLSPfx`. Leave empty when the value comes from a Key Vault certificate. |
+| `MailboxRootCA` | Base64 of the NHS root CA certificate (PEM), e.g. NHS INT Root G2. The only trust anchor for the MESH server certificate. Required when `AcceptLocalDevCert` is `false`. |
+| `MailboxIntermediateCA` | Base64 of the NHS intermediate CA certificate (PEM) issued by `MailboxRootCA`, e.g. NHS INT Authentication G2. Required when `AcceptLocalDevCert` is `false`. |
 
-All four are required and validated at startup, so a missing or malformed value fails the run
-immediately rather than at the first request. `appsettings.Development.json` points at the
-[local MESH sandbox](#local-mesh-sandbox), whose self-signed certificate is trusted only in the
-`Development` environment.
+All values are validated at startup, so a missing or malformed value fails the run immediately
+rather than at the first request. When `AcceptLocalDevCert` is `false`, both certificates must be
+present and loadable; failures name the key but never include its value. `appsettings.Development.json`
+points at the [local MESH sandbox](#local-mesh-sandbox), whose self-signed certificate is trusted only
+in the `Development` environment.
 
-> [!IMPORTANT]
-> The client currently works only against the local sandbox. Real MESH environments (INT and LIVE)
-> require mutual TLS with an NHS-issued client certificate, and the client does not present one yet,
-> so connections to them will fail during the TLS handshake. Client certificate support (loading
-> the certificate and key from Key Vault, plus any CA chain MESH needs) is deferred until there is a
-> deployed environment. See [ADR 0001](../../Docs/architecture/decisions/System/GetAnIdentifier/0001-NHS-MNS-integration.md).
+Against a real MESH environment (INT or LIVE) the client presents `MailboxMTLSPfx` together with
+`MailboxIntermediateCA`, and trusts only `MailboxRootCA` (not the OS trust store) for the server
+certificate. Each CA value is the certificate file as NHS supplies it, base64-encoded; there is no
+bundle to build. Certificates are passed as base64 content, never as file paths. Locally, set them
+with `dotnet user-secrets` from `src/SUI.NotificationService`, for example
+`dotnet user-secrets set NhsMeshConfig:MailboxRootCA "$(base64 -i <root.pem>)"`. In Azure, importing
+the PFX as a Key Vault certificate exposes a same-named secret holding the base64 PFX with no
+password; map that secret to `NhsMeshConfig__MailboxMTLSPfx`.
+
+The server certificate's revocation status is checked online. If the NHS CA's revocation endpoint
+cannot be reached from where the job runs, the TLS handshake fails with a certificate chain error
+even though the certificates are correct. This is deliberate: an unchecked certificate is never trusted.
+
+#### Testing against MESH INT locally
+
+On macOS, `dotnet run` against MESH INT fails the handshake with
+`RevocationStatusUnknown`. .NET on macOS checks revocation through the OS, which uses OCSP only, and
+the NHS OCSP responder (`ocsp.nhs.uk`) answers `unauthorized` for the INT certificates. On Linux,
+.NET falls back to the CRLs at `crl.nhs.uk`, so the check passes there. Run the job in a Linux
+container to test against INT. From the repository root:
+
+```bash
+docker build -f Apps/NotificationService/Dockerfile -t sui-notification .
+docker run --rm \
+  -e DOTNET_ENVIRONMENT=Development \
+  -v ~/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro \
+  sui-notification
+```
+
+`DOTNET_ENVIRONMENT=Development` makes the container load your user secrets, which override the
+sandbox values in `appsettings.Development.json`. Inside the container,
+`UseDevelopmentStorage=true` points at the container itself rather than at Azurite on your machine.
+If the run needs storage, set `ConnectionStrings__TableStorage` to an Azurite connection string that
+uses `host.docker.internal`.
+
+To try it with a plain `dotnet run` instead, temporarily change `RevocationMode` in
+`ConfigureMutualTls` (`src/SUI.NotificationService.Mesh/ServiceCollectionExtensions.cs`) from
+`X509RevocationMode.Online` to `X509RevocationMode.NoCheck`. Never commit this change: it skips the
+revocation check, and `MeshHandlerConfigurationTests` fails while it is in place.
 
 #### Deployed configuration
 

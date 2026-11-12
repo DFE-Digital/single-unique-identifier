@@ -47,6 +47,8 @@ public sealed class MeshTransientRetryTests
                     ["NhsMeshConfig:SharedKey"] = "test-shared-key",
                     ["NhsMeshConfig:MailboxId"] = "X26ABC1",
                     ["NhsMeshConfig:MailboxPassword"] = "test-password",
+                    // Sandbox mode, so no mutual-TLS certificates are required.
+                    ["NhsMeshConfig:AcceptLocalDevCert"] = "true",
                 }
             )
             .Build();

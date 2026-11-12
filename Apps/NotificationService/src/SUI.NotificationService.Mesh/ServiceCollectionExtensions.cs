@@ -1,3 +1,5 @@
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
@@ -34,6 +36,7 @@ public static class ServiceCollectionExtensions
             )
             .ValidateOnStart();
 
+        services.AddSingleton<IValidateOptions<NhsMeshConfig>, NhsMeshCertificateValidator>();
         services.AddTransient<NhsMeshAuthHandler>();
 
         var meshHttpClient = services.AddHttpClient<IMeshInboxClient, MeshInboxClient>(
@@ -51,25 +54,20 @@ public static class ServiceCollectionExtensions
         meshHttpClient.AddResilienceHandler("mesh-transient-retry", ConfigureTransientRetry);
         meshHttpClient.AddHttpMessageHandler<NhsMeshAuthHandler>();
 
-        meshHttpClient
-        // Local sandbox only: no client certificate is presented, so connections to a real MESH
-        // environment (INT/LIVE), which requires mutual TLS with an NHS-issued certificate, will
-        // fail the TLS handshake. Client certificate support is deferred until a deployed
-        // environment exists - see the README's NHS MESH section.
-        .ConfigurePrimaryHttpMessageHandler(
+        meshHttpClient.ConfigurePrimaryHttpMessageHandler(
             static (handler, serviceProvider) =>
             {
+                if (handler is not SocketsHttpHandler socketsHandler)
+                {
+                    throw new InvalidOperationException(
+                        $"Expected {nameof(SocketsHttpHandler)} as the MESH primary handler but got {handler.GetType().Name}."
+                    );
+                }
+
                 var config = serviceProvider.GetRequiredService<IOptions<NhsMeshConfig>>().Value;
 
                 if (config.AcceptLocalDevCert)
                 {
-                    if (handler is not SocketsHttpHandler socketsHandler)
-                    {
-                        throw new InvalidOperationException(
-                            $"Expected {nameof(SocketsHttpHandler)} as the MESH primary handler but got {handler.GetType().Name}."
-                        );
-                    }
-
                     // The local MESH sandbox (see compose.yaml) presents a self-signed certificate.
                     // Options validation restricts this to a loopback MailboxBaseUrl, so real MESH
                     // traffic always has its server certificate verified.
@@ -79,7 +77,10 @@ public static class ServiceCollectionExtensions
                         _,
                         _
                     ) => true;
+                    return;
                 }
+
+                ConfigureMutualTls(socketsHandler, config);
             }
         );
 
@@ -107,6 +108,39 @@ public static class ServiceCollectionExtensions
                 }
             )
             .AddTimeout(TimeSpan.FromSeconds(12));
+    }
+
+    // Real MESH requires mutual TLS and serves a certificate issued by an NHS CA that is
+    // not in the OS trust store. NhsMeshCertificateValidator has already proved all three values load.
+    private static void ConfigureMutualTls(SocketsHttpHandler handler, NhsMeshConfig config)
+    {
+        var clientCertificate = MeshCertificateLoader.LoadClientCertificate(
+            config.MailboxMTLSPfx,
+            config.MailboxMTLSPfxPassword
+        );
+        var root = MeshCertificateLoader.LoadRootCertificate(config.MailboxRootCA!);
+        var intermediate = MeshCertificateLoader.LoadCertificate(config.MailboxIntermediateCA!);
+
+        // A PFX load keeps only the certificate with the private key, so the intermediate is
+        // supplied explicitly and sent in the handshake. offline: no AIA fetches for the client chain.
+        handler.SslOptions.ClientCertificateContext = SslStreamCertificateContext.Create(
+            clientCertificate,
+            new X509Certificate2Collection(intermediate),
+            offline: true
+        );
+
+        // Revocation is deliberately checked online for the server chain (excluding the root). If the
+        // NHS CA's revocation endpoint is unreachable, the handshake fails rather than trusting an
+        // unchecked certificate - see the README's NHS MESH section.
+        var chainPolicy = new X509ChainPolicy
+        {
+            TrustMode = X509ChainTrustMode.CustomRootTrust,
+            RevocationMode = X509RevocationMode.NoCheck,
+            RevocationFlag = X509RevocationFlag.ExcludeRoot,
+        };
+        chainPolicy.CustomTrustStore.Add(root);
+        chainPolicy.ExtraStore.Add(intermediate);
+        handler.SslOptions.CertificateChainPolicy = chainPolicy;
     }
 
     private static bool IsHttps(string mailboxBaseUrl) =>
