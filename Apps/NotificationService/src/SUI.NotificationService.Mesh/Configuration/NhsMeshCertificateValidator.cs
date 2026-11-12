@@ -44,15 +44,23 @@ internal sealed class NhsMeshCertificateValidator : IValidateOptions<NhsMeshConf
             failures
         );
 
-        if (
-            root is not null
-            && intermediate is not null
-            && !MeshCertificateLoader.IsIssuedBy(intermediate, root)
-        )
+        if (root is not null && intermediate is not null)
         {
-            failures.Add(
-                $"{nameof(NhsMeshConfig.MailboxIntermediateCA)} is not issued by {nameof(NhsMeshConfig.MailboxRootCA)}."
-            );
+            if (!MeshCertificateLoader.IsIssuedBy(intermediate, root))
+            {
+                failures.Add(
+                    $"{nameof(NhsMeshConfig.MailboxIntermediateCA)} is not issued by {nameof(NhsMeshConfig.MailboxRootCA)}."
+                );
+            }
+            else if (
+                clientCertificate is not null
+                && !MeshCertificateLoader.IsIssuedBy(clientCertificate, intermediate, root)
+            )
+            {
+                failures.Add(
+                    $"{nameof(NhsMeshConfig.MailboxMTLSPfx)} is not issued by {nameof(NhsMeshConfig.MailboxIntermediateCA)}."
+                );
+            }
         }
 
         return failures.Count == 0

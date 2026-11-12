@@ -192,6 +192,22 @@ public sealed class NhsMeshConfigValidationTests : IDisposable
     }
 
     [Fact]
+    public async Task ShouldFailStartup_WhenClientCertificateIsNotIssuedByIntermediate()
+    {
+        using var other = new TestCertificates();
+        var settings = ValidCertificateSettings();
+        settings[Key(nameof(NhsMeshConfig.MailboxMTLSPfx))] = other.PfxBase64();
+
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() =>
+            StartHostAndResolveConfigAsync(IntMailboxBaseUrl, acceptLocalDevCert: false, settings)
+        );
+
+        var failure = Assert.Single(exception.Failures);
+        Assert.Contains(nameof(NhsMeshConfig.MailboxMTLSPfx), failure);
+        Assert.Contains(nameof(NhsMeshConfig.MailboxIntermediateCA), failure);
+    }
+
+    [Fact]
     public async Task ShouldStart_WhenCaCertificatesAreDer()
     {
         var settings = ValidCertificateSettings();

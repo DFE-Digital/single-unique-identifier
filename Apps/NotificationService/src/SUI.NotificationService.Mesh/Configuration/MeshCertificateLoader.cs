@@ -66,4 +66,30 @@ internal static class MeshCertificateLoader
             && chain.ChainElements.Count == 2
             && chain.ChainElements[1].Certificate.RawData.AsSpan().SequenceEqual(root.RawData);
     }
+
+    /// <summary>
+    /// True when <paramref name="clientCertificate"/> chains to <paramref name="root"/> via
+    /// <paramref name="intermediate"/>. Revocation is not checked here: this only proves the three
+    /// config values belong together.
+    /// </summary>
+    public static bool IsIssuedBy(
+        X509Certificate2 clientCertificate,
+        X509Certificate2 intermediate,
+        X509Certificate2 root
+    )
+    {
+        using var chain = new X509Chain();
+        chain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
+        chain.ChainPolicy.CustomTrustStore.Add(root);
+        chain.ChainPolicy.ExtraStore.Add(intermediate);
+        chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+
+        return chain.Build(clientCertificate)
+            && chain.ChainElements.Count == 3
+            && chain
+                .ChainElements[1]
+                .Certificate.RawData.AsSpan()
+                .SequenceEqual(intermediate.RawData)
+            && chain.ChainElements[2].Certificate.RawData.AsSpan().SequenceEqual(root.RawData);
+    }
 }

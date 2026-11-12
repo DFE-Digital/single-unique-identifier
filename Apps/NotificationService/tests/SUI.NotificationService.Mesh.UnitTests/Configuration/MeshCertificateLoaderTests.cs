@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using SUI.NotificationService.Mesh.Configuration;
 
 namespace SUI.NotificationService.Mesh.UnitTests.Configuration;
@@ -49,6 +50,50 @@ public sealed class MeshCertificateLoaderTests : IDisposable
         using var other = new TestCertificates();
 
         Assert.False(MeshCertificateLoader.IsIssuedBy(_certificates.Intermediate, other.Root));
+    }
+
+    [Fact]
+    public void ShouldReturnTrue_WhenClientCertificateIsIssuedByIntermediateAndRoot()
+    {
+        Assert.True(
+            MeshCertificateLoader.IsIssuedBy(
+                _certificates.Leaf,
+                _certificates.Intermediate,
+                _certificates.Root
+            )
+        );
+    }
+
+    [Fact]
+    public void ShouldReturnFalse_WhenClientCertificateIsIssuedByAnotherCa()
+    {
+        using var other = new TestCertificates();
+
+        Assert.False(
+            MeshCertificateLoader.IsIssuedBy(
+                other.Leaf,
+                _certificates.Intermediate,
+                _certificates.Root
+            )
+        );
+    }
+
+    [Fact]
+    public void ShouldThrow_WhenPfxHasNoPrivateKey()
+    {
+        using var publicOnlyLeaf = X509CertificateLoader.LoadCertificate(
+            _certificates.Leaf.RawData
+        );
+        var publicOnlyPfxBase64 = Convert.ToBase64String(
+            publicOnlyLeaf.Export(X509ContentType.Pkcs12, TestCertificates.PfxPassword)
+        );
+
+        Assert.Throws<CryptographicException>(() =>
+            MeshCertificateLoader.LoadClientCertificate(
+                publicOnlyPfxBase64,
+                TestCertificates.PfxPassword
+            )
+        );
     }
 
     [Fact]
