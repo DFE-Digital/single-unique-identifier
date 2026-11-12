@@ -168,14 +168,30 @@ jobs:
             --image "notification-service:${{ needs.resolve-image.outputs.image_tag }}" \
             --output none
 
-      - name: Build and publish container image
+      - name: Build container image
         if: needs.resolve-image.outputs.push_image == 'true'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: Apps/NotificationService/Dockerfile
-          push: ${{ needs.resolve-image.outputs.push_image == 'true' }}
+          load: true
+          push: false
           tags: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, needs.resolve-image.outputs.image_tag) }}
+
+      - name: Scan container image for vulnerabilities
+        if: needs.resolve-image.outputs.push_image == 'true'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, needs.resolve-image.outputs.image_tag) }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          vuln-type: os,library
+          scanners: vuln,misconfig
+
+      - name: Publish container image
+        if: needs.resolve-image.outputs.push_image == 'true'
+        run: docker push ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, needs.resolve-image.outputs.image_tag) }}
 
   validate-container:
     name: Notification Service - container validation
@@ -202,6 +218,16 @@ jobs:
           load: true
           push: false
           tags: notification-service:${{ needs.resolve-image.outputs.image_tag }}
+
+      - name: Scan container image for vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: notification-service:${{ needs.resolve-image.outputs.image_tag }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          vuln-type: os,library
+          scanners: vuln,misconfig
 
       - name: Start MESH sandbox
         run: docker compose up -d --wait mesh_sandbox
