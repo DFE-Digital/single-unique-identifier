@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="SUI.NotificationService.Mesh.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SUI.NotificationService.Application\SUI.NotificationService.Application.csproj" />
   </ItemGroup>
 </Project>

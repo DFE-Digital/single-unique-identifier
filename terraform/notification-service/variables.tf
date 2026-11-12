@@ -139,6 +139,30 @@ variable "nhs_mesh_mailbox_password" {
   }
 }
 
+# The CA certificates are public, but are held as secrets alongside the other MESH values.
+# Each is the NHS-supplied PEM (or DER) file, base64-encoded onto a single line.
+variable "nhs_mesh_root_ca" {
+  description = "Base64 of the NHS root CA certificate that MESH's server certificate chains to (NhsMeshConfig__MailboxRootCA)."
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9+/]+={0,2}$", var.nhs_mesh_root_ca))
+    error_message = "nhs_mesh_root_ca must be a non-empty single-line base64 string, not raw PEM."
+  }
+}
+
+variable "nhs_mesh_intermediate_ca" {
+  description = "Base64 of the NHS intermediate CA certificate issued by the root CA (NhsMeshConfig__MailboxIntermediateCA)."
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9+/]+={0,2}$", var.nhs_mesh_intermediate_ca))
+    error_message = "nhs_mesh_intermediate_ca must be a non-empty single-line base64 string, not raw PEM."
+  }
+}
+
 # The variables below are declared because all service roots consume the shared
 # environment tfvars files. They are not used by the Notification Service root.
 variable "app_service_plan_sku" {
