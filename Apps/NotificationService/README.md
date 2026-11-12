@@ -163,15 +163,20 @@ revocation check, and `MeshHandlerConfigurationTests` fails while it is in place
 The deployed Container Apps job receives these values from GitHub environment configuration
 (per environment `d01`–`d03`), passed through `terraform-plan-and-apply.yml` as Terraform variables:
 
-| GitHub                                    | Terraform variable          | App setting                      |
-| ----------------------------------------- | --------------------------- | -------------------------------- |
-| variable `NHS_MESH_CONFIG_BASE_URL`       | `nhs_mesh_mailbox_base_url` | `NhsMeshConfig__MailboxBaseUrl`  |
-| secret `NHS_MESH_CONFIG_SHARED_KEY`       | `nhs_mesh_shared_key`       | `NhsMeshConfig__SharedKey`       |
-| secret `NHS_MESH_CONFIG_MAILBOX_ID`       | `nhs_mesh_mailbox_id`       | `NhsMeshConfig__MailboxId`       |
-| secret `NHS_MESH_CONFIG_MAILBOX_PASSWORD` | `nhs_mesh_mailbox_password` | `NhsMeshConfig__MailboxPassword` |
+| GitHub                                    | Terraform variable          | App setting                            |
+| ----------------------------------------- | --------------------------- | -------------------------------------- |
+| variable `NHS_MESH_CONFIG_BASE_URL`       | `nhs_mesh_mailbox_base_url` | `NhsMeshConfig__MailboxBaseUrl`        |
+| secret `NHS_MESH_CONFIG_SHARED_KEY`       | `nhs_mesh_shared_key`       | `NhsMeshConfig__SharedKey`             |
+| secret `NHS_MESH_CONFIG_MAILBOX_ID`       | `nhs_mesh_mailbox_id`       | `NhsMeshConfig__MailboxId`             |
+| secret `NHS_MESH_CONFIG_MAILBOX_PASSWORD` | `nhs_mesh_mailbox_password` | `NhsMeshConfig__MailboxPassword`       |
+| secret `NHS_MESH_CONFIG_ROOT_CA`          | `nhs_mesh_root_ca`          | `NhsMeshConfig__MailboxRootCA`         |
+| secret `NHS_MESH_CONFIG_INTERMEDIATE_CA`  | `nhs_mesh_intermediate_ca`  | `NhsMeshConfig__MailboxIntermediateCA` |
 
-The three secrets are stored as Container App job secrets and referenced by the container's
-environment. Terraform also sets `NhsMeshConfig__AcceptLocalDevCert=false`, overriding
+The secrets are stored as Container App job secrets and referenced by the container's
+environment. Each CA secret is the NHS-supplied certificate file base64-encoded onto one line
+(`base64 -i <root.pem>` on macOS, `base64 -w0 <root.pem>` on Linux); Terraform rejects a raw PEM.
+The client certificate (`MailboxMTLSPfx`) is not supplied this way: it will come from Key Vault, and
+until it does, a deployed run fails startup validation naming `MailboxMTLSPfx`. Terraform also sets `NhsMeshConfig__AcceptLocalDevCert=false`, overriding
 `appsettings.Development.json`, which the deployed `Development` environment would otherwise inherit.
 
 The PR container validation does not use these values: it starts the local MESH sandbox on the runner

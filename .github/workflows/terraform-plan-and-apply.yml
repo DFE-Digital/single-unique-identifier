@@ -53,6 +53,10 @@ on:
         required: false
       NHS_MESH_CONFIG_MAILBOX_PASSWORD:
         required: false
+      NHS_MESH_CONFIG_ROOT_CA:
+        required: false
+      NHS_MESH_CONFIG_INTERMEDIATE_CA:
+        required: false
       # Secret that grants end-users access to the deployed UI Test Harness
       UI_TEST_HARNESS_PASSWORD:
         required: false
@@ -109,6 +113,8 @@ jobs:
       TF_VAR_nhs_mesh_shared_key: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
       TF_VAR_nhs_mesh_mailbox_id: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
       TF_VAR_nhs_mesh_mailbox_password: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
+      TF_VAR_nhs_mesh_root_ca: ${{ secrets.NHS_MESH_CONFIG_ROOT_CA }}
+      TF_VAR_nhs_mesh_intermediate_ca: ${{ secrets.NHS_MESH_CONFIG_INTERMEDIATE_CA }}
       # The secret below is required for the UI Test Harness, and is transmitted from Github Secrets to the Azure Key Vault.
       TF_VAR_ui_test_harness_password: ${{ secrets.UI_TEST_HARNESS_PASSWORD }}
       # Ability to pass sensitive Auth Settings (these values can be checked for debugging purposes by looking at the app settings in the Azure Portal):

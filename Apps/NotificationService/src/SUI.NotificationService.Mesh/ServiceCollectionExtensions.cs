@@ -135,7 +135,7 @@ public static class ServiceCollectionExtensions
         var chainPolicy = new X509ChainPolicy
         {
             TrustMode = X509ChainTrustMode.CustomRootTrust,
-            RevocationMode = X509RevocationMode.NoCheck,
+            RevocationMode = X509RevocationMode.Online,
             RevocationFlag = X509RevocationFlag.ExcludeRoot,
         };
         chainPolicy.CustomTrustStore.Add(root);

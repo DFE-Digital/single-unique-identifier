@@ -207,6 +207,16 @@ resource "azurerm_container_app_job" "notification_service" {
     value = var.nhs_mesh_mailbox_password
   }
 
+  secret {
+    name  = "nhs-mesh-root-ca"
+    value = var.nhs_mesh_root_ca
+  }
+
+  secret {
+    name  = "nhs-mesh-intermediate-ca"
+    value = var.nhs_mesh_intermediate_ca
+  }
+
   template {
     container {
       name   = "notification-service"
@@ -242,6 +252,16 @@ resource "azurerm_container_app_job" "notification_service" {
       env {
         name        = "NhsMeshConfig__MailboxPassword"
         secret_name = "nhs-mesh-mailbox-password"
+      }
+
+      env {
+        name        = "NhsMeshConfig__MailboxRootCA"
+        secret_name = "nhs-mesh-root-ca"
+      }
+
+      env {
+        name        = "NhsMeshConfig__MailboxIntermediateCA"
+        secret_name = "nhs-mesh-intermediate-ca"
       }
 
       # appsettings.Development.json enables this for the local sandbox; it must never be

@@ -250,6 +250,8 @@ jobs:
       NHS_MESH_CONFIG_SHARED_KEY: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
       NHS_MESH_CONFIG_MAILBOX_ID: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
       NHS_MESH_CONFIG_MAILBOX_PASSWORD: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
+      NHS_MESH_CONFIG_ROOT_CA: ${{ secrets.NHS_MESH_CONFIG_ROOT_CA }}
+      NHS_MESH_CONFIG_INTERMEDIATE_CA: ${{ secrets.NHS_MESH_CONFIG_INTERMEDIATE_CA }}
     permissions:
       contents: read
       id-token: write
