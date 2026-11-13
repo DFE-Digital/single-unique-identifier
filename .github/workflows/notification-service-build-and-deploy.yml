@@ -182,6 +182,7 @@ jobs:
         if: needs.resolve-image.outputs.push_image == 'true'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
+          version: v0.76.2
           image-ref: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, needs.resolve-image.outputs.image_tag) }}
           format: table
           severity: HIGH,CRITICAL
@@ -222,6 +223,7 @@ jobs:
       - name: Scan container image for vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
+          version: v0.76.2
           image-ref: notification-service:${{ needs.resolve-image.outputs.image_tag }}
           format: table
           severity: HIGH,CRITICAL
