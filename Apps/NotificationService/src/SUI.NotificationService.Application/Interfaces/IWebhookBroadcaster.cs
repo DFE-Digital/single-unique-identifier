@@ -6,9 +6,9 @@ public interface IWebhookBroadcaster
 {
     /// <summary>
     /// Broadcasts all notifications to the enabled suppliers.
-    /// Returns a list of MESH message IDs that were successfully processed and can be acknowledged.
+    /// Returns an aggregate result for each notification detailing the delivery outcomes.
     /// </summary>
-    Task<IReadOnlyList<string>> BroadcastBatchAsync(
+    Task<IReadOnlyList<BroadcastAggregateResult>> BroadcastBatchAsync(
         IReadOnlyList<PdsRecordChangeNotification> notifications,
         CancellationToken cancellationToken
     );
