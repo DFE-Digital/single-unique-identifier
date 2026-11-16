@@ -262,7 +262,7 @@ jobs:
       id-token: write
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply || true }}
+      apply: inputs.apply
       root: terraform/notification-service
       state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
       terraform_variables: >-
