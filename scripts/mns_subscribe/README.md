@@ -13,7 +13,7 @@ It creates two subscriptions (criteria are at the top of `subscribe.cs`):
 
 1. **MESH mailbox** exists and you know its ID.
 2. **Workflow ID** to tag the MESH messages with. MNS needs one but does not require a specific
-   value, so it is arbitrary (e.g. `PDSRECORDCHANGE_2`). NotificationService does not filter on it.
+   value, so it is arbitrary (e.g. `someWorkflowId001`). NotificationService does not filter on it.
 3. **MNS onboarding approved** for `pds-record-change-2` with the filters above, via the
    [MNS ServiceNow form](https://digital.nhs.uk/services/multicast-notification-service/subscribe-to-the-multicast-notification-service).
 4. **MNS API added** to the GetAnIdentifier application in the [NHS developer portal](https://onboarding.prod.api.platform.nhs.uk/).
