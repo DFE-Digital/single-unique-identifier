@@ -45,4 +45,4 @@ jobs:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
       apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply }}
       root: terraform/notification-service
-      state_key: ${{ format('{0}/notificationservice.tfstate', (github.event_name == 'workflow_dispatch' && inputs.environment || 'd01')) }}
+      state_key: ${{ format('{0}/notification-service.tfstate', (github.event_name == 'workflow_dispatch' && inputs.environment || 'd01')) }}
