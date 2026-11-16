@@ -17,6 +17,11 @@ on:
         description: Existing 40-character SHA image tag to deploy (leave blank to build and publish this commit)
         required: false
         type: string
+      apply:
+        description: Apply changes (otherwise plan only)
+        required: true
+        default: true
+        type: boolean
       upload_artifacts:
         description: Upload build artifacts
         required: false
@@ -257,7 +262,7 @@ jobs:
       id-token: write
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: true
+      apply: ${{ github.event_name == 'workflow_dispatch' && inputs.apply || true }}
       root: terraform/notification-service
       state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
       terraform_variables: >-

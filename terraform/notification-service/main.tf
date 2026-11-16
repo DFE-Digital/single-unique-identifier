@@ -100,6 +100,30 @@ module "rbac_assignments_terraform_operator" {
   } : {}
 }
 
+# Access policy fallback for environments that cannot create RBAC role assignments.
+resource "azurerm_key_vault_access_policy" "terraform_operator" {
+  count = var.key_vault_use_rbac ? 0 : 1
+
+  key_vault_id = module.key_vault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Get",
+    "Set",
+    "Delete",
+    "List",
+  ]
+
+  storage_permissions = [
+    "Get",
+  ]
+}
+
 resource "azurerm_user_assigned_identity" "notification_service" {
   name                = local.identity_name
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
