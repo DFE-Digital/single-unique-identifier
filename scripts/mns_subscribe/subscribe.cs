@@ -69,7 +69,8 @@ var workflowIdOption = new Option<string>("--workflow-id")
 
 var dryRunOption = new Option<bool>("--dry-run")
 {
-    Description = "Print the requests without sending anything (no credentials needed)",
+    Description =
+        "Check existing subscriptions and show which would be created or skipped, without creating anything (needs credentials, except sandbox)",
 };
 
 var createCommand = new Command(
@@ -152,20 +153,6 @@ async Task<int> CreateAsync(
         })
         .ToList();
 
-    if (dryRun)
-    {
-        Console.WriteLine($"[dry run] Token URL:         {tokenUrl}");
-        Console.WriteLine($"[dry run] Subscriptions URL: {subscriptionsUrl}");
-        foreach (var request in requests)
-        {
-            Console.WriteLine(request.Body.ToJsonString(indentedJsonOptions));
-        }
-        Console.WriteLine(
-            "[dry run] Nothing was sent, and existing subscriptions were not checked (that needs credentials)."
-        );
-        return 0;
-    }
-
     using var http = CreateHttpClient();
 
     var (authenticated, accessToken) = await AuthenticateAsync(
@@ -205,14 +192,16 @@ async Task<int> CreateAsync(
             var matchStatus = match["status"]?.ToString();
             var matchEndpoint = (match["channel"] as JsonObject)?["endpoint"]?.ToString();
 
-            Console.WriteLine($"SKIPPED (already exists): {request.Criteria}");
+            Console.WriteLine(
+                $"{(dryRun ? "WOULD SKIP" : "SKIPPED")} (already exists): {request.Criteria}"
+            );
             Console.WriteLine($"  Subscription ID: {match["id"]}  {matchStatus}");
             Console.WriteLine($"  Endpoint:        {matchEndpoint}");
             if (!string.Equals(matchEndpoint, meshEndpoint, StringComparison.OrdinalIgnoreCase))
             {
                 Console.Error.WriteLine(
                     $"  WARNING: the existing endpoint differs from the requested {meshEndpoint}. "
-                        + "The requested workflow ID was not applied; to change it, delete this subscription and re-run."
+                        + "Existing subscriptions keep their workflow ID; to change it, delete this subscription and re-run."
                 );
             }
             if (matchStatus != "active")
@@ -223,6 +212,14 @@ async Task<int> CreateAsync(
                 );
                 skippedInactive = true;
             }
+            continue;
+        }
+
+        if (dryRun)
+        {
+            Console.WriteLine($"WOULD CREATE: {request.Criteria}");
+            Console.WriteLine($"  POST {subscriptionsUrl}");
+            Console.WriteLine(request.Body.ToJsonString(indentedJsonOptions));
             continue;
         }
 
@@ -282,6 +279,11 @@ async Task<int> CreateAsync(
                 Console.WriteLine($"  Response:        {responseBody}");
             }
         }
+    }
+
+    if (dryRun)
+    {
+        Console.WriteLine("[dry run] Nothing was created.");
     }
 
     return skippedInactive ? 1 : 0;

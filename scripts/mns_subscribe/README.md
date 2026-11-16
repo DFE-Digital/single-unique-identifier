@@ -26,7 +26,7 @@ From the repository root. Use `--env int` or `--env prod`; `--help` lists all op
 ```bash
 export NHS_DIGITAL_CLIENT_ID=... NHS_DIGITAL_KID=... NHS_DIGITAL_PRIVATE_KEY=...   # PEM
 
-# Preview the requests (nothing sent, no credentials needed)
+# Plan: check existing subscriptions and show what would be created or skipped (creates nothing)
 dotnet run scripts/mns_subscribe/subscribe.cs -- create --env int --mailbox <MAILBOX_ID> --workflow-id <WORKFLOW_ID> --dry-run
 
 # Show existing subscriptions
