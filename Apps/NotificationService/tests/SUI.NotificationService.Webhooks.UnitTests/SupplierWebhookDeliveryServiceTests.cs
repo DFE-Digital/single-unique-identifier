@@ -45,18 +45,16 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
         var timestamp = DateTimeOffset.FromUnixTimeSeconds(1788341400);
         var base64Secret = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="; // gitleaks:allow
         var expectedSignature =
-            "sha256=703b385e5ad09d1971a40a7a9868ae090d3fb0a77233d0a2fc702785e7c90fa8";
+            "sha256=3b6b5aec9054a58dd6f84bc39d0302b373b923a3f77e0ad266bb35021f455416";
 
         var request = new WebhookDeliveryRequest(
             SourceEventId: eventId,
-            EventType: LifecycleEventType.NhsNumberChanged,
+            EventType: LifecycleEventType.PdsRecordChanged,
             OccurredAt: DateTimeOffset.Parse("2026-09-02T09:30:00Z"),
             AffectedNhsNumber: "9876543210",
             DeliveryId: deliveryId,
-            DeliveryAttempt: 1,
             CorrelationId: Guid.NewGuid(),
             EndpointUrl: "https://supplier.com/webhook",
-            KeyId: "key-1",
             SecretKeyVaultReference: "kv-ref"
         );
 
@@ -75,7 +73,6 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
                 req.Headers.GetValues("X-SUI-Delivery-ID").Single()
             );
             Assert.Equal("1788341400", req.Headers.GetValues("X-SUI-Timestamp").Single());
-            Assert.Equal("key-1", req.Headers.GetValues("X-SUI-Key-ID").Single());
             Assert.Equal(
                 "application/vnd.dfe.sui.lifecycle-notification.v1+json",
                 req.Content?.Headers.ContentType?.ToString()
@@ -93,15 +90,15 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
         // Assert
         Assert.True(result.ResponseReceived);
         Assert.Equal((int)HttpStatusCode.Accepted, result.HttpStatusCode);
+        Assert.Equal(DeliveryOutcome.Success, result.Outcome);
     }
 
     [Fact]
-    public async Task DeliverAsync_GeneratesCorrectPayload_ForGpChanged()
+    public async Task DeliverAsync_GeneratesCorrectPayload_ForPdsRecordChange()
     {
         // Arrange
         var request = CreateBaseRequest() with
         {
-            EventType = LifecycleEventType.GpChanged,
             AffectedNhsNumber = "9434765919",
         };
 
@@ -116,7 +113,7 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
 
             // Assert required properties exist and are correct
             Assert.Equal("1", root.GetProperty("schemaVersion").GetString());
-            Assert.Equal("gpChanged", root.GetProperty("eventType").GetString());
+            Assert.Equal("pdsRecordChanged", root.GetProperty("eventType").GetString()); // Updated assertion
             Assert.Equal("9434765919", root.GetProperty("affectedNhsNumber").GetString());
 
             // Assert forbidden properties are physically absent
@@ -137,7 +134,7 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task DeliverAsync_ReturnsTimeoutResult_WhenTaskCanceledExceptionThrown()
+    public async Task DeliverAsync_ReturnsTimeoutResult_ClassifiedAsRetryable_WhenTaskCanceledExceptionThrown()
     {
         // Arrange
         var request = CreateBaseRequest();
@@ -152,6 +149,7 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
         Assert.False(result.ResponseReceived);
         Assert.True(result.TimedOut);
         Assert.False(result.ConnectionFailed);
+        Assert.Equal(DeliveryOutcome.RetryableFailure, result.Outcome);
 
         // Ensure no PII was logged
         _loggerMock
@@ -166,7 +164,7 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task DeliverAsync_ReturnsConnectionFailedResult_WhenHttpRequestExceptionThrown()
+    public async Task DeliverAsync_ReturnsConnectionFailedResult_ClassifiedAsRetryable_WhenHttpRequestExceptionThrown()
     {
         // Arrange
         var request = CreateBaseRequest();
@@ -181,15 +179,26 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
         Assert.False(result.ResponseReceived);
         Assert.False(result.TimedOut);
         Assert.True(result.ConnectionFailed);
+        Assert.Equal(DeliveryOutcome.RetryableFailure, result.Outcome);
     }
 
     [Theory]
-    [InlineData(HttpStatusCode.TooManyRequests)] // 429
-    [InlineData(HttpStatusCode.InternalServerError)] // 500
-    [InlineData(HttpStatusCode.BadRequest)] // 400
-    [InlineData(HttpStatusCode.Redirect)] // 302 - Redirect test
-    [InlineData(HttpStatusCode.MovedPermanently)] // 301 - Redirect test
-    public async Task DeliverAsync_CapturesVariousStatusCodes(HttpStatusCode code)
+    [InlineData(HttpStatusCode.Accepted, DeliveryOutcome.Success)] // 202 ONLY is Success
+    [InlineData(HttpStatusCode.OK, DeliveryOutcome.PermanentFailure)] // 200 is a contract violation
+    [InlineData(HttpStatusCode.NoContent, DeliveryOutcome.PermanentFailure)] // 204 is a contract violation
+    [InlineData(HttpStatusCode.RequestTimeout, DeliveryOutcome.RetryableFailure)] // 408
+    [InlineData((HttpStatusCode)425, DeliveryOutcome.RetryableFailure)] // 425 Too Early
+    [InlineData(HttpStatusCode.TooManyRequests, DeliveryOutcome.RetryableFailure)] // 429
+    [InlineData(HttpStatusCode.InternalServerError, DeliveryOutcome.RetryableFailure)] // 500
+    [InlineData(HttpStatusCode.BadGateway, DeliveryOutcome.RetryableFailure)] // 502
+    [InlineData(HttpStatusCode.BadRequest, DeliveryOutcome.PermanentFailure)] // 400
+    [InlineData(HttpStatusCode.Unauthorized, DeliveryOutcome.PermanentFailure)] // 401
+    [InlineData(HttpStatusCode.Forbidden, DeliveryOutcome.PermanentFailure)] // 403
+    [InlineData(HttpStatusCode.NotFound, DeliveryOutcome.PermanentFailure)] // 404
+    public async Task DeliverAsync_ClassifiesVariousStatusCodesCorrectly(
+        HttpStatusCode code,
+        DeliveryOutcome expectedOutcome
+    )
     {
         // Arrange
         var request = CreateBaseRequest();
@@ -209,6 +218,7 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
         // Assert
         Assert.True(result.ResponseReceived);
         Assert.Equal((int)code, result.HttpStatusCode);
+        Assert.Equal(expectedOutcome, result.Outcome);
     }
 
     [Fact]
@@ -240,14 +250,12 @@ public class SupplierWebhookDeliveryServiceTests : IDisposable
     private static WebhookDeliveryRequest CreateBaseRequest() =>
         new(
             SourceEventId: Guid.NewGuid(),
-            EventType: LifecycleEventType.NhsNumberChanged,
+            EventType: LifecycleEventType.PdsRecordChanged,
             OccurredAt: DateTimeOffset.UtcNow,
             AffectedNhsNumber: "1234567890",
             DeliveryId: Guid.NewGuid(),
-            DeliveryAttempt: 1,
             CorrelationId: Guid.NewGuid(),
             EndpointUrl: "https://supplier.com/webhook",
-            KeyId: "key-1",
             SecretKeyVaultReference: "kv-ref"
         );
 

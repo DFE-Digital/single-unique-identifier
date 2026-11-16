@@ -5,4 +5,13 @@ namespace SUI.NotificationService.Application.Models;
 /// </summary>
 /// <param name="MessageId">MESH message identifier, used to acknowledge the message once the change has been handled.</param>
 /// <param name="NhsNumber">NHS number of the patient whose PDS record changed.</param>
-public sealed record PdsRecordChangeNotification(string MessageId, string NhsNumber);
+/// <param name="EventId">The canonical identifier of the source event, parsed from the FHIR Bundle.</param>
+/// <param name="EventType">The classification of the lifecycle event (e.g., GPChange, NhsNumberChanged).</param>
+/// <param name="OccurredAt">The timestamp when the original event occurred, parsed from the FHIR Bundle.</param>
+public sealed record PdsRecordChangeNotification(
+    string MessageId,
+    string NhsNumber,
+    Guid EventId,
+    LifecycleEventType EventType,
+    DateTimeOffset OccurredAt
+);

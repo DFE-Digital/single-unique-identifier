@@ -6,9 +6,7 @@ public record WebhookDeliveryRequest(
     DateTimeOffset OccurredAt,
     string AffectedNhsNumber,
     Guid DeliveryId,
-    int DeliveryAttempt,
     Guid CorrelationId,
     string EndpointUrl,
-    string KeyId,
     string SecretKeyVaultReference
 );

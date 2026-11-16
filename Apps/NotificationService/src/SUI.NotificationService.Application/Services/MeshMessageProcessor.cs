@@ -29,10 +29,13 @@ public class MeshMessageProcessor(
     {
         var messageIds = await meshInboxClient.GetMessageIdsAsync(cancellationToken);
 
-        logger.LogInformation(
-            "MESH mailbox holds {MessageCount} message(s) to read in this execution",
-            messageIds.Count
-        );
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation(
+                "MESH mailbox holds {MessageCount} message(s) to read in this execution",
+                messageIds.Count
+            );
+        }
 
         var notifications = new List<PdsRecordChangeNotification>();
 
@@ -164,11 +167,14 @@ public class MeshMessageProcessor(
                 await AcknowledgeMessageAsync(duplicateMessageId, cancellationToken);
                 acknowledgedCount++;
 
-                logger.LogInformation(
-                    "MESH message {DuplicateMessageId} acknowledged as a duplicate of {NonDuplicateMessageId}",
-                    duplicateMessageId,
-                    nonDuplicateMessageId
-                );
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation(
+                        "MESH message {DuplicateMessageId} acknowledged as a duplicate of {NonDuplicateMessageId}",
+                        duplicateMessageId,
+                        nonDuplicateMessageId
+                    );
+                }
             }
             catch (Exception exception)
                 when (IsExpectedTransportFailure(exception, cancellationToken))
@@ -185,11 +191,14 @@ public class MeshMessageProcessor(
             }
         }
 
-        logger.LogInformation(
-            "{AcknowledgedCount} duplicate MESH message(s) acknowledged, {FailedCount} acknowledgement(s) failed",
-            acknowledgedCount,
-            failedCount
-        );
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation(
+                "{AcknowledgedCount} duplicate MESH message(s) acknowledged, {FailedCount} acknowledgement(s) failed",
+                acknowledgedCount,
+                failedCount
+            );
+        }
     }
 
     private async Task<PdsRecordChangeNotification?> ProcessMessageAsync(
@@ -203,10 +212,13 @@ public class MeshMessageProcessor(
         {
             if (MeshNotificationParser.IsKnownOtherEvent(message.Content))
             {
-                logger.LogInformation(
-                    "MESH message {MessageId} is a known event we do not subscribe to and was ignored",
-                    messageId
-                );
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation(
+                        "MESH message {MessageId} is a known event we do not subscribe to and was ignored",
+                        messageId
+                    );
+                }
                 return null;
             }
 
@@ -231,12 +243,38 @@ public class MeshMessageProcessor(
             return null;
         }
 
-        logger.LogInformation(
-            "MESH message {MessageId} received carrying pds-record-change-2 Bundle {BundleId}",
-            message.MessageId,
-            notification.Id
-        );
+        if (
+            !MeshNotificationParser.TryGetEventDetails(
+                notification,
+                out var eventId,
+                out var occurredAt
+            )
+        )
+        {
+            // Inability to obtain a valid EventId and a Timestamp means there was an issue
+            // in parsing the details, therefore the message remains unacknowledged.
+            logger.LogError(
+                "MESH message {MessageId} carried an invalid or missing Event ID Guid and was left unacknowledged",
+                messageId
+            );
+            return null;
+        }
 
-        return new PdsRecordChangeNotification(message.MessageId, nhsNumber);
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation(
+                "MESH message {MessageId} received carrying pds-record-change-2 Bundle {BundleId}",
+                message.MessageId,
+                notification.Id
+            );
+        }
+
+        return new PdsRecordChangeNotification(
+            message.MessageId,
+            nhsNumber,
+            eventId,
+            LifecycleEventType.PdsRecordChanged, // Temporary fallback
+            occurredAt
+        );
     }
 }
