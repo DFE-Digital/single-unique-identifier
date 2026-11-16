@@ -44,6 +44,10 @@ public sealed class MeshHandlerConfigurationTests : IDisposable
             .CreateHandler(MeshInboxClient.HttpClientName);
 
         var sockets = FindPrimaryHandler(handler);
+
+        // A callback here would override chain and hostname validation against real MESH.
+        Assert.Null(sockets.SslOptions.RemoteCertificateValidationCallback);
+
         var clientContext = sockets.SslOptions.ClientCertificateContext!;
         Assert.Equal(_certificates.Leaf.Thumbprint, clientContext.TargetCertificate.Thumbprint);
         Assert.Contains(
@@ -54,6 +58,7 @@ public sealed class MeshHandlerConfigurationTests : IDisposable
         var chainPolicy = sockets.SslOptions.CertificateChainPolicy!;
         Assert.Equal(X509ChainTrustMode.CustomRootTrust, chainPolicy.TrustMode);
         Assert.Equal(X509RevocationMode.Online, chainPolicy.RevocationMode);
+        Assert.Equal(X509RevocationFlag.ExcludeRoot, chainPolicy.RevocationFlag);
         Assert.Equal(
             _certificates.Root.Thumbprint,
             Assert.Single(chainPolicy.CustomTrustStore).Thumbprint
