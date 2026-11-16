@@ -17,6 +17,11 @@ on:
         description: Existing 40-character SHA image tag to deploy (leave blank to build and publish this commit)
         required: false
         type: string
+      apply:
+        description: Apply changes (otherwise plan only)
+        required: true
+        default: true
+        type: boolean
       upload_artifacts:
         description: Upload build artifacts
         required: false
@@ -41,6 +46,7 @@ on:
       - scripts/pds-record-change-2-notification.template.json
       - terraform/notification-service/**
       - terraform/core/**
+      - terraform/modules/**
       - terraform/environments/**
       - .github/workflows/notification-service-build-and-deploy.yml
       - .github/workflows/terraform-plan-and-apply.yml
@@ -53,6 +59,7 @@ on:
       - scripts/pds-record-change-2-notification.template.json
       - terraform/notification-service/**
       - terraform/core/**
+      - terraform/modules/**
       - terraform/environments/**
       - .github/workflows/notification-service-build-and-deploy.yml
       - .github/workflows/terraform-plan-and-apply.yml
@@ -255,7 +262,7 @@ jobs:
       id-token: write
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: true
+      apply: inputs.apply
       root: terraform/notification-service
       state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
       terraform_variables: >-
