@@ -8,7 +8,7 @@
 //
 // Usage (run with --help for details):
 //   dotnet run scripts/mns_subscribe/subscribe.cs -- list   --env int
-//   dotnet run scripts/mns_subscribe/subscribe.cs -- create --env int --mailbox <MAILBOX_ID> [--workflow-id <ID>] [--dry-run]
+//   dotnet run scripts/mns_subscribe/subscribe.cs -- create --env int --mailbox <MAILBOX_ID> --workflow-id <ID> [--dry-run]
 //
 // Secrets are read from environment variables only (never pass them as arguments):
 //   NHS_DIGITAL_CLIENT_ID, NHS_DIGITAL_KID, NHS_DIGITAL_PRIVATE_KEY (PEM)
@@ -61,10 +61,11 @@ var mailboxOption = new Option<string>("--mailbox")
     Required = true,
 };
 
-var workflowIdOption = new Option<string?>("--workflow-id")
+var workflowIdOption = new Option<string>("--workflow-id")
 {
     Description =
-        "Optional MESH workflow ID added to the endpoint (mesh://<MAILBOX>?workflow_id=<ID>)",
+        "MESH workflow ID added to the endpoint (mesh://<MAILBOX>?workflow_id=<ID>). MNS accepts any value",
+    Required = true,
 };
 
 var dryRunOption = new Option<bool>("--dry-run")
@@ -87,7 +88,7 @@ createCommand.SetAction(
         CreateAsync(
             parseResult.GetValue(envOption)!,
             parseResult.GetValue(mailboxOption)!,
-            parseResult.GetValue(workflowIdOption),
+            parseResult.GetValue(workflowIdOption)!,
             parseResult.GetValue(dryRunOption),
             cancellationToken
         )
@@ -118,7 +119,7 @@ return await rootCommand.Parse(args).InvokeAsync();
 async Task<int> CreateAsync(
     string environment,
     string mailbox,
-    string? workflowId,
+    string workflowId,
     bool dryRun,
     CancellationToken cancellationToken
 )
@@ -127,13 +128,9 @@ async Task<int> CreateAsync(
     var tokenUrl = $"{baseUrl}/oauth2/token";
     var subscriptionsUrl = $"{baseUrl}/multicast-notification-service/subscriptions";
 
-    // MNS delivers to MESH using this endpoint format. The workflow ID is optional here; MNS docs
-    // show mesh://<MAILBOX>?workflow_id=<ID>, so if MNS rejects the endpoint, re-run with --workflow-id.
-    var meshEndpoint = string.IsNullOrWhiteSpace(workflowId)
-        ? $"mesh://{mailbox}"
-        : $"mesh://{mailbox}?workflow_id={workflowId}";
-
-    Console.WriteLine("meshEndpoint: {0}", meshEndpoint);
+    // MNS delivers to MESH using this endpoint format. MNS needs a workflow ID but does not require
+    // a specific value; MESH messages arrive tagged with it.
+    var meshEndpoint = $"mesh://{mailbox}?workflow_id={workflowId}";
 
     var requests = subscriptions
         .Select(s => new
@@ -380,8 +377,6 @@ static async Task<string?> GetAccessTokenAsync(
     var kid = Environment.GetEnvironmentVariable("NHS_DIGITAL_KID");
     var privateKey = Environment.GetEnvironmentVariable("NHS_DIGITAL_PRIVATE_KEY");
 
-    Console.WriteLine("ClientID: {0}", clientId);
-
     if (
         string.IsNullOrWhiteSpace(clientId)
         || string.IsNullOrWhiteSpace(kid)
@@ -454,8 +449,6 @@ static async Task<List<JsonObject>?> GetSubscriptionsAsync(
 {
     var subscriptions = new List<JsonObject>();
     string? continueFrom = null;
-
-    Console.WriteLine("subscriptionsUrl: {0}: ", subscriptionsUrl);
 
     while (true)
     {
