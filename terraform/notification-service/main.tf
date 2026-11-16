@@ -148,16 +148,6 @@ resource "azurerm_storage_account" "notification_service" {
   public_network_access_enabled     = true
   min_tls_version                   = "TLS1_2"
 
-  queue_properties {
-    logging {
-      delete                = true
-      read                  = true
-      write                 = true
-      version               = "1.0"
-      retention_policy_days = 30
-    }
-  }
-
   tags = local.tags
 }
 
@@ -178,8 +168,7 @@ resource "azurerm_private_dns_zone" "storage_table" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage_table" {
   name                  = local.private_dns_link_name
-  resource_group_name   = data.terraform_remote_state.core.outputs.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.storage_table.name
+  private_dns_zone_id   = azurerm_private_dns_zone.storage_table.id
   virtual_network_id    = data.terraform_remote_state.core.outputs.function_app_integration_vnet_id
   registration_enabled  = false
 
