@@ -22,7 +22,6 @@ using System.Security.Cryptography;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
@@ -193,17 +192,37 @@ async Task<int> CreateAsync(
         return 1;
     }
 
+    // Set when a skipped subscription is not active, so the run does not report success while
+    // no events are being delivered for that criteria.
+    var skippedInactive = false;
+
     // Stop at the first failure so we know exactly what was created.
     foreach (var request in requests)
     {
         var match = existing.FirstOrDefault(s => IsSameSubscription(s, request.Criteria, mailbox));
         if (match is not null)
         {
+            var matchStatus = match["status"]?.ToString();
+            var matchEndpoint = (match["channel"] as JsonObject)?["endpoint"]?.ToString();
+
             Console.WriteLine($"SKIPPED (already exists): {request.Criteria}");
-            Console.WriteLine($"  Subscription ID: {match["id"]}  {match["status"]}");
-            Console.WriteLine(
-                $"  Endpoint:        {(match["channel"] as JsonObject)?["endpoint"]}"
-            );
+            Console.WriteLine($"  Subscription ID: {match["id"]}  {matchStatus}");
+            Console.WriteLine($"  Endpoint:        {matchEndpoint}");
+            if (!string.Equals(matchEndpoint, meshEndpoint, StringComparison.OrdinalIgnoreCase))
+            {
+                Console.Error.WriteLine(
+                    $"  WARNING: the existing endpoint differs from the requested {meshEndpoint}. "
+                        + "The requested workflow ID was not applied; to change it, delete this subscription and re-run."
+                );
+            }
+            if (matchStatus != "active")
+            {
+                Console.Error.WriteLine(
+                    $"  WARNING: this subscription is '{matchStatus}', not 'active', so it may not be delivering events. "
+                        + "Run 'list' for details."
+                );
+                skippedInactive = true;
+            }
             continue;
         }
 
@@ -265,7 +284,7 @@ async Task<int> CreateAsync(
         }
     }
 
-    return 0;
+    return skippedInactive ? 1 : 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -486,11 +505,22 @@ static async Task<List<JsonObject>?> GetSubscriptionsAsync(
             .OfType<JsonObject>()
             .FirstOrDefault(l => l["relation"]?.ToString() == "next")
             ?["url"]?.ToString();
-        var nextCursor = nextUrl is null ? null : ContinueFrom(nextUrl);
-
-        if (nextCursor is null || nextCursor == continueFrom)
+        if (nextUrl is null)
         {
             return subscriptions;
+        }
+
+        // A "next" link we cannot follow means there are more pages we have not read. Fail rather
+        // than return a partial list, which could make 'create' miss an existing subscription.
+        var nextCursor = ContinueFrom(nextUrl);
+        if (string.IsNullOrEmpty(nextCursor) || nextCursor == continueFrom)
+        {
+            Console.Error.WriteLine("FAILED:  list subscriptions");
+            Console.Error.WriteLine($"  Correlation ID: {correlationId}");
+            Console.Error.WriteLine(
+                $"  Cannot follow the 'next' link (no new continue_from cursor): {nextUrl}"
+            );
+            return null;
         }
         continueFrom = nextCursor;
     }
@@ -498,6 +528,7 @@ static async Task<List<JsonObject>?> GetSubscriptionsAsync(
 
 // Sends an MNS request with the bearer token (if any) and the given correlation ID. The caller
 // creates the correlation ID so it can still report it if the request throws.
+// accessToken is null for the open-access sandbox, which does not require authentication.
 static Task<HttpResponseMessage> SendAsync(
     HttpClient http,
     HttpRequestMessage message,
@@ -517,7 +548,7 @@ static Task<HttpResponseMessage> SendAsync(
 
 // True if an existing subscription has the same criteria and delivers to the same MESH mailbox.
 // Criteria are compared ignoring quotes, whitespace and case, because MNS may return them
-// normalised. Only the mailbox is compared, not the workflow ID: a subscription to the same
+// normalized. Only the mailbox is compared, not the workflow ID: a subscription to the same
 // mailbox with a different workflow ID would still deliver duplicate messages.
 static bool IsSameSubscription(JsonObject existing, string criteria, string mailbox) =>
     NormaliseCriteria(existing["criteria"]?.ToString()) == NormaliseCriteria(criteria)
@@ -557,9 +588,23 @@ static void WriteFailure(HttpResponseMessage response, string correlationId, str
 static string? ContinueFrom(string linkUrl)
 {
     var queryStart = linkUrl.IndexOf('?');
-    return queryStart < 0
-        ? null
-        : HttpUtility.ParseQueryString(linkUrl[(queryStart + 1)..])["continue_from"];
+    if (queryStart < 0)
+    {
+        return null;
+    }
+
+    // Parsed by hand because HttpUtility.ParseQueryString decodes '+' as a space, which would
+    // corrupt a cursor containing a literal '+' (e.g. base64).
+    foreach (var pair in linkUrl[(queryStart + 1)..].Split('&'))
+    {
+        var parts = pair.Split('=', 2);
+        if (parts.Length == 2 && Uri.UnescapeDataString(parts[0]) == "continue_from")
+        {
+            return Uri.UnescapeDataString(parts[1]);
+        }
+    }
+
+    return null;
 }
 
 // Reads "id" from the create response, or null if the body is empty or not the expected JSON.
