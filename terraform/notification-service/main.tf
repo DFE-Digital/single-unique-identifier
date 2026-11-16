@@ -48,7 +48,7 @@ locals {
   )
 
   # Key Vault name
-  key_vault_descriptor = "notificationkv01"
+  key_vault_descriptor = "notifkv01"
   key_vault_name = format(
     "%s%skv-%s-%s",
     var.subscription_prefix,
