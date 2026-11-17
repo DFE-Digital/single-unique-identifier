@@ -326,18 +326,7 @@ async Task<int> ListAsync(string environment, CancellationToken cancellationToke
 
     foreach (var subscription in existing)
     {
-        var status = subscription["status"]?.ToString();
-        var channel = subscription["channel"] as JsonObject;
-
-        Console.WriteLine($"{subscription["id"]}  {status}");
-        Console.WriteLine($"  Criteria: {subscription["criteria"]}");
-        Console.WriteLine($"  Endpoint: {channel?["endpoint"]}  ({channel?["payload"]})");
-        Console.WriteLine($"  Reason:   {subscription["reason"]}");
-        if (status != "active")
-        {
-            // Not delivering events, so show everything MNS returned for the ticket.
-            Console.WriteLine($"  Raw:      {subscription.ToJsonString(jsonOptions)}");
-        }
+        WriteSubscription(subscription, jsonOptions);
     }
 
     Console.WriteLine(
@@ -349,6 +338,23 @@ async Task<int> ListAsync(string environment, CancellationToken cancellationToke
 // ---------------------------------------------------------------------------
 // 4. Shared helpers
 // ---------------------------------------------------------------------------
+
+// Prints one subscription. Shows the raw JSON when it is not active, for the ticket.
+static void WriteSubscription(JsonObject subscription, JsonSerializerOptions jsonOptions)
+{
+    var status = subscription["status"]?.ToString();
+    var channel = subscription["channel"] as JsonObject;
+
+    Console.WriteLine($"{subscription["id"]}  {status}");
+    Console.WriteLine($"  Criteria: {subscription["criteria"]}");
+    Console.WriteLine($"  Endpoint: {channel?["endpoint"]}  ({channel?["payload"]})");
+    Console.WriteLine($"  Reason:   {subscription["reason"]}");
+    if (status != "active")
+    {
+        // Not delivering events, so show everything MNS returned for the ticket.
+        Console.WriteLine($"  Raw:      {subscription.ToJsonString(jsonOptions)}");
+    }
+}
 
 // NHS API Platform returns 403 without a User-Agent, and HttpClient sends none by default.
 static HttpClient CreateHttpClient()
