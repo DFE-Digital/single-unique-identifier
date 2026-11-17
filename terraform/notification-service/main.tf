@@ -221,6 +221,9 @@ resource "azurerm_storage_account_network_rules" "notification_service" {
 }
 
 resource "azurerm_role_assignment" "notification_service_acr_pull" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_acr_pull_enabled ? 1 : 0
+
   scope                = data.terraform_remote_state.core.outputs.container_registry_id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id

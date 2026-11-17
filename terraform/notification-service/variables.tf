@@ -96,6 +96,12 @@ variable "notification_service_dotnet_environment" {
   default     = "Development"
 }
 
+variable "notification_service_acr_pull_enabled" {
+  description = "Whether Terraform should assign AcrPull on the shared registry to the deployment identity."
+  type        = bool
+  default     = false
+}
+
 variable "nhs_mesh_mailbox_base_url" {
   description = "Base URL of the NHS MESH instance (NhsMeshConfig__MailboxBaseUrl)."
   type        = string
