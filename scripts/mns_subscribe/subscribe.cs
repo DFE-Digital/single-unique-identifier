@@ -3,12 +3,13 @@
 #:package System.CommandLine@2.0.15
 #:property PublishAot=false
 
-// Creates and lists the NHS Multicast Notification Service (MNS) subscriptions that deliver
+// Creates, lists and removes the NHS Multicast Notification Service (MNS) subscriptions that deliver
 // pds-record-change-2 events to our MESH mailbox. See README.md in this folder (the runbook).
 //
 // Usage (run with --help for details):
 //   dotnet run scripts/mns_subscribe/subscribe.cs -- list   --env int
 //   dotnet run scripts/mns_subscribe/subscribe.cs -- create --env int --mailbox <MAILBOX_ID> --workflow-id <ID> [--dry-run]
+//   dotnet run scripts/mns_subscribe/subscribe.cs -- remove --env int --mailbox <MAILBOX_ID> [--id <ID> ...]
 //
 // Secrets are read from environment variables only (never pass them as arguments):
 //   NHS_DIGITAL_CLIENT_ID, NHS_DIGITAL_KID, NHS_DIGITAL_PRIVATE_KEY (PEM)
@@ -103,10 +104,45 @@ listCommand.SetAction(
         ListAsync(parseResult.GetValue(envOption)!, cancellationToken)
 );
 
-var rootCommand = new RootCommand("Create and list the MNS subscriptions for a MESH mailbox")
+// Required so 'remove' can never delete every subscription the application owns across mailboxes.
+var removeMailboxOption = new Option<string>("--mailbox")
+{
+    Description = "MESH mailbox ID whose subscriptions to remove",
+    Required = true,
+};
+
+var idOption = new Option<string[]>("--id")
+{
+    Description =
+        "Only remove the subscription with this ID (repeat for several); it must deliver to --mailbox",
+};
+
+var removeCommand = new Command(
+    "remove",
+    "Delete the MNS subscriptions that deliver to a MESH mailbox, after confirmation"
+)
+{
+    envOption,
+    removeMailboxOption,
+    idOption,
+};
+removeCommand.SetAction(
+    (parseResult, cancellationToken) =>
+        RemoveAsync(
+            parseResult.GetValue(envOption)!,
+            parseResult.GetValue(removeMailboxOption)!,
+            parseResult.GetValue(idOption) ?? [],
+            cancellationToken
+        )
+);
+
+var rootCommand = new RootCommand(
+    "Create, list and remove the MNS subscriptions for a MESH mailbox"
+)
 {
     createCommand,
     listCommand,
+    removeCommand,
 };
 
 return await rootCommand.Parse(args).InvokeAsync();
@@ -336,7 +372,159 @@ async Task<int> ListAsync(string environment, CancellationToken cancellationToke
 }
 
 // ---------------------------------------------------------------------------
-// 4. Shared helpers
+// 4. remove: delete a mailbox's subscriptions, after confirmation
+// ---------------------------------------------------------------------------
+
+// Deletes the owned subscriptions that deliver to the mailbox (only the given IDs, if any), after
+// the user types 'yes'. Returns the process exit code.
+async Task<int> RemoveAsync(
+    string environment,
+    string mailbox,
+    string[] ids,
+    CancellationToken cancellationToken
+)
+{
+    var baseUrl = BaseUrl(environment);
+    var tokenUrl = $"{baseUrl}/oauth2/token";
+    var subscriptionsUrl = $"{baseUrl}/multicast-notification-service/subscriptions";
+
+    using var http = CreateHttpClient();
+
+    var (authenticated, accessToken) = await AuthenticateAsync(
+        http,
+        environment,
+        tokenUrl,
+        cancellationToken
+    );
+    if (!authenticated)
+    {
+        return 1;
+    }
+
+    var existing = await GetSubscriptionsAsync(
+        http,
+        subscriptionsUrl,
+        accessToken,
+        cancellationToken
+    );
+    if (existing is null)
+    {
+        return 1;
+    }
+
+    var mailboxSubscriptions = existing
+        .Where(s =>
+            string.Equals(
+                MeshMailbox((s["channel"] as JsonObject)?["endpoint"]?.ToString()),
+                mailbox,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+        .ToList();
+
+    // Fail before prompting if an --id does not deliver to this mailbox (a typo, or another
+    // mailbox's subscription), so it cannot silently remove a smaller set than intended.
+    var unknownIds = ids.Where(id => mailboxSubscriptions.All(s => s["id"]?.ToString() != id))
+        .ToList();
+    if (unknownIds.Count > 0)
+    {
+        Console.Error.WriteLine(
+            $"No subscription delivering to mailbox {mailbox} has ID: {string.Join(", ", unknownIds)}"
+        );
+        Console.Error.WriteLine("Run 'list' to see the IDs. Nothing was removed.");
+        return 1;
+    }
+
+    var targets = mailboxSubscriptions
+        .Where(s => ids.Length == 0 || ids.Contains(s["id"]?.ToString()))
+        .ToList();
+
+    if (targets.Count == 0)
+    {
+        Console.WriteLine($"No subscriptions deliver to mailbox {mailbox}. Nothing to remove.");
+        return 0;
+    }
+
+    foreach (var subscription in targets)
+    {
+        WriteSubscription(subscription, jsonOptions);
+    }
+
+    Console.WriteLine();
+    Console.WriteLine(
+        $"About to DELETE {targets.Count} subscription(s) in '{environment}'. "
+            + "MNS stops delivering their events to MESH."
+    );
+
+    if (Console.IsInputRedirected)
+    {
+        Console.Error.WriteLine(
+            "remove needs an interactive terminal to confirm. Nothing was removed."
+        );
+        return 1;
+    }
+
+    Console.Write("Type 'yes' to remove them: ");
+    if (Console.ReadLine()?.Trim() != "yes")
+    {
+        Console.WriteLine("Aborted. Nothing was removed.");
+        return 1;
+    }
+
+    // Stop at the first failure so we know exactly what was removed.
+    foreach (var subscription in targets)
+    {
+        var id = subscription["id"]?.ToString();
+        var criteria = subscription["criteria"]?.ToString();
+        var correlationId = Guid.NewGuid().ToString();
+        using var message = new HttpRequestMessage(
+            HttpMethod.Delete,
+            $"{subscriptionsUrl}/{Uri.EscapeDataString(id ?? "")}"
+        );
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await SendAsync(
+                http,
+                message,
+                accessToken,
+                correlationId,
+                cancellationToken
+            );
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
+        {
+            // No response, but the request may still have reached MNS.
+            Console.Error.WriteLine($"OUTCOME UNKNOWN: {id}  {criteria}");
+            Console.Error.WriteLine($"  Correlation ID: {correlationId}");
+            Console.Error.WriteLine($"  Error:          {ex.GetType().Name}: {ex.Message}");
+            Console.Error.WriteLine(
+                "  The subscription may have been removed. Run 'list' to check."
+            );
+            return 1;
+        }
+
+        using (response)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.Error.WriteLine($"FAILED:  {id}  {criteria}");
+                WriteFailure(response, correlationId, responseBody);
+                return 1;
+            }
+
+            Console.WriteLine($"REMOVED ({(int)response.StatusCode}): {id}  {criteria}");
+            Console.WriteLine($"  Correlation ID:  {correlationId}");
+        }
+    }
+
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+// 5. Shared helpers
 // ---------------------------------------------------------------------------
 
 // Prints one subscription. Shows the raw JSON when it is not active, for the ticket.

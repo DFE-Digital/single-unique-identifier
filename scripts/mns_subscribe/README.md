@@ -35,6 +35,11 @@ dotnet run scripts/mns_subscribe/subscribe.cs -- list --env int
 # Create (skips any that already exist, so safe to re-run)
 dotnet run scripts/mns_subscribe/subscribe.cs -- create --env int --mailbox <MAILBOX_ID> --workflow-id <WORKFLOW_ID>
 
+# Remove: lists what it will delete and asks you to type 'yes'. Removes every subscription that
+# delivers to the mailbox, or only the given --id(s) (repeatable; each must deliver to that mailbox).
+dotnet run scripts/mns_subscribe/subscribe.cs -- remove --env int --mailbox <MAILBOX_ID>
+dotnet run scripts/mns_subscribe/subscribe.cs -- remove --env int --mailbox <MAILBOX_ID> --id <ID> --id <ID>
+
 unset NHS_DIGITAL_CLIENT_ID NHS_DIGITAL_KID NHS_DIGITAL_PRIVATE_KEY
 ```
 
@@ -44,4 +49,4 @@ Record the subscription and correlation IDs it prints. Run `list` afterwards and
 
 MNS has no age filter yet. When it does: get it approved, add it to both criteria in `subscribe.cs`,
 run `create` (the new criteria create new subscriptions alongside the old), confirm they are `active`,
-then delete the old ones via `DELETE /multicast-notification-service/subscriptions/<id>`.
+then delete the old ones with `remove --env <env> --mailbox <MAILBOX_ID> --id <OLD_GP_ID> --id <OLD_NHS_NUMBER_ID>`.
