@@ -230,6 +230,9 @@ resource "azurerm_role_assignment" "notification_service_acr_pull" {
 }
 
 resource "azurerm_role_assignment" "notification_service_table_data_contributor" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_acr_pull_enabled ? 1 : 0
+
   scope                = azurerm_storage_account.notification_service.id
   role_definition_name = "Storage Table Data Contributor"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
