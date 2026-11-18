@@ -1,6 +1,6 @@
 # Notification Service: end-to-end flow
 
-**Date:** `2026-11-06`  
+**Date:** `2026-11-18`  
 **Owner:** SUI Service Team
 
 > **Status: target architecture, partly implemented.** This page describes the intended final flow, not the current behaviour. See [Implementation status](../../../Apps/NotificationService/README.md#implementation-status) for what exists today.
@@ -15,7 +15,6 @@ Orchestrator:
 
 MESH service:
     read all messages in the MESH inbox
-    remove duplicates, so there is one message per NHS number
     return the list to the orchestrator
 
 Orchestrator:
@@ -64,9 +63,7 @@ sequenceDiagram
     Orchestrator->>Mesh: Get MESH messages
     Mesh->>Inbox: List and read messages
     Inbox-->>Mesh: Messages
-    Mesh->>Mesh: Remove duplicates by NHS number
-    Mesh->>Inbox: Acknowledge duplicates
-    Mesh-->>Orchestrator: One notification per NHS number
+    Mesh-->>Orchestrator: Parsed notifications
 
     Orchestrator->>Webhooks: Give notification list to webhooks service
     Webhooks->>Storage: Read known suppliers and stored acknowledgements
@@ -101,7 +98,8 @@ sequenceDiagram
 - **Run to completion.** The service starts on a schedule, works through what is in the inbox and exits. It is not a poller and it does not stay running between executions. Scheduled executions cannot overlap, because the 30-minute replica timeout is shorter than the 60-minute interval.
 - **A supplier acknowledges through its HTTP response.** The service is a job with no inbound endpoint, so suppliers do not call back. An acknowledgement is the empty `202 Accepted` returned to the webhook request, as defined in the [supplier lifecycle webhook contract](../Notifications-Webhooks/SupplierLifecycle/V1/Index.md#acknowledgement-and-idempotency). A `202` means the supplier has durably accepted the event, not that it has finished rematching.
 - **Rematching is separate.** Suppliers call Get an Identifier after acknowledging, in their own time. A failed or slow rematch does not affect the Notification Service.
-- **The MESH acknowledgement is the last step.** A message leaves the inbox only when every known supplier has acknowledged it, so a failure at any earlier point leaves it to be handled by the next execution. The exception is a duplicate, which is acknowledged early because the message it duplicates stays in the inbox. See [duplicate message handling](./DuplicateHandling.md).
+- **The MESH acknowledgement is the last step.** A message leaves the inbox only when every known supplier has acknowledged it, so a failure at any earlier point leaves it to be handled by the next execution.
+- **In-batch NHS-number deduplication was removed.** Previously, the MESH service collapsed multiple messages sharing an NHS number within an execution and acknowledged the duplicates early. That logic was removed because: (1) it was designed when SUI planned to subscribe per person, whereas SUI now has a single subscription to the `pds-record-change-2` event; (2) deduplicating by NHS number while keying webhook delivery receipts by `EventId` (`Bundle.Id`) could silently drop later changes for already-acknowledged suppliers; (3) NHS-originated duplicates are unlikely; and (4) when they do occur, `EventId`-keyed webhook receipts deter repeat deliveries of the same event, and suppliers have a policy to ignore duplicates.
 - **Stored acknowledgements stop repeat deliveries.** Acknowledgements are keyed by the message ID from the MESH mailbox, with one record per supplier. When an execution retries a message, only the suppliers with no stored acknowledgement receive it again. Suppliers must still tolerate repeats, because the contract is at-least-once delivery. A retried message can be replaced by a duplicate copy with a different message ID, in which case suppliers that acknowledged the original receive the copy too.
 - **The stored acknowledgement must not contain an NHS number.** [ADR 0002](../../architecture/decisions/System/GetAnIdentifier/0002-mns-duplicate-avoidance.md) records the directive not to store NHS numbers, so the record identifies the message and the supplier only.
 - **This flow does not yet cover a supplier that never acknowledges.** The message stays in the inbox and is retried on each execution until MESH makes it unavailable, five days after it was sent. That supplier then never receives it.
@@ -114,5 +112,5 @@ sequenceDiagram
 ## Related
 
 - [Notification Service README](../../../Apps/NotificationService/README.md)
-- [Duplicate message handling](./DuplicateHandling.md)
+- [Duplicate message handling](./DuplicateHandling.md) *(superseded — pending removal)*
 - [Supplier lifecycle webhook contract v1](../Notifications-Webhooks/SupplierLifecycle/V1/Index.md)
