@@ -35,20 +35,22 @@ resource "azurerm_storage_account" "this" {
     virtual_network_subnet_ids = [var.app_service_integration_subnet_id]
   }
 
-  queue_properties {
-    logging {
-      delete                = true
-      read                  = true
-      write                 = true
-      version               = "1.0"
-      retention_policy_days = 30
-    }
-  }
-
   tags = merge(
     local.base_tags,
     var.tags,
   )
+}
+
+resource "azurerm_storage_account_queue_properties" "this" {
+  storage_account_id = azurerm_storage_account.this.id
+
+  logging {
+    delete                = true
+    read                  = true
+    write                 = true
+    version               = "1.0"
+    retention_policy_days = 30
+  }
 }
 
 data "azurerm_monitor_diagnostic_categories" "storage_service" {
