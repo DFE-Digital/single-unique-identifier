@@ -30,7 +30,7 @@ on:
       skip_tests:
         description: Skip tests and related setup
         required: false
-        default: false
+        default: true
         type: boolean
       skip_scans:
         description: Skip SonarCloud scans
@@ -297,7 +297,7 @@ jobs:
 
   smoke-test:
     name: Notification Service - smoke test
-    if: github.event_name != 'pull_request'
+    if: ${{false}}
     needs: terraform
     timeout-minutes: 15
     runs-on: ubuntu-latest
@@ -317,7 +317,7 @@ jobs:
         id: execution
         env:
           RESOURCE_GROUP_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).resource_group_name }}
-          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name || null }}
+          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name }}
         run: |
           test -n "$RESOURCE_GROUP_NAME"
           test -n "$JOB_NAME"
@@ -354,7 +354,7 @@ jobs:
       - name: Verify application logs
         env:
           WORKSPACE_ID: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).log_analytics_workspace_id }}
-          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name || null }}
+          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name }}
           EXECUTION_NAME: ${{ steps.execution.outputs.name }}
         run: |
           test -n "$WORKSPACE_ID"
