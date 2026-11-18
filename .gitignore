@@ -71,3 +71,6 @@ public-docs/content/assets/_generated-path-prefix.scss
 
 # Workflow test dependencies
 .github/node_modules/
+
+# Terraform working directories (provider lockfiles remain version controlled)
+.terraform/
