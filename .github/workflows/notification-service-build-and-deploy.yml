@@ -317,7 +317,7 @@ jobs:
         id: execution
         env:
           RESOURCE_GROUP_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).resource_group_name }}
-          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name }}
+          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name || null }}
         run: |
           test -n "$RESOURCE_GROUP_NAME"
           test -n "$JOB_NAME"
@@ -354,7 +354,7 @@ jobs:
       - name: Verify application logs
         env:
           WORKSPACE_ID: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).log_analytics_workspace_id }}
-          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name }}
+          JOB_NAME: ${{ fromJSON(needs.terraform.outputs.terraform_outputs).notification_service_job_name || null }}
           EXECUTION_NAME: ${{ steps.execution.outputs.name }}
         run: |
           test -n "$WORKSPACE_ID"
