@@ -239,6 +239,9 @@ resource "azurerm_role_assignment" "notification_service_table_data_contributor"
 }
 
 resource "azurerm_container_app_job" "notification_service" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_job_enabled ? 1 : 0
+
   name                         = local.job_name
   resource_group_name          = data.terraform_remote_state.core.outputs.resource_group_name
   location                     = data.terraform_remote_state.core.outputs.resource_group_location

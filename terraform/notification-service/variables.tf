@@ -102,6 +102,12 @@ variable "notification_service_acr_pull_enabled" {
   default     = false
 }
 
+variable "notification_service_job_enabled" {
+  description = "Whether Terraform should start the notification service job. This is a temporary change to while waiting for the correct roles"
+  type        = bool
+  default     = false
+}
+
 variable "nhs_mesh_mailbox_base_url" {
   description = "Base URL of the NHS MESH instance (NhsMeshConfig__MailboxBaseUrl)."
   type        = string
