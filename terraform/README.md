@@ -2,21 +2,13 @@
 
 ## Provider dependencies
 
-Each independently initialised root configuration has a committed
-`.terraform.lock.hcl` that records the selected provider versions and package
-checksums. Terraform deployment workflows initialise roots with
-`-lockfile=readonly`; update constraints and regenerate the lockfiles together
-when intentionally upgrading providers.
+Each independently initialised root has a committed `.terraform.lock.hcl` with selected provider versions and checksums. Deployment workflows use `-lockfile=readonly`. When intentionally upgrading providers, update the constraints and regenerate the root lockfiles together.
 
-AzureRM roots currently constrain the provider to `~> 4.81.0`. Reusable
-modules require AzureRM `>= 4.58.0, < 5.0.0`, allowing compatible 4.x releases
-while leaving the root configuration to select and lock the version. The
-AzAPI constraint remains `~> 2.0`.
+Provider constraints live in each root or reusable module's `versions.tf`; each root's lockfile records the selected provider versions for that configuration. Reusable modules declare minimum versions for the features they need, while each root sets the compatible provider range. The GetAnIdentifier root retains Random and Time requirements because earlier Terraform configurations managed API key resources with them; remove these only after confirming those resources are absent from all environment states.
 
-GetAnIdentifier retains Random and Time provider requirements for now. The
-current configuration no longer uses them, but earlier versions managed API
-key resources with these providers. Remove the requirements after confirming
-those objects are absent from every environment state.
+Roots set `resource_provider_registrations = "none"`; required Azure Resource Provider namespaces must already be registered in the target subscription. Enhanced location and resource provider validation remain enabled, while Azure preflight validation is disabled.
+
+Queue logging uses `azurerm_storage_account_queue_properties`, which calls the Storage Queue data-plane endpoint. Notification Service uses Entra ID because Shared Key is disabled; Function App storage accounts use Shared Key. The deployment runner needs an authorised network path and the required data-plane permissions. Current storage network rules block the default GitHub-hosted runner, so do not apply this change from that runner or relax storage security to accommodate it. Check existing Queue CORS and metrics settings before the first apply, as creating the resource can reset unconfigured service properties. Keep the resource under Terraform management because deleting it resets Queue service properties. No state import was performed for this migration.
 
 To update a root lockfile without contacting its backend, run:
 
@@ -26,8 +18,7 @@ terraform -chdir=terraform/<root> providers lock -platform=linux_amd64 -platform
 terraform -chdir=terraform/<root> init -backend=false -lockfile=readonly
 ```
 
-Review the resolved provider versions and commit only the root lockfiles and
-intentional configuration changes. Shared modules do not have lockfiles.
+Review the resolved versions and commit the root lockfiles with the intentional configuration changes. Shared modules do not have lockfiles.
 
 This folder holds the Terraform for the platform, including shared foundations and reusable modules. Every deployable service should have its own Terraform root so it can be planned/applied in isolation.
 
