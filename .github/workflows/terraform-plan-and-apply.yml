@@ -170,6 +170,7 @@ jobs:
           STATE_KEY: ${{ inputs.state_key || steps.env_config.outputs.state_key }}
         run: |
           terraform -chdir=${{ inputs.root }} init \
+            -lockfile=readonly \
             -backend-config="resource_group_name=${{ steps.env_config.outputs.state_rg }}" \
             -backend-config="storage_account_name=${{ steps.env_config.outputs.state_storage }}" \
             -backend-config="container_name=${{ steps.env_config.outputs.state_container }}" \

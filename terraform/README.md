@@ -1,5 +1,34 @@
 # Terraform
 
+## Provider dependencies
+
+Each independently initialised root configuration has a committed
+`.terraform.lock.hcl` that records the selected provider versions and package
+checksums. Terraform deployment workflows initialise roots with
+`-lockfile=readonly`; update constraints and regenerate the lockfiles together
+when intentionally upgrading providers.
+
+AzureRM roots currently constrain the provider to `~> 4.81.0`. Reusable
+modules require AzureRM `>= 4.58.0, < 5.0.0`, allowing compatible 4.x releases
+while leaving the root configuration to select and lock the version. The
+AzAPI constraint remains `~> 2.0`.
+
+GetAnIdentifier retains Random and Time provider requirements for now. The
+current configuration no longer uses them, but earlier versions managed API
+key resources with these providers. Remove the requirements after confirming
+those objects are absent from every environment state.
+
+To update a root lockfile without contacting its backend, run:
+
+```bash
+terraform -chdir=terraform/<root> init -backend=false -upgrade
+terraform -chdir=terraform/<root> providers lock -platform=linux_amd64 -platform=darwin_arm64
+terraform -chdir=terraform/<root> init -backend=false -lockfile=readonly
+```
+
+Review the resolved provider versions and commit only the root lockfiles and
+intentional configuration changes. Shared modules do not have lockfiles.
+
 This folder holds the Terraform for the platform, including shared foundations and reusable modules. Every deployable service should have its own Terraform root so it can be planned/applied in isolation.
 
 ## Structure
