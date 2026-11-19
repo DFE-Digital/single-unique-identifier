@@ -17,8 +17,18 @@ on:
         description: Existing 40-character SHA image tag to deploy (leave blank to build and publish this commit)
         required: false
         type: string
+      apply:
+        description: Apply changes (otherwise plan only)
+        required: true
+        default: true
+        type: boolean
       upload_artifacts:
         description: Upload build artifacts
+        required: false
+        default: false
+        type: boolean
+      notification_service_job_enabled:
+        description: Enables running the notification service job
         required: false
         default: false
         type: boolean
@@ -41,6 +51,7 @@ on:
       - scripts/pds-record-change-2-notification.template.json
       - terraform/notification-service/**
       - terraform/core/**
+      - terraform/modules/**
       - terraform/environments/**
       - .github/workflows/notification-service-build-and-deploy.yml
       - .github/workflows/terraform-plan-and-apply.yml
@@ -53,6 +64,7 @@ on:
       - scripts/pds-record-change-2-notification.template.json
       - terraform/notification-service/**
       - terraform/core/**
+      - terraform/modules/**
       - terraform/environments/**
       - .github/workflows/notification-service-build-and-deploy.yml
       - .github/workflows/terraform-plan-and-apply.yml
@@ -115,9 +127,7 @@ jobs:
 
   build-and-publish-image:
     name: Notification Service - container image
-    # Deployment is opt-in while the required Azure RBAC delegation is pending.
-    # Replace `false` with `github.event_name != 'pull_request'` once RBAC is available.
-    if: ${{ false }}
+    if: ${{ github.event_name != 'pull_request' }}
     needs:
       - build-and-test
       - resolve-image
@@ -168,14 +178,31 @@ jobs:
             --image "notification-service:${{ needs.resolve-image.outputs.image_tag }}" \
             --output none
 
-      - name: Build and publish container image
+      - name: Build container image
         if: needs.resolve-image.outputs.push_image == 'true'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: Apps/NotificationService/Dockerfile
-          push: ${{ needs.resolve-image.outputs.push_image == 'true' }}
+          load: true
+          push: false
           tags: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, needs.resolve-image.outputs.image_tag) }}
+
+      - name: Scan container image for vulnerabilities
+        if: needs.resolve-image.outputs.push_image == 'true'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.76.2
+          image-ref: ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, needs.resolve-image.outputs.image_tag) }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          vuln-type: os,library
+          scanners: vuln,misconfig
+
+      - name: Publish container image
+        if: needs.resolve-image.outputs.push_image == 'true'
+        run: docker push ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, needs.resolve-image.outputs.image_tag) }}
 
   validate-container:
     name: Notification Service - container validation
@@ -202,6 +229,17 @@ jobs:
           load: true
           push: false
           tags: notification-service:${{ needs.resolve-image.outputs.image_tag }}
+
+      - name: Scan container image for vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.76.2
+          image-ref: notification-service:${{ needs.resolve-image.outputs.image_tag }}
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          vuln-type: os,library
+          scanners: vuln,misconfig
 
       - name: Start MESH sandbox
         run: docker compose up -d --wait mesh_sandbox
@@ -250,21 +288,30 @@ jobs:
       NHS_MESH_CONFIG_SHARED_KEY: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
       NHS_MESH_CONFIG_MAILBOX_ID: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
       NHS_MESH_CONFIG_MAILBOX_PASSWORD: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
+      NHS_MESH_CONFIG_ROOT_CA: ${{ secrets.NHS_MESH_CONFIG_ROOT_CA }}
+      NHS_MESH_CONFIG_INTERMEDIATE_CA: ${{ secrets.NHS_MESH_CONFIG_INTERMEDIATE_CA }}
     permissions:
       contents: read
       id-token: write
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: true
+      apply: ${{ inputs.apply }}
       root: terraform/notification-service
       state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
       terraform_variables: >-
-        {"notification_service_image_tag":"${{ needs.resolve-image.outputs.image_tag }}"}
-      terraform_output_names: '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'
+        {
+          "notification_service_image_tag":"${{ needs.resolve-image.outputs.image_tag }}",
+          "notification_service_job_enabled":"${{ inputs.notification_service_job_enabled }}"}
+      terraform_output_names: >-
+        ${{
+          inputs.notification_service_job_enabled
+          && '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'
+          || '["resource_group_name", "log_analytics_workspace_id"]'
+        }}
 
   smoke-test:
     name: Notification Service - smoke test
-    if: github.event_name != 'pull_request'
+    if: ${{ github.event_name != 'pull_request' && inputs.notification_service_job_enabled }}
     needs: terraform
     timeout-minutes: 15
     runs-on: ubuntu-latest

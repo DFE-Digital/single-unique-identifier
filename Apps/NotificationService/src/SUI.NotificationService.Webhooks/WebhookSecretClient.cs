@@ -1,6 +1,6 @@
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
+using SUI.NotificationService.Application.Exceptions;
 using SUI.NotificationService.Application.Interfaces;
 
 namespace SUI.NotificationService.Webhooks;
@@ -53,8 +53,8 @@ public class WebhookSecretClient : IWebhookSecretClient
         }
         catch (Exception ex)
         {
-            // Wrap the exception with context
-            throw new InvalidOperationException(
+            // Wrap the exception with context using our specific domain exception
+            throw new WebhookSecretRetrievalException(
                 $"Failed to retrieve webhook secret from Key Vault for reference: {keyVaultReference}",
                 ex
             );

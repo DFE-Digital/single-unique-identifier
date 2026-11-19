@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using SUI.NotificationService.Application.Exceptions;
 using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Application.Models;
 
@@ -127,7 +128,23 @@ internal sealed class WebhookBroadcaster(
         );
 
         // Attempt Delivery
-        var result = await deliveryService.DeliverAsync(request, cancellationToken);
+        WebhookDeliveryResult result;
+        try
+        {
+            result = await deliveryService.DeliverAsync(request, cancellationToken);
+        }
+        catch (WebhookSecretRetrievalException ex)
+        {
+            logger.LogError(
+                ex,
+                "A secret retrieval error occurred while attempting delivery to Supplier {SupplierId}. This delivery will be marked as a permanent failure.",
+                supplier.SupplierId
+            );
+
+            // Treat supplier-specific exceptions as permanent failures.
+            // Unhandled exceptions will propegate and fail the job visibly.
+            return DeliveryOutcome.PermanentFailure;
+        }
 
         // Classify and Act
         await HandleDeliveryOutcomeAsync(
