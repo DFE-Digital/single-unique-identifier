@@ -225,6 +225,25 @@ variable "key_vault_use_rbac" {
   type    = bool
   default = null
 }
+
+variable "nhs_mesh_config_shared_key" {
+  description = "Shared key for connection with NHS Mesh Mailbox"
+  type        = string
+  sensitive   = true
+}
+
+variable "nhs_mesh_config_mailbox_id" {
+  description = "Mailbox ID for connection with NHS Mesh Mailbox"
+  type        = string
+  sensitive   = true
+}
+
+variable "nhs_mesh_config_mailbox_password" {
+  description = "Password for connection with NHS Mesh Mailbox"
+  type        = string
+  sensitive   = true
+}
+
 variable "getanidentifier_app_settings" {
   type    = map(string)
   default = {}
@@ -237,3 +256,4 @@ variable "container_registry_sku" {
   type    = string
   default = null
 }
+
