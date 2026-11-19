@@ -48,7 +48,7 @@ locals {
   )
 
   # Key Vault name
-  key_vault_descriptor = "notificationkv01"
+  key_vault_descriptor = "notifkv01"
   key_vault_name = format(
     "%s%skv-%s-%s",
     var.subscription_prefix,
@@ -226,18 +226,27 @@ resource "azurerm_storage_account_network_rules" "notification_service" {
 }
 
 resource "azurerm_role_assignment" "notification_service_acr_pull" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_acr_pull_enabled ? 1 : 0
+
   scope                = data.terraform_remote_state.core.outputs.container_registry_id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
 }
 
 resource "azurerm_role_assignment" "notification_service_table_data_contributor" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_acr_pull_enabled ? 1 : 0
+
   scope                = azurerm_storage_account.notification_service.id
   role_definition_name = "Storage Table Data Contributor"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
 }
 
 resource "azurerm_container_app_job" "notification_service" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_job_enabled ? 1 : 0
+
   name                         = local.job_name
   resource_group_name          = data.terraform_remote_state.core.outputs.resource_group_name
   location                     = data.terraform_remote_state.core.outputs.resource_group_location
