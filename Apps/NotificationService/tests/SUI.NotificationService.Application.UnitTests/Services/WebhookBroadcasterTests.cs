@@ -2,6 +2,7 @@ using Azure;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using SUI.NotificationService.Application.Exceptions;
 using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Application.Models;
 using SUI.NotificationService.Application.Services;
@@ -536,13 +537,13 @@ public class WebhookBroadcasterTests
             .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
-        // First supplier throws an unexpected exception (e.g. Key Vault secret missing)
+        // First supplier throws the expected custom exception
         _deliveryMock
             .DeliverAsync(
                 Arg.Is<WebhookDeliveryRequest>(r => r.EndpointUrl == "https://url1"),
                 Arg.Any<CancellationToken>()
             )
-            .ThrowsAsync(new InvalidOperationException("Key Vault Secret Not Found"));
+            .ThrowsAsync(new WebhookSecretRetrievalException("Key Vault Secret Not Found"));
 
         // Second supplier succeeds normally
         _deliveryMock
@@ -609,6 +610,33 @@ public class WebhookBroadcasterTests
                 Arg.Is<WebhookDeliveryReceipt>(r => r.SupplierId == "sup-throws"),
                 Arg.Any<CancellationToken>()
             );
+    }
+
+    [Fact]
+    public async Task BroadcastBatchAsync_PropagatesUnexpectedExceptions_DuringDelivery()
+    {
+        // Arrange
+        var notification = CreateNotification(Guid.NewGuid());
+        var supplier = new SupplierWebhook("sup-throws", "https://url1", true, "1", "secret");
+
+        _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
+
+        _receiptRepoMock
+            .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        // Simulate an UNEXPECTED programming bug (e.g. a NullReferenceException or standard InvalidOperationException)
+        _deliveryMock
+            .DeliverAsync(Arg.Any<WebhookDeliveryRequest>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(
+                new InvalidOperationException("Some unexpected bug in the delivery service")
+            );
+
+        // Act & Assert
+        // The Orchestrator MUST fail and propagate the exception so the job visibly crashes
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _sut.BroadcastBatchAsync([notification], CancellationToken.None)
+        );
     }
 
     private static PdsRecordChangeNotification CreateNotification(Guid eventId) =>

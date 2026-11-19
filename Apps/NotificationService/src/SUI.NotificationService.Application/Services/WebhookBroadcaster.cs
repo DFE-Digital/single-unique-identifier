@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using SUI.NotificationService.Application.Exceptions;
 using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Application.Models;
 
@@ -132,16 +133,16 @@ internal sealed class WebhookBroadcaster(
         {
             result = await deliveryService.DeliverAsync(request, cancellationToken);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (WebhookSecretRetrievalException ex)
         {
             logger.LogError(
                 ex,
-                "An unexpected exception occurred while attempting delivery to Supplier {SupplierId}. This delivery will be marked as a permanent failure.",
+                "A secret retrieval error occurred while attempting delivery to Supplier {SupplierId}. This delivery will be marked as a permanent failure.",
                 supplier.SupplierId
             );
 
-            // Treat unhandled supplier-specific code/config exceptions as permanent failures
-            // so they block MESH acknowledgement but allow other suppliers to proceed.
+            // Treat supplier-specific exceptions as permanent failures.
+            // Unhandled exceptions will propegate and fail the job visibly.
             return DeliveryOutcome.PermanentFailure;
         }
 
