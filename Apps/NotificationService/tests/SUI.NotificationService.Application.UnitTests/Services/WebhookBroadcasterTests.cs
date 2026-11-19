@@ -508,6 +508,109 @@ public class WebhookBroadcasterTests
             );
     }
 
+    [Fact]
+    public async Task BroadcastBatchAsync_ContinuesDeliveryToOtherSuppliers_WhenOneSupplierThrowsExceptionDuringDelivery()
+    {
+        // Arrange
+        var notification = CreateNotification(Guid.NewGuid());
+        var supplierThrows = new SupplierWebhook(
+            "sup-throws",
+            "https://url1",
+            true,
+            "1",
+            "bad-secret-ref"
+        );
+        var supplierSuccess = new SupplierWebhook(
+            "sup-success",
+            "https://url2",
+            true,
+            "1",
+            "good-secret-ref"
+        );
+
+        _supplierRepoMock
+            .GetAllEnabledAsync(Arg.Any<CancellationToken>())
+            .Returns([supplierThrows, supplierSuccess]);
+
+        _receiptRepoMock
+            .ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        // First supplier throws an unexpected exception (e.g. Key Vault secret missing)
+        _deliveryMock
+            .DeliverAsync(
+                Arg.Is<WebhookDeliveryRequest>(r => r.EndpointUrl == "https://url1"),
+                Arg.Any<CancellationToken>()
+            )
+            .ThrowsAsync(new InvalidOperationException("Key Vault Secret Not Found"));
+
+        // Second supplier succeeds normally
+        _deliveryMock
+            .DeliverAsync(
+                Arg.Is<WebhookDeliveryRequest>(r => r.EndpointUrl == "https://url2"),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                new WebhookDeliveryResult(
+                    DeliveryOutcome.Success,
+                    true,
+                    200,
+                    false,
+                    false,
+                    TimeSpan.Zero
+                )
+            );
+
+        // Act
+        var results = await _sut.BroadcastBatchAsync([notification], CancellationToken.None);
+
+        // Assert
+        var result = Assert.Single(results);
+        Assert.Equal(2, result.TotalEnabledSuppliers);
+        Assert.Equal(1, result.NewlySuccessful);
+        Assert.Equal(1, result.FailedDeliveries);
+        Assert.Equal(1, result.EndpointsRequiringNewDeliveryAttempt);
+
+        // Assert Individual Endpoint Results
+        Assert.Equal(2, result.EndpointResults.Count);
+        Assert.Contains(
+            result.EndpointResults,
+            e => e.SupplierId == "sup-throws" && e.Outcome == DeliveryOutcome.PermanentFailure
+        );
+        Assert.Contains(
+            result.EndpointResults,
+            e => e.SupplierId == "sup-success" && e.Outcome == DeliveryOutcome.Success
+        );
+
+        // Assert Mocks: Delivery continued to the second supplier despite the first one throwing
+        await _deliveryMock
+            .Received(1)
+            .DeliverAsync(
+                Arg.Is<WebhookDeliveryRequest>(r => r.EndpointUrl == "https://url1"),
+                Arg.Any<CancellationToken>()
+            );
+        await _deliveryMock
+            .Received(1)
+            .DeliverAsync(
+                Arg.Is<WebhookDeliveryRequest>(r => r.EndpointUrl == "https://url2"),
+                Arg.Any<CancellationToken>()
+            );
+
+        // Assert Mocks: Receipt was ONLY saved for the successful one
+        await _receiptRepoMock
+            .Received(1)
+            .AddAsync(
+                Arg.Is<WebhookDeliveryReceipt>(r => r.SupplierId == "sup-success"),
+                Arg.Any<CancellationToken>()
+            );
+        await _receiptRepoMock
+            .DidNotReceive()
+            .AddAsync(
+                Arg.Is<WebhookDeliveryReceipt>(r => r.SupplierId == "sup-throws"),
+                Arg.Any<CancellationToken>()
+            );
+    }
+
     private static PdsRecordChangeNotification CreateNotification(Guid eventId) =>
         new(
             "mesh-id",

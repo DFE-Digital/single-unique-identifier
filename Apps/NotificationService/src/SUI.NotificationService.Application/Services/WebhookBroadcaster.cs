@@ -127,7 +127,23 @@ internal sealed class WebhookBroadcaster(
         );
 
         // Attempt Delivery
-        var result = await deliveryService.DeliverAsync(request, cancellationToken);
+        WebhookDeliveryResult result;
+        try
+        {
+            result = await deliveryService.DeliverAsync(request, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(
+                ex,
+                "An unexpected exception occurred while attempting delivery to Supplier {SupplierId}. This delivery will be marked as a permanent failure.",
+                supplier.SupplierId
+            );
+
+            // Treat unhandled supplier-specific code/config exceptions as permanent failures
+            // so they block MESH acknowledgement but allow other suppliers to proceed.
+            return DeliveryOutcome.PermanentFailure;
+        }
 
         // Classify and Act
         await HandleDeliveryOutcomeAsync(
