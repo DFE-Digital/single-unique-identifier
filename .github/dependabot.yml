@@ -4,6 +4,7 @@ updates:
     directory: "/.github"
     schedule:
       interval: weekly
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -20,6 +21,30 @@ updates:
       semver-major-days: 30
       semver-minor-days: 7
       semver-patch-days: 7
+
+  - package-ecosystem: terraform
+    directories:
+      - "/terraform/auth-emulator"
+      - "/terraform/core"
+      - "/terraform/get-an-identifier"
+      - "/terraform/notification-service"
+      - "/terraform/service-example"
+      - "/terraform/ui_test_harness"
+      - "/terraform/modules/linux_function_app"
+      - "/terraform/modules/linux_web_app"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+    commit-message:
+      prefix: "[terraform]-"
+    groups:
+      providers:
+        patterns:
+          - "*"
+        group-by: "dependency-name"
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: nuget
     directory: "/Apps/GetAnIdentifier"
