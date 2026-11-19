@@ -4,6 +4,10 @@ updates:
     directory: "/.github"
     schedule:
       interval: weekly
+    cooldown:
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
 
   - package-ecosystem: github-actions
     directory: /
@@ -18,9 +22,7 @@ updates:
         patterns:
           - "*"
     cooldown:
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 7
+      default-days: 3
 
   - package-ecosystem: terraform
     directories:
@@ -44,7 +46,7 @@ updates:
           - "*"
         group-by: "dependency-name"
     cooldown:
-      default-days: 7
+      default-days: 3
 
   - package-ecosystem: nuget
     directory: "/Apps/GetAnIdentifier"
@@ -66,4 +68,4 @@ updates:
     cooldown:
       semver-major-days: 30
       semver-minor-days: 7
-      semver-patch-days: 7
+      semver-patch-days: 3
