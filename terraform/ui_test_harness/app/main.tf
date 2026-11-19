@@ -62,6 +62,8 @@ module "key_vault" {
 
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   rbac_authorization_enabled = var.key_vault_use_rbac
+  private_endpoints_subnet_id = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
+  private_dns_zone_ids        = [data.terraform_remote_state.core.outputs.private_dns_zone_key_vault_id]
 
   environment_tag  = var.environment_tag
   product          = var.product

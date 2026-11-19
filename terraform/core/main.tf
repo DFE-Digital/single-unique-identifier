@@ -216,21 +216,25 @@ resource "azapi_resource" "private_endpoints_subnet" {
 }
 
 resource "azurerm_log_analytics_workspace" "shared" {
-  name                = local.log_analytics_workspace_name
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  sku                 = var.log_analytics_sku
-  retention_in_days   = var.log_analytics_retention_in_days
+  name                       = local.log_analytics_workspace_name
+  resource_group_name        = module.resource_group.name
+  location                   = module.resource_group.location
+  sku                        = var.log_analytics_sku
+  retention_in_days          = var.log_analytics_retention_in_days
+  internet_ingestion_enabled = false
+  internet_query_enabled     = false
 
   tags = local.base_tags
 }
 
 resource "azurerm_application_insights" "shared" {
-  name                = local.app_insights_name
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  application_type    = "web"
-  workspace_id        = azurerm_log_analytics_workspace.shared.id
+  name                       = local.app_insights_name
+  resource_group_name        = module.resource_group.name
+  location                   = module.resource_group.location
+  application_type           = "web"
+  workspace_id               = azurerm_log_analytics_workspace.shared.id
+  internet_ingestion_enabled = false
+  internet_query_enabled     = false
 
   tags = local.base_tags
 }
@@ -242,7 +246,7 @@ resource "azurerm_container_registry" "shared" {
   sku                           = var.container_registry_sku
   admin_enabled                 = false
   anonymous_pull_enabled        = false
-  public_network_access_enabled = true
+  public_network_access_enabled = false
 
   tags = local.base_tags
 }

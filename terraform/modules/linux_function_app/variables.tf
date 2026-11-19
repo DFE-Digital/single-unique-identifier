@@ -110,3 +110,39 @@ variable "health_check_path" {
   type        = string
   default     = "/api/health"
 }
+
+variable "public_network_access_enabled" {
+  description = "Whether the Storage Account and Function App are accessible from public networks."
+  type        = bool
+  default     = false
+}
+
+variable "private_endpoints_subnet_id" {
+  description = "ID of the subnet where private endpoints should be created."
+  type        = string
+  default     = null
+}
+
+variable "private_dns_zone_blob_id" {
+  description = "ID of the private DNS zone for Blob storage."
+  type        = string
+  default     = null
+}
+
+variable "private_dns_zone_file_id" {
+  description = "ID of the private DNS zone for File storage."
+  type        = string
+  default     = null
+}
+
+variable "private_dns_zone_queue_id" {
+  description = "ID of the private DNS zone for Queue storage."
+  type        = string
+  default     = null
+}
+
+variable "private_dns_zone_table_id" {
+  description = "ID of the private DNS zone for Table storage."
+  type        = string
+  default     = null
+}

@@ -83,3 +83,43 @@ output "auxiliary_app_service_plan_id" {
   value       = one(azurerm_service_plan.auxiliary[*].id)
   description = "ID of the auxiliary App Service plan, if created."
 }
+
+output "private_dns_zone_acr_id" {
+  value = azurerm_private_dns_zone.acr.id
+}
+
+output "private_dns_zone_key_vault_id" {
+  value = azurerm_private_dns_zone.key_vault.id
+}
+
+output "private_dns_zone_blob_id" {
+  value = azurerm_private_dns_zone.blob.id
+}
+
+output "private_dns_zone_file_id" {
+  value = azurerm_private_dns_zone.file.id
+}
+
+output "private_dns_zone_queue_id" {
+  value = azurerm_private_dns_zone.queue.id
+}
+
+output "private_dns_zone_table_id" {
+  value = azurerm_private_dns_zone.table.id
+}
+
+output "private_dns_zone_monitor_id" {
+  value = azurerm_private_dns_zone.monitor.id
+}
+
+output "private_dns_zone_oms_id" {
+  value = azurerm_private_dns_zone.oms.id
+}
+
+output "private_dns_zone_ods_id" {
+  value = azurerm_private_dns_zone.ods.id
+}
+
+output "private_dns_zone_agentsvc_id" {
+  value = azurerm_private_dns_zone.agentsvc.id
+}
