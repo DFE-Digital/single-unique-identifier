@@ -4,12 +4,12 @@ output "service_state_key" {
 }
 
 output "notification_service_job_name" {
-  value = try(azurerm_container_app_job.notification_service[0].name, null)
+  value       = try(azurerm_container_app_job.notification_service[0].name, null)
   description = "Name of the Notification Service Container Apps job."
 }
 
 output "notification_service_job_id" {
-  value = try(azurerm_container_app_job.notification_service[0].id, null)
+  value       = try(azurerm_container_app_job.notification_service[0].id, null)
   description = "ID of the Notification Service Container Apps job."
 }
 
