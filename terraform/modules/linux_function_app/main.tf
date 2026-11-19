@@ -4,6 +4,7 @@ locals {
       FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
       WEBSITE_RUN_FROM_PACKAGE = "1"
     },
+    var.private_endpoints_subnet_id == null ? {} : { WEBSITE_CONTENTOVERVNET = "1" },
     var.environment_tag == null ? {} : { AZURE_FUNCTIONS_ENVIRONMENT = var.environment_tag },
   )
 
@@ -33,7 +34,7 @@ resource "azurerm_storage_account" "this" {
   network_rules {
     default_action             = "Deny"
     bypass                     = ["AzureServices"]
-    virtual_network_subnet_ids = [var.app_service_integration_subnet_id]
+    virtual_network_subnet_ids = var.private_endpoints_subnet_id == null ? [var.app_service_integration_subnet_id] : []
   }
 
   queue_properties {
@@ -155,6 +156,13 @@ resource "azurerm_linux_function_app" "this" {
       tags["hidden-link: /app-insights-resource-id"] # This hidden link is managed by Azure, and so is safe to ignore in the Terraform
     ]
   }
+
+  depends_on = [
+    azurerm_private_endpoint.blob,
+    azurerm_private_endpoint.file,
+    azurerm_private_endpoint.queue,
+    azurerm_private_endpoint.table,
+  ]
 }
 
 resource "azurerm_private_endpoint" "blob" {

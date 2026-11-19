@@ -56,16 +56,15 @@ resource "azurerm_private_endpoint" "ampls" {
   }
 
   private_dns_zone_group {
-    name                 = "ampls"
+    name = "ampls"
     private_dns_zone_ids = [
       azurerm_private_dns_zone.monitor.id,
       azurerm_private_dns_zone.oms.id,
       azurerm_private_dns_zone.ods.id,
       azurerm_private_dns_zone.agentsvc.id,
-      azurerm_private_dns_zone.blob.id
+      azurerm_private_dns_zone.blob.id,
     ]
   }
 
   tags = local.base_tags
 }
-

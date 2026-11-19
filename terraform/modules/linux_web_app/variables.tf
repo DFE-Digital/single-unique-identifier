@@ -112,3 +112,9 @@ variable "application_insights_connection_string" {
   type        = string
   default     = null
 }
+
+variable "app_service_integration_subnet_id" {
+  description = "Optional. ID of the delegated subnet used for regional VNet integration."
+  type        = string
+  default     = null
+}

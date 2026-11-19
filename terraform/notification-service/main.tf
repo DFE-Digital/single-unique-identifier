@@ -26,11 +26,6 @@ locals {
     local.name_prefix,
     var.region_short,
   )
-  private_dns_link_name = format(
-    "%spdnl-%s-notificationtable01",
-    local.name_prefix,
-    var.region_short,
-  )
   image = format(
     "%s/%s:%s",
     data.terraform_remote_state.core.outputs.container_registry_login_server,
@@ -78,10 +73,12 @@ module "key_vault" {
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
 
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  rbac_authorization_enabled = var.key_vault_use_rbac
-  private_endpoints_subnet_id = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
-  private_dns_zone_ids        = [data.terraform_remote_state.core.outputs.private_dns_zone_key_vault_id]
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  rbac_authorization_enabled    = var.key_vault_use_rbac
+  public_network_access_enabled = var.key_vault_public_network_access_enabled
+  network_acls_ip_rules         = var.key_vault_allowed_ip_rules
+  private_endpoints_subnet_id   = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
+  private_dns_zone_ids          = [data.terraform_remote_state.core.outputs.private_dns_zone_key_vault_id]
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -147,7 +144,7 @@ resource "azurerm_storage_account" "notification_service" {
   allow_nested_items_to_be_public   = false
   shared_access_key_enabled         = false
   default_to_oauth_authentication   = true
-  public_network_access_enabled     = false
+  public_network_access_enabled     = true
   min_tls_version                   = "TLS1_2"
 
   queue_properties {
@@ -171,8 +168,6 @@ resource "azapi_resource" "supplier_webhooks" {
   parent_id = "${azurerm_storage_account.notification_service.id}/tableServices/default"
   body      = {}
 }
-
-
 
 resource "azurerm_private_endpoint" "storage_table" {
   name                = local.private_endpoint_name
@@ -205,9 +200,6 @@ resource "azurerm_storage_account_network_rules" "notification_service" {
   depends_on = [
     azapi_resource.supplier_webhooks,
     azurerm_private_endpoint.storage_table,
-    azurerm_private_endpoint.storage_blob,
-    azurerm_private_endpoint.storage_queue,
-    azurerm_private_endpoint.storage_file
   ]
 }
 
@@ -316,67 +308,4 @@ resource "azurerm_container_app_job" "notification_service" {
     azurerm_role_assignment.notification_service_table_data_contributor,
     azurerm_storage_account_network_rules.notification_service,
   ]
-}
-
-resource "azurerm_private_endpoint" "storage_blob" {
-  name                = "${local.storage_account_name}-pe-blob"
-  location            = data.terraform_remote_state.core.outputs.resource_group_location
-  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
-  subnet_id           = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
-
-  private_service_connection {
-    name                           = "storage-blob"
-    private_connection_resource_id = azurerm_storage_account.notification_service.id
-    subresource_names              = ["blob"]
-    is_manual_connection           = false
-  }
-
-  private_dns_zone_group {
-    name                 = "storage-blob"
-    private_dns_zone_ids = [data.terraform_remote_state.core.outputs.private_dns_zone_blob_id]
-  }
-
-  tags = local.tags
-}
-
-resource "azurerm_private_endpoint" "storage_queue" {
-  name                = "${local.storage_account_name}-pe-queue"
-  location            = data.terraform_remote_state.core.outputs.resource_group_location
-  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
-  subnet_id           = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
-
-  private_service_connection {
-    name                           = "storage-queue"
-    private_connection_resource_id = azurerm_storage_account.notification_service.id
-    subresource_names              = ["queue"]
-    is_manual_connection           = false
-  }
-
-  private_dns_zone_group {
-    name                 = "storage-queue"
-    private_dns_zone_ids = [data.terraform_remote_state.core.outputs.private_dns_zone_queue_id]
-  }
-
-  tags = local.tags
-}
-
-resource "azurerm_private_endpoint" "storage_file" {
-  name                = "${local.storage_account_name}-pe-file"
-  location            = data.terraform_remote_state.core.outputs.resource_group_location
-  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
-  subnet_id           = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
-
-  private_service_connection {
-    name                           = "storage-file"
-    private_connection_resource_id = azurerm_storage_account.notification_service.id
-    subresource_names              = ["file"]
-    is_manual_connection           = false
-  }
-
-  private_dns_zone_group {
-    name                 = "storage-file"
-    private_dns_zone_ids = [data.terraform_remote_state.core.outputs.private_dns_zone_file_id]
-  }
-
-  tags = local.tags
 }

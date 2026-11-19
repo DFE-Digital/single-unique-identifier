@@ -72,6 +72,13 @@ locals {
     var.environment_id,
     var.region_short,
   )
+  auxiliary_app_integration_subnet_name = "snet-auxiliary-app-integration"
+  auxiliary_app_integration_nsg_name = format(
+    "%s%snsg-%s-auxint01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  )
 }
 
 data "azurerm_client_config" "current" {}
@@ -213,6 +220,44 @@ resource "azapi_resource" "private_endpoints_subnet" {
       }
     }
   }
+
+  depends_on = [azapi_resource.container_apps_infrastructure_subnet]
+}
+
+# A separate delegated subnet is required for the auxiliary App Service Plan
+# because Azure App Service does not allow two different App Service Plans to
+# share the same delegated VNet integration subnet.
+resource "azurerm_network_security_group" "auxiliary_app_integration" {
+  name                = local.auxiliary_app_integration_nsg_name
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
+}
+
+resource "azapi_resource" "auxiliary_app_integration_subnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2022-07-01"
+  name      = local.auxiliary_app_integration_subnet_name
+  parent_id = azurerm_virtual_network.function_app_integration.id
+
+  body = {
+    properties = {
+      addressPrefix = "10.250.0.128/27"
+      delegations = [
+        {
+          name = "auxiliary-app-service-delegation"
+          properties = {
+            serviceName = "Microsoft.Web/serverFarms"
+          }
+        },
+      ]
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.auxiliary_app_integration.id
+      }
+    }
+  }
+
+  depends_on = [azapi_resource.private_endpoints_subnet]
 }
 
 resource "azurerm_log_analytics_workspace" "shared" {
@@ -277,7 +322,10 @@ resource "azurerm_container_app_environment" "shared" {
 
   tags = local.base_tags
 
-  # Both subnets modify the same VNet. Completing them first prevents Azure
-  # from rejecting the private endpoint subnet with AnotherOperationInProgress.
-  depends_on = [azapi_resource.private_endpoints_subnet]
+  # All child subnets modify the same VNet. Completing them first prevents Azure
+  # from rejecting concurrent subnet operations with AnotherOperationInProgress.
+  depends_on = [
+    azapi_resource.private_endpoints_subnet,
+    azapi_resource.auxiliary_app_integration_subnet,
+  ]
 }

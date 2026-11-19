@@ -67,10 +67,12 @@ module "key_vault" {
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
 
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  rbac_authorization_enabled = var.key_vault_use_rbac
-  private_endpoints_subnet_id = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
-  private_dns_zone_ids        = [data.terraform_remote_state.core.outputs.private_dns_zone_key_vault_id]
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  rbac_authorization_enabled    = var.key_vault_use_rbac
+  public_network_access_enabled = var.key_vault_public_network_access_enabled
+  network_acls_ip_rules         = var.key_vault_allowed_ip_rules
+  private_endpoints_subnet_id   = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
+  private_dns_zone_ids          = [data.terraform_remote_state.core.outputs.private_dns_zone_key_vault_id]
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -122,8 +124,9 @@ resource "azurerm_key_vault_secret" "nhs_digital_private_key" {
   content_type = "text/plain"
   tags         = local.secret_tags
   depends_on = [
+    module.key_vault,
     module.rbac_assignments_terraform_operator,
-    azurerm_key_vault_access_policy.terraform_operator
+    azurerm_key_vault_access_policy.terraform_operator,
   ]
 }
 
@@ -134,8 +137,9 @@ resource "azurerm_key_vault_secret" "nhs_digital_kid" {
   content_type = "text/plain"
   tags         = local.secret_tags
   depends_on = [
+    module.key_vault,
     module.rbac_assignments_terraform_operator,
-    azurerm_key_vault_access_policy.terraform_operator
+    azurerm_key_vault_access_policy.terraform_operator,
   ]
 }
 
@@ -146,8 +150,9 @@ resource "azurerm_key_vault_secret" "nhs_digital_client_id" {
   content_type = "text/plain"
   tags         = local.secret_tags
   depends_on = [
+    module.key_vault,
     module.rbac_assignments_terraform_operator,
-    azurerm_key_vault_access_policy.terraform_operator
+    azurerm_key_vault_access_policy.terraform_operator,
   ]
 }
 

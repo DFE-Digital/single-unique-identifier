@@ -1,6 +1,8 @@
 resource "azurerm_private_dns_zone" "acr" {
   name                = "privatelink.azurecr.io"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "acr" {
@@ -8,11 +10,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "acr" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.acr.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
+  registration_enabled  = false
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone" "key_vault" {
   name                = "privatelink.vaultcore.azure.net"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "key_vault" {
@@ -20,11 +27,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "key_vault" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.key_vault.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
+  registration_enabled  = false
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone" "blob" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
@@ -32,11 +44,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.blob.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
+  registration_enabled  = false
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone" "file" {
   name                = "privatelink.file.core.windows.net"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "file" {
@@ -44,11 +61,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "file" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.file.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
+  registration_enabled  = false
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone" "queue" {
   name                = "privatelink.queue.core.windows.net"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "queue" {
@@ -56,11 +78,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "queue" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.queue.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
+  registration_enabled  = false
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone" "table" {
   name                = "privatelink.table.core.windows.net"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "table" {
@@ -68,12 +95,17 @@ resource "azurerm_private_dns_zone_virtual_network_link" "table" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.table.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
+  registration_enabled  = false
+
+  tags = local.base_tags
 }
 
 # Azure Monitor Private Link Scope (AMPLS) DNS Zones
 resource "azurerm_private_dns_zone" "monitor" {
   name                = "privatelink.monitor.azure.com"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "monitor" {
@@ -81,11 +113,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "monitor" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.monitor.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
+  registration_enabled  = false
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone" "oms" {
   name                = "privatelink.oms.opinsights.azure.com"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "oms" {
@@ -93,11 +130,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "oms" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.oms.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
+  registration_enabled  = false
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone" "ods" {
   name                = "privatelink.ods.opinsights.azure.com"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "ods" {
@@ -105,11 +147,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "ods" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.ods.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
+  registration_enabled  = false
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone" "agentsvc" {
   name                = "privatelink.agentsvc.azure-automation.net"
   resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "agentsvc" {
@@ -117,5 +164,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "agentsvc" {
   resource_group_name   = module.resource_group.name
   private_dns_zone_name = azurerm_private_dns_zone.agentsvc.name
   virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-}
+  registration_enabled  = false
 
+  tags = local.base_tags
+}

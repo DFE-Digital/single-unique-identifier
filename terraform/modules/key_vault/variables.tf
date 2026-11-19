@@ -65,3 +65,9 @@ variable "private_dns_zone_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "network_acls_ip_rules" {
+  description = "One or more IPv4 addresses or CIDR blocks allowed through the Key Vault firewall when public network access is temporarily enabled."
+  type        = list(string)
+  default     = []
+}
