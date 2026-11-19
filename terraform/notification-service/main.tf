@@ -145,20 +145,26 @@ resource "azurerm_storage_account" "notification_service" {
   allow_nested_items_to_be_public   = false
   shared_access_key_enabled         = false
   default_to_oauth_authentication   = true
-  public_network_access_enabled     = true
+  public_network_access             = "Enabled"
   min_tls_version                   = "TLS1_2"
 
-  queue_properties {
-    logging {
-      delete                = true
-      read                  = true
-      write                 = true
-      version               = "1.0"
-      retention_policy_days = 30
-    }
+  tags = local.tags
+}
+
+resource "azurerm_storage_account_queue_properties" "notification_service" {
+  storage_account_id = azurerm_storage_account.notification_service.id
+
+  logging {
+    delete                = true
+    read                  = true
+    write                 = true
+    version               = "1.0"
+    retention_policy_days = 30
   }
 
-  tags = local.tags
+  # Keep Queue data-plane operations behind the configured default-deny
+  # storage firewall.
+  depends_on = [azurerm_storage_account_network_rules.notification_service]
 }
 
 # The table is created through ARM, rather than the Storage data plane, so the
@@ -177,11 +183,10 @@ resource "azurerm_private_dns_zone" "storage_table" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage_table" {
-  name                  = local.private_dns_link_name
-  resource_group_name   = data.terraform_remote_state.core.outputs.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.storage_table.name
-  virtual_network_id    = data.terraform_remote_state.core.outputs.function_app_integration_vnet_id
-  registration_enabled  = false
+  name                 = local.private_dns_link_name
+  private_dns_zone_id  = azurerm_private_dns_zone.storage_table.id
+  virtual_network_id   = data.terraform_remote_state.core.outputs.function_app_integration_vnet_id
+  registration_enabled = false
 
   tags = local.tags
 }
@@ -281,6 +286,16 @@ resource "azurerm_container_app_job" "notification_service" {
     value = var.nhs_mesh_mailbox_password
   }
 
+  secret {
+    name  = "nhs-mesh-root-ca"
+    value = var.nhs_mesh_root_ca
+  }
+
+  secret {
+    name  = "nhs-mesh-intermediate-ca"
+    value = var.nhs_mesh_intermediate_ca
+  }
+
   template {
     container {
       name   = "notification-service"
@@ -316,6 +331,16 @@ resource "azurerm_container_app_job" "notification_service" {
       env {
         name        = "NhsMeshConfig__MailboxPassword"
         secret_name = "nhs-mesh-mailbox-password"
+      }
+
+      env {
+        name        = "NhsMeshConfig__MailboxRootCA"
+        secret_name = "nhs-mesh-root-ca"
+      }
+
+      env {
+        name        = "NhsMeshConfig__MailboxIntermediateCA"
+        secret_name = "nhs-mesh-intermediate-ca"
       }
 
       # appsettings.Development.json enables this for the local sandbox; it must never be

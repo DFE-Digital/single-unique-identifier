@@ -24,6 +24,8 @@ flowchart TD
 
 The selected apps use the pinned SDK and committed NuGet locks, with a locked restore, Release build and publish without rebuilding. Secret, repository and IaC scans and any required helper tests must pass before publication. Shared SDK/NuGet and release-workflow changes select all three components.
 
+The release build authenticates to the DfE NuGet feed through NuGet's source credentials environment variable, leaving `nuget.config` unchanged. Where coverage is enabled, ReportGenerator produces the reports used by SonarCloud and the PR coverage comment.
+
 Each component release contains its tested ZIP, a CycloneDX JSON SBOM named `<ZIP filename>.cdx.json`, and `release-manifest.json`. The manifest records the tag, full source SHA, workflow run ID and attempt, timestamp, component and ZIP filename; `container` is null. New tags use `<component>-YYYY.MM.DD-build.<run number>`, for example `get-an-identifier-2026.11.05-build.1234`. The UTC date and run number stay the same on a rerun; the full source SHA remains in the manifest. Existing releases retain their `sui-<component>-<full source SHA>` tags. Resolve a release ID from its tag. The publisher verifies the ZIP provenance and SBOM attestations against the trusted workflow and source commit, compares the signed SBOM predicate with the release asset, then checks the complete draft asset inventory and SHA-256 hashes before publishing.
 
 ## Verifying the SBOM
