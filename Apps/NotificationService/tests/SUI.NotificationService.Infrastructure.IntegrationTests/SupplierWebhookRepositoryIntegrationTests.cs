@@ -44,7 +44,14 @@ public class SupplierWebhookRepositoryIntegrationTests : IAsyncLifetime
     public async Task AddAsync_ActuallyPersistsToDatabase_WithNormalisedKey()
     {
         // Arrange
-        var webhook = new SupplierWebhook("sup/123", "https://test.com", true, "1", "kv-ref");
+        var webhook = new SupplierWebhook(
+            "sup/123",
+            "https://test.com",
+            true,
+            "1",
+            "kv-ref",
+            "key-1"
+        );
 
         // Act
         await _sut.AddAsync(webhook);
@@ -66,7 +73,7 @@ public class SupplierWebhookRepositoryIntegrationTests : IAsyncLifetime
     public async Task AddAsync_ThrowsInvalidOperationException_OnRealDuplicate()
     {
         // Arrange
-        var webhook = new SupplierWebhook("SUP999", "https://test.com", true, "1", "kv");
+        var webhook = new SupplierWebhook("SUP999", "https://test.com", true, "1", "kv", "key-1");
         await _sut.AddAsync(webhook); // Add the first time
 
         // Act & Assert - This will throw a 409 Conflict
@@ -81,9 +88,9 @@ public class SupplierWebhookRepositoryIntegrationTests : IAsyncLifetime
     public async Task GetAllEnabledAsync_QueriesRealDatabase_AndFiltersCorrectly()
     {
         // Arrange
-        var enabled1 = new SupplierWebhook("SUP1", "https://a.com", true, "1", "kv");
-        var disabled = new SupplierWebhook("SUP2", "https://b.com", false, "1", "kv");
-        var enabled2 = new SupplierWebhook("SUP3", "https://c.com", true, "1", "kv");
+        var enabled1 = new SupplierWebhook("SUP1", "https://a.com", true, "1", "kv", "key-1");
+        var disabled = new SupplierWebhook("SUP2", "https://b.com", false, "1", "kv", "key-1");
+        var enabled2 = new SupplierWebhook("SUP3", "https://c.com", true, "1", "kv", "key-1");
 
         await _sut.AddAsync(enabled1);
         await _sut.AddAsync(disabled);
@@ -103,7 +110,14 @@ public class SupplierWebhookRepositoryIntegrationTests : IAsyncLifetime
     public async Task DisableAsync_UpdatesRealDatabaseRecord()
     {
         // Arrange
-        var webhook = new SupplierWebhook("sys/admin", "https://test.com", true, "1", "kv");
+        var webhook = new SupplierWebhook(
+            "sys/admin",
+            "https://test.com",
+            true,
+            "1",
+            "kv",
+            "key-1"
+        );
         await _sut.AddAsync(webhook);
 
         // Act
@@ -118,7 +132,14 @@ public class SupplierWebhookRepositoryIntegrationTests : IAsyncLifetime
     public async Task EnableAsync_UpdatesRealDatabaseRecord()
     {
         // Arrange - Save a webhook that starts off disabled
-        var webhook = new SupplierWebhook("sys/admin", "https://test.com", false, "1", "kv");
+        var webhook = new SupplierWebhook(
+            "sys/admin",
+            "https://test.com",
+            false,
+            "1",
+            "kv",
+            "key-1"
+        );
         await _sut.AddAsync(webhook);
 
         // Verify it isn't returned initially

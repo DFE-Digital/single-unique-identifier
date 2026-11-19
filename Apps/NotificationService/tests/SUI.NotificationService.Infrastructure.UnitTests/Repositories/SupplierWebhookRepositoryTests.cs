@@ -29,7 +29,7 @@ public class SupplierWebhookRepositoryTests
     public void DomainModel_ThrowsArgumentException_WhenUrlIsNotHttps(string invalidUrl)
     {
         Assert.Throws<ArgumentException>(() =>
-            new SupplierWebhook("SUP123", invalidUrl, true, "1", "kv-ref")
+            new SupplierWebhook("SUP123", invalidUrl, true, "1", "kv-ref", "key-1")
         );
     }
 
@@ -41,7 +41,8 @@ public class SupplierWebhookRepositoryTests
             "https://secure.com/webhook",
             true,
             "1",
-            "kv-ref"
+            "kv-ref",
+            "key-1"
         );
         Assert.Equal("https://secure.com/webhook", webhook.EndpointUrl);
     }
@@ -58,7 +59,8 @@ public class SupplierWebhookRepositoryTests
             "https://secure.com/webhook",
             true,
             "1",
-            "kv-ref"
+            "kv-ref",
+            "key-1"
         );
 
         // Act
@@ -83,7 +85,8 @@ public class SupplierWebhookRepositoryTests
             "https://secure.com/webhook",
             true,
             "1",
-            "kv-ref"
+            "kv-ref",
+            "key-1"
         );
         var conflictException = new RequestFailedException(409, "Conflict");
 
@@ -106,6 +109,7 @@ public class SupplierWebhookRepositoryTests
             RowKey = expectedRowKey,
             OriginalSupplierId = messyId,
             IsEnabled = true,
+            KeyId = "key-1",
             ETag = new ETag("W/\"datetime'2026-09-07T00%3A00%3A00.0000000Z'\""),
         };
 
@@ -148,6 +152,7 @@ public class SupplierWebhookRepositoryTests
             RowKey = expectedRowKey,
             OriginalSupplierId = messyId,
             IsEnabled = false, // Starting off disabled
+            KeyId = "key-1",
             ETag = new ETag("W/\"datetime'2026-09-10T00%3A00%3A00.0000000Z'\""),
         };
 
@@ -193,6 +198,7 @@ public class SupplierWebhookRepositoryTests
             IsEnabled = true,
             ContractVersion = "1",
             SecretKeyVaultReference = "ref1",
+            KeyId = "key-1",
         };
 
         var page = Page<SupplierWebhookEntity>.FromValues(
@@ -234,6 +240,7 @@ public class SupplierWebhookRepositoryTests
         Assert.Single(webhooks);
         Assert.Equal("sup/001", webhooks[0].SupplierId);
         Assert.True(webhooks[0].IsEnabled);
+        Assert.Equal("key-1", webhooks[0].KeyId);
     }
 
     [Fact]
@@ -248,7 +255,8 @@ public class SupplierWebhookRepositoryTests
             "https://updated.com/webhook",
             true,
             "2",
-            "new-kv-ref"
+            "new-kv-ref",
+            "key-2"
         );
 
         // Act

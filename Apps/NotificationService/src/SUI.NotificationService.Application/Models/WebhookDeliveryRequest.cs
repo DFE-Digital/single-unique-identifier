@@ -8,5 +8,7 @@ public record WebhookDeliveryRequest(
     Guid DeliveryId,
     Guid CorrelationId,
     string EndpointUrl,
-    string SecretKeyVaultReference
+    string SecretKeyVaultReference,
+    string KeyId,
+    int AttemptNumber
 );
