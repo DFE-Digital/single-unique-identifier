@@ -27,6 +27,11 @@ on:
         required: false
         default: false
         type: boolean
+      notification_service_job_enabled:
+        description: Enables running the notification service job
+        required: false
+        default: false
+        type: boolean
       skip_tests:
         description: Skip tests and related setup
         required: false
@@ -293,11 +298,16 @@ jobs:
       state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
       terraform_variables: >-
         {"notification_service_image_tag":"${{ needs.resolve-image.outputs.image_tag }}"}
-      terraform_output_names: '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'
+      terraform_output_names: >-
+        ${{
+          inputs.notification_service_job_enabled
+          && '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'
+          || '["resource_group_name", "log_analytics_workspace_id"]'
+        }}
 
   smoke-test:
     name: Notification Service - smoke test
-    if: ${{false}}
+    if: ${{ github.event_name != 'pull_request' && inputs.notification_service_job_enabled }}
     needs: terraform
     timeout-minutes: 15
     runs-on: ubuntu-latest
