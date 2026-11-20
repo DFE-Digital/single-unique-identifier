@@ -128,10 +128,13 @@ resource "azurerm_virtual_network" "function_app_integration" {
   address_space       = var.function_app_integration_vnet_address_space
 
   subnet {
-    name              = local.function_app_integration_subnet_name
-    address_prefixes  = var.function_app_integration_subnet_address_prefixes
-    security_group    = azurerm_network_security_group.function_app_integration.id
-    service_endpoints = ["Microsoft.Storage"]
+    name             = local.function_app_integration_subnet_name
+    address_prefixes = var.function_app_integration_subnet_address_prefixes
+    security_group   = azurerm_network_security_group.function_app_integration.id
+
+    service_endpoint {
+      service = "Microsoft.Storage"
+    }
 
     delegation {
       name = "app-service-delegation"
@@ -309,6 +312,7 @@ resource "azurerm_container_app_environment" "shared" {
   name                           = local.container_app_environment_name
   resource_group_name            = module.resource_group.name
   location                       = module.resource_group.location
+  logs_destination               = "log-analytics"
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.shared.id
   infrastructure_subnet_id       = azapi_resource.container_apps_infrastructure_subnet.id
   internal_load_balancer_enabled = true
@@ -316,8 +320,6 @@ resource "azurerm_container_app_environment" "shared" {
   workload_profile {
     name                  = "Consumption"
     workload_profile_type = "Consumption"
-    minimum_count         = 0
-    maximum_count         = 3
   }
 
   tags = local.base_tags

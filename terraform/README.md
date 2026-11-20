@@ -1,5 +1,25 @@
 # Terraform
 
+## Provider dependencies
+
+Each independently initialised root has a committed `.terraform.lock.hcl` with selected provider versions and checksums. Deployment workflows use `-lockfile=readonly`. When intentionally upgrading providers, update the constraints and regenerate the root lockfiles together.
+
+Provider constraints live in each root or reusable module's `versions.tf`; each root's lockfile records the selected provider versions for that configuration. Reusable modules declare minimum versions for the features they need, while each root sets the compatible provider range. The GetAnIdentifier root retains Random and Time requirements because earlier Terraform configurations managed API key resources with them; remove these only after confirming those resources are absent from all environment states.
+
+Roots set `resource_provider_registrations = "none"`; required Azure Resource Provider namespaces must already be registered in the target subscription. Enhanced location and resource provider validation remain enabled, while Azure preflight validation is disabled.
+
+Queue logging uses `azurerm_storage_account_queue_properties`, which calls the Storage Queue data-plane endpoint. Notification Service uses Entra ID because Shared Key is disabled; Function App storage accounts use Shared Key. The deployment runner needs an authorised network path and the required data-plane permissions. Current storage network rules block the default GitHub-hosted runner, so do not apply this change from that runner or relax storage security to accommodate it. Check existing Queue CORS and metrics settings before the first apply, as creating the resource can reset unconfigured service properties. Keep the resource under Terraform management because deleting it resets Queue service properties. No state import was performed for this migration.
+
+To update a root lockfile without contacting its backend, run:
+
+```bash
+terraform -chdir=terraform/<root> init -backend=false -upgrade
+terraform -chdir=terraform/<root> providers lock -platform=linux_amd64 -platform=darwin_arm64
+terraform -chdir=terraform/<root> init -backend=false -lockfile=readonly
+```
+
+Review the resolved versions and commit the root lockfiles with the intentional configuration changes. Shared modules do not have lockfiles.
+
 This folder holds the Terraform for the platform, including shared foundations and reusable modules. Every deployable service should have its own Terraform root so it can be planned/applied in isolation.
 
 ## Structure

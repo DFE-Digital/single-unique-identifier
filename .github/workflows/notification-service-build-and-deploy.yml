@@ -27,6 +27,11 @@ on:
         required: false
         default: false
         type: boolean
+      notification_service_job_enabled:
+        description: Enables running the notification service job
+        required: false
+        default: false
+        type: boolean
       skip_tests:
         description: Skip tests and related setup
         required: false
@@ -122,9 +127,7 @@ jobs:
 
   build-and-publish-image:
     name: Notification Service - container image
-    # Deployment is opt-in while the required Azure RBAC delegation is pending.
-    # Replace `false` with `github.event_name != 'pull_request'` once RBAC is available.
-    if: ${{ false }}
+    if: ${{ github.event_name != 'pull_request' }}
     needs:
       - build-and-test
       - resolve-image
@@ -285,6 +288,8 @@ jobs:
       NHS_MESH_CONFIG_SHARED_KEY: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
       NHS_MESH_CONFIG_MAILBOX_ID: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
       NHS_MESH_CONFIG_MAILBOX_PASSWORD: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
+      NHS_MESH_CONFIG_ROOT_CA: ${{ secrets.NHS_MESH_CONFIG_ROOT_CA }}
+      NHS_MESH_CONFIG_INTERMEDIATE_CA: ${{ secrets.NHS_MESH_CONFIG_INTERMEDIATE_CA }}
     permissions:
       contents: read
       id-token: write
@@ -294,12 +299,19 @@ jobs:
       root: terraform/notification-service
       state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
       terraform_variables: >-
-        {"notification_service_image_tag":"${{ needs.resolve-image.outputs.image_tag }}"}
-      terraform_output_names: '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'
+        {
+          "notification_service_image_tag":"${{ needs.resolve-image.outputs.image_tag }}",
+          "notification_service_job_enabled":"${{ inputs.notification_service_job_enabled }}"}
+      terraform_output_names: >-
+        ${{
+          inputs.notification_service_job_enabled
+          && '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'
+          || '["resource_group_name", "log_analytics_workspace_id"]'
+        }}
 
   smoke-test:
     name: Notification Service - smoke test
-    if: github.event_name != 'pull_request'
+    if: ${{ github.event_name != 'pull_request' && inputs.notification_service_job_enabled }}
     needs: terraform
     timeout-minutes: 15
     runs-on: ubuntu-latest

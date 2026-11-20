@@ -43,7 +43,7 @@ locals {
   )
 
   # Key Vault name
-  key_vault_descriptor = "notificationkv01"
+  key_vault_descriptor = "notifkv01"
   key_vault_name = format(
     "%s%skv-%s-%s",
     var.subscription_prefix,
@@ -144,20 +144,26 @@ resource "azurerm_storage_account" "notification_service" {
   allow_nested_items_to_be_public   = false
   shared_access_key_enabled         = false
   default_to_oauth_authentication   = true
-  public_network_access_enabled     = true
+  public_network_access             = "Enabled"
   min_tls_version                   = "TLS1_2"
 
-  queue_properties {
-    logging {
-      delete                = true
-      read                  = true
-      write                 = true
-      version               = "1.0"
-      retention_policy_days = 30
-    }
+  tags = local.tags
+}
+
+resource "azurerm_storage_account_queue_properties" "notification_service" {
+  storage_account_id = azurerm_storage_account.notification_service.id
+
+  logging {
+    delete                = true
+    read                  = true
+    write                 = true
+    version               = "1.0"
+    retention_policy_days = 30
   }
 
-  tags = local.tags
+  # Keep Queue data-plane operations behind the configured default-deny
+  # storage firewall.
+  depends_on = [azurerm_storage_account_network_rules.notification_service]
 }
 
 # The table is created through ARM, rather than the Storage data plane, so the
@@ -167,6 +173,21 @@ resource "azapi_resource" "supplier_webhooks" {
   name      = "SupplierWebhooks"
   parent_id = "${azurerm_storage_account.notification_service.id}/tableServices/default"
   body      = {}
+}
+
+resource "azurerm_private_dns_zone" "storage_table" {
+  name                = "privatelink.table.core.windows.net"
+  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
+  tags                = local.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "storage_table" {
+  name                 = local.private_dns_link_name
+  private_dns_zone_id  = azurerm_private_dns_zone.storage_table.id
+  virtual_network_id   = data.terraform_remote_state.core.outputs.function_app_integration_vnet_id
+  registration_enabled = false
+
+  tags = local.tags
 }
 
 resource "azurerm_private_endpoint" "storage_table" {
@@ -204,18 +225,27 @@ resource "azurerm_storage_account_network_rules" "notification_service" {
 }
 
 resource "azurerm_role_assignment" "notification_service_acr_pull" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_acr_pull_enabled ? 1 : 0
+
   scope                = data.terraform_remote_state.core.outputs.container_registry_id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
 }
 
 resource "azurerm_role_assignment" "notification_service_table_data_contributor" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_acr_pull_enabled ? 1 : 0
+
   scope                = azurerm_storage_account.notification_service.id
   role_definition_name = "Storage Table Data Contributor"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
 }
 
 resource "azurerm_container_app_job" "notification_service" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_job_enabled ? 1 : 0
+
   name                         = local.job_name
   resource_group_name          = data.terraform_remote_state.core.outputs.resource_group_name
   location                     = data.terraform_remote_state.core.outputs.resource_group_location
@@ -255,6 +285,16 @@ resource "azurerm_container_app_job" "notification_service" {
     value = var.nhs_mesh_mailbox_password
   }
 
+  secret {
+    name  = "nhs-mesh-root-ca"
+    value = var.nhs_mesh_root_ca
+  }
+
+  secret {
+    name  = "nhs-mesh-intermediate-ca"
+    value = var.nhs_mesh_intermediate_ca
+  }
+
   template {
     container {
       name   = "notification-service"
@@ -290,6 +330,16 @@ resource "azurerm_container_app_job" "notification_service" {
       env {
         name        = "NhsMeshConfig__MailboxPassword"
         secret_name = "nhs-mesh-mailbox-password"
+      }
+
+      env {
+        name        = "NhsMeshConfig__MailboxRootCA"
+        secret_name = "nhs-mesh-root-ca"
+      }
+
+      env {
+        name        = "NhsMeshConfig__MailboxIntermediateCA"
+        secret_name = "nhs-mesh-intermediate-ca"
       }
 
       # appsettings.Development.json enables this for the local sandbox; it must never be

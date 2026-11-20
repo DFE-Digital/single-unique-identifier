@@ -1,8 +1,8 @@
 using Azure;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SUI.NotificationService.Application.Exceptions;
 
 namespace SUI.NotificationService.Webhooks.UnitTests;
 
@@ -81,7 +81,7 @@ public class WebhookSecretClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetSecretBase64Async_ThrowsInvalidOperationException_WhenKeyVaultFails()
+    public async Task GetSecretBase64Async_ThrowsWebhookSecretRetrievalException_WhenKeyVaultFails()
     {
         // Arrange
         var secretName = "supplier-c-hmac";
@@ -96,7 +96,7 @@ public class WebhookSecretClientTests : IDisposable
             );
 
         // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<WebhookSecretRetrievalException>(() =>
             _sut.GetSecretBase64Async(secretName)
         );
 
