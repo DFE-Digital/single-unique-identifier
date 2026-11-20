@@ -4,6 +4,7 @@ locals {
       FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
       WEBSITE_RUN_FROM_PACKAGE = "1"
     },
+    var.private_endpoints_subnet_id == null ? {} : { WEBSITE_CONTENTOVERVNET = "1" },
     var.environment_tag == null ? {} : { AZURE_FUNCTIONS_ENVIRONMENT = var.environment_tag },
   )
 
@@ -26,13 +27,14 @@ resource "azurerm_storage_account" "this" {
   account_tier                      = "Standard"
   account_replication_type          = var.storage_account_replication_type
   infrastructure_encryption_enabled = true
+  public_network_access             = var.public_network_access_enabled ? "Enabled" : "Disabled"
 
   allow_nested_items_to_be_public = false
 
   network_rules {
     default_action             = "Deny"
     bypass                     = ["AzureServices"]
-    virtual_network_subnet_ids = [var.app_service_integration_subnet_id]
+    virtual_network_subnet_ids = var.private_endpoints_subnet_id == null ? [var.app_service_integration_subnet_id] : []
   }
 
   tags = merge(
@@ -51,6 +53,8 @@ resource "azurerm_storage_account_queue_properties" "this" {
     version               = "1.0"
     retention_policy_days = 30
   }
+
+  depends_on = [azurerm_private_endpoint.queue]
 }
 
 data "azurerm_monitor_diagnostic_categories" "storage_service" {
@@ -156,4 +160,115 @@ resource "azurerm_linux_function_app" "this" {
       tags["hidden-link: /app-insights-resource-id"] # This hidden link is managed by Azure, and so is safe to ignore in the Terraform
     ]
   }
+
+  depends_on = [
+    azurerm_private_endpoint.blob,
+    azurerm_private_endpoint.file,
+    azurerm_private_endpoint.queue,
+    azurerm_private_endpoint.table,
+  ]
+}
+
+resource "azurerm_private_endpoint" "blob" {
+  count = var.private_endpoints_subnet_id != null ? 1 : 0
+
+  name                = "${var.storage_account_name}-pe-blob"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoints_subnet_id
+
+  private_service_connection {
+    name                           = "blob"
+    private_connection_resource_id = azurerm_storage_account.this.id
+    subresource_names              = ["blob"]
+    is_manual_connection           = false
+  }
+
+  dynamic "private_dns_zone_group" {
+    for_each = var.private_dns_zone_blob_id != null ? [1] : []
+    content {
+      name                 = "blob"
+      private_dns_zone_ids = [var.private_dns_zone_blob_id]
+    }
+  }
+
+  tags = merge(local.base_tags, var.tags)
+}
+
+resource "azurerm_private_endpoint" "file" {
+  count = var.private_endpoints_subnet_id != null ? 1 : 0
+
+  name                = "${var.storage_account_name}-pe-file"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoints_subnet_id
+
+  private_service_connection {
+    name                           = "file"
+    private_connection_resource_id = azurerm_storage_account.this.id
+    subresource_names              = ["file"]
+    is_manual_connection           = false
+  }
+
+  dynamic "private_dns_zone_group" {
+    for_each = var.private_dns_zone_file_id != null ? [1] : []
+    content {
+      name                 = "file"
+      private_dns_zone_ids = [var.private_dns_zone_file_id]
+    }
+  }
+
+  tags = merge(local.base_tags, var.tags)
+}
+
+resource "azurerm_private_endpoint" "queue" {
+  count = var.private_endpoints_subnet_id != null ? 1 : 0
+
+  name                = "${var.storage_account_name}-pe-queue"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoints_subnet_id
+
+  private_service_connection {
+    name                           = "queue"
+    private_connection_resource_id = azurerm_storage_account.this.id
+    subresource_names              = ["queue"]
+    is_manual_connection           = false
+  }
+
+  dynamic "private_dns_zone_group" {
+    for_each = var.private_dns_zone_queue_id != null ? [1] : []
+    content {
+      name                 = "queue"
+      private_dns_zone_ids = [var.private_dns_zone_queue_id]
+    }
+  }
+
+  tags = merge(local.base_tags, var.tags)
+}
+
+resource "azurerm_private_endpoint" "table" {
+  count = var.private_endpoints_subnet_id != null ? 1 : 0
+
+  name                = "${var.storage_account_name}-pe-table"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoints_subnet_id
+
+  private_service_connection {
+    name                           = "table"
+    private_connection_resource_id = azurerm_storage_account.this.id
+    subresource_names              = ["table"]
+    is_manual_connection           = false
+  }
+
+  dynamic "private_dns_zone_group" {
+    for_each = var.private_dns_zone_table_id != null ? [1] : []
+    content {
+      name                 = "table"
+      private_dns_zone_ids = [var.private_dns_zone_table_id]
+    }
+  }
+
+  tags = merge(local.base_tags, var.tags)
 }

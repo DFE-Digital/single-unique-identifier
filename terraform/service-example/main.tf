@@ -24,10 +24,11 @@ data "terraform_remote_state" "core" {
 module "web_app" {
   source = "../modules/linux_web_app"
 
-  name                = local.web_app_name
-  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
-  location            = data.terraform_remote_state.core.outputs.resource_group_location
-  service_plan_id     = data.terraform_remote_state.core.outputs.app_service_plan_id
+  name                              = local.web_app_name
+  resource_group_name               = data.terraform_remote_state.core.outputs.resource_group_name
+  location                          = data.terraform_remote_state.core.outputs.resource_group_location
+  service_plan_id                   = data.terraform_remote_state.core.outputs.app_service_plan_id
+  app_service_integration_subnet_id = data.terraform_remote_state.core.outputs.function_app_integration_subnet_id
 
   environment_tag  = var.environment_tag
   product          = var.product

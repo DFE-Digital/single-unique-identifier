@@ -1,0 +1,83 @@
+name: Close Key Vault Access
+description: Restores publicNetworkAccess to Disabled and removes temporary runner IP rules from all Key Vaults in the resource group.
+
+inputs:
+  resource_group:
+    description: Resource group containing the environment Key Vaults
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Remove Runner IP Whitelist from Key Vaults
+      shell: bash
+      env:
+        RG: ${{ inputs.resource_group }}
+      run: |
+        if [ -z "$RG" ]; then
+          echo "Skipping Key Vault cleanup: resource_group is empty."
+          exit 0
+        fi
+
+        if [ "$(az group exists --name "$RG" -o tsv)" != "true" ]; then
+          echo "Resource group $RG does not exist; nothing to clean up."
+          exit 0
+        fi
+
+        vaults=$(az keyvault list --resource-group "$RG" --query "[].name" -o tsv)
+        if [ -z "$vaults" ]; then
+          echo "No Key Vaults found in $RG."
+          exit 0
+        fi
+
+        chmod +x .github/scripts/retry-command.sh
+        source .github/scripts/retry-command.sh
+
+        cleanup_failed=false
+
+        for kv in $vaults; do
+          echo "Locking down Key Vault: $kv..."
+
+          ip_rules=$(az keyvault network-rule list --resource-group "$RG" --name "$kv" --query "ipRules[].value" -o tsv)
+          for ip_rule in $ip_rules; do
+            echo "Removing IP rule $ip_rule from $kv..."
+            if ! retry_command az keyvault network-rule remove --resource-group "$RG" --name "$kv" --ip-address "$ip_rule" >/dev/null; then
+              echo "::error::Failed to remove IP rule $ip_rule from $kv."
+              cleanup_failed=true
+            fi
+          done
+
+          echo "Disabling publicNetworkAccess on $kv..."
+          if ! retry_command az keyvault update \
+            --resource-group "$RG" \
+            --name "$kv" \
+            --public-network-access Disabled \
+            --default-action Deny \
+            --bypass AzureServices >/dev/null; then
+            echo "::error::Failed to disable publicNetworkAccess on $kv."
+            cleanup_failed=true
+          fi
+
+          pna=$(az keyvault show --resource-group "$RG" --name "$kv" --query "properties.publicNetworkAccess" -o tsv)
+          if [ "$pna" != "Disabled" ]; then
+            echo "::error::Verification failed for $kv: publicNetworkAccess is '$pna', expected 'Disabled'."
+            cleanup_failed=true
+          else
+            echo "✅ $kv publicNetworkAccess verified as Disabled."
+          fi
+
+          remaining_ips=$(az keyvault network-rule list --resource-group "$RG" --name "$kv" --query "length(ipRules)" -o tsv)
+          if [ "$remaining_ips" != "0" ]; then
+            echo "::error::Verification failed for $kv: $remaining_ips IP rule(s) still remain."
+            cleanup_failed=true
+          else
+            echo "✅ $kv IP rules verified as empty."
+          fi
+        done
+
+        if [ "$cleanup_failed" = true ]; then
+          echo "::error::Key Vault cleanup did not complete successfully!"
+          exit 1
+        fi
+
+        echo "Key Vault cleanup completed successfully!"

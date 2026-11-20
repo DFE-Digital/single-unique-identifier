@@ -26,8 +26,8 @@ locals {
     local.name_prefix,
     var.region_short,
   )
-  private_dns_link_name = format(
-    "%spdnl-%s-notificationtable01",
+  queue_private_endpoint_name = format(
+    "%spe-%s-notificationqueue01",
     local.name_prefix,
     var.region_short,
   )
@@ -78,8 +78,12 @@ module "key_vault" {
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
 
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  rbac_authorization_enabled = var.key_vault_use_rbac
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  rbac_authorization_enabled    = var.key_vault_use_rbac
+  public_network_access_enabled = var.key_vault_public_network_access_enabled
+  network_acls_ip_rules         = var.key_vault_allowed_ip_rules
+  private_endpoints_subnet_id   = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
+  private_dns_zone_ids          = [data.terraform_remote_state.core.outputs.private_dns_zone_key_vault_id]
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -176,21 +180,6 @@ resource "azapi_resource" "supplier_webhooks" {
   body      = {}
 }
 
-resource "azurerm_private_dns_zone" "storage_table" {
-  name                = "privatelink.table.core.windows.net"
-  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
-  tags                = local.tags
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "storage_table" {
-  name                 = local.private_dns_link_name
-  private_dns_zone_id  = azurerm_private_dns_zone.storage_table.id
-  virtual_network_id   = data.terraform_remote_state.core.outputs.function_app_integration_vnet_id
-  registration_enabled = false
-
-  tags = local.tags
-}
-
 resource "azurerm_private_endpoint" "storage_table" {
   name                = local.private_endpoint_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
@@ -206,7 +195,28 @@ resource "azurerm_private_endpoint" "storage_table" {
 
   private_dns_zone_group {
     name                 = "storage-table"
-    private_dns_zone_ids = [azurerm_private_dns_zone.storage_table.id]
+    private_dns_zone_ids = [data.terraform_remote_state.core.outputs.private_dns_zone_table_id]
+  }
+
+  tags = local.tags
+}
+
+resource "azurerm_private_endpoint" "storage_queue" {
+  name                = local.queue_private_endpoint_name
+  location            = data.terraform_remote_state.core.outputs.resource_group_location
+  resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
+  subnet_id           = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
+
+  private_service_connection {
+    name                           = "storage-queue"
+    private_connection_resource_id = azurerm_storage_account.notification_service.id
+    subresource_names              = ["queue"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "storage-queue"
+    private_dns_zone_ids = [data.terraform_remote_state.core.outputs.private_dns_zone_queue_id]
   }
 
   tags = local.tags
@@ -217,11 +227,12 @@ resource "azurerm_storage_account_network_rules" "notification_service" {
   default_action     = "Deny"
   bypass             = ["AzureServices"]
 
-  # ARM table provisioning and the private endpoint must be ready before the
+  # ARM table provisioning and the private endpoints must be ready before the
   # public firewall is closed.
   depends_on = [
     azapi_resource.supplier_webhooks,
     azurerm_private_endpoint.storage_table,
+    azurerm_private_endpoint.storage_queue,
   ]
 }
 

@@ -50,6 +50,18 @@ variable "key_vault_use_rbac" {
   default     = true
 }
 
+variable "key_vault_public_network_access_enabled" {
+  description = "Whether the Key Vault allows public network access (temporarily enabled during CI runs for the runner IP)."
+  type        = bool
+  default     = false
+}
+
+variable "key_vault_allowed_ip_rules" {
+  description = "IPv4 CIDR rules allowed through the Key Vault firewall when public network access is enabled."
+  type        = list(string)
+  default     = []
+}
+
 variable "ui_harness_app_settings" {
   description = "Additional app settings to apply to the UI Test Harness web app."
   type        = map(string)

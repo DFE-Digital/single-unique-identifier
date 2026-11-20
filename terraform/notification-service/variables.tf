@@ -225,6 +225,16 @@ variable "key_vault_use_rbac" {
   type    = bool
   default = null
 }
+variable "key_vault_public_network_access_enabled" {
+  description = "Whether the Key Vault allows public network access (temporarily enabled during CI runs for the runner IP)."
+  type        = bool
+  default     = false
+}
+variable "key_vault_allowed_ip_rules" {
+  description = "IPv4 CIDR rules allowed through the Key Vault firewall when public network access is enabled."
+  type        = list(string)
+  default     = []
+}
 variable "getanidentifier_app_settings" {
   type    = map(string)
   default = {}

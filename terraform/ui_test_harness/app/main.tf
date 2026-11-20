@@ -60,8 +60,12 @@ module "key_vault" {
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
   location            = data.terraform_remote_state.core.outputs.resource_group_location
 
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  rbac_authorization_enabled = var.key_vault_use_rbac
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  rbac_authorization_enabled    = var.key_vault_use_rbac
+  public_network_access_enabled = var.key_vault_public_network_access_enabled
+  network_acls_ip_rules         = var.key_vault_allowed_ip_rules
+  private_endpoints_subnet_id   = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
+  private_dns_zone_ids          = [data.terraform_remote_state.core.outputs.private_dns_zone_key_vault_id]
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -101,8 +105,9 @@ resource "azurerm_key_vault_secret" "ui_harness_password" {
   tags         = local.secret_tags
 
   depends_on = [
+    module.key_vault,
     module.rbac_assignments_terraform_operator,
-    azurerm_key_vault_access_policy.terraform_operator
+    azurerm_key_vault_access_policy.terraform_operator,
   ]
 }
 
@@ -115,7 +120,8 @@ module "web_app" {
   location            = data.terraform_remote_state.core.outputs.resource_group_location
 
   # UPDATED: Use auxiliary plan if it exists, otherwise fall back to the shared plan
-  service_plan_id = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id : data.terraform_remote_state.core.outputs.app_service_plan_id
+  service_plan_id                   = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id : data.terraform_remote_state.core.outputs.app_service_plan_id
+  app_service_integration_subnet_id = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_integration_subnet_id : data.terraform_remote_state.core.outputs.function_app_integration_subnet_id
 
   environment_tag  = var.environment_tag
   product          = var.product
