@@ -33,7 +33,7 @@ Deployments are blocked when `skip_tests` or `skip_scans` is true.
 
 ## Manual deploy workflows
 
-You can run the deploy workflows directly (without a build) and provide an existing GitHub Actions artifact:
+You can run the legacy deploy workflows directly (without a build) and provide an existing GitHub Actions artifact. The standalone Function App artifact dispatch is disabled when Get an Identifier immutable promotion is active.
 
 - [`deploy-dotnet-webapp.yml`](../../.github/workflows/deploy-dotnet-webapp.yml)
 - [`deploy-dotnet-functionapp.yml`](../../.github/workflows/deploy-dotnet-functionapp.yml)
@@ -103,7 +103,7 @@ To ensure operational resilience and rapid response to supply-chain or infrastru
 
 ## Immutable application releases
 
-The separate [immutable release workflow](./immutable-releases.md) publishes verified application ZIPs. The per-app workflows described above remain the operational build-and-deploy route until SBOM generation and deployment/promotion through the replacement flow are complete. They build their own deployment artifacts; deployments do not yet consume GitHub Releases.
+The [immutable release and ZIP verification workflows](./immutable-releases.md) are shared across components. Get an Identifier is currently the only app with an immutable release promotion route; it uses the shared Azure Function App deployment workflow. Auth Emulator and UI Harness deploy as Azure Web Apps and continue through their per-app workflows until verified Web App deployment and app-specific promotion routes are configured. Infrastructure plans and applies remain in the separate Terraform workflows with existing remote state and locking.
 
 ## Environment Labels
 
