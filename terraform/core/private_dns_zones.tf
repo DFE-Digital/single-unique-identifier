@@ -6,11 +6,10 @@ resource "azurerm_private_dns_zone" "acr" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "acr" {
-  name                  = "acr"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.acr.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "acr"
+  private_dns_zone_id  = azurerm_private_dns_zone.acr.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }
@@ -23,11 +22,10 @@ resource "azurerm_private_dns_zone" "key_vault" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "key_vault" {
-  name                  = "key-vault"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.key_vault.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "key-vault"
+  private_dns_zone_id  = azurerm_private_dns_zone.key_vault.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }
@@ -40,11 +38,10 @@ resource "azurerm_private_dns_zone" "blob" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
-  name                  = "blob"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.blob.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "blob"
+  private_dns_zone_id  = azurerm_private_dns_zone.blob.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }
@@ -57,11 +54,10 @@ resource "azurerm_private_dns_zone" "file" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "file" {
-  name                  = "file"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.file.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "file"
+  private_dns_zone_id  = azurerm_private_dns_zone.file.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }
@@ -74,11 +70,10 @@ resource "azurerm_private_dns_zone" "queue" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "queue" {
-  name                  = "queue"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.queue.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "queue"
+  private_dns_zone_id  = azurerm_private_dns_zone.queue.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }
@@ -91,11 +86,10 @@ resource "azurerm_private_dns_zone" "table" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "table" {
-  name                  = "table"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.table.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "table"
+  private_dns_zone_id  = azurerm_private_dns_zone.table.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }
@@ -109,11 +103,10 @@ resource "azurerm_private_dns_zone" "monitor" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "monitor" {
-  name                  = "monitor"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.monitor.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "monitor"
+  private_dns_zone_id  = azurerm_private_dns_zone.monitor.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }
@@ -126,11 +119,10 @@ resource "azurerm_private_dns_zone" "oms" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "oms" {
-  name                  = "oms"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.oms.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "oms"
+  private_dns_zone_id  = azurerm_private_dns_zone.oms.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }
@@ -143,11 +135,10 @@ resource "azurerm_private_dns_zone" "ods" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "ods" {
-  name                  = "ods"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.ods.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "ods"
+  private_dns_zone_id  = azurerm_private_dns_zone.ods.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }
@@ -160,11 +151,10 @@ resource "azurerm_private_dns_zone" "agentsvc" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "agentsvc" {
-  name                  = "agentsvc"
-  resource_group_name   = module.resource_group.name
-  private_dns_zone_name = azurerm_private_dns_zone.agentsvc.name
-  virtual_network_id    = azurerm_virtual_network.function_app_integration.id
-  registration_enabled  = false
+  name                 = "agentsvc"
+  private_dns_zone_id  = azurerm_private_dns_zone.agentsvc.id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
 
   tags = local.base_tags
 }

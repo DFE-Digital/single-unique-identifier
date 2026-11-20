@@ -27,7 +27,7 @@ resource "azurerm_storage_account" "this" {
   account_tier                      = "Standard"
   account_replication_type          = var.storage_account_replication_type
   infrastructure_encryption_enabled = true
-  public_network_access_enabled     = var.public_network_access_enabled
+  public_network_access             = var.public_network_access_enabled ? "Enabled" : "Disabled"
 
   allow_nested_items_to_be_public = false
 
@@ -53,6 +53,8 @@ resource "azurerm_storage_account_queue_properties" "this" {
     version               = "1.0"
     retention_policy_days = 30
   }
+
+  depends_on = [azurerm_private_endpoint.queue]
 }
 
 data "azurerm_monitor_diagnostic_categories" "storage_service" {
