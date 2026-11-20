@@ -37,7 +37,7 @@ public class NhsMeshConfig
     /// Name of the Key Vault certificate/secret holding the base64 PFX. Used at runtime when
     /// <see cref="AcceptLocalDevCert"/> is false and <see cref="MailboxMTLSPfx"/> is not set.
     /// </summary>
-    public string MailboxMTLSPfxCertName { get; init; } = "MailboxMTLSPfx";
+    public string MailboxMTLSPfxCertName { get; init; } = "nhs-mesh-mailbox-certificate";
 
     /// <summary>Optional password for <see cref="MailboxMTLSPfx"/>. Empty for a Key Vault certificate.
     /// Only needed for Localhost if testing online MESH mailbox

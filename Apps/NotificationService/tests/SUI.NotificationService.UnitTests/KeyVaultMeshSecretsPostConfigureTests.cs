@@ -12,7 +12,7 @@ public sealed class KeyVaultMeshSecretsPostConfigureTests
     private static NhsMeshConfig CreateConfig(
         bool acceptLocalDevCert = false,
         string? mailboxMtlsPfx = null,
-        string mailboxMtlsPfxCertName = "MailboxMTLSPfx"
+        string mailboxMtlsPfxCertName = "nhs-mesh-mailbox-certificate"
     ) =>
         new()
         {
@@ -76,7 +76,7 @@ public sealed class KeyVaultMeshSecretsPostConfigureTests
     [Fact]
     public void ShouldPopulateMailboxMTLSPfx_WhenFetchedFromKeyVault()
     {
-        const string certName = "MailboxMTLSPfx";
+        const string certName = "nhs-mesh-mailbox-certificate";
         const string expectedPfxBase64 = "cGZ4LWJ5dGVz";
         var secretClient = Substitute.For<SecretClient>();
         var response = Response.FromValue(
@@ -99,7 +99,7 @@ public sealed class KeyVaultMeshSecretsPostConfigureTests
     [Fact]
     public void ShouldThrowSanitisedException_WhenKeyVaultRequestFails()
     {
-        const string certName = "MailboxMTLSPfx";
+        const string certName = "nhs-mesh-mailbox-certificate";
         const string sensitiveUpstreamDetail = "raw-upstream-diagnostic-payload";
         var secretClient = Substitute.For<SecretClient>();
         secretClient
