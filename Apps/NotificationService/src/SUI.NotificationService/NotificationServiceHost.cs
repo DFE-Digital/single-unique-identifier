@@ -1,8 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using SUI.NotificationService.Application;
 using SUI.NotificationService.Infrastructure;
 using SUI.NotificationService.Mesh;
+using SUI.NotificationService.Mesh.Configuration;
 using SUI.NotificationService.Webhooks;
 
 namespace SUI.NotificationService;
@@ -20,6 +22,10 @@ internal static class NotificationServiceHost
 
         builder.Services.AddNotificationServiceApplication();
         builder.Services.AddMeshIntegration();
+        builder.Services.AddSingleton<
+            IPostConfigureOptions<NhsMeshConfig>,
+            KeyVaultMeshSecretsPostConfigure
+        >();
         builder.Services.AddSupplierWebhookDelivery(builder.Configuration);
         builder.Services.AddNotificationServiceInfrastructure(builder.Configuration);
 

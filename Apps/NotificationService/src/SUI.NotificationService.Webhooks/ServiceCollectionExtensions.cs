@@ -2,6 +2,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SUI.NotificationService.Application.Interfaces;
 
 namespace SUI.NotificationService.Webhooks;
@@ -24,7 +25,7 @@ public static class ServiceCollectionExtensions
         // Secret Retrieval & Caching
         services.AddMemoryCache();
 
-        services.AddSingleton(sp =>
+        services.TryAddSingleton(sp =>
         {
             var keyVaultUri =
                 configuration.GetValue<string>("KeyVault:VaultUri")
