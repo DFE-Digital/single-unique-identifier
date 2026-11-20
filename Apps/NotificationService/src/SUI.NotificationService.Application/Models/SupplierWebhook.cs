@@ -7,13 +7,15 @@ public class SupplierWebhook
     public bool IsEnabled { get; private set; }
     public string ContractVersion { get; }
     public string SecretKeyVaultReference { get; }
+    public string KeyId { get; }
 
     public SupplierWebhook(
         string supplierId,
         string endpointUrl,
         bool isEnabled,
         string contractVersion,
-        string secretKeyVaultReference
+        string secretKeyVaultReference,
+        string keyId
     )
     {
         if (string.IsNullOrWhiteSpace(supplierId))
@@ -37,6 +39,11 @@ public class SupplierWebhook
             );
         }
 
+        if (string.IsNullOrWhiteSpace(keyId))
+        {
+            throw new ArgumentException("Key ID cannot be empty", nameof(keyId));
+        }
+
         if (
             !Uri.TryCreate(endpointUrl, UriKind.Absolute, out var uriResult)
             || uriResult.Scheme != Uri.UriSchemeHttps
@@ -53,6 +60,7 @@ public class SupplierWebhook
         IsEnabled = isEnabled;
         ContractVersion = contractVersion;
         SecretKeyVaultReference = secretKeyVaultReference;
+        KeyId = keyId;
     }
 
     public void Disable()

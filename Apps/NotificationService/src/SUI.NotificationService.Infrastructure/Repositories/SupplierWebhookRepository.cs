@@ -183,6 +183,7 @@ public class SupplierWebhookRepository(
             IsEnabled = domain.IsEnabled,
             ContractVersion = domain.ContractVersion,
             SecretKeyVaultReference = domain.SecretKeyVaultReference,
+            KeyId = domain.KeyId,
         };
 
     private static SupplierWebhook MapToDomain(SupplierWebhookEntity entity) =>
@@ -192,6 +193,7 @@ public class SupplierWebhookRepository(
             entity.EndpointUrl,
             entity.IsEnabled,
             entity.ContractVersion,
-            entity.SecretKeyVaultReference
+            entity.SecretKeyVaultReference,
+            entity.KeyId
         );
 }

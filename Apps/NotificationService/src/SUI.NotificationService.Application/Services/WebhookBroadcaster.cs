@@ -124,7 +124,9 @@ internal sealed class WebhookBroadcaster(
             AffectedNhsNumber: notification.NhsNumber,
             EndpointUrl: supplier.EndpointUrl,
             SecretKeyVaultReference: supplier.SecretKeyVaultReference,
-            CorrelationId: Guid.NewGuid()
+            CorrelationId: Guid.NewGuid(),
+            KeyId: supplier.KeyId,
+            AttemptNumber: 1 // Default
         );
 
         // Attempt Delivery

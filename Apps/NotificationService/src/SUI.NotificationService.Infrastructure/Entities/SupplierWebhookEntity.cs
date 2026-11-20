@@ -18,4 +18,5 @@ public class SupplierWebhookEntity : ITableEntity
     public bool IsEnabled { get; set; }
     public string ContractVersion { get; set; } = string.Empty;
     public string SecretKeyVaultReference { get; set; } = string.Empty;
+    public string KeyId { get; set; } = string.Empty;
 }

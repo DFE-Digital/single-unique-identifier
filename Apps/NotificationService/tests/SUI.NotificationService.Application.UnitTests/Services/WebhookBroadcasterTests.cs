@@ -59,7 +59,7 @@ public class WebhookBroadcasterTests
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
-        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret", "key-1");
 
         _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
         _receiptRepoMock
@@ -113,7 +113,7 @@ public class WebhookBroadcasterTests
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
-        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret", "key-1");
 
         _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
         _receiptRepoMock
@@ -145,7 +145,7 @@ public class WebhookBroadcasterTests
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
-        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret", "key-1");
 
         _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
         _receiptRepoMock
@@ -189,7 +189,7 @@ public class WebhookBroadcasterTests
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
-        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret", "key-1");
 
         _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
         _receiptRepoMock
@@ -234,7 +234,7 @@ public class WebhookBroadcasterTests
         // Arrange
         var eventId = Guid.NewGuid();
         var notification = CreateNotification(eventId);
-        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret", "key-1");
 
         _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
         _receiptRepoMock
@@ -270,7 +270,7 @@ public class WebhookBroadcasterTests
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
-        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret");
+        var supplier = new SupplierWebhook("sup-1", "https://url", true, "1", "secret", "key-1");
 
         _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
         _receiptRepoMock
@@ -311,14 +311,16 @@ public class WebhookBroadcasterTests
             "https://url1",
             true,
             "1",
-            "secret1"
+            "secret1",
+            "key-1"
         );
         var supplierRetried = new SupplierWebhook(
             "sup-retried",
             "https://url2",
             true,
             "1",
-            "secret2"
+            "secret2",
+            "key-2"
         );
 
         _supplierRepoMock
@@ -409,14 +411,16 @@ public class WebhookBroadcasterTests
             "https://url1",
             true,
             "1",
-            "secret1"
+            "secret1",
+            "key-1"
         );
         var supplierSuccess = new SupplierWebhook(
             "sup-success",
             "https://url2",
             true,
             "1",
-            "secret2"
+            "secret2",
+            "key-2"
         );
 
         _supplierRepoMock
@@ -519,14 +523,16 @@ public class WebhookBroadcasterTests
             "https://url1",
             true,
             "1",
-            "bad-secret-ref"
+            "bad-secret-ref",
+            "key-1"
         );
         var supplierSuccess = new SupplierWebhook(
             "sup-success",
             "https://url2",
             true,
             "1",
-            "good-secret-ref"
+            "good-secret-ref",
+            "key-2"
         );
 
         _supplierRepoMock
@@ -617,7 +623,14 @@ public class WebhookBroadcasterTests
     {
         // Arrange
         var notification = CreateNotification(Guid.NewGuid());
-        var supplier = new SupplierWebhook("sup-throws", "https://url1", true, "1", "secret");
+        var supplier = new SupplierWebhook(
+            "sup-throws",
+            "https://url1",
+            true,
+            "1",
+            "secret",
+            "key-1"
+        );
 
         _supplierRepoMock.GetAllEnabledAsync(Arg.Any<CancellationToken>()).Returns([supplier]);
 
