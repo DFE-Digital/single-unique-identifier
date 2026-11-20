@@ -5,6 +5,9 @@ inputs:
   app_name:
     description: Name of the Azure Function App
     required: true
+  resource_group:
+    description: Resource group of the Function App, if known
+    required: false
   runner_ip:
     description: IP address of the GitHub Actions runner
     required: true
@@ -25,20 +28,22 @@ runs:
       shell: bash
       env:
         APP_NAME: ${{ inputs.app_name }}
+        RESOURCE_GROUP: ${{ inputs.resource_group }}
         RUNNER_IP: ${{ inputs.runner_ip }}
         RULE_NAME: ${{ inputs.rule_name }}
       run: |
         chmod +x .github/scripts/retry-command.sh
         source .github/scripts/retry-command.sh
 
-        # Search the subscription to find the Resource Group for the app
-        rg=$(az functionapp list --query "[?name=='$APP_NAME'].resourceGroup" -o tsv)
+        rg="$RESOURCE_GROUP"
+        if [ -z "$rg" ]; then
+          rg=$(az functionapp list --query "[?name=='$APP_NAME'].resourceGroup" -o tsv)
+        fi
 
         if [ -z "$rg" ]; then
           echo "Could not find Resource Group for $APP_NAME"
           exit 1
         fi
-        echo "rg=$rg" >> "$GITHUB_OUTPUT"
 
         echo "Sweeping for stale deployment rules from interrupted runs..."
         stale_rules=$(az functionapp config access-restriction show --resource-group "$rg" --name "$APP_NAME" --query "scmIpSecurityRestrictions[?starts_with(name, 'github-deploy-')].name" -o tsv)
@@ -101,6 +106,8 @@ runs:
 
         echo "Preflight checks passed! Adding IP $RUNNER_IP to $APP_NAME SCM/Kudu endpoint only..."
 
+        # From here a partial failure can leave an access change that needs cleanup.
+        echo "rg=$rg" >> "$GITHUB_OUTPUT"
         az functionapp config access-restriction add \
           --resource-group "$rg" \
           --name "$APP_NAME" \

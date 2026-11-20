@@ -57,6 +57,10 @@ on:
 jobs:
   build-and-test-GetAnIdentifier:
     name: GetAnIdentifier - Build Test Dotnet
+    if: >-
+      vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION != 'true' ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && !inputs.deploy)
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -78,8 +82,9 @@ jobs:
   deploy-GetAnIdentifier:
     name: GetAnIdentifier - Deploy Function App
     if: |
+      vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION != 'true' && (
       (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
     needs: build-and-test-GetAnIdentifier
     uses: ./.github/workflows/deploy-dotnet-functionapp.yml
     secrets:
@@ -105,6 +110,7 @@ jobs:
     if: |
       always() &&
       !cancelled() &&
+      vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION != 'true' &&
       (
         (
           github.event_name == 'push' &&

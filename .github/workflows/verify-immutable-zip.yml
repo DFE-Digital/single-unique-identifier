@@ -1,0 +1,102 @@
+name: Verify immutable release ZIP
+
+on:
+  workflow_call:
+    inputs:
+      release_id:
+        type: string
+        required: true
+      component:
+        type: string
+        required: true
+      expected_source_sha:
+        type: string
+        required: false
+    outputs:
+      artifact_id:
+        description: ID of the verified deployment ZIP in the current run
+        value: ${{ jobs.verify.outputs.artifact_id }}
+      source_sha:
+        description: Source commit of the verified ZIP
+        value: ${{ jobs.verify.outputs.source_sha }}
+      digest:
+        description: SHA-256 digest of the verified ZIP
+        value: ${{ jobs.verify.outputs.digest }}
+
+permissions:
+  contents: read
+  attestations: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      source_sha: ${{ steps.release.outputs.source_sha }}
+      digest: ${{ steps.release.outputs.digest }}
+    steps:
+      - name: Verify release manifest and ZIP
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ inputs.release_id }}
+          COMPONENT: ${{ inputs.component }}
+          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$COMPONENT" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]
+          directory=$(mktemp -d "$RUNNER_TEMP/verified-release.XXXXXX")
+          release=$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID")
+          tag=$(jq -er --arg id "$RELEASE_ID" '
+            select((.id | tostring) == $id and .draft == false and .immutable == true and .published_at != null)
+            | .tag_name | select(test("^[A-Za-z0-9][A-Za-z0-9._-]*$"))
+          ' <<< "$release")
+          source_sha=$(jq -er '.target_commitish | select(test("^[a-f0-9]{40}$"))' <<< "$release")
+          [[ -z "$EXPECTED_SOURCE_SHA" || "$source_sha" == "$EXPECTED_SOURCE_SHA" ]]
+
+          verify_asset() {
+            local name="$1"
+            verified_digest=$(jq -er --arg name "$name" '
+              [.assets[] | select(.name == $name)]
+              | select(length == 1) | .[0] | select(.state == "uploaded")
+              | .digest | select(test("^sha256:[a-f0-9]{64}$"))
+            ' <<< "$release")
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$name" --dir "$directory"
+            gh release verify-asset "$tag" "$directory/$name" --repo "$GITHUB_REPOSITORY"
+            printf '%s  %s\n' "${verified_digest#sha256:}" "$directory/$name" | sha256sum --check --status
+          }
+
+          verify_asset release-manifest.json
+          zip_name=$(jq -er --arg component "$COMPONENT" --arg tag "$tag" --arg sha "$source_sha" '
+            select(.schema_version == 1 and .container == null and .release.tag == $tag and .release.source_sha == $sha)
+            | .assets | select(type == "array" and length == 1)
+            | .[0] | select(.component == $component)
+            | .filename | select(test("^[A-Za-z0-9][A-Za-z0-9._-]*[.]zip$"))
+          ' "$directory/release-manifest.json")
+          verify_asset "$zip_name"
+          gh attestation verify "$directory/$zip_name" --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/attest-release-zips.yml" \
+            --source-digest "$source_sha" --source-ref refs/heads/main
+
+          # Share the original ZIP bytes by artifact ID across this release's stages.
+          if [[ "$zip_name" != release.zip ]]; then
+            mv -- "$directory/$zip_name" "$directory/release.zip"
+          fi
+          {
+            echo "package=$directory/release.zip"
+            echo "source_sha=$source_sha"
+            echo "digest=$verified_digest"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified deployment ZIP
+        id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: verified-release-${{ inputs.component }}-${{ inputs.release_id }}-${{ github.run_attempt }}
+          path: ${{ steps.release.outputs.package }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 45

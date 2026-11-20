@@ -1,0 +1,79 @@
+name: Promote Get an Identifier release
+
+on:
+  workflow_call:
+    inputs:
+      release_id:
+        type: string
+        required: true
+
+permissions: {}
+
+jobs:
+  verify:
+    name: Verify release ${{ inputs.release_id }}
+    if: >-
+      vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION == 'true' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push'
+    uses: ./.github/workflows/verify-immutable-zip.yml
+    permissions:
+      contents: read
+      attestations: read
+    with:
+      release_id: ${{ inputs.release_id }}
+      component: GetAnIdentifier
+      expected_source_sha: ${{ github.sha }}
+
+  d01:
+    name: Deploy release ${{ inputs.release_id }} to d01
+    needs: verify
+    uses: ./.github/workflows/deploy-verified-functionapp.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      app: get-an-identifier
+      target_environment: d01
+      approval_environment: get-an-identifier-d01
+      release_id: ${{ inputs.release_id }}
+      artifact_id: ${{ needs.verify.outputs.artifact_id }}
+      source_sha: ${{ needs.verify.outputs.source_sha }}
+      digest: ${{ needs.verify.outputs.digest }}
+      smoke_test_project: Apps/GetAnIdentifier/tests/SUI.GetAnIdentifier.SmokeTests/SUI.GetAnIdentifier.SmokeTests.csproj
+
+  d02:
+    name: Deploy release ${{ inputs.release_id }} to d02
+    needs: [verify, d01]
+    uses: ./.github/workflows/deploy-verified-functionapp.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      app: get-an-identifier
+      target_environment: d02
+      approval_environment: get-an-identifier-d02
+      release_id: ${{ inputs.release_id }}
+      artifact_id: ${{ needs.verify.outputs.artifact_id }}
+      source_sha: ${{ needs.verify.outputs.source_sha }}
+      digest: ${{ needs.verify.outputs.digest }}
+      smoke_test_project: Apps/GetAnIdentifier/tests/SUI.GetAnIdentifier.SmokeTests/SUI.GetAnIdentifier.SmokeTests.csproj
+      requires_smoke_auth_scope: true
+
+  d03:
+    name: Deploy release ${{ inputs.release_id }} to d03
+    needs: [verify, d02]
+    uses: ./.github/workflows/deploy-verified-functionapp.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      app: get-an-identifier
+      target_environment: d03
+      approval_environment: get-an-identifier-d03
+      release_id: ${{ inputs.release_id }}
+      artifact_id: ${{ needs.verify.outputs.artifact_id }}
+      source_sha: ${{ needs.verify.outputs.source_sha }}
+      digest: ${{ needs.verify.outputs.digest }}
+      smoke_test_project: Apps/GetAnIdentifier/tests/SUI.GetAnIdentifier.SmokeTests/SUI.GetAnIdentifier.SmokeTests.csproj
+      requires_smoke_auth_scope: true
