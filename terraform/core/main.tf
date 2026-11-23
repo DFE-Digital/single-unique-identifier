@@ -72,6 +72,30 @@ locals {
     var.environment_id,
     var.region_short,
   )
+
+  private_dns_zones = {
+    key_vault          = "privatelink.vaultcore.azure.net"
+    container_registry = "privatelink.azurecr.io"
+    storage_blob       = "privatelink.blob.core.windows.net"
+    storage_file       = "privatelink.file.core.windows.net"
+    storage_queue      = "privatelink.queue.core.windows.net"
+    monitor            = "privatelink.monitor.azure.com"
+    monitor_oms        = "privatelink.oms.opinsights.azure.com"
+    monitor_ods        = "privatelink.ods.opinsights.azure.com"
+    monitor_automation = "privatelink.agentsvc.azure-automation.net"
+  }
+
+  private_dns_link_descriptors = {
+    key_vault          = "keyvault01"
+    container_registry = "acr01"
+    storage_blob       = "storageblob01"
+    storage_file       = "storagefile01"
+    storage_queue      = "storagequeue01"
+    monitor            = "monitor01"
+    monitor_oms        = "monitoroms01"
+    monitor_ods        = "monitorods01"
+    monitor_automation = "monitoragentsvc01"
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -209,13 +233,42 @@ resource "azapi_resource" "private_endpoints_subnet" {
 
   body = {
     properties = {
-      addressPrefix                  = "10.250.0.96/27"
+      addressPrefixes = [
+        "10.250.0.96/27",
+        "10.250.0.128/26",
+      ]
       privateEndpointNetworkPolicies = "Disabled"
       networkSecurityGroup = {
         id = azurerm_network_security_group.private_endpoints.id
       }
     }
   }
+}
+
+resource "azurerm_private_dns_zone" "shared" {
+  for_each = local.private_dns_zones
+
+  name                = each.value
+  resource_group_name = module.resource_group.name
+
+  tags = local.base_tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "shared" {
+  for_each = local.private_dns_zones
+
+  name = format(
+    "%s%spdnl-%s-%s",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+    local.private_dns_link_descriptors[each.key],
+  )
+  private_dns_zone_id  = azurerm_private_dns_zone.shared[each.key].id
+  virtual_network_id   = azurerm_virtual_network.function_app_integration.id
+  registration_enabled = false
+
+  tags = local.base_tags
 }
 
 resource "azurerm_log_analytics_workspace" "shared" {

@@ -83,3 +83,34 @@ output "auxiliary_app_service_plan_id" {
   value       = one(azurerm_service_plan.auxiliary[*].id)
   description = "ID of the auxiliary App Service plan, if created."
 }
+
+output "private_dns_zone_ids" {
+  value       = { for k, zone in azurerm_private_dns_zone.shared : k => zone.id }
+  description = "Map of shared Private DNS Zone keys to their resource IDs."
+}
+
+output "private_dns_zone_key_vault_id" {
+  value       = azurerm_private_dns_zone.shared["key_vault"].id
+  description = "ID of the shared Private DNS Zone for Key Vault (privatelink.vaultcore.azure.net)."
+}
+
+output "private_dns_zone_container_registry_id" {
+  value       = azurerm_private_dns_zone.shared["container_registry"].id
+  description = "ID of the shared Private DNS Zone for Azure Container Registry (privatelink.azurecr.io)."
+}
+
+output "private_dns_zone_storage_blob_id" {
+  value       = azurerm_private_dns_zone.shared["storage_blob"].id
+  description = "ID of the shared Private DNS Zone for Blob Storage (privatelink.blob.core.windows.net)."
+}
+
+output "private_dns_zone_storage_file_id" {
+  value       = azurerm_private_dns_zone.shared["storage_file"].id
+  description = "ID of the shared Private DNS Zone for File Storage (privatelink.file.core.windows.net)."
+}
+
+output "private_dns_zone_storage_queue_id" {
+  value       = azurerm_private_dns_zone.shared["storage_queue"].id
+  description = "ID of the shared Private DNS Zone for Queue Storage (privatelink.queue.core.windows.net)."
+}
+
