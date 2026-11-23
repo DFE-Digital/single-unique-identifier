@@ -72,6 +72,24 @@ locals {
     var.environment_id,
     var.region_short,
   )
+  container_registry_private_endpoint_name = format(
+    "%s%spe-%s-acr01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  )
+  monitor_private_link_scope_name = format(
+    "%s%sampls-%s-services01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  )
+  monitor_private_endpoint_name = format(
+    "%s%spe-%s-monitor01",
+    var.subscription_prefix,
+    var.environment_id,
+    var.region_short,
+  )
 
   private_dns_zones = {
     key_vault          = "privatelink.vaultcore.azure.net"
@@ -291,6 +309,61 @@ resource "azurerm_application_insights" "shared" {
   tags = local.base_tags
 }
 
+resource "azurerm_monitor_private_link_scope" "shared" {
+  name                  = local.monitor_private_link_scope_name
+  resource_group_name   = module.resource_group.name
+  ingestion_access_mode = "Open"
+  query_access_mode     = "Open"
+
+  tags = local.base_tags
+}
+
+resource "azurerm_monitor_private_link_scoped_service" "log_analytics" {
+  name                = format("%s-scoped", local.log_analytics_workspace_name)
+  resource_group_name = module.resource_group.name
+  scope_name          = azurerm_monitor_private_link_scope.shared.name
+  linked_resource_id  = azurerm_log_analytics_workspace.shared.id
+}
+
+resource "azurerm_monitor_private_link_scoped_service" "app_insights" {
+  name                = format("%s-scoped", local.app_insights_name)
+  resource_group_name = module.resource_group.name
+  scope_name          = azurerm_monitor_private_link_scope.shared.name
+  linked_resource_id  = azurerm_application_insights.shared.id
+}
+
+resource "azurerm_private_endpoint" "monitor" {
+  name                = local.monitor_private_endpoint_name
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+  subnet_id           = azapi_resource.private_endpoints_subnet.id
+
+  private_service_connection {
+    name                           = "azure-monitor"
+    private_connection_resource_id = azurerm_monitor_private_link_scope.shared.id
+    subresource_names              = ["azuremonitor"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name = "azure-monitor"
+    private_dns_zone_ids = [
+      azurerm_private_dns_zone.shared["monitor"].id,
+      azurerm_private_dns_zone.shared["monitor_oms"].id,
+      azurerm_private_dns_zone.shared["monitor_ods"].id,
+      azurerm_private_dns_zone.shared["monitor_automation"].id,
+      azurerm_private_dns_zone.shared["storage_blob"].id,
+    ]
+  }
+
+  tags = local.base_tags
+
+  depends_on = [
+    azurerm_monitor_private_link_scoped_service.log_analytics,
+    azurerm_monitor_private_link_scoped_service.app_insights,
+  ]
+}
+
 resource "azurerm_container_registry" "shared" {
   name                          = local.container_registry_name
   resource_group_name           = module.resource_group.name
@@ -299,6 +372,27 @@ resource "azurerm_container_registry" "shared" {
   admin_enabled                 = false
   anonymous_pull_enabled        = false
   public_network_access_enabled = true
+
+  tags = local.base_tags
+}
+
+resource "azurerm_private_endpoint" "container_registry" {
+  name                = local.container_registry_private_endpoint_name
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+  subnet_id           = azapi_resource.private_endpoints_subnet.id
+
+  private_service_connection {
+    name                           = "container-registry"
+    private_connection_resource_id = azurerm_container_registry.shared.id
+    subresource_names              = ["registry"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "container-registry"
+    private_dns_zone_ids = [azurerm_private_dns_zone.shared["container_registry"].id]
+  }
 
   tags = local.base_tags
 }

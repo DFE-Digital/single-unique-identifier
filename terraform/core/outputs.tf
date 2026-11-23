@@ -114,3 +114,9 @@ output "private_dns_zone_storage_queue_id" {
   description = "ID of the shared Private DNS Zone for Queue Storage (privatelink.queue.core.windows.net)."
 }
 
+output "monitor_private_link_scope_id" {
+  value       = azurerm_monitor_private_link_scope.shared.id
+  description = "ID of the shared Azure Monitor Private Link Scope."
+}
+
+
