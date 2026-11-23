@@ -1,0 +1,79 @@
+name: Open Key Vault Access
+description: Temporarily whitelists the runner IP on Key Vaults in the target resource group and enables publicNetworkAccess for Terraform operations.
+
+inputs:
+  resource_group:
+    description: Resource group containing the environment Key Vaults
+    required: true
+  runner_ip:
+    description: IPv4 address of the GitHub Actions runner
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Temporarily Whitelist Runner IP on Key Vaults
+      shell: bash
+      env:
+        RG: ${{ inputs.resource_group }}
+        RUNNER_IP: ${{ inputs.runner_ip }}
+      run: |
+        chmod +x .github/scripts/retry-command.sh
+        source .github/scripts/retry-command.sh
+
+        echo "TF_VAR_key_vault_public_network_access_enabled=true" >> "$GITHUB_ENV"
+        echo "TF_VAR_key_vault_allowed_ip_rules=[\"${RUNNER_IP}/32\"]" >> "$GITHUB_ENV"
+
+        if [ "$(az group exists --name "$RG" -o tsv)" != "true" ]; then
+          echo "Resource group $RG does not exist yet; skipping Key Vault pre-plan firewall opening."
+          exit 0
+        fi
+
+        vaults=$(az keyvault list --resource-group "$RG" --query "[].name" -o tsv)
+        if [ -z "$vaults" ]; then
+          echo "No existing Key Vaults found in $RG."
+          exit 0
+        fi
+
+        for kv in $vaults; do
+          echo "Configuring temporary runner access for Key Vault: $kv"
+
+          stale_ips=$(az keyvault network-rule list --resource-group "$RG" --name "$kv" --query "ipRules[].value" -o tsv)
+          for stale_ip in $stale_ips; do
+            if [ "$stale_ip" != "$RUNNER_IP" ] && [ "$stale_ip" != "${RUNNER_IP}/32" ]; then
+              echo "Removing stale IP rule $stale_ip from $kv..."
+              retry_command az keyvault network-rule remove --resource-group "$RG" --name "$kv" --ip-address "$stale_ip" >/dev/null
+            fi
+          done
+
+          echo "Adding runner IP ${RUNNER_IP}/32 to $kv network rules..."
+          retry_command az keyvault network-rule add --resource-group "$RG" --name "$kv" --ip-address "${RUNNER_IP}/32" >/dev/null
+
+          echo "Enabling publicNetworkAccess (with defaultAction=Deny) on $kv..."
+          retry_command az keyvault update \
+            --resource-group "$RG" \
+            --name "$kv" \
+            --public-network-access Enabled \
+            --default-action Deny \
+            --bypass AzureServices >/dev/null
+
+          KV_URL="https://${kv}.vault.azure.net/secrets?api-version=7.4"
+          end=$((SECONDS+180))
+          ready=false
+
+          while [ $SECONDS -lt $end ]; do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "$KV_URL")
+            if [ "$status" == "401" ]; then
+              echo "✅ Key Vault firewall propagated for $kv (HTTP 401 Unauthorized as expected)."
+              ready=true
+              break
+            fi
+            echo "Waiting for $kv firewall to propagate... (HTTP $status). Retrying in 10s..."
+            sleep 10
+          done
+
+          if [ "$ready" = false ]; then
+            echo "::error::Firewall propagation timed out after 3 minutes for Key Vault $kv."
+            exit 1
+          fi
+        done

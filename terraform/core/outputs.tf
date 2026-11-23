@@ -83,3 +83,58 @@ output "auxiliary_app_service_plan_id" {
   value       = one(azurerm_service_plan.auxiliary[*].id)
   description = "ID of the auxiliary App Service plan, if created."
 }
+
+output "auxiliary_app_integration_subnet_id" {
+  value       = azapi_resource.auxiliary_app_integration_subnet.id
+  description = "ID of the delegated subnet used for auxiliary App Service plan regional VNet integration."
+}
+
+output "private_dns_zone_acr_id" {
+  value       = azurerm_private_dns_zone.acr.id
+  description = "ID of the Private DNS Zone for Azure Container Registry."
+}
+
+output "private_dns_zone_key_vault_id" {
+  value       = azurerm_private_dns_zone.key_vault.id
+  description = "ID of the Private DNS Zone for Azure Key Vault."
+}
+
+output "private_dns_zone_blob_id" {
+  value       = azurerm_private_dns_zone.blob.id
+  description = "ID of the Private DNS Zone for Azure Blob Storage."
+}
+
+output "private_dns_zone_file_id" {
+  value       = azurerm_private_dns_zone.file.id
+  description = "ID of the Private DNS Zone for Azure File Storage."
+}
+
+output "private_dns_zone_queue_id" {
+  value       = azurerm_private_dns_zone.queue.id
+  description = "ID of the Private DNS Zone for Azure Queue Storage."
+}
+
+output "private_dns_zone_table_id" {
+  value       = azurerm_private_dns_zone.table.id
+  description = "ID of the Private DNS Zone for Azure Table Storage."
+}
+
+output "private_dns_zone_monitor_id" {
+  value       = azurerm_private_dns_zone.monitor.id
+  description = "ID of the Private DNS Zone for Azure Monitor."
+}
+
+output "private_dns_zone_oms_id" {
+  value       = azurerm_private_dns_zone.oms.id
+  description = "ID of the Private DNS Zone for Azure Monitor OMS."
+}
+
+output "private_dns_zone_ods_id" {
+  value       = azurerm_private_dns_zone.ods.id
+  description = "ID of the Private DNS Zone for Azure Monitor ODS."
+}
+
+output "private_dns_zone_agentsvc_id" {
+  value       = azurerm_private_dns_zone.agentsvc.id
+  description = "ID of the Private DNS Zone for Azure Automation Agent Service."
+}

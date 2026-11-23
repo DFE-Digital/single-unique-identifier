@@ -36,7 +36,8 @@ module "web_app" {
   location            = data.terraform_remote_state.core.outputs.resource_group_location
 
   # UPDATED: Use auxiliary plan if it exists, otherwise fall back to the shared plan
-  service_plan_id = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id : data.terraform_remote_state.core.outputs.app_service_plan_id
+  service_plan_id                   = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id : data.terraform_remote_state.core.outputs.app_service_plan_id
+  app_service_integration_subnet_id = data.terraform_remote_state.core.outputs.auxiliary_app_service_plan_id != null ? data.terraform_remote_state.core.outputs.auxiliary_app_integration_subnet_id : data.terraform_remote_state.core.outputs.function_app_integration_subnet_id
 
   environment_tag  = var.environment_tag
   product          = var.product

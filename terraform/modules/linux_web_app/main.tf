@@ -25,6 +25,7 @@ resource "azurerm_linux_web_app" "this" {
   resource_group_name        = var.resource_group_name
   location                   = var.location
   service_plan_id            = var.service_plan_id
+  virtual_network_subnet_id  = var.app_service_integration_subnet_id
   https_only                 = var.https_only
   client_certificate_enabled = var.client_certificate_enabled
   client_certificate_mode    = var.client_certificate_mode
@@ -37,8 +38,9 @@ resource "azurerm_linux_web_app" "this" {
   }
 
   site_config {
-    ftps_state    = var.ftps_state
-    http2_enabled = var.http2_enabled
+    ftps_state             = var.ftps_state
+    http2_enabled          = var.http2_enabled
+    vnet_route_all_enabled = var.app_service_integration_subnet_id != null
 
     health_check_path                 = var.health_check_path
     health_check_eviction_time_in_min = var.health_check_path == null ? null : 5

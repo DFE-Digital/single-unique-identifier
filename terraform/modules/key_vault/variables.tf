@@ -47,3 +47,27 @@ variable "rbac_authorization_enabled" {
   type        = bool
   default     = true
 }
+
+variable "public_network_access_enabled" {
+  description = "Whether the Key Vault is accessible from public networks."
+  type        = bool
+  default     = false
+}
+
+variable "private_endpoints_subnet_id" {
+  description = "ID of the subnet where the private endpoint should be created."
+  type        = string
+  default     = null
+}
+
+variable "private_dns_zone_ids" {
+  description = "IDs of the private DNS zones to link the private endpoint."
+  type        = list(string)
+  default     = []
+}
+
+variable "network_acls_ip_rules" {
+  description = "One or more IPv4 addresses or CIDR blocks allowed through the Key Vault firewall when public network access is temporarily enabled."
+  type        = list(string)
+  default     = []
+}

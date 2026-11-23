@@ -18,7 +18,7 @@ auxiliary_app_service_plan_sku          = "B1"
 auxiliary_app_service_plan_os_type      = "Linux"
 auxiliary_app_service_plan_worker_count = 1
 key_vault_use_rbac                      = false
-container_registry_sku                  = "Basic"
+container_registry_sku                  = "Premium"
 notification_service_acr_push_enabled   = false
 
 notification_service_schedule_cron_expression   = "0 6 * * *"
