@@ -1,4 +1,5 @@
 using Azure.Data.Tables;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -67,6 +68,33 @@ public sealed class ServiceCollectionExtensionsTests
         );
 
         Assert.Contains("TableStorage:ServiceUri", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ShouldRegisterSecretClient_WhenKeyVaultVaultUriIsConfigured()
+    {
+        using var serviceProvider = BuildServiceProvider(
+            new Dictionary<string, string?>
+            {
+                ["KeyVault:VaultUri"] = "https://notificationkv01.vault.azure.net/",
+            }
+        );
+
+        var secretClient = serviceProvider.GetRequiredService<SecretClient>();
+
+        Assert.Equal(new Uri("https://notificationkv01.vault.azure.net/"), secretClient.VaultUri);
+    }
+
+    [Fact]
+    public void ShouldThrow_WhenKeyVaultVaultUriIsMissing()
+    {
+        using var serviceProvider = BuildServiceProvider(new Dictionary<string, string?>());
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            serviceProvider.GetRequiredService<SecretClient>()
+        );
+
+        Assert.Contains("KeyVault:VaultUri", exception.Message, StringComparison.Ordinal);
     }
 
     private static ServiceProvider BuildServiceProvider(IReadOnlyDictionary<string, string?> values)

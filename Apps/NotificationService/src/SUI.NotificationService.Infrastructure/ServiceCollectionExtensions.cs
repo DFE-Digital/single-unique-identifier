@@ -1,7 +1,9 @@
 using Azure.Data.Tables;
 using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Infrastructure.Repositories;
@@ -20,6 +22,17 @@ public static class ServiceCollectionExtensions
     )
     {
         ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton(_ =>
+        {
+            var keyVaultUri =
+                configuration["KeyVault:VaultUri"]
+                ?? throw new InvalidOperationException(
+                    "KeyVault:VaultUri configuration is missing."
+                );
+
+            return new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential());
+        });
 
         services.AddSingleton(serviceProvider =>
         {

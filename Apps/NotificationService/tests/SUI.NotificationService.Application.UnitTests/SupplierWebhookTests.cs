@@ -8,6 +8,7 @@ public class SupplierWebhookTests
     private const string ValidEndpoint = "https://example.com/webhook";
     private const string ValidContract = "v1";
     private const string ValidKvRef = "kv-secret-ref";
+    private const string ValidKeyId = "key-v1";
 
     [Fact]
     public void Constructor_ValidInputs_CreatesInstance_AndAssignsProperties()
@@ -18,7 +19,8 @@ public class SupplierWebhookTests
             ValidEndpoint,
             true,
             ValidContract,
-            ValidKvRef
+            ValidKvRef,
+            ValidKeyId
         );
 
         // Assert
@@ -27,6 +29,7 @@ public class SupplierWebhookTests
         Assert.True(webhook.IsEnabled);
         Assert.Equal(ValidContract, webhook.ContractVersion);
         Assert.Equal(ValidKvRef, webhook.SecretKeyVaultReference);
+        Assert.Equal(ValidKeyId, webhook.KeyId);
     }
 
     [Theory]
@@ -36,7 +39,14 @@ public class SupplierWebhookTests
     public void Constructor_InvalidSupplierId_ThrowsArgumentException(string? invalidSupplierId)
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-            new SupplierWebhook(invalidSupplierId!, ValidEndpoint, true, ValidContract, ValidKvRef)
+            new SupplierWebhook(
+                invalidSupplierId!,
+                ValidEndpoint,
+                true,
+                ValidContract,
+                ValidKvRef,
+                ValidKeyId
+            )
         );
 
         Assert.Equal("supplierId", ex.ParamName);
@@ -50,7 +60,14 @@ public class SupplierWebhookTests
     public void Constructor_InvalidContractVersion_ThrowsArgumentException(string? invalidContract)
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-            new SupplierWebhook(ValidSupplierId, ValidEndpoint, true, invalidContract!, ValidKvRef)
+            new SupplierWebhook(
+                ValidSupplierId,
+                ValidEndpoint,
+                true,
+                invalidContract!,
+                ValidKvRef,
+                ValidKeyId
+            )
         );
 
         Assert.Equal("contractVersion", ex.ParamName);
@@ -64,11 +81,39 @@ public class SupplierWebhookTests
     public void Constructor_InvalidKeyVaultReference_ThrowsArgumentException(string? invalidKvRef)
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-            new SupplierWebhook(ValidSupplierId, ValidEndpoint, true, ValidContract, invalidKvRef!)
+            new SupplierWebhook(
+                ValidSupplierId,
+                ValidEndpoint,
+                true,
+                ValidContract,
+                invalidKvRef!,
+                ValidKeyId
+            )
         );
 
         Assert.Equal("secretKeyVaultReference", ex.ParamName);
         Assert.Contains("Key Vault reference cannot be empty", ex.Message);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Constructor_InvalidKeyId_ThrowsArgumentException(string? invalidKeyId)
+    {
+        var ex = Assert.Throws<ArgumentException>(() =>
+            new SupplierWebhook(
+                ValidSupplierId,
+                ValidEndpoint,
+                true,
+                ValidContract,
+                ValidKvRef,
+                invalidKeyId!
+            )
+        );
+
+        Assert.Equal("keyId", ex.ParamName);
+        Assert.Contains("Key ID cannot be empty", ex.Message);
     }
 
     [Theory]
@@ -81,7 +126,14 @@ public class SupplierWebhookTests
     public void Constructor_InvalidEndpointUrl_ThrowsArgumentException(string? invalidUrl)
     {
         var ex = Assert.Throws<ArgumentException>(() =>
-            new SupplierWebhook(ValidSupplierId, invalidUrl!, true, ValidContract, ValidKvRef)
+            new SupplierWebhook(
+                ValidSupplierId,
+                invalidUrl!,
+                true,
+                ValidContract,
+                ValidKvRef,
+                ValidKeyId
+            )
         );
 
         Assert.Equal("endpointUrl", ex.ParamName);
@@ -97,7 +149,8 @@ public class SupplierWebhookTests
             ValidEndpoint,
             true,
             ValidContract,
-            ValidKvRef
+            ValidKvRef,
+            ValidKeyId
         );
 
         // Act
@@ -116,7 +169,8 @@ public class SupplierWebhookTests
             ValidEndpoint,
             false,
             ValidContract,
-            ValidKvRef
+            ValidKvRef,
+            ValidKeyId
         );
 
         // Act
