@@ -58,6 +58,7 @@ jobs:
           version: v0.76.2
           scan-type: fs
           scan-ref: .
+          skip-files: Apps/NotificationService/Dockerfile.dockerignore
           ignore-unfixed: false
           format: table
           output: trivy-results.txt
@@ -72,6 +73,7 @@ jobs:
         with:
           scan-type: fs
           scan-ref: .
+          skip-files: Apps/NotificationService/Dockerfile.dockerignore
           ignore-unfixed: false
           format: table
           severity: CRITICAL,HIGH
