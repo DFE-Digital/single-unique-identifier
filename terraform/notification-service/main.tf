@@ -243,6 +243,34 @@ resource "azurerm_role_assignment" "notification_service_table_data_contributor"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
 }
 
+module "rbac_assignments_notification_service_key_vault" {
+  source = "../modules/rbac_assignments"
+  scope  = module.key_vault.id
+
+  assignments = var.key_vault_use_rbac ? {
+    notification_service_secrets = {
+      principal_id = azurerm_user_assigned_identity.notification_service.principal_id
+      role_name    = "Key Vault Secrets User"
+    }
+  } : {}
+}
+
+# Access policy fallback for environments that cannot create RBAC role assignments.
+resource "azurerm_key_vault_access_policy" "notification_service" {
+  count = var.key_vault_use_rbac ? 0 : 1
+
+  key_vault_id = module.key_vault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.notification_service.principal_id
+
+  secret_permissions = [
+    "Get",
+  ]
+  certificate_permissions = [
+    "Get",
+  ]
+}
+
 resource "azurerm_container_app_job" "notification_service" {
   # Keep core infrastructure deployable while role-assignment delegation is pending.
   count = var.notification_service_job_enabled ? 1 : 0
@@ -314,6 +342,16 @@ resource "azurerm_container_app_job" "notification_service" {
       }
 
       env {
+        name  = "KeyVault__VaultUri"
+        value = module.key_vault.vault_uri
+      }
+
+      env {
+        name  = "AZURE_CLIENT_ID"
+        value = azurerm_user_assigned_identity.notification_service.client_id
+      }
+
+      env {
         name  = "NhsMeshConfig__MailboxBaseUrl"
         value = var.nhs_mesh_mailbox_base_url
       }
@@ -358,5 +396,7 @@ resource "azurerm_container_app_job" "notification_service" {
     azurerm_role_assignment.notification_service_acr_pull,
     azurerm_role_assignment.notification_service_table_data_contributor,
     azurerm_storage_account_network_rules.notification_service,
+    module.rbac_assignments_notification_service_key_vault,
+    azurerm_key_vault_access_policy.notification_service,
   ]
 }

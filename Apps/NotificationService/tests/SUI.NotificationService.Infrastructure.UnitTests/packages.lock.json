@@ -94,6 +94,14 @@
           "Azure.Core": "1.53.0"
         }
       },
+      "Azure.Security.KeyVault.Secrets": {
+        "type": "Transitive",
+        "resolved": "4.11.1",
+        "contentHash": "/yFMJGQYPPvBSrupjJ388qqXZ1h70Yrer1vG+z+jddgovEmIE7IhShU6ZGIi24IPArY8HBH6FFtgVK369TWhmQ==",
+        "dependencies": {
+          "Azure.Core": "1.54.0"
+        }
+      },
       "Castle.Core": {
         "type": "Transitive",
         "resolved": "5.1.1",
@@ -354,6 +362,7 @@
         "dependencies": {
           "Azure.Data.Tables": "[12.12.0, )",
           "Azure.Identity": "[1.21.0, )",
+          "Azure.Security.KeyVault.Secrets": "[4.11.1, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.10, )",
           "SUI.NotificationService.Application": "[1.0.0, )"
         }
