@@ -8,7 +8,7 @@ locals {
     },
     var.tags,
   )
-  
+
   state_rg        = format("%s%srg-%s-tfstate", var.subscription_prefix, var.environment_id, var.region_short)
   state_storage   = format("%s%ssttfstate01", var.subscription_prefix, var.environment_id)
   state_container = "tfstate"
@@ -134,9 +134,9 @@ resource "azurerm_key_vault_access_policy" "terraform_operator" {
   ]
 }
 
-resource "azurerm_key_vault_secret" "nhs_mesh_config_shared_key" {
-  name         = "nhs-digital-private-key"
-  value        = var.nhs_mesh_config_shared_key
+resource "azurerm_key_vault_secret" "nhs_mesh_shared_key" {
+  name         = "nhs_mesh_shared_key"
+  value        = var.nhs_mesh_shared_key
   key_vault_id = module.key_vault.id
   content_type = "text/plain"
   tags         = local.secret_tags
@@ -146,9 +146,9 @@ resource "azurerm_key_vault_secret" "nhs_mesh_config_shared_key" {
   ]
 }
 
-resource "azurerm_key_vault_secret" "nhs_mesh_config_mailbox_id" {
-  name         = "nhs-digital-kid"
-  value        = var.nhs_mesh_config_mailbox_id
+resource "azurerm_key_vault_secret" "nhs_mesh_mailbox_id" {
+  name         = "nhs_mesh_mailbox_id"
+  value        = var.nhs_mesh_mailbox_id
   key_vault_id = module.key_vault.id
   content_type = "text/plain"
   tags         = local.secret_tags
@@ -158,9 +158,9 @@ resource "azurerm_key_vault_secret" "nhs_mesh_config_mailbox_id" {
   ]
 }
 
-resource "azurerm_key_vault_secret" "nhs_mesh_config_mailbox_password" {
-  name         = "nhs-digital-client-id"
-  value        = var.nhs_mesh_config_mailbox_password
+resource "azurerm_key_vault_secret" "nhs_mesh_mailbox_password" {
+  name         = "nhs_mesh_mailbox_password"
+  value        = var.nhs_mesh_mailbox_password
   key_vault_id = module.key_vault.id
   content_type = "text/plain"
   tags         = local.secret_tags
@@ -315,21 +315,6 @@ resource "azurerm_container_app_job" "notification_service" {
     cron_expression          = var.notification_service_schedule_cron_expression
     parallelism              = 1
     replica_completion_count = 1
-  }
-
-  secret {
-    name  = "nhs-mesh-shared-key"
-    value = var.nhs_mesh_shared_key
-  }
-
-  secret {
-    name  = "nhs-mesh-mailbox-id"
-    value = var.nhs_mesh_mailbox_id
-  }
-
-  secret {
-    name  = "nhs-mesh-mailbox-password"
-    value = var.nhs_mesh_mailbox_password
   }
 
   secret {

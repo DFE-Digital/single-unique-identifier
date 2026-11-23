@@ -46,6 +46,13 @@ on:
         required: false
       NHS_DIGITAL_PRIVATE_KEY:
         required: false
+      # NHS MESH mailbox credentials required for the Notification Service job.
+      NHS_MESH_CONFIG_SHARED_KEY:
+        required: false
+      NHS_MESH_CONFIG_MAILBOX_ID:
+        required: false
+      NHS_MESH_CONFIG_MAILBOX_PASSWORD:
+        required: false
       NHS_MESH_CONFIG_ROOT_CA:
         required: false
       NHS_MESH_CONFIG_INTERMEDIATE_CA:
@@ -103,6 +110,9 @@ jobs:
       TF_VAR_nhs_digital_private_key: ${{ secrets.NHS_DIGITAL_PRIVATE_KEY}}
       # NHS MESH config for the Notification Service container job (secrets become Container App job secrets).
       TF_VAR_nhs_mesh_mailbox_base_url: ${{ vars.NHS_MESH_CONFIG_BASE_URL }}
+      TF_VAR_nhs_mesh_shared_key: ${{ secrets.NHS_MESH_CONFIG_SHARED_KEY }}
+      TF_VAR_nhs_mesh_mailbox_id: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_ID }}
+      TF_VAR_nhs_mesh_mailbox_password: ${{ secrets.NHS_MESH_CONFIG_MAILBOX_PASSWORD }}
       TF_VAR_nhs_mesh_root_ca: ${{ secrets.NHS_MESH_CONFIG_ROOT_CA }}
       TF_VAR_nhs_mesh_intermediate_ca: ${{ secrets.NHS_MESH_CONFIG_INTERMEDIATE_CA }}
       # The secret below is required for the UI Test Harness, and is transmitted from Github Secrets to the Azure Key Vault.
