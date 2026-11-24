@@ -93,7 +93,7 @@ variable "notification_service_replica_retry_limit" {
 variable "notification_service_dotnet_environment" {
   description = "DOTNET_ENVIRONMENT value supplied to the container."
   type        = string
-  default     = "Development"
+  default     = "Production"
 }
 
 variable "notification_service_acr_pull_enabled" {
