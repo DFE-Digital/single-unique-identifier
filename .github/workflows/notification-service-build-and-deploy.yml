@@ -301,7 +301,7 @@ jobs:
       terraform_variables: >-
         {
           "notification_service_image_tag":"${{ needs.resolve-image.outputs.image_tag }}",
-          "notification_service_job_enabled":"${{ inputs.notification_service_job_enabled }}"}
+          "notification_service_job_enabled":"${{ inputs.notification_service_job_enabled || false }}"}
       terraform_output_names: >-
         ${{
           inputs.notification_service_job_enabled
