@@ -18,7 +18,9 @@ const zip = 'verified ZIP bytes';
 const digest = (bytes) => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 
 async function fixture({ draft = false, component = 'Example', filename = zipName, zipBytes = zip,
-  expectedSource = sourceSha, verifyError = false, provenanceError = false } = {}) {
+  expectedSource = sourceSha, verifyError = false, provenanceError = false,
+  expectedComponent = 'Example',
+  subjects = [{ name: zipName, digest: { sha256: digest(zip).slice(7) } }] } = {}) {
   const directory = await temporaryDirectory('verify-immutable-zip-');
   const output = path.join(directory, 'output');
   const manifest = JSON.stringify({
@@ -55,6 +57,8 @@ case "$1 $2" in
     shift 7
     [[ "$1 $2 $3 $4" == "--source-digest $SOURCE_SHA --source-ref refs/heads/main" ]]
     [[ "$PROVENANCE_ERROR" == false ]]
+    [[ "$5 $6" == "--format json" ]]
+    printf '%s\n' "$PROVENANCE"
     ;;
   *) exit 99 ;;
 esac
@@ -64,8 +68,9 @@ esac
     execute: () => run('bash', ['-c', verify], { env: {
       ...process.env, PATH: directory + ':' + process.env.PATH, RUNNER_TEMP: directory,
       GITHUB_OUTPUT: output, GITHUB_REPOSITORY: 'acme/repo', RELEASE_ID: '123',
-      COMPONENT: 'Example', EXPECTED_SOURCE_SHA: expectedSource, FIXTURE: directory,
+      COMPONENT: expectedComponent, EXPECTED_SOURCE_SHA: expectedSource, FIXTURE: directory,
       TAG: tag, SOURCE_SHA: sourceSha, VERIFY_ERROR: String(verifyError), PROVENANCE_ERROR: String(provenanceError),
+      PROVENANCE: JSON.stringify([{ verificationResult: { statement: { subject: subjects } } }]),
     } }),
   };
 }
@@ -88,6 +93,12 @@ it('fails before upload for invalid releases or failed verification', async () =
     { draft: true }, { expectedSource: 'b'.repeat(40) }, { component: 'Other' },
     { filename: '../Example-build.zip' }, { zipBytes: 'mismatched ZIP' },
     { verifyError: true }, { provenanceError: true },
+    { component: 'Other', expectedComponent: 'Other' },
+    { subjects: [] },
+    { subjects: [
+      { name: 'Other-build.zip', digest: { sha256: digest(zip).slice(7) } },
+      { name: zipName, digest: { sha256: digest('another app').slice(7) } },
+    ] },
   ]) {
     const { execute, output } = await fixture(inputs);
     await assert.rejects(execute(), ({ code }) => code === 1 || code === 4);

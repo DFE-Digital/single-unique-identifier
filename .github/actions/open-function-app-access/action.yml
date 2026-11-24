@@ -17,7 +17,7 @@ inputs:
 
 outputs:
   resource_group:
-    description: The resolved resource group of the Function App
+    description: The Function App resource group when cleanup is needed
     value: ${{ steps.whitelist.outputs.rg }}
 
 runs:
@@ -32,7 +32,6 @@ runs:
         RUNNER_IP: ${{ inputs.runner_ip }}
         RULE_NAME: ${{ inputs.rule_name }}
       run: |
-        chmod +x .github/scripts/retry-command.sh
         source .github/scripts/retry-command.sh
 
         rg="$RESOURCE_GROUP"
@@ -45,10 +44,26 @@ runs:
           exit 1
         fi
 
-        echo "Sweeping for stale deployment rules from interrupted runs..."
-        stale_rules=$(az functionapp config access-restriction show --resource-group "$rg" --name "$APP_NAME" --query "scmIpSecurityRestrictions[?starts_with(name, 'github-deploy-')].name" -o tsv)
-        if [ $? -ne 0 ]; then
-          echo "::error::Failed to query existing access restrictions."
+        [[ "$RULE_NAME" =~ ^github-deploy-[0-9]+-[0-9]+$ ]]
+        # Both deployment workflows use this reserved SCM rule name format.
+        # The caller must hold the deployment lock for this Function App.
+        deployment_rules() {
+          az functionapp config access-restriction show --resource-group "$rg" --name "$APP_NAME" |
+            jq -r '.scmIpSecurityRestrictions[] | .name | strings | select(test("^github-deploy-[0-9]+-[0-9]+$"))'
+        }
+
+        stale_rules=$(deployment_rules)
+        pna=$(az functionapp show --resource-group "$rg" --name "$APP_NAME" --query publicNetworkAccess -o tsv)
+
+        if [ "$pna" = Enabled ] && [ -n "$stale_rules" ]; then
+          # Restore the network switch before removing the rules that identify
+          # an interrupted deployment. A failed recovery can then be retried.
+          echo "rg=$rg" >> "$GITHUB_OUTPUT"
+          retry_command az functionapp update --resource-group "$rg" --name "$APP_NAME" --set publicNetworkAccess=Disabled
+          pna=$(az functionapp show --resource-group "$rg" --name "$APP_NAME" --query publicNetworkAccess -o tsv)
+        fi
+        if [ "$pna" != Disabled ]; then
+          echo "::error::publicNetworkAccess must be Disabled before deployment starts. Investigate if there is no interrupted deployment rule."
           exit 1
         fi
 
@@ -60,21 +75,13 @@ runs:
           fi
         done
 
-        remaining_stale=$(az functionapp config access-restriction show --resource-group "$rg" --name "$APP_NAME" --query "scmIpSecurityRestrictions[?starts_with(name, 'github-deploy-')].name" -o tsv)
+        remaining_stale=$(deployment_rules)
         if [ -n "$remaining_stale" ]; then
           echo "::error::Stale rules still remain after cleanup attempt."
           exit 1
         fi
 
         echo "Running preflight security checks..."
-
-        pna=$(az functionapp show --resource-group "$rg" --name "$APP_NAME" --query publicNetworkAccess -o tsv)
-        echo "Current publicNetworkAccess: $pna"
-
-        if [ "$pna" != "Disabled" ]; then
-          echo "::error::publicNetworkAccess must be Disabled before deployment starts."
-          exit 1
-        fi
 
         restrictions=$(az functionapp config access-restriction show --resource-group "$rg" --name "$APP_NAME")
 

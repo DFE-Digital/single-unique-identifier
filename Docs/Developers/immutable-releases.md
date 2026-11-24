@@ -66,9 +66,18 @@ When `GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION` is enabled, the Get an Identifier m
 
 Auth Emulator and UI Harness deploy to Azure Web Apps. Their immutable release verification is already shared; promotion requires a verified Web App deployment workflow and app-specific environment, approval and smoke-test routes. Their existing per-app deployment workflows remain in use until those routes are configured.
 
-The verifier runs once per promotion run and exposes the verified ZIP as a same-run Actions artefact. Each deployment stage downloads it by artefact ID and checks its digest before deploying. GitHub records deployments and approvals; follow the deployment job link for the release ID, source SHA, ZIP digest and smoke result.
+The verifier requires a signed provenance subject that binds the exact ZIP digest to its component-prefixed build filename. The trusted build creates that name before attestation. Existing releases with this signed evidence remain eligible for verification. Missing or contradictory evidence fails verification. Each deployment stage downloads the verified ZIP by artefact ID from the same run and checks its digest before deploying. Follow the GitHub deployment job link for the release ID, source SHA, ZIP digest and smoke result.
 
-Approvals can wait up to 30 days and the whole run can last up to 35 days. Retain the verified ZIP artefact for the full run. Deployments and smoke tests share a queue per physical target. GitHub orders the queue by when jobs start waiting, so concurrent builds can reach `d01` out of commit order. Check the release ID before approving a higher stage.
+Approvals can wait up to 30 days and the whole run can last up to 35 days. Retain the verified ZIP artefact for the full run. Deployments and smoke tests share a queue per physical target. GitHub orders the queue by when jobs start waiting, so concurrent builds and delayed approvals can deploy out of commit order.
+
+### Activation prerequisites
+
+Keep `GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION` unset or false until both checks below are implemented and exercised in GitHub against the target environments. Run them after approval and inside the same deployment lock used by promotion and rollback.
+
+- **Promotion ordering.** Record the exact release and source commit before Azure can change the target. Compare commit ancestry against the newest release that may have reached that target, including attempts that failed, were cancelled or failed smoke tests. Permit a retry of the same release and preserve the ordering record across an approved rollback. Block on unknown or contradictory target history.
+- **Rollback eligibility.** Require positive evidence that the exact release and digest finished deployment, cleanup and smoke tests successfully against the physical target. Treat `get-an-identifier-d01` and `get-an-identifier-d01-rollback` as the same target. Retain the reviewer checks below.
+
+Evaluate GitHub deployment records with an explicit payload for the release ID, digest, source SHA and target. Native Environment deployments identify the workflow run ref, which on rollback is the dispatch commit. An Environment approval or record alone does not establish which bytes reached Azure. GitHub expires deployment statuses after 90 days, so establish how to handle missing history before activation.
 
 ### Set up and cut over
 
@@ -81,4 +90,8 @@ Approvals can wait up to 30 days and the whole run can last up to 35 days. Retai
 
 Run **Roll back Get an Identifier release** from `main` with the target and numeric release ID. Find the ID with `gh release view <tag> --json databaseId --jq .databaseId`. Before approving, the reviewer must confirm in GitHub deployment history that the exact release previously deployed and passed smoke tests in the target. For `d01`, both the normal and rollback Environment histories refer to the same target. Add a link to the successful job in the approval comment. Review queued and pending promotions for the target so a later approval does not unintentionally override the rollback.
 
-Rollback verifies the immutable ZIP again and runs fresh smoke tests. Deploying a rollback does not reverse infrastructure or configuration. If SCM cleanup failed, verify that public network access is disabled and the temporary rule is gone before retrying.
+Rollback verifies the immutable ZIP again and runs fresh smoke tests. Deploying a rollback does not reverse infrastructure or configuration.
+
+### SCM cleanup and recovery
+
+Function App cleanup attempts to disable public network access and remove the temporary SCM allow rule independently. The job fails if cleanup cannot confirm both that public network access is disabled and that the rule is absent. A deployment can recover interrupted SCM access when a reserved `github-deploy-<run ID>-<attempt>` rule remains. Cleanup can remove that rule even if disabling public access fails. If public access is enabled without the rule, deployment stops. Disable public access manually and verify the temporary SCM rule is absent before retrying.

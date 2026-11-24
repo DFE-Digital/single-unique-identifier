@@ -79,7 +79,16 @@ jobs:
           verify_asset "$zip_name"
           gh attestation verify "$directory/$zip_name" --repo "$GITHUB_REPOSITORY" \
             --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/attest-release-zips.yml" \
-            --source-digest "$source_sha" --source-ref refs/heads/main
+            --source-digest "$source_sha" --source-ref refs/heads/main --format json > "$directory/provenance.json"
+          # The trusted builder prefixes ZIP names with the component before signing.
+          # One statement can cover several ZIPs. Match both fields on the same subject.
+          if ! jq -e --arg component "$COMPONENT" --arg name "$zip_name" --arg sha256 "${verified_digest#sha256:}" '
+            any(.[].verificationResult.statement.subject[]?;
+              .name == $name and (.name | startswith($component + "-")) and .digest.sha256 == $sha256)
+          ' "$directory/provenance.json" > /dev/null; then
+            echo "::error::No verified provenance subject binds this ZIP digest and name to the expected component."
+            exit 1
+          fi
 
           # Share the original ZIP bytes by artifact ID across this release's stages.
           if [[ "$zip_name" != release.zip ]]; then
