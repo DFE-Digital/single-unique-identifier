@@ -301,17 +301,17 @@ jobs:
       terraform_variables: >-
         {
           "notification_service_image_tag":"${{ needs.resolve-image.outputs.image_tag }}",
-          "notification_service_job_enabled":"${{ inputs.notification_service_job_enabled }}"}
+          "notification_service_job_enabled":"${{ github.event_name == 'workflow_dispatch' && inputs.notification_service_job_enabled && 'true' || 'false' }}"}
       terraform_output_names: >-
         ${{
-          inputs.notification_service_job_enabled
+          github.event_name == 'workflow_dispatch' && inputs.notification_service_job_enabled
           && '["notification_service_job_name", "resource_group_name", "log_analytics_workspace_id"]'
           || '["resource_group_name", "log_analytics_workspace_id"]'
         }}
 
   smoke-test:
     name: Notification Service - smoke test
-    if: ${{ github.event_name != 'pull_request' && inputs.notification_service_job_enabled }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.notification_service_job_enabled }}
     needs: terraform
     timeout-minutes: 15
     runs-on: ubuntu-latest
