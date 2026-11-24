@@ -81,6 +81,8 @@ permissions:
 jobs:
   resolve-app:
     name: Resolve function app name
+    # The legacy Get an Identifier route is the only caller of this workflow.
+    if: vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION != 'true'
     timeout-minutes: 10
     # Runner labels from RUNNER_LABELS (JSON array). Default: ubuntu-latest.
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}

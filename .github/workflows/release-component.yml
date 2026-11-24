@@ -1,0 +1,50 @@
+name: Release component
+
+on:
+  workflow_call:
+    inputs:
+      component:
+        type: string
+        required: true
+      release_tag:
+        type: string
+        required: true
+
+permissions: {}
+
+jobs:
+  publish:
+    name: Publish immutable release
+    uses: ./.github/workflows/publish-immutable-release.yml
+    permissions:
+      contents: write
+      actions: read
+      attestations: read
+    with:
+      assets_artifact_name: release-assets
+      asset_subdirectory: ${{ inputs.component }}
+      attested_asset_glob: '*.zip'
+      manifest_filename: release-manifest.json
+      release_tag: ${{ inputs.release_tag }}
+      source_sha: ${{ github.sha }}
+      source_ref: refs/heads/main
+      signer_workflow: ${{ github.repository }}/.github/workflows/attest-release-zips.yml
+      release_title: ${{ inputs.component }} deployable build ${{ inputs.release_tag }}
+      release_notes: Tested ${{ inputs.component }} deployment asset from ${{ github.sha }}.
+
+  # Keep promotion inside this matrix child so each app receives its own release ID.
+  # Add a guarded route here when another app's deployment path is configured.
+  promote-get-an-identifier:
+    name: Promote Get an Identifier
+    needs: publish
+    if: >-
+      inputs.component == 'GetAnIdentifier' &&
+      vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION == 'true' &&
+      needs.publish.outputs.release_id != ''
+    uses: ./.github/workflows/promote-get-an-identifier.yml
+    permissions:
+      contents: read
+      attestations: read
+      id-token: write
+    with:
+      release_id: ${{ needs.publish.outputs.release_id }}

@@ -65,6 +65,7 @@ jobs:
               - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
               - '.github/workflows/publish-immutable-release.yml'
+              - '.github/workflows/release-component.yml'
               - '.github/scripts/**'
             get_an_id:
               - 'Apps/GetAnIdentifier/**'
@@ -78,6 +79,7 @@ jobs:
               - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
               - '.github/workflows/publish-immutable-release.yml'
+              - '.github/workflows/release-component.yml'
               - '.github/scripts/**'
             ui_harness:
               - 'Apps/UIHarness/**'
@@ -91,12 +93,18 @@ jobs:
               - '.github/workflows/attest-release-zips.yml'
               - '.github/workflows/ci-cd-orchestrator.yml'
               - '.github/workflows/publish-immutable-release.yml'
+              - '.github/workflows/release-component.yml'
               - '.github/scripts/**'
             ci_helpers:
               - '.github/actions/**'
               - '.github/scripts/**'
               - '.github/workflows/ci-cd-orchestrator.yml'
               - '.github/workflows/publish-immutable-release.yml'
+              - '.github/workflows/release-component.yml'
+              - '.github/workflows/promote-get-an-identifier.yml'
+              - '.github/workflows/rollback-get-an-identifier.yml'
+              - '.github/workflows/verify-immutable-zip.yml'
+              - '.github/workflows/deploy-verified-functionapp.yml'
               - '.github/workflows/test-ci-helpers.yml'
 
   build-auth-emulator:
@@ -201,11 +209,20 @@ jobs:
       - build-get-an-id
       - build-ui-harness
       - attest-release-zips
+      - trufflehog-scan
+      - trivy-scan
+      - trivy-iac-scan
+      - release-script-tests
+    # Only prepare publishable assets. Check selected builds explicitly because others are skipped.
     if: >-
       ${{ always() &&
           github.event_name == 'push' && github.ref == 'refs/heads/main' &&
           needs.path-filter.result == 'success' &&
           needs.attest-release-zips.result == 'success' &&
+          needs.trufflehog-scan.result == 'success' &&
+          needs.trivy-scan.result == 'success' &&
+          needs.trivy-iac-scan.result == 'success' &&
+          needs.release-script-tests.result == 'success' &&
           (needs.path-filter.outputs.auth_emulator == 'true' ||
            needs.path-filter.outputs.get_an_id == 'true' ||
            needs.path-filter.outputs.ui_harness == 'true') &&
@@ -252,51 +269,17 @@ jobs:
           if-no-files-found: error
 
   cut-release:
-    name: Publish ${{ matrix.component.name }} release
-    needs:
-      - path-filter
-      - build-auth-emulator
-      - build-get-an-id
-      - build-ui-harness
-      - attest-release-zips
-      - trufflehog-scan
-      - trivy-scan
-      - trivy-iac-scan
-      - release-script-tests
-      - prepare-release-assets
-    # Check every mandatory outcome explicitly because unselected component jobs are skipped.
-    if: >-
-      ${{ always() &&
-          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-          needs.path-filter.result == 'success' &&
-          needs.trufflehog-scan.result == 'success' &&
-          needs.trivy-scan.result == 'success' &&
-          needs.trivy-iac-scan.result == 'success' &&
-          needs.release-script-tests.result == 'success' &&
-          needs.attest-release-zips.result == 'success' &&
-          needs.prepare-release-assets.result == 'success' &&
-          (needs.path-filter.outputs.auth_emulator == 'true' ||
-           needs.path-filter.outputs.get_an_id == 'true' ||
-           needs.path-filter.outputs.ui_harness == 'true') &&
-          (needs.path-filter.outputs.auth_emulator != 'true' || needs.build-auth-emulator.result == 'success') &&
-          (needs.path-filter.outputs.get_an_id != 'true' || needs.build-get-an-id.result == 'success') &&
-          (needs.path-filter.outputs.ui_harness != 'true' || needs.build-ui-harness.result == 'success') }}
+    name: Release ${{ matrix.component.name }}
+    needs: prepare-release-assets
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.prepare-release-assets.outputs.matrix) }}
-    uses: ./.github/workflows/publish-immutable-release.yml
+    uses: ./.github/workflows/release-component.yml
     permissions:
       contents: write
       actions: read
       attestations: read
+      id-token: write
     with:
-      assets_artifact_name: release-assets
-      asset_subdirectory: ${{ matrix.component.name }}
-      attested_asset_glob: '*.zip'
-      manifest_filename: release-manifest.json
+      component: ${{ matrix.component.name }}
       release_tag: ${{ matrix.component.tag }}
-      source_sha: ${{ github.sha }}
-      source_ref: refs/heads/main
-      signer_workflow: ${{ github.repository }}/.github/workflows/attest-release-zips.yml
-      release_title: ${{ matrix.component.name }} deployable build ${{ matrix.component.tag }}
-      release_notes: Tested ${{ matrix.component.name }} deployment asset from ${{ github.sha }}.
