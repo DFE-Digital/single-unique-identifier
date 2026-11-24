@@ -251,10 +251,7 @@ resource "azapi_resource" "private_endpoints_subnet" {
 
   body = {
     properties = {
-      addressPrefixes = [
-        "10.250.0.96/27",
-        "10.250.0.128/26",
-      ]
+      addressPrefix                  = "10.250.0.96/27"
       privateEndpointNetworkPolicies = "Disabled"
       networkSecurityGroup = {
         id = azurerm_network_security_group.private_endpoints.id
