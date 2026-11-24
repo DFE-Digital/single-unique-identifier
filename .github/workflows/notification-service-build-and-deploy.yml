@@ -58,16 +58,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - Apps/NotificationService/**
-      - Libs/**
-      - scripts/pds-record-change-2-notification.template.json
-      - terraform/notification-service/**
-      - terraform/core/**
-      - terraform/modules/**
-      - terraform/environments/**
-      - .github/workflows/notification-service-build-and-deploy.yml
-      - .github/workflows/terraform-plan-and-apply.yml
 
 concurrency:
   group: notification-service-${{ github.event_name == 'workflow_dispatch' && inputs.environment || github.ref }}
@@ -77,8 +67,33 @@ permissions:
   contents: read
 
 jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+        id: filter
+        with:
+          filters: |
+            app:
+              - Apps/NotificationService/**
+              - Libs/**
+              - scripts/pds-record-change-2-notification.template.json
+              - terraform/notification-service/**
+              - terraform/core/**
+              - terraform/modules/**
+              - terraform/environments/**
+              - .github/workflows/notification-service-build-and-deploy.yml
+              - .github/workflows/terraform-plan-and-apply.yml
+
   build-and-test:
     name: Notification Service - build and test
+    needs: detect-changes
+    # Skips the job if it's a PR and no relevant files changed. GitHub treats this skip as a PASS.
+    if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.should_run == 'true' }}
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -98,7 +113,10 @@ jobs:
 
   resolve-image:
     name: Resolve container image
-    needs: build-and-test
+    # Note: Using `if: always()` on jobs that `need` conditionally skipped jobs can cause issues,
+    # but since resolve-image doesn't use the output of build-and-test, we just conditionally skip it too.
+    needs: detect-changes
+    if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.should_run == 'true' }}
     timeout-minutes: 5
     runs-on: ubuntu-latest
     outputs:

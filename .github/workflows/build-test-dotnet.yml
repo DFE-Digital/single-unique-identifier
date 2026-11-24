@@ -176,7 +176,17 @@ jobs:
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         env:
           NuGetPackageSourceCredentials_DFEDigital: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}
-
+      
+      # Enforce the quality gate so the job signals if the scan fails
+      - name: SonarCloud Quality Gate Check
+        if: inputs.skip_scans != true
+        uses: sonarsource/sonarcloud-quality-gate-action@d304d050d930b02a896b0f85935344f023928496 # v2.1.1
+        timeout-minutes: 5
+        with:
+          scanMetadataReportFile: .sonarqube/out/.sonar/report-task.txt
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
       - name: Publish projects
         id: publish
         if: inputs.upload_artifacts == true
