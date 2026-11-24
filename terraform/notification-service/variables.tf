@@ -225,6 +225,7 @@ variable "key_vault_use_rbac" {
   type    = bool
   default = null
 }
+
 variable "getanidentifier_app_settings" {
   type    = map(string)
   default = {}
@@ -237,3 +238,4 @@ variable "container_registry_sku" {
   type    = string
   default = null
 }
+

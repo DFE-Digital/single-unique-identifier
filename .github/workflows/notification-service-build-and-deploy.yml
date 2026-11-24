@@ -295,13 +295,13 @@ jobs:
       id-token: write
     with:
       environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'd01' }}
-      apply: ${{ inputs.apply }}
+      apply: ${{ inputs.apply || false }}
       root: terraform/notification-service
       state_key: ${{ format('{0}/notification-service.tfstate', github.event_name == 'workflow_dispatch' && inputs.environment || 'd01') }}
       terraform_variables: >-
         {
           "notification_service_image_tag":"${{ needs.resolve-image.outputs.image_tag }}",
-          "notification_service_job_enabled":"${{ inputs.notification_service_job_enabled }}"}
+          "notification_service_job_enabled":"${{ inputs.notification_service_job_enabled || false }}"}
       terraform_output_names: >-
         ${{
           inputs.notification_service_job_enabled

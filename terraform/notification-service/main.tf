@@ -1,4 +1,14 @@
 locals {
+  secret_tags = merge(
+    {
+      Environment        = var.environment_tag
+      Product            = var.product
+      "Service Offering" = var.service_offering
+      ManagedBy          = "terraform"
+    },
+    var.tags,
+  )
+
   state_rg        = format("%s%srg-%s-tfstate", var.subscription_prefix, var.environment_id, var.region_short)
   state_storage   = format("%s%ssttfstate01", var.subscription_prefix, var.environment_id)
   state_container = "tfstate"
@@ -121,6 +131,42 @@ resource "azurerm_key_vault_access_policy" "terraform_operator" {
 
   storage_permissions = [
     "Get",
+  ]
+}
+
+resource "azurerm_key_vault_secret" "nhs_mesh_shared_key" {
+  name         = "nhs-mesh-shared-key"
+  value        = var.nhs_mesh_shared_key
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
+  tags         = local.secret_tags
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+
+resource "azurerm_key_vault_secret" "nhs_mesh_mailbox_id" {
+  name         = "nhs-mesh-mailbox-id"
+  value        = var.nhs_mesh_mailbox_id
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
+  tags         = local.secret_tags
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+
+resource "azurerm_key_vault_secret" "nhs_mesh_mailbox_password" {
+  name         = "nhs-mesh-mailbox-password"
+  value        = var.nhs_mesh_mailbox_password
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
+  tags         = local.secret_tags
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
   ]
 }
 
@@ -300,21 +346,6 @@ resource "azurerm_container_app_job" "notification_service" {
   }
 
   secret {
-    name  = "nhs-mesh-shared-key"
-    value = var.nhs_mesh_shared_key
-  }
-
-  secret {
-    name  = "nhs-mesh-mailbox-id"
-    value = var.nhs_mesh_mailbox_id
-  }
-
-  secret {
-    name  = "nhs-mesh-mailbox-password"
-    value = var.nhs_mesh_mailbox_password
-  }
-
-  secret {
     name  = "nhs-mesh-root-ca"
     value = var.nhs_mesh_root_ca
   }
@@ -354,21 +385,6 @@ resource "azurerm_container_app_job" "notification_service" {
       env {
         name  = "NhsMeshConfig__MailboxBaseUrl"
         value = var.nhs_mesh_mailbox_base_url
-      }
-
-      env {
-        name        = "NhsMeshConfig__SharedKey"
-        secret_name = "nhs-mesh-shared-key"
-      }
-
-      env {
-        name        = "NhsMeshConfig__MailboxId"
-        secret_name = "nhs-mesh-mailbox-id"
-      }
-
-      env {
-        name        = "NhsMeshConfig__MailboxPassword"
-        secret_name = "nhs-mesh-mailbox-password"
       }
 
       env {
