@@ -10,11 +10,14 @@ namespace SUI.GetAnIdentifier.API.UnitTests.Functions;
 
 public class HealthCheckFunctionTests
 {
-    private readonly ILogger<HealthCheckFunction> _logger = Substitute.For<ILogger<HealthCheckFunction>>();
+    private readonly ILogger<HealthCheckFunction> _logger = Substitute.For<
+        ILogger<HealthCheckFunction>
+    >();
     private readonly HealthCheckService _healthCheckService = Substitute.For<HealthCheckService>();
     private readonly IHostEnvironment _hostEnvironment = Substitute.For<IHostEnvironment>();
 
-    private HealthCheckFunction CreateFunction() => new(_logger, _hostEnvironment, _healthCheckService);
+    private HealthCheckFunction CreateFunction() =>
+        new(_logger, _hostEnvironment, _healthCheckService);
 
     [Theory]
     [InlineData(HealthStatus.Healthy, HttpStatusCode.OK)]

@@ -8,7 +8,7 @@ Category: System/GetAnIdentifier / NHS Integration
 
 ## Status
 
-Accepted
+Deprecated
 
 Related to: [ADR-GetAnIdentifier-0001](0001-NHS-MNS-integration.md)
 

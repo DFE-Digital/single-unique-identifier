@@ -186,7 +186,7 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
     }
 
     [Fact]
-    public async Task ShouldRemoveDuplicates_FromReturnedList_WhenDuplicatesExist()
+    public async Task ShouldLeaveDuplicates_FromReturnedList_WhenDuplicatesExist()
     {
         AddValidMessages(
             ("message-1", "9000000009"),
@@ -208,34 +208,18 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
             {
                 Assert.Equal("message-2", n.MessageId);
                 Assert.Equal("9000000017", n.NhsNumber);
+            },
+            n =>
+            {
+                Assert.Equal("message-3", n.MessageId);
+                Assert.Equal("9000000009", n.NhsNumber);
+            },
+            n =>
+            {
+                Assert.Equal("message-4", n.MessageId);
+                Assert.Equal("9000000017", n.NhsNumber);
             }
         );
-    }
-
-    [Fact]
-    public async Task ShouldAcknowledgeEveryLaterCopy_AndNotTheNonDuplicate_WhenMessagesShareAnNhsNumber()
-    {
-        AddValidMessages(
-            ("message-1", "9000000009"),
-            ("message-2", "9000000009"),
-            ("message-3", "9000000009"),
-            ("message-4", "9000000017")
-        );
-
-        await ProcessAsync();
-
-        await MeshInboxClient
-            .Received(1)
-            .AcknowledgeMessageAsync("message-2", Arg.Any<CancellationToken>());
-        await MeshInboxClient
-            .Received(1)
-            .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
-        await MeshInboxClient
-            .DidNotReceive()
-            .AcknowledgeMessageAsync("message-1", Arg.Any<CancellationToken>());
-        await MeshInboxClient
-            .DidNotReceive()
-            .AcknowledgeMessageAsync("message-4", Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -248,68 +232,6 @@ public sealed class ProcessMeshMessagesAsyncTests : MeshMessageProcessorTestBase
         await ProcessAsync();
 
         await MeshInboxClient.DidNotReceiveWithAnyArgs().AcknowledgeMessageAsync(default!, default);
-    }
-
-    [Theory]
-    [InlineData(typeof(HttpRequestException))]
-    [InlineData(typeof(TaskCanceledException))]
-    public async Task ShouldKeepAcknowledgingAndReturnNonDuplicates_WhenADuplicateAcknowledgementFails(
-        Type exceptionType
-    )
-    {
-        AddValidMessages(
-            ("message-1", "9000000009"),
-            ("message-2", "9000000009"),
-            ("message-3", "9000000009")
-        );
-        MeshInboxClient
-            .AcknowledgeMessageAsync("message-2", Arg.Any<CancellationToken>())
-            .ThrowsAsync((Exception)Activator.CreateInstance(exceptionType)!);
-
-        var notifications = await ProcessAsync();
-
-        var notification = Assert.Single(notifications);
-        Assert.Equal("message-1", notification.MessageId);
-        Assert.Equal("9000000009", notification.NhsNumber);
-        await MeshInboxClient
-            .Received(1)
-            .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task ShouldPropagate_WhenADuplicateAcknowledgementFailsUnexpectedly()
-    {
-        AddValidMessages(("message-1", "9000000009"), ("message-2", "9000000009"));
-        MeshInboxClient
-            .AcknowledgeMessageAsync("message-2", Arg.Any<CancellationToken>())
-            .ThrowsAsync(new InvalidOperationException());
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() => ProcessAsync());
-    }
-
-    [Fact]
-    public async Task ShouldStopAcknowledging_WhenCancelledDuringAcknowledgement()
-    {
-        AddValidMessages(
-            ("message-1", "9000000009"),
-            ("message-2", "9000000009"),
-            ("message-3", "9000000009")
-        );
-        using var cancellation = new CancellationTokenSource();
-        MeshInboxClient
-            .AcknowledgeMessageAsync("message-2", Arg.Any<CancellationToken>())
-            .Returns(_ =>
-            {
-                cancellation.Cancel();
-                throw new OperationCanceledException(cancellation.Token);
-            });
-
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            CreateProcessor().ProcessMeshMessagesAsync(cancellation.Token)
-        );
-        await MeshInboxClient
-            .DidNotReceive()
-            .AcknowledgeMessageAsync("message-3", Arg.Any<CancellationToken>());
     }
 
     [Fact]

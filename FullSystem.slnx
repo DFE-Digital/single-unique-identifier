@@ -2,16 +2,31 @@
   <Folder Name="/Apps/" />
   <Folder Name="/Apps/AuthEmulator/" />
   <Folder Name="/Apps/AuthEmulator/src/">
-    <Project Path="Apps\AuthEmulator\src\SUI.AuthEmulator\SUI.AuthEmulator.csproj" Type="Classic C#" />
+    <Project
+      Path="Apps\AuthEmulator\src\SUI.AuthEmulator\SUI.AuthEmulator.csproj"
+      Type="Classic C#"
+    />
   </Folder>
   <Folder Name="/Apps/AuthEmulator/tests/">
-    <Project Path="Apps\AuthEmulator\tests\SUI.AuthEmulator.UnitTests\SUI.AuthEmulator.UnitTests.csproj" Type="Classic C#" />
+    <Project
+      Path="Apps\AuthEmulator\tests\SUI.AuthEmulator.UnitTests\SUI.AuthEmulator.UnitTests.csproj"
+      Type="Classic C#"
+    />
   </Folder>
   <Folder Name="/Apps/GetAnIdentifier/" />
   <Folder Name="/Apps/GetAnIdentifier/src/">
-    <Project Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.API\SUI.GetAnIdentifier.API.csproj" Type="Classic C#" />
-    <Project Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.Application\SUI.GetAnIdentifier.Application.csproj" Type="Classic C#" />
-    <Project Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.Infrastructure\SUI.GetAnIdentifier.Infrastructure.csproj" Type="Classic C#" />
+    <Project
+      Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.API\SUI.GetAnIdentifier.API.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.Application\SUI.GetAnIdentifier.Application.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps\GetAnIdentifier\src\SUI.GetAnIdentifier.Infrastructure\SUI.GetAnIdentifier.Infrastructure.csproj"
+      Type="Classic C#"
+    />
   </Folder>
   <Folder Name="/Apps/GetAnIdentifier/tests/">
     <Project Path="Apps\GetAnIdentifier\tests\SUI.GetAnIdentifier.API.UnitTests\SUI.GetAnIdentifier.API.UnitTests.csproj" />
@@ -20,18 +35,48 @@
   </Folder>
   <Folder Name="/Apps/NotificationService/" />
   <Folder Name="/Apps/NotificationService/src/">
-    <Project Path="Apps\NotificationService\src\SUI.NotificationService\SUI.NotificationService.csproj" Type="Classic C#" />
-    <Project Path="Apps\NotificationService\src\SUI.NotificationService.Application\SUI.NotificationService.Application.csproj" Type="Classic C#" />
-    <Project Path="Apps\NotificationService\src\SUI.NotificationService.Infrastructure\SUI.NotificationService.Infrastructure.csproj" Type="Classic C#" />
-    <Project Path="Apps\NotificationService\src\SUI.NotificationService.Mesh\SUI.NotificationService.Mesh.csproj" Type="Classic C#" />
-    <Project Path="Apps\NotificationService\src\SUI.NotificationService.Webhooks\SUI.NotificationService.Webhooks.csproj" Type="Classic C#" />
+    <Project
+      Path="Apps\NotificationService\src\SUI.NotificationService\SUI.NotificationService.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps\NotificationService\src\SUI.NotificationService.Application\SUI.NotificationService.Application.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps\NotificationService\src\SUI.NotificationService.Infrastructure\SUI.NotificationService.Infrastructure.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps\NotificationService\src\SUI.NotificationService.Mesh\SUI.NotificationService.Mesh.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps\NotificationService\src\SUI.NotificationService.Webhooks\SUI.NotificationService.Webhooks.csproj"
+      Type="Classic C#"
+    />
   </Folder>
   <Folder Name="/Apps/NotificationService/tests/">
-    <Project Path="Apps\NotificationService\tests\SUI.NotificationService.UnitTests\SUI.NotificationService.UnitTests.csproj" Type="Classic C#" />
-    <Project Path="Apps\NotificationService\tests\SUI.NotificationService.Infrastructure.UnitTests\SUI.NotificationService.Infrastructure.UnitTests.csproj" Type="Classic C#" />
-    <Project Path="Apps/NotificationService/tests/SUI.NotificationService.Application.UnitTests/SUI.NotificationService.Application.UnitTests.csproj" Type="Classic C#" />
-    <Project Path="Apps\NotificationService\tests\SUI.NotificationService.Mesh.UnitTests\SUI.NotificationService.Mesh.UnitTests.csproj" Type="Classic C#" />
-    <Project Path="Apps\NotificationService\tests\SUI.NotificationService.Infrastructure.IntegrationTests\SUI.NotificationService.Infrastructure.IntegrationTests.csproj" Type="Classic C#" />
+    <Project
+      Path="Apps\NotificationService\tests\SUI.NotificationService.UnitTests\SUI.NotificationService.UnitTests.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps\NotificationService\tests\SUI.NotificationService.Infrastructure.UnitTests\SUI.NotificationService.Infrastructure.UnitTests.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps/NotificationService/tests/SUI.NotificationService.Application.UnitTests/SUI.NotificationService.Application.UnitTests.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps\NotificationService\tests\SUI.NotificationService.Mesh.UnitTests\SUI.NotificationService.Mesh.UnitTests.csproj"
+      Type="Classic C#"
+    />
+    <Project
+      Path="Apps\NotificationService\tests\SUI.NotificationService.Infrastructure.IntegrationTests\SUI.NotificationService.Infrastructure.IntegrationTests.csproj"
+      Type="Classic C#"
+    />
   </Folder>
   <Folder Name="/Apps/UIHarness/" />
   <Folder Name="/Apps/UIHarness/src/">
