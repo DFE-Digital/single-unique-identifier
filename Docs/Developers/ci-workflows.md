@@ -44,6 +44,12 @@ Required inputs when running manually:
 - `artifact_run_id` - the workflow run ID that uploaded the artifact.
 - Either `component_descriptor` or the full app name override (`web_app_name` / `function_app_name`), e.g. `find01` or `s270d01func-ukw-01-find01`.
 
+## Function App SCM cleanup and recovery
+
+Function App cleanup attempts to disable public network access and remove the temporary SCM allow rule independently. The job fails if cleanup cannot confirm that public network access is disabled and the rule is absent.
+
+When a deployment finds stale SCM rules matching `github-deploy-<run ID>-<attempt>`, it attempts to disable public access and remove each matching rule independently. Unrelated rules are left in place. Deployment stops if recovery fails or either final security check cannot be verified. If public access is still enabled after the last recovery rule is removed, the next deployment stops. Disable public access manually and verify that the temporary SCM rules are absent before retrying.
+
 ## Adding a new app workflow
 
 1. Add a new `*-build-and-deploy.yml` in [`.github/workflows`](../../.github/workflows).
