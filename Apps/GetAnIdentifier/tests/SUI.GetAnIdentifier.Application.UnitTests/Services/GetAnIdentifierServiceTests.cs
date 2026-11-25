@@ -181,6 +181,15 @@ public class GetAnIdentifierServiceTests
         var match = Assert.IsType<GetAnIdentifierResult>(result.Value);
         Assert.Equal("9876543210", match.PersonId.Value);
         Assert.Equal(["B81606"], match.GeneralPractitioner);
+
+        await _fhirService // Assert ODS code is passed through
+            .Received(1)
+            .PerformSearchAsync(
+                Arg.Any<SearchQuery>(),
+                Arg.Is<string>(OdsCode),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]

@@ -233,6 +233,14 @@ public class FhirServiceTests : BaseFhirClientTests
         Assert.NotNull(result.Value?.NhsNumber);
         Assert.NotEqual(0m, result.Value?.Score);
         Assert.Equal(["B81606"], result.Value?.GeneralPractitioner);
+
+        await FhirClientFactoryMock // Assert ODS code is passed through
+            .Received(1)
+            .CreateFhirClientAsync(
+                Arg.Is<string>(OdsCode),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]

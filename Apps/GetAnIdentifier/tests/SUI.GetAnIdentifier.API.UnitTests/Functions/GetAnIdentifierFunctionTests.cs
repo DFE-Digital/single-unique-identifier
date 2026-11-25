@@ -130,6 +130,14 @@ public class GetAnIdentifierFunctionTests
                 .Single()
                 .GetString()
         );
+        await _getAnIdentifierService // Assert ODS code is passed through
+            .Received(1)
+            .MatchPersonAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Is<string>("TestODS"),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]
