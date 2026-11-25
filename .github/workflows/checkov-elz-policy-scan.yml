@@ -10,9 +10,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'terraform/**'
-      - '.github/workflows/checkov-elz-policy-scan.yml'
   workflow_dispatch:
   workflow_call:
 
@@ -27,8 +24,25 @@ permissions:
   pull-requests: write # Required to post the PR summary comment
 
 jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.filter.outputs.tf }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+        id: filter
+        with:
+          filters: |
+            tf:
+              - 'terraform/**'
+              - '.github/workflows/checkov-elz-policy-scan.yml'
+
   checkov-elz-policy-scan:
     name: Checkov ELZ scan (${{ matrix.environment }})
+    needs: detect-changes
+    if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true' }}
     timeout-minutes: 15
     runs-on: ${{ fromJSON(vars.RUNNER_LABELS || '["ubuntu-latest"]') }}
     strategy:
@@ -55,7 +69,7 @@ jobs:
             --output junitxml > ${{ github.workspace }}/checkov-reports/results-${{ matrix.environment }}.xml
 
       - name: Publish Checkov results
-        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
         if: always()
         with:
           name: Checkov ELZ Results (${{ matrix.environment }})

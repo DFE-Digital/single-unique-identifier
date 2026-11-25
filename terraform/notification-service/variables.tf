@@ -96,6 +96,18 @@ variable "notification_service_dotnet_environment" {
   default     = "Development"
 }
 
+variable "notification_service_acr_pull_enabled" {
+  description = "Whether Terraform should assign AcrPull on the shared registry to the deployment identity."
+  type        = bool
+  default     = false
+}
+
+variable "notification_service_job_enabled" {
+  description = "Whether Terraform should start the notification service job. This is a temporary change to while waiting for the correct roles"
+  type        = bool
+  default     = false
+}
+
 variable "nhs_mesh_mailbox_base_url" {
   description = "Base URL of the NHS MESH instance (NhsMeshConfig__MailboxBaseUrl)."
   type        = string
@@ -213,6 +225,7 @@ variable "key_vault_use_rbac" {
   type    = bool
   default = null
 }
+
 variable "getanidentifier_app_settings" {
   type    = map(string)
   default = {}
@@ -225,3 +238,4 @@ variable "container_registry_sku" {
   type    = string
   default = null
 }
+

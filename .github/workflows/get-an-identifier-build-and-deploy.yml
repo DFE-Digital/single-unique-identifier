@@ -50,13 +50,30 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "Apps/GetAnIdentifier/**"
-      - "Data/**"
 
 jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+        id: filter
+        with:
+          filters: |
+            app:
+              - "Apps/GetAnIdentifier/**"
+              - "Data/**"
+              - ".github/workflows/get-an-identifier-build-and-deploy.yml"
+              - ".github/workflows/build-test-dotnet.yml"
+
   build-and-test-GetAnIdentifier:
     name: GetAnIdentifier - Build Test Dotnet
+    needs: detect-changes
+    # Skips the job if it's a PR and no relevant files changed. GitHub treats this skip as a PASS.
+    if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true' }}
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -131,7 +148,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: '10.0.x'
           global-json-file: global.json

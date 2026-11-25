@@ -76,7 +76,7 @@ variable "log_analytics_retention_in_days" {
 variable "container_registry_sku" {
   description = "SKU for the shared Azure Container Registry."
   type        = string
-  default     = "Basic"
+  default     = "Premium"
 
   validation {
     condition     = contains(["Basic", "Standard", "Premium"], var.container_registry_sku)

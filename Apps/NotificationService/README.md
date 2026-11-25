@@ -107,7 +107,8 @@ Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig`
 | `MailboxPassword`    | Mailbox password used to build the `NHSMESH` authorisation header.                                                                                              |
 | `SharedKey`          | Shared key used to HMAC that header.                                                                                                                            |
 | `AcceptLocalDevCert` | Optional, default `false`. Accepts the local sandbox's self-signed certificate. Startup fails if this is `true` and `MailboxBaseUrl` is not a loopback address. |
-| `MailboxMTLSPfx` | Base64 of the NHS-issued client PFX (certificate and private key), presented for mutual TLS. Required when `AcceptLocalDevCert` is `false`. |
+| `MailboxMTLSPfx` | Base64 of the NHS-issued client PFX (certificate and private key), presented for mutual TLS. Required when `AcceptLocalDevCert` is `false`. Populated at runtime from Key Vault when not supplied directly in local configuration. |
+| `MailboxMTLSPfxCertName` | Optional, default `nhs-mesh-mailbox-certificate`. Name of the Key Vault certificate/secret holding the client PFX, fetched at runtime when `AcceptLocalDevCert` is `false` and `MailboxMTLSPfx` is not set. |
 | `MailboxMTLSPfxPassword` | Optional password for `MailboxMTLSPfx`. Leave empty when the value comes from a Key Vault certificate. |
 | `MailboxRootCA` | Base64 of the NHS root CA certificate (PEM or DER), e.g. NHS INT Root G2. The only trust anchor for the MESH server certificate. Required when `AcceptLocalDevCert` is `false`. |
 | `MailboxIntermediateCA` | Base64 of the NHS intermediate CA certificate (PEM or DER) issued by `MailboxRootCA`, e.g. NHS INT Authentication G2. Required when `AcceptLocalDevCert` is `false`. |
@@ -126,7 +127,8 @@ bundle to build. Certificates are passed as base64 content, never as file paths.
 with `dotnet user-secrets` from `src/SUI.NotificationService`, for example
 `dotnet user-secrets set NhsMeshConfig:MailboxRootCA "$(base64 -i <root.pem>)"`. In Azure, importing
 the PFX as a Key Vault certificate exposes a same-named secret holding the base64 PFX with no
-password; map that secret to `NhsMeshConfig__MailboxMTLSPfx`.
+password; the service fetches it at runtime from `KeyVault:VaultUri` using its managed identity
+(`MailboxMTLSPfxCertName`, defaulting to `nhs-mesh-mailbox-certificate`).
 
 The server certificate's revocation status is checked online. If the NHS CA's revocation endpoint
 cannot be reached from where the job runs, the TLS handshake fails with a certificate chain error
@@ -161,23 +163,27 @@ revocation check, and `MeshHandlerConfigurationTests` fails while it is in place
 
 #### Deployed configuration
 
-The deployed Container Apps job receives these values from GitHub environment configuration
+The deployed Container Apps job receives these values from both GitHub environment configuration and Azure Key Vault
 (per environment `d01`–`d03`), passed through `terraform-plan-and-apply.yml` as Terraform variables:
 
 | GitHub                                    | Terraform variable          | App setting                            |
 | ----------------------------------------- | --------------------------- | -------------------------------------- |
 | variable `NHS_MESH_CONFIG_BASE_URL`       | `nhs_mesh_mailbox_base_url` | `NhsMeshConfig__MailboxBaseUrl`        |
-| secret `NHS_MESH_CONFIG_SHARED_KEY`       | `nhs_mesh_shared_key`       | `NhsMeshConfig__SharedKey`             |
-| secret `NHS_MESH_CONFIG_MAILBOX_ID`       | `nhs_mesh_mailbox_id`       | `NhsMeshConfig__MailboxId`             |
-| secret `NHS_MESH_CONFIG_MAILBOX_PASSWORD` | `nhs_mesh_mailbox_password` | `NhsMeshConfig__MailboxPassword`       |
 | secret `NHS_MESH_CONFIG_ROOT_CA`          | `nhs_mesh_root_ca`          | `NhsMeshConfig__MailboxRootCA`         |
 | secret `NHS_MESH_CONFIG_INTERMEDIATE_CA`  | `nhs_mesh_intermediate_ca`  | `NhsMeshConfig__MailboxIntermediateCA` |
+
+| Key Vault                                   | Terraform variable                 | App setting       |
+| ------------------------------------------- | ---------------------------------- | ----------------- |
+| variable `NHS_MESH_CONFIG_SHARED_KEY`       | `nhs_mesh_config_shared_key`       | `...`             |
+| variable `NHS_MESH_CONFIG_MAILBOX_ID`       | `nhs_mesh_config_mailbox_id`       | `...`             |
+| variable `NHS_MESH_CONFIG_MAILBOX_PASSWORD` | `nhs_mesh_config_mailbox_password` | `...`             |
 
 The secrets are stored as Container App job secrets and referenced by the container's
 environment. Each CA secret is the NHS-supplied certificate file base64-encoded onto one line
 (`base64 -i <root.pem>` on macOS, `base64 -w0 <root.pem>` on Linux); Terraform rejects a raw PEM.
-The client certificate (`MailboxMTLSPfx`) is not supplied this way: it will come from Key Vault, and
-until it does, a deployed run fails startup validation naming `MailboxMTLSPfx`. Terraform also sets `NhsMeshConfig__AcceptLocalDevCert=false`, overriding
+The client certificate (`MailboxMTLSPfx`) is not supplied as a Container App secret or environment
+variable: the service fetches it directly from the Notification Service Key Vault at runtime via
+`KeyVault__VaultUri` and its user-assigned managed identity (`AZURE_CLIENT_ID`). Terraform also sets `NhsMeshConfig__AcceptLocalDevCert=false`, overriding
 `appsettings.Development.json`, which the deployed `Development` environment would otherwise inherit.
 
 The PR container validation does not use these values: it starts the local MESH sandbox on the runner

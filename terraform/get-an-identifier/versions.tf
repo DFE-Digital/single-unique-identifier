@@ -4,15 +4,15 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.58.0"
+      version = "~> 5.14.0"
     }
     random = {
       source  = "hashicorp/random"
-      version = "~> 3.6.0"
+      version = "~> 3.9.0"
     }
     time = {
       source  = "hashicorp/time"
-      version = "~> 0.12.0"
+      version = "~> 0.14.0"
     }
   }
 
@@ -20,5 +20,13 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  resource_provider_registrations = "none"
+
+  features {
+    enhanced_validation {
+      locations          = true
+      resource_providers = true
+      preflight_enabled  = false
+    }
+  }
 }

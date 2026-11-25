@@ -24,7 +24,17 @@ flowchart TD
 
 The selected apps use the pinned SDK and committed NuGet locks, with a locked restore, Release build and publish without rebuilding. Secret, repository and IaC scans and any required helper tests must pass before publication. Shared SDK/NuGet and release-workflow changes select all three components.
 
+The release build authenticates to the DfE NuGet feed through NuGet's source credentials environment variable, leaving `nuget.config` unchanged. Where coverage is enabled, ReportGenerator produces the reports used by SonarCloud and the PR coverage comment.
+
 Each component release contains its tested ZIP, a CycloneDX JSON SBOM named `<ZIP filename>.cdx.json`, and `release-manifest.json`. The manifest records the tag, full source SHA, workflow run ID and attempt, timestamp, component and ZIP filename; `container` is null. New tags use `<component>-YYYY.MM.DD-build.<run number>`, for example `get-an-identifier-2026.11.05-build.1234`. The UTC date and run number stay the same on a rerun; the full source SHA remains in the manifest. Existing releases retain their `sui-<component>-<full source SHA>` tags. Resolve a release ID from its tag. The publisher verifies the ZIP provenance and SBOM attestations against the trusted workflow and source commit, compares the signed SBOM predicate with the release asset, then checks the complete draft asset inventory and SHA-256 hashes before publishing.
+
+## Verifying an immutable release ZIP
+
+The [reusable ZIP verifier](../../.github/workflows/verify-immutable-zip.yml) takes a numeric `release_id`, a `component` and an optional `expected_source_sha` for callers that already know the source commit. The caller grants `contents: read` and `attestations: read`.
+
+The workflow requires a published, immutable release in the same repository. It verifies the manifest and ZIP against the release attestation and each asset's SHA-256 digest. It checks that the manifest matches the component, release tag and source commit. The ZIP's build provenance must come from the trusted attestation workflow on `refs/heads/main` at that source commit. One signed subject must bind the exact ZIP digest to the component-prefixed build filename. Existing releases with this signed evidence can be verified. Missing or contradictory evidence fails verification.
+
+On success, the workflow uploads the original ZIP bytes as `release.zip` and returns its same-run Actions `artifact_id`, `source_sha` and SHA-256 `digest`. The workflow stops at verification and artefact upload.
 
 ## Verifying the SBOM
 

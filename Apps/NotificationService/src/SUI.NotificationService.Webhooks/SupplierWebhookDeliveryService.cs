@@ -89,6 +89,8 @@ public class SupplierWebhookDeliveryService(
             );
             httpRequest.Headers.Add("X-SUI-Signature-256", signature);
             httpRequest.Headers.Add("X-Correlation-ID", request.CorrelationId.ToString());
+            httpRequest.Headers.Add("X-SUI-Delivery-Attempt", request.AttemptNumber.ToString());
+            httpRequest.Headers.Add("X-SUI-Key-ID", request.KeyId);
 
             // Dispatch Request
             using var response = await httpClient.SendAsync(httpRequest, cancellationToken);

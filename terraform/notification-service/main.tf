@@ -1,4 +1,14 @@
 locals {
+  secret_tags = merge(
+    {
+      Environment        = var.environment_tag
+      Product            = var.product
+      "Service Offering" = var.service_offering
+      ManagedBy          = "terraform"
+    },
+    var.tags,
+  )
+
   state_rg        = format("%s%srg-%s-tfstate", var.subscription_prefix, var.environment_id, var.region_short)
   state_storage   = format("%s%ssttfstate01", var.subscription_prefix, var.environment_id)
   state_container = "tfstate"
@@ -48,7 +58,7 @@ locals {
   )
 
   # Key Vault name
-  key_vault_descriptor = "notificationkv01"
+  key_vault_descriptor = "notifkv01"
   key_vault_name = format(
     "%s%skv-%s-%s",
     var.subscription_prefix,
@@ -124,6 +134,42 @@ resource "azurerm_key_vault_access_policy" "terraform_operator" {
   ]
 }
 
+resource "azurerm_key_vault_secret" "nhs_mesh_shared_key" {
+  name         = "nhs-mesh-shared-key"
+  value        = var.nhs_mesh_shared_key
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
+  tags         = local.secret_tags
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+
+resource "azurerm_key_vault_secret" "nhs_mesh_mailbox_id" {
+  name         = "nhs-mesh-mailbox-id"
+  value        = var.nhs_mesh_mailbox_id
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
+  tags         = local.secret_tags
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+
+resource "azurerm_key_vault_secret" "nhs_mesh_mailbox_password" {
+  name         = "nhs-mesh-mailbox-password"
+  value        = var.nhs_mesh_mailbox_password
+  key_vault_id = module.key_vault.id
+  content_type = "text/plain"
+  tags         = local.secret_tags
+  depends_on = [
+    module.rbac_assignments_terraform_operator,
+    azurerm_key_vault_access_policy.terraform_operator
+  ]
+}
+
 resource "azurerm_user_assigned_identity" "notification_service" {
   name                = local.identity_name
   resource_group_name = data.terraform_remote_state.core.outputs.resource_group_name
@@ -145,20 +191,26 @@ resource "azurerm_storage_account" "notification_service" {
   allow_nested_items_to_be_public   = false
   shared_access_key_enabled         = false
   default_to_oauth_authentication   = true
-  public_network_access_enabled     = true
+  public_network_access             = "Enabled"
   min_tls_version                   = "TLS1_2"
 
-  queue_properties {
-    logging {
-      delete                = true
-      read                  = true
-      write                 = true
-      version               = "1.0"
-      retention_policy_days = 30
-    }
+  tags = local.tags
+}
+
+resource "azurerm_storage_account_queue_properties" "notification_service" {
+  storage_account_id = azurerm_storage_account.notification_service.id
+
+  logging {
+    delete                = true
+    read                  = true
+    write                 = true
+    version               = "1.0"
+    retention_policy_days = 30
   }
 
-  tags = local.tags
+  # Keep Queue data-plane operations behind the configured default-deny
+  # storage firewall.
+  depends_on = [azurerm_storage_account_network_rules.notification_service]
 }
 
 # The table is created through ARM, rather than the Storage data plane, so the
@@ -177,11 +229,10 @@ resource "azurerm_private_dns_zone" "storage_table" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage_table" {
-  name                  = local.private_dns_link_name
-  resource_group_name   = data.terraform_remote_state.core.outputs.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.storage_table.name
-  virtual_network_id    = data.terraform_remote_state.core.outputs.function_app_integration_vnet_id
-  registration_enabled  = false
+  name                 = local.private_dns_link_name
+  private_dns_zone_id  = azurerm_private_dns_zone.storage_table.id
+  virtual_network_id   = data.terraform_remote_state.core.outputs.function_app_integration_vnet_id
+  registration_enabled = false
 
   tags = local.tags
 }
@@ -221,18 +272,55 @@ resource "azurerm_storage_account_network_rules" "notification_service" {
 }
 
 resource "azurerm_role_assignment" "notification_service_acr_pull" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_acr_pull_enabled ? 1 : 0
+
   scope                = data.terraform_remote_state.core.outputs.container_registry_id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
 }
 
 resource "azurerm_role_assignment" "notification_service_table_data_contributor" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_acr_pull_enabled ? 1 : 0
+
   scope                = azurerm_storage_account.notification_service.id
   role_definition_name = "Storage Table Data Contributor"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
 }
 
+module "rbac_assignments_notification_service_key_vault" {
+  source = "../modules/rbac_assignments"
+  scope  = module.key_vault.id
+
+  assignments = var.key_vault_use_rbac ? {
+    notification_service_secrets = {
+      principal_id = azurerm_user_assigned_identity.notification_service.principal_id
+      role_name    = "Key Vault Secrets User"
+    }
+  } : {}
+}
+
+# Access policy fallback for environments that cannot create RBAC role assignments.
+resource "azurerm_key_vault_access_policy" "notification_service" {
+  count = var.key_vault_use_rbac ? 0 : 1
+
+  key_vault_id = module.key_vault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.notification_service.principal_id
+
+  secret_permissions = [
+    "Get",
+  ]
+  certificate_permissions = [
+    "Get",
+  ]
+}
+
 resource "azurerm_container_app_job" "notification_service" {
+  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  count = var.notification_service_job_enabled ? 1 : 0
+
   name                         = local.job_name
   resource_group_name          = data.terraform_remote_state.core.outputs.resource_group_name
   location                     = data.terraform_remote_state.core.outputs.resource_group_location
@@ -255,21 +343,6 @@ resource "azurerm_container_app_job" "notification_service" {
     cron_expression          = var.notification_service_schedule_cron_expression
     parallelism              = 1
     replica_completion_count = 1
-  }
-
-  secret {
-    name  = "nhs-mesh-shared-key"
-    value = var.nhs_mesh_shared_key
-  }
-
-  secret {
-    name  = "nhs-mesh-mailbox-id"
-    value = var.nhs_mesh_mailbox_id
-  }
-
-  secret {
-    name  = "nhs-mesh-mailbox-password"
-    value = var.nhs_mesh_mailbox_password
   }
 
   secret {
@@ -300,23 +373,18 @@ resource "azurerm_container_app_job" "notification_service" {
       }
 
       env {
+        name  = "KeyVault__VaultUri"
+        value = module.key_vault.vault_uri
+      }
+
+      env {
+        name  = "AZURE_CLIENT_ID"
+        value = azurerm_user_assigned_identity.notification_service.client_id
+      }
+
+      env {
         name  = "NhsMeshConfig__MailboxBaseUrl"
         value = var.nhs_mesh_mailbox_base_url
-      }
-
-      env {
-        name        = "NhsMeshConfig__SharedKey"
-        secret_name = "nhs-mesh-shared-key"
-      }
-
-      env {
-        name        = "NhsMeshConfig__MailboxId"
-        secret_name = "nhs-mesh-mailbox-id"
-      }
-
-      env {
-        name        = "NhsMeshConfig__MailboxPassword"
-        secret_name = "nhs-mesh-mailbox-password"
       }
 
       env {
@@ -344,5 +412,7 @@ resource "azurerm_container_app_job" "notification_service" {
     azurerm_role_assignment.notification_service_acr_pull,
     azurerm_role_assignment.notification_service_table_data_contributor,
     azurerm_storage_account_network_rules.notification_service,
+    module.rbac_assignments_notification_service_key_vault,
+    azurerm_key_vault_access_policy.notification_service,
   ]
 }

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using SUI.NotificationService.Application.Exceptions;
 using SUI.NotificationService.Application.Interfaces;
 using SUI.NotificationService.Application.Models;
 
@@ -14,7 +15,7 @@ internal sealed class WebhookBroadcaster(
     ILogger<WebhookBroadcaster> logger
 ) : IWebhookBroadcaster
 {
-    public async Task<IReadOnlyList<string>> BroadcastBatchAsync(
+    public async Task<IReadOnlyList<BroadcastAggregateResult>> BroadcastBatchAsync(
         IReadOnlyList<PdsRecordChangeNotification> notifications,
         CancellationToken cancellationToken
     )
@@ -31,28 +32,25 @@ internal sealed class WebhookBroadcaster(
             return [];
         }
 
-        var acknowledgeableMessageIds = new List<string>();
+        var aggregateResults = new List<BroadcastAggregateResult>();
 
         foreach (var notification in notifications)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var canAcknowledge = await ProcessSingleNotificationAsync(
+            var result = await ProcessSingleNotificationAsync(
                 notification,
                 enabledSuppliers,
                 cancellationToken
             );
 
-            if (canAcknowledge)
-            {
-                acknowledgeableMessageIds.Add(notification.MessageId);
-            }
+            aggregateResults.Add(result);
         }
 
-        return acknowledgeableMessageIds;
+        return aggregateResults;
     }
 
-    private async Task<bool> ProcessSingleNotificationAsync(
+    private async Task<BroadcastAggregateResult> ProcessSingleNotificationAsync(
         PdsRecordChangeNotification notification,
         IReadOnlyList<SupplierWebhook> suppliers,
         CancellationToken cancellationToken
@@ -69,8 +67,7 @@ internal sealed class WebhookBroadcaster(
             );
         }
 
-        // Track the outcomes of all attempted (and skipped) deliveries for the aggregate summary
-        var broadcastOutcomes = new List<DeliveryOutcome>();
+        var endpointResults = new List<EndpointDeliveryResult>();
 
         foreach (var supplier in suppliers)
         {
@@ -82,10 +79,11 @@ internal sealed class WebhookBroadcaster(
                 sourceEventId,
                 cancellationToken
             );
-            broadcastOutcomes.Add(outcome);
+
+            endpointResults.Add(new EndpointDeliveryResult(supplier.SupplierId, outcome));
         }
 
-        return EvaluateBroadcastOutcomes(notification, sourceEventId, broadcastOutcomes);
+        return BuildAggregateResult(notification, suppliers.Count, endpointResults);
     }
 
     private async Task<DeliveryOutcome> DeliverToSupplierAsync(
@@ -126,11 +124,29 @@ internal sealed class WebhookBroadcaster(
             AffectedNhsNumber: notification.NhsNumber,
             EndpointUrl: supplier.EndpointUrl,
             SecretKeyVaultReference: supplier.SecretKeyVaultReference,
-            CorrelationId: Guid.NewGuid()
+            CorrelationId: Guid.NewGuid(),
+            KeyId: supplier.KeyId,
+            AttemptNumber: 1 // Default
         );
 
         // Attempt Delivery
-        var result = await deliveryService.DeliverAsync(request, cancellationToken);
+        WebhookDeliveryResult result;
+        try
+        {
+            result = await deliveryService.DeliverAsync(request, cancellationToken);
+        }
+        catch (WebhookSecretRetrievalException ex)
+        {
+            logger.LogError(
+                ex,
+                "A secret retrieval error occurred while attempting delivery to Supplier {SupplierId}. This delivery will be marked as a permanent failure.",
+                supplier.SupplierId
+            );
+
+            // Treat supplier-specific exceptions as permanent failures.
+            // Unhandled exceptions will propegate and fail the job visibly.
+            return DeliveryOutcome.PermanentFailure;
+        }
 
         // Classify and Act
         await HandleDeliveryOutcomeAsync(
@@ -194,56 +210,45 @@ internal sealed class WebhookBroadcaster(
         }
     }
 
-    private bool EvaluateBroadcastOutcomes(
+    private BroadcastAggregateResult BuildAggregateResult(
         PdsRecordChangeNotification notification,
-        string sourceEventId,
-        List<DeliveryOutcome> broadcastOutcomes
+        int totalSuppliers,
+        List<EndpointDeliveryResult> endpointResults
     )
     {
-        var newlySuccessful = broadcastOutcomes.Count(o => o == DeliveryOutcome.Success);
-        var skipped = broadcastOutcomes.Count(o =>
-            o == DeliveryOutcome.SkippedPreviouslyAcknowledged
+        var newlySuccessful = endpointResults.Count(e => e.Outcome == DeliveryOutcome.Success);
+        var skipped = endpointResults.Count(e =>
+            e.Outcome == DeliveryOutcome.SkippedPreviouslyAcknowledged
         );
-        var retryable = broadcastOutcomes.Count(o => o == DeliveryOutcome.RetryableFailure);
-        var permanent = broadcastOutcomes.Count(o => o == DeliveryOutcome.PermanentFailure);
-        var endpointsStillRequiringSuccessfulDelivery = retryable + permanent;
+        var retryable = endpointResults.Count(e => e.Outcome == DeliveryOutcome.RetryableFailure);
+        var permanent = endpointResults.Count(e => e.Outcome == DeliveryOutcome.PermanentFailure);
+
+        var failed = retryable + permanent;
+        var endpointsStillRequiringSuccessfulDelivery = failed;
 
         if (logger.IsEnabled(LogLevel.Information))
         {
             logger.LogInformation(
-                "Broadcast aggregate for Event {EventId}: {NewlySuccessful} newly successful, {Skipped} skipped, {Retryable} retryable failures, {Permanent} permanent failures. Endpoints still requiring successful delivery: {StillRequiring}.",
-                sourceEventId,
+                "Broadcast aggregate for Event {EventId}: {NewlySuccessful} newly successful, {Skipped} skipped, {Retryable} retryable failures, {Permanent} permanent failures.",
+                notification.EventId,
                 newlySuccessful,
                 skipped,
                 retryable,
-                permanent,
-                endpointsStillRequiringSuccessfulDelivery
+                permanent
             );
         }
 
-        if (endpointsStillRequiringSuccessfulDelivery == 0)
+        return new BroadcastAggregateResult
         {
-            if (logger.IsEnabled(LogLevel.Information))
-            {
-                logger.LogInformation(
-                    "Event {EventId} requires no further retries. MESH message {MessageId} can be acknowledged.",
-                    notification.EventId,
-                    notification.MessageId
-                );
-            }
-            return true;
-        }
-
-        if (logger.IsEnabled(LogLevel.Information))
-        {
-            logger.LogInformation(
-                "Event {EventId} has {StillRequiring} endpoint(s) still requiring successful delivery. MESH message {MessageId} will remain unacknowledged in the MESH mailbox.",
-                notification.EventId,
-                endpointsStillRequiringSuccessfulDelivery,
-                notification.MessageId
-            );
-        }
-        return false;
+            EventId = notification.EventId,
+            MessageId = notification.MessageId,
+            TotalEnabledSuppliers = totalSuppliers,
+            NewlySuccessful = newlySuccessful,
+            FailedDeliveries = failed,
+            SkippedPreviouslyAcknowledged = skipped,
+            EndpointsRequiringNewDeliveryAttempt = endpointsStillRequiringSuccessfulDelivery,
+            EndpointResults = endpointResults,
+        };
     }
 
     private static Guid GenerateDeterministicGuid(string eventId, string supplierId)
