@@ -209,14 +209,10 @@ public class GetAnIdentifierFunction(
 
         var odsCodeList = odsCodeValues.ToList();
 
-        if (
-            odsCodeList.Count == 0
-            || odsCodeList.FirstOrDefault() == null
-            || odsCodeList.First().IsNullOrWhiteSpace()
-        )
+        if (odsCodeList.Count == 0 || odsCodeList[0].IsNullOrWhiteSpace())
             return false;
 
-        odsCode = odsCodeList.First();
+        odsCode = odsCodeList[0];
         return true;
     }
 
