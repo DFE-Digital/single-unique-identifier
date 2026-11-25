@@ -100,7 +100,7 @@ jobs:
               - '.github/workflows/test-ci-helpers.yml'
 
   build-auth-emulator:
-    name: AuthEmulator - Build Test Dotnet
+    name: Release Build - AuthEmulator - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.auth_emulator == 'true' || inputs.force_deploy_all
     uses: ./.github/workflows/build-test-dotnet-release.yml
@@ -117,7 +117,7 @@ jobs:
       skip_scans: ${{ inputs.skip_scans || false }}
 
   build-get-an-id:
-    name: GetAnIdentifier - Build Test Dotnet
+    name: Release Build - GetAnIdentifier - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.get_an_id == 'true' || inputs.force_deploy_all
     uses: ./.github/workflows/build-test-dotnet-release.yml
@@ -135,7 +135,7 @@ jobs:
       skip_scans: ${{ inputs.skip_scans || false }}
 
   build-ui-harness:
-    name: UIHarness - Build Test Dotnet
+    name: Release Build - UIHarness - Build Test Dotnet
     needs: path-filter
     if: needs.path-filter.outputs.ui_harness == 'true' || inputs.force_deploy_all
     uses: ./.github/workflows/build-test-dotnet-release.yml
@@ -152,18 +152,18 @@ jobs:
       skip_scans: true
 
   trufflehog-scan:
-    name: Trufflehog secret scan
+    name: Release Build - Trufflehog secret scan
     uses: ./.github/workflows/trufflehog.yml
 
   trivy-scan:
-    name: Trivy repository scan
+    name: Release Build - Trivy repository scan
     uses: ./.github/workflows/trivy.yml
     with:
       enforce_vulnerability_gate: true
     secrets: inherit
     
   trivy-iac-scan:
-    name: Trivy IaC scan
+    name: Release Build - Trivy IaC scan
     uses: ./.github/workflows/trivy-iac.yml
 
   attest-release-zips:
