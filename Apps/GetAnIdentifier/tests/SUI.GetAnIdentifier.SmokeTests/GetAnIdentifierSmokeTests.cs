@@ -151,6 +151,7 @@ public class GetAnIdentifierSmokeTests : IDisposable
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "v1/get-an-identifier");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request.Headers.Add("odsCode", "testODS");
         request.Content = CreateSyntheticPayload();
 
         using var response = await _client.SendAsync(request);

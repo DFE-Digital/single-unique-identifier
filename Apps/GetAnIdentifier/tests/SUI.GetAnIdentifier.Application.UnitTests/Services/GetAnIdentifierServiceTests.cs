@@ -17,6 +17,8 @@ public class GetAnIdentifierServiceTests
     private readonly GetAnIdentifierService _sut;
     private readonly IFhirService _fhirService = Substitute.For<IFhirService>();
 
+    private const string OdsCode = "defaultOdsCode";
+
     public GetAnIdentifierServiceTests()
     {
         _logger = Substitute.For<ILogger<GetAnIdentifierService>>();
@@ -34,6 +36,7 @@ public class GetAnIdentifierServiceTests
         _fhirService
             .PerformSearchAsync(
                 Arg.Any<SearchQuery>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -42,7 +45,7 @@ public class GetAnIdentifierServiceTests
         // Act & Assert
         // Proves that it throws instead of being caught by the generic Exception handler
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            _sut.MatchPersonAsync(personSpecification, ct: cts.Token)
+            _sut.MatchPersonAsync(personSpecification, OdsCode, ct: cts.Token)
         );
     }
 
@@ -58,7 +61,11 @@ public class GetAnIdentifierServiceTests
         };
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(
+            personSpecification,
+            OdsCode,
+            ct: CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<DataQualityResult>(result.Value);
@@ -82,13 +89,18 @@ public class GetAnIdentifierServiceTests
         _fhirService
             .PerformSearchAsync(
                 Arg.Any<SearchQuery>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns(Application.Models.Result<SearchResult>.Fail("Simulated FHIR service error"));
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(
+            personSpecification,
+            OdsCode,
+            ct: CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<Error>(result.Value);
@@ -108,6 +120,7 @@ public class GetAnIdentifierServiceTests
         _fhirService
             .PerformSearchAsync(
                 Arg.Any<SearchQuery>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -118,7 +131,11 @@ public class GetAnIdentifierServiceTests
             );
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(
+            personSpecification,
+            OdsCode,
+            ct: CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<NotFound>(result.Value);
@@ -137,6 +154,7 @@ public class GetAnIdentifierServiceTests
         _fhirService
             .PerformSearchAsync(
                 Arg.Any<SearchQuery>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -153,7 +171,11 @@ public class GetAnIdentifierServiceTests
             );
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(
+            personSpecification,
+            OdsCode,
+            ct: CancellationToken.None
+        );
 
         // Assert
         var match = Assert.IsType<GetAnIdentifierResult>(result.Value);
@@ -175,6 +197,7 @@ public class GetAnIdentifierServiceTests
         _fhirService
             .PerformSearchAsync(
                 Arg.Any<SearchQuery>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -190,7 +213,11 @@ public class GetAnIdentifierServiceTests
             );
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(
+            personSpecification,
+            OdsCode,
+            ct: CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<NotFound>(result.Value);
@@ -210,6 +237,7 @@ public class GetAnIdentifierServiceTests
         _fhirService
             .PerformSearchAsync(
                 Arg.Any<SearchQuery>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -225,7 +253,11 @@ public class GetAnIdentifierServiceTests
             );
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(
+            personSpecification,
+            OdsCode,
+            ct: CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<Error>(result.Value);
@@ -264,13 +296,18 @@ public class GetAnIdentifierServiceTests
         _fhirService
             .PerformSearchAsync(
                 Arg.Any<SearchQuery>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
             .Returns<Task<Application.Models.Result<SearchResult>>>(_ => throw expectedException);
 
         // Act
-        var result = await _sut.MatchPersonAsync(personSpecification, ct: CancellationToken.None);
+        var result = await _sut.MatchPersonAsync(
+            personSpecification,
+            OdsCode,
+            ct: CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<Error>(result.Value);

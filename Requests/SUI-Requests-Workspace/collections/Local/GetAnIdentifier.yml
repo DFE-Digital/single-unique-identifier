@@ -6,6 +6,9 @@ info:
 http:
   method: POST
   url: "{{base_url}}/v1/get-an-identifier"
+  headers:
+    - name: odsCode
+      value: "{{odsCode}}"
   body:
     type: json
     data: |-
