@@ -272,21 +272,23 @@ resource "azurerm_storage_account_network_rules" "notification_service" {
 }
 
 resource "azurerm_role_assignment" "notification_service_acr_pull" {
-  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  # Keep core infrastructure deployable in environments where role-assignment delegation is pending.
   count = var.notification_service_acr_pull_enabled ? 1 : 0
 
   scope                = data.terraform_remote_state.core.outputs.container_registry_id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
+  principal_type       = "ServicePrincipal"
 }
 
 resource "azurerm_role_assignment" "notification_service_table_data_contributor" {
-  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  # Keep core infrastructure deployable in environments where role-assignment delegation is pending.
   count = var.notification_service_acr_pull_enabled ? 1 : 0
 
   scope                = azurerm_storage_account.notification_service.id
   role_definition_name = "Storage Table Data Contributor"
   principal_id         = azurerm_user_assigned_identity.notification_service.principal_id
+  principal_type       = "ServicePrincipal"
 }
 
 module "rbac_assignments_notification_service_key_vault" {
@@ -311,6 +313,7 @@ resource "azurerm_key_vault_access_policy" "notification_service" {
 
   secret_permissions = [
     "Get",
+    "List",
   ]
   certificate_permissions = [
     "Get",
