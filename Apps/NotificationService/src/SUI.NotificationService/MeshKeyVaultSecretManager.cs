@@ -6,20 +6,15 @@ namespace SUI.NotificationService;
 
 internal sealed class MeshKeyVaultSecretManager : KeyVaultSecretManager
 {
-    private const string SharedKeySecretName = "nhs-mesh-shared-key";
-    private const string MailboxIdSecretName = "nhs-mesh-mailbox-id";
-    private const string MailboxPasswordSecretName = "nhs-mesh-mailbox-password";
-    private const string MailboxMtlsPfxSecretName = "nhs-mesh-mailbox-certificate";
-
     private static readonly Dictionary<string, string> SecretMap = new(
         StringComparer.OrdinalIgnoreCase
     )
     {
-        [SharedKeySecretName] = $"{NhsMeshConfig.SectionName}:{nameof(NhsMeshConfig.SharedKey)}",
-        [MailboxIdSecretName] = $"{NhsMeshConfig.SectionName}:{nameof(NhsMeshConfig.MailboxId)}",
-        [MailboxPasswordSecretName] =
+        ["nhs-mesh-shared-key"] = $"{NhsMeshConfig.SectionName}:{nameof(NhsMeshConfig.SharedKey)}",
+        ["nhs-mesh-mailbox-id"] = $"{NhsMeshConfig.SectionName}:{nameof(NhsMeshConfig.MailboxId)}",
+        ["nhs-mesh-mailbox-password"] =
             $"{NhsMeshConfig.SectionName}:{nameof(NhsMeshConfig.MailboxPassword)}",
-        [MailboxMtlsPfxSecretName] =
+        ["nhs-mesh-mailbox-certificate"] =
             $"{NhsMeshConfig.SectionName}:{nameof(NhsMeshConfig.MailboxMTLSPfx)}",
     };
 
