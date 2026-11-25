@@ -72,7 +72,7 @@ jobs:
   build-and-test-GetAnIdentifier:
     name: GetAnIdentifier - Build Test Dotnet
     needs: detect-changes
-    # Skips the job if it's a PR and no relevant files changed. GitHub treats this skip as a PASS.
+    # Skips the job if it's a PR and no relevant files changed; ci-gate reports the final status.
     if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true' }}
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets:
@@ -176,3 +176,23 @@ jobs:
           # D01 does not need a scope if the token is to be tested as of present, due to the use of the AuthEmulator
           # D02, and D03 will use FaUAPI entirely and this requires different Azure Auth config values to D01
           SMOKE_TEST_AUTH_SCOPE: ${{ env.TARGET_ENVIRONMENT != 'd01' && secrets.AUTH_SETTINGS__OAUTH_SCOPE || '' }}
+
+  # Required status check gate for branch protection.
+  # Reusable workflow caller jobs do not report inner job names when skipped via `if:`,
+  # so this always-running job provides a stable check name that passes on skip or success.
+  ci-gate:
+    name: GetAnIdentifier - CI Gate
+    needs: [ detect-changes, build-and-test-GetAnIdentifier ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate CI status
+        run: |
+          if [[ "${{ needs.detect-changes.result }}" != "success" ]]; then
+            echo "detect-changes failed."
+            exit 1
+          fi
+          if [[ "${{ needs.build-and-test-GetAnIdentifier.result }}" != "success" && "${{ needs.build-and-test-GetAnIdentifier.result }}" != "skipped" ]]; then
+            echo "Build/test job failed or was cancelled (result: ${{ needs.build-and-test-GetAnIdentifier.result }})."
+            exit 1
+          fi

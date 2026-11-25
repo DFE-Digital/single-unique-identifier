@@ -146,3 +146,23 @@ jobs:
             echo "Creating new PR comment..."
             gh pr comment ${{ github.event.pull_request.number }} --body "$BODY"
           fi
+
+  # Required status check gate for branch protection.
+  # Matrix jobs do not expand or report individual leg names when skipped via `if:`,
+  # so this always-running job provides a stable check name that passes on skip or success.
+  checkov-gate:
+    name: Checkov ELZ scan
+    needs: [ detect-changes, checkov-elz-policy-scan ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate Checkov status
+        run: |
+          if [[ "${{ needs.detect-changes.result }}" != "success" ]]; then
+            echo "detect-changes failed."
+            exit 1
+          fi
+          if [[ "${{ needs.checkov-elz-policy-scan.result }}" != "success" && "${{ needs.checkov-elz-policy-scan.result }}" != "skipped" ]]; then
+            echo "Checkov scan failed or was cancelled (result: ${{ needs.checkov-elz-policy-scan.result }})."
+            exit 1
+          fi

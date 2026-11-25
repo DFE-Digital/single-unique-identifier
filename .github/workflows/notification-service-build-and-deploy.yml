@@ -92,7 +92,7 @@ jobs:
   build-and-test:
     name: Notification Service - build and test
     needs: detect-changes
-    # Skips the job if it's a PR and no relevant files changed. GitHub treats this skip as a PASS.
+    # Skips the job if it's a PR and no relevant files changed; ci-gate reports the final status.
     if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true' }}
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets:
@@ -409,3 +409,30 @@ jobs:
           done
           echo "Notification Service lifecycle logs were not available in Log Analytics."
           exit 1
+
+  # Required status check gate for branch protection.
+  # Reusable workflow caller jobs do not report inner job names when skipped via `if:`,
+  # so this always-running job provides a stable check name that passes on skip or success.
+  ci-gate:
+    name: Notification Service - CI Gate
+    needs: [ detect-changes, build-and-test, resolve-image, validate-container ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate CI status
+        run: |
+          if [[ "${{ needs.detect-changes.result }}" != "success" ]]; then
+            echo "detect-changes failed."
+            exit 1
+          fi
+          for job_result in \
+            "build-and-test:${{ needs.build-and-test.result }}" \
+            "resolve-image:${{ needs.resolve-image.result }}" \
+            "validate-container:${{ needs.validate-container.result }}"; do
+            name="${job_result%%:*}"
+            result="${job_result#*:}"
+            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+              echo "$name failed or was cancelled (result: $result)."
+              exit 1
+            fi
+          done

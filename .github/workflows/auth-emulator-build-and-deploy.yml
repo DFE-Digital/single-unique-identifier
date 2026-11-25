@@ -67,7 +67,7 @@ jobs:
   build-and-test-AuthEmulator:
     name: AuthEmulator - Build Test Dotnet
     needs: detect-changes
-    # Skips the job if it's a PR and no relevant files changed. GitHub treats this skip as a PASS.
+    # Skips the job if it's a PR and no relevant files changed; ci-gate reports the final status.
     if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true' }}
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets:
@@ -108,3 +108,23 @@ jobs:
       artifact_run_id: ${{ github.run_id }}
       component_descriptor: authemulator01
       package_path: publish
+
+  # Required status check gate for branch protection.
+  # Reusable workflow caller jobs do not report inner job names when skipped via `if:`,
+  # so this always-running job provides a stable check name that passes on skip or success.
+  ci-gate:
+    name: AuthEmulator - CI Gate
+    needs: [ detect-changes, build-and-test-AuthEmulator ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate CI status
+        run: |
+          if [[ "${{ needs.detect-changes.result }}" != "success" ]]; then
+            echo "detect-changes failed."
+            exit 1
+          fi
+          if [[ "${{ needs.build-and-test-AuthEmulator.result }}" != "success" && "${{ needs.build-and-test-AuthEmulator.result }}" != "skipped" ]]; then
+            echo "Build/test job failed or was cancelled (result: ${{ needs.build-and-test-AuthEmulator.result }})."
+            exit 1
+          fi
