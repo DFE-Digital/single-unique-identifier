@@ -8,7 +8,7 @@ For Alpha, this separate service receives NHS England MNS lifecycle notification
 
 Each execution retrieves the messages listed in the NHS MESH mailbox and parses supported [`pds-record-change-2` events](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event). The application returns record-change notifications to the orchestrator. Messages that cannot be read or parsed, or that contain no valid NHS number, remain in the mailbox.
 
-The supplier webhook register repository, Key Vault secret client and HMAC-SHA256 HTTP delivery component are implemented and registered, but the orchestrator does not invoke them. End-to-end lifecycle notification delivery and retry coordination remain to be implemented.
+The supplier webhook register repository, Key Vault secret client and HMAC-SHA256 HTTP delivery component are implemented and registered, but the orchestrator does not invoke them. End-to-end lifecycle notification delivery, retry coordination and storage of supplier acknowledgements remain to be implemented; see the [target end-to-end flow](../../Docs/Design/NotificationService/EndToEndFlow.md).
 
 The intended acknowledgement boundary is successful webhook delivery to suppliers. When several messages in an execution carry the same NHS number, the duplicates are acknowledged during processing and one non-duplicate message is kept; see [duplicate message handling](../../Docs/Design/NotificationService/DuplicateHandling.md). The non-duplicate message remains unacknowledged pending successful webhook delivery, so it remains available for retrieval on subsequent executions.
 
@@ -312,7 +312,7 @@ After core succeeds:
 3. For d02 or d03, run the `Build, Test, Deploy: Notification Service` workflow manually and select the environment.
 4. The deployment applies the service Terraform, starts an on-demand smoke-test execution, waits for success and verifies its lifecycle logs in Log Analytics.
 
-The GitHub OIDC identity needs permission to create the `AcrPush`, `AcrPull` and `Storage Table Data Contributor` role assignments. While that delegation is pending, `notification_service_acr_push_enabled` remains `false` in each environment tfvars file, so core infrastructure can still be applied without creating the `AcrPush` assignment. Set it to `true` only once the deployment identity can create role assignments. The Notification Service workflow has a separate temporary deployment gate.
+The GitHub OIDC identity needs permission to create the `AcrPush`, `AcrPull` and `Storage Table Data Contributor` role assignments. Set `notification_service_acr_push_enabled` to `true` in each environment tfvars file once the deployment identity can create role assignments (or keep it `false` in environments where delegation is still pending so core infrastructure can still be applied). The Notification Service workflow has a separate deployment gate (`notification_service_job_enabled`).
 
 ### Manual execution and logs
 

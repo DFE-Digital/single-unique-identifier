@@ -148,6 +148,7 @@ jobs:
             /o:"dfe-digital" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.qualitygate.wait=true \
             $coverage_arg \
             /d:sonar.coverage.exclusions="**/Program.cs,**/*.json" \
             /d:sonar.exclusions="**/wwwroot/**" \
@@ -176,7 +177,7 @@ jobs:
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         env:
           NuGetPackageSourceCredentials_DFEDigital: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}
-
+          
       - name: Publish projects
         id: publish
         if: inputs.upload_artifacts == true
