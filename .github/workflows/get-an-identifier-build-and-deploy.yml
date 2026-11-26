@@ -180,7 +180,7 @@ jobs:
   # Required status check gate for branch protection.
   # Reusable workflow caller jobs do not report inner job names when skipped via `if:`,
   # so this always-running job provides a stable check name that passes on skip or success.
-  ci-gate:
+  ci-gate: #TODO: remove after test
     name: GetAnIdentifier - CI Gate
     needs: [ detect-changes, build-and-test-GetAnIdentifier ]
     if: always()
