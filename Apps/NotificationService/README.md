@@ -8,7 +8,7 @@ For Alpha, this separate service receives NHS England MNS lifecycle notification
 
 Each execution retrieves the messages listed in the NHS MESH mailbox and parses supported [`pds-record-change-2` events](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event). The application returns record-change notifications to the orchestrator. Messages that cannot be read or parsed, or that contain no valid NHS number, remain in the mailbox.
 
-The supplier webhook register repository, Key Vault secret client and HMAC-SHA256 HTTP delivery component are implemented and registered, but the orchestrator does not invoke them. End-to-end lifecycle notification delivery and retry coordination remain to be implemented.
+The supplier webhook register repository, Key Vault secret client and HMAC-SHA256 HTTP delivery component are implemented and registered, but the orchestrator does not invoke them. End-to-end lifecycle notification delivery, retry coordination and storage of supplier acknowledgements remain to be implemented; see the [target end-to-end flow](../../Docs/Design/NotificationService/EndToEndFlow.md).
 
 The intended acknowledgement boundary is successful webhook delivery to suppliers. When several messages in an execution carry the same NHS number, the duplicates are acknowledged during processing and one non-duplicate message is kept; see [duplicate message handling](../../Docs/Design/NotificationService/DuplicateHandling.md). The non-duplicate message remains unacknowledged pending successful webhook delivery, so it remains available for retrieval on subsequent executions.
 
