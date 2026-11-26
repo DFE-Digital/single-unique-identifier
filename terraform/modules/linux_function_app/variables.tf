@@ -110,3 +110,20 @@ variable "health_check_path" {
   type        = string
   default     = "/api/health"
 }
+
+variable "storage_public_network_access" {
+  description = "Whether public network access is enabled or disabled for the function app storage account (Enabled or Disabled)."
+  type        = string
+  default     = "Enabled"
+
+  validation {
+    condition     = contains(["Enabled", "Disabled"], var.storage_public_network_access)
+    error_message = "storage_public_network_access must be Enabled or Disabled."
+  }
+}
+
+variable "private_endpoint_subnet_id" {
+  description = "Optional subnet ID in which to create private endpoints (blob, file, queue, table) for the function app storage account."
+  type        = string
+  default     = null
+}

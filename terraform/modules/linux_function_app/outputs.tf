@@ -28,3 +28,13 @@ output "storage_connection_string" {
   description = "Primary connection string of the storage account."
   sensitive   = true
 }
+
+output "storage_account_id" {
+  value       = azurerm_storage_account.this.id
+  description = "ID of the storage account used by the function app."
+}
+
+output "storage_private_endpoint_ids" {
+  value       = { for k, pe in azurerm_private_endpoint.storage : k => pe.id }
+  description = "Map of storage subresource names to their Private Endpoint IDs."
+}
