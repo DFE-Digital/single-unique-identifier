@@ -220,6 +220,7 @@ jobs:
     needs: [ detect-changes, repository-scan ]
     if: always()
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Evaluate Trivy repository scan status
         env:

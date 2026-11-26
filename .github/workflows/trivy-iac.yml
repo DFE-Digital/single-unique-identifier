@@ -110,6 +110,7 @@ jobs:
     needs: [ detect-changes, trivy-iac ]
     if: always()
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Evaluate Trivy IaC scan status
         env:

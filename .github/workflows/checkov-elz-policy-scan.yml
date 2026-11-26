@@ -160,6 +160,7 @@ jobs:
     needs: [ detect-changes, checkov-elz-policy-scan ]
     if: always()
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Evaluate Checkov status
         env:
