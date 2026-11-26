@@ -55,17 +55,27 @@ jobs:
   detect-changes:
     name: Detect Changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       has_changes: ${{ steps.filter.outputs.app }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Paths Filter
         id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           filters: |
             app:
               - "Apps/GetAnIdentifier/**"
               - "Data/**"
+              - "global.json"
+              - "nuget.config"
+              - "Directory.Build.props"
+              - "Directory.Build.targets"
+              - "Directory.Packages.props"
               - ".github/workflows/get-an-identifier-build-and-deploy.yml"
               - ".github/workflows/build-test-dotnet.yml"
 
@@ -187,12 +197,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate CI status
+        env:
+          DETECT_RESULT: ${{ needs.detect-changes.result }}
+          HAS_CHANGES: ${{ needs.detect-changes.outputs.has_changes }}
+          BUILD_RESULT: ${{ needs.build-and-test-GetAnIdentifier.result }}
         run: |
-          if [[ "${{ needs.detect-changes.result }}" != "success" ]]; then
-            echo "detect-changes failed."
+          set -euo pipefail
+          if [[ "$DETECT_RESULT" != "success" ]]; then
+            echo "detect-changes failed (result: $DETECT_RESULT)."
             exit 1
           fi
-          if [[ "${{ needs.build-and-test-GetAnIdentifier.result }}" != "success" && "${{ needs.build-and-test-GetAnIdentifier.result }}" != "skipped" ]]; then
-            echo "Build/test job failed or was cancelled (result: ${{ needs.build-and-test-GetAnIdentifier.result }})."
+
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && "$HAS_CHANGES" != "true" ]]; then
+            if [[ "$BUILD_RESULT" != "skipped" ]]; then
+              echo "Expected build/test job to be skipped when no relevant files changed, got: $BUILD_RESULT."
+              exit 1
+            fi
+            echo "No relevant changes detected; skip allowed."
+            exit 0
+          fi
+
+          if [[ "$BUILD_RESULT" != "success" ]]; then
+            echo "Relevant changes require build/test to pass, got: $BUILD_RESULT."
             exit 1
           fi

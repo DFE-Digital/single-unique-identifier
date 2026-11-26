@@ -24,7 +24,6 @@ on:
         default: false
         type: boolean
 
-
 concurrency:
   # Main pushes select only their own changes; every push needs its own release run.
   group: ci-cd-orchestrator-${{ github.event_name == 'push' && github.run_id || github.ref }}
@@ -158,6 +157,9 @@ jobs:
   trivy-scan:
     name: Release Build - Trivy repository scan
     uses: ./.github/workflows/trivy.yml
+    permissions:
+      contents: read
+      pull-requests: read
     with:
       enforce_vulnerability_gate: true
     secrets: inherit
@@ -165,6 +167,9 @@ jobs:
   trivy-iac-scan:
     name: Release Build - Trivy IaC scan
     uses: ./.github/workflows/trivy-iac.yml
+    permissions:
+      contents: read
+      pull-requests: read
 
   attest-release-zips:
     name: Attest tested deployment ZIPs

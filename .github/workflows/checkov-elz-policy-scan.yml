@@ -27,12 +27,17 @@ jobs:
   detect-changes:
     name: Detect Changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       has_changes: ${{ steps.filter.outputs.tf }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Paths Filter
         id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           filters: |
             tf:
@@ -157,12 +162,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate Checkov status
+        env:
+          DETECT_RESULT: ${{ needs.detect-changes.result }}
+          HAS_CHANGES: ${{ needs.detect-changes.outputs.has_changes }}
+          SCAN_RESULT: ${{ needs.checkov-elz-policy-scan.result }}
         run: |
-          if [[ "${{ needs.detect-changes.result }}" != "success" ]]; then
-            echo "detect-changes failed."
+          set -euo pipefail
+          if [[ "$DETECT_RESULT" != "success" ]]; then
+            echo "detect-changes failed (result: $DETECT_RESULT)."
             exit 1
           fi
-          if [[ "${{ needs.checkov-elz-policy-scan.result }}" != "success" && "${{ needs.checkov-elz-policy-scan.result }}" != "skipped" ]]; then
-            echo "Checkov scan failed or was cancelled (result: ${{ needs.checkov-elz-policy-scan.result }})."
+
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && "$HAS_CHANGES" != "true" ]]; then
+            if [[ "$SCAN_RESULT" != "skipped" ]]; then
+              echo "Expected Checkov scan to be skipped when no relevant files changed, got: $SCAN_RESULT."
+              exit 1
+            fi
+            echo "No relevant Terraform changes detected; skip allowed."
+            exit 0
+          fi
+
+          if [[ "$SCAN_RESULT" != "success" ]]; then
+            echo "Relevant changes require Checkov scan to pass, got: $SCAN_RESULT."
             exit 1
           fi

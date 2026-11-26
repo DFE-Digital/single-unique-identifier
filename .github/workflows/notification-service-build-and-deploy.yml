@@ -70,23 +70,34 @@ jobs:
   detect-changes:
     name: Detect Changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       has_changes: ${{ steps.filter.outputs.app }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Paths Filter
         id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           filters: |
             app:
               - Apps/NotificationService/**
               - Libs/**
+              - global.json
+              - nuget.config
+              - Directory.Build.props
+              - Directory.Build.targets
+              - Directory.Packages.props
               - scripts/pds-record-change-2-notification.template.json
               - terraform/notification-service/**
               - terraform/core/**
               - terraform/modules/**
               - terraform/environments/**
               - .github/workflows/notification-service-build-and-deploy.yml
+              - .github/workflows/build-test-dotnet.yml
               - .github/workflows/terraform-plan-and-apply.yml
 
   build-and-test:
@@ -420,19 +431,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate CI status
+        env:
+          DETECT_RESULT: ${{ needs.detect-changes.result }}
+          HAS_CHANGES: ${{ needs.detect-changes.outputs.has_changes }}
+          BUILD_RESULT: ${{ needs.build-and-test.result }}
+          RESOLVE_RESULT: ${{ needs.resolve-image.result }}
+          VALIDATE_RESULT: ${{ needs.validate-container.result }}
         run: |
-          if [[ "${{ needs.detect-changes.result }}" != "success" ]]; then
-            echo "detect-changes failed."
+          set -euo pipefail
+          if [[ "$DETECT_RESULT" != "success" ]]; then
+            echo "detect-changes failed (result: $DETECT_RESULT)."
             exit 1
           fi
-          for job_result in \
-            "build-and-test:${{ needs.build-and-test.result }}" \
-            "resolve-image:${{ needs.resolve-image.result }}" \
-            "validate-container:${{ needs.validate-container.result }}"; do
-            name="${job_result%%:*}"
-            result="${job_result#*:}"
-            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
-              echo "$name failed or was cancelled (result: $result)."
+
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && "$HAS_CHANGES" != "true" ]]; then
+            for pair in "build-and-test:$BUILD_RESULT" "resolve-image:$RESOLVE_RESULT" "validate-container:$VALIDATE_RESULT"; do
+              name="${pair%%:*}"
+              result="${pair#*:}"
+              if [[ "$result" != "skipped" ]]; then
+                echo "Expected $name to be skipped when no relevant files changed, got: $result."
+                exit 1
+              fi
+            done
+            echo "No relevant changes detected; skip allowed."
+            exit 0
+          fi
+
+          for pair in "build-and-test:$BUILD_RESULT" "resolve-image:$RESOLVE_RESULT"; do
+            name="${pair%%:*}"
+            result="${pair#*:}"
+            if [[ "$result" != "success" ]]; then
+              echo "Relevant changes require $name to pass, got: $result."
               exit 1
             fi
           done
+
+          # validate-container runs only on pull_request events
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && "$VALIDATE_RESULT" != "success" ]]; then
+            echo "Pull request with relevant changes requires validate-container to pass, got: $VALIDATE_RESULT."
+            exit 1
+          fi
