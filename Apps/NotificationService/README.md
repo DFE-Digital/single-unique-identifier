@@ -312,7 +312,7 @@ After core succeeds:
 3. For d02 or d03, run the `Build, Test, Deploy: Notification Service` workflow manually and select the environment.
 4. The deployment applies the service Terraform, starts an on-demand smoke-test execution, waits for success and verifies its lifecycle logs in Log Analytics.
 
-The GitHub OIDC identity needs permission to create the `AcrPush`, `AcrPull` and `Storage Table Data Contributor` role assignments. While that delegation is pending, `notification_service_acr_push_enabled` remains `false` in each environment tfvars file, so core infrastructure can still be applied without creating the `AcrPush` assignment. Set it to `true` only once the deployment identity can create role assignments. The Notification Service workflow has a separate temporary deployment gate.
+The GitHub OIDC identity needs permission to create the `AcrPush`, `AcrPull` and `Storage Table Data Contributor` role assignments. Set `notification_service_acr_push_enabled` to `true` in each environment tfvars file once the deployment identity can create role assignments (or keep it `false` in environments where delegation is still pending so core infrastructure can still be applied). The Notification Service workflow has a separate deployment gate (`notification_service_job_enabled`).
 
 ### Manual execution and logs
 
