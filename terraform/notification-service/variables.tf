@@ -97,9 +97,9 @@ variable "notification_service_dotnet_environment" {
 }
 
 variable "notification_service_acr_pull_enabled" {
-  description = "Whether Terraform should assign AcrPull on the shared registry to the deployment identity."
+  description = "Whether Terraform should assign AcrPull and Storage Table Data Contributor to the Notification Service managed identity."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "notification_service_job_enabled" {
