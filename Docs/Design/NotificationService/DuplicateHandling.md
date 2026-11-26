@@ -3,7 +3,7 @@
 **Date:** `2026-10-02`  
 **Owner:** SUI Service Team
 
-> **Status: implemented.**
+> **Status: superseded — pending removal.** In-batch NHS-number deduplication has been removed from the [target end-to-end flow](./EndToEndFlow.md) (pending team discussion and code removal) because SUI now uses a single `pds-record-change-2` subscription, NHS-originated duplicates are unlikely, and suppliers ignore duplicates.
 
 This page describes how the Notification Service collapses MESH messages that carry the same NHS number, so that the supplier webhooks are given at most one notification per NHS number in each execution. An execution is one invocation of the Notification Service, which drains the mailbox and exits. Run instructions, configuration, exit codes and the general MESH behaviour are in the [Notification Service README](../../../Apps/NotificationService/README.md).
 
