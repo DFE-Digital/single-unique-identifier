@@ -8,7 +8,7 @@ Category: System/GetAnIdentifier / NHS Integration
 
 ## Status
 
-Deprecated
+Deprecated - SUI uses a single `pds-record-change-2` subscription so duplication is less likely now. Additionally suppliers are expected to handle duplicates
 
 Related to: [ADR-GetAnIdentifier-0001](0001-NHS-MNS-integration.md)
 
