@@ -17,4 +17,5 @@ resource "azurerm_role_assignment" "this" {
   scope              = var.scope
   role_definition_id = data.azurerm_role_definition.roles[each.value.role_name].id
   principal_id       = each.value.principal_id
+  principal_type     = each.value.principal_type
 }

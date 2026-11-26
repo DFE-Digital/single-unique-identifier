@@ -395,12 +395,13 @@ resource "azurerm_private_endpoint" "container_registry" {
 }
 
 resource "azurerm_role_assignment" "terraform_operator_acr_push" {
-  # Keep core infrastructure deployable while role-assignment delegation is pending.
+  # Keep core infrastructure deployable in environments where role-assignment delegation is pending.
   count = var.notification_service_acr_push_enabled ? 1 : 0
 
   scope                = azurerm_container_registry.shared.id
   role_definition_name = "AcrPush"
   principal_id         = data.azurerm_client_config.current.object_id
+  principal_type       = "ServicePrincipal"
 }
 
 resource "azurerm_container_app_environment" "shared" {
