@@ -66,6 +66,16 @@
           "Azure.Core": "1.62.0"
         }
       },
+      "Azure.Extensions.AspNetCore.Configuration.Secrets": {
+        "type": "Transitive",
+        "resolved": "1.5.2",
+        "contentHash": "VWmWO1Wij7sGNpDk42DkzriVTZwFG6STI0+bbWoZMOSoaodi3bsOvgznrGooaxpkjtYNLDweM517jqnAiE1cHA==",
+        "dependencies": {
+          "Azure.Core": "1.61.0",
+          "Azure.Security.KeyVault.Secrets": "4.11.0",
+          "Microsoft.Extensions.Configuration": "10.0.10"
+        }
+      },
       "Azure.Identity": {
         "type": "Transitive",
         "resolved": "1.21.0",
@@ -692,6 +702,7 @@
       "sui.notificationservice": {
         "type": "Project",
         "dependencies": {
+          "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.5.2, )",
           "Microsoft.Extensions.Hosting": "[10.0.10, )",
           "SUI.NotificationService.Application": "[1.0.0, )",
           "SUI.NotificationService.Infrastructure": "[1.0.0, )",
