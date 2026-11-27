@@ -10,3 +10,4 @@ Entry point for technical design documents.
 - [Supplier lifecycle webhook contract v1 (draft)](./Notifications-Webhooks/SupplierLifecycle/V1/Index.md)
 - [Earlier distributed discovery notifications and webhooks (proposed, not implemented)](./Notifications-Webhooks/Index.md)
 - [Notification Service duplicate message handling](./NotificationService/DuplicateHandling.md)
+- [Notification Service end-to-end flow (target architecture)](./NotificationService/EndToEndFlow.md)
