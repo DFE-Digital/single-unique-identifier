@@ -1,6 +1,5 @@
-using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SUI.NotificationService.Application.Interfaces;
@@ -11,34 +10,22 @@ public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Registers the supplier webhook delivery services and their dependencies,
-    /// including the specifically configured HTTP client, Key Vault secret client,
+    /// including the specifically configured HTTP client, Key Vault secret client wrapper,
     /// and time providers required for secure webhook dispatch.
     /// </summary>
-    public static IServiceCollection AddSupplierWebhookDelivery(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    public static IServiceCollection AddSupplierWebhookDelivery(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(configuration);
 
         // Secret Retrieval & Caching
         services.AddMemoryCache();
 
-        services.TryAddSingleton(sp =>
-        {
-            var keyVaultUri =
-                configuration.GetValue<string>("KeyVault:VaultUri")
-                ?? throw new InvalidOperationException(
-                    "KeyVault:VaultUri configuration is missing."
-                );
+        services.TryAddSingleton(TimeProvider.System);
 
-            return new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential());
-        });
-
-        services.AddSingleton(TimeProvider.System);
-
-        services.AddSingleton<IWebhookSecretClient, WebhookSecretClient>();
+        services.AddSingleton<IWebhookSecretClient>(sp => new WebhookSecretClient(
+            sp.GetService<SecretClient>(),
+            sp.GetRequiredService<IMemoryCache>()
+        ));
 
         // HTTP Client Configuration
         services

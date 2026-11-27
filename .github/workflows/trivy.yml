@@ -11,6 +11,7 @@ on:
       - "**/*.props"
       - "**/*.targets"
       - "**/packages.lock.json"
+      - ".trivyignore"
       - ".github/workflows/trivy.yml"
       - "global.json"
       - "nuget.config"
@@ -39,12 +40,19 @@ jobs:
   detect-changes:
     name: Detect Changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       has_changes: ${{ steps.filter.outputs.deps }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+      - name: Checkout repository
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Paths Filter
+        if: github.event_name == 'pull_request'
         id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           filters: |
             deps:
@@ -52,12 +60,13 @@ jobs:
               - "**/*.props"
               - "**/*.targets"
               - "**/packages.lock.json"
+              - ".trivyignore"
               - ".github/workflows/trivy.yml"
               - "global.json"
               - "nuget.config"
 
   repository-scan:
-    name: Trivy repository scan
+    name: Run Trivy repository scan
     needs: detect-changes
     if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true' }}
     timeout-minutes: 20
@@ -205,3 +214,36 @@ jobs:
         if: steps.licence-policy.outcome == 'failure'
         shell: bash
         run: exit 1
+
+  trivy-gate:
+    name: Trivy repository scan
+    needs: [ detect-changes, repository-scan ]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Evaluate Trivy repository scan status
+        env:
+          DETECT_RESULT: ${{ needs.detect-changes.result }}
+          HAS_CHANGES: ${{ needs.detect-changes.outputs.has_changes }}
+          SCAN_RESULT: ${{ needs.repository-scan.result }}
+        run: |
+          set -euo pipefail
+          if [[ "$DETECT_RESULT" != "success" ]]; then
+            echo "detect-changes failed (result: $DETECT_RESULT)."
+            exit 1
+          fi
+
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && "$HAS_CHANGES" != "true" ]]; then
+            if [[ "$SCAN_RESULT" != "skipped" ]]; then
+              echo "Expected Trivy repository scan to be skipped when no relevant files changed, got: $SCAN_RESULT."
+              exit 1
+            fi
+            echo "No relevant dependency changes detected; skip allowed."
+            exit 0
+          fi
+
+          if [[ "$SCAN_RESULT" != "success" ]]; then
+            echo "Relevant changes require Trivy repository scan to pass, got: $SCAN_RESULT."
+            exit 1
+          fi
