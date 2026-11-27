@@ -1,0 +1,54 @@
+name: Roll back Get an Identifier release
+run-name: Roll back Get an Identifier to release ${{ inputs.release_id }} in ${{ inputs.target_environment }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_id:
+        description: Release ID previously verified in the target
+        type: string
+        required: true
+      target_environment:
+        description: Target environment
+        type: choice
+        options:
+          - d01
+          - d02
+          - d03
+        required: true
+
+permissions: {}
+
+jobs:
+  verify:
+    name: Verify rollback release ${{ inputs.release_id }}
+    if: >-
+      vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION == 'true' &&
+      github.ref == 'refs/heads/main' &&
+      contains(fromJSON('["d01","d02","d03"]'), inputs.target_environment)
+    uses: ./.github/workflows/verify-immutable-zip.yml
+    permissions:
+      contents: read
+      attestations: read
+    with:
+      release_id: ${{ inputs.release_id }}
+      component: GetAnIdentifier
+
+  rollback:
+    name: Review and deploy release ${{ inputs.release_id }} to ${{ inputs.target_environment }}
+    needs: verify
+    uses: ./.github/workflows/deploy-verified-functionapp.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      app: get-an-identifier
+      target_environment: ${{ inputs.target_environment }}
+      # Normal d01 is automatic. Its rollback has a separate required-reviewer Environment.
+      approval_environment: ${{ inputs.target_environment == 'd01' && 'get-an-identifier-d01-rollback' || format('get-an-identifier-{0}', inputs.target_environment) }}
+      release_id: ${{ inputs.release_id }}
+      artifact_id: ${{ needs.verify.outputs.artifact_id }}
+      source_sha: ${{ needs.verify.outputs.source_sha }}
+      digest: ${{ needs.verify.outputs.digest }}
+      smoke_test_project: Apps/GetAnIdentifier/tests/SUI.GetAnIdentifier.SmokeTests/SUI.GetAnIdentifier.SmokeTests.csproj
+      requires_smoke_auth_scope: ${{ inputs.target_environment != 'd01' }}

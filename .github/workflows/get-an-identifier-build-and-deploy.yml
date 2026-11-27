@@ -72,8 +72,12 @@ jobs:
   build-and-test-GetAnIdentifier:
     name: GetAnIdentifier - Build Test Dotnet
     needs: detect-changes
-    # Skips the job if it's a PR and no relevant files changed. GitHub treats this skip as a PASS.
-    if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true' }}
+    # Keep the PR check present and skip the build when no relevant files changed.
+    if: >-
+      (github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true') &&
+      (vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION != 'true' ||
+       github.event_name == 'pull_request' ||
+       (github.event_name == 'workflow_dispatch' && !inputs.deploy))
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -95,8 +99,9 @@ jobs:
   deploy-GetAnIdentifier:
     name: GetAnIdentifier - Deploy Function App
     if: |
+      vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION != 'true' && (
       (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
     needs: build-and-test-GetAnIdentifier
     uses: ./.github/workflows/deploy-dotnet-functionapp.yml
     secrets:
@@ -122,6 +127,7 @@ jobs:
     if: |
       always() &&
       !cancelled() &&
+      vars.GET_AN_IDENTIFIER_IMMUTABLE_PROMOTION != 'true' &&
       (
         (
           github.event_name == 'push' &&
