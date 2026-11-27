@@ -1,5 +1,8 @@
 name: Local
 variables:
+  - name: odsCode
+    value: TestODS
+    description: ODS code of the requesting organisation
   - secret: true
     name: base_url
     description: Base url for Get an Identifier (ending in /api)

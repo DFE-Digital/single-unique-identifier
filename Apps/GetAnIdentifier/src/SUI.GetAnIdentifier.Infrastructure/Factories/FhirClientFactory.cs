@@ -13,6 +13,7 @@ public class FhirClientFactory(
 ) : IFhirClientFactory
 {
     public async Task<FhirClient> CreateFhirClientAsync(
+        string odsCode,
         string? correlationId = null,
         CancellationToken cancellationToken = default
     )
@@ -37,6 +38,8 @@ public class FhirClientFactory(
             ? Guid.NewGuid().ToString()
             : correlationId;
         fhirClient.RequestHeaders.Add("X-Request-ID", requestId);
+        fhirClient.RequestHeaders.Add("odsCode", odsCode);
+
         return fhirClient;
     }
 }
