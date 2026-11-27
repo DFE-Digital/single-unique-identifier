@@ -17,20 +17,28 @@ jobs:
   detect-changes:
     name: Detect Changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       has_changes: ${{ steps.filter.outputs.iac }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+      - name: Checkout repository
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Paths Filter
+        if: github.event_name == 'pull_request'
         id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           filters: |
             iac:
               - "terraform/**"
+              - ".trivyignore"
               - ".github/workflows/trivy-iac.yml"
 
   trivy-iac:
-    name: Trivy IaC scan
+    name: Run Trivy IaC scan
     needs: detect-changes
     if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true' }}
     timeout-minutes: 15
@@ -96,3 +104,36 @@ jobs:
         run: |
           echo "Trivy found ${{ steps.summarize.outputs.count }} HIGH/CRITICAL IaC findings."
           exit 1
+
+  trivy-iac-gate:
+    name: Trivy IaC scan
+    needs: [ detect-changes, trivy-iac ]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Evaluate Trivy IaC scan status
+        env:
+          DETECT_RESULT: ${{ needs.detect-changes.result }}
+          HAS_CHANGES: ${{ needs.detect-changes.outputs.has_changes }}
+          SCAN_RESULT: ${{ needs.trivy-iac.result }}
+        run: |
+          set -euo pipefail
+          if [[ "$DETECT_RESULT" != "success" ]]; then
+            echo "detect-changes failed (result: $DETECT_RESULT)."
+            exit 1
+          fi
+
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && "$HAS_CHANGES" != "true" ]]; then
+            if [[ "$SCAN_RESULT" != "skipped" ]]; then
+              echo "Expected Trivy IaC scan to be skipped when no relevant files changed, got: $SCAN_RESULT."
+              exit 1
+            fi
+            echo "No relevant IaC changes detected; skip allowed."
+            exit 0
+          fi
+
+          if [[ "$SCAN_RESULT" != "success" ]]; then
+            echo "Relevant changes require Trivy IaC scan to pass, got: $SCAN_RESULT."
+            exit 1
+          fi
