@@ -1,0 +1,62 @@
+name: Close Azure Container Registry Access
+description: Restores publicNetworkAccess to Disabled and removes temporary IP rules on the Azure Container Registry.
+
+inputs:
+  registry_name:
+    description: Name of the Azure Container Registry
+    required: true
+  resource_group:
+    description: Resource group of the Azure Container Registry
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Remove Runner IP Whitelist from ACR
+      shell: bash
+      env:
+        REGISTRY_NAME: ${{ inputs.registry_name }}
+        RESOURCE_GROUP: ${{ inputs.resource_group }}
+      run: |
+        if [ -z "$RESOURCE_GROUP" ] || [ -z "$REGISTRY_NAME" ]; then
+          echo "Skipping ACR cleanup: RESOURCE_GROUP or REGISTRY_NAME is empty."
+          exit 0
+        fi
+
+        echo "Starting ACR cleanup for $REGISTRY_NAME..."
+        cleanup_failed=false
+        source .github/scripts/retry-command.sh
+
+        echo "1. Restoring publicNetworkAccess to Disabled..."
+        if ! retry_command az acr update --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --public-network-enabled false >/dev/null; then
+          echo "::error::Failed to disable publicNetworkAccess on $REGISTRY_NAME."
+          cleanup_failed=true
+        fi
+
+        echo "2. Removing temporary IP rules from ACR..."
+        existing_ips=$(az acr network-rule list --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --query "ipRules[].ipAddressOrRange" -o tsv || true)
+        for ip in $existing_ips; do
+          if ! retry_command az acr network-rule remove --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --ip-address "$ip" >/dev/null; then
+            echo "::error::Failed to remove IP rule $ip from $REGISTRY_NAME."
+            cleanup_failed=true
+          fi
+        done
+
+        echo "3. Verifying final ACR security state..."
+        pna=$(az acr show --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --query publicNetworkAccess -o tsv || true)
+        if [ "$pna" != "Disabled" ]; then
+          echo "::error::Could not verify that publicNetworkAccess is Disabled on $REGISTRY_NAME (found: $pna)."
+          cleanup_failed=true
+        fi
+
+        remaining_ips=$(az acr network-rule list --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --query "length(ipRules)" -o tsv || echo "unknown")
+        if [ "$remaining_ips" != "0" ]; then
+          echo "::error::Temporary ACR IP rules still remain ($remaining_ips)."
+          cleanup_failed=true
+        else
+          echo "✅ ACR locked down (publicNetworkAccess=Disabled, 0 IP rules)."
+        fi
+
+        if [ "$cleanup_failed" = true ]; then
+          exit 1
+        fi

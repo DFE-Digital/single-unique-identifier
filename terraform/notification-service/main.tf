@@ -90,6 +90,8 @@ module "key_vault" {
 
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   rbac_authorization_enabled = var.key_vault_use_rbac
+  private_endpoint_subnet_id = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
+  allowed_ip_rules           = var.ci_runner_ip != null ? ["${var.ci_runner_ip}/32"] : []
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -262,6 +264,7 @@ resource "azurerm_storage_account_network_rules" "notification_service" {
   storage_account_id = azurerm_storage_account.notification_service.id
   default_action     = "Deny"
   bypass             = ["AzureServices"]
+  ip_rules           = var.ci_runner_ip != null ? [var.ci_runner_ip] : []
 
   # ARM table provisioning and the private endpoint must be ready before the
   # public firewall is closed.

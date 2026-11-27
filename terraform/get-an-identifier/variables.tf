@@ -129,3 +129,9 @@ variable "auth_settings_oauth_scope" {
   type        = string
   sensitive   = true
 }
+
+variable "ci_runner_ip" {
+  description = "Optional IPv4 address of the CI/CD runner temporarily whitelisted during Terraform data-plane operations."
+  type        = string
+  default     = null
+}

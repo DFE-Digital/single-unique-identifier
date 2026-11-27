@@ -1,0 +1,118 @@
+name: Open Terraform Data-Plane Access
+description: Temporarily whitelists the runner IP and enables public network access on Key Vaults and Storage Accounts for Terraform data-plane operations.
+
+inputs:
+  root:
+    description: Terraform root path (e.g. terraform/get-an-identifier)
+    required: true
+  resource_group:
+    description: Target environment resource group name
+    required: true
+  subscription_prefix:
+    description: Subscription prefix from tfvars
+    required: true
+  environment_id:
+    description: Environment ID from tfvars
+    required: true
+  region_short:
+    description: Short region code from tfvars
+    required: true
+  runner_ip:
+    description: IPv4 address of the GitHub Actions runner
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Temporarily Open Key Vault and Storage Firewall for Terraform
+      shell: bash
+      env:
+        TF_ROOT: ${{ inputs.root }}
+        RESOURCE_GROUP: ${{ inputs.resource_group }}
+        PREFIX: ${{ inputs.subscription_prefix }}
+        ENV_ID: ${{ inputs.environment_id }}
+        REGION: ${{ inputs.region_short }}
+        RUNNER_IP: ${{ inputs.runner_ip }}
+      run: |
+        source .github/scripts/retry-command.sh
+
+        if [[ ! "$RUNNER_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+          echo "::error::Invalid runner IPv4 address: $RUNNER_IP"
+          exit 1
+        fi
+
+        key_vaults=()
+        storage_accounts=()
+
+        case "$TF_ROOT" in
+          terraform/get-an-identifier)
+            key_vaults+=("${PREFIX}${ENV_ID}kv-${REGION}-gaidkv01")
+            storage_accounts+=("$(echo "${PREFIX}${ENV_ID}stfuncgetanid01" | tr '[:upper:]' '[:lower:]')")
+            ;;
+          terraform/notification-service)
+            key_vaults+=("${PREFIX}${ENV_ID}kv-${REGION}-notifkv01")
+            storage_accounts+=("$(echo "${PREFIX}${ENV_ID}stnotifications01" | tr '[:upper:]' '[:lower:]')")
+            ;;
+          terraform/ui_test_harness)
+            key_vaults+=("${PREFIX}${ENV_ID}kv-${REGION}-uihrnskv01")
+            ;;
+          *)
+            echo "No data-plane firewall changes required for $TF_ROOT."
+            exit 0
+            ;;
+        esac
+
+        wait_for_url() {
+          local label="$1"
+          local url="$2"
+          local end=$((SECONDS+180))
+          while [ $SECONDS -lt $end ]; do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "$url" || true)
+            if [ "$status" != "000" ] && [ "$status" != "403" ]; then
+              echo "✅ $label firewall propagated (HTTP $status)."
+              return 0
+            fi
+            echo "Waiting for $label firewall to sync... (HTTP $status). Retrying in 10s..."
+            sleep 10
+          done
+          echo "::error::$label firewall propagation timed out after 3 minutes."
+          return 1
+        }
+
+        for kv in "${key_vaults[@]}"; do
+          if ! az keyvault show --resource-group "$RESOURCE_GROUP" --name "$kv" --output none 2>/dev/null; then
+            echo "Key Vault $kv does not exist yet; skipping pre-open."
+            continue
+          fi
+
+          echo "Opening temporary runner access on Key Vault $kv for $RUNNER_IP/32..."
+          stale_ips=$(az keyvault network-rule list --resource-group "$RESOURCE_GROUP" --name "$kv" --query "ipRules[].value" -o tsv || true)
+          for stale_ip in $stale_ips; do
+            retry_command az keyvault network-rule remove --resource-group "$RESOURCE_GROUP" --name "$kv" --ip-address "$stale_ip" >/dev/null
+          done
+
+          retry_command az keyvault update --resource-group "$RESOURCE_GROUP" --name "$kv" --default-action Deny --bypass AzureServices >/dev/null
+          retry_command az keyvault network-rule add --resource-group "$RESOURCE_GROUP" --name "$kv" --ip-address "$RUNNER_IP/32" >/dev/null
+          retry_command az keyvault update --resource-group "$RESOURCE_GROUP" --name "$kv" --public-network-access Enabled >/dev/null
+
+          wait_for_url "Key Vault $kv" "https://${kv}.vault.azure.net/secrets?api-version=7.4"
+        done
+
+        for sa in "${storage_accounts[@]}"; do
+          if ! az storage account show --resource-group "$RESOURCE_GROUP" --name "$sa" --output none 2>/dev/null; then
+            echo "Storage Account $sa does not exist yet; skipping pre-open."
+            continue
+          fi
+
+          echo "Opening temporary runner access on Storage Account $sa for $RUNNER_IP..."
+          stale_ips=$(az storage account network-rule list --resource-group "$RESOURCE_GROUP" --account-name "$sa" --query "ipRules[].ipAddressOrRange" -o tsv || true)
+          for stale_ip in $stale_ips; do
+            retry_command az storage account network-rule remove --resource-group "$RESOURCE_GROUP" --account-name "$sa" --ip-address "$stale_ip" >/dev/null
+          done
+
+          retry_command az storage account update --resource-group "$RESOURCE_GROUP" --name "$sa" --default-action Deny --bypass AzureServices >/dev/null
+          retry_command az storage account network-rule add --resource-group "$RESOURCE_GROUP" --account-name "$sa" --ip-address "$RUNNER_IP" >/dev/null
+          retry_command az storage account update --resource-group "$RESOURCE_GROUP" --name "$sa" --public-network-access Enabled >/dev/null
+
+          wait_for_url "Storage Account $sa" "https://${sa}.queue.core.windows.net/?comp=properties"
+        done

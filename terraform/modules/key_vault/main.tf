@@ -39,6 +39,7 @@ resource "azurerm_key_vault" "this" {
     content {
       default_action = "Deny"
       bypass         = "AzureServices"
+      ip_rules       = var.allowed_ip_rules
     }
   }
 

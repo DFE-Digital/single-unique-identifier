@@ -239,3 +239,9 @@ variable "container_registry_sku" {
   default = null
 }
 
+variable "ci_runner_ip" {
+  description = "Optional IPv4 address of the CI/CD runner temporarily whitelisted during Terraform data-plane operations."
+  type        = string
+  default     = null
+}
+

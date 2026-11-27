@@ -1,0 +1,118 @@
+name: Close Terraform Data-Plane Access
+description: Restores publicNetworkAccess to Disabled and removes temporary runner IP rules on Key Vaults and Storage Accounts after Terraform runs.
+
+inputs:
+  root:
+    description: Terraform root path (e.g. terraform/get-an-identifier)
+    required: true
+  resource_group:
+    description: Target environment resource group name
+    required: true
+  subscription_prefix:
+    description: Subscription prefix from tfvars
+    required: true
+  environment_id:
+    description: Environment ID from tfvars
+    required: true
+  region_short:
+    description: Short region code from tfvars
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Close Key Vault and Storage Firewall After Terraform
+      shell: bash
+      env:
+        TF_ROOT: ${{ inputs.root }}
+        RESOURCE_GROUP: ${{ inputs.resource_group }}
+        PREFIX: ${{ inputs.subscription_prefix }}
+        ENV_ID: ${{ inputs.environment_id }}
+        REGION: ${{ inputs.region_short }}
+      run: |
+        source .github/scripts/retry-command.sh
+
+        key_vaults=()
+        storage_accounts=()
+
+        case "$TF_ROOT" in
+          terraform/get-an-identifier)
+            key_vaults+=("${PREFIX}${ENV_ID}kv-${REGION}-gaidkv01")
+            storage_accounts+=("$(echo "${PREFIX}${ENV_ID}stfuncgetanid01" | tr '[:upper:]' '[:lower:]')")
+            ;;
+          terraform/notification-service)
+            key_vaults+=("${PREFIX}${ENV_ID}kv-${REGION}-notifkv01")
+            storage_accounts+=("$(echo "${PREFIX}${ENV_ID}stnotifications01" | tr '[:upper:]' '[:lower:]')")
+            ;;
+          terraform/ui_test_harness)
+            key_vaults+=("${PREFIX}${ENV_ID}kv-${REGION}-uihrnskv01")
+            ;;
+          *)
+            echo "No data-plane firewall cleanup required for $TF_ROOT."
+            exit 0
+            ;;
+        esac
+
+        cleanup_failed=false
+
+        for kv in "${key_vaults[@]}"; do
+          if ! az keyvault show --resource-group "$RESOURCE_GROUP" --name "$kv" --output none 2>/dev/null; then
+            echo "Key Vault $kv does not exist; skipping cleanup."
+            continue
+          fi
+
+          echo "Closing public network access and removing temporary IP rules on Key Vault $kv..."
+          if ! retry_command az keyvault update --resource-group "$RESOURCE_GROUP" --name "$kv" --public-network-access Disabled --default-action Deny --bypass AzureServices >/dev/null; then
+            echo "::error::Failed to disable publicNetworkAccess on Key Vault $kv."
+            cleanup_failed=true
+          fi
+
+          existing_ips=$(az keyvault network-rule list --resource-group "$RESOURCE_GROUP" --name "$kv" --query "ipRules[].value" -o tsv || true)
+          for ip in $existing_ips; do
+            if ! retry_command az keyvault network-rule remove --resource-group "$RESOURCE_GROUP" --name "$kv" --ip-address "$ip" >/dev/null; then
+              echo "::error::Failed to remove IP rule $ip from Key Vault $kv."
+              cleanup_failed=true
+            fi
+          done
+
+          pna=$(az keyvault show --resource-group "$RESOURCE_GROUP" --name "$kv" --query "properties.publicNetworkAccess" -o tsv || true)
+          if [ "$pna" != "Disabled" ]; then
+            echo "::error::Could not verify that publicNetworkAccess is Disabled on Key Vault $kv (found: $pna)."
+            cleanup_failed=true
+          else
+            echo "✅ Key Vault $kv locked down (publicNetworkAccess=Disabled)."
+          fi
+        done
+
+        for sa in "${storage_accounts[@]}"; do
+          if ! az storage account show --resource-group "$RESOURCE_GROUP" --name "$sa" --output none 2>/dev/null; then
+            echo "Storage Account $sa does not exist; skipping cleanup."
+            continue
+          fi
+
+          echo "Closing public network access and removing temporary IP rules on Storage Account $sa..."
+          if ! retry_command az storage account update --resource-group "$RESOURCE_GROUP" --name "$sa" --public-network-access Disabled --default-action Deny --bypass AzureServices >/dev/null; then
+            echo "::error::Failed to disable publicNetworkAccess on Storage Account $sa."
+            cleanup_failed=true
+          fi
+
+          existing_ips=$(az storage account network-rule list --resource-group "$RESOURCE_GROUP" --account-name "$sa" --query "ipRules[].ipAddressOrRange" -o tsv || true)
+          for ip in $existing_ips; do
+            if ! retry_command az storage account network-rule remove --resource-group "$RESOURCE_GROUP" --account-name "$sa" --ip-address "$ip" >/dev/null; then
+              echo "::error::Failed to remove IP rule $ip from Storage Account $sa."
+              cleanup_failed=true
+            fi
+          done
+
+          pna=$(az storage account show --resource-group "$RESOURCE_GROUP" --name "$sa" --query "publicNetworkAccess" -o tsv || true)
+          if [ "$pna" != "Disabled" ]; then
+            echo "::error::Could not verify that publicNetworkAccess is Disabled on Storage Account $sa (found: $pna)."
+            cleanup_failed=true
+          else
+            echo "✅ Storage Account $sa locked down (publicNetworkAccess=Disabled)."
+          fi
+        done
+
+        if [ "$cleanup_failed" = true ]; then
+          exit 1
+        fi

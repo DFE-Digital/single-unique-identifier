@@ -127,3 +127,9 @@ variable "private_endpoint_subnet_id" {
   type        = string
   default     = null
 }
+
+variable "storage_allowed_ip_rules" {
+  description = "Optional list of IPv4 addresses or CIDR ranges to allow in the storage account network rules (e.g. temporary CI runner IP)."
+  type        = list(string)
+  default     = []
+}

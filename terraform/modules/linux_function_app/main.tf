@@ -47,7 +47,8 @@ resource "azurerm_storage_account" "this" {
   network_rules {
     default_action             = "Deny"
     bypass                     = ["AzureServices"]
-    virtual_network_subnet_ids = [var.app_service_integration_subnet_id]
+    ip_rules                   = var.storage_allowed_ip_rules
+    virtual_network_subnet_ids = var.private_endpoint_subnet_id == null ? [var.app_service_integration_subnet_id] : []
   }
 
   tags = local.all_tags
