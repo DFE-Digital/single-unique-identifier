@@ -70,29 +70,40 @@ jobs:
   detect-changes:
     name: Detect Changes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       has_changes: ${{ steps.filter.outputs.app }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Paths Filter
         id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           filters: |
             app:
               - Apps/NotificationService/**
               - Libs/**
+              - global.json
+              - nuget.config
+              - Directory.Build.props
+              - Directory.Build.targets
+              - Directory.Packages.props
               - scripts/pds-record-change-2-notification.template.json
               - terraform/notification-service/**
               - terraform/core/**
               - terraform/modules/**
               - terraform/environments/**
               - .github/workflows/notification-service-build-and-deploy.yml
+              - .github/workflows/build-test-dotnet.yml
               - .github/workflows/terraform-plan-and-apply.yml
 
   build-and-test:
     name: Notification Service - build and test
     needs: detect-changes
-    # Skips the job if it's a PR and no relevant files changed. GitHub treats this skip as a PASS.
+    # Skips the job if it's a PR and no relevant files changed; ci-gate reports the final status.
     if: ${{ github.event_name != 'pull_request' || needs.detect-changes.outputs.has_changes == 'true' }}
     uses: ./.github/workflows/build-test-dotnet.yml
     secrets:
@@ -409,3 +420,55 @@ jobs:
           done
           echo "Notification Service lifecycle logs were not available in Log Analytics."
           exit 1
+
+  # Required status check gate for branch protection.
+  # Reusable workflow caller jobs do not report inner job names when skipped via `if:`,
+  # so this always-running job provides a stable check name that passes on skip or success.
+  ci-gate:
+    name: Notification Service - CI Gate
+    needs: [ detect-changes, build-and-test, resolve-image, validate-container ]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Evaluate CI status
+        env:
+          DETECT_RESULT: ${{ needs.detect-changes.result }}
+          HAS_CHANGES: ${{ needs.detect-changes.outputs.has_changes }}
+          BUILD_RESULT: ${{ needs.build-and-test.result }}
+          RESOLVE_RESULT: ${{ needs.resolve-image.result }}
+          VALIDATE_RESULT: ${{ needs.validate-container.result }}
+        run: |
+          set -euo pipefail
+          if [[ "$DETECT_RESULT" != "success" ]]; then
+            echo "detect-changes failed (result: $DETECT_RESULT)."
+            exit 1
+          fi
+
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && "$HAS_CHANGES" != "true" ]]; then
+            for pair in "build-and-test:$BUILD_RESULT" "resolve-image:$RESOLVE_RESULT" "validate-container:$VALIDATE_RESULT"; do
+              name="${pair%%:*}"
+              result="${pair#*:}"
+              if [[ "$result" != "skipped" ]]; then
+                echo "Expected $name to be skipped when no relevant files changed, got: $result."
+                exit 1
+              fi
+            done
+            echo "No relevant changes detected; skip allowed."
+            exit 0
+          fi
+
+          for pair in "build-and-test:$BUILD_RESULT" "resolve-image:$RESOLVE_RESULT"; do
+            name="${pair%%:*}"
+            result="${pair#*:}"
+            if [[ "$result" != "success" ]]; then
+              echo "Relevant changes require $name to pass, got: $result."
+              exit 1
+            fi
+          done
+
+          # validate-container runs only on pull_request events
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && "$VALIDATE_RESULT" != "success" ]]; then
+            echo "Pull request with relevant changes requires validate-container to pass, got: $VALIDATE_RESULT."
+            exit 1
+          fi

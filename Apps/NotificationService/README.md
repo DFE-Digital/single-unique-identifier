@@ -8,7 +8,7 @@ For Alpha, this separate service receives NHS England MNS lifecycle notification
 
 Each execution retrieves the messages listed in the NHS MESH mailbox and parses supported [`pds-record-change-2` events](https://digital.nhs.uk/developer/api-catalogue/multicast-notification-service/pds-change-event). The application returns record-change notifications to the orchestrator. Messages that cannot be read or parsed, or that contain no valid NHS number, remain in the mailbox.
 
-The supplier webhook register repository, Key Vault secret client and HMAC-SHA256 HTTP delivery component are implemented and registered, but the orchestrator does not invoke them. End-to-end lifecycle notification delivery and retry coordination remain to be implemented.
+The supplier webhook register repository, Key Vault secret client and HMAC-SHA256 HTTP delivery component are implemented and registered, but the orchestrator does not invoke them. End-to-end lifecycle notification delivery, retry coordination and storage of supplier acknowledgements remain to be implemented; see the [target end-to-end flow](../../Docs/Design/NotificationService/EndToEndFlow.md).
 
 The intended acknowledgement boundary is successful webhook delivery to suppliers. When several messages in an execution carry the same NHS number, the duplicates are acknowledged during processing and one non-duplicate message is kept; see [duplicate message handling](../../Docs/Design/NotificationService/DuplicateHandling.md). The non-duplicate message remains unacknowledged pending successful webhook delivery, so it remains available for retrieval on subsequent executions.
 
@@ -107,8 +107,7 @@ Messages are read from an NHS MESH mailbox, configured under the `NhsMeshConfig`
 | `MailboxPassword`    | Mailbox password used to build the `NHSMESH` authorisation header.                                                                                              |
 | `SharedKey`          | Shared key used to HMAC that header.                                                                                                                            |
 | `AcceptLocalDevCert` | Optional, default `false`. Accepts the local sandbox's self-signed certificate. Startup fails if this is `true` and `MailboxBaseUrl` is not a loopback address. |
-| `MailboxMTLSPfx` | Base64 of the NHS-issued client PFX (certificate and private key), presented for mutual TLS. Required when `AcceptLocalDevCert` is `false`. Populated at runtime from Key Vault when not supplied directly in local configuration. |
-| `MailboxMTLSPfxCertName` | Optional, default `nhs-mesh-mailbox-certificate`. Name of the Key Vault certificate/secret holding the client PFX, fetched at runtime when `AcceptLocalDevCert` is `false` and `MailboxMTLSPfx` is not set. |
+| `MailboxMTLSPfx` | Base64 of the NHS-issued client PFX (certificate and private key), presented for mutual TLS. Required when `AcceptLocalDevCert` is `false`. Loaded from Key Vault configuration when `KeyVault:VaultUri` is set, or supplied directly in local configuration. |
 | `MailboxMTLSPfxPassword` | Optional password for `MailboxMTLSPfx`. Leave empty when the value comes from a Key Vault certificate. |
 | `MailboxRootCA` | Base64 of the NHS root CA certificate (PEM or DER), e.g. NHS INT Root G2. The only trust anchor for the MESH server certificate. Required when `AcceptLocalDevCert` is `false`. |
 | `MailboxIntermediateCA` | Base64 of the NHS intermediate CA certificate (PEM or DER) issued by `MailboxRootCA`, e.g. NHS INT Authentication G2. Required when `AcceptLocalDevCert` is `false`. |
@@ -127,8 +126,8 @@ bundle to build. Certificates are passed as base64 content, never as file paths.
 with `dotnet user-secrets` from `src/SUI.NotificationService`, for example
 `dotnet user-secrets set NhsMeshConfig:MailboxRootCA "$(base64 -i <root.pem>)"`. In Azure, importing
 the PFX as a Key Vault certificate exposes a same-named secret holding the base64 PFX with no
-password; the service fetches it at runtime from `KeyVault:VaultUri` using its managed identity
-(`MailboxMTLSPfxCertName`, defaulting to `nhs-mesh-mailbox-certificate`).
+password; the service fetches it at startup from `KeyVault:VaultUri` using its managed identity
+(`nhs-mesh-mailbox-certificate`).
 
 The server certificate's revocation status is checked online. If the NHS CA's revocation endpoint
 cannot be reached from where the job runs, the TLS handshake fails with a certificate chain error
@@ -172,19 +171,26 @@ The deployed Container Apps job receives these values from both GitHub environme
 | secret `NHS_MESH_CONFIG_ROOT_CA`          | `nhs_mesh_root_ca`          | `NhsMeshConfig__MailboxRootCA`         |
 | secret `NHS_MESH_CONFIG_INTERMEDIATE_CA`  | `nhs_mesh_intermediate_ca`  | `NhsMeshConfig__MailboxIntermediateCA` |
 
-| Key Vault                                   | Terraform variable                 | App setting       |
-| ------------------------------------------- | ---------------------------------- | ----------------- |
-| variable `NHS_MESH_CONFIG_SHARED_KEY`       | `nhs_mesh_config_shared_key`       | `...`             |
-| variable `NHS_MESH_CONFIG_MAILBOX_ID`       | `nhs_mesh_config_mailbox_id`       | `...`             |
-| variable `NHS_MESH_CONFIG_MAILBOX_PASSWORD` | `nhs_mesh_config_mailbox_password` | `...`             |
+| Key Vault secret               | App setting                     |
+| ------------------------------ | ------------------------------- |
+| `nhs-mesh-shared-key`          | `NhsMeshConfig:SharedKey`       |
+| `nhs-mesh-mailbox-id`          | `NhsMeshConfig:MailboxId`       |
+| `nhs-mesh-mailbox-password`    | `NhsMeshConfig:MailboxPassword` |
+| `nhs-mesh-mailbox-certificate` | `NhsMeshConfig:MailboxMTLSPfx`  |
 
-The secrets are stored as Container App job secrets and referenced by the container's
+The CA secrets are stored as Container App job secrets and referenced by the container's
 environment. Each CA secret is the NHS-supplied certificate file base64-encoded onto one line
 (`base64 -i <root.pem>` on macOS, `base64 -w0 <root.pem>` on Linux); Terraform rejects a raw PEM.
-The client certificate (`MailboxMTLSPfx`) is not supplied as a Container App secret or environment
-variable: the service fetches it directly from the Notification Service Key Vault at runtime via
-`KeyVault__VaultUri` and its user-assigned managed identity (`AZURE_CLIENT_ID`). Terraform also sets `NhsMeshConfig__AcceptLocalDevCert=false`, overriding
-`appsettings.Development.json`, which the deployed `Development` environment would otherwise inherit.
+
+When `AcceptLocalDevCert` is `false` and `KeyVault:VaultUri` is a valid `https://` URI, the host
+loads the four MESH secrets above from Key Vault via `AddAzureKeyVault` and an allowlisting
+`MeshKeyVaultSecretManager` using its user-assigned managed identity (`AZURE_CLIENT_ID`). Only
+those four secrets are loaded into `IConfiguration` (per-supplier webhook HMAC secrets in the same
+vault are fetched on demand by `WebhookSecretClient`). Because the Key Vault configuration provider
+is added after `Host.CreateApplicationBuilder`, Key Vault values take precedence over `appsettings`,
+user secrets, and environment variables for those four keys. Terraform also sets
+`NhsMeshConfig__AcceptLocalDevCert=false`, overriding `appsettings.Development.json`, which the
+deployed `Development` environment would otherwise inherit.
 
 The PR container validation does not use these values: it starts the local MESH sandbox on the runner
 and runs the image with the `Development` configuration.
@@ -312,7 +318,7 @@ After core succeeds:
 3. For d02 or d03, run the `Build, Test, Deploy: Notification Service` workflow manually and select the environment.
 4. The deployment applies the service Terraform, starts an on-demand smoke-test execution, waits for success and verifies its lifecycle logs in Log Analytics.
 
-The GitHub OIDC identity needs permission to create the `AcrPush`, `AcrPull` and `Storage Table Data Contributor` role assignments. While that delegation is pending, `notification_service_acr_push_enabled` remains `false` in each environment tfvars file, so core infrastructure can still be applied without creating the `AcrPush` assignment. Set it to `true` only once the deployment identity can create role assignments. The Notification Service workflow has a separate temporary deployment gate.
+The GitHub OIDC identity needs permission to create the `AcrPush`, `AcrPull` and `Storage Table Data Contributor` role assignments. Set `notification_service_acr_push_enabled` to `true` in each environment tfvars file once the deployment identity can create role assignments (or keep it `false` in environments where delegation is still pending so core infrastructure can still be applied). The Notification Service workflow has a separate deployment gate (`notification_service_job_enabled`).
 
 ### Manual execution and logs
 

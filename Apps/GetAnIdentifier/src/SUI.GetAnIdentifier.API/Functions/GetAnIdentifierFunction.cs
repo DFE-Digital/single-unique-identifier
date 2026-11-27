@@ -129,10 +129,22 @@ public class GetAnIdentifierFunction(
             );
         }
 
+        if (!TryGetOdsCode(req, out var odsCode))
+        {
+            return await HttpResponseUtility.BadRequestResponse(
+                req,
+                correlationId,
+                "ODS code is required.",
+                "Validation error",
+                cancellationToken
+            );
+        }
+
         try
         {
             var personMatch = await getAnIdentifierService.MatchPersonAsync(
                 requestModel.PersonSpecification,
+                odsCode!,
                 correlationId,
                 cancellationToken
             );
@@ -186,6 +198,22 @@ public class GetAnIdentifierFunction(
                 cancellationToken
             );
         }
+    }
+
+    private static bool TryGetOdsCode(HttpRequestData req, out string? odsCode)
+    {
+        odsCode = null;
+
+        if (!req.Headers.TryGetValues("odsCode", out var odsCodeValues))
+            return false;
+
+        var odsCodeList = odsCodeValues.ToList();
+
+        if (odsCodeList.Count == 0 || odsCodeList[0].IsNullOrWhiteSpace())
+            return false;
+
+        odsCode = odsCodeList[0];
+        return true;
     }
 
     private static bool ValidateAuthContext(FunctionContext context)
