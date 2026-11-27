@@ -7,6 +7,7 @@ public interface IFhirService
 {
     Task<Result<SearchResult>> PerformSearchAsync(
         SearchQuery searchQuery,
+        string odsCode,
         string? correlationId = null,
         CancellationToken ct = default
     );

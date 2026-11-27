@@ -1,3 +1,4 @@
+using Azure.Core;
 using Azure.Data.Tables;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
@@ -18,28 +19,43 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddNotificationServiceInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration
+        IConfiguration configuration,
+        TokenCredential? credential = null
     )
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        services.TryAddSingleton(_ =>
+        services.TryAddSingleton<TokenCredential>(_ => credential ?? new DefaultAzureCredential());
+
+        var keyVaultUriValue = configuration["KeyVault:VaultUri"];
+        if (!string.IsNullOrWhiteSpace(keyVaultUriValue))
         {
-            var keyVaultUri =
-                configuration["KeyVault:VaultUri"]
-                ?? throw new InvalidOperationException(
-                    "KeyVault:VaultUri configuration is missing."
+            if (
+                !Uri.TryCreate(keyVaultUriValue, UriKind.Absolute, out var keyVaultUri)
+                || keyVaultUri.Scheme != Uri.UriSchemeHttps
+            )
+            {
+                throw new InvalidOperationException(
+                    "KeyVault:VaultUri must be an absolute https:// URI."
                 );
+            }
 
-            return new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential());
-        });
+            services.TryAddSingleton(serviceProvider => new SecretClient(
+                keyVaultUri,
+                serviceProvider.GetRequiredService<TokenCredential>()
+            ));
+        }
 
         services.AddSingleton(serviceProvider =>
         {
             var serviceUri = configuration["TableStorage:ServiceUri"];
             if (Uri.TryCreate(serviceUri, UriKind.Absolute, out var tableServiceUri))
             {
-                return new TableServiceClient(tableServiceUri, new DefaultAzureCredential());
+                return new TableServiceClient(
+                    tableServiceUri,
+                    serviceProvider.GetRequiredService<TokenCredential>()
+                );
             }
 
             var connectionString = configuration.GetConnectionString("TableStorage");

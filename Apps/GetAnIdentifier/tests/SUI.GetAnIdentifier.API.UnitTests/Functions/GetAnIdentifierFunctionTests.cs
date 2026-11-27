@@ -56,10 +56,7 @@ public class GetAnIdentifierFunctionTests
         // Arrange
         var function = CreateFunction();
         var context = CreateContextWithAuth();
-        var req = MockHttpRequestData.CreateJson(
-            CreateMatchRequest(),
-            headers: new HttpHeadersCollection()
-        );
+        var req = MockHttpRequestData.CreateJson(CreateMatchRequest(), headers: GetHeaders());
 
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync(); // Simulate caller hanging up
@@ -67,6 +64,7 @@ public class GetAnIdentifierFunctionTests
         _getAnIdentifierService
             .MatchPersonAsync(
                 Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -97,7 +95,7 @@ public class GetAnIdentifierFunctionTests
         var function = CreateFunction();
         var context = CreateContextWithAuth();
         var validRequest = CreateMatchRequest();
-        var headers = new HttpHeadersCollection();
+        var headers = GetHeaders();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
         var personId = "9876543210";
         const string generalPractitionerOdsCode = "B81606";
@@ -105,6 +103,7 @@ public class GetAnIdentifierFunctionTests
         _getAnIdentifierService
             .MatchPersonAsync(
                 Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -131,6 +130,14 @@ public class GetAnIdentifierFunctionTests
                 .Single()
                 .GetString()
         );
+        await _getAnIdentifierService // Assert ODS code is passed through
+            .Received(1)
+            .MatchPersonAsync(
+                Arg.Any<PersonSpecification>(),
+                Arg.Is<string>("TestODS"),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]
@@ -140,12 +147,13 @@ public class GetAnIdentifierFunctionTests
         var function = CreateFunction();
         var context = CreateContextWithAuth();
         var validRequest = CreateMatchRequest();
-        var headers = new HttpHeadersCollection();
+        var headers = GetHeaders();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
         _getAnIdentifierService
             .MatchPersonAsync(
                 Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -165,12 +173,13 @@ public class GetAnIdentifierFunctionTests
         var function = CreateFunction();
         var context = CreateContextWithAuth();
         var validRequest = CreateMatchRequest();
-        var headers = new HttpHeadersCollection();
+        var headers = GetHeaders();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
         _getAnIdentifierService
             .MatchPersonAsync(
                 Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -190,13 +199,14 @@ public class GetAnIdentifierFunctionTests
         var function = CreateFunction();
         var context = CreateContextWithAuth();
         var validRequest = CreateMatchRequest();
-        var headers = new HttpHeadersCollection();
+        var headers = GetHeaders();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
         var expectedException = new Exception("Unexpected system crash");
 
         _getAnIdentifierService
             .MatchPersonAsync(
                 Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -234,7 +244,7 @@ public class GetAnIdentifierFunctionTests
         context.Items.Returns(new Dictionary<object, object>());
         context.InvocationId.Returns(Guid.NewGuid().ToString());
         var validRequest = CreateMatchRequest();
-        var headers = new HttpHeadersCollection();
+        var headers = GetHeaders();
         var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
 
         // Act
@@ -254,6 +264,7 @@ public class GetAnIdentifierFunctionTests
         _getAnIdentifierService
             .MatchPersonAsync(
                 Arg.Any<PersonSpecification>(),
+                Arg.Any<string>(),
                 Arg.Any<string?>(),
                 Arg.Any<CancellationToken>()
             )
@@ -261,7 +272,7 @@ public class GetAnIdentifierFunctionTests
 
         context.InvocationId.Returns(Guid.NewGuid().ToString());
 
-        var headers = new HttpHeadersCollection();
+        var headers = GetHeaders();
         var req = MockHttpRequestData.CreateJson(inValidRequest, headers: headers);
 
         // Act
@@ -282,7 +293,7 @@ public class GetAnIdentifierFunctionTests
         var context = CreateContextWithAuth();
         context.InvocationId.Returns(Guid.NewGuid().ToString());
 
-        var headers = new HttpHeadersCollection();
+        var headers = GetHeaders();
         var req = MockHttpRequestData.Create(requestData: null!, headers: headers);
 
         // Act
@@ -303,7 +314,7 @@ public class GetAnIdentifierFunctionTests
         var context = CreateContextWithAuth();
         context.InvocationId.Returns(Guid.NewGuid().ToString());
 
-        var headers = new HttpHeadersCollection();
+        var headers = GetHeaders();
         var req = MockHttpRequestData.Create(requestData: "", headers: headers); // empty string causes JSON Exception
 
         // Act
@@ -324,5 +335,56 @@ public class GetAnIdentifierFunctionTests
                 Arg.Is<Exception>(e => e is SanitizedException),
                 Arg.Any<Func<object, Exception?, string>>()
             );
+    }
+
+    [Fact]
+    public async Task ShouldReturnBadRequest_WhenNoOdsCodePresent()
+    {
+        // Arrange
+        var service = Substitute.For<IGetAnIdentifierService>();
+        var logger = Substitute.For<ILogger<GetAnIdentifierFunction>>();
+        var function = new GetAnIdentifierFunction(logger, service);
+        var validRequest = CreateMatchRequest();
+
+        var context = CreateContextWithAuth();
+        context.InvocationId.Returns(Guid.NewGuid().ToString());
+
+        var headers = new HttpHeadersCollection(); // no ODS code header
+        var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
+
+        // Act
+        var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ShouldReturnBadRequest_WhenOdsCodeEmpty()
+    {
+        // Arrange
+        var service = Substitute.For<IGetAnIdentifierService>();
+        var logger = Substitute.For<ILogger<GetAnIdentifierFunction>>();
+        var function = new GetAnIdentifierFunction(logger, service);
+        var validRequest = CreateMatchRequest();
+
+        var context = CreateContextWithAuth();
+        context.InvocationId.Returns(Guid.NewGuid().ToString());
+
+        var headers = new HttpHeadersCollection { { "odsCode", "" } }; // empty odsCode
+        var req = MockHttpRequestData.CreateJson(validRequest, headers: headers);
+
+        // Act
+        var response = await function.GetAnIdentifier(req, context, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private static HttpHeadersCollection GetHeaders()
+    {
+        var collection = new HttpHeadersCollection { { "odsCode", "TestODS" } };
+
+        return collection;
     }
 }

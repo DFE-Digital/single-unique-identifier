@@ -105,6 +105,18 @@ public class WebhookSecretClientTests : IDisposable
         Assert.Equal(originalException, ex.InnerException); // Proves we didn't lose the original stack trace
     }
 
+    [Fact]
+    public async Task ShouldThrowWebhookSecretRetrievalException_WhenSecretClientIsNotConfigured()
+    {
+        var sut = new WebhookSecretClient(null, _realMemoryCache);
+
+        var ex = await Assert.ThrowsAsync<WebhookSecretRetrievalException>(() =>
+            sut.GetSecretBase64Async("supplier-d-hmac")
+        );
+
+        Assert.Contains("KeyVault:VaultUri", ex.Message);
+    }
+
     public void Dispose()
     {
         _realMemoryCache.Dispose();

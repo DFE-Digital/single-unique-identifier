@@ -19,6 +19,7 @@ public class GetAnIdentifierService(
         OneOf<GetAnIdentifierResult, DataQualityResult, NotFound, Error>
     > MatchPersonAsync(
         PersonSpecification request,
+        string odsCode,
         string? correlationId = null,
         CancellationToken ct = default
     )
@@ -41,7 +42,12 @@ public class GetAnIdentifierService(
             var searchQuery = BuildSearchQuery(request);
 
             // 3. Send directly to PDS
-            var result = await fhirService.PerformSearchAsync(searchQuery, correlationId, ct);
+            var result = await fhirService.PerformSearchAsync(
+                searchQuery,
+                odsCode,
+                correlationId,
+                ct
+            );
 
             if (!result.Success)
             {

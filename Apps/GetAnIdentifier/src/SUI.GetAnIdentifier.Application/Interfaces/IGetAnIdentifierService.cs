@@ -8,6 +8,7 @@ public interface IGetAnIdentifierService
 {
     Task<OneOf<GetAnIdentifierResult, DataQualityResult, NotFound, Error>> MatchPersonAsync(
         PersonSpecification request,
+        string odsCode,
         string? correlationId = null,
         CancellationToken ct = default
     );
