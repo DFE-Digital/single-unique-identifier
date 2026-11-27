@@ -7,13 +7,13 @@ namespace SUI.NotificationService.Webhooks;
 
 public class WebhookSecretClient : IWebhookSecretClient
 {
-    private readonly SecretClient _secretClient;
+    private readonly SecretClient? _secretClient;
     private readonly IMemoryCache _cache;
 
     // Cache the secret to prevent throttling and reduce latency on high-volume webhooks
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(4);
 
-    public WebhookSecretClient(SecretClient secretClient, IMemoryCache cache)
+    public WebhookSecretClient(SecretClient? secretClient, IMemoryCache cache)
     {
         _secretClient = secretClient;
         _cache = cache;
@@ -30,6 +30,13 @@ public class WebhookSecretClient : IWebhookSecretClient
         if (_cache.TryGetValue(cacheKey, out string? cachedSecret) && cachedSecret != null)
         {
             return cachedSecret;
+        }
+
+        if (_secretClient is null)
+        {
+            throw new WebhookSecretRetrievalException(
+                "KeyVault:VaultUri must be configured to retrieve webhook secrets."
+            );
         }
 
         try

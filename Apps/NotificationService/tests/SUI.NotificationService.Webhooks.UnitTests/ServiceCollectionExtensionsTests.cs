@@ -1,5 +1,6 @@
-using Microsoft.Extensions.Configuration;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using SUI.NotificationService.Application.Interfaces;
 
 namespace SUI.NotificationService.Webhooks.UnitTests;
@@ -7,52 +8,70 @@ namespace SUI.NotificationService.Webhooks.UnitTests;
 public class ServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddSupplierWebhookDelivery_ResolvesDependenciesCorrectly()
+    public void AddSupplierWebhookDelivery_ResolvesDependenciesCorrectly_WhenSecretClientIsRegistered()
     {
         // Arrange
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    ["KeyVault:VaultUri"] = "https://test-vault.vault.azure.net/",
-                }
-            )
-            .Build();
-
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddSingleton(Substitute.For<SecretClient>());
 
         // Act
-        services.AddSupplierWebhookDelivery(configuration);
+        services.AddSupplierWebhookDelivery();
 
         // Assert
         using var provider = services.BuildServiceProvider(
             new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true }
         );
 
-        // This will throw if TimeProvider, KeyVault, or any nested dependency is missing
         var service = provider.GetRequiredService<ISupplierWebhookDeliveryService>();
         Assert.IsType<SupplierWebhookDeliveryService>(service);
+    }
+
+    [Fact]
+    public void AddSupplierWebhookDelivery_ResolvesDependenciesCorrectly_WhenSecretClientIsNotRegistered()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+
+        // Act
+        services.AddSupplierWebhookDelivery();
+
+        // Assert
+        using var provider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true }
+        );
+
+        var service = provider.GetRequiredService<ISupplierWebhookDeliveryService>();
+        Assert.IsType<SupplierWebhookDeliveryService>(service);
+    }
+
+    [Fact]
+    public void AddSupplierWebhookDelivery_PreservesExistingTimeProvider_WhenAlreadyRegistered()
+    {
+        // Arrange
+        var customTimeProvider = Substitute.For<TimeProvider>();
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton(customTimeProvider);
+
+        // Act
+        services.AddSupplierWebhookDelivery();
+
+        // Assert
+        using var provider = services.BuildServiceProvider();
+        Assert.Same(customTimeProvider, provider.GetRequiredService<TimeProvider>());
     }
 
     [Fact]
     public void AddSupplierWebhookDelivery_ConfiguresHttpClient_WithNoAutoRedirect()
     {
         // Arrange
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    ["KeyVault:VaultUri"] = "https://test-vault.vault.azure.net/",
-                }
-            )
-            .Build();
-
         var services = new ServiceCollection();
         services.AddLogging();
 
         // Act
-        services.AddSupplierWebhookDelivery(configuration);
+        services.AddSupplierWebhookDelivery();
 
         // Assert
         using var provider = services.BuildServiceProvider();

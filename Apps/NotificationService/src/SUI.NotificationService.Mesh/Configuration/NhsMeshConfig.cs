@@ -28,16 +28,10 @@ public class NhsMeshConfig
 
     /// <summary>
     /// Base64 of the mutual-TLS client PFX (certificate and private key). Required when
-    /// <see cref="AcceptLocalDevCert"/> is false. Populated from Key Vault at runtime when not
-    /// supplied directly via local configuration (e.g. user-secrets).
+    /// <see cref="AcceptLocalDevCert"/> is false. Loaded from Azure Key Vault configuration when
+    /// <c>KeyVault:VaultUri</c> is set, or supplied directly via local configuration (e.g. user-secrets).
     /// </summary>
     public string? MailboxMTLSPfx { get; set; }
-
-    /// <summary>
-    /// Name of the Key Vault certificate/secret holding the base64 PFX. Used at runtime when
-    /// <see cref="AcceptLocalDevCert"/> is false and <see cref="MailboxMTLSPfx"/> is not set.
-    /// </summary>
-    public string MailboxMTLSPfxCertName { get; init; } = "nhs-mesh-mailbox-certificate";
 
     /// <summary>Optional password for <see cref="MailboxMTLSPfx"/>. Empty for a Key Vault certificate.
     /// Only needed for Localhost if testing online MESH mailbox

@@ -1,7 +1,9 @@
+using Azure.Core;
 using Azure.Data.Tables;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 
 namespace SUI.NotificationService.Infrastructure.UnitTests;
 
@@ -85,16 +87,53 @@ public sealed class ServiceCollectionExtensionsTests
         Assert.Equal(new Uri("https://notificationkv01.vault.azure.net/"), secretClient.VaultUri);
     }
 
-    [Fact]
-    public void ShouldThrow_WhenKeyVaultVaultUriIsMissing()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShouldNotRegisterSecretClient_WhenKeyVaultVaultUriIsMissingOrEmpty(string? vaultUri)
     {
-        using var serviceProvider = BuildServiceProvider(new Dictionary<string, string?>());
+        using var serviceProvider = BuildServiceProvider(
+            new Dictionary<string, string?> { ["KeyVault:VaultUri"] = vaultUri }
+        );
 
+        var secretClient = serviceProvider.GetService<SecretClient>();
+
+        Assert.Null(secretClient);
+    }
+
+    [Theory]
+    [InlineData("not-a-uri")]
+    [InlineData("http://notificationkv01.vault.azure.net/")]
+    public void ShouldThrow_WhenKeyVaultVaultUriIsInvalid(string invalidUri)
+    {
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            serviceProvider.GetRequiredService<SecretClient>()
+            BuildServiceProvider(
+                new Dictionary<string, string?> { ["KeyVault:VaultUri"] = invalidUri }
+            )
         );
 
         Assert.Contains("KeyVault:VaultUri", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ShouldUseProvidedTokenCredential_WhenPassedToAddNotificationServiceInfrastructure()
+    {
+        var credential = Substitute.For<TokenCredential>();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["KeyVault:VaultUri"] = "https://notificationkv01.vault.azure.net/",
+                }
+            )
+            .Build();
+        var services = new ServiceCollection();
+        services.AddNotificationServiceInfrastructure(configuration, credential);
+
+        using var serviceProvider = services.BuildServiceProvider();
+
+        Assert.Same(credential, serviceProvider.GetRequiredService<TokenCredential>());
     }
 
     private static ServiceProvider BuildServiceProvider(IReadOnlyDictionary<string, string?> values)

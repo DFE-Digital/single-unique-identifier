@@ -26,7 +26,7 @@ notification_service_cpu                        = 0.5
 notification_service_memory                     = "1Gi"
 notification_service_replica_timeout_in_seconds = 1800
 notification_service_replica_retry_limit        = 0
-notification_service_dotnet_environment         = "Development"
+notification_service_dotnet_environment         = "Dev"
 
 getanidentifier_app_settings = {
   NhsAuthConfig__NHS_DIGITAL_TOKEN_URL                       = "https://int.api.service.nhs.uk/oauth2/token"
