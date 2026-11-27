@@ -15,6 +15,20 @@ locals {
     var.product == null ? {} : { Product = var.product },
     var.service_offering == null ? {} : { "Service Offering" = var.service_offering },
   )
+
+  all_tags = merge(
+    local.base_tags,
+    var.tags,
+  )
+
+  resource_group_id = regex("^/subscriptions/[^/]+/resourceGroups/[^/]+", azurerm_storage_account.this.id)
+
+  storage_private_endpoint_subresources = var.private_endpoint_subnet_id != null ? toset([
+    "blob",
+    "file",
+    "queue",
+    "table",
+  ]) : toset([])
 }
 
 # Accepted until Alpha while the DR posture for Function App storage is still under review.
@@ -26,19 +40,43 @@ resource "azurerm_storage_account" "this" {
   account_tier                      = "Standard"
   account_replication_type          = var.storage_account_replication_type
   infrastructure_encryption_enabled = true
+  public_network_access             = var.storage_public_network_access
 
   allow_nested_items_to_be_public = false
 
   network_rules {
     default_action             = "Deny"
     bypass                     = ["AzureServices"]
-    virtual_network_subnet_ids = [var.app_service_integration_subnet_id]
+    ip_rules                   = var.storage_allowed_ip_rules
+    virtual_network_subnet_ids = var.private_endpoint_subnet_id == null ? [var.app_service_integration_subnet_id] : []
   }
 
-  tags = merge(
-    local.base_tags,
-    var.tags,
-  )
+  tags = local.all_tags
+}
+
+resource "azurerm_private_endpoint" "storage" {
+  for_each = local.storage_private_endpoint_subresources
+
+  name                = "pe-${var.storage_account_name}-${each.key}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
+
+  private_service_connection {
+    name                           = "storage-${each.key}"
+    private_connection_resource_id = azurerm_storage_account.this.id
+    subresource_names              = [each.key]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name = "storage-${each.key}"
+    private_dns_zone_ids = [
+      format("%s/providers/Microsoft.Network/privateDnsZones/privatelink.%s.core.windows.net", local.resource_group_id, each.key),
+    ]
+  }
+
+  tags = local.all_tags
 }
 
 resource "azurerm_storage_account_queue_properties" "this" {
@@ -146,10 +184,11 @@ resource "azurerm_linux_function_app" "this" {
     var.app_settings,
   )
 
-  tags = merge(
-    local.base_tags,
-    var.tags,
-  )
+  tags = local.all_tags
+
+  depends_on = [
+    azurerm_private_endpoint.storage,
+  ]
 
   lifecycle {
     ignore_changes = [

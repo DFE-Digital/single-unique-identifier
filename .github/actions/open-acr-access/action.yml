@@ -1,0 +1,75 @@
+name: Open Azure Container Registry Access
+description: Temporarily whitelists a runner IP on the Azure Container Registry and enables publicNetworkAccess.
+
+inputs:
+  registry_name:
+    description: Name of the Azure Container Registry
+    required: true
+  resource_group:
+    description: Resource group of the Azure Container Registry
+    required: true
+  runner_ip:
+    description: IPv4 address of the GitHub Actions runner
+    required: true
+
+outputs:
+  whitelisted_ip:
+    description: The runner IP whitelisted on the registry
+    value: ${{ steps.whitelist.outputs.whitelisted_ip }}
+
+runs:
+  using: composite
+  steps:
+    - name: Temporarily Whitelist Runner IP on ACR
+      id: whitelist
+      shell: bash
+      env:
+        REGISTRY_NAME: ${{ inputs.registry_name }}
+        RESOURCE_GROUP: ${{ inputs.resource_group }}
+        RUNNER_IP: ${{ inputs.runner_ip }}
+      run: |
+        source .github/scripts/retry-command.sh
+
+        if [[ ! "$RUNNER_IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+          echo "::error::Invalid runner IPv4 address: $RUNNER_IP"
+          exit 1
+        fi
+
+        # Clear any stale IP rules left by previous runs before opening access.
+        stale_ips=$(az acr network-rule list --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --query "ipRules[].ipAddressOrRange" -o tsv)
+        for stale_ip in $stale_ips; do
+          echo "Removing stale ACR IP rule: $stale_ip"
+          retry_command az acr network-rule remove --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --ip-address "$stale_ip" >/dev/null
+        done
+
+        echo "whitelisted_ip=$RUNNER_IP" >> "$GITHUB_OUTPUT"
+
+        echo "Setting ACR defaultAction=Deny and whitelisting $RUNNER_IP/32..."
+        retry_command az acr update --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --default-action Deny >/dev/null
+        retry_command az acr network-rule add --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --ip-address "$RUNNER_IP/32" >/dev/null
+
+        echo "Temporarily enabling publicNetworkAccess on $REGISTRY_NAME..."
+        retry_command az acr update --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --public-network-enabled true >/dev/null
+
+        login_server=$(az acr show --resource-group "$RESOURCE_GROUP" --name "$REGISTRY_NAME" --query loginServer -o tsv)
+        acr_url="https://${login_server}/v2/"
+
+        echo "Waiting for ACR firewall to propagate..."
+        end=$((SECONDS+180))
+        ready=false
+
+        while [ $SECONDS -lt $end ]; do
+          status=$(curl -s -o /dev/null -w "%{http_code}" "$acr_url")
+          if [ "$status" = "401" ]; then
+            echo "✅ ACR firewall propagated! Endpoint returned HTTP $status (Unauthorized - Expected)"
+            ready=true
+            break
+          fi
+          echo "Still waiting for ACR firewall to sync... (HTTP $status). Retrying in 10s..."
+          sleep 10
+        done
+
+        if [ "$ready" = false ]; then
+          echo "::error::ACR firewall propagation timed out after 3 minutes."
+          exit 1
+        fi

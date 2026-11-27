@@ -297,11 +297,11 @@ The Notification Service runs as an Azure Container Apps scheduled job. The init
 
 The deployment uses:
 
-- The shared Azure Container Registry and internal-only Container Apps environment from `terraform/core`.
-- A service-owned storage account and `SupplierWebhooks` table.
-- A user-assigned managed identity for ACR image pulls and Table Storage access.
-- A private Table Storage endpoint and private DNS zone linked to the Container Apps VNet.
-- The existing Log Analytics workspace for container console logs.
+- The shared Azure Container Registry (with a private endpoint in `snet-private-endpoints`) and internal-only Container Apps environment from `terraform/core`.
+- A service-owned storage account (`stnotifications01`), `SupplierWebhooks` table, and Key Vault (`notifkv01`).
+- A user-assigned managed identity for ACR image pulls, Key Vault secrets access, and Table Storage access.
+- Private endpoints in `snet-private-endpoints` for Table Storage and Key Vault, with private DNS zones linked to the shared VNet.
+- The existing Log Analytics workspace and Application Insights (connected via an Azure Monitor Private Link Scope) for container console logs and telemetry.
 
 The Storage Account's public firewall is deny-by-default, with the Azure trusted-services bypass enabled. The job reaches Table Storage through its private endpoint, while the `SupplierWebhooks` table is provisioned through Azure Resource Manager rather than the public Storage data plane. No registry credentials or Table Storage keys are supplied to the application.
 

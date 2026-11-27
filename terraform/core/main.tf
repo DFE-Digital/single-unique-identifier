@@ -297,11 +297,13 @@ resource "azurerm_log_analytics_workspace" "shared" {
 }
 
 resource "azurerm_application_insights" "shared" {
-  name                = local.app_insights_name
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  application_type    = "web"
-  workspace_id        = azurerm_log_analytics_workspace.shared.id
+  name                       = local.app_insights_name
+  resource_group_name        = module.resource_group.name
+  location                   = module.resource_group.location
+  application_type           = "web"
+  workspace_id               = azurerm_log_analytics_workspace.shared.id
+  internet_ingestion_enabled = false
+  internet_query_enabled     = true
 
   tags = local.base_tags
 }
@@ -309,7 +311,7 @@ resource "azurerm_application_insights" "shared" {
 resource "azurerm_monitor_private_link_scope" "shared" {
   name                  = local.monitor_private_link_scope_name
   resource_group_name   = module.resource_group.name
-  ingestion_access_mode = "Open"
+  ingestion_access_mode = "PrivateOnly"
   query_access_mode     = "Open"
 
   tags = local.base_tags
@@ -368,7 +370,11 @@ resource "azurerm_container_registry" "shared" {
   sku                           = var.container_registry_sku
   admin_enabled                 = false
   anonymous_pull_enabled        = false
-  public_network_access_enabled = true
+  public_network_access_enabled = false
+
+  network_rule_set {
+    default_action = "Deny"
+  }
 
   tags = local.base_tags
 }

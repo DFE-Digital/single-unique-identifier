@@ -187,10 +187,31 @@ jobs:
         id: registry
         env:
           REGISTRY_NAME: ${{ format('{0}{1}acr{2}services01', steps.environment.outputs.subscription_prefix, steps.environment.outputs.environment_id, steps.environment.outputs.region_short) }}
+          RESOURCE_GROUP_NAME: ${{ format('{0}{1}rg-{2}-{3}', steps.environment.outputs.subscription_prefix, steps.environment.outputs.environment_id, steps.environment.outputs.region_short, steps.environment.outputs.descriptor) }}
         run: |
-          login_server=$(az acr show --name "$REGISTRY_NAME" --query loginServer --output tsv)
+          login_server=$(az acr show --resource-group "$RESOURCE_GROUP_NAME" --name "$REGISTRY_NAME" --query loginServer --output tsv)
           echo "name=$REGISTRY_NAME" >> "$GITHUB_OUTPUT"
+          echo "resource_group=$RESOURCE_GROUP_NAME" >> "$GITHUB_OUTPUT"
           echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
+
+      - name: Discover Runner IP
+        id: ip
+        run: |
+          echo "Fetching runner IP address..."
+          ipv4=$(curl --fail --silent --show-error https://api.ipify.org)
+          if [[ ! "$ipv4" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+            echo "::error::Failed to resolve a valid IPv4 address. Received: $ipv4"
+            exit 1
+          fi
+          echo "Runner IP is valid: $ipv4"
+          echo "ipv4=$ipv4" >> "$GITHUB_OUTPUT"
+
+      - name: Open Azure Container Registry Access
+        uses: ./.github/actions/open-acr-access
+        with:
+          registry_name: ${{ steps.registry.outputs.name }}
+          resource_group: ${{ steps.registry.outputs.resource_group }}
+          runner_ip: ${{ steps.ip.outputs.ipv4 }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -232,6 +253,13 @@ jobs:
       - name: Publish container image
         if: needs.resolve-image.outputs.push_image == 'true'
         run: docker push ${{ format('{0}/notification-service:{1}', steps.registry.outputs.login_server, needs.resolve-image.outputs.image_tag) }}
+
+      - name: Close Azure Container Registry Access
+        if: always()
+        uses: ./.github/actions/close-acr-access
+        with:
+          registry_name: ${{ steps.registry.outputs.name }}
+          resource_group: ${{ steps.registry.outputs.resource_group }}
 
   validate-container:
     name: Notification Service - container validation

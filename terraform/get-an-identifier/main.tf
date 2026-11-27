@@ -69,6 +69,8 @@ module "key_vault" {
 
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   rbac_authorization_enabled = var.key_vault_use_rbac
+  private_endpoint_subnet_id = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
+  allowed_ip_rules           = var.ci_runner_ip != null ? ["${var.ci_runner_ip}/32"] : []
 
   environment_tag  = var.environment_tag
   product          = var.product
@@ -159,6 +161,8 @@ module "function_app" {
 
   storage_account_name              = local.function_storage_account_name
   app_service_integration_subnet_id = data.terraform_remote_state.core.outputs.function_app_integration_subnet_id
+  private_endpoint_subnet_id        = data.terraform_remote_state.core.outputs.private_endpoints_subnet_id
+  storage_allowed_ip_rules          = var.ci_runner_ip != null ? [var.ci_runner_ip] : []
   log_analytics_workspace_id        = data.terraform_remote_state.core.outputs.log_analytics_workspace_id
 
   environment_tag  = var.environment_tag
