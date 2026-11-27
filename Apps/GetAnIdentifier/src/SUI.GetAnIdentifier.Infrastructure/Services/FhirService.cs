@@ -15,13 +15,14 @@ public class FhirService(ILogger<FhirService> logger, IFhirClientFactory fhirCli
 {
     public async Task<Result<SearchResult>> PerformSearchAsync(
         SearchQuery searchQuery,
+        string odsCode,
         string? correlationId = null,
         CancellationToken ct = default
     )
     {
         try
         {
-            var client = await fhirClientFactory.CreateFhirClientAsync(correlationId, ct);
+            var client = await fhirClientFactory.CreateFhirClientAsync(odsCode, correlationId, ct);
             var searchParams = SearchParamsFactory.Create(searchQuery);
 
             logger.LogInformation("Searching for NHS patient record...");
